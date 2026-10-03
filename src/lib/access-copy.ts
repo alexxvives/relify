@@ -1,0 +1,17 @@
+export const accessCopy = {
+  requestHeading: "Solicitar acceso",
+  requestBody: "Pide acceso a este proyecto. La ficha que ya ves no cambia.",
+  requestAction: "Solicitar acceso",
+  connect: "Conectar",
+  pending: "Solicitud enviada",
+  connected: "Conectado",
+  ndaHeading: "Acuerdo de confidencialidad",
+  ndaBody:
+    "Aceptas no revelar la información de este proyecto. Esta aceptación no muestra la razón social, el CIF, la dirección ni los archivos, y no abre un data room.",
+  acceptAction: "Aceptar NDA",
+  accepted: "NDA aceptado",
+  acceptedBody: "El acuerdo queda registrado. La ficha sigue igual.",
+  forbidden: "Solo un inversor puede solicitar acceso.",
+  missing: "Ese proyecto no está publicado.",
+  ndaRequired: "Primero tienes que solicitar acceso.",
+} as const;

@@ -1,0 +1,20 @@
+---
+description: Server, API, and database boundaries
+globs: src/server/**/*.ts, src/app/api/**/*.ts, src/app/**/actions.ts, prisma/**
+alwaysApply: false
+---
+
+# Server
+
+- Parse every external input with Zod. Use the inferred type as the function argument.
+- Route handlers and Server Actions call a service in `src/server`. They do not call Prisma and they do not encode business rules.
+- Only `src/server/db` constructs the Prisma client.
+- Check the session and role at the start of every mutation and every non-public read.
+- Public project reads go through a serializer that returns the public card fields only.
+- Return a typed error (`code` + `message`). Do not leak SQL, stack traces, or internal ids in the message.
+
+```ts
+const input = createProjectInput.parse(body);
+const project = await createProject({ userId: session.user.id, input });
+return Response.json(project);
+```

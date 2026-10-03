@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  seller
+  investor
+  advisor
+  admin
+
+  @@map("user_role")
+}
+
+enum ProjectStatus {
+  draft
+  published
+
+  @@map("project_status")
+}
+
+enum HeadcountRange {
+  band_1_5
+  band_6_10
+  band_11_20
+  band_21_50
+  band_over_50
+
+  @@map("headcount_range")
+}
+
+enum CnaeRole {
+  principal
+  secondary
+
+  @@map("cnae_role")
+}
+
+enum ActivitySliceKind {
+  capital
+  product
+  client
+
+  @@map("activity_slice_kind")
+}
+
+enum FinancialYearKind {
+  closed
+  forecast
+
+  @@map("financial_year_kind")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  role            UserRole? @map("role")
+  referralSource  String?   @map("referral_source")
+  onboardedAt     DateTime? @map("onboarded_at")
+  lastName        String?   @map("last_name")
+  phone           String?
+  nationalId      String?   @map("national_id")
+  pendingCif      String?   @map("pending_cif")
+  advisorProfile  AdvisorProfile?
+  sessions        Session[]
+  accounts      Account[]
+  projects        Project[]
+  projectAccesses ProjectAccess[]
+  favorites       ProjectFavorite[]
+  notifications   Notification[]
+  advisoryQuotes  AdvisoryQuote[]
+  registryPrefill CompanyRegistryPrefill?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime @map("expires_at")
+  token     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Project {
+  id                  String         @id
+  slug                String         @unique
+  codename            String
+  region              String
+  revenueCents        Int            @map("revenue_cents")
+  ebitdaCents         Int            @map("ebitda_cents")
+  adjustedEbitdaCents Int            @map("adjusted_ebitda_cents")
+  askingPriceCents    Int            @map("asking_price_cents")
+  netDebtCents        Int            @map("net_debt_cents")
+  workingCapitalCents Int            @map("working_capital_cents")
+  netIncomeCents      Int            @map("net_income_cents")
+  legalName           String           @map("legal_name")
+  cif                 String
+  address             String
+  foundedYear         Int?             @map("founded_year")
+  description         String?          @db.Text
+  opexCents           Int?             @map("opex_cents")
+  headcountRange      HeadcountRange?  @map("headcount_range")
+  status              ProjectStatus    @default(published) @map("status")
+  ownerId             String?          @map("owner_id")
+  owner               User?            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  shareholders        Shareholder[]
+  dataRoomFiles       DataRoomFile[]
+  cnaes               ProjectCnae[]
+  activitySlices      ActivitySlice[]
+  years               ProjectYear[]
+  accesses            ProjectAccess[]
+  favorites           ProjectFavorite[]
+
+  @@index([ownerId])
+  @@map("project")
+}
+
+model ProjectCnae {
+  id        String   @id
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code      String
+  role      CnaeRole
+  position  Int
+
+  @@unique([projectId, code])
+  @@index([projectId])
+  @@map("project_cnae")
+}
+
+model ActivitySlice {
+  id          String            @id
+  projectId   String            @map("project_id")
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  kind        ActivitySliceKind
+  position    Int
+  basisPoints Int               @map("basis_points")
+
+  @@unique([projectId, kind, position])
+  @@index([projectId])
+  @@map("activity_slice")
+}
+
+model ProjectYear {
+  id                          String            @id
+  projectId                   String            @map("project_id")
+  project                     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  year                        Int
+  kind                        FinancialYearKind
+  salesCents                  Int?              @map("sales_cents")
+  inventoryChangeCents        Int?              @map("inventory_change_cents")
+  ownUseCents                 Int?              @map("own_use_cents")
+  suppliesCents               Int?              @map("supplies_cents")
+  otherOperatingIncomeCents   Int?              @map("other_operating_income_cents")
+  staffCostsCents             Int?              @map("staff_costs_cents")
+  otherOperatingCostsCents    Int?              @map("other_operating_costs_cents")
+  grantIncomeCents            Int?              @map("grant_income_cents")
+  provisionSurplusCents       Int?              @map("provision_surplus_cents")
+  assetImpairmentCents        Int?              @map("asset_impairment_cents")
+  subsidiaryControlLossCents  Int?              @map("subsidiary_control_loss_cents")
+  negativeDifferenceCents     Int?              @map("negative_difference_cents")
+  otherResultsCents           Int?              @map("other_results_cents")
+  amortizationCents           Int?              @map("amortization_cents")
+  currentAssetsCents          Int?              @map("current_assets_cents")
+  cashCents                   Int?              @map("cash_cents")
+  nonCurrentAssetsCents       Int?              @map("non_current_assets_cents")
+  currentLiabilitiesCents     Int?              @map("current_liabilities_cents")
+  longTermDebtCents           Int?              @map("long_term_debt_cents")
+  nonCurrentLiabilitiesCents  Int?              @map("non_current_liabilities_cents")
+  shortTermDebtCents          Int?              @map("short_term_debt_cents")
+  equityCents                 Int?              @map("equity_cents")
+
+  @@unique([projectId, year])
+  @@index([projectId])
+  @@map("project_year")
+}
+
+model ProjectAccess {
+  id            String    @id
+  projectId     String    @map("project_id")
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  investorId    String    @map("investor_id")
+  investor      User      @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  requestedAt   DateTime  @default(now()) @map("requested_at")
+  ndaAcceptedAt DateTime? @map("nda_accepted_at")
+
+  @@unique([projectId, investorId])
+  @@index([investorId])
+  @@map("project_access")
+}
+
+model ProjectFavorite {
+  id         String   @id
+  projectId  String   @map("project_id")
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  investorId String   @map("investor_id")
+  investor   User     @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([projectId, investorId])
+  @@index([investorId])
+  @@map("project_favorite")
+}
+
+model Notification {
+  id        String    @id
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  href      String?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("notification")
+}
+
+model AdvisoryQuote {
+  id         String   @id
+  investorId String   @map("investor_id")
+  investor   User     @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  services   String[]
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([investorId])
+  @@map("advisory_quote")
+}
+
+model CompanyRegistryPrefill {
+  userId              String          @id @map("user_id")
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cif                 String
+  legalName           String          @map("legal_name")
+  address             String
+  region              String
+  codename            String
+  foundedYear         Int?            @map("founded_year")
+  description         String?         @db.Text
+  principalCnae       String?         @map("principal_cnae")
+  secondaryCnaes      String[]        @default([]) @map("secondary_cnaes")
+  revenueCents        Int?            @map("revenue_cents")
+  ebitdaCents         Int?            @map("ebitda_cents")
+  adjustedEbitdaCents Int?            @map("adjusted_ebitda_cents")
+  headcountRange      HeadcountRange? @map("headcount_range")
+  statementYear       Int?            @map("statement_year")
+
+  @@map("company_registry_prefill")
+}
+
+model AdvisorProfile {
+  userId           String   @id @map("user_id")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName     String   @default("") @map("business_name")
+  nif              String   @default("")
+  postalCode       String   @default("") @map("postal_code")
+  description      String   @default("") @db.Text
+  sectors          String[] @default([])
+  services         Json     @default("[]")
+  closedOperations Json     @default("[]") @map("closed_operations")
+  dealsAnswered    Boolean  @default(false) @map("deals_answered")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("advisor_profile")
+}
+
+model Shareholder {
+  id        String  @id
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+
+  @@index([projectId])
+  @@map("shareholder")
+}
+
+model DataRoomFile {
+  id        String  @id
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileName  String  @map("file_name")
+
+  @@index([projectId])
+  @@map("data_room_file")
+}

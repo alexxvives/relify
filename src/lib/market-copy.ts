@@ -1,0 +1,35 @@
+export const marketCopy = {
+  title: "Empresas",
+  searchLabel: "Buscar",
+  searchPlaceholder: "¿Qué estás buscando?",
+  sortLabel: "Ordenar",
+  revenueLabel: "Facturación",
+  ebitdaLabel: "EBITDA",
+  regionLabel: "Región",
+  regionAll: "Todas",
+  details: "Ver detalles",
+  empty: "Ningún proyecto coincide con esos filtros.",
+  sorts: {
+    codename: "Nombre",
+    revenue: "Facturación",
+    price: "Precio de venta",
+  },
+  revenueBands: {
+    any: "Cualquiera",
+    "under-1m": "Hasta 1 M€",
+    "1m-2m": "De 1 a 2 M€",
+    "over-2m": "Más de 2 M€",
+  },
+  ebitdaBands: {
+    any: "Cualquiera",
+    "under-200k": "Hasta 200.000 €",
+    "200k-400k": "De 200.000 a 400.000 €",
+    "over-400k": "Más de 400.000 €",
+  },
+  metrics: [
+    { key: "revenueCents", label: "Facturación" },
+    { key: "ebitdaCents", label: "EBITDA" },
+    { key: "adjustedEbitdaCents", label: "EBITDA ajustado" },
+    { key: "askingPriceCents", label: "Precio de venta" },
+  ],
+} as const;

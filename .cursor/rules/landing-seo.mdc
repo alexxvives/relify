@@ -1,0 +1,19 @@
+---
+description: SEO requirements for the public landing page
+globs: src/app/page.tsx, src/app/layout.tsx, src/app/robots.ts, src/app/sitemap.ts
+alwaysApply: false
+---
+
+# Landing SEO
+
+`/` is a server-rendered marketing page. Its job is to be indexed and to rank.
+
+- The primary copy is HTML from a Server Component. Do not hide it behind `"use client"` or an image.
+- One `h1`. The title and meta description are unique, in Spanish, and match the visible heading.
+- Set the canonical URL, Open Graph, and Twitter card in the root metadata.
+- Add `src/app/sitemap.ts` and `src/app/robots.ts`. Allow `/`.
+- Add JSON-LD for the site. Use real fields only.
+- Images have `alt`, width, and height. Links use descriptive text.
+- Internal links point at the seller, investor, and advisor explanations.
+- Before treating landing copy as final, research the target queries with the OpenSEO MCP. Ask before a batch over 2,000 credits.
+- Do not put a login wall on `/`.

@@ -1,0 +1,87 @@
+import * as z from "zod";
+import { accessCopy } from "./access-copy";
+import type { UserRoleName } from "./auth-input";
+
+export const projectAccessInputSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+});
+
+export type ProjectAccessInput = z.infer<typeof projectAccessInputSchema>;
+
+export type ProjectAccessView = "none" | "requested" | "accepted";
+
+export type AccessDenial = "forbidden" | "missing" | "nda-required";
+
+type AccessContext = {
+  onboarded: boolean;
+  role: UserRoleName | null;
+  projectStatus: "draft" | "published" | null;
+};
+
+function roleAndProject(input: AccessContext): { ok: true } | { ok: false; code: "forbidden" | "missing" } {
+  if (!input.onboarded || input.role !== "investor") {
+    return { ok: false, code: "forbidden" };
+  }
+
+  if (input.projectStatus !== "published") {
+    return { ok: false, code: "missing" };
+  }
+
+  return { ok: true };
+}
+
+export function requestAccessOutcome(
+  input: AccessContext & { alreadyRequested: boolean },
+): { ok: true; insert: boolean } | { ok: false; code: "forbidden" | "missing" } {
+  const allowed = roleAndProject(input);
+
+  if (!allowed.ok) {
+    return allowed;
+  }
+
+  return { ok: true, insert: !input.alreadyRequested };
+}
+
+export function acceptNdaOutcome(
+  input: AccessContext & { requested: boolean; alreadyAccepted: boolean },
+): { ok: true; stamp: boolean } | { ok: false; code: AccessDenial } {
+  const allowed = roleAndProject(input);
+
+  if (!allowed.ok) {
+    return allowed;
+  }
+
+  if (!input.requested) {
+    return { ok: false, code: "nda-required" };
+  }
+
+  return { ok: true, stamp: !input.alreadyAccepted };
+}
+
+export function ndaAccessGate(
+  input: AccessContext & { ndaAcceptedAt: Date | null },
+): { ok: true } | { ok: false; code: AccessDenial } {
+  const allowed = roleAndProject(input);
+
+  if (!allowed.ok) {
+    return allowed;
+  }
+
+  if (input.ndaAcceptedAt === null) {
+    return { ok: false, code: "nda-required" };
+  }
+
+  return { ok: true };
+}
+
+export function accessMessage(code: AccessDenial): string {
+  if (code === "forbidden") {
+    return accessCopy.forbidden;
+  }
+
+  if (code === "missing") {
+    return accessCopy.missing;
+  }
+
+  return accessCopy.ndaRequired;
+}

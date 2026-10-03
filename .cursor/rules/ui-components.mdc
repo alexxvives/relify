@@ -1,0 +1,28 @@
+---
+description: React and Tailwind conventions for pages and components
+globs: src/app/**/*.tsx, src/components/**/*.tsx
+alwaysApply: false
+---
+
+# UI
+
+Public pages use the Costa tokens in `src/app/globals.css` (`--public-*`): fog, ink, secondary text, and accent, with DM Sans. Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA ajustado, precio). Do not build a dense listings table. The signed-in workspace keeps its own chrome.
+
+- Server Components by default. Add `"use client"` only for state, events, or browser APIs.
+- Style with Tailwind utilities. No CSS-in-JS and no new component library.
+- Primitives stay in `src/components/ui`. Feature components stay in `src/components`.
+- Named exports only.
+- Every input has a visible label. Interactive controls are buttons or links, not clickable divs.
+- Format money in euros from integer cents. Never show a legal company name, CIF, or data-room file on a public page.
+
+```tsx
+// Good: server component, named export, no client boundary
+export function ProjectCard({ project }: { project: PublicProject }) {
+  return (
+    <article>
+      <h2>{project.codename}</h2>
+      <p>{formatEur(project.revenueCents)}</p>
+    </article>
+  );
+}
+```

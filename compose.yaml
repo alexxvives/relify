@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: releva
+      POSTGRES_PASSWORD: releva
+      POSTGRES_DB: releva
+    volumes:
+      - releva_pg:/var/lib/postgresql/data
+
+volumes:
+  releva_pg:
