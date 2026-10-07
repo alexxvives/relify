@@ -106,10 +106,15 @@ export type ThreadMessageView = {
   createdAt: string;
 };
 
+export function personName(name: string, lastName: string | null | undefined): string {
+  return [name, lastName ?? ""].map((part) => part.trim()).filter((part) => part.length > 0).join(" ");
+}
+
 export type SellerThread = {
   accessId: string;
   codename: string;
   label: string;
+  partyName: string;
   messages: ThreadMessageView[];
   steps: DealStep[];
   documents: ProcessFile[];

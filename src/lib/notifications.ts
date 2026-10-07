@@ -19,7 +19,7 @@ export type NotificationView = {
 
 export function noticesForCompany(
   codename: string,
-  items: readonly { title: string; body: string }[],
+  items: readonly { title: string; body: string; unread?: boolean }[],
 ): number {
   const name = codename.trim();
 
@@ -27,7 +27,7 @@ export function noticesForCompany(
     return 0;
   }
 
-  return items.filter((item) => item.body.includes(name) || item.title.includes(name)).length;
+  return items.filter((item) => item.unread === true && (item.body.includes(name) || item.title.includes(name))).length;
 }
 
 export function accessRequestedNotice(codename: string): { title: string; body: string } {

@@ -10,7 +10,7 @@ import { requestProjectAccess } from "@/server/requestProjectAccess";
 import { companyCopy } from "@/lib/company-copy";
 import { investorMessageSchema } from "@/lib/project-message";
 import { postInvestorMessage } from "@/server/postProjectMessage";
-import { updateMeetingNotes } from "@/server/updateMeetingNotes";
+import { approveMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
 import { toggleProjectFavorite, type FavoriteResult } from "@/server/toggleProjectFavorite";
 
 export type ProjectAccessActionState = { ok: true } | { ok: false; message: string } | null;
@@ -119,6 +119,25 @@ export async function updateInvestorMeetingNotesAction(
     slug: typeof slug === "string" ? slug : "",
     messageId: typeof messageId === "string" ? messageId : "",
     notes: typeof notes === "string" ? notes : "",
+  });
+
+  if (result.ok && typeof slug === "string") {
+    revalidatePath(`/proyectos/${slug}`);
+  }
+
+  return result;
+}
+
+export async function approveInvestorMeetingAction(
+  _state: ProjectAccessActionState,
+  formData: FormData,
+): Promise<ProjectAccessActionState> {
+  const user = await currentUser();
+  const slug = formData.get("slug");
+  const messageId = formData.get("messageId");
+  const result = await approveMeeting(user, {
+    slug: typeof slug === "string" ? slug : "",
+    messageId: typeof messageId === "string" ? messageId : "",
   });
 
   if (result.ok && typeof slug === "string") {

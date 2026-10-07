@@ -155,7 +155,6 @@ export function CompanySwitcher({
   }
 
   const currentLabel = sellerCompanyLabel(current.legalName, current.codename);
-  const currentUnread = noticesForCompany(current.codename, notices);
 
   return (
     <div ref={rootRef} className="relative min-w-0">
@@ -170,11 +169,6 @@ export function CompanySwitcher({
         className="inline-flex h-11 max-w-72 items-center gap-2 rounded-full border border-public-line bg-public-paper px-3 text-sm font-medium text-public-ink hover:bg-public-sand"
       >
         <span className="truncate">{currentLabel}</span>
-        {currentUnread > 0 ? (
-          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-public-clay px-1.5 text-[10px] leading-5 font-semibold text-white">
-            {currentUnread > 9 ? "9+" : currentUnread}
-          </span>
-        ) : null}
         <ChevronDownIcon size={16} className={open ? "rotate-180 text-public-muted" : "text-public-muted"} aria-hidden />
       </button>
       {open ? (
@@ -207,8 +201,8 @@ export function CompanySwitcher({
                     >
                       <CheckIcon size={16} className={selected ? "text-[#465ab4]" : "text-transparent"} aria-hidden />
                       <span className="min-w-0 flex-1 truncate">{label}</span>
-                      {unread > 0 ? (
-                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-public-clay px-1.5 text-[10px] leading-5 font-semibold text-white">
+                      {!selected && unread > 0 ? (
+                        <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-public-clay px-1 text-[10px] leading-4 font-semibold text-white">
                           {unread > 9 ? "9+" : unread}
                         </span>
                       ) : null}

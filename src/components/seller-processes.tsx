@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
-import { acceptSellerBuyerAction, postSellerMessageAction, updateSellerMeetingNotesAction } from "@/app/mi-empresa/procesos/actions";
+import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, updateSellerMeetingNotesAction } from "@/app/mi-empresa/procesos/actions";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -116,6 +116,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
               <div className="mt-4">
                 <ProjectThread
                   viewer="seller"
+                  partyName={thread.partyName}
                   messages={chat}
                   action={postSellerMessageAction}
                   hidden={[
@@ -141,6 +142,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             messages={thread.messages}
             action={postSellerMessageAction}
             notesAction={updateSellerMeetingNotesAction}
+            approveAction={approveSellerMeetingAction}
             today={today}
             hidden={[
               { name: "accessId", value: thread.accessId },

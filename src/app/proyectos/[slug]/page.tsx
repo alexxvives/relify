@@ -115,6 +115,7 @@ export default async function ProjectDetailPage({
           documents={messages.threads[0]?.documents ?? []}
           steps={bannerSteps(access, messages.threads[0]?.steps ?? [])}
           today={madridToday(new Date())}
+          partyName={messages.threads[0]?.partyName ?? ""}
           initialTab={readTab(query.tab)}
         />
       </AppShell>

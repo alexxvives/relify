@@ -9,7 +9,7 @@ import { sellerMessageSchema } from "@/lib/project-message";
 import { acceptBuyer } from "@/server/acceptBuyer";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { postSellerMessage } from "@/server/postProjectMessage";
-import { updateMeetingNotes } from "@/server/updateMeetingNotes";
+import { approveMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
 import { recordSuccessFee } from "@/server/recordSuccessFee";
 
 export type SellerMessageState = { ok: true; message?: string } | { ok: false; message: string } | null;
@@ -70,6 +70,32 @@ export async function updateSellerMeetingNotesAction(
     accessId: readText(formData, "accessId"),
     messageId: readText(formData, "messageId"),
     notes: readText(formData, "notes"),
+  });
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/procesos");
+  }
+
+  return result;
+}
+
+export async function approveSellerMeetingAction(
+  _state: SellerMessageState,
+  formData: FormData,
+): Promise<SellerMessageState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  if (!user.onboarded) {
+    redirect("/onboarding");
+  }
+
+  const result = await approveMeeting(user, {
+    accessId: readText(formData, "accessId"),
+    messageId: readText(formData, "messageId"),
   });
 
   if (result.ok) {

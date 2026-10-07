@@ -1,7 +1,9 @@
 import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
-import { labelAccesses, toThreadMessage, type MessageCounts, type SellerThread } from "@/lib/project-message";
+import { companyCopy } from "@/lib/company-copy";
+import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread } from "@/lib/project-message";
+import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
@@ -87,6 +89,14 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     const openKey = new Set(open.map((access) => `${access.projectId}:${access.investorId}`));
     const visibleMessages = messages.filter((message) => openKey.has(`${message.projectId}:${message.investorId}`));
     const closedProjects = new Set(fees.map((fee) => fee.projectId));
+    const people =
+      open.length === 0
+        ? []
+        : await prisma.user.findMany({
+            where: { id: { in: [...new Set(open.map((access) => access.investorId))] } },
+            select: { id: true, name: true, lastName: true },
+          });
+    const nameById = new Map(people.map((person) => [person.id, personName(person.name, person.lastName)]));
     const threads = open.map((access) => {
       const threadMessages = visibleMessages.filter(
         (message) => message.projectId === access.projectId && message.investorId === access.investorId,
@@ -96,6 +106,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         accessId: access.id,
         codename: codenameById.get(access.projectId) ?? "",
         label: access.label,
+        partyName: nameById.get(access.investorId) || sellerCopy.investorParty,
         messages: threadMessages.map((message) =>
           toThreadMessage({
             id: message.id,
@@ -141,7 +152,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
 
   const project = await prisma.project.findFirst({
     where: { slug },
-    select: { id: true, status: true, codename: true },
+    select: { id: true, status: true, codename: true, ownerId: true },
   });
   const access = project
     ? await prisma.projectAccess.findUnique({
@@ -160,7 +171,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     return { viewer: "investor", threads: [], counts: emptyCounts };
   }
 
-  const [messages, grant, fee, shareRows] = await Promise.all([
+  const [messages, grant, fee, shareRows, owner] = await Promise.all([
     prisma.projectMessage.findMany({
       where: { projectId: project.id, investorId: user.id },
       select: { id: true, author: true, kind: true, body: true, createdAt: true },
@@ -178,6 +189,12 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
       where: { investorId: user.id, file: { projectId: project.id } },
       select: { fileId: true, investorId: true },
     }),
+    project.ownerId
+      ? prisma.user.findUnique({
+          where: { id: project.ownerId },
+          select: { name: true, lastName: true },
+        })
+      : Promise.resolve(null),
   ]);
   const files =
     grant === null
@@ -208,6 +225,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         accessId: "",
         codename: project.codename,
         label: project.codename,
+        partyName: owner ? personName(owner.name, owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
         messages: messages.map((message) =>
           toThreadMessage({
             id: message.id,

@@ -24,6 +24,7 @@ export function ProjectThread({
   pendingLabel,
   savedLabel,
   invalidFallback,
+  partyName,
 }: {
   viewer: "seller" | "investor";
   messages: ThreadMessageView[];
@@ -34,8 +35,10 @@ export function ProjectThread({
   pendingLabel: string;
   savedLabel: string;
   invalidFallback: string;
+  partyName?: string;
 }) {
-  const party = threadPartyLabel(viewer);
+  const named = partyName?.trim() ?? "";
+  const party = named.length > 0 ? named : threadPartyLabel(viewer);
   const you = viewer === "seller" ? sellerCopy.you : companyCopy.you;
 
   return (

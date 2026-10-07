@@ -6,6 +6,7 @@ import {
   labelAccesses,
   sellerReplyGate,
   threadPartyLabel,
+  personName,
   toThreadMessage,
 } from "./project-message";
 
@@ -54,5 +55,7 @@ describe("thread views", () => {
     expect(labeled.find((row) => row.id === "later")?.label).toBe("Inversor 2");
     expect(labeled.find((row) => row.id === "other")?.label).toBe("Inversor 1");
     expect(JSON.stringify(labeled)).not.toContain("@");
+    expect(personName("Laura", "Vidal")).toBe("Laura Vidal");
+    expect(personName("Elena", null)).toBe("Elena");
   });
 });

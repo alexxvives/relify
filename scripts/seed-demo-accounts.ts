@@ -320,14 +320,13 @@ async function main(): Promise<void> {
       body: "Sí. Las cuatro personas de tienda quieren continuar.",
       createdAt: new Date("2026-09-22T16:00:00.000Z"),
     },
-    {
-      id: "demo-msg-3",
-      author: "investor" as const,
-      kind: "meeting" as const,
-      body: "Propongo una reunión la semana que viene para ver el obrador.",
-      createdAt: new Date("2026-09-24T11:00:00.000Z"),
-    },
   ];
+
+  await prisma.projectMessage.deleteMany({
+    where: {
+      OR: [{ id: "demo-msg-3" }, { body: "Propongo una reunión la semana que viene para ver el obrador." }],
+    },
+  });
 
   for (const message of messages) {
     await prisma.projectMessage.upsert({

@@ -6,7 +6,7 @@ import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { postInvestorMessageAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
+import { approveInvestorMeetingAction, postInvestorMessageAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ConnectControl, ProjectAccessPanel } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
@@ -39,6 +39,7 @@ export function InvestorProject({
   documents,
   steps,
   today,
+  partyName,
   initialTab = "company",
 }: {
   project: InvestorProjectProfile;
@@ -50,6 +51,7 @@ export function InvestorProject({
   documents: ProcessFile[];
   steps: DealStep[];
   today: string;
+  partyName: string;
   initialTab?: "company" | "questions" | "meetings";
 }) {
   const locked = access !== "accepted";
@@ -88,6 +90,7 @@ export function InvestorProject({
               <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
                 <ProjectThread
                   viewer="investor"
+                  partyName={partyName}
                   messages={chat}
                   action={postInvestorMessageAction}
                   hidden={[
@@ -116,6 +119,7 @@ export function InvestorProject({
               messages={messages}
               action={postInvestorMessageAction}
               notesAction={updateInvestorMeetingNotesAction}
+              approveAction={approveInvestorMeetingAction}
               today={today}
               columns
               hidden={[

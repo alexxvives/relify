@@ -6,12 +6,14 @@ import { DeleteIcon } from "@/components/ui/delete";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { PlusIcon } from "@/components/ui/plus";
+import { SquarePenIcon } from "@/components/ui/square-pen";
 import { UploadIcon } from "@/components/ui/upload";
 import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import {
   createDataRoomFolderAction,
   deleteDataRoomFileAction,
   deleteDataRoomFolderAction,
+  renameDataRoomFolderAction,
   shareDataRoomFileFormAction,
   storeDataRoomFileAction,
   type DataRoomActionState,
@@ -254,6 +256,85 @@ function FileDelete({ id }: { id: string }) {
   );
 }
 
+function FolderCard({ name, count, onOpen }: { name: string; count: number; onOpen: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  const [state, action, pending] = useActionState(renameDataRoomFolderAction, null);
+  const [closed, setClosed] = useState<DataRoomActionState>(null);
+
+  if (state?.ok && state !== closed) {
+    setClosed(state);
+    setEditing(false);
+  }
+
+  return (
+    <li className="relative">
+      {editing ? (
+        <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-4">
+          <input type="hidden" name="from" value={name} />
+          <FolderOpenIcon size={40} className="text-[#d5dbe3]" aria-hidden />
+          <input
+            name="name"
+            required
+            maxLength={40}
+            value={value}
+            aria-label={sellerCopy.folderName}
+            onChange={(event) => {
+              setValue(event.target.value);
+            }}
+            className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setValue(name);
+                setEditing(false);
+              }}
+              className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
+            >
+              {sellerCopy.meetingsCancel}
+            </button>
+            <button
+              type="submit"
+              disabled={pending || value.trim() === name}
+              className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
+            >
+              {sellerCopy.folderRename}
+            </button>
+          </div>
+          <ActionNote state={state} saved={sellerCopy.folderRenamed} />
+        </form>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
+          >
+            <FolderOpenIcon size={64} className="text-[#d5dbe3]" aria-hidden />
+            <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
+            <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
+          </button>
+          <div className="absolute top-3 right-3 flex items-center">
+            <button
+              type="button"
+              aria-label={sellerCopy.folderRename}
+              onClick={() => {
+                setEditing(true);
+              }}
+              className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
+            >
+              <SquarePenIcon size={16} aria-hidden />
+            </button>
+            <FolderDelete name={name} />
+          </div>
+        </>
+      )}
+    </li>
+  );
+}
+
 export function SellerDocuments({
   files,
   folders,
@@ -267,77 +348,76 @@ export function SellerDocuments({
   const [namingFolder, setNamingFolder] = useState(false);
   const [openFile, setOpenFile] = useState<OwnerFileView | null>(null);
   const [createState, createAction, createPending] = useActionState(createDataRoomFolderAction, null);
+  const [createClosed, setCreateClosed] = useState<DataRoomActionState>(null);
   const inFolder = files.filter((file) => file.folder === folder);
+
+  if (createState?.ok && createState !== createClosed) {
+    setCreateClosed(createState);
+    setNamingFolder(false);
+  }
 
   return (
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
-        <>
-          {namingFolder ? (
-            <form action={createAction} className="flex flex-wrap items-end gap-2 px-2">
-              <label className="text-sm font-medium text-[#1c2740]">
-                {sellerCopy.folderName}
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <li>
+            {namingFolder ? (
+              <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
                 <input
                   name="name"
                   required
                   maxLength={40}
-                  className="mt-1 h-11 w-64 rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm"
+                  autoFocus
+                  aria-label={sellerCopy.folderName}
+                  placeholder={sellerCopy.folderName}
+                  className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
                 />
-              </label>
-              <button
-                type="submit"
-                disabled={createPending}
-                className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-              >
-                {sellerCopy.folderCreate}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNamingFolder(false);
-                }}
-                className="inline-flex h-11 items-center rounded-full border border-[#e1e6ee] px-4 text-sm font-medium"
-              >
-                {sellerCopy.meetingsCancel}
-              </button>
-              <ActionNote state={createState} saved={sellerCopy.folderSaved} />
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setNamingFolder(true);
-              }}
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white"
-            >
-              <PlusIcon size={16} aria-hidden />
-              {sellerCopy.folderCreate}
-            </button>
-          )}
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {folders.map((name) => {
-              const count = files.filter((file) => file.folder === name).length;
-              return (
-                <li key={name} className="relative">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setFolder(name);
+                      setNamingFolder(false);
                     }}
-                    className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
+                    className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
                   >
-                    <FolderOpenIcon size={64} className="text-[#d5dbe3]" aria-hidden />
-                    <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
-                    <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
+                    {sellerCopy.meetingsCancel}
                   </button>
-                  <div className="absolute top-3 right-3">
-                    <FolderDelete name={name} />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </>
+                  <button
+                    type="submit"
+                    disabled={createPending}
+                    className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
+                  >
+                    {sellerCopy.folderCreate}
+                  </button>
+                </div>
+                <ActionNote state={createState} saved={sellerCopy.folderSaved} />
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setNamingFolder(true);
+                }}
+                className="flex h-44 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] text-[#465ab4] hover:bg-[#f4f7ff]"
+              >
+                <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#eef2ff]">
+                  <PlusIcon size={22} aria-hidden />
+                </span>
+                <span className="text-sm font-semibold">{sellerCopy.folderCreate}</span>
+              </button>
+            )}
+          </li>
+          {folders.map((name) => (
+            <FolderCard
+              key={name}
+              name={name}
+              count={files.filter((file) => file.folder === name).length}
+              onOpen={() => {
+                setFolder(name);
+              }}
+            />
+          ))}
+        </ul>
       ) : (
         <div className="px-2 pb-4">
           <div className="flex items-center justify-between gap-3">

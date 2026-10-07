@@ -103,13 +103,13 @@ function useGrow(): number {
 
 function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; progress: number; cards: boolean }) {
   const hasEbitda = points.some((point) => point.ebitdaCents !== null);
+  const frame = chartFrame(hasEbitda ? 2 : 1, !cards);
   const width = 720;
-  const height = 320;
+  const height = frame.height;
   const padLeft = 78;
   const padRight = 16;
-  const frameTop = 4;
-  const legendBand = 36;
-  const padTop = frameTop + legendBand + 8;
+  const frameTop = frame.frameTop;
+  const padTop = frame.padTop;
   const padBottom = 32;
   const plotHeight = height - padTop - padBottom;
   const values = points.flatMap((point) => {
@@ -130,6 +130,46 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
   const zero = yOf(0);
   const groupWidth = (width - padLeft - padRight) / Math.max(points.length, 1);
   const barWidth = hasEbitda ? 28 : 44;
+  const groups = points.map((point, index) => {
+    const center = padLeft + groupWidth * index + groupWidth / 2;
+    const salesX = hasEbitda ? center - barWidth - 6 : center - barWidth / 2;
+    const ebitdaX = center + 6;
+    const bars: PlotBar[] = [];
+    if (point.salesCents !== null) {
+      const box = barBox(zero, point.salesCents, yOf, progress);
+      bars.push({
+        x: salesX,
+        width: barWidth,
+        top: box.top,
+        height: box.height,
+        value: formatCompactEur(point.salesCents),
+        fill: "#465ab4",
+        muted: point.forecast,
+        color: "#465ab4",
+      });
+    }
+    if (point.ebitdaCents !== null) {
+      const box = barBox(zero, point.ebitdaCents, yOf, progress);
+      bars.push({
+        x: ebitdaX,
+        width: barWidth,
+        top: box.top,
+        height: box.height,
+        value: formatCompactEur(point.ebitdaCents),
+        fill: "#17663a",
+        muted: point.forecast,
+        color: "#17663a",
+      });
+    }
+    return { point, center, bars };
+  });
+  const labels = cards
+    ? []
+    : placeGroupLabels(
+        groups.map((group) => group.bars),
+        frame.labelCeiling,
+        groupWidth,
+      );
 
   const legend = [
     { label: sellerCopy.financeSales, color: "#465ab4" },
@@ -151,7 +191,7 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
         style={{ aspectRatio: `${width} / ${height}` }}
         aria-hidden
       >
-        <rect x={padLeft} y={frameTop} width={width - padLeft - padRight} height={legendBand + plotHeight} rx="16" fill="#f7f8fc" />
+        <rect x={padLeft} y={frameTop} width={width - padLeft - padRight} height={padTop - frameTop + plotHeight} rx="16" fill="#f7f8fc" />
         {ticks.map((tick) => {
           const y = yOf(tick);
           const axis = tick === 0;
@@ -171,60 +211,24 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
             </g>
           );
         })}
-        {points.map((point, index) => {
-          const center = padLeft + groupWidth * index + groupWidth / 2;
-          const salesX = hasEbitda ? center - barWidth - 6 : center - barWidth / 2;
-          const ebitdaX = center + 6;
-          const bars: PlotBar[] = [];
-          if (point.salesCents !== null) {
-            const box = barBox(zero, point.salesCents, yOf, progress);
-            bars.push({
-              x: salesX,
-              width: barWidth,
-              top: box.top,
-              height: box.height,
-              preferredY: labelY(point.salesCents, box, padTop),
-              value: formatCompactEur(point.salesCents),
-              fill: "#465ab4",
-              muted: point.forecast,
-              color: "#465ab4",
-            });
-          }
-          if (point.ebitdaCents !== null) {
-            const box = barBox(zero, point.ebitdaCents, yOf, progress);
-            bars.push({
-              x: ebitdaX,
-              width: barWidth,
-              top: box.top,
-              height: box.height,
-              preferredY: labelY(point.ebitdaCents, box, padTop),
-              value: formatCompactEur(point.ebitdaCents),
-              fill: "#17663a",
-              muted: point.forecast,
-              color: "#17663a",
-            });
-          }
-          const labels = placeLabels(bars, padTop + 14);
+        {groups.map((group, groupIndex) => {
           return (
-            <g key={point.year}>
-              {bars.map((bar) => (
+            <g key={group.point.year}>
+              {group.bars.map((bar) => (
                 <Bar key={`${bar.value}-${bar.x}`} x={bar.x} box={{ top: bar.top, height: bar.height }} width={bar.width} color={bar.color} muted={bar.muted} />
               ))}
-              {bars.map((bar, barIndex) => {
-                const spot = labels[barIndex];
-                return (
+              {(labels[groupIndex] ?? []).map((spot) => (
                 <BarValue
-                  key={`${bar.value}-label`}
-                  x={bar.x + bar.width / 2 + (spot?.dx ?? 0)}
-                  y={spot?.y ?? bar.preferredY}
-                  muted={bar.muted}
-                  value={bar.value}
-                  fill={bar.fill}
+                  key={`${group.point.year}-${spot.fill}-${spot.value}`}
+                  x={group.center}
+                  y={spot.y}
+                  muted={spot.muted}
+                  value={spot.value}
+                  fill={spot.fill}
                 />
-                );
-              })}
-              <text x={center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
-                {point.forecast ? `${point.year}*` : point.year}
+              ))}
+              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
+                {group.point.forecast ? `${group.point.year}*` : group.point.year}
               </text>
             </g>
           );
@@ -278,13 +282,13 @@ export function GroupedYearBars({
     return null;
   }
 
+  const frame = chartFrame(drawn.length, !showCards);
   const width = 720;
-  const height = 320;
+  const height = frame.height;
   const padLeft = axis === "right" ? 16 : 78;
   const padRight = axis === "right" ? 78 : 16;
-  const frameTop = 4;
-  const legendBand = drawn.length > 3 ? 52 : 36;
-  const padTop = frameTop + legendBand + 8;
+  const frameTop = frame.frameTop;
+  const padTop = frame.padTop;
   const padBottom = 32;
   const plotHeight = height - padTop - padBottom;
   const values = drawn.flatMap((item) => item.values.flatMap((value) => (value === null ? [] : [value])));
@@ -297,6 +301,38 @@ export function GroupedYearBars({
   const groupWidth = (width - padLeft - padRight) / Math.max(years.length, 1);
   const barWidth = Math.min(28, Math.max(10, (groupWidth - 16) / drawn.length - 4));
   const cluster = drawn.length * barWidth + (drawn.length - 1) * 4;
+  const groups = years.map((year, index) => {
+    const center = padLeft + groupWidth * index + groupWidth / 2;
+    const origin = center - cluster / 2;
+    const bars = drawn.flatMap((item, seriesIndex) => {
+      const value = item.values[index] ?? null;
+      if (value === null) {
+        return [];
+      }
+      const box = barBox(zero, value, yOf, progress);
+      const x = origin + seriesIndex * (barWidth + 4);
+      return [
+        {
+          x,
+          width: barWidth,
+          top: box.top,
+          height: box.height,
+          value: formatCompactEur(value),
+          fill: item.color,
+          muted: year.forecast,
+          color: item.color,
+        },
+      ];
+    });
+    return { year, center, bars };
+  });
+  const labels = showCards
+    ? []
+    : placeGroupLabels(
+        groups.map((group) => group.bars),
+        frame.labelCeiling,
+        groupWidth,
+      );
 
   return (
     <div className={paired ? undefined : "mt-6"}>
@@ -317,7 +353,7 @@ export function GroupedYearBars({
         style={{ aspectRatio: `${width} / ${height}` }}
         aria-hidden
       >
-        <rect x={padLeft} y={frameTop} width={width - padLeft - padRight} height={legendBand + plotHeight} rx="16" fill="#f7f8fc" />
+        <rect x={padLeft} y={frameTop} width={width - padLeft - padRight} height={padTop - frameTop + plotHeight} rx="16" fill="#f7f8fc" />
         {ticks.map((tick) => {
           const y = yOf(tick);
           const baseline = tick === 0;
@@ -343,51 +379,24 @@ export function GroupedYearBars({
             </g>
           );
         })}
-        {years.map((year, index) => {
-          const center = padLeft + groupWidth * index + groupWidth / 2;
-          const origin = center - cluster / 2;
-          const bars = drawn.flatMap((item, seriesIndex) => {
-            const value = item.values[index] ?? null;
-            if (value === null) {
-              return [];
-            }
-            const box = barBox(zero, value, yOf, progress);
-            const x = origin + seriesIndex * (barWidth + 4);
-            return [
-              {
-                x,
-                width: barWidth,
-                top: box.top,
-                height: box.height,
-                preferredY: labelY(value, box, padTop),
-                value: formatCompactEur(value),
-                fill: item.color,
-                muted: year.forecast,
-                color: item.color,
-              },
-            ];
-          });
-          const labels = placeLabels(bars, padTop + 14);
+        {groups.map((group, groupIndex) => {
           return (
-            <g key={year.year}>
-              {bars.map((bar) => (
+            <g key={group.year.year}>
+              {group.bars.map((bar) => (
                 <Bar key={`${bar.fill}-${bar.x}`} x={bar.x} box={{ top: bar.top, height: bar.height }} width={bar.width} color={bar.color} muted={bar.muted} />
               ))}
-              {bars.map((bar, barIndex) => {
-                const spot = labels[barIndex];
-                return (
+              {(labels[groupIndex] ?? []).map((spot) => (
                 <BarValue
-                  key={`${bar.fill}-label`}
-                  x={bar.x + bar.width / 2 + (spot?.dx ?? 0)}
-                  y={spot?.y ?? bar.preferredY}
-                  muted={bar.muted}
-                  value={bar.value}
-                  fill={bar.fill}
+                  key={`${group.year.year}-${spot.fill}-${spot.value}`}
+                  x={group.center}
+                  y={spot.y}
+                  muted={spot.muted}
+                  value={spot.value}
+                  fill={spot.fill}
                 />
-                );
-              })}
-              <text x={center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
-                {year.forecast ? `${year.year}*` : year.year}
+              ))}
+              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
+                {group.year.forecast ? `${group.year.year}*` : group.year.year}
               </text>
             </g>
           );
@@ -456,16 +465,11 @@ function axisTicks(min: number, max: number): number[] {
   return ticks;
 }
 
-function labelY(cents: number, box: { top: number; height: number }, padTop: number): number {
-  return cents < 0 ? box.top + box.height + 14 : Math.max(box.top - 8, padTop + 16);
-}
-
 type PlotBar = {
   x: number;
   width: number;
   top: number;
   height: number;
-  preferredY: number;
   value: string;
   fill: string;
   muted: boolean;
@@ -473,72 +477,38 @@ type PlotBar = {
 };
 
 function textWidth(value: string): number {
-  return Math.max(36, value.length * 6.6);
+  return Math.max(48, Math.ceil(value.length * 7.2));
 }
 
-type PlacedLabel = { y: number; dx: number };
+type GroupLabel = { y: number; value: string; fill: string; muted: boolean };
 
-function labelBox(bar: PlotBar, y: number, dx: number) {
-  const width = textWidth(bar.value);
-  const center = bar.x + bar.width / 2 + dx;
-  return { left: center - width / 2, right: center + width / 2, top: y - 14, bottom: y + 4 };
-}
-
-function boxesOverlap(
-  left: { left: number; right: number; top: number; bottom: number },
-  right: { left: number; right: number; top: number; bottom: number },
-): boolean {
-  return left.left < right.right && left.right > right.left && left.top < right.bottom && left.bottom > right.top;
-}
-
-function placeLabels(bars: PlotBar[], ceiling: number): PlacedLabel[] {
-  const order = bars
-    .map((_, index) => index)
-    .sort((left, right) => (bars[left]?.preferredY ?? 0) - (bars[right]?.preferredY ?? 0));
-  const placed: PlacedLabel[] = bars.map((bar) => ({ y: bar.preferredY, dx: 0 }));
-
-  for (const index of order) {
-    const bar = bars[index];
-    if (!bar) {
-      continue;
+function placeGroupLabels(groups: PlotBar[][], ceiling: number, groupWidth: number): GroupLabel[][] {
+  return groups.map((bars) => {
+    const widest = bars.reduce((max, bar) => Math.max(max, textWidth(bar.value)), 0);
+    if (widest > groupWidth - 8) {
+      return [];
     }
 
-    let y = bar.preferredY;
-    let dx = 0;
-    const earlier = order.slice(0, order.indexOf(index));
+    return bars.map((bar, index) => ({
+      y: ceiling + index * 16,
+      value: bar.value,
+      fill: bar.fill,
+      muted: bar.muted,
+    }));
+  });
+}
 
-    for (let attempt = 0; attempt < 28; attempt += 1) {
-      const box = labelBox(bar, y, dx);
-      const hitsBar = bars.some((other, otherIndex) => {
-        if (otherIndex === index || other.height <= 0) {
-          return false;
-        }
-
-        return box.left < other.x + other.width && box.right > other.x && box.top < other.top + other.height && box.bottom > other.top;
-      });
-      const hitsLabel = earlier.some((otherIndex) => {
-        const other = bars[otherIndex];
-        const spot = placed[otherIndex];
-        return other !== undefined && spot !== undefined && boxesOverlap(box, labelBox(other, spot.y, spot.dx));
-      });
-
-      if (!hitsBar && !hitsLabel) {
-        break;
-      }
-
-      if (y - 16 >= ceiling) {
-        y -= 16;
-      } else {
-        const step = 20 * (Math.floor(attempt / 2) + 1);
-        const neighbor = bars[index === 0 ? 1 : index - 1];
-        dx = neighbor && bar.x > neighbor.x ? step : -step;
-      }
-    }
-
-    placed[index] = { y: Math.max(y, ceiling), dx };
-  }
-
-  return placed;
+function chartFrame(seriesCount: number, labeled: boolean) {
+  const labelLane = labeled ? 8 + 16 * seriesCount : 8;
+  const frameTop = 4;
+  const legendBand = seriesCount > 3 ? 52 : 36;
+  return {
+    frameTop,
+    legendBand,
+    padTop: frameTop + legendBand + labelLane,
+    labelCeiling: frameTop + legendBand + 14,
+    height: 292 + (labeled ? labelLane : 0),
+  };
 }
 
 function BarValue({ x, y, value, muted, fill = "#1c2740" }: { x: number; y: number; value: string; muted: boolean; fill?: string }) {

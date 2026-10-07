@@ -20,7 +20,7 @@ export function CompanyBanner({
 
   return (
     <header
-      className="relative overflow-hidden rounded-[1.75rem] px-6 py-8 text-white sm:px-8 sm:py-10"
+      className="relative overflow-hidden rounded-[1.75rem] px-6 py-[4.625rem] text-white sm:px-8 sm:py-[5.125rem]"
       style={{
         background:
           "radial-gradient(140% 120% at -8% -20%, #ffffff 0%, #d5e0ff 16%, rgba(70, 90, 180, 0.55) 42%, #05070f 72%)",

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { grantDataRoomSchema, storeDataRoomFileSchema } from "@/lib/data-room";
 import { sellerCopy } from "@/lib/seller-copy";
-import { createDataRoomFolder, deleteDataRoomFolder } from "@/server/dataRoomFolders";
+import { createDataRoomFolder, deleteDataRoomFolder, renameDataRoomFolder } from "@/server/dataRoomFolders";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { grantDataRoomAccess } from "@/server/grantDataRoomAccess";
 import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
@@ -95,6 +95,20 @@ export async function createDataRoomFolderAction(
 ): Promise<DataRoomActionState> {
   const user = await sellerUser();
   const result = await createDataRoomFolder(user, readText(formData, "name"));
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/documentos");
+  }
+
+  return result;
+}
+
+export async function renameDataRoomFolderAction(
+  _state: DataRoomActionState,
+  formData: FormData,
+): Promise<DataRoomActionState> {
+  const user = await sellerUser();
+  const result = await renameDataRoomFolder(user, readText(formData, "from"), readText(formData, "name"));
 
   if (result.ok) {
     revalidatePath("/mi-empresa/documentos");

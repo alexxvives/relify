@@ -66,6 +66,68 @@ export async function createDataRoomFolder(user: CurrentUser, name: string): Pro
   return { ok: true };
 }
 
+export async function renameDataRoomFolder(user: CurrentUser, fromName: string, toName: string): Promise<DataRoomWriteResult> {
+  const from = folderNameSchema.safeParse(fromName);
+  const to = folderNameSchema.safeParse(toName);
+  const project = await ownedProject(user);
+
+  if (!from.success || !to.success || !project) {
+    return { ok: false, message: from.success && to.success ? sellerCopy.documentForbidden : sellerCopy.folderInvalid };
+  }
+
+  if (from.data === to.data) {
+    return { ok: true };
+  }
+
+  const records = await prisma.dataRoomFolder.findMany({
+    where: { projectId: project.id },
+    select: { id: true, name: true, hidden: true },
+  });
+  const files = await prisma.dataRoomFile.findMany({
+    where: { projectId: project.id },
+    select: { folder: true },
+  });
+  const visible = visibleFolderNames({ records, usedByFiles: files.map((file) => file.folder) });
+
+  if (!visible.includes(from.data)) {
+    return { ok: false, message: dataRoomMessage("missing") };
+  }
+
+  if (visible.includes(to.data)) {
+    return { ok: false, message: sellerCopy.folderExists };
+  }
+
+  await prisma.dataRoomFile.updateMany({
+    where: { projectId: project.id, folder: from.data },
+    data: { folder: to.data },
+  });
+
+  if (isDefaultFolder(from.data)) {
+    await prisma.dataRoomFolder.upsert({
+      where: { projectId_name: { projectId: project.id, name: from.data } },
+      update: { hidden: true },
+      create: { id: randomUUID(), projectId: project.id, name: from.data, hidden: true },
+    });
+  } else {
+    await prisma.dataRoomFolder.deleteMany({ where: { projectId: project.id, name: from.data } });
+  }
+
+  const target = await prisma.dataRoomFolder.findUnique({
+    where: { projectId_name: { projectId: project.id, name: to.data } },
+    select: { id: true },
+  });
+
+  if (target) {
+    await prisma.dataRoomFolder.update({ where: { id: target.id }, data: { hidden: false } });
+  } else if (!isDefaultFolder(to.data)) {
+    await prisma.dataRoomFolder.create({
+      data: { id: randomUUID(), projectId: project.id, name: to.data, hidden: false },
+    });
+  }
+
+  return { ok: true };
+}
+
 export async function deleteDataRoomFolder(user: CurrentUser, name: string): Promise<DataRoomWriteResult> {
   const parsed = folderNameSchema.safeParse(name);
   const project = await ownedProject(user);

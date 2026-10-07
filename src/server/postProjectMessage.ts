@@ -8,7 +8,7 @@ import {
   type InvestorMessageInput,
   type SellerMessageInput,
 } from "@/lib/project-message";
-import { questionSentNotice, sellerReplyNotice } from "@/lib/notifications";
+import { sellerReplyNotice } from "@/lib/notifications";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -54,9 +54,6 @@ export async function postInvestorMessage(
       body: input.body,
     },
   });
-  const href = `/proyectos/${project.slug}?tab=${messageTab[input.kind]}`;
-  await recordNotification({ userId: user.id, ...questionSentNotice(project.codename), href });
-
   if (project.ownerId && project.ownerId !== user.id) {
     await recordNotification({
       userId: project.ownerId,

@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — Chat names and AnimateIcons
+
+The thread shows the other person's name and surname. The process list stays Inversor 1, and a seller notice stays "Un inversor". Company legal name, CIF, and address stay off those reads.
+
+Signed-in hover icons come from `@animateicons/react` Lucide, one file per icon. This replaces the copied lucide-animated components. The landing keeps `lucide-react`.
+
 ## 2026-10-07 — Local data-room bytes, R2 later
 
 A seller upload writes the file bytes under `data/data-room`, keyed by the file id. Postgres keeps the folder and the display name. R2 is still not created. The owner, and an investor who was granted that file, can open those bytes. A name saved before this change has nothing to open until it is uploaded again.

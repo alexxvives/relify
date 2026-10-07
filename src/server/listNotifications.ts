@@ -9,7 +9,7 @@ export async function listNotifications(userId: string): Promise<NotificationVie
     select: { id: true, title: true, body: true, href: true, readAt: true },
   });
 
-  return rows.map((row) => ({
+  return rows.filter((row) => row.title !== "Pregunta enviada").map((row) => ({
     id: row.id,
     title: row.title,
     body: row.body,

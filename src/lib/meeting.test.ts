@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attachmentNames, madridToday, meetingBody, meetingIsPast, readMeeting, withMeetingNotes } from "./meeting";
+import { attachmentNames, madridToday, meetingBody, meetingIsPast, readMeeting, withMeetingNotes, withMeetingStatus } from "./meeting";
 
 describe("meetingBody", () => {
   it("keeps a day range and an hour range", () => {
@@ -17,7 +17,9 @@ describe("meetingBody", () => {
       to: "2026-10-16",
       fromTime: "10:00",
       toTime: "12:30",
+      description: "",
       notes: "Primera llamada",
+      status: "scheduled",
     });
   });
 
@@ -47,10 +49,27 @@ describe("withMeetingNotes", () => {
 
     expect(withMeetingNotes(body ?? "", "Cerrada")).toContain("Cerrada");
     expect(withMeetingNotes("hola", "Cerrada")).toBeNull();
-    expect(meetingIsPast(readMeeting(body ?? "") ?? { from: "", to: "", fromTime: "", toTime: "", notes: "" }, "2026-10-07")).toBe(
+    expect(meetingIsPast(readMeeting(body ?? "") ?? { from: "", to: "", fromTime: "", toTime: "", description: "", notes: "", status: "scheduled" }, "2026-10-07")).toBe(
       true,
     );
     expect(madridToday(new Date("2026-10-07T22:30:00.000Z"))).toBe("2026-10-08");
+  });
+});
+
+describe("meeting proposal", () => {
+  it("keeps one day, a description, and private notes until it is accepted", () => {
+    const body = meetingBody({
+      from: "2026-10-14",
+      to: "2026-10-14",
+      fromTime: "10:00",
+      toTime: "11:00",
+      description: "Visita al obrador",
+      status: "proposed",
+    });
+
+    expect(withMeetingNotes(body ?? "", "Nota interna")).toBeNull();
+    expect(readMeeting(withMeetingStatus(body ?? "", "scheduled") ?? "")?.status).toBe("scheduled");
+    expect(withMeetingNotes(withMeetingStatus(body ?? "", "scheduled") ?? "", "Nota interna")).toContain("Nota interna");
   });
 });
 

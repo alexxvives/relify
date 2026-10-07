@@ -5,14 +5,26 @@ const slotSchema = z.object({
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   fromTime: z.string().regex(/^\d{2}:\d{2}$/),
   toTime: z.string().regex(/^\d{2}:\d{2}$/),
-  notes: z.string().trim().max(2000),
+  description: z.string().trim().max(2000).optional().default(""),
+  notes: z.string().trim().max(2000).optional().default(""),
+  status: z.enum(["proposed", "scheduled"]).optional().default("scheduled"),
 });
 
 export type MeetingSlot = z.infer<typeof slotSchema>;
 
+export type MeetingDraft = {
+  from: string;
+  to: string;
+  fromTime: string;
+  toTime: string;
+  description?: string;
+  notes?: string;
+  status?: MeetingSlot["status"];
+};
+
 const prefix = "reunion:";
 
-export function meetingBody(slot: MeetingSlot): string | null {
+export function meetingBody(slot: MeetingDraft): string | null {
   const parsed = slotSchema.safeParse(slot);
 
   if (!parsed.success || parsed.data.from > parsed.data.to || parsed.data.fromTime > parsed.data.toTime) {
@@ -38,11 +50,21 @@ export function readMeeting(body: string): MeetingSlot | null {
 export function withMeetingNotes(body: string, notes: string): string | null {
   const slot = readMeeting(body);
 
-  if (!slot || notes.trim().length > 2000) {
+  if (!slot || slot.status !== "scheduled" || notes.trim().length > 2000) {
     return null;
   }
 
   return meetingBody({ ...slot, notes: notes.trim() });
+}
+
+export function withMeetingStatus(body: string, status: "scheduled"): string | null {
+  const slot = readMeeting(body);
+
+  if (!slot) {
+    return null;
+  }
+
+  return meetingBody({ ...slot, status });
 }
 
 export function madridToday(now: Date): string {
