@@ -12,7 +12,8 @@
     "dev:vinext": "vite dev --port 3001",
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
-    "deploy:vinext": "vinext-cloudflare deploy"
+    "postinstall": "prisma generate",
+    "deploy:vinext": "prisma generate && vinext-cloudflare deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
