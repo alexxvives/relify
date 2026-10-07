@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AdvisorAccessPanel } from "@/components/advisor-access-panel";
 import { SellerDocuments } from "@/components/seller-documents";
 import { SignedInPage } from "@/components/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
+import { sellerAdvisorAccess } from "@/server/advisoryEngagement";
 import { listDataRoom } from "@/server/listDataRoom";
+import { activeSellerProjectId } from "@/server/sellerCompany";
 import { requireRole } from "@/server/requireRole";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
 
@@ -20,13 +23,15 @@ export default async function DocumentsPage() {
     redirect("/mi-empresa");
   }
 
-  const room = await listDataRoom(user);
+  const projectId = await activeSellerProjectId(user.id);
+  const [room, access] = await Promise.all([listDataRoom(user), sellerAdvisorAccess(user.id, projectId)]);
   if (room.audience !== "owner") {
     redirect("/mi-empresa");
   }
 
   return (
     <SignedInPage title={sellerCopy.documentsTitle}>
+      <AdvisorAccessPanel access={access} folders={room.folders} mode="folders" />
       <SellerDocuments files={room.files} folders={room.folders} shares={room.shares} />
     </SignedInPage>
   );

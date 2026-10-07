@@ -8,9 +8,9 @@ description: >-
 
 # Billing boundary
 
-`submitAdvisoryQuote` stores a quote and creates a notice. It does not create a Stripe customer, Checkout Session, PaymentIntent, subscription, or transfer. Ser premium is a sidebar link for investors and opens `/premium`. It is absent for sellers and advisors. No price on `/asesoramiento` or `/mis-servicios` is charged.
+`submitAdvisoryQuote` stores a quote and an engagement and creates a notice. It does not create a Stripe customer, Checkout Session, PaymentIntent, subscription, or transfer. Ser premium is a sidebar link for investors and opens `/premium`. It is absent for sellers and advisors. No price on `/asesoramiento` or `/mis-servicios` is charged when someone requests a quote.
 
-The billing design is in `docs/DECISIONS.md` (2026-10-05). Buyer plans and the advisor’s extra-company fee go through Stripe Checkout. The 1% and 2.5% success fees are stored rows, not Stripe invoices. Quotes stay records.
+The billing design is in `docs/DECISIONS.md` (2026-10-07). Buyer plans and the seller’s extra-company fee go through Stripe Checkout. The advisor’s 39 € inbox plan also opens Checkout. The 1% and 2.5% success fees, and the 15% of an advisor’s own fee, are stored rows, not Stripe invoices. Quotes stay records.
 
 ## When billing is in scope
 

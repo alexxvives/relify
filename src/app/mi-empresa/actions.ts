@@ -147,8 +147,17 @@ export async function publishSellerProjectAction(
 
   const result = await publishSellerProject(user);
 
+  if ("url" in result) {
+    if (!result.ok) {
+      return result;
+    }
+
+    redirect(result.url);
+  }
+
   if (result.ok) {
     revalidatePath("/mi-empresa");
+    revalidatePath("/mi-empresa/detalles");
     revalidatePath("/proyectos");
     revalidatePath("/mercado");
   }

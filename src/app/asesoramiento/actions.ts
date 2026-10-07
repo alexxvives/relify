@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { advisoryCopy, advisoryQuoteSchema, uniqueAdvisoryServices } from "@/lib/advisory";
+import { engagementCopy } from "@/lib/engagement-copy";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { submitAdvisoryQuote } from "@/server/submitAdvisoryQuote";
 
@@ -22,12 +23,17 @@ export async function requestAdvisoryQuoteAction(
     redirect("/onboarding");
   }
 
+  const advisorRaw = formData.get("advisorId");
+  const slugRaw = formData.get("projectSlug");
   const parsed = advisoryQuoteSchema.safeParse({
     services: uniqueAdvisoryServices(formData.getAll("services").filter((value): value is string => typeof value === "string")),
+    projectSlug: typeof slugRaw === "string" ? slugRaw : "",
+    ...(typeof advisorRaw === "string" && advisorRaw !== "" ? { advisorId: advisorRaw } : {}),
   });
 
   if (!parsed.success) {
-    return { ok: false, message: advisoryCopy.empty };
+    const missingCompany = parsed.error.issues.some((issue) => issue.path[0] === "projectSlug");
+    return { ok: false, message: missingCompany ? engagementCopy.companyRequired : advisoryCopy.empty };
   }
 
   const result = await submitAdvisoryQuote(user, parsed.data);
@@ -38,5 +44,6 @@ export async function requestAdvisoryQuoteAction(
 
   revalidatePath("/asesoramiento");
   revalidatePath("/mi-empresa/servicios");
+  revalidatePath("/mandatos");
   return { ok: true, message: advisoryCopy.saved };
 }

@@ -1,4 +1,5 @@
 import { dataRoomReadGate } from "@/lib/data-room";
+import { advisorMayReadFile } from "@/server/advisoryEngagement";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { readDataRoomBytes } from "@/server/dataRoomDisk";
@@ -7,8 +8,28 @@ export async function readDataRoomFileDownload(
   user: CurrentUser,
   fileId: string,
 ): Promise<{ fileName: string; bytes: Buffer } | null> {
-  if (!user.onboarded || (user.role !== "seller" && user.role !== "investor")) {
+  if (!user.onboarded || (user.role !== "seller" && user.role !== "investor" && user.role !== "advisor")) {
     return null;
+  }
+
+  if (user.role === "advisor") {
+    const allowed = await advisorMayReadFile(user.id, fileId);
+
+    if (!allowed) {
+      return null;
+    }
+
+    const named = await prisma.dataRoomFile.findUnique({
+      where: { id: fileId },
+      select: { fileName: true },
+    });
+    const bytes = named ? await readDataRoomBytes(fileId) : null;
+
+    if (!named || !bytes) {
+      return null;
+    }
+
+    return { fileName: named.fileName, bytes };
   }
 
   const file = await prisma.dataRoomFile.findUnique({

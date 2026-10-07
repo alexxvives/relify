@@ -1,12 +1,10 @@
 "use client";
 
-import { useActionState, useState, type ChangeEvent } from "react";
+import { useActionState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { Package } from "lucide-react";
 import {
   acceptBuyerAction,
-  createClientCompanyAction,
-  publishClientCompanyAction,
   recordAdvisorSaleAction,
   type MandateActionState,
 } from "@/app/mandatos/actions";
@@ -47,85 +45,6 @@ function MandateFigures({ project }: { project: MandateDisplay }) {
         </div>
       ))}
     </dl>
-  );
-}
-
-function ClientCompanyForm() {
-  const [state, action, pending] = useActionState(createClientCompanyAction, null);
-
-  return (
-    <form action={action} className="mt-4 grid gap-3 sm:grid-cols-2">
-      <label className="text-sm">
-        {billingCopy.legalName}
-        <input name="legalName" required className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.cif}
-        <input name="cif" required className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm sm:col-span-2">
-        {billingCopy.address}
-        <input name="address" required className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.codename}
-        <input name="codename" required className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.region}
-        <input name="region" required className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.revenue}
-        <input name="revenue" required inputMode="decimal" onChange={keepEuroField} className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.ebitda}
-        <input name="ebitda" required inputMode="decimal" onChange={keepEuroField} className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <label className="text-sm">
-        {billingCopy.adjustedEbitda}
-        <input
-          name="adjustedEbitda"
-          required
-          inputMode="decimal"
-          onChange={keepEuroField}
-          className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3"
-        />
-      </label>
-      <label className="text-sm">
-        {billingCopy.askingPrice}
-        <input name="askingPrice" required inputMode="decimal" onChange={keepEuroField} className="mt-1 h-11 w-full rounded-xl border border-[#d0d5dd] px-3" />
-      </label>
-      <div className="sm:col-span-2 flex flex-col items-start gap-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-11 items-center rounded-full bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60"
-        >
-          {pending ? billingCopy.savingCompany : billingCopy.saveCompany}
-        </button>
-        <Note state={state} />
-      </div>
-    </form>
-  );
-}
-
-function PublishForm({ slug, requiresPayment }: { slug: string; requiresPayment: boolean }) {
-  const [state, action, pending] = useActionState(publishClientCompanyAction, null);
-
-  return (
-    <form action={action} className="mt-4 flex flex-col items-start gap-2">
-      <input type="hidden" name="slug" value={slug} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex h-10 items-center rounded-full bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? billingCopy.publishing : (requiresPayment ? billingCopy.publishPaid : billingCopy.publishFree)}
-      </button>
-      <Note state={state} />
-    </form>
   );
 }
 
@@ -190,7 +109,7 @@ function PendingItem({ item }: { item: PendingMatch }) {
   );
 }
 
-function MandateCard({ project, requiresPayment }: { project: MandateDisplay; requiresPayment: boolean }) {
+function MandateCard({ project }: { project: MandateDisplay }) {
   const live = project.status === "published";
 
   return (
@@ -203,7 +122,7 @@ function MandateCard({ project, requiresPayment }: { project: MandateDisplay; re
       <div className="mt-4">
         <MandateFigures project={project} />
       </div>
-      {live ? null : <PublishForm slug={project.slug} requiresPayment={requiresPayment} />}
+      {live ? null : <p className="mt-4 text-sm text-[#64748b]">{billingCopy.advisorDoesNotPublish}</p>}
       {live ? (
         <Link href={`/proyectos/${project.slug}`} className="mt-4 inline-flex text-sm text-[#3d34b8]">
           {advisorCopy.viewPublicCard}
@@ -222,11 +141,9 @@ export function AdvisorMandateBoard({
   mandates: MandateDisplay[];
   pending: PendingMatch[];
 }) {
-  const [adding, setAdding] = useState(false);
-
   return (
     <div className="mt-6">
-      <p className="text-sm text-[#64748b]">{billingCopy.listingNote}</p>
+      <p className="text-sm text-[#64748b]">{billingCopy.advisorDoesNotPublish}</p>
       {mandates.length === 0 ? (
         <div className="mx-auto mt-6 flex max-w-md flex-col items-center text-center">
           <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#f4f4f5] text-[#64748b]">
@@ -238,34 +155,11 @@ export function AdvisorMandateBoard({
       ) : (
         <ul className="mt-6 grid gap-4 md:grid-cols-2">
           {mandates.map((project) => (
-            <MandateCard
-              key={project.slug}
-              project={project}
-              requiresPayment={project.status === "draft" && mandates.some((item) => item.owned && item.status === "published")}
-            />
+            <MandateCard key={project.slug} project={project} />
           ))}
         </ul>
       )}
       {pending.length > 0 ? <PendingList pending={pending} /> : null}
-      <div className={mandates.length === 0 ? "mt-5 text-center" : "mt-5"}>
-        <button
-          type="button"
-          className="inline-flex h-11 items-center rounded-full bg-[#3d34b8] px-5 text-sm font-medium text-white"
-          aria-expanded={adding}
-          onClick={() => {
-            setAdding((open) => !open);
-          }}
-        >
-          {advisorCopy.addMandate}
-        </button>
-      </div>
-      {adding ? (
-        <div className="mt-6 rounded-2xl bg-[#f7f8fb] p-4 text-left">
-          <h3 className="text-base font-semibold text-[#2b3b4a]">{billingCopy.clientCompanyTitle}</h3>
-          <p className="mt-1 text-sm text-[#64748b]">{billingCopy.clientCompanyBody}</p>
-          <ClientCompanyForm />
-        </div>
-      ) : null}
     </div>
   );
 }

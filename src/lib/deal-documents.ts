@@ -48,3 +48,24 @@ export function loiAgreement(input: {
     "Firmarla la envía al vendedor como oferta indicativa.",
   ].join("\n");
 }
+
+export function advisorNdaAgreement(input: {
+  advisorName: string;
+  codename: string;
+  region: string;
+  dateLabel: string;
+}): string {
+  return [
+    "ACUERDO DE CONFIDENCIALIDAD DEL ASESOR",
+    "",
+    `Fecha: ${input.dateLabel}`,
+    "",
+    `${input.advisorName}, como asesor en Releva, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
+    "",
+    `1. El asesor usará la información del proyecto ${input.codename} solo para el encargo.`,
+    "2. La firma del inversor no abre esta ficha. El asesor firma la suya.",
+    "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
+    "4. La reserva dura dos años desde esta firma.",
+    "5. Firmar en Releva deja constancia de la aceptación. No es una firma electrónica cualificada.",
+  ].join("\n");
+}

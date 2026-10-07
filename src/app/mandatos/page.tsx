@@ -5,6 +5,8 @@ import { advisorCopy, advisorGreeting } from "@/lib/advisor-copy";
 import { getAdvisorProfile } from "@/server/getAdvisorProfile";
 import { listNotifications } from "@/server/listNotifications";
 import { listPendingMatches } from "@/server/listPendingMatches";
+import { listAdvisorWork } from "@/server/advisoryEngagement";
+import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { listSaleMandates } from "@/server/listSaleMandates";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
@@ -26,11 +28,13 @@ export default async function MandatesPage({
     await fulfillCheckout(query.session_id, user.id);
   }
 
-  const [profile, notifications, mandates, pending] = await Promise.all([
+  const [profile, notifications, mandates, pending, work, advisors] = await Promise.all([
     getAdvisorProfile(user.id),
     listNotifications(user.id),
     listSaleMandates(user.id),
     listPendingMatches(user.id),
+    listAdvisorWork(user.id),
+    listPublicAdvisors(),
   ]);
   const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
 
@@ -41,6 +45,8 @@ export default async function MandatesPage({
         profileReady={profile.corporateComplete}
         mandates={mandates}
         pending={pending}
+        work={work}
+        advisors={advisors}
       />
     </SignedInPage>
   );

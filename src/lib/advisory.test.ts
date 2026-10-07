@@ -9,7 +9,8 @@ describe("uniqueAdvisoryServices", () => {
 
 describe("advisoryQuoteSchema", () => {
   it("requires at least one known service", () => {
-    expect(advisoryQuoteSchema.safeParse({ services: [] }).success).toBe(false);
-    expect(advisoryQuoteSchema.safeParse({ services: ["valuation"] }).success).toBe(true);
+    expect(advisoryQuoteSchema.safeParse({ services: [], projectSlug: "proyecto-cala" }).success).toBe(false);
+    expect(advisoryQuoteSchema.safeParse({ services: ["valuation"], projectSlug: "proyecto-cala" }).success).toBe(true);
+    expect(advisoryQuoteSchema.safeParse({ services: ["valuation"] }).success).toBe(false);
   });
 });

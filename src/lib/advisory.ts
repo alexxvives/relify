@@ -63,6 +63,8 @@ const serviceIdSchema = z.enum(advisoryServiceIds);
 
 export const advisoryQuoteSchema = z.object({
   services: z.array(serviceIdSchema).min(1),
+  projectSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  advisorId: z.string().trim().min(1).max(80).optional(),
 });
 
 export type AdvisoryQuoteInput = z.infer<typeof advisoryQuoteSchema>;

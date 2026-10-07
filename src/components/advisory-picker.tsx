@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
+import { engagementCopy } from "@/lib/engagement-copy";
+import type { PublicAdvisorCard } from "@/lib/advisor-directory";
 
 const serviceStyle = {
   "due-diligence": { icon: Search, wash: "bg-[#eef2ff] text-[#465ab4]", fill: "bg-[#e4ebff]", mark: "bg-[#465ab4]" },
@@ -14,9 +16,20 @@ const serviceStyle = {
   labor: { icon: Users, wash: "bg-[#fdeeee] text-[#9b3b2f]", fill: "bg-[#fce4e4]", mark: "bg-[#9b3b2f]" },
 } as const;
 
-export function AdvisoryPicker({ layout = "list" }: { layout?: "list" | "cards" }) {
+export function AdvisoryPicker({
+  layout = "list",
+  advisors = [],
+  projectSlug,
+  companies = [],
+}: {
+  layout?: "list" | "cards";
+  advisors?: PublicAdvisorCard[];
+  projectSlug?: string;
+  companies?: { slug: string; codename: string; region: string }[];
+}) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
+  const [advisorId, setAdvisorId] = useState("");
   const cards = layout === "cards";
 
   function toggle(id: AdvisoryServiceId) {
@@ -28,6 +41,60 @@ export function AdvisoryPicker({ layout = "list" }: { layout?: "list" | "cards" 
       {selected.map((id) => (
         <input key={id} type="hidden" name="services" value={id} />
       ))}
+      {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
+      <input type="hidden" name="advisorId" value={advisorId} />
+      {companies.length > 0 ? (
+        <label className="text-sm font-medium text-[#1c2740]">
+          {engagementCopy.pickCompany}
+          <select name="projectSlug" required className="mt-1 h-11 w-full rounded-xl border border-[#d5dbe3] bg-white px-3">
+            <option value="">{engagementCopy.companyRequired}</option>
+            {companies.map((company) => (
+              <option key={company.slug} value={company.slug}>
+                {company.codename} · {company.region}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      <fieldset className="rounded-2xl border border-[#e7eaee] p-4">
+        <legend className="px-1 text-sm font-semibold text-[#1c2740]">{engagementCopy.pickAdvisor}</legend>
+        <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.inboxChoiceBody}</p>
+        {advisors.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.directoryEmpty}</p> : null}
+        <div className="mt-3 grid gap-3">
+          <label className="flex cursor-pointer gap-3 rounded-xl border border-[#e7eaee] bg-white p-3">
+            <input
+              type="radio"
+              name="advisorChoice"
+              checked={advisorId === ""}
+              onChange={() => {
+                setAdvisorId("");
+              }}
+            />
+            <span>
+              <span className="block text-sm font-semibold text-[#1c2740]">{engagementCopy.inboxChoice}</span>
+            </span>
+          </label>
+          {advisors.map((advisor) => (
+            <label key={advisor.id} className="flex cursor-pointer gap-3 rounded-xl border border-[#e7eaee] bg-white p-3">
+              <input
+                type="radio"
+                name="advisorChoice"
+                checked={advisorId === advisor.id}
+                onChange={() => {
+                  setAdvisorId(advisor.id);
+                }}
+              />
+              <span>
+                <span className="block text-sm font-semibold text-[#1c2740]">{advisor.businessName}</span>
+                <span className="mt-1 block text-sm text-[#5c6b78]">{advisor.sectors.join(", ")}</span>
+                <span className="mt-1 block text-sm text-[#3d4a63]">
+                  {advisor.services.map((service) => `${service.title}: ${service.range}`).join(" · ")}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
         {advisoryServices.map((service) => {
           const style = serviceStyle[service.id];

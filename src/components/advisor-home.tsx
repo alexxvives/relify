@@ -1,12 +1,15 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AdvisorMandateBoard, type MandateDisplay } from "@/components/advisor-mandates";
+import { AdvisorWork } from "@/components/advisor-work";
 import { NoticeList } from "@/components/notice-list";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { catalogCopy } from "@/lib/catalog-copy";
 import { formatEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
 import type { PendingMatch } from "@/lib/billing";
+import type { PublicAdvisorCard } from "@/lib/advisor-directory";
+import type { AdvisorWork as AdvisorWorkData } from "@/server/advisoryEngagement";
 import type { MandateCard } from "@/server/listSaleMandates";
 import { blogPosts, formatBlogDate } from "@/lib/blog";
 
@@ -38,16 +41,21 @@ export function AdvisorHome({
   profileReady,
   mandates,
   pending,
+  work,
+  advisors,
 }: {
   notifications: NotificationView[];
   profileReady: boolean;
   mandates: MandateCard[];
   pending: PendingMatch[];
+  work: AdvisorWorkData;
+  advisors: PublicAdvisorCard[];
 }) {
   const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
 
   return (
     <div className="flex flex-col gap-6">
+      <AdvisorWork paid={work.paid} mine={work.mine} inbox={work.inbox} advisors={advisors} />
       <section className="rounded-2xl border border-[#e7eaee] bg-white px-5 py-10">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.mandatesTitle}</h2>
         <AdvisorMandateBoard mandates={mandates.map(toMandateDisplay)} pending={pending} />

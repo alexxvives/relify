@@ -2,6 +2,16 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — The advisor is a profile and a hired service
+
+The advisor keeps a public profile and takes engagements for Due Diligence, Valoración, Consultoría Legal, Consultoría Fiscal, Business Plan, and Consultoría Laboral. In this pass the advisor does not publish the client's company. Existing drafts, including Proyecto Nube, stay. The 149 € plus IVA listing fee belongs to the seller: the first company is free, and each later one is paid before the publish request. An admin still approves before it is live.
+
+A finished profile appears to investors and sellers with the commercial name, sectors, services, and price range. A half profile stays off that list. The NIF, the email, and documents stay off it. A request can name one advisor, or sit in a common inbox until the first advisor on the 39 €/mes plan claims it. The free plan edits the profile and sees the directory. It does not open the inbox or claim.
+
+Hired by an investor, the advisor sees the public ficha and signs their own NDA. The investor's signature does not open the company. After the advisor's NDA, that one company shows the same view that investor can already see, including documents that investor can see. Hired by the seller, there is no NDA with the client. The advisor sees only the folders and the process the seller opens, and not the other investors.
+
+A quote request still does not charge. Closing an engagement stores 15% of what the advisor charges for that work, plus 21% IVA on that 15%. That row is not a Stripe charge and it is not 15% of the company price. The 39 € plan opens Checkout in test mode when the keys are present.
+
 ## 2026-10-07 — Decoy figures, Releva drafts, and the waiting step
 
 A locked section renders a full statement and charts filled with 999.999,00 €. The real rows stay off the page, so removing the blur in the browser does not reveal the company. The same sentence and the connect or sign action sit on every locked section. The figures open after the company accepts the connection and the buyer signs the NDA.

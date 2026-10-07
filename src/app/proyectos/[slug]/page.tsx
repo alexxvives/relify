@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Heart, Link2, Lock, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { AdvisoryPicker } from "@/components/advisory-picker";
 import { InvestorProject } from "@/components/investor-project";
 import { PublicSite } from "@/components/public-site";
 import { ProjectFigures } from "@/components/project-card";
@@ -19,7 +20,9 @@ import { getProjectAccess } from "@/server/getProjectAccess";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { getPublicProject } from "@/server/getPublicProject";
+import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { listPublicProjects } from "@/server/listPublicProjects";
+import { advisoryCopy } from "@/lib/advisory";
 
 type ProjectTab = "company" | "questions" | "meetings";
 
@@ -100,12 +103,13 @@ export default async function ProjectDetailPage({
     if (!profile) {
       notFound();
     }
-    const [published, access, favorites, messages, billing] = await Promise.all([
+    const [published, access, favorites, messages, billing, advisors] = await Promise.all([
       listPublicProjects(),
       getProjectAccess(user, slug),
       listFavoriteSlugs(user.id),
       listProjectMessages(user, slug),
       buyerMatchBudget(user.id),
+      listPublicAdvisors(),
     ]);
     return (
       <AppShell title={profile.codename} showTitle={false}>
@@ -125,6 +129,11 @@ export default async function ProjectDetailPage({
           matchesLeft={billing.remaining}
           initialTab={readTab(query.tab)}
         />
+        <section className="mt-8 rounded-2xl border border-[#e7eaee] bg-white p-6">
+          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>
+          <p className="mt-1 text-sm text-[#64748b]">{advisoryCopy.intro}</p>
+          <AdvisoryPicker layout="cards" advisors={advisors} projectSlug={profile.slug} />
+        </section>
       </AppShell>
     );
   }
