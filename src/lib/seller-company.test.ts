@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickSellerProjectId, sellerCompanyLabel } from "./seller-company";
+import { activeSellerChoice, pickSellerProjectId, sellerCompanyLabel } from "./seller-company";
 
 describe("pickSellerProjectId", () => {
   it("keeps the chosen company when it belongs to the seller", () => {
@@ -10,6 +10,22 @@ describe("pickSellerProjectId", () => {
     expect(pickSellerProjectId(["a", "b"], "other")).toBe("b");
     expect(pickSellerProjectId(["a"], undefined)).toBe("a");
     expect(pickSellerProjectId([], "a")).toBeNull();
+  });
+});
+
+describe("activeSellerChoice", () => {
+  const companies = [
+    { id: "named", cif: "B12345674" },
+    { id: "blank", cif: "" },
+  ];
+
+  it("ignores a company that has no CIF when another company is ready", () => {
+    expect(activeSellerChoice(companies, "blank")).toBe("named");
+    expect(activeSellerChoice(companies, undefined)).toBe("named");
+  });
+
+  it("keeps the only company while its CIF is still empty", () => {
+    expect(activeSellerChoice([{ id: "blank", cif: " " }], undefined)).toBe("blank");
   });
 });
 

@@ -2,6 +2,14 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — Local data-room bytes, R2 later
+
+A seller upload writes the file bytes under `data/data-room`, keyed by the file id. Postgres keeps the folder and the display name. R2 is still not created. The owner, and an investor who was granted that file, can open those bytes. A name saved before this change has nothing to open until it is uploaded again.
+
+## 2026-10-07 — lucide-animated on signed-in controls
+
+Hover icons for the company menu, documents, meetings, favorites, and plans come from [lucide-animated](https://lucide-animated.com/) and depend on `motion`. This does not install Arc charts. The landing and the rest of the shell keep `lucide-react`.
+
 ## 2026-10-07 — A file share is per document
 
 A connected investor sees a data-room file only when that file is shared with them. The room grant still records that the investor may open the room. Folders can be added or hidden per company. Bytes stay out of Postgres.

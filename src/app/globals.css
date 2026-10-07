@@ -156,6 +156,9 @@
   html {
     @apply font-sans scroll-smooth;
   }
+  dialog:not([open]) {
+    display: none;
+  }
 }
 
 @keyframes releva-reel {

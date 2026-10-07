@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Folder, FileText, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
+import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
+import { FileTextIcon } from "@/components/ui/file-text";
+import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { attachmentNames } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
@@ -92,7 +95,7 @@ function FileButton({ folder, fileName, onOpen }: { folder: string; fileName: st
         }}
         className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm text-[#1c2740] hover:bg-white"
       >
-        <Folder className="size-4 shrink-0 text-[#465ab4]" aria-hidden />
+        <FolderOpenIcon size={16} className="shrink-0 text-[#465ab4]" aria-hidden />
         <span className="min-w-0 truncate">{fileName}</span>
       </button>
     </li>
@@ -148,17 +151,7 @@ export function ProcessRoom({
   const sent = attachmentNames(bodies);
   const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const other = nda || hidden.length > 0 || sent.length > 0;
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!openFile || !dialog || dialog.open) {
-      return;
-    }
-
-    dialog.showModal();
-  }, [openFile]);
 
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -200,7 +193,7 @@ export function ProcessRoom({
                       }}
                       className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm text-[#1c2740] hover:bg-white"
                     >
-                      <FileText className="size-4 shrink-0 text-[#465ab4]" aria-hidden />
+                      <FileTextIcon size={16} className="shrink-0 text-[#465ab4]" aria-hidden />
                       <span className="min-w-0 truncate">{name}</span>
                     </button>
                   </li>
@@ -210,29 +203,16 @@ export function ProcessRoom({
           ) : null}
         </div>
       ) : null}
-      <dialog
-        ref={dialogRef}
-        className="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] backdrop:bg-[#1c2740]/40"
+      <FilePreviewDialog
+        file={
+          openFile
+            ? { fileName: openFile.fileName, folder: openFile.folder, href: fileHref(openFile) }
+            : null
+        }
         onClose={() => {
           setOpenFile(null);
         }}
-      >
-        <div className="flex flex-col items-center text-center">
-          <FileText className="size-16 text-[#465ab4]" strokeWidth={1.25} aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">{openFile?.fileName}</h2>
-          <p className="mt-1 text-sm text-[#667085]">{openFile?.folder}</p>
-          <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.documentOpenBody}</p>
-          <button
-            type="button"
-            onClick={() => {
-              dialogRef.current?.close();
-            }}
-            className="mt-5 inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white"
-          >
-            {sellerCopy.closeDocument}
-          </button>
-        </div>
-      </dialog>
+      />
     </section>
   );
 }

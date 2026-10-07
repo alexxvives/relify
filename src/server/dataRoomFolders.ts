@@ -7,6 +7,7 @@ function isDefaultFolder(name: string): boolean {
 }
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { deleteDataRoomBytes } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import type { DataRoomWriteResult } from "@/server/storeDataRoomFile";
 
@@ -79,7 +80,7 @@ export async function deleteDataRoomFolder(user: CurrentUser, name: string): Pro
   });
   const files = await prisma.dataRoomFile.findMany({
     where: { projectId: project.id },
-    select: { folder: true },
+    select: { id: true, folder: true },
   });
   const visible = visibleFolderNames({ records, usedByFiles: files.map((file) => file.folder) });
 
@@ -87,7 +88,9 @@ export async function deleteDataRoomFolder(user: CurrentUser, name: string): Pro
     return { ok: false, message: dataRoomMessage("missing") };
   }
 
+  const removed = files.filter((file) => file.folder === parsed.data);
   await prisma.dataRoomFile.deleteMany({ where: { projectId: project.id, folder: parsed.data } });
+  await Promise.all(removed.map((file) => deleteDataRoomBytes(file.id)));
   const standard = isDefaultFolder(parsed.data);
 
   if (standard) {

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SquarePenIcon } from "@/components/ui/square-pen";
 import { meetingBody, meetingIsPast, readMeeting } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { ThreadMessageView } from "@/lib/project-message";
@@ -49,8 +50,35 @@ function MeetingNotes({
   action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
 }) {
+  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(notes);
   const [state, formAction, pending] = useActionState(action, null);
+  const [closed, setClosed] = useState<MessageActionState>(null);
+
+  if (state?.ok && state !== closed) {
+    setClosed(state);
+    setEditing(false);
+  }
+
+  if (!editing) {
+    return (
+      <div className="mt-2 flex items-start gap-3">
+        <p className="min-w-0 flex-1 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
+          {notes.trim().length > 0 ? notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
+        </p>
+        <button
+          type="button"
+          aria-label={sellerCopy.meetingsEditNotes}
+          onClick={() => {
+            setEditing(true);
+          }}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff]"
+        >
+          <SquarePenIcon size={16} aria-hidden />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form action={formAction} className="mt-3">
@@ -72,6 +100,16 @@ function MeetingNotes({
       </label>
       <div className="mt-2 flex items-center justify-end gap-3">
         {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
+        <button
+          type="button"
+          onClick={() => {
+            setValue(notes);
+            setEditing(false);
+          }}
+          className="inline-flex h-9 items-center rounded-full border border-[#e1e6ee] px-3 text-sm font-medium"
+        >
+          {sellerCopy.meetingsCancel}
+        </button>
         <button
           type="submit"
           disabled={pending || value === notes}

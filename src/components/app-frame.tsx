@@ -71,6 +71,7 @@ export function AppFrame({
   showPremium = false,
   companies = [],
   activeCompanyId = null,
+  canManageCompanies = false,
   children,
 }: {
   name: string;
@@ -81,6 +82,7 @@ export function AppFrame({
   showPremium?: boolean;
   companies?: { id: string; legalName: string; codename: string }[];
   activeCompanyId?: string | null;
+  canManageCompanies?: boolean;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -115,7 +117,9 @@ export function AppFrame({
             <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Releva">
               <Logo size="lg" />
             </Link>
-            <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+            {canManageCompanies ? (
+              <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {showPremium ? (

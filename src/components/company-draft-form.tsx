@@ -4,9 +4,8 @@ import { useActionState, useEffect, useRef, useState, type FormEvent, type React
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Heart, ImagePlus, Info, Map, MapPin, Pencil, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Heart, ImagePlus, Map, MapPin, Pencil, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { shellCopy } from "@/lib/shell";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { saveCompanyDraftAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
 import { AccountsUpload } from "@/components/accounts-upload";
@@ -51,10 +50,8 @@ import {
   incomeValue,
   pnlInputKeys,
   isEmphasisRow,
-  filledSellerPanels,
   maxActivitySlices,
   maxSecondaryCnaes,
-  sellerPanelFlags,
   slicePercentIssue,
   statementYearIsBeforeFounding,
   type BalanceAmounts,
@@ -615,7 +612,6 @@ export function CompanyDraftForm({
   );
 
   const [closedAfterSave, setClosedAfterSave] = useState("");
-  const [showPending, setShowPending] = useState(true);
   const [setupOpen, setSetupOpen] = useState(promptSetup);
   const [saveTarget, setSaveTarget] = useState("");
   const [rejectedSave, setRejectedSave] = useState("");
@@ -906,18 +902,6 @@ export function CompanyDraftForm({
     );
   }
 
-  const filledPanels = filledSellerPanels(
-    sellerPanelFlags({
-      legalName,
-      cif: nif,
-      description,
-      principalCnae,
-      closedYears,
-      headcount,
-      capitalPercents,
-      askingPrice,
-    }),
-  );
   const accountYear = latestClosedWithSales(closedYears);
   const salesFromAccounts = accountYear && unsignedEuroPattern.test(accountYear.sales.trim()) ? accountYear.sales.trim() : null;
   const ebitdaCentsFromAccounts = accountYear ? incomeValue("ebitda", previewPnl(accountYear)) : null;
@@ -977,22 +961,6 @@ export function CompanyDraftForm({
     ) : null}
     <form ref={formRef} action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <UnsavedChangesGuard dirty={formDirty} onSave={saveAndLeave} />
-      {filledPanels < 7 && showPending ? (
-        <div className="flex items-center gap-2 rounded-2xl bg-[#fff8db] p-3 text-base text-[#614d05]">
-          <Info className="size-4 shrink-0" aria-hidden />
-          <p className="flex-1">{companyCopy.detailsPending}</p>
-          <button
-            type="button"
-            aria-label={shellCopy.menuClose}
-            onClick={() => {
-              setShowPending(false);
-            }}
-            className="inline-flex size-8 items-center justify-center rounded-full"
-          >
-            <X className="size-4" aria-hidden />
-          </button>
-        </div>
-      ) : null}
       <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <SellerTabs

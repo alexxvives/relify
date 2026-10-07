@@ -8,6 +8,8 @@ import { createDataRoomFolder, deleteDataRoomFolder } from "@/server/dataRoomFol
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { grantDataRoomAccess } from "@/server/grantDataRoomAccess";
 import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
+import { dataRoomByteLimit } from "@/server/dataRoomDisk";
+import { deleteDataRoomFile } from "@/server/deleteDataRoomFile";
 import { storeDataRoomFile } from "@/server/storeDataRoomFile";
 
 export type DataRoomActionState = { ok: true } | { ok: false; message: string } | null;
@@ -45,7 +47,17 @@ export async function storeDataRoomFileAction(
     return { ok: false, message: sellerCopy.documentInvalid };
   }
 
-  const result = await storeDataRoomFile(user, parsed.data);
+  const upload = formData.get("file");
+
+  if (!(upload instanceof File) || upload.size === 0) {
+    return { ok: false, message: sellerCopy.documentInvalid };
+  }
+
+  if (upload.size > dataRoomByteLimit) {
+    return { ok: false, message: sellerCopy.documentTooLarge };
+  }
+
+  const result = await storeDataRoomFile(user, parsed.data, new Uint8Array(await upload.arrayBuffer()));
 
   if (result.ok) {
     revalidatePath("/mi-empresa/documentos");
@@ -134,4 +146,19 @@ export async function shareDataRoomFileAction(
 
 export async function shareDataRoomFileFormAction(formData: FormData): Promise<void> {
   await shareDataRoomFileAction(null, formData);
+}
+
+export async function deleteDataRoomFileAction(
+  _state: DataRoomActionState,
+  formData: FormData,
+): Promise<DataRoomActionState> {
+  const user = await sellerUser();
+  const result = await deleteDataRoomFile(user, readText(formData, "fileId"));
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/documentos");
+    revalidatePath("/mi-empresa/procesos");
+  }
+
+  return result;
 }

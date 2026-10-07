@@ -107,6 +107,7 @@ export type DataRoomFileView = {
 
 export type OwnerFileView = DataRoomFileView & {
   id: string;
+  stored: boolean;
   viewers: { accessId: string; label: string }[];
 };
 

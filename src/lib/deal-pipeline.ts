@@ -26,6 +26,8 @@ export type ProcessFile = {
   folder: string;
   fileName: string;
   visible?: boolean;
+  id?: string;
+  stored?: boolean;
 };
 
 const stepLabel: Record<Exclude<DealStepId, "close">, string> = {
@@ -89,5 +91,17 @@ export function investorProcessFiles(input: {
     return [];
   }
 
-  return input.files.map((file) => ({ folder: file.folder, fileName: file.fileName }));
+  return input.files.map((file) => {
+    const view: ProcessFile = { folder: file.folder, fileName: file.fileName };
+
+    if (file.id) {
+      view.id = file.id;
+    }
+
+    if (file.stored) {
+      view.stored = true;
+    }
+
+    return view;
+  });
 }

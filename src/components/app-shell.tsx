@@ -41,6 +41,7 @@ export async function AppShell({
       showPremium={user.role === "investor"}
       companies={companies}
       activeCompanyId={activeCompanyId}
+      canManageCompanies={user.role === "seller"}
     >
       {children}
     </AppFrame>

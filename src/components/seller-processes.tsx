@@ -110,21 +110,26 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
       </button>
       {open ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.8fr)]">
-            <ProjectThread
-              viewer="seller"
-              messages={chat}
-              action={postSellerMessageAction}
-              hidden={[
-                { name: "accessId", value: thread.accessId },
-                { name: "kind", value: "question" },
-              ]}
-              placeholder={sellerCopy.replyField}
-              submitLabel={sellerCopy.chatSend}
-              pendingLabel={sellerCopy.replying}
-              savedLabel={sellerCopy.replySaved}
-              invalidFallback={sellerCopy.replyInvalid}
-            />
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <section className="rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
+              <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.questionsPanel}</h3>
+              <div className="mt-4">
+                <ProjectThread
+                  viewer="seller"
+                  messages={chat}
+                  action={postSellerMessageAction}
+                  hidden={[
+                    { name: "accessId", value: thread.accessId },
+                    { name: "kind", value: "question" },
+                  ]}
+                  placeholder={sellerCopy.replyField}
+                  submitLabel={sellerCopy.chatSend}
+                  pendingLabel={sellerCopy.replying}
+                  savedLabel={sellerCopy.replySaved}
+                  invalidFallback={sellerCopy.replyInvalid}
+                />
+              </div>
+            </section>
             <ProcessRoom
               files={thread.documents}
               bodies={chat.map((message) => message.body)}

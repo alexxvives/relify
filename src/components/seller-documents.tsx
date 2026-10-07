@@ -1,9 +1,16 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { ChevronLeft, FileText, Folder, Share2, Trash2, Upload } from "lucide-react";
+import { ChevronLeft, Share2 } from "lucide-react";
+import { DeleteIcon } from "@/components/ui/delete";
+import { FileTextIcon } from "@/components/ui/file-text";
+import { FolderOpenIcon } from "@/components/ui/folder-open";
+import { PlusIcon } from "@/components/ui/plus";
+import { UploadIcon } from "@/components/ui/upload";
+import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import {
   createDataRoomFolderAction,
+  deleteDataRoomFileAction,
   deleteDataRoomFolderAction,
   shareDataRoomFileFormAction,
   storeDataRoomFileAction,
@@ -47,6 +54,7 @@ function DocumentDrop({ folder }: { folder: string }) {
       const data = new FormData();
       data.set("folder", folder);
       data.set("fileName", name);
+      data.set("file", file);
       last = await storeDataRoomFileAction(null, data);
 
       if (!last?.ok) {
@@ -79,7 +87,7 @@ function DocumentDrop({ folder }: { folder: string }) {
             : "flex min-h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff] px-6 py-8 text-center"
         }
       >
-        <Upload className="size-8 text-[#465ab4]" aria-hidden />
+        <UploadIcon size={32} className="text-[#465ab4]" aria-hidden />
         <p className="mt-3 text-sm font-medium text-[#1c2740]">{pending ? sellerCopy.addingDocument : sellerCopy.dropDocument}</p>
         <label className="mt-3 inline-flex h-10 cursor-pointer items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
           {sellerCopy.chooseDocuments}
@@ -111,10 +119,29 @@ function ShareMenu({
   investors: DataRoomShareView[];
 }) {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const shared = new Set(file.viewers.map((viewer) => viewer.accessId));
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function close(event: MouseEvent) {
+      const target = event.target;
+      if (target instanceof Node && !rootRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+    };
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         aria-expanded={open}
@@ -173,7 +200,7 @@ function FolderDelete({ name }: { name: string }) {
         }}
         className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
       >
-        <Trash2 className="size-4" aria-hidden />
+        <DeleteIcon size={16} aria-hidden />
       </button>
     );
   }
@@ -193,6 +220,40 @@ function FolderDelete({ name }: { name: string }) {
   );
 }
 
+function FileDelete({ id }: { id: string }) {
+  const [state, action, pending] = useActionState(deleteDataRoomFileAction, null);
+  const [confirming, setConfirming] = useState(false);
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        aria-label={sellerCopy.documentDelete}
+        onClick={() => {
+          setConfirming(true);
+        }}
+        className="inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
+      >
+        <DeleteIcon size={16} aria-hidden />
+      </button>
+    );
+  }
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="fileId" value={id} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-8 items-center rounded-full bg-red-700 px-2 text-xs font-medium text-white disabled:opacity-60"
+      >
+        {pending ? sellerCopy.documentDeleting : sellerCopy.documentDelete}
+      </button>
+      <ActionNote state={state} saved="" />
+    </form>
+  );
+}
+
 export function SellerDocuments({
   files,
   folders,
@@ -203,43 +264,56 @@ export function SellerDocuments({
   shares: DataRoomShareView[];
 }) {
   const [folder, setFolder] = useState<string | null>(null);
+  const [namingFolder, setNamingFolder] = useState(false);
   const [openFile, setOpenFile] = useState<OwnerFileView | null>(null);
   const [createState, createAction, createPending] = useActionState(createDataRoomFolderAction, null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const inFolder = files.filter((file) => file.folder === folder);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!openFile || !dialog || dialog.open) {
-      return;
-    }
-
-    dialog.showModal();
-  }, [openFile]);
 
   return (
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
         <>
-          <form action={createAction} className="flex flex-wrap items-end gap-2 px-2">
-            <label className="text-sm font-medium text-[#1c2740]">
-              {sellerCopy.folderName}
-              <input
-                name="name"
-                required
-                maxLength={40}
-                className="mt-1 h-11 w-64 rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm"
-              />
-            </label>
+          {namingFolder ? (
+            <form action={createAction} className="flex flex-wrap items-end gap-2 px-2">
+              <label className="text-sm font-medium text-[#1c2740]">
+                {sellerCopy.folderName}
+                <input
+                  name="name"
+                  required
+                  maxLength={40}
+                  className="mt-1 h-11 w-64 rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={createPending}
+                className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+              >
+                {sellerCopy.folderCreate}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNamingFolder(false);
+                }}
+                className="inline-flex h-11 items-center rounded-full border border-[#e1e6ee] px-4 text-sm font-medium"
+              >
+                {sellerCopy.meetingsCancel}
+              </button>
+              <ActionNote state={createState} saved={sellerCopy.folderSaved} />
+            </form>
+          ) : (
             <button
-              type="submit"
-              disabled={createPending}
-              className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+              type="button"
+              onClick={() => {
+                setNamingFolder(true);
+              }}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white"
             >
+              <PlusIcon size={16} aria-hidden />
               {sellerCopy.folderCreate}
             </button>
-            <ActionNote state={createState} saved={sellerCopy.folderSaved} />
-          </form>
+          )}
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {folders.map((name) => {
               const count = files.filter((file) => file.folder === name).length;
@@ -252,7 +326,7 @@ export function SellerDocuments({
                     }}
                     className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
                   >
-                    <Folder className="size-16 text-[#d5dbe3]" strokeWidth={1.25} aria-hidden />
+                    <FolderOpenIcon size={64} className="text-[#d5dbe3]" aria-hidden />
                     <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
                     <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
                   </button>
@@ -277,10 +351,7 @@ export function SellerDocuments({
               <ChevronLeft className="size-4" aria-hidden />
               {folder}
             </button>
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
-              <FolderDelete name={folder} />
-            </div>
+            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
           </div>
           {inFolder.length > 0 ? (
             <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
@@ -293,7 +364,7 @@ export function SellerDocuments({
                     }}
                     className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
                   >
-                    <FileText className="size-16 text-[#465ab4]" strokeWidth={1.25} aria-hidden />
+                    <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
                     <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
                   </button>
                   <div className="absolute top-2 right-2 flex items-center gap-1">
@@ -312,6 +383,9 @@ export function SellerDocuments({
                     ) : null}
                     <ShareMenu file={file} investors={shares} />
                   </div>
+                  <div className="absolute right-2 bottom-2">
+                    <FileDelete id={file.id} />
+                  </div>
                 </li>
               ))}
             </ul>
@@ -319,29 +393,16 @@ export function SellerDocuments({
           <DocumentDrop folder={folder} />
         </div>
       )}
-      <dialog
-        ref={dialogRef}
-        className="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] backdrop:bg-[#1c2740]/40"
+      <FilePreviewDialog
+        file={
+          openFile
+            ? { fileName: openFile.fileName, folder: openFile.folder, href: fileHref(openFile) }
+            : null
+        }
         onClose={() => {
           setOpenFile(null);
         }}
-      >
-        <div className="flex flex-col items-center text-center">
-          <FileText className="size-16 text-[#465ab4]" strokeWidth={1.25} aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">{openFile?.fileName}</h2>
-          <p className="mt-1 text-sm text-[#667085]">{openFile?.folder}</p>
-          <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.documentViewerBody}</p>
-          <button
-            type="button"
-            onClick={() => {
-              dialogRef.current?.close();
-            }}
-            className="mt-5 inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white"
-          >
-            {sellerCopy.closeDocument}
-          </button>
-        </div>
-      </dialog>
+      />
     </div>
   );
 }

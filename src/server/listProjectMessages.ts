@@ -4,6 +4,7 @@ import { ndaAccessGate } from "@/lib/project-access";
 import { labelAccesses, toThreadMessage, type MessageCounts, type SellerThread } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type MessageList = {
@@ -117,8 +118,10 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         documents: files
           .filter((file) => file.projectId === access.projectId)
           .map((file) => ({
+            id: file.id,
             folder: file.folder,
             fileName: file.fileName,
+            stored: dataRoomFileIsStored(file.id),
             visible: sharedFileIds({
               files: files.filter((item) => item.projectId === access.projectId),
               investorId: access.investorId,
@@ -193,7 +196,9 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   const documents = investorProcessFiles({
     ndaAcceptedAt: access?.ndaAcceptedAt ?? null,
     granted: grant !== null,
-    files: files.filter((file) => visible.has(file.id)),
+    files: files
+      .filter((file) => visible.has(file.id))
+      .map((file) => ({ ...file, stored: dataRoomFileIsStored(file.id) })),
   });
 
   return {

@@ -3,6 +3,7 @@ import { dataRoomMessage, dataRoomReadGate, visibleFolderNames, type StoreDataRo
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { deleteDataRoomBytes, writeDataRoomBytes } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type DataRoomWriteResult = { ok: true } | { ok: false; message: string };
@@ -10,6 +11,7 @@ export type DataRoomWriteResult = { ok: true } | { ok: false; message: string };
 export async function storeDataRoomFile(
   user: CurrentUser,
   input: StoreDataRoomFileInput,
+  bytes: Uint8Array,
 ): Promise<DataRoomWriteResult> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: sellerCopy.documentForbidden };
@@ -44,14 +46,26 @@ export async function storeDataRoomFile(
     return { ok: false, message: sellerCopy.folderInvalid };
   }
 
-  await prisma.dataRoomFile.create({
-    data: {
-      id: randomUUID(),
-      projectId: project.id,
-      fileName: input.fileName,
-      folder: input.folder,
-    },
-  });
+  const id = randomUUID();
+  const written = await writeDataRoomBytes(id, bytes);
+
+  if (!written) {
+    return { ok: false, message: sellerCopy.documentInvalid };
+  }
+
+  try {
+    await prisma.dataRoomFile.create({
+      data: {
+        id,
+        projectId: project.id,
+        fileName: input.fileName,
+        folder: input.folder,
+      },
+    });
+  } catch {
+    await deleteDataRoomBytes(id);
+    return { ok: false, message: sellerCopy.documentFailed };
+  }
 
   return { ok: true };
 }

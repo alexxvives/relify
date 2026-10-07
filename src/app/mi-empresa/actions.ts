@@ -19,7 +19,7 @@ import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
-import { createSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
+import { addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -193,9 +193,26 @@ export async function selectSellerCompanyAction(formData: FormData): Promise<voi
   redirect(selected ? safeSellerPath(readText(formData, "next")) : "/mi-empresa");
 }
 
-export async function createSellerCompanyAction(): Promise<void> {
+export type SellerCompanyActionState = { ok: false; message: string } | null;
+
+export async function addSellerCompanyAction(
+  _state: SellerCompanyActionState,
+  formData: FormData,
+): Promise<SellerCompanyActionState> {
   const user = await sellerUser();
-  await createSellerCompany(user);
+  const result = await addSellerCompany(user, readText(formData, "cif"));
+
+  if (!result.ok) {
+    return result;
+  }
+
   refreshSellerPages();
-  redirect("/mi-empresa/detalles?alta=1");
+  redirect("/mi-empresa/detalles");
+}
+
+export async function deleteSellerCompanyAction(formData: FormData): Promise<void> {
+  const user = await sellerUser();
+  await deleteSellerCompany(user, readText(formData, "projectId"));
+  refreshSellerPages();
+  redirect(safeSellerPath(readText(formData, "next")));
 }

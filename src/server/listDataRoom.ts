@@ -12,6 +12,7 @@ import {
 import { labelAccesses } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type OwnerDataRoom = {
@@ -91,6 +92,7 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       files: files.map((file) => ({
         ...toDataRoomFileView(file),
         id: file.id,
+        stored: dataRoomFileIsStored(file.id),
         viewers: fileViewerLabels({ fileId: file.id, files, investors, shares: shareRows }),
       })),
       shares: investors.map((access) =>
