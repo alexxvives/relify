@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cnaeSection, groupSectors } from "./cnae-section";
+import { cnaeSection, groupSectorBooks, groupSectors } from "./cnae-section";
 
 describe("cnaeSection", () => {
   it("groups a class code into its CNAE section", () => {
@@ -17,6 +17,36 @@ describe("groupSectors", () => {
       { id: "C", label: "Industria", count: 2 },
       { id: "G", label: "Comercio", count: 1 },
       { id: "I", label: "Hostelería", count: 1 },
+    ]);
+  });
+});
+
+describe("groupSectorBooks", () => {
+  it("sizes each sector by the published revenue", () => {
+    expect(
+      groupSectorBooks([
+        { code: "10.71", slug: "proyecto-olivo", codename: "Proyecto Olivo", revenueCents: 800_000_00 },
+        { code: "25.11", slug: "proyecto-roble", codename: "Proyecto Roble", revenueCents: 1_200_000_00 },
+        { code: "55.10", slug: "proyecto-duna", codename: "Proyecto Duna", revenueCents: 400_000_00 },
+      ]),
+    ).toEqual([
+      {
+        id: "C",
+        label: "Industria",
+        count: 2,
+        revenueCents: 2_000_000_00,
+        companies: [
+          { slug: "proyecto-olivo", codename: "Proyecto Olivo", revenueCents: 800_000_00 },
+          { slug: "proyecto-roble", codename: "Proyecto Roble", revenueCents: 1_200_000_00 },
+        ],
+      },
+      {
+        id: "I",
+        label: "Hostelería",
+        count: 1,
+        revenueCents: 400_000_00,
+        companies: [{ slug: "proyecto-duna", codename: "Proyecto Duna", revenueCents: 400_000_00 }],
+      },
     ]);
   });
 });

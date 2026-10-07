@@ -8,7 +8,12 @@ export const accessCopy = {
   ndaHeading: "Acuerdo de confidencialidad",
   ndaBody:
     "Aceptas no revelar la información de este proyecto. Esta aceptación no muestra la razón social, el CIF, la dirección ni los archivos, y no abre un data room.",
-  acceptAction: "Aceptar NDA",
+  acceptAction: "Firmar acuerdo",
+  loiHeading: "Carta de intenciones",
+  loiSigned: "Carta firmada",
+  signLoi: "Firmar carta",
+  connectYes: "Sí, conectar",
+  connectCancel: "Cancelar",
   accepted: "NDA aceptado",
   acceptedBody: "El acuerdo queda registrado. La ficha sigue igual.",
   forbidden: "Solo un inversor puede solicitar acceso.",
@@ -18,3 +23,7 @@ export const accessCopy = {
   matchLimit: "Has usado los 3 matches de este mes.",
   waitingForSeller: "Solicitud enviada.",
 } as const;
+
+export function connectConfirm(left: number): string {
+  return left === 1 ? "¿Seguro? Te queda 1 este mes." : `¿Seguro? Te quedan ${left} este mes.`;
+}

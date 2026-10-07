@@ -51,6 +51,10 @@ export function isInPeriod(at: Date, start: Date | null, end: Date | null): bool
   return time >= start.getTime() && time < end.getTime();
 }
 
+export function matchesLeft(acceptedInPeriod: number, pendingInPeriod: number): number {
+  return Math.max(0, LIMITED_MATCHES - acceptedInPeriod - pendingInPeriod);
+}
+
 export function matchSlot(input: {
   plan: BuyerPlanName;
   periodKnown: boolean;

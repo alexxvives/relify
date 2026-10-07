@@ -2,6 +2,16 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — NDA before the figures, and the sector treemap
+
+Detailed figures stay blurred until the buyer signs the NDA, and that signature is only offered after the company accepts the connection. The NDA and the letter of intent are generated from the project nickname, the region, and the public price. They do not include the legal name, the CIF, or the address. Signing on the platform records the acceptance. It is not a qualified electronic signature.
+
+A limited plan asks for confirmation and shows how many matches remain this month. An unlimited plan connects immediately.
+
+The investor home sizes sectors with the Arc treemap by published revenue. The Arc tokens stay on that chart so they do not restyle the rest of the app.
+
+The sale steps are Solicitud, Conexión, NDA, Q&A, LOI, Due diligence, Documentación, and Compraventa. Due diligence is where an advisor reviews the shared room. The contract step stays current until the payment is recorded.
+
 ## 2026-10-07 — Figures before a connection, and the trash icon
 
 An investor sees Estructura y actividad empresarial, Pérdidas y ganancias, and Balance as a blur until the company accepts the connection. Those sections do not render the real figures before that. The public headline metrics stay visible. The seller preview stays clear.

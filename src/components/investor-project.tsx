@@ -8,6 +8,7 @@ import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
+import { LoiCard } from "@/components/loi-card";
 import { ConnectControl, ProjectAccessPanel } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
@@ -17,6 +18,7 @@ import type { InvestorProjectProfile } from "@/lib/investor-project";
 import type { ProjectAccessView } from "@/lib/project-access";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { BuyerPlanName } from "@/lib/billing";
+import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -40,6 +42,9 @@ export function InvestorProject({
   steps,
   today,
   partyName,
+  buyerName,
+  dateLabel,
+  matchesLeft,
   initialTab = "company",
 }: {
   project: InvestorProjectProfile;
@@ -52,10 +57,23 @@ export function InvestorProject({
   steps: DealStep[];
   today: string;
   partyName: string;
+  buyerName: string;
+  dateLabel: string;
+  matchesLeft: number | null;
   initialTab?: "company" | "questions" | "meetings";
 }) {
   const locked = access !== "accepted";
   const chat = messages.filter((message) => message.kind === "question");
+  const signedOffer = messages.find((message) => message.kind === "offer") ?? null;
+  const agreementInput = {
+    buyerName,
+    codename: project.codename,
+    region: project.region,
+    dateLabel,
+  };
+  const connect = (
+    <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} align="center" />
+  );
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -69,17 +87,27 @@ export function InvestorProject({
         progress={steps.length > 0 ? <DealPipeline steps={steps} compact onDark /> : null}
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
-        <ConnectControl slug={project.slug} status={access} plan={plan} />
+        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} />
       </CompanyBanner>
 
-      {access === "requested" ? <ProjectAccessPanel slug={project.slug} status={access} /> : null}
+      {access === "requested" ? (
+        <ProjectAccessPanel slug={project.slug} status={access} agreement={ndaAgreement(agreementInput)} />
+      ) : null}
+      {access === "accepted" ? (
+        <LoiCard slug={project.slug} agreement={loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) })} signedBody={signedOffer?.body ?? null} />
+      ) : null}
 
       <InvestorProjectTabs
         initialTab={initialTab}
         panels={{
           company: (
             <div className="flex flex-col gap-6">
-              <CompanyProfile project={project} figuresOpen={access === "requested" || access === "accepted"} />
+              <CompanyProfile
+                project={project}
+                figuresOpen={access === "accepted"}
+                lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
+                lockAction={access === "none" ? connect : null}
+              />
               <RelatedCompanies items={recommendations} />
             </div>
           ),

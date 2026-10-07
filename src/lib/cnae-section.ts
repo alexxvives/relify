@@ -27,10 +27,18 @@ const sections: readonly { max: number; id: string; label: string }[] = [
   { max: 99, id: "U", label: "Organismos" },
 ];
 
+export type SectorCompany = {
+  slug: string;
+  codename: string;
+  revenueCents: number;
+};
+
 export type IndustrySector = {
   id: string;
   label: string;
   count: number;
+  revenueCents?: number;
+  companies?: SectorCompany[];
 };
 
 export function cnaeSection(code: string): CnaeSection | null {
@@ -64,4 +72,40 @@ export function groupSectors(codes: readonly string[]): IndustrySector[] {
   }
 
   return [...counts.values()].sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, "es"));
+}
+
+export function groupSectorBooks(
+  rows: readonly { code: string; slug: string; codename: string; revenueCents: number }[],
+): IndustrySector[] {
+  const books = new Map<string, IndustrySector>();
+
+  for (const row of rows) {
+    const section = cnaeSection(row.code);
+
+    if (!section) {
+      continue;
+    }
+
+    const current = books.get(section.id) ?? {
+      id: section.id,
+      label: section.label,
+      count: 0,
+      revenueCents: 0,
+      companies: [],
+    };
+    const companies = current.companies ?? [];
+
+    if (!companies.some((company) => company.slug === row.slug)) {
+      companies.push({ slug: row.slug, codename: row.codename, revenueCents: row.revenueCents });
+      current.count += 1;
+      current.revenueCents = (current.revenueCents ?? 0) + row.revenueCents;
+    }
+
+    current.companies = companies;
+    books.set(section.id, current);
+  }
+
+  return [...books.values()].sort(
+    (left, right) => (right.revenueCents ?? 0) - (left.revenueCents ?? 0) || left.label.localeCompare(right.label, "es"),
+  );
 }

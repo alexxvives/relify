@@ -1,5 +1,5 @@
 import { sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
+import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
@@ -122,15 +122,18 @@ export async function loadInvestorDesk(userId: string, email: string, plan: stri
       stage: stage.stage,
       open: stage.open,
       nda: access.ndaAcceptedAt !== null,
-      steps: dealPipeline("investor", {
-        accepted: access.sellerAcceptedAt !== null,
-        nda: access.ndaAcceptedAt !== null,
-        questions: access.project.messages.some((message) => message.kind === "question"),
-        meeting: access.project.messages.some((message) => message.kind === "meeting"),
-        offer: access.project.messages.some((message) => message.kind === "offer"),
-        documents: granted,
-        closed: access.project.successFee !== null,
-      }),
+      steps: dealPipeline(
+        "investor",
+        processFlags({
+          accepted: access.sellerAcceptedAt !== null,
+          nda: access.ndaAcceptedAt !== null,
+          questions: access.project.messages.some((message) => message.kind === "question"),
+          meeting: access.project.messages.some((message) => message.kind === "meeting"),
+          offer: access.project.messages.some((message) => message.kind === "offer"),
+          roomShared: granted,
+          closed: access.project.successFee !== null,
+        }),
+      ),
       messages: access.project.messages.map((message) =>
         toThreadMessage({
           id: message.id,

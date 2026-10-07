@@ -1,4 +1,4 @@
-import { canAcceptMatch, isInPeriod, matchSlot, type BuyerPlanName } from "@/lib/billing";
+import { canAcceptMatch, isInPeriod, matchesLeft, matchSlot, type BuyerPlanName } from "@/lib/billing";
 import { prisma } from "@/server/db";
 
 export type BuyerPlanState = {
@@ -37,6 +37,21 @@ async function usage(userId: string, plan: BuyerPlanState): Promise<{ acceptedIn
   }
 
   return { acceptedInPeriod, pendingInPeriod };
+}
+
+export async function buyerMatchBudget(userId: string): Promise<{ plan: BuyerPlanName; remaining: number | null }> {
+  const plan = await loadBuyerPlan(userId);
+
+  if (plan.plan !== "limited") {
+    return { plan: plan.plan, remaining: null };
+  }
+
+  const counts = await usage(userId, plan);
+
+  return {
+    plan: "limited",
+    remaining: matchesLeft(counts.acceptedInPeriod, counts.pendingInPeriod),
+  };
 }
 
 export async function buyerMatchSlot(userId: string): Promise<{ ok: true } | { ok: false; code: "plan" | "limit" }> {

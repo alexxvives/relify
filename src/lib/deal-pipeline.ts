@@ -1,6 +1,6 @@
 import { dataRoomReadGate } from "./data-room";
 
-export const dealStepIds = ["interest", "accepted", "nda", "questions", "meeting", "offer", "documents", "close"] as const;
+export const dealStepIds = ["solicitud", "conexion", "nda", "qa", "loi", "diligence", "documents", "close"] as const;
 
 export type DealStepId = (typeof dealStepIds)[number];
 
@@ -9,18 +9,39 @@ export type DealStepState = "done" | "current" | "upcoming";
 export type DealStep = {
   id: DealStepId;
   label: string;
+  detail: string;
   state: DealStepState;
 };
 
 export type DealFlags = {
   accepted: boolean;
   nda: boolean;
-  questions: boolean;
-  meeting: boolean;
-  offer: boolean;
+  qa: boolean;
+  loi: boolean;
+  diligence: boolean;
   documents: boolean;
   closed: boolean;
 };
+
+export function processFlags(input: {
+  accepted: boolean;
+  nda: boolean;
+  questions: boolean;
+  meeting: boolean;
+  offer: boolean;
+  roomShared: boolean;
+  closed: boolean;
+}): DealFlags {
+  return {
+    accepted: input.accepted,
+    nda: input.nda,
+    qa: input.questions || input.meeting || input.offer,
+    loi: input.offer,
+    diligence: input.roomShared,
+    documents: input.closed,
+    closed: input.closed,
+  };
+}
 
 export type ProcessFile = {
   folder: string;
@@ -30,42 +51,68 @@ export type ProcessFile = {
   stored?: boolean;
 };
 
-const stepLabel: Record<Exclude<DealStepId, "close">, string> = {
-  interest: "Interés",
-  accepted: "Aceptación",
-  nda: "NDA",
-  questions: "Preguntas",
-  meeting: "Reunión",
-  offer: "Oferta",
-  documents: "Documentación",
+const stepCopy: Record<DealStepId, { label: string; detail: string }> = {
+  solicitud: {
+    label: "Solicitud",
+    detail: "El comprador envía la conexión.",
+  },
+  conexion: {
+    label: "Conexión",
+    detail: "El vendedor acepta la conexión.",
+  },
+  nda: {
+    label: "NDA",
+    detail: "El comprador firma el acuerdo de confidencialidad.",
+  },
+  qa: {
+    label: "Q&A",
+    detail: "Preguntas y reuniones entre las dos partes.",
+  },
+  loi: {
+    label: "LOI",
+    detail: "Carta de intenciones de compra.",
+  },
+  diligence: {
+    label: "Due diligence",
+    detail: "Un asesor revisa la empresa con la documentación compartida.",
+  },
+  documents: {
+    label: "Documentación",
+    detail: "Firma del contrato.",
+  },
+  close: {
+    label: "Compraventa",
+    detail: "El pago queda hecho.",
+  },
 };
 
 export function dealPipeline(role: "investor" | "seller", flags: DealFlags): DealStep[] {
   const doneById: Record<DealStepId, boolean> = {
-    interest: true,
-    accepted: flags.accepted,
+    solicitud: true,
+    conexion: flags.accepted,
     nda: flags.nda,
-    questions: flags.questions,
-    meeting: flags.meeting,
-    offer: flags.offer,
+    qa: flags.qa,
+    loi: flags.loi,
+    diligence: flags.diligence,
     documents: flags.documents,
     close: flags.closed,
   };
   let currentAssigned = false;
 
   return dealStepIds.map((id) => {
-    const label = id === "close" ? (role === "seller" ? "Venta" : "Compra") : stepLabel[id];
+    const copy = stepCopy[id];
+    const detail = id === "close" && role === "seller" ? "El pago queda hecho y la venta se cierra." : copy.detail;
 
     if (!currentAssigned && doneById[id]) {
-      return { id, label, state: "done" };
+      return { id, label: copy.label, detail, state: "done" };
     }
 
     if (!currentAssigned) {
       currentAssigned = true;
-      return { id, label, state: "current" };
+      return { id, label: copy.label, detail, state: "current" };
     }
 
-    return { id, label, state: "upcoming" };
+    return { id, label: copy.label, detail, state: "upcoming" };
   });
 }
 

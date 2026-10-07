@@ -24,10 +24,10 @@ export function MarketCardFigures({
 }) {
   const years =
     askingPriceCents === null || ebitdaCents === null ? null : recoveryYears(askingPriceCents, ebitdaCents);
-  const row: { label: string; value: string; title?: string }[] = [
+  const row: { label: string; value: string }[] = [
     { label: marketCopy.metrics[0].label, value: revenue },
     { label: marketCopy.metrics[1].label, value: ebitda },
-    { label: "Ajustado", title: marketCopy.metrics[2].label, value: adjustedEbitda },
+    { label: marketCopy.metrics[2].label, value: adjustedEbitda },
   ];
 
   return (
@@ -45,11 +45,9 @@ export function MarketCardFigures({
       </div>
       <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
         {row.map((item) => (
-          <div key={item.label} className="min-w-0 px-2 py-2.5 text-center">
-            <dt className="text-[11px] leading-4 text-[#8b95a7]" title={item.title}>
-              {item.label}
-            </dt>
-            <dd className="mt-1 text-[11px] leading-4 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
+          <div key={item.label} className="min-w-0 px-1 py-2.5 text-center">
+            <dt className="text-[11px] leading-4 text-[#8b95a7]">{item.label}</dt>
+            <dd className="mt-1 text-sm leading-5 font-semibold tracking-tight whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

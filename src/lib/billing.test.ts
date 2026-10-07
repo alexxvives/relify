@@ -7,6 +7,7 @@ import {
   buyerAcceptOutcome,
   canAcceptMatch,
   grossCents,
+  matchesLeft,
   matchSlot,
   recordSaleOutcome,
   sellerPublishOutcome,
@@ -47,6 +48,14 @@ describe("matchSlot", () => {
     expect(
       matchSlot({ plan: "unlimited", periodKnown: true, acceptedInPeriod: 9, pendingInPeriod: 9 }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("matchesLeft", () => {
+  it("counts the limited plan down from three", () => {
+    expect(matchesLeft(1, 1)).toBe(1);
+    expect(matchesLeft(2, 1)).toBe(0);
+    expect(matchesLeft(0, 0)).toBe(3);
   });
 });
 

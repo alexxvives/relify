@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dealPipeline, investorProcessFiles, pipelineStatus } from "./deal-pipeline";
+import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags } from "./deal-pipeline";
 
 const openFlags = {
   accepted: false,
   nda: false,
-  questions: false,
-  meeting: false,
-  offer: false,
+  qa: false,
+  loi: false,
+  diligence: false,
   documents: false,
   closed: false,
 };
@@ -16,34 +16,35 @@ describe("dealPipeline", () => {
     const steps = dealPipeline("investor", openFlags);
 
     expect(steps.map((step) => step.label)).toEqual([
-      "Interés",
-      "Aceptación",
+      "Solicitud",
+      "Conexión",
       "NDA",
-      "Preguntas",
-      "Reunión",
-      "Oferta",
+      "Q&A",
+      "LOI",
+      "Due diligence",
       "Documentación",
-      "Compra",
+      "Compraventa",
     ]);
-    expect(steps.find((step) => step.state === "current")?.id).toBe("accepted");
+    expect(steps.find((step) => step.state === "current")?.id).toBe("conexion");
+    expect(steps[0]?.detail).toBe("El comprador envía la conexión.");
     expect(steps[steps.length - 1]?.id).toBe("close");
   });
 
-  it("names the last step Venta for the seller and Compra when that step is current", () => {
+  it("keeps the contract current until the payment, then names the close Compraventa", () => {
     const seller = dealPipeline("seller", { ...openFlags, accepted: true, nda: true });
     const buyer = dealPipeline("investor", {
       accepted: true,
       nda: true,
-      questions: true,
-      meeting: true,
-      offer: true,
-      documents: true,
+      qa: true,
+      loi: true,
+      diligence: true,
+      documents: false,
       closed: false,
     });
 
-    expect(seller[seller.length - 1]?.label).toBe("Venta");
-    expect(buyer.find((step) => step.state === "current")?.label).toBe("Compra");
-    expect(pipelineStatus(buyer)).toBe("Compra");
+    expect(seller[seller.length - 1]?.label).toBe("Compraventa");
+    expect(buyer.find((step) => step.state === "current")?.label).toBe("Documentación");
+    expect(pipelineStatus(buyer)).toBe("Documentación");
   });
 
   it("keeps a later step open while an earlier step is still current", () => {
@@ -51,13 +52,12 @@ describe("dealPipeline", () => {
       ...openFlags,
       accepted: true,
       nda: true,
-      questions: true,
-      meeting: true,
-      documents: true,
+      qa: true,
+      diligence: true,
     });
 
-    expect(steps.find((step) => step.id === "offer")?.state).toBe("current");
-    expect(steps.find((step) => step.id === "documents")?.state).toBe("upcoming");
+    expect(steps.find((step) => step.id === "loi")?.state).toBe("current");
+    expect(steps.find((step) => step.id === "diligence")?.state).toBe("upcoming");
     expect(steps.find((step) => step.id === "close")?.state).toBe("upcoming");
   });
 
@@ -65,15 +65,50 @@ describe("dealPipeline", () => {
     const steps = dealPipeline("seller", {
       accepted: true,
       nda: true,
-      questions: true,
-      meeting: true,
-      offer: true,
+      qa: true,
+      loi: true,
+      diligence: true,
       documents: true,
       closed: true,
     });
 
     expect(steps.every((step) => step.state === "done")).toBe(true);
-    expect(pipelineStatus(steps)).toBe("Venta");
+    expect(pipelineStatus(steps)).toBe("Compraventa");
+  });
+});
+
+describe("processFlags", () => {
+  it("opens due diligence when the room is shared and closes the contract with the payment", () => {
+    expect(
+      processFlags({
+        accepted: true,
+        nda: true,
+        questions: true,
+        meeting: false,
+        offer: false,
+        roomShared: true,
+        closed: false,
+      }),
+    ).toEqual({
+      accepted: true,
+      nda: true,
+      qa: true,
+      loi: false,
+      diligence: true,
+      documents: false,
+      closed: false,
+    });
+    expect(
+      processFlags({
+        accepted: true,
+        nda: true,
+        questions: false,
+        meeting: false,
+        offer: true,
+        roomShared: false,
+        closed: true,
+      }).documents,
+    ).toBe(true);
   });
 });
 

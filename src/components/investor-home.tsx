@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, CircleHelp, Crown, EyeOff, Heart, SlidersHorizontal } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
-import { IndustryTreemap } from "@/components/industry-treemap";
+import { SectorTreemap } from "@/components/sector-treemap";
 import { NoticeList } from "@/components/notice-list";
 import { investorCopy } from "@/lib/investor-copy";
 import type { IndustrySector } from "@/lib/cnae-section";
@@ -61,7 +61,7 @@ export function InvestorHome({
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.sectorsTitle}</h2>
-          <IndustryTreemap sectors={sectors} empty={investorCopy.sectorsEmpty} />
+          <SectorTreemap sectors={sectors} empty={investorCopy.sectorsEmpty} />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <div className="flex items-center justify-between gap-3">

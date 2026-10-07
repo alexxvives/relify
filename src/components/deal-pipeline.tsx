@@ -18,10 +18,13 @@ export function DealPipeline({
   compact?: boolean;
   onDark?: boolean;
 }) {
+  const [hovered, setHovered] = useState<string | null>(null);
+  const hint = steps.find((step) => step.id === hovered)?.detail ?? "";
+
   return (
     <div>
       <div className="overflow-x-auto">
-        <ol className={compact ? "flex min-w-[32rem] items-start py-1" : "flex min-w-[44rem] items-start py-3"} aria-label="Recorrido del proceso">
+        <ol className={compact ? "flex min-w-[48rem] items-start py-1" : "flex min-w-[56rem] items-start py-3"} aria-label="Recorrido del proceso">
           {steps.map((step, index) => {
             const previous = steps[index - 1];
             const doneLine = onDark ? "bg-[#8dffc4]" : "bg-[#17663a]";
@@ -49,7 +52,20 @@ export function DealPipeline({
               <li
                 key={step.id}
                 aria-current={step.state === "current" ? "step" : undefined}
-                className="flex min-w-0 flex-1 flex-col items-center gap-2"
+                tabIndex={0}
+                onMouseEnter={() => {
+                  setHovered(step.id);
+                }}
+                onMouseLeave={() => {
+                  setHovered(null);
+                }}
+                onFocus={() => {
+                  setHovered(step.id);
+                }}
+                onBlur={() => {
+                  setHovered(null);
+                }}
+                className="flex min-w-0 flex-1 flex-col items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]"
               >
                 <span className="flex w-full items-center">
                   <span className={`h-0.5 flex-1 ${lineIn}`} />
@@ -62,6 +78,9 @@ export function DealPipeline({
           })}
         </ol>
       </div>
+      <p className={onDark ? "min-h-5 text-center text-xs text-white/80" : "min-h-5 text-center text-xs text-[#5c6b78]"} aria-live="polite">
+        {hint}
+      </p>
     </div>
   );
 }

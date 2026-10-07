@@ -1,5 +1,5 @@
 import { sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles } from "@/lib/deal-pipeline";
+import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
 import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread } from "@/lib/project-message";
@@ -117,15 +117,18 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             createdAt: message.createdAt,
           }),
         ),
-        steps: dealPipeline("seller", {
-          accepted: access.sellerAcceptedAt !== null,
-          nda: access.ndaAcceptedAt !== null,
-          questions: threadMessages.some((message) => message.kind === "question"),
-          meeting: threadMessages.some((message) => message.kind === "meeting"),
-          offer: threadMessages.some((message) => message.kind === "offer"),
-          documents: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
-          closed: closedProjects.has(access.projectId),
-        }),
+        steps: dealPipeline(
+          "seller",
+          processFlags({
+            accepted: access.sellerAcceptedAt !== null,
+            nda: access.ndaAcceptedAt !== null,
+            questions: threadMessages.some((message) => message.kind === "question"),
+            meeting: threadMessages.some((message) => message.kind === "meeting"),
+            offer: threadMessages.some((message) => message.kind === "offer"),
+            roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+            closed: closedProjects.has(access.projectId),
+          }),
+        ),
         documents: files
           .filter((file) => file.projectId === access.projectId)
           .map((file) => ({
@@ -236,15 +239,18 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             createdAt: message.createdAt,
           }),
         ),
-        steps: dealPipeline("investor", {
-          accepted: access?.sellerAcceptedAt !== null && access?.sellerAcceptedAt !== undefined,
-          nda: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
-          questions: messages.some((message) => message.kind === "question"),
-          meeting: messages.some((message) => message.kind === "meeting"),
-          offer: messages.some((message) => message.kind === "offer"),
-          documents: grant !== null,
-          closed: fee !== null,
-        }),
+        steps: dealPipeline(
+          "investor",
+          processFlags({
+            accepted: access?.sellerAcceptedAt !== null && access?.sellerAcceptedAt !== undefined,
+            nda: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
+            questions: messages.some((message) => message.kind === "question"),
+            meeting: messages.some((message) => message.kind === "meeting"),
+            offer: messages.some((message) => message.kind === "offer"),
+            roomShared: grant !== null,
+            closed: fee !== null,
+          }),
+        ),
         documents,
       },
     ],

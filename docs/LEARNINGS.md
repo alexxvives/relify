@@ -22,3 +22,4 @@ Append-only. One line per project-specific pitfall:
 - 2026-10-07: Cloudflare `npm clean-install` failed with ERESOLVE on `react-server-dom-webpack` — Workers Builds does not pass `--legacy-peer-deps` — keep `legacy-peer-deps=true` in `.npmrc`.
 - 2026-10-07: the Worker build could not load `@/generated/prisma/client` — that client is gitignored and Cloudflare skips Prisma's install script — generate it at the start of `vite build`.
 - 2026-10-07: `tsc` rejects `createAuth(): Auth` when `Auth` is `ReturnType<typeof betterAuth>` — the specific options return is not the generic Better Auth type — infer `Auth` from `ReturnType<typeof createAuth>`.
+- 2026-10-07: importing Arc `foundation.css` restyles Costa — that file sets `:root` tokens the app already uses — scope them to `.arc-scope` and do not keep its global focus rules.

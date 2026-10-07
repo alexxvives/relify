@@ -61,6 +61,29 @@ export function MarketBrowser({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex justify-center">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={favoritesOnly}
+          onClick={() => {
+            setFavoritesOnly((current) => !current);
+          }}
+          className="inline-flex items-center gap-3 rounded-full border border-[#e7eaee] bg-white py-1.5 pr-1.5 pl-3"
+        >
+          <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
+          <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>
+          <span className={favoritesOnly ? "relative h-7 w-12 rounded-full bg-[#465ab4]" : "relative h-7 w-12 rounded-full bg-[#d5dbe3]"}>
+            <span
+              className={
+                favoritesOnly
+                  ? "absolute top-0.5 left-5 size-6 rounded-full bg-white shadow-sm"
+                  : "absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm"
+              }
+            />
+          </span>
+        </button>
+      </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))] lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
@@ -129,29 +152,6 @@ export function MarketBrowser({
             />
           </label>
         </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={favoritesOnly}
-            onClick={() => {
-              setFavoritesOnly((current) => !current);
-            }}
-            className="inline-flex items-center gap-3 rounded-full border border-[#e7eaee] bg-[#f7f8fb] py-1.5 pr-1.5 pl-3"
-          >
-            <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
-            <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>
-            <span className={favoritesOnly ? "relative h-7 w-12 rounded-full bg-[#465ab4]" : "relative h-7 w-12 rounded-full bg-[#d5dbe3]"}>
-              <span
-                className={
-                  favoritesOnly
-                    ? "absolute top-0.5 left-5 size-6 rounded-full bg-white shadow-sm"
-                    : "absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm"
-                }
-              />
-            </span>
-          </button>
-        </div>
       </div>
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
@@ -181,9 +181,6 @@ export function MarketBrowser({
                       askingPriceCents={project.askingPriceCents}
                       ebitdaCents={project.ebitdaCents}
                     />
-                    <span className="mt-auto inline-flex h-11 items-center justify-center rounded-xl border border-[#e1e6ee] text-sm font-medium">
-                      {marketCopy.details}
-                    </span>
                   </div>
                 </Link>
               </article>

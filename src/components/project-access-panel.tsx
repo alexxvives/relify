@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
-import { accessCopy } from "@/lib/access-copy";
+import { accessCopy, connectConfirm } from "@/lib/access-copy";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
 import type { ProjectAccessView } from "@/lib/project-access";
@@ -28,14 +28,20 @@ export function ConnectControl({
   slug,
   status,
   plan,
+  matchesLeft,
+  align = "end",
 }: {
   slug: string;
   status: ProjectAccessView;
   plan: BuyerPlanName;
+  matchesLeft: number | null;
+  align?: "end" | "center";
 }) {
   const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
+  const [confirming, setConfirming] = useState(false);
   const accepted = status === "accepted";
   const requested = accepted || status === "requested" || status === "awaiting-seller" || requestState?.ok === true;
+  const stack = align === "center" ? "flex flex-col items-center gap-2" : "flex flex-col items-end gap-2";
 
   if (accepted || requested) {
     return null;
@@ -50,19 +56,60 @@ export function ConnectControl({
     );
   }
 
-  return (
-    <form action={requestAction} className="flex flex-col items-end gap-2">
-      <input type="hidden" name="slug" value={slug} />
-      <button type="submit" className={buttonClassName} disabled={requestPending}>
+  if (plan === "limited" && matchesLeft === 0) {
+    return <p className="max-w-xs text-sm text-[#5c6b78]">{accessCopy.matchLimit}</p>;
+  }
+
+  if (plan === "limited" && !confirming) {
+    return (
+      <button
+        type="button"
+        className={buttonClassName}
+        onClick={() => {
+          setConfirming(true);
+        }}
+      >
         <Link2 className="size-4" aria-hidden />
         {accessCopy.connect}
       </button>
+    );
+  }
+
+  return (
+    <form action={requestAction} className={stack}>
+      <input type="hidden" name="slug" value={slug} />
+      {plan === "limited" ? <p className="max-w-xs text-sm text-[#1c2740]">{connectConfirm(matchesLeft ?? 0)}</p> : null}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <button type="submit" className={buttonClassName} disabled={requestPending}>
+          <Link2 className="size-4" aria-hidden />
+          {plan === "limited" ? accessCopy.connectYes : accessCopy.connect}
+        </button>
+        {plan === "limited" ? (
+          <button
+            type="button"
+            className="inline-flex h-11 items-center justify-center rounded-xl px-3 text-sm font-medium text-[#5c6b78]"
+            onClick={() => {
+              setConfirming(false);
+            }}
+          >
+            {accessCopy.connectCancel}
+          </button>
+        ) : null}
+      </div>
       <AccessError state={requestState} />
     </form>
   );
 }
 
-export function ProjectAccessPanel({ slug, status }: { slug: string; status: ProjectAccessView }) {
+export function ProjectAccessPanel({
+  slug,
+  status,
+  agreement,
+}: {
+  slug: string;
+  status: ProjectAccessView;
+  agreement: string;
+}) {
   const [acceptState, acceptAction, acceptPending] = useActionState(acceptNdaAction, null);
   const accepted = status === "accepted" || acceptState?.ok === true;
 
@@ -72,11 +119,12 @@ export function ProjectAccessPanel({ slug, status }: { slug: string; status: Pro
 
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
-      <h2 id="acceso-nda" className="flex items-center gap-2 text-xl font-semibold">
-        <Link2 className="size-5 text-[#3d34b8]" aria-hidden />
+      <h2 id="acceso-nda" className="text-xl font-semibold">
         {accessCopy.ndaHeading}
       </h2>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5c6b78]">{accessCopy.ndaBody}</p>
+      <div className="mt-4 max-h-80 overflow-y-auto rounded-xl bg-[#f7f8fb] p-4 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
+        {agreement}
+      </div>
       <form action={acceptAction} className="mt-4 flex flex-col items-start gap-3">
         <input type="hidden" name="slug" value={slug} />
         <button type="submit" className={buttonClassName} disabled={acceptPending}>

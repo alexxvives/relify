@@ -7,12 +7,13 @@ import { InvestorProject } from "@/components/investor-project";
 import { PublicSite } from "@/components/public-site";
 import { ProjectFigures } from "@/components/project-card";
 import { catalogCopy } from "@/lib/catalog-copy";
-import { dealPipeline, type DealStep } from "@/lib/deal-pipeline";
+import { spanishDate } from "@/lib/deal-documents";
+import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import { madridToday } from "@/lib/meeting";
 import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { loadBuyerPlan } from "@/server/buyerPlan";
+import { buyerMatchBudget } from "@/server/buyerPlan";
 import { getInvestorProject } from "@/server/getInvestorProject";
 import { getProjectAccess } from "@/server/getProjectAccess";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
@@ -31,15 +32,18 @@ function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
     return [];
   }
 
-  return dealPipeline("investor", {
-    accepted: false,
-    nda: false,
-    questions: false,
-    meeting: false,
-    offer: false,
-    documents: false,
-    closed: false,
-  });
+  return dealPipeline(
+    "investor",
+    processFlags({
+      accepted: access === "requested" || access === "accepted",
+      nda: access === "accepted",
+      questions: false,
+      meeting: false,
+      offer: false,
+      roomShared: false,
+      closed: false,
+    }),
+  );
 }
 
 function readTab(value: string | string[] | undefined): ProjectTab {
@@ -101,7 +105,7 @@ export default async function ProjectDetailPage({
       getProjectAccess(user, slug),
       listFavoriteSlugs(user.id),
       listProjectMessages(user, slug),
-      loadBuyerPlan(user.id),
+      buyerMatchBudget(user.id),
     ]);
     return (
       <AppShell title={profile.codename} showTitle={false}>
@@ -116,6 +120,9 @@ export default async function ProjectDetailPage({
           steps={bannerSteps(access, messages.threads[0]?.steps ?? [])}
           today={madridToday(new Date())}
           partyName={messages.threads[0]?.partyName ?? ""}
+          buyerName={user.displayName}
+          dateLabel={spanishDate(new Date())}
+          matchesLeft={billing.remaining}
           initialTab={readTab(query.tab)}
         />
       </AppShell>

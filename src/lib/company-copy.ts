@@ -93,6 +93,7 @@ export const companyCopy = {
   metricsHeading: "Métricas financieras",
   structureHeading: "Estructura y actividad empresarial",
   figuresLocked: "Estas cifras se abren cuando la empresa acepta la conexión.",
+  figuresLockedNda: "Firma el acuerdo de confidencialidad para ver estas cifras.",
   incomeHeading: "Pérdidas y ganancias",
   balanceHeading: "Balance",
   balanceChart: "Activo, pasivo y patrimonio",

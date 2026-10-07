@@ -8,6 +8,7 @@ import {
   Scale,
   Tags,
   Users,
+  EyeOff,
 } from "lucide-react";
 import { FinancialTable } from "@/components/financial-table";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
@@ -47,9 +48,13 @@ function PublicFact({ icon: Icon, label, value }: { icon: typeof Building2; labe
 export function CompanyProfile({
   project,
   figuresOpen = true,
+  lockedNote = companyCopy.figuresLocked,
+  lockAction = null,
 }: {
   project: InvestorProjectProfile;
   figuresOpen?: boolean;
+  lockedNote?: string;
+  lockAction?: ReactNode;
 }) {
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const metrics = [
@@ -136,7 +141,7 @@ export function CompanyProfile({
         <SectionTitle id="estructura" icon={PieChart}>
           {companyCopy.structureHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<DonutStandIn />}>
+        <LockedFigures open={figuresOpen} standIn={<DonutStandIn />} note={lockedNote} action={lockAction}>
           <div className="grid gap-4 lg:grid-cols-3">
             <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
             <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
@@ -156,7 +161,7 @@ export function CompanyProfile({
         <SectionTitle id="perdidas" icon={Receipt}>
           {companyCopy.incomeHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />}>
+        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />} note={lockedNote}>
           <div className="overflow-x-auto">
             <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
           </div>
@@ -168,7 +173,7 @@ export function CompanyProfile({
         <SectionTitle id="balance" icon={Scale}>
           {companyCopy.balanceHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />}>
+        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />} note={lockedNote}>
           <div className="overflow-x-auto">
             <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
           </div>
@@ -179,19 +184,33 @@ export function CompanyProfile({
   );
 }
 
-function LockedFigures({ open, standIn, children }: { open: boolean; standIn: ReactNode; children: ReactNode }) {
+function LockedFigures({
+  open,
+  standIn,
+  note,
+  action = null,
+  children,
+}: {
+  open: boolean;
+  standIn: ReactNode;
+  note: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   if (open) {
     return <div className="mt-6">{children}</div>;
   }
 
   return (
-    <div className="relative mt-6">
+    <div className="relative mt-6 min-h-40">
       <div className="pointer-events-none select-none blur-md" aria-hidden>
         {standIn}
       </div>
-      <p className="absolute inset-x-6 top-1/2 -translate-y-1/2 text-center text-sm font-medium text-[#1c2740]">
-        {companyCopy.figuresLocked}
-      </p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <EyeOff className="size-5 text-[#465ab4]" aria-hidden />
+        <p className="max-w-md text-sm font-medium text-[#1c2740]">{note}</p>
+        {action}
+      </div>
     </div>
   );
 }
