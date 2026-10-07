@@ -30,6 +30,7 @@ export function processFlags(input: {
   meeting: boolean;
   offer: boolean;
   roomShared: boolean;
+  passedDiligence: boolean;
   closed: boolean;
 }): DealFlags {
   return {
@@ -37,7 +38,7 @@ export function processFlags(input: {
     nda: input.nda,
     qa: input.questions || input.meeting || input.offer,
     loi: input.offer,
-    diligence: input.roomShared,
+    diligence: input.roomShared || input.passedDiligence,
     documents: input.closed,
     closed: input.closed,
   };
@@ -74,11 +75,11 @@ const stepCopy: Record<DealStepId, { label: string; detail: string }> = {
   },
   diligence: {
     label: "Due diligence",
-    detail: "Un asesor revisa la empresa con la documentación compartida.",
+    detail: "Puedes pedir un asesor de Releva o seguir a la documentación.",
   },
   documents: {
     label: "Documentación",
-    detail: "Firma del contrato.",
+    detail: "El vendedor sube el contrato de compraventa. Releva no lo redacta.",
   },
   close: {
     label: "Compraventa",
@@ -141,11 +142,11 @@ export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
   if (id === "nda") {
     return role === "investor"
       ? { yours: true, action: "Firma el acuerdo de confidencialidad" }
-      : { yours: false, action: "El inversor todavía no ha firmado el acuerdo" };
+      : { yours: false, action: "El inversor debe firmar el NDA para proceder." };
   }
 
   if (id === "qa") {
-    return { yours: false, action: "Podéis preguntar y proponer una reunión" };
+    return { yours: false, action: "Estás listo para entregar el LOI." };
   }
 
   if (id === "loi") {
@@ -155,7 +156,7 @@ export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
   }
 
   if (id === "diligence") {
-    return { yours: false, action: "Falta que un asesor revise la documentación compartida" };
+    return { yours: false, action: "Revisa con un asesor de Releva, o sigue a la documentación." };
   }
 
   if (id === "documents") {

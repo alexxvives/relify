@@ -1,14 +1,18 @@
 import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
-import { demoInvestorProfile } from "@/lib/demo-profile";
+import { investorProfileChecks } from "@/lib/demo-profile";
 import { toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
+import { formatWholeEur } from "@/lib/money";
 import { prisma } from "@/server/db";
+import { loadInvestorDraft } from "@/server/investorProfile";
 
 export type InvestorProcessCard = {
+  accessId: string;
   slug: string;
   codename: string;
   region: string;
+  askingPrice: string;
   stage: string;
   open: boolean;
   nda: boolean;
@@ -19,11 +23,11 @@ export type InvestorProcessCard = {
 };
 
 export type InvestorProfileChecks = {
-  thesis: boolean;
-  filters: boolean;
-  hidden: boolean;
-  favorite: boolean;
-  premium: boolean;
+  photo: boolean;
+  place: boolean;
+  kind: boolean;
+  search: boolean;
+  offer: boolean;
 };
 
 export type InvestorDesk = {
@@ -48,19 +52,22 @@ function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date |
   return { stage: investorCopy.stageWaiting, open: true };
 }
 
-export async function loadInvestorDesk(userId: string, email: string, plan: string): Promise<InvestorDesk> {
+export async function loadInvestorDesk(userId: string, email: string): Promise<InvestorDesk> {
   const [accesses, favorites, questions, meetings] = await Promise.all([
     prisma.projectAccess.findMany({
       where: { investorId: userId, project: { status: "published" } },
       select: {
+        id: true,
         sellerAcceptedAt: true,
         ndaAcceptedAt: true,
+        diligencePassedAt: true,
         project: {
           select: {
             id: true,
             slug: true,
             codename: true,
             region: true,
+            askingPriceCents: true,
             successFee: { select: { id: true } },
             dataRoomGrants: {
               where: { investorId: userId },
@@ -116,9 +123,11 @@ export async function loadInvestorDesk(userId: string, email: string, plan: stri
           : "";
 
     return {
+      accessId: access.id,
       slug: access.project.slug,
       codename: access.project.codename,
       region: access.project.region,
+      askingPrice: formatWholeEur(access.project.askingPriceCents),
       stage: stage.stage,
       open: stage.open,
       nda: access.ndaAcceptedAt !== null,
@@ -131,6 +140,7 @@ export async function loadInvestorDesk(userId: string, email: string, plan: stri
           meeting: access.project.messages.some((message) => message.kind === "meeting"),
           offer: access.project.messages.some((message) => message.kind === "offer"),
           roomShared: granted,
+          passedDiligence: access.diligencePassedAt !== null,
           closed: access.project.successFee !== null,
         }),
       ),
@@ -148,7 +158,7 @@ export async function loadInvestorDesk(userId: string, email: string, plan: stri
       documentsNote,
     };
   });
-  const profile = demoInvestorProfile(email);
+  const draft = await loadInvestorDraft(userId, email);
 
   return {
     pending: processes.filter((process) => process.open),
@@ -157,12 +167,6 @@ export async function loadInvestorDesk(userId: string, email: string, plan: stri
     interests: accesses.length,
     questions,
     meetings,
-    profileChecks: {
-      thesis: profile !== null,
-      filters: false,
-      hidden: false,
-      favorite: favorites > 0,
-      premium: plan !== "none",
-    },
+    profileChecks: investorProfileChecks(draft),
   };
 }

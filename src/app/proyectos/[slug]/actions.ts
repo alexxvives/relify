@@ -75,6 +75,8 @@ export async function acceptNdaAction(
 
   if (result.ok) {
     revalidatePath(`/proyectos/${input.slug}`);
+    revalidatePath("/procesos");
+    revalidatePath("/mi-empresa/procesos");
   }
 
   return result;
@@ -103,6 +105,8 @@ export async function postInvestorMessageAction(
 
   if (result.ok) {
     revalidatePath(`/proyectos/${parsed.data.slug}`);
+    revalidatePath("/procesos");
+    revalidatePath("/mi-empresa/procesos");
   }
 
   return result;

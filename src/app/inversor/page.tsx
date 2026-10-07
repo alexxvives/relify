@@ -3,7 +3,6 @@ import { InvestorHome } from "@/components/investor-home";
 import { SignedInPage } from "@/components/signed-in-page";
 import { investorCopy } from "@/lib/investor-copy";
 import { sellerGreeting } from "@/lib/seller-copy";
-import { loadBuyerPlan } from "@/server/buyerPlan";
 import { loadInvestorDesk } from "@/server/investorDesk";
 import { listNotifications } from "@/server/listNotifications";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
@@ -16,12 +15,11 @@ export const metadata: Metadata = {
 
 export default async function InvestorHomePage() {
   const user = await requireRole("investor");
-  const [notifications, billing, sectors] = await Promise.all([
+  const [notifications, sectors] = await Promise.all([
     listNotifications(user.id),
-    loadBuyerPlan(user.id),
     listPublishedSectors(),
   ]);
-  const desk = await loadInvestorDesk(user.id, user.email, billing.plan);
+  const desk = await loadInvestorDesk(user.id, user.email);
 
   return (
     <SignedInPage title={sellerGreeting(user.displayName)}>

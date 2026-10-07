@@ -85,7 +85,7 @@ describe("dealPipeline", () => {
     expect(stepCue("nda", "investor")).toEqual({ yours: true, action: "Firma el acuerdo de confidencialidad" });
     expect(stepCue("nda", "seller")).toEqual({
       yours: false,
-      action: "El inversor todavía no ha firmado el acuerdo",
+      action: "El inversor debe firmar el NDA para proceder.",
     });
     expect(stepCue("loi", "investor").yours).toBe(true);
     expect(stepCue("loi", "seller").yours).toBe(false);
@@ -102,6 +102,7 @@ describe("processFlags", () => {
         meeting: false,
         offer: false,
         roomShared: true,
+        passedDiligence: false,
         closed: false,
       }),
     ).toEqual({
@@ -121,8 +122,21 @@ describe("processFlags", () => {
         meeting: false,
         offer: true,
         roomShared: false,
+        passedDiligence: false,
         closed: true,
       }).documents,
+    ).toBe(true);
+    expect(
+      processFlags({
+        accepted: true,
+        nda: true,
+        questions: true,
+        meeting: false,
+        offer: true,
+        roomShared: false,
+        passedDiligence: true,
+        closed: false,
+      }).diligence,
     ).toBe(true);
   });
 });

@@ -8,8 +8,8 @@ import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
-import { LoiCard, LoiSignBubble } from "@/components/loi-card";
-import { ConnectControl, NdaSignBubble, ProjectAccessPanel } from "@/components/project-access-panel";
+import { LoiCard } from "@/components/loi-card";
+import { ConnectControl } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
 import { accessCopy } from "@/lib/access-copy";
@@ -47,6 +47,7 @@ export function InvestorProject({
   dateLabel,
   matchesLeft,
   initialTab = "company",
+  accessId,
 }: {
   project: InvestorProjectProfile;
   recommendations: PublicProjectCard[];
@@ -62,6 +63,7 @@ export function InvestorProject({
   dateLabel: string;
   matchesLeft: number | null;
   initialTab?: "company" | "questions" | "meetings";
+  accessId: string;
 }) {
   const locked = access !== "accepted";
   const chat = messages.filter((message) => message.kind === "question");
@@ -76,12 +78,12 @@ export function InvestorProject({
     access === "none" ? (
       <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} align="center" />
     ) : access === "requested" ? (
-      <a
-        href="#acceso-nda"
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white"
+      <Link
+        href="/procesos"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
       >
-        {accessCopy.acceptAction}
-      </a>
+        Firmar en Mis procesos
+      </Link>
     ) : null;
 
   return (
@@ -93,17 +95,28 @@ export function InvestorProject({
 
       <CompanyBanner
         title={project.codename}
-        progress={steps.length > 0 ? <DealPipeline steps={steps} role="investor" onDark /> : null}
+        progress={
+          steps.length > 0 ? (
+            <DealPipeline
+              steps={steps}
+              role="investor"
+              onDark
+              sign={{
+                slug: project.slug,
+                nda: ndaAgreement(agreementInput),
+                loi: loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) }),
+              }}
+              diligence={accessId.length > 0 ? { accessId, advisorHref: "/asesoramiento" } : undefined}
+            />
+          ) : null
+        }
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
         <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} />
       </CompanyBanner>
 
-      {access === "requested" ? (
-        <ProjectAccessPanel slug={project.slug} status={access} agreement={ndaAgreement(agreementInput)} />
-      ) : null}
-      {access === "accepted" ? (
-        <LoiCard slug={project.slug} agreement={loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) })} signedBody={signedOffer?.body ?? null} />
+      {access === "accepted" && signedOffer ? (
+        <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} />
       ) : null}
 
       <InvestorProjectTabs
@@ -121,16 +134,7 @@ export function InvestorProject({
             </div>
           ),
           questions: access === "requested" ? (
-            <section className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-              <LockedNote text={companyCopy.threadLocked} />
-              <ProcessRoom
-                files={[]}
-                bodies={[]}
-                nda={false}
-                empty=""
-                prompt={<NdaSignBubble slug={project.slug} agreement={ndaAgreement(agreementInput)} />}
-              />
-            </section>
+            <LockedNote text={accessCopy.signOnProcesses} />
           ) : locked ? (
             <LockedNote text={companyCopy.threadLocked} />
           ) : (
@@ -157,14 +161,6 @@ export function InvestorProject({
                 bodies={chat.map((message) => message.body)}
                 nda
                 empty={sellerCopy.documentsEmpty}
-                prompt={
-                  signedOffer ? null : (
-                    <LoiSignBubble
-                      slug={project.slug}
-                      agreement={loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) })}
-                    />
-                  )
-                }
               />
             </section>
           ),

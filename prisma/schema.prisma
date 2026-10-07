@@ -120,6 +120,7 @@ model User {
   listingPayments ListingPayment[]
   engagementsRequested AdvisoryEngagement[] @relation("EngagementRequester")
   engagementsOwned     AdvisoryEngagement[] @relation("EngagementAdvisor")
+  investorProfile InvestorProfile?
 
   @@unique([email])
   @@map("user")
@@ -283,8 +284,9 @@ model ProjectAccess {
   investorId    String    @map("investor_id")
   investor      User      @relation(fields: [investorId], references: [id], onDelete: Cascade)
   requestedAt      DateTime  @default(now()) @map("requested_at")
-  sellerAcceptedAt DateTime? @map("seller_accepted_at")
-  ndaAcceptedAt    DateTime? @map("nda_accepted_at")
+  sellerAcceptedAt   DateTime? @map("seller_accepted_at")
+  ndaAcceptedAt      DateTime? @map("nda_accepted_at")
+  diligencePassedAt  DateTime? @map("diligence_passed_at")
 
   @@unique([projectId, investorId])
   @@index([investorId])
@@ -364,6 +366,22 @@ model AdvisorProfile {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("advisor_profile")
+}
+
+model InvestorProfile {
+  userId       String   @id @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photoPath    String   @default("") @map("photo_path")
+  city         String   @default("")
+  province     String   @default("")
+  investorType String   @default("") @map("investor_type")
+  ticket       String   @default("")
+  sectors      String   @default("")
+  thesis       String   @default("") @db.Text
+  contribution String   @default("") @db.Text
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("investor_profile")
 }
 
 model Shareholder {

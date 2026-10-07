@@ -8,6 +8,7 @@ import {
   incomingQuestionNotice,
 } from "./notifications";
 import { sellerCopy } from "./seller-copy";
+import type { PublicInvestorCard } from "./demo-profile";
 
 export const messageKinds = ["question", "meeting", "offer"] as const;
 
@@ -110,12 +111,9 @@ export function personName(name: string, lastName: string | null | undefined): s
   return [name, lastName ?? ""].map((part) => part.trim()).filter((part) => part.length > 0).join(" ");
 }
 
-export type SellerThreadStage = "pending" | "nda" | "open";
+export type InvestorPublicProfile = PublicInvestorCard;
 
-export type InvestorPublicProfile = {
-  investorType: string;
-  thesis: string;
-};
+export type SellerThreadStage = "pending" | "nda" | "open";
 
 export type SellerThread = {
   accessId: string;

@@ -44,6 +44,7 @@ function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
       meeting: false,
       offer: false,
       roomShared: false,
+      passedDiligence: false,
       closed: false,
     }),
   );
@@ -128,6 +129,7 @@ export default async function ProjectDetailPage({
           dateLabel={spanishDate(new Date())}
           matchesLeft={billing.remaining}
           initialTab={readTab(query.tab)}
+          accessId={messages.threads[0]?.accessId ?? ""}
         />
         <section className="mt-8 rounded-2xl border border-[#e7eaee] bg-white p-6">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>

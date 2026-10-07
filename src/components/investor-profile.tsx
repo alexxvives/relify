@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
+import { saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
 import { FieldHint } from "@/components/field-hint";
-import type { DemoInvestorProfile } from "@/lib/demo-profile";
+import type { DemoInvestorProfile, InvestorProfileDraft } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
+import { investorTicketBands } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
 
 function Chip({ done }: { done: boolean }) {
@@ -44,25 +46,155 @@ function Fact({
   );
 }
 
+const fieldClass = "h-11 rounded-[14px] border border-[#e7eaee] px-3";
+
 export function InvestorProfile({
   displayName,
   initial,
+  draft,
 }: {
   displayName: string;
   initial: DemoInvestorProfile | null;
+  draft: InvestorProfileDraft;
 }) {
   const [editingProfessional, setEditingProfessional] = useState(false);
-  const [editingThesis, setEditingThesis] = useState(false);
-  const [editingTrajectory, setEditingTrajectory] = useState(false);
   const [tradeName, setTradeName] = useState(initial?.tradeName ?? displayName);
   const [nif, setNif] = useState(initial?.nif ?? "");
   const [postal, setPostal] = useState(initial?.postal ?? "");
-  const [investorType, setInvestorType] = useState(initial?.investorType ?? "");
-  const [trajectory, setTrajectory] = useState(initial?.trajectory ?? "");
+  const [photo, setPhoto] = useState(draft.photo);
+  const [photoError, setPhotoError] = useState("");
+  const [city, setCity] = useState(draft.city);
+  const [province, setProvince] = useState(draft.province);
+  const [investorType, setInvestorType] = useState(draft.investorType);
+  const [ticket, setTicket] = useState(draft.ticket);
+  const [sectors, setSectors] = useState(draft.sectors);
+  const [thesis, setThesis] = useState(draft.thesis);
+  const [contribution, setContribution] = useState(draft.contribution);
+  const [state, action, pending] = useActionState(saveInvestorProfileAction, null);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
+  const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0;
+
+  function readPhoto(file: File | undefined) {
+    setPhotoError("");
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > 120_000) {
+      setPhotoError(investorCopy.photoHeavy);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setPhoto(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
 
   return (
     <div className="flex flex-col gap-4">
+      <form action={action} className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+              {investorCopy.publicTitle}
+              <FieldHint text={investorCopy.publicHint} />
+            </h2>
+            <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.publicHint}</p>
+          </div>
+          <Chip done={publicDone} />
+        </div>
+        <div id="foto" className="mt-5 flex scroll-mt-8 items-center gap-4">
+          {photo.length > 0 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt="" className="size-20 rounded-full object-cover" />
+          ) : (
+            <span className="inline-flex size-20 items-center justify-center rounded-full bg-[#e7edf8] text-sm font-semibold text-[#1c2740]">Foto</span>
+          )}
+          <label className="inline-flex h-9 cursor-pointer items-center rounded-full border border-[#e7eaee] px-3 text-sm">
+            {investorCopy.photoChange}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                readPhoto(event.target.files?.[0]);
+              }}
+            />
+          </label>
+        </div>
+        {photoError ? <p className="mt-2 text-sm text-red-700">{photoError}</p> : null}
+        <input type="hidden" name="photo" value={photo} />
+        <div id="lugar" className="mt-5 grid scroll-mt-8 gap-4 md:grid-cols-2">
+          <label className="flex flex-col gap-2 text-sm">
+            {investorCopy.cityLabel}
+            <input name="city" value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            {investorCopy.provinceLabel}
+            <input name="province" value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
+          </label>
+        </div>
+        <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2">
+          <label className="flex flex-col gap-2 text-sm">
+            {investorCopy.investorType}
+            <select
+              name="investorType"
+              value={investorType}
+              onChange={(event) => setInvestorType(event.target.value)}
+              className={`${fieldClass} bg-white`}
+            >
+              <option value="">{investorCopy.investorTypeEmpty}</option>
+              {investorTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            {investorCopy.ticketLabel}
+            <select name="ticket" value={ticket} onChange={(event) => setTicket(event.target.value)} className={`${fieldClass} bg-white`}>
+              <option value="">{investorCopy.investorTypeEmpty}</option>
+              {investorTicketBands.map((band) => (
+                <option key={band} value={band}>
+                  {band}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label id="busqueda" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
+          {investorCopy.sectorsLabel}
+          <input name="sectors" value={sectors} onChange={(event) => setSectors(event.target.value)} className={fieldClass} />
+        </label>
+        <label className="mt-4 flex flex-col gap-2 text-sm">
+          {investorCopy.searchLabel}
+          <textarea name="thesis" value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
+        </label>
+        <label id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
+          {investorCopy.contributionTitle}
+          <FieldHint text={investorCopy.contributionHint} />
+          <textarea
+            name="contribution"
+            value={contribution}
+            onChange={(event) => setContribution(event.target.value)}
+            rows={3}
+            className="rounded-xl border border-[#e7eaee] px-3 py-2"
+          />
+        </label>
+        <div className="mt-4 flex items-center gap-3">
+          <button type="submit" disabled={pending} className="inline-flex h-10 items-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white disabled:opacity-60">
+            {pending ? investorCopy.savingProfile : investorCopy.saveProfile}
+          </button>
+          {state?.ok ? <p className="text-sm text-[#17663a]">{investorCopy.profileSaved}</p> : null}
+          {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
+        </div>
+      </form>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -87,11 +219,11 @@ export function InvestorProfile({
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalName}
-              <input value={tradeName} onChange={(event) => setTradeName(event.target.value)} className="h-11 rounded-[14px] border border-[#e7eaee] px-3" />
+              <input value={tradeName} onChange={(event) => setTradeName(event.target.value)} className={fieldClass} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalNif}
-              <input value={nif} onChange={(event) => setNif(event.target.value)} className="h-11 rounded-[14px] border border-[#e7eaee] px-3" />
+              <input value={nif} onChange={(event) => setNif(event.target.value)} className={fieldClass} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalPostal}
@@ -100,7 +232,7 @@ export function InvestorProfile({
                 maxLength={5}
                 value={postal}
                 onChange={(event) => setPostal(keepDigits(event.target.value, 5))}
-                className="h-11 rounded-[14px] border border-[#e7eaee] px-3"
+                className={fieldClass}
               />
             </label>
           </div>
@@ -110,87 +242,6 @@ export function InvestorProfile({
             <Fact icon={FileSpreadsheet} label={investorCopy.professionalNif} value={nif.trim().length > 0 ? nif : investorCopy.investorTypeEmpty} />
             <Fact icon={MapPin} label={investorCopy.professionalPostal} value={postal.trim().length > 0 ? postal : investorCopy.investorTypeEmpty} />
           </div>
-        )}
-      </section>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-              {investorCopy.thesisTitle}
-              <FieldHint text={investorCopy.thesisHint} />
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.thesisBody}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Chip done={investorType.length > 0} />
-            <button
-              type="button"
-              onClick={() => {
-                setEditingThesis((current) => !current);
-              }}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] px-3 text-sm"
-            >
-              <Pencil className="size-3.5" aria-hidden />
-              {editingThesis ? investorCopy.save : investorCopy.edit}
-            </button>
-          </div>
-        </div>
-        {editingThesis ? (
-          <label className="mt-4 flex max-w-sm flex-col gap-2 text-sm">
-            {investorCopy.investorType}
-            <select
-              value={investorType}
-              onChange={(event) => setInvestorType(event.target.value)}
-              className="h-11 rounded-[14px] border border-[#e7eaee] bg-white px-3"
-            >
-              <option value="">{investorCopy.investorTypeEmpty}</option>
-              {investorTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : investorType.length > 0 ? (
-          <p className="mt-4 inline-flex rounded-xl bg-[#f4f7ff] px-4 py-3 text-sm">
-            <span>
-              <span className="block text-[#64748b]">{investorCopy.investorType}</span>
-              <span className="font-semibold text-[#465ab4]">{investorType}</span>
-            </span>
-          </p>
-        ) : null}
-      </section>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-            {investorCopy.trajectoryTitle}
-            <FieldHint text={investorCopy.trajectoryHint} />
-          </h2>
-          <div className="flex items-center gap-2">
-            <Chip done={trajectory.trim().length > 0} />
-            <button
-              type="button"
-              onClick={() => {
-                setEditingTrajectory((current) => !current);
-              }}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] px-3 text-sm"
-            >
-              <Pencil className="size-3.5" aria-hidden />
-              {editingTrajectory ? investorCopy.save : investorCopy.edit}
-            </button>
-          </div>
-        </div>
-        {editingTrajectory ? (
-          <textarea
-            value={trajectory}
-            onChange={(event) => setTrajectory(event.target.value)}
-            rows={4}
-            className="mt-4 w-full rounded-xl border border-[#e7eaee] px-3 py-2"
-          />
-        ) : trajectory.trim().length > 0 ? (
-          <p className="mt-4 text-sm leading-6 text-[#2b3b4a]">{trajectory}</p>
-        ) : (
-          <p className="mt-3 text-sm text-[#64748b]">{investorCopy.trajectoryBody}</p>
         )}
       </section>
     </div>

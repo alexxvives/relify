@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — The seller sees a public investor profile, and the seller uploads the sale contract
+
+The investor profile that a seller opens is stored. It can include a photo, a city and province, the investor type, a ticket band, sectors, what they are looking for, and what they bring. It does not include the legal name, NIF, email, phone, or postal code. The five phases on the investor home are those public fields. The private professional panel stays on the investor's own page.
+
+Releva does not draft the sale contract. At due diligence either party can ask an advisor or continue. Documentation is where the seller uploads the contract.
+
 ## 2026-10-07 — The advisor is a profile and a hired service
 
 The advisor keeps a public profile and takes engagements for Due Diligence, Valoración, Consultoría Legal, Consultoría Fiscal, Business Plan, and Consultoría Laboral. In this pass the advisor does not publish the client's company. Existing drafts, including Proyecto Nube, stay. The 149 € plus IVA listing fee belongs to the seller: the first company is free, and each later one is paid before the publish request. An admin still approves before it is live.

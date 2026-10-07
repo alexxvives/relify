@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, CircleHelp, Crown, EyeOff, Heart, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { NoticeList } from "@/components/notice-list";
@@ -10,11 +10,11 @@ import type { InvestorProfileChecks } from "@/server/investorDesk";
 import { blogPosts, formatBlogDate } from "@/lib/blog";
 
 const checklist = [
-  { key: "thesis", label: investorCopy.thesisItem, href: "/inversor/perfil", icon: CircleHelp },
-  { key: "filters", label: investorCopy.filtersItem, href: "/busquedas", icon: SlidersHorizontal },
-  { key: "hidden", label: investorCopy.hideItem, href: "/ocultas", icon: EyeOff },
-  { key: "favorite", label: investorCopy.favoriteItem, href: "/favoritos", icon: Heart },
-  { key: "premium", label: investorCopy.premiumItem, href: "/premium", icon: Crown },
+  { key: "photo", label: investorCopy.photoItem, href: "/inversor/perfil#foto", icon: Camera },
+  { key: "place", label: investorCopy.placeItem, href: "/inversor/perfil#lugar", icon: MapPin },
+  { key: "kind", label: investorCopy.kindItem, href: "/inversor/perfil#tipo", icon: UserRound },
+  { key: "search", label: investorCopy.searchItem, href: "/inversor/perfil#busqueda", icon: Search },
+  { key: "offer", label: investorCopy.offerItem, href: "/inversor/perfil#aporte", icon: HandHeart },
 ] as const;
 
 export function InvestorHome({

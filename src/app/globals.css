@@ -1227,7 +1227,7 @@
   }
 
   100% {
-    transform: scale(2.15);
+    transform: scale(1.65);
     opacity: 0;
   }
 }

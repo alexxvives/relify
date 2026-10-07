@@ -3,10 +3,19 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DealPipeline } from "@/components/deal-pipeline";
+import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { investorCopy } from "@/lib/investor-copy";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 
-export function InvestorProcesses({ items }: { items: InvestorProcessCard[] }) {
+export function InvestorProcesses({
+  items,
+  buyerName,
+  dateLabel,
+}: {
+  items: InvestorProcessCard[];
+  buyerName: string;
+  dateLabel: string;
+}) {
   return (
     <ul className="flex flex-col gap-3">
       {items.map((item) => (
@@ -25,7 +34,27 @@ export function InvestorProcesses({ items }: { items: InvestorProcessCard[] }) {
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             </div>
-            <DealPipeline steps={item.steps} role="investor" signTo={`/proyectos/${item.slug}#firmar`} />
+            <DealPipeline
+              steps={item.steps}
+              role="investor"
+              sign={{
+                slug: item.slug,
+                nda: ndaAgreement({
+                  buyerName,
+                  codename: item.codename,
+                  region: item.region,
+                  dateLabel,
+                }),
+                loi: loiAgreement({
+                  buyerName,
+                  codename: item.codename,
+                  region: item.region,
+                  askingPrice: item.askingPrice,
+                  dateLabel,
+                }),
+              }}
+              diligence={{ accessId: item.accessId, advisorHref: "/asesoramiento" }}
+            />
           </section>
         </li>
       ))}

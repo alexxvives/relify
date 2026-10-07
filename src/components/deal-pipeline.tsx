@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import { Check, ShieldCheck } from "lucide-react";
 import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
+import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { passDiligenceAction } from "@/app/procesos/pass-action";
+import { AgreementSheet } from "@/components/agreement-sheet";
 import { attachmentNames } from "@/lib/meeting";
+import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { stepCue, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
 
@@ -15,27 +19,34 @@ export function DealPipeline({
   steps,
   role,
   onDark = false,
-  signTo,
+  sign,
+  diligence,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   onDark?: boolean;
-  signTo?: string;
+  sign?: { slug: string; nda: string; loi: string };
+  diligence?: { accessId: string; advisorHref: string };
 }) {
+  const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const current = steps.find((step) => step.state === "current");
   const cue = current ? stepCue(current.id, role) : { yours: false, action: "La compraventa está hecha." };
-  const signHref = cue.yours && (current?.id === "nda" || current?.id === "loi") ? (signTo ?? "#firmar") : null;
+  const canSign = Boolean(sign) && cue.yours && (current?.id === "nda" || current?.id === "loi");
   const currentIndex = steps.findIndex((step) => step.state === "current");
   const span = Math.max(steps.length - 1, 1);
   const fill = currentIndex < 0 ? 1 : currentIndex / span;
+  const showDiligence = current?.id === "diligence" && diligence !== undefined;
 
   return (
     <div>
-      <div className="overflow-x-auto py-2">
+      <div className="overflow-x-auto px-1 pt-6 pb-2">
         <ol className="relative mx-auto flex min-w-[40rem] items-start" aria-label="Recorrido del proceso">
-          <span className={onDark ? "absolute top-3 right-4 left-4 h-1 rounded-full bg-white/20" : "absolute top-3 right-4 left-4 h-1 rounded-full bg-[#e6eaf2]"} aria-hidden />
           <span
-            className={onDark ? "absolute top-3 left-4 h-1 rounded-full bg-[#8dffc4]" : "absolute top-3 left-4 h-1 rounded-full bg-[#465ab4]"}
+            className={onDark ? "absolute top-3 right-4 left-4 h-1 rounded-full bg-white/20" : "absolute top-3 right-4 left-4 h-1 rounded-full bg-[#e6eaf2]"}
+            aria-hidden
+          />
+          <span
+            className={onDark ? "absolute top-3 left-4 h-1 rounded-full bg-[#8dffc4]" : "absolute top-3 left-4 h-1 rounded-full bg-[#178a45]"}
             style={{ width: `calc((100% - 2rem) * ${fill})` }}
             aria-hidden
           />
@@ -44,7 +55,7 @@ export function DealPipeline({
               step.state === "current"
                 ? onDark
                   ? "rounded-full bg-white/15 px-2 py-0.5 text-center text-[11px] font-semibold text-white"
-                  : "rounded-full bg-[#eef1ff] px-2 py-0.5 text-center text-[11px] font-semibold text-[#465ab4]"
+                  : "rounded-full bg-[#e8f6ee] px-2 py-0.5 text-center text-[11px] font-semibold text-[#17663a]"
                 : step.state === "done"
                   ? onDark
                     ? "text-center text-[11px] font-medium text-[#b8ffd8]"
@@ -68,7 +79,30 @@ export function DealPipeline({
           })}
         </ol>
       </div>
-      <TurnCue cue={cue} onDark={onDark} signHref={signHref} />
+      {showDiligence && diligence ? (
+        <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} />
+      ) : (
+        <TurnCue
+          cue={cue}
+          onDark={onDark}
+          canSign={canSign}
+          onSign={() => {
+            if (current?.id === "nda" || current?.id === "loi") {
+              setSignKind(current.id);
+            }
+          }}
+        />
+      )}
+      {sign && signKind ? (
+        <ProcessSignDialog
+          kind={signKind}
+          slug={sign.slug}
+          agreement={signKind === "nda" ? sign.nda : sign.loi}
+          onClose={() => {
+            setSignKind(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -76,47 +110,36 @@ export function DealPipeline({
 function TurnCue({
   cue,
   onDark,
-  signHref,
+  canSign,
+  onSign,
 }: {
   cue: { yours: boolean; action: string };
   onDark: boolean;
-  signHref: string | null;
+  canSign: boolean;
+  onSign: () => void;
 }) {
-  const router = useRouter();
-
-  function openSign(href: string) {
-    if (href.startsWith("#")) {
-      document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-
-    router.push(href);
-  }
-
   if (cue.yours) {
     return (
       <div
         className={
           onDark
             ? "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-lg"
-            : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#c9d2f5] bg-[#eef1ff] px-4 py-3 text-left"
+            : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#c9e8d4] bg-[#f3fbf6] px-4 py-3 text-left"
         }
       >
         <span className="relative flex size-3 shrink-0" aria-hidden>
-          <span className="deal-pulse absolute inset-0 rounded-full bg-[#465ab4]" />
-          <span className="relative size-3 rounded-full bg-[#465ab4]" />
+          <span className="deal-pulse absolute inset-0 rounded-full bg-[#178a45]" />
+          <span className="relative size-3 rounded-full bg-[#178a45]" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#465ab4] uppercase">Tu turno</span>
+          <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#17663a] uppercase">Tu turno</span>
           <span className="mt-0.5 block text-sm font-semibold text-[#1c2740]">{cue.action}</span>
         </span>
-        {signHref ? (
+        {canSign ? (
           <button
             type="button"
-            onClick={() => {
-              openSign(signHref);
-            }}
-            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#465ab4] px-3 text-sm font-semibold text-white"
+            onClick={onSign}
+            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
           >
             Firmar ahora
           </button>
@@ -126,7 +149,131 @@ function TurnCue({
   }
 
   return (
-    <p className={onDark ? "mt-3 text-center text-sm text-white/80" : "mt-3 text-center text-sm text-[#5c6b78]"}>{cue.action}</p>
+    <div className={onDark ? "mt-4 flex items-start gap-3" : "mt-4 flex items-start gap-3"}>
+      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+        Qué sigue
+      </span>
+      <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
+    </div>
+  );
+}
+
+function DiligenceChoice({ accessId, advisorHref, onDark }: { accessId: string; advisorHref: string; onDark: boolean }) {
+  const [state, action, pending] = useActionState(passDiligenceAction, null);
+
+  return (
+    <div className={onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
+      <div className="flex items-start gap-3">
+        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+          Qué sigue
+        </span>
+        <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
+          Revisa con un asesor de Releva, o sigue a la documentación. El contrato lo sube el vendedor.
+        </p>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Link
+          href={advisorHref}
+          className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
+        >
+          Contactar con un asesor
+        </Link>
+        <form action={action}>
+          <input type="hidden" name="accessId" value={accessId} />
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex h-9 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {pending ? "Guardando…" : "Seguir a documentación"}
+          </button>
+        </form>
+      </div>
+      {state && !state.ok ? <p className="mt-2 text-sm text-red-700">{state.message}</p> : null}
+    </div>
+  );
+}
+
+function ProcessSignDialog({
+  kind,
+  slug,
+  agreement,
+  onClose,
+}: {
+  kind: "nda" | "loi";
+  slug: string;
+  agreement: string;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const action = kind === "nda" ? acceptNdaAction : postInvestorMessageAction;
+  const [state, formAction, pending] = useActionState(action, null);
+  const fileName = kind === "nda" ? "Acuerdo-de-confidencialidad.pdf" : "Carta-de-intenciones.pdf";
+  const submitLabel = kind === "nda" ? accessCopy.acceptAction : accessCopy.signLoi;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+  }, []);
+
+  useEffect(() => {
+    if (state?.ok) {
+      dialogRef.current?.close();
+    }
+  }, [state]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#d5dbe3] bg-[#eef1f4] p-3 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/45"
+      onClose={onClose}
+    >
+      <div className="flex items-center justify-between gap-3 px-2 py-1">
+        <p className="truncate text-sm font-medium text-[#3d4a63]">{fileName}</p>
+        <form method="dialog">
+          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
+            Cerrar
+          </button>
+        </form>
+      </div>
+      <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
+        <AgreementSheet text={agreement} />
+      </div>
+      <form action={formAction} className="mt-3 flex items-center justify-end gap-3 px-1">
+        <input type="hidden" name="slug" value={slug} />
+        {kind === "loi" ? (
+          <>
+            <input type="hidden" name="kind" value="offer" />
+            <input type="hidden" name="body" value={agreement} />
+          </>
+        ) : null}
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex h-10 items-center rounded-full bg-[#17663a] px-4 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {pending ? "Firmando…" : submitLabel}
+        </button>
+      </form>
+      <SignError state={state} />
+    </dialog>
+  );
+}
+
+function SignError({ state }: { state: ProjectAccessActionState }) {
+  if (!state || state.ok) {
+    return null;
+  }
+
+  return (
+    <p className="mt-2 px-1 text-sm text-red-700" role="alert">
+      {state.message}
+    </p>
   );
 }
 
@@ -178,8 +325,8 @@ function StepDot({ state, onDark = false }: { state: DealStep["state"]; onDark?:
   if (state === "current") {
     return (
       <span className="relative block size-6 shrink-0">
-        <span className="deal-pulse absolute -inset-1.5 rounded-full bg-[#465ab4]" />
-        <span className="relative block size-6 rounded-full border-2 border-white bg-[#465ab4] shadow-[0_0_0_4px_rgba(70,90,180,0.18)]" />
+        <span className="deal-pulse absolute -inset-1 rounded-full bg-[#178a45]" />
+        <span className="relative block size-6 rounded-full border-2 border-white bg-[#178a45] shadow-[0_0_0_4px_rgba(23,138,69,0.18)]" />
       </span>
     );
   }

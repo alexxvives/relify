@@ -2,12 +2,12 @@ import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
-import { publicInvestorCard } from "@/lib/demo-profile";
 import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
+import { publicCardsByInvestor } from "@/server/investorProfile";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type MessageList = {
@@ -60,6 +60,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           requestedAt: true,
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
+          diligencePassedAt: true,
         },
         orderBy: { requestedAt: "asc" },
       }),
@@ -100,7 +101,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             select: { id: true, email: true, name: true, lastName: true },
           });
     const nameById = new Map(people.map((person) => [person.id, personName(person.name, person.lastName)]));
-    const profileById = new Map(people.map((person) => [person.id, publicInvestorCard(person.email)]));
+    const profileById = await publicCardsByInvestor(people.map((person) => ({ id: person.id, email: person.email })));
     const threads = labeled.map((access) => {
       const stage: SellerThreadStage = access.sellerAcceptedAt === null ? "pending" : access.ndaAcceptedAt === null ? "nda" : "open";
       const threadMessages =
@@ -134,6 +135,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             meeting: threadMessages.some((message) => message.kind === "meeting"),
             offer: threadMessages.some((message) => message.kind === "offer"),
             roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+            passedDiligence: access.diligencePassedAt !== null,
             closed: closedProjects.has(access.projectId),
           }),
         ),
@@ -171,7 +173,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   const access = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { sellerAcceptedAt: true, ndaAcceptedAt: true },
+        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, diligencePassedAt: true, id: true },
       })
     : null;
   const gate = ndaAccessGate({
@@ -236,7 +238,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     viewer: "investor",
     threads: [
       {
-        accessId: "",
+        accessId: access?.id ?? "",
         codename: project.codename,
         label: project.codename,
         stage: "open",
@@ -261,6 +263,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             meeting: messages.some((message) => message.kind === "meeting"),
             offer: messages.some((message) => message.kind === "offer"),
             roomShared: grant !== null,
+            passedDiligence: access?.diligencePassedAt !== null && access?.diligencePassedAt !== undefined,
             closed: fee !== null,
           }),
         ),

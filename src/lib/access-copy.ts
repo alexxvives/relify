@@ -9,6 +9,7 @@ export const accessCopy = {
   ndaBody:
     "Aceptas no revelar la información de este proyecto. Esta aceptación no muestra la razón social, el CIF, la dirección ni los archivos, y no abre un data room.",
   acceptAction: "Firmar acuerdo",
+  signOnProcesses: "El acuerdo se firma en Mis procesos.",
   loiHeading: "Carta de intenciones",
   loiSigned: "Carta firmada",
   signLoi: "Firmar carta",
