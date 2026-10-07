@@ -10,7 +10,7 @@ import { requestProjectAccess } from "@/server/requestProjectAccess";
 import { companyCopy } from "@/lib/company-copy";
 import { investorMessageSchema } from "@/lib/project-message";
 import { postInvestorMessage } from "@/server/postProjectMessage";
-import { approveMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
+import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
 import { toggleProjectFavorite, type FavoriteResult } from "@/server/toggleProjectFavorite";
 
 export type ProjectAccessActionState = { ok: true } | { ok: false; message: string } | null;
@@ -95,7 +95,8 @@ export async function postInvestorMessageAction(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: companyCopy.messageInvalid };
+    const written = typeof body === "string" ? body.trim() : "";
+    return { ok: false, message: written.length === 0 ? companyCopy.messageInvalid : companyCopy.messageFailed };
   }
 
   const result = await postInvestorMessage(user, parsed.data);
@@ -138,6 +139,27 @@ export async function approveInvestorMeetingAction(
   const result = await approveMeeting(user, {
     slug: typeof slug === "string" ? slug : "",
     messageId: typeof messageId === "string" ? messageId : "",
+  });
+
+  if (result.ok && typeof slug === "string") {
+    revalidatePath(`/proyectos/${slug}`);
+  }
+
+  return result;
+}
+
+export async function rescheduleInvestorMeetingAction(
+  _state: ProjectAccessActionState,
+  formData: FormData,
+): Promise<ProjectAccessActionState> {
+  const user = await currentUser();
+  const slug = formData.get("slug");
+  const messageId = formData.get("messageId");
+  const body = formData.get("body");
+  const result = await rescheduleMeeting(user, {
+    slug: typeof slug === "string" ? slug : "",
+    messageId: typeof messageId === "string" ? messageId : "",
+    body: typeof body === "string" ? body : "",
   });
 
   if (result.ok && typeof slug === "string") {

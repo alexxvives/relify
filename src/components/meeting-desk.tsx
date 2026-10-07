@@ -10,20 +10,13 @@ import type { MessageActionState } from "@/components/project-thread";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const weekdays = ["L", "M", "X", "J", "V", "S", "D"];
-const starts = Array.from({ length: 23 }, (_, index) => {
+const timeSlots = Array.from({ length: 25 }, (_, index) => {
   const total = 8 * 60 + index * 30;
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 });
-const durations = [
-  { minutes: 30, label: "30 min" },
-  { minutes: 60, label: "1 h" },
-  { minutes: 90, label: "1 h 30" },
-  { minutes: 120, label: "2 h" },
-  { minutes: 180, label: "3 h" },
-] as const;
 
 const dialogClass =
-  "fixed top-1/2 left-1/2 z-50 m-0 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40";
+  "fixed top-1/2 left-1/2 z-50 m-0 w-[min(52rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40";
 
 function formatDay(iso: string): string {
   const [year, month, day] = iso.split("-");
@@ -160,12 +153,14 @@ function MeetingCard({
   notesAction,
   approveAction,
   hidden,
+  onEdit,
 }: {
   message: ThreadMessageView;
   today: string;
   notesAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   approveAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
+  onEdit?: () => void;
 }) {
   const slot = readMeeting(message.body);
   const past = slot ? meetingIsPast(slot, today) : false;
@@ -182,11 +177,22 @@ function MeetingCard({
                 {slot.fromTime}–{slot.toTime}
               </span>
             </p>
-            {tag ? (
-              <span className="shrink-0 rounded-full bg-[#eef2ff] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
-                {tag}
-              </span>
-            ) : null}
+            <span className="flex shrink-0 items-center gap-2">
+              {onEdit ? (
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="text-xs font-medium text-[#465ab4] underline"
+                >
+                  {sellerCopy.meetingsChange}
+                </button>
+              ) : null}
+              {tag ? (
+                <span className="rounded-full bg-[#eef2ff] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
+                  {tag}
+                </span>
+              ) : null}
+            </span>
           </div>
           {slot.description.length > 0 ? <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{slot.description}</p> : null}
           {slot.status === "scheduled" && notesAction ? (
@@ -239,6 +245,7 @@ function MonthGrid({
   onPick,
   blocked,
   marks,
+  today,
 }: {
   cursor: string;
   onCursor: (next: string) => void;
@@ -246,24 +253,25 @@ function MonthGrid({
   onPick?: (day: string) => void;
   blocked: (day: string) => boolean;
   marks: ReadonlySet<string>;
+  today: string;
 }) {
   const cells = monthCells(cursor);
   const [yearText, monthText] = cursor.split("-");
 
   return (
-    <div className="rounded-2xl bg-[#f4f7ff] p-3">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="rounded-3xl border border-[#e6e9f0] bg-white p-4">
+      <div className="mb-3 flex items-center justify-between">
         <button
           type="button"
           aria-label="Mes anterior"
           onClick={() => {
             onCursor(shiftMonth(cursor, -1));
           }}
-          className="inline-flex size-8 items-center justify-center rounded-full hover:bg-white"
+          className="inline-flex size-9 items-center justify-center rounded-full text-[#667085] hover:bg-[#f4f7ff]"
         >
           <ChevronLeft className="size-4" aria-hidden />
         </button>
-        <p className="text-sm font-semibold text-[#1c2740]">
+        <p className="text-sm font-semibold tracking-wide text-[#1c2740] capitalize">
           {months[Number(monthText) - 1]} {yearText}
         </p>
         <button
@@ -272,48 +280,103 @@ function MonthGrid({
           onClick={() => {
             onCursor(shiftMonth(cursor, 1));
           }}
-          className="inline-flex size-8 items-center justify-center rounded-full hover:bg-white"
+          className="inline-flex size-9 items-center justify-center rounded-full text-[#667085] hover:bg-[#f4f7ff]"
         >
           <ChevronRight className="size-4" aria-hidden />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-[#8b95a7]">
+      <div className="grid grid-cols-7 text-center text-[11px] font-medium tracking-wide text-[#98a2b3]">
         {weekdays.map((day) => (
-          <span key={day}>{day}</span>
+          <span key={day} className="pb-2">
+            {day}
+          </span>
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-y-1">
         {cells.map((day, index) => {
           const unavailable = day !== null && blocked(day);
           const active = day !== null && day === selected;
           const marked = day !== null && marks.has(day);
-          return (
+          const todayMark = day === today;
+          return day === null ? (
+            <span key={`empty-${index}`} className="h-10" />
+          ) : (
             <button
-              key={day ?? `empty-${index}`}
+              key={day}
               type="button"
-              disabled={day === null || unavailable || !onPick}
+              disabled={unavailable || !onPick}
               onClick={() => {
-                if (day && onPick) {
+                if (onPick) {
                   onPick(day);
                 }
               }}
               className={
-                day === null
-                  ? "h-8"
-                  : active
-                    ? "h-8 rounded-full bg-[#465ab4] text-xs font-semibold text-white"
-                    : unavailable
-                      ? "h-8 rounded-full text-xs text-[#c5cdd8]"
-                      : marked
-                        ? "h-8 rounded-full bg-white text-xs font-semibold text-[#465ab4]"
-                        : "h-8 rounded-full text-xs text-[#1c2740] hover:bg-white"
+                active
+                  ? "mx-auto flex size-10 items-center justify-center rounded-full bg-[#465ab4] text-sm font-semibold text-white"
+                  : unavailable
+                    ? "mx-auto flex size-10 items-center justify-center rounded-full text-sm text-[#d0d5dd]"
+                    : marked
+                      ? "mx-auto flex size-10 items-center justify-center rounded-full bg-[#eef2ff] text-sm font-semibold text-[#465ab4]"
+                      : todayMark
+                        ? "mx-auto flex size-10 items-center justify-center rounded-full text-sm font-semibold text-[#465ab4] ring-1 ring-[#c9d4f5]"
+                        : "mx-auto flex size-10 items-center justify-center rounded-full text-sm text-[#1c2740] hover:bg-[#f4f7ff]"
               }
             >
-              {day ? Number(day.slice(8)) : ""}
+              {Number(day.slice(8))}
             </button>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function HourRange({ from, to, onChange }: { from: string; to: string; onChange: (from: string, to: string) => void }) {
+  const drag = useRef<string | null>(null);
+
+  function choose(slot: string) {
+    const anchor = drag.current ?? slot;
+    const start = anchor < slot ? anchor : slot;
+    const end = anchor < slot ? slot : anchor;
+    const finish = start === end ? (plusMinutes(start, 30) ?? "20:00") : end;
+    onChange(start, finish);
+  }
+
+  return (
+    <div
+      className="max-h-80 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-white p-1.5"
+      onPointerUp={() => {
+        drag.current = null;
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+      }}
+    >
+      {timeSlots.map((slot) => {
+        const selected = slot >= from && slot < to;
+        return (
+          <button
+            key={slot}
+            type="button"
+            onPointerDown={() => {
+              drag.current = slot;
+              choose(slot);
+            }}
+            onPointerEnter={() => {
+              if (drag.current) {
+                choose(slot);
+              }
+            }}
+            className={
+              selected
+                ? "flex h-7 w-full items-center rounded-lg bg-[#e7edff] px-3 text-left text-xs font-semibold text-[#465ab4]"
+                : "flex h-7 w-full items-center rounded-lg px-3 text-left text-xs text-[#667085] hover:bg-[#f7f8fb]"
+            }
+          >
+            {slot}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -325,6 +388,7 @@ function SlotForm({
   today,
   mode,
   onDone,
+  initial,
 }: {
   action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
@@ -332,21 +396,21 @@ function SlotForm({
   today: string;
   mode: "propose" | "log";
   onDone: () => void;
+  initial?: { day: string; fromTime: string; toTime: string; text: string };
 }) {
-  const [day, setDay] = useState("");
-  const [fromTime, setFromTime] = useState("10:00");
-  const [duration, setDuration] = useState(60);
-  const [text, setText] = useState("");
-  const [cursor, setCursor] = useState(today.slice(0, 7));
+  const [day, setDay] = useState(initial?.day ?? "");
+  const [fromTime, setFromTime] = useState(initial?.fromTime ?? "10:00");
+  const [toTime, setToTime] = useState(initial?.toTime ?? "11:00");
+  const [text, setText] = useState(initial?.text ?? "");
+  const [cursor, setCursor] = useState((initial?.day ?? today).slice(0, 7));
   const [state, formAction, pending] = useActionState(action, null);
-  const end = plusMinutes(fromTime, duration);
   const body =
-    day.length > 0 && end
+    day.length > 0 && fromTime < toTime
       ? (meetingBody({
           from: day,
           to: day,
           fromTime,
-          toTime: end,
+          toTime,
           description: mode === "propose" ? text : "",
           notes: mode === "log" ? text : "",
           status: mode === "propose" ? "proposed" : "scheduled",
@@ -365,64 +429,27 @@ function SlotForm({
         <input key={field.name} type="hidden" name={field.name} value={field.value} />
       ))}
       <input type="hidden" name="body" value={body} />
-      <MonthGrid
-        cursor={cursor}
-        onCursor={setCursor}
-        selected={day}
-        marks={new Set()}
-        blocked={(value) => (mode === "log" ? value > today : value < today)}
-        onPick={setDay}
-      />
-      <div>
-        <p className="text-sm font-medium text-[#1c2740]">{sellerCopy.meetingsStart}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {starts.map((time) => (
-            <button
-              key={time}
-              type="button"
-              onClick={() => {
-                setFromTime(time);
-              }}
-              className={
-                time === fromTime
-                  ? "h-8 rounded-full bg-[#465ab4] px-2.5 text-xs font-semibold text-white"
-                  : "h-8 rounded-full bg-[#f4f7ff] px-2.5 text-xs text-[#1c2740] hover:bg-white"
-              }
-            >
-              {time}
-            </button>
-          ))}
+      <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_9.5rem]">
+        <MonthGrid
+          cursor={cursor}
+          onCursor={setCursor}
+          selected={day}
+          marks={new Set()}
+          today={today}
+          blocked={(value) => (mode === "log" ? value > today : value < today)}
+          onPick={setDay}
+        />
+        <div>
+          <p className="mb-2 text-sm font-medium text-[#1c2740]">{sellerCopy.meetingsStart}</p>
+          <HourRange
+            from={fromTime}
+            to={toTime}
+            onChange={(start, end) => {
+              setFromTime(start);
+              setToTime(end);
+            }}
+          />
         </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium text-[#1c2740]">{sellerCopy.meetingsDuration}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {durations.map((item) => {
-            const allowed = plusMinutes(fromTime, item.minutes) !== null;
-            return (
-              <button
-                key={item.minutes}
-                type="button"
-                disabled={!allowed}
-                onClick={() => {
-                  setDuration(item.minutes);
-                }}
-                className={
-                  item.minutes === duration
-                    ? "h-8 rounded-full bg-[#465ab4] px-3 text-xs font-semibold text-white"
-                    : "h-8 rounded-full bg-[#f4f7ff] px-3 text-xs text-[#1c2740] hover:bg-white disabled:text-[#c5cdd8]"
-                }
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-        {end ? (
-          <p className="mt-2 text-sm text-[#465ab4]">
-            {fromTime}–{end}
-          </p>
-        ) : null}
       </div>
       <label className="text-sm font-medium text-[#1c2740]">
         {mode === "propose" ? sellerCopy.meetingsDescription : sellerCopy.meetingsNotes}
@@ -432,9 +459,20 @@ function SlotForm({
           onChange={(event) => {
             setText(event.target.value);
           }}
-          className="mt-1 min-h-20 w-full rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 py-2 text-sm"
+          className="mt-1 min-h-20 w-full rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-3 py-2 text-sm"
         />
       </label>
+      <div className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
+        <p className="text-[11px] font-semibold tracking-wide text-[#8b95a7] uppercase">{sellerCopy.meetingsPreview}</p>
+        <p className="mt-1 text-sm font-semibold text-[#1c2740]">{sellerCopy.meetingsUntitled}</p>
+        <p className="mt-1 text-sm text-[#465ab4]">
+          {day.length > 0 ? formatDay(day) : sellerCopy.meetingsRange}
+          <span className="ml-2">
+            {fromTime}–{toTime}
+          </span>
+        </p>
+        {text.trim().length > 0 ? <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{text.trim()}</p> : null}
+      </div>
       <div className="flex items-center justify-end gap-3">
         {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
         <button
@@ -465,6 +503,7 @@ function MeetingDialog({
   submitLabel,
   today,
   mode,
+  initial,
 }: {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
@@ -474,6 +513,7 @@ function MeetingDialog({
   submitLabel: string;
   today: string;
   mode: "propose" | "log";
+  initial?: { day: string; fromTime: string; toTime: string; text: string };
 }) {
   const close = useCallback(() => {
     dialogRef.current?.close();
@@ -490,6 +530,7 @@ function MeetingDialog({
         submitLabel={submitLabel}
         today={today}
         mode={mode}
+        initial={initial}
         onDone={close}
       />
     </dialog>
@@ -514,6 +555,7 @@ export function MeetingDesk({
   action,
   notesAction,
   approveAction,
+  rescheduleAction,
   hidden,
   today,
 }: {
@@ -521,6 +563,7 @@ export function MeetingDesk({
   action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   notesAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   approveAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
+  rescheduleAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
   today: string;
   columns?: boolean;
@@ -533,10 +576,20 @@ export function MeetingDesk({
   const upcoming = meetings.filter((message) => !past.includes(message));
   const proposeRef = useRef<HTMLDialogElement>(null);
   const logRef = useRef<HTMLDialogElement>(null);
+  const editRef = useRef<HTMLDialogElement>(null);
   const [proposeKey, setProposeKey] = useState(0);
   const [logKey, setLogKey] = useState(0);
+  const [editKey, setEditKey] = useState(0);
+  const [editing, setEditing] = useState<ThreadMessageView | null>(null);
+  const editingSlot = editing ? readMeeting(editing.body) : null;
   const [cursor, setCursor] = useState(today.slice(0, 7));
   const marks = meetingDays(meetings);
+
+  useEffect(() => {
+    if (editing) {
+      editRef.current?.showModal();
+    }
+  }, [editing, editKey]);
 
   function openDialog(ref: RefObject<HTMLDialogElement | null>, bump: (value: number) => void) {
     bump(Date.now());
@@ -560,7 +613,7 @@ export function MeetingDesk({
         </div>
         <p className="mt-1 text-sm text-[#667085]">{sellerCopy.meetingsGlance}</p>
         <div className="mt-4">
-          <MonthGrid cursor={cursor} onCursor={setCursor} selected="" marks={marks} blocked={() => false} />
+          <MonthGrid cursor={cursor} onCursor={setCursor} selected="" marks={marks} today={today} blocked={() => false} />
         </div>
       </div>
       <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -575,6 +628,14 @@ export function MeetingDesk({
               notesAction={notesAction}
               approveAction={approveAction}
               hidden={hidden}
+              onEdit={
+                rescheduleAction
+                  ? () => {
+                      setEditing(message);
+                      setEditKey(Date.now());
+                    }
+                  : undefined
+              }
             />
           ))}
         </ul>
@@ -618,6 +679,24 @@ export function MeetingDesk({
         today={today}
         mode="log"
       />
+      {rescheduleAction && editing && editingSlot ? (
+        <MeetingDialog
+          dialogRef={editRef}
+          title={sellerCopy.meetingsChange}
+          formKey={editKey}
+          action={rescheduleAction}
+          hidden={[...hidden, { name: "messageId", value: editing.id }]}
+          submitLabel={sellerCopy.meetingsChange}
+          today={today}
+          mode="propose"
+          initial={{
+            day: editingSlot.from,
+            fromTime: editingSlot.fromTime,
+            toTime: editingSlot.toTime,
+            text: editingSlot.description,
+          }}
+        />
+      ) : null}
     </section>
   );
 }

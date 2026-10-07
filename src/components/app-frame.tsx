@@ -3,23 +3,21 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Briefcase,
-  Building2,
-  ChevronRight,
-  Crown,
-  Files,
-  Heart,
-  House,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  MessageCircleMore,
-  PanelLeft,
-  Phone,
-  TableProperties,
-  X,
-} from "lucide-react";
+import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
+import { Building2Icon } from "@animateicons/react/lucide/building-2-icon";
+import { ChevronRightIcon } from "@animateicons/react/lucide/chevron-right-icon";
+import { CrownIcon } from "@animateicons/react/lucide/crown-icon";
+import { FilesIcon } from "@animateicons/react/lucide/files-icon";
+import { HeartIcon } from "@animateicons/react/lucide/heart-icon";
+import { HouseIcon } from "@animateicons/react/lucide/house-icon";
+import { LayoutDashboardIcon } from "@animateicons/react/lucide/layout-dashboard-icon";
+import { LogOutIcon } from "@animateicons/react/lucide/log-out-icon";
+import { MailIcon } from "@animateicons/react/lucide/mail-icon";
+import { MessageCircleMoreIcon } from "@animateicons/react/lucide/message-circle-more-icon";
+import { PanelLeftIcon } from "@animateicons/react/lucide/panel-left-icon";
+import { PhoneIcon } from "@animateicons/react/lucide/phone-icon";
+import { TableIcon } from "@animateicons/react/lucide/table-icon";
+import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/cuenta/actions";
 import { Logo } from "@/components/logo";
 import { CompanySwitcher } from "@/components/company-switcher";
@@ -30,36 +28,20 @@ import type { NotificationView } from "@/lib/notifications";
 import { sellerCopy } from "@/lib/seller-copy";
 import { destinationIsCurrent, shellCopy, type ShellDestination } from "@/lib/shell";
 
-const iconForHref: Record<string, typeof Building2> = {
-  "/mercado": Building2,
-  "/asesoramiento": MessageCircleMore,
-  "/mi-empresa": House,
-  "/inversor": House,
-  "/mi-empresa/detalles": Building2,
-  "/mi-empresa/documentos": Files,
-  "/mi-empresa/procesos": TableProperties,
-  "/procesos": TableProperties,
-  "/mi-empresa/servicios": MessageCircleMore,
-  "/favoritos": Heart,
-  "/mandatos": House,
-  "/admin": LayoutDashboard,
-  "/mis-servicios": Briefcase,
-};
-
-const motionForHref: Record<string, string> = {
-  "/mercado": "nav-motion-building",
-  "/asesoramiento": "nav-motion-chat",
-  "/mi-empresa": "nav-motion-house",
-  "/inversor": "nav-motion-house",
-  "/mi-empresa/detalles": "nav-motion-building",
-  "/mi-empresa/documentos": "nav-motion-files",
-  "/mi-empresa/procesos": "nav-motion-steps",
-  "/procesos": "nav-motion-steps",
-  "/mi-empresa/servicios": "nav-motion-chat",
-  "/favoritos": "nav-motion-heart",
-  "/mandatos": "nav-motion-house",
-  "/admin": "nav-motion-board",
-  "/mis-servicios": "nav-motion-case",
+const iconForHref = {
+  "/mercado": Building2Icon,
+  "/asesoramiento": MessageCircleMoreIcon,
+  "/mi-empresa": HouseIcon,
+  "/inversor": HouseIcon,
+  "/mi-empresa/detalles": Building2Icon,
+  "/mi-empresa/documentos": FilesIcon,
+  "/mi-empresa/procesos": TableIcon,
+  "/procesos": TableIcon,
+  "/mi-empresa/servicios": MessageCircleMoreIcon,
+  "/favoritos": HeartIcon,
+  "/mandatos": HouseIcon,
+  "/admin": LayoutDashboardIcon,
+  "/mis-servicios": BriefcaseIcon,
 };
 
 export function AppFrame({
@@ -128,7 +110,7 @@ export function AppFrame({
                 onClick={closeMenu}
                 className="group inline-flex h-10 items-center gap-2 rounded-full bg-public-clay px-3 text-sm text-white hover:bg-public-clay-deep"
               >
-                <Crown className="nav-icon nav-motion-crown size-4" aria-hidden />
+                <CrownIcon size={16} aria-hidden />
                 {sellerCopy.premium}
               </Link>
             ) : null}
@@ -138,15 +120,14 @@ export function AppFrame({
               onClick={closeMenu}
               className="inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand xl:hidden"
             >
-              <X className="size-4" aria-hidden />
+              <XIcon size={16} aria-hidden />
               <span className="sr-only">{shellCopy.menuClose}</span>
             </button>
           </div>
         </div>
         <nav aria-label={shellCopy.navLabel} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
           {destinations.map((item, index) => {
-            const Icon = iconForHref[item.href] ?? Building2;
-            const motion = motionForHref[item.href] ?? "nav-motion-building";
+            const Icon = iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon;
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = destinations[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
@@ -166,7 +147,7 @@ export function AppFrame({
                       : "group flex h-11 items-center gap-3 rounded-2xl px-4 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
                   }
                 >
-                  <Icon className={`nav-icon ${motion} size-4 shrink-0 ${selected ? "nav-icon-play" : ""}`} aria-hidden />
+                  <Icon size={16} aria-hidden />
                   {item.label}
                 </Link>
               </div>
@@ -182,14 +163,14 @@ export function AppFrame({
                 href={shellCopy.helpPhoneHref}
                 className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-base font-medium text-white hover:bg-public-clay-deep"
               >
-                <Phone className="nav-icon nav-motion-phone size-4" aria-hidden />
+                <PhoneIcon size={16} aria-hidden />
                 {shellCopy.helpCall} {shellCopy.helpPhone}
               </a>
               <a
                 href={shellCopy.helpEmailHref}
                 className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-base font-medium text-public-ink hover:bg-white"
               >
-                <Mail className="nav-icon nav-motion-mail size-4" aria-hidden />
+                <MailIcon size={16} aria-hidden />
                 {shellCopy.helpEmail}
               </a>
             </div>
@@ -206,14 +187,14 @@ export function AppFrame({
               <span className="block truncate text-sm font-medium">{name}</span>
               <span className="block text-sm font-medium text-public-clay">{shellCopy.viewProfile}</span>
             </span>
-            <ChevronRight className="size-4 shrink-0 text-public-clay" aria-hidden />
+            <ChevronRightIcon size={16} className="shrink-0 text-public-clay" aria-hidden />
           </Link>
           <form action={signOutAction}>
             <button
               type="submit"
               className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-public-line text-base font-medium text-public-ink hover:bg-public-sand"
             >
-              <LogOut className="size-4" aria-hidden />
+              <LogOutIcon size={16} aria-hidden />
               {authCopy.signOut}
             </button>
           </form>
@@ -230,7 +211,7 @@ export function AppFrame({
             }}
             className="mb-4 inline-flex size-10 items-center justify-center rounded-full bg-public-card text-public-ink shadow-public xl:hidden"
           >
-            <PanelLeft className="size-4" aria-hidden />
+            <PanelLeftIcon size={16} aria-hidden />
             <span className="sr-only">{shellCopy.menuOpen}</span>
           </button>
           {showTitle ? <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1> : null}

@@ -88,10 +88,10 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
         }}
       >
         <p className="text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">Releva</p>
-        <h2 className="mx-auto mt-3 max-w-xl text-5xl leading-none tracking-tight italic [font-family:var(--public-display)] sm:text-6xl">
+        <h2 className="mt-3 text-4xl leading-none tracking-tight italic [font-family:var(--public-display)] sm:text-5xl sm:whitespace-nowrap">
           Mira gratis. Conecta cuando toque.
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-white/80">{billingCopy.intro}</p>
+        <p className="mt-4 text-sm leading-6 text-white/80 sm:whitespace-nowrap">{billingCopy.intro}</p>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
       </section>
       {notice ? <p className="text-sm text-[#157a45]">{notice}</p> : null}

@@ -8,6 +8,7 @@ const slotSchema = z.object({
   description: z.string().trim().max(2000).optional().default(""),
   notes: z.string().trim().max(2000).optional().default(""),
   status: z.enum(["proposed", "scheduled"]).optional().default("scheduled"),
+  proposedBy: z.enum(["investor", "seller"]).optional(),
 });
 
 export type MeetingSlot = z.infer<typeof slotSchema>;
@@ -20,9 +21,26 @@ export type MeetingDraft = {
   description?: string;
   notes?: string;
   status?: MeetingSlot["status"];
+  proposedBy?: "investor" | "seller";
 };
 
 const prefix = "reunion:";
+
+function storedSlot(data: z.infer<typeof slotSchema>): MeetingSlot {
+  if (data.proposedBy) {
+    return data;
+  }
+
+  return {
+    from: data.from,
+    to: data.to,
+    fromTime: data.fromTime,
+    toTime: data.toTime,
+    description: data.description,
+    notes: data.notes,
+    status: data.status,
+  };
+}
 
 export function meetingBody(slot: MeetingDraft): string | null {
   const parsed = slotSchema.safeParse(slot);
@@ -31,7 +49,7 @@ export function meetingBody(slot: MeetingDraft): string | null {
     return null;
   }
 
-  return `${prefix}${JSON.stringify(parsed.data)}`;
+  return `${prefix}${JSON.stringify(storedSlot(parsed.data))}`;
 }
 
 export function readMeeting(body: string): MeetingSlot | null {
@@ -41,7 +59,7 @@ export function readMeeting(body: string): MeetingSlot | null {
 
   try {
     const parsed = slotSchema.safeParse(JSON.parse(body.slice(prefix.length)));
-    return parsed.success ? parsed.data : null;
+    return parsed.success ? storedSlot(parsed.data) : null;
   } catch {
     return null;
   }
@@ -55,6 +73,29 @@ export function withMeetingNotes(body: string, notes: string): string | null {
   }
 
   return meetingBody({ ...slot, notes: notes.trim() });
+}
+
+export function proposeMeetingChange(
+  current: string,
+  next: MeetingDraft,
+  proposedBy: "investor" | "seller",
+): string | null {
+  const slot = readMeeting(current);
+
+  if (!slot) {
+    return null;
+  }
+
+  return meetingBody({
+    from: next.from,
+    to: next.to,
+    fromTime: next.fromTime,
+    toTime: next.toTime,
+    description: next.description ?? slot.description,
+    notes: slot.notes,
+    status: "proposed",
+    proposedBy,
+  });
 }
 
 export function withMeetingStatus(body: string, status: "scheduled"): string | null {

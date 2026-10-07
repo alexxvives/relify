@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — Meeting times and sidebar icons
+
+Changing the day or the hour of a meeting or a proposal sets it back to proposed. The other party accepts again. The person who last changed the time cannot accept their own change.
+
+The signed-in sidebar and the folder delete control use the same `@animateicons/react` Lucide icons. File delete stays on the existing delete icon.
+
 ## 2026-10-07 — Chat names and AnimateIcons
 
 The thread shows the other person's name and surname. The process list stays Inversor 1, and a seller notice stays "Un inversor". Company legal name, CIF, and address stay off those reads.

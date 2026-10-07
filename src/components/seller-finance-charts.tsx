@@ -103,7 +103,8 @@ function useGrow(): number {
 
 function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; progress: number; cards: boolean }) {
   const hasEbitda = points.some((point) => point.ebitdaCents !== null);
-  const frame = chartFrame(hasEbitda ? 2 : 1, !cards);
+  const [hover, setHover] = useState<string | null>(null);
+  const frame = chartFrame(hasEbitda ? 2 : 1);
   const width = 720;
   const height = frame.height;
   const padLeft = 78;
@@ -129,11 +130,21 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
   const yOf = (cents: number) => padTop + ((scaleMax - cents) / span) * plotHeight;
   const zero = yOf(0);
   const groupWidth = (width - padLeft - padRight) / Math.max(points.length, 1);
-  const barWidth = hasEbitda ? 28 : 44;
+  const barWidth = hasEbitda ? 22 : 36;
+  const salesLabel = Math.max(
+    48,
+    ...points.flatMap((point) => (point.salesCents === null ? [] : [textWidth(formatCompactEur(point.salesCents))])),
+  );
+  const ebitdaLabel = Math.max(
+    48,
+    ...points.flatMap((point) => (point.ebitdaCents === null ? [] : [textWidth(formatCompactEur(point.ebitdaCents))])),
+  );
+  const pairGap = hasEbitda ? Math.max(18, salesLabel / 2 + ebitdaLabel / 2 + 12 - barWidth) : 0;
   const groups = points.map((point, index) => {
     const center = padLeft + groupWidth * index + groupWidth / 2;
-    const salesX = hasEbitda ? center - barWidth - 6 : center - barWidth / 2;
-    const ebitdaX = center + 6;
+    const cluster = hasEbitda ? barWidth * 2 + pairGap : barWidth;
+    const salesX = center - cluster / 2;
+    const ebitdaX = salesX + barWidth + pairGap;
     const bars: PlotBar[] = [];
     if (point.salesCents !== null) {
       const box = barBox(zero, point.salesCents, yOf, progress);
@@ -163,13 +174,8 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
     }
     return { point, center, bars };
   });
-  const labels = cards
-    ? []
-    : placeGroupLabels(
-        groups.map((group) => group.bars),
-        frame.labelCeiling,
-        groupWidth,
-      );
+  const flatBars = groups.flatMap((group) => group.bars);
+  const resting = restingLabels(flatBars);
 
   const legend = [
     { label: sellerCopy.financeSales, color: "#465ab4" },
@@ -212,21 +218,30 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
           );
         })}
         {groups.map((group, groupIndex) => {
+          const offset = groups.slice(0, groupIndex).reduce((sum, item) => sum + item.bars.length, 0);
           return (
             <g key={group.point.year}>
-              {group.bars.map((bar) => (
-                <Bar key={`${bar.value}-${bar.x}`} x={bar.x} box={{ top: bar.top, height: bar.height }} width={bar.width} color={bar.color} muted={bar.muted} />
-              ))}
-              {(labels[groupIndex] ?? []).map((spot) => (
-                <BarValue
-                  key={`${group.point.year}-${spot.fill}-${spot.value}`}
-                  x={group.center}
-                  y={spot.y}
-                  muted={spot.muted}
-                  value={spot.value}
-                  fill={spot.fill}
-                />
-              ))}
+              {group.bars.map((bar, barIndex) => {
+                const key = `${group.point.year}-${barIndex}`;
+                const show = hover === key || resting[offset + barIndex] === true;
+                return (
+                  <g key={key}>
+                    <Bar
+                      x={bar.x}
+                      box={{ top: bar.top, height: bar.height }}
+                      width={bar.width}
+                      color={bar.color}
+                      muted={bar.muted}
+                      onHover={(active) => {
+                        setHover(active ? key : null);
+                      }}
+                    />
+                    {show ? (
+                      <BarValue x={bar.x + bar.width / 2} y={bar.top - 4} muted={bar.muted} value={bar.value} fill={bar.fill} />
+                    ) : null}
+                  </g>
+                );
+              })}
               <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
                 {group.point.forecast ? `${group.point.year}*` : group.point.year}
               </text>
@@ -276,13 +291,14 @@ export function GroupedYearBars({
   axis?: "left" | "right";
 }) {
   const progress = useGrow();
+  const [hover, setHover] = useState<string | null>(null);
   const drawn = series.filter((item) => item.values.some((value) => value !== null));
 
   if (years.length === 0 || drawn.length === 0) {
     return null;
   }
 
-  const frame = chartFrame(drawn.length, !showCards);
+  const frame = chartFrame(drawn.length);
   const width = 720;
   const height = frame.height;
   const padLeft = axis === "right" ? 16 : 78;
@@ -299,8 +315,20 @@ export function GroupedYearBars({
   const yOf = (cents: number) => padTop + ((scaleMax - cents) / span) * plotHeight;
   const zero = yOf(0);
   const groupWidth = (width - padLeft - padRight) / Math.max(years.length, 1);
-  const barWidth = Math.min(28, Math.max(10, (groupWidth - 16) / drawn.length - 4));
-  const cluster = drawn.length * barWidth + (drawn.length - 1) * 4;
+  const labelWidths = drawn.map((item) =>
+    Math.max(48, ...item.values.flatMap((value) => (value === null ? [] : [textWidth(formatCompactEur(value))]))),
+  );
+  const barWidth = 20;
+  const preferredGap = labelWidths.slice(0, -1).map((labelWidth, index) => {
+    const next = labelWidths[index + 1] ?? 48;
+    return Math.max(14, labelWidth / 2 + next / 2 + 10 - barWidth);
+  });
+  const preferredCluster = drawn.length * barWidth + preferredGap.reduce((sum, gap) => sum + gap, 0);
+  const seriesGap =
+    preferredCluster > groupWidth - 8 && drawn.length > 1
+      ? preferredGap.map(() => Math.max(8, (groupWidth - 8 - drawn.length * barWidth) / (drawn.length - 1)))
+      : preferredGap;
+  const cluster = drawn.length * barWidth + seriesGap.reduce((sum, gap) => sum + gap, 0);
   const groups = years.map((year, index) => {
     const center = padLeft + groupWidth * index + groupWidth / 2;
     const origin = center - cluster / 2;
@@ -310,7 +338,7 @@ export function GroupedYearBars({
         return [];
       }
       const box = barBox(zero, value, yOf, progress);
-      const x = origin + seriesIndex * (barWidth + 4);
+      const x = origin + seriesIndex * barWidth + seriesGap.slice(0, seriesIndex).reduce((sum, gap) => sum + gap, 0);
       return [
         {
           x,
@@ -326,13 +354,8 @@ export function GroupedYearBars({
     });
     return { year, center, bars };
   });
-  const labels = showCards
-    ? []
-    : placeGroupLabels(
-        groups.map((group) => group.bars),
-        frame.labelCeiling,
-        groupWidth,
-      );
+  const flatBars = groups.flatMap((group) => group.bars);
+  const resting = restingLabels(flatBars);
 
   return (
     <div className={paired ? undefined : "mt-6"}>
@@ -380,21 +403,30 @@ export function GroupedYearBars({
           );
         })}
         {groups.map((group, groupIndex) => {
+          const offset = groups.slice(0, groupIndex).reduce((sum, item) => sum + item.bars.length, 0);
           return (
             <g key={group.year.year}>
-              {group.bars.map((bar) => (
-                <Bar key={`${bar.fill}-${bar.x}`} x={bar.x} box={{ top: bar.top, height: bar.height }} width={bar.width} color={bar.color} muted={bar.muted} />
-              ))}
-              {(labels[groupIndex] ?? []).map((spot) => (
-                <BarValue
-                  key={`${group.year.year}-${spot.fill}-${spot.value}`}
-                  x={group.center}
-                  y={spot.y}
-                  muted={spot.muted}
-                  value={spot.value}
-                  fill={spot.fill}
-                />
-              ))}
+              {group.bars.map((bar, barIndex) => {
+                const key = `${group.year.year}-${barIndex}`;
+                const show = hover === key || resting[offset + barIndex] === true;
+                return (
+                  <g key={key}>
+                    <Bar
+                      x={bar.x}
+                      box={{ top: bar.top, height: bar.height }}
+                      width={bar.width}
+                      color={bar.color}
+                      muted={bar.muted}
+                      onHover={(active) => {
+                        setHover(active ? key : null);
+                      }}
+                    />
+                    {show ? (
+                      <BarValue x={bar.x + bar.width / 2} y={bar.top - 4} muted={bar.muted} value={bar.value} fill={bar.fill} />
+                    ) : null}
+                  </g>
+                );
+              })}
               <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
                 {group.year.forecast ? `${group.year.year}*` : group.year.year}
               </text>
@@ -480,26 +512,30 @@ function textWidth(value: string): number {
   return Math.max(48, Math.ceil(value.length * 7.2));
 }
 
-type GroupLabel = { y: number; value: string; fill: string; muted: boolean };
+function labelBoxAt(bar: PlotBar) {
+  const width = textWidth(bar.value);
+  const center = bar.x + bar.width / 2;
+  const y = bar.top - 4;
+  return { left: center - width / 2 - 3, right: center + width / 2 + 3, top: y - 14, bottom: y + 3 };
+}
 
-function placeGroupLabels(groups: PlotBar[][], ceiling: number, groupWidth: number): GroupLabel[][] {
-  return groups.map((bars) => {
-    const widest = bars.reduce((max, bar) => Math.max(max, textWidth(bar.value)), 0);
-    if (widest > groupWidth - 8) {
-      return [];
+function restingLabels(bars: PlotBar[]): boolean[] {
+  const placed: ReturnType<typeof labelBoxAt>[] = [];
+
+  return bars.map((bar) => {
+    const box = labelBoxAt(bar);
+    const hits = placed.some((other) => other.left < box.right && other.right > box.left && other.top < box.bottom && other.bottom > box.top);
+
+    if (!hits) {
+      placed.push(box);
     }
 
-    return bars.map((bar, index) => ({
-      y: ceiling + index * 16,
-      value: bar.value,
-      fill: bar.fill,
-      muted: bar.muted,
-    }));
+    return !hits;
   });
 }
 
-function chartFrame(seriesCount: number, labeled: boolean) {
-  const labelLane = labeled ? 8 + 16 * seriesCount : 8;
+function chartFrame(seriesCount: number) {
+  const labelLane = 22;
   const frameTop = 4;
   const legendBand = seriesCount > 3 ? 52 : 36;
   return {
@@ -507,7 +543,7 @@ function chartFrame(seriesCount: number, labeled: boolean) {
     legendBand,
     padTop: frameTop + legendBand + labelLane,
     labelCeiling: frameTop + legendBand + 14,
-    height: 292 + (labeled ? labelLane : 0),
+    height: 292 + labelLane,
   };
 }
 
@@ -537,14 +573,32 @@ function Bar({
   width,
   color,
   muted,
+  onHover,
 }: {
   x: number;
   box: { top: number; height: number };
   width: number;
   color: string;
   muted: boolean;
+  onHover?: (active: boolean) => void;
 }) {
-  return <rect x={x} y={box.top} width={width} height={Math.max(box.height, 0)} rx="8" fill={color} opacity={muted ? 0.4 : 1} />;
+  return (
+    <rect
+      x={x}
+      y={box.top}
+      width={width}
+      height={Math.max(box.height, 0)}
+      rx="8"
+      fill={color}
+      opacity={muted ? 0.55 : 1}
+      onMouseEnter={() => {
+        onHover?.(true);
+      }}
+      onMouseLeave={() => {
+        onHover?.(false);
+      }}
+    />
+  );
 }
 
 function CostBars({ years, cards }: { years: ChartCostYear[]; cards: boolean }) {

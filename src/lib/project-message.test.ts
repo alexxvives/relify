@@ -4,6 +4,7 @@ import {
   anonymousInvestorLabel,
   investorNoticeFor,
   labelAccesses,
+  sellerMessageSchema,
   sellerReplyGate,
   threadPartyLabel,
   personName,
@@ -57,5 +58,16 @@ describe("thread views", () => {
     expect(JSON.stringify(labeled)).not.toContain("@");
     expect(personName("Laura", "Vidal")).toBe("Laura Vidal");
     expect(personName("Elena", null)).toBe("Elena");
+  });
+});
+
+describe("sellerMessageSchema", () => {
+  it("accepts the demo conversation id when the message has text", () => {
+    expect(
+      sellerMessageSchema.safeParse({ accessId: "demo-access-inversor", kind: "question", body: "Hola" }).success,
+    ).toBe(true);
+    expect(sellerMessageSchema.safeParse({ accessId: "demo-access-inversor", kind: "question", body: " " }).success).toBe(
+      false,
+    );
   });
 });

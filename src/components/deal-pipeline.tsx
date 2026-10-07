@@ -154,10 +154,10 @@ export function ProcessRoom({
   const other = nda || hidden.length > 0 || sent.length > 0;
 
   return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
+    <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
       <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.processDocumentsTitle}</h3>
       {bare ? <p className="mt-3 text-sm leading-6 text-[#667085]">{empty}</p> : null}
-      <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
+      <div className="mt-4 flex-1 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
         <p className="text-xs font-semibold tracking-wide text-[#1c2740] uppercase">{sellerCopy.documentsShared}</p>
         <div className="mt-2">
           <ProcessDocuments files={shared} empty={sellerCopy.documentsEmpty} onOpen={setOpenFile} />

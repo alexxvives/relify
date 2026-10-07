@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attachmentNames, madridToday, meetingBody, meetingIsPast, readMeeting, withMeetingNotes, withMeetingStatus } from "./meeting";
+import { attachmentNames, madridToday, meetingBody, meetingIsPast, proposeMeetingChange, readMeeting, withMeetingNotes, withMeetingStatus } from "./meeting";
 
 describe("meetingBody", () => {
   it("keeps a day range and an hour range", () => {
@@ -70,6 +70,30 @@ describe("meeting proposal", () => {
     expect(withMeetingNotes(body ?? "", "Nota interna")).toBeNull();
     expect(readMeeting(withMeetingStatus(body ?? "", "scheduled") ?? "")?.status).toBe("scheduled");
     expect(withMeetingNotes(withMeetingStatus(body ?? "", "scheduled") ?? "", "Nota interna")).toContain("Nota interna");
+  });
+
+  it("sends a time change back to the other person", () => {
+    const body = meetingBody({
+      from: "2026-10-14",
+      to: "2026-10-14",
+      fromTime: "10:00",
+      toTime: "12:00",
+      description: "Visita",
+      notes: "Ya hablado",
+      status: "scheduled",
+    });
+    const next = proposeMeetingChange(
+      body ?? "",
+      { from: "2026-10-21", to: "2026-10-21", fromTime: "16:00", toTime: "17:00", description: "Otra hora" },
+      "seller",
+    );
+    const slot = readMeeting(next ?? "");
+
+    expect(slot?.status).toBe("proposed");
+    expect(slot?.proposedBy).toBe("seller");
+    expect(slot?.from).toBe("2026-10-21");
+    expect(slot?.notes).toBe("Ya hablado");
+    expect(slot?.description).toBe("Otra hora");
   });
 });
 

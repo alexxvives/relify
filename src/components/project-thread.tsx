@@ -42,7 +42,7 @@ export function ProjectThread({
   const you = viewer === "seller" ? sellerCopy.you : companyCopy.you;
 
   return (
-    <div className="flex min-h-[24rem] flex-col gap-4">
+    <div className="flex h-full min-h-[24rem] flex-1 flex-col gap-4">
       {messages.length === 0 ? <p className="text-sm text-[#667085]">{sellerCopy.threadEmpty}</p> : null}
       <ol className="flex flex-1 flex-col gap-3" aria-live="polite">
         {messages.map((message) => (
@@ -99,6 +99,7 @@ function ChatComposer({
   const fieldId = useId();
   const [state, formAction, pending] = useActionState(action, null);
   const [text, setText] = useState("");
+  const [hideError, setHideError] = useState(false);
   const [files, setFiles] = useState<Attachment[]>([]);
   const names = files.map((file) => `Adjunto: ${file.name}`);
   const body = [text.trim(), ...names].filter((line) => line.length > 0).join("\n");
@@ -127,7 +128,13 @@ function ChatComposer({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-2">
+    <form
+      action={formAction}
+      className="flex flex-col gap-2"
+      onSubmit={() => {
+        setHideError(false);
+      }}
+    >
       {hidden.map((field) => (
         <input key={field.name} type="hidden" name={field.name} value={field.value} />
       ))}
@@ -196,6 +203,7 @@ function ChatComposer({
           placeholder={placeholder}
           onChange={(event) => {
             setText(event.target.value);
+            setHideError(true);
           }}
           className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none"
         />
@@ -209,7 +217,7 @@ function ChatComposer({
         </button>
       </div>
       {state?.ok === true ? <p className="text-sm text-[#157a45]">{savedLabel}</p> : null}
-      {state && !state.ok ? (
+      {state && !state.ok && !hideError ? (
         <p className="text-sm text-red-700" role="alert">
           {state.message || invalidFallback}
         </p>

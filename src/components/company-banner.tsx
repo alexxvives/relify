@@ -71,7 +71,7 @@ export function CompanyBanner({
         </p>
         ) : null}
       </div>
-      {progress ? <div className="relative z-10 mt-8">{progress}</div> : null}
+      {progress ? <div className="relative z-10 mt-16 sm:mt-20">{progress}</div> : null}
     </header>
   );
 }

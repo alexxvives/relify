@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
-import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, updateSellerMeetingNotesAction } from "@/app/mi-empresa/procesos/actions";
+import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction, updateSellerMeetingNotesAction } from "@/app/mi-empresa/procesos/actions";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -110,10 +110,10 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
       </button>
       {open ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            <section className="rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
+          <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
               <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.questionsPanel}</h3>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-1 flex-col">
                 <ProjectThread
                   viewer="seller"
                   partyName={thread.partyName}
@@ -143,6 +143,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             action={postSellerMessageAction}
             notesAction={updateSellerMeetingNotesAction}
             approveAction={approveSellerMeetingAction}
+            rescheduleAction={rescheduleSellerMeetingAction}
             today={today}
             hidden={[
               { name: "accessId", value: thread.accessId },

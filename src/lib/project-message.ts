@@ -17,7 +17,7 @@ const bodySchema = z.string().trim().min(1).max(2000);
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
-const accessIdSchema = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+const accessIdSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{7,80}$/);
 
 export const investorMessageSchema = z.object({
   slug: slugSchema,

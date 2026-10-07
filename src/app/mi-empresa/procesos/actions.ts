@@ -9,7 +9,7 @@ import { sellerMessageSchema } from "@/lib/project-message";
 import { acceptBuyer } from "@/server/acceptBuyer";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { postSellerMessage } from "@/server/postProjectMessage";
-import { approveMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
+import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
 import { recordSuccessFee } from "@/server/recordSuccessFee";
 
 export type SellerMessageState = { ok: true; message?: string } | { ok: false; message: string } | null;
@@ -40,7 +40,8 @@ export async function postSellerMessageAction(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: sellerCopy.replyInvalid };
+    const body = readText(formData, "body").trim();
+    return { ok: false, message: body.length === 0 ? sellerCopy.replyInvalid : sellerCopy.replyFailed };
   }
 
   const result = await postSellerMessage(user, parsed.data);
@@ -96,6 +97,33 @@ export async function approveSellerMeetingAction(
   const result = await approveMeeting(user, {
     accessId: readText(formData, "accessId"),
     messageId: readText(formData, "messageId"),
+  });
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/procesos");
+  }
+
+  return result;
+}
+
+export async function rescheduleSellerMeetingAction(
+  _state: SellerMessageState,
+  formData: FormData,
+): Promise<SellerMessageState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  if (!user.onboarded) {
+    redirect("/onboarding");
+  }
+
+  const result = await rescheduleMeeting(user, {
+    accessId: readText(formData, "accessId"),
+    messageId: readText(formData, "messageId"),
+    body: readText(formData, "body"),
   });
 
   if (result.ok) {

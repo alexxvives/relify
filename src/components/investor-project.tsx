@@ -6,7 +6,7 @@ import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { approveInvestorMeetingAction, postInvestorMessageAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
+import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ConnectControl, ProjectAccessPanel } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
@@ -86,8 +86,8 @@ export function InvestorProject({
           questions: locked ? (
             <LockedNote text={companyCopy.threadLocked} />
           ) : (
-            <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.8fr)]">
-              <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
+            <section className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
                 <ProjectThread
                   viewer="investor"
                   partyName={partyName}
@@ -120,6 +120,7 @@ export function InvestorProject({
               action={postInvestorMessageAction}
               notesAction={updateInvestorMeetingNotesAction}
               approveAction={approveInvestorMeetingAction}
+              rescheduleAction={rescheduleInvestorMeetingAction}
               today={today}
               columns
               hidden={[

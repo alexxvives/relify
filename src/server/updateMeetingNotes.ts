@@ -1,4 +1,4 @@
-import { readMeeting, withMeetingNotes, withMeetingStatus } from "@/lib/meeting";
+import { proposeMeetingChange, readMeeting, withMeetingNotes, withMeetingStatus } from "@/lib/meeting";
 import { sellerReplyGate } from "@/lib/project-message";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
@@ -109,9 +109,10 @@ export async function approveMeeting(
     return { ok: true };
   }
 
+  const proposer = slot.proposedBy ?? message.author;
   const authored =
-    (message.author === "investor" && message.investorId === user.id) ||
-    (message.author === "seller" && message.project.ownerId === user.id);
+    (proposer === "investor" && message.investorId === user.id) ||
+    (proposer === "seller" && message.project.ownerId === user.id);
 
   if (authored) {
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
@@ -159,6 +160,83 @@ export async function approveMeeting(
   }
 
   const next = withMeetingStatus(message.body, "scheduled");
+
+  if (!next) {
+    return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+  }
+
+  await prisma.projectMessage.update({ where: { id: message.id }, data: { body: next } });
+  return { ok: true };
+}
+
+export async function rescheduleMeeting(
+  user: CurrentUser,
+  input: { messageId: string; body: string; slug?: string; accessId?: string },
+): Promise<MeetingNotesResult> {
+  const message = await prisma.projectMessage.findUnique({
+    where: { id: input.messageId },
+    select: {
+      id: true,
+      kind: true,
+      body: true,
+      investorId: true,
+      project: { select: { id: true, slug: true, ownerId: true, status: true } },
+    },
+  });
+  const draft = readMeeting(input.body);
+
+  if (!message || message.kind !== "meeting" || !draft || !readMeeting(message.body)) {
+    return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+  }
+
+  const proposedBy = user.id === message.investorId ? "investor" : "seller";
+
+  if (proposedBy === "seller" && message.project.ownerId !== user.id) {
+    return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+  }
+
+  if (input.slug) {
+    const access = await prisma.projectAccess.findUnique({
+      where: { projectId_investorId: { projectId: message.project.id, investorId: user.id } },
+      select: { ndaAcceptedAt: true, sellerAcceptedAt: true },
+    });
+    const gate = ndaAccessGate({
+      onboarded: user.onboarded,
+      role: user.role,
+      projectStatus: message.project.status,
+      ndaAcceptedAt: access?.ndaAcceptedAt ?? null,
+    });
+
+    if (
+      !gate.ok ||
+      message.project.slug !== input.slug ||
+      message.investorId !== user.id ||
+      access?.sellerAcceptedAt === null ||
+      access?.sellerAcceptedAt === undefined
+    ) {
+      return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+    }
+  } else if (input.accessId) {
+    const access = await prisma.projectAccess.findUnique({
+      where: { id: input.accessId },
+      select: { id: true, investorId: true, ndaAcceptedAt: true, sellerAcceptedAt: true, projectId: true },
+    });
+    const gate = sellerReplyGate({
+      onboarded: user.onboarded,
+      role: user.role,
+      ownsProject: message.project.ownerId === user.id,
+      ndaAccepted: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
+      sellerAccepted: access?.sellerAcceptedAt !== null && access?.sellerAcceptedAt !== undefined,
+    });
+
+    if (!gate.ok || !access || access.projectId !== message.project.id || access.investorId !== message.investorId) {
+      return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+    }
+  } else {
+    return { ok: false, message: sellerCopy.meetingsAcceptFailed };
+  }
+
+  const next = proposeMeetingChange(message.body, draft, proposedBy);
 
   if (!next) {
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
