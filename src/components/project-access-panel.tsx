@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { AgreementSheet } from "@/components/agreement-sheet";
@@ -150,12 +150,20 @@ export function ProjectAccessPanel({
   const [acceptState, acceptAction, acceptPending] = useActionState(acceptNdaAction, null);
   const accepted = status === "accepted" || acceptState?.ok === true;
 
+  useEffect(() => {
+    if (window.location.hash !== "#firmar") {
+      return;
+    }
+
+    document.getElementById("firmar")?.scrollIntoView({ block: "center" });
+  }, []);
+
   if (status === "none" || status === "awaiting-seller" || accepted) {
     return null;
   }
 
   return (
-    <section id="firmar" className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
+    <section id="firmar" className="scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
       <h2 id="acceso-nda" className="text-xl font-semibold">
         {accessCopy.ndaHeading}
       </h2>

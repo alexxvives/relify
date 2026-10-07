@@ -112,12 +112,18 @@ export function personName(name: string, lastName: string | null | undefined): s
 
 export type SellerThreadStage = "pending" | "nda" | "open";
 
+export type InvestorPublicProfile = {
+  investorType: string;
+  thesis: string;
+};
+
 export type SellerThread = {
   accessId: string;
   codename: string;
   label: string;
   partyName: string;
   stage: SellerThreadStage;
+  profile: InvestorPublicProfile | null;
   messages: ThreadMessageView[];
   steps: DealStep[];
   documents: ProcessFile[];

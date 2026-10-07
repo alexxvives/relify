@@ -20,3 +20,21 @@ const profiles: Record<string, DemoInvestorProfile> = {
 export function demoInvestorProfile(email: string): DemoInvestorProfile | null {
   return profiles[email] ?? null;
 }
+
+export type PublicInvestorCard = {
+  investorType: string;
+  thesis: string;
+};
+
+export function publicInvestorCard(email: string): PublicInvestorCard | null {
+  const profile = profiles[email];
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    investorType: profile.investorType,
+    thesis: profile.trajectory,
+  };
+}

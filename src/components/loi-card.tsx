@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { AgreementSheet } from "@/components/agreement-sheet";
 import { SignBubble } from "@/components/deal-pipeline";
@@ -75,8 +75,16 @@ export function LoiSignBubble({ slug, agreement }: { slug: string; agreement: st
 function LoiSign({ slug, agreement }: { slug: string; agreement: string }) {
   const [state, action, pending] = useActionState(postInvestorMessageAction, null);
 
+  useEffect(() => {
+    if (window.location.hash !== "#firmar") {
+      return;
+    }
+
+    document.getElementById("firmar")?.scrollIntoView({ block: "center" });
+  }, []);
+
   return (
-    <section id="firmar" className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
+    <section id="firmar" className="scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
       <h2 id="carta-intenciones" className="text-xl font-semibold">
         {accessCopy.loiHeading}
       </h2>

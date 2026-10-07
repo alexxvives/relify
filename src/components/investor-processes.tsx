@@ -25,7 +25,7 @@ export function InvestorProcesses({ items }: { items: InvestorProcessCard[] }) {
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             </div>
-            <DealPipeline steps={item.steps} role="investor" />
+            <DealPipeline steps={item.steps} role="investor" signTo={`/proyectos/${item.slug}#firmar`} />
           </section>
         </li>
       ))}

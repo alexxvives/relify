@@ -7,7 +7,7 @@ import { investorCopy } from "@/lib/investor-copy";
 import type { IndustrySector } from "@/lib/cnae-section";
 import type { NotificationView } from "@/lib/notifications";
 import type { InvestorProfileChecks } from "@/server/investorDesk";
-import { trendItems } from "@/lib/seller-copy";
+import { blogPosts, formatBlogDate } from "@/lib/blog";
 
 const checklist = [
   { key: "thesis", label: investorCopy.thesisItem, href: "/inversor/perfil", icon: CircleHelp },
@@ -40,7 +40,7 @@ export function InvestorHome({
     { label: investorCopy.questionsSent, value: questions },
     { label: investorCopy.meetingsDone, value: meetings },
   ];
-  const news = trendItems.filter((item) => item.kind === "news").slice(0, 2);
+  const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
   const profileComplete = filled === checklist.length;
 
@@ -73,15 +73,14 @@ export function InvestorHome({
           </div>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {news.map((item) => (
-              <li key={item.id} className="overflow-hidden rounded-2xl border border-[#e7eaee]">
-                <div className="h-28 bg-[#d9e2ea]" />
-                <div className="p-3">
+              <li key={item.slug} className="overflow-hidden rounded-2xl border border-[#e7eaee]">
+                <Link href={`/blog/${item.slug}`} className="block p-3 hover:bg-[#f7f8fb]">
                   <p className="text-xs text-[#64748b]">
-                    {item.source} · {item.tag}
+                    {item.category} · {formatBlogDate(item.date)}
                   </p>
                   <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.body}</p>
-                </div>
+                  <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.excerpt}</p>
+                </Link>
               </li>
             ))}
           </ul>

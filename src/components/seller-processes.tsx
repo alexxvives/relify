@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
@@ -9,7 +9,7 @@ import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { SellerTabs } from "@/components/seller-tabs";
 import { billingCopy } from "@/lib/billing-copy";
-import type { MessageCounts, SellerThread } from "@/lib/project-message";
+import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
 import { pendingActionsTitle, sellerCopy, threadMessageCount } from "@/lib/seller-copy";
 
@@ -34,10 +34,7 @@ function SellerPending({ item, compact = false }: { item: PendingMatch; compact?
       {compact ? (
         <p className="text-sm text-[#3d4a63]">Si aceptas, el inversor podrá firmar el acuerdo.</p>
       ) : (
-        <p className="text-sm font-medium">
-          {item.label}
-          <span className="ml-2 font-normal text-[#667085]">{item.codename}</span>
-        </p>
+        <p className="text-sm font-medium">{item.label}</p>
       )}
       <form action={action}>
         <input type="hidden" name="accessId" value={item.accessId} />
@@ -84,16 +81,62 @@ function ThreadList({
   );
 }
 
+function InvestorProfileDialog({
+  label,
+  profile,
+  open,
+  onClose,
+}: {
+  label: string;
+  profile: InvestorPublicProfile | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!open || !dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+  }, [open]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40"
+      onClose={onClose}
+    >
+      <p className="text-[11px] font-semibold tracking-[0.14em] text-[#465ab4] uppercase">Perfil del inversor</p>
+      <h2 className="mt-2 text-xl font-semibold">{label}</h2>
+      {profile ? (
+        <>
+          <p className="mt-4 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorTypeLabel}</p>
+          <p className="mt-1 text-sm font-medium">{profile.investorType}</p>
+          <p className="mt-4 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorThesisLabel}</p>
+          <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.thesis}</p>
+        </>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.investorProfileEmpty}</p>
+      )}
+      <form method="dialog" className="mt-5">
+        <button type="submit" className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white">
+          {sellerCopy.closeProfile}
+        </button>
+      </form>
+    </dialog>
+  );
+}
+
 function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) {
   const [open, setOpen] = useSessionFlag(`releva:seller-thread:${thread.accessId}`, true);
+  const [profileOpen, setProfileOpen] = useState(false);
   const chat = thread.messages.filter((message) => message.kind === "question");
   const expandable = thread.stage === "open";
-  const subtitle =
-    thread.stage === "pending"
-      ? sellerCopy.pendingRequest
-      : thread.stage === "nda"
-        ? sellerCopy.waitingNda
-        : threadMessageCount(thread.messages.length);
+  const subtitle = thread.stage === "nda" ? sellerCopy.waitingNda : thread.stage === "open" ? threadMessageCount(thread.messages.length) : "";
 
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white">
@@ -108,30 +151,46 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
         >
           <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
           <span>
-            <span className="block text-base font-semibold text-[#1c2740]">
-              {thread.label}
-              <span className="ml-2 text-sm font-normal text-[#667085]">{thread.codename}</span>
-            </span>
-            <span className="mt-1 block text-sm text-[#667085]">{subtitle}</span>
+            <span className="block text-base font-semibold text-[#1c2740]">{thread.label}</span>
+            {subtitle ? <span className="mt-1 block text-sm text-[#667085]">{subtitle}</span> : null}
           </span>
         </button>
       ) : (
-        <div className="px-5 pt-4 text-left">
-          <p className="text-base font-semibold text-[#1c2740]">
-            {thread.label}
-            <span className="ml-2 text-sm font-normal text-[#667085]">{thread.codename}</span>
-          </p>
-          <p className="mt-1 text-sm text-[#667085]">{subtitle}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 text-left">
+          <div>
+            <p className="text-base font-semibold text-[#1c2740]">{thread.label}</p>
+            {subtitle ? <p className="mt-1 text-sm text-[#667085]">{subtitle}</p> : null}
+          </div>
+          {thread.stage === "pending" ? (
+            <button
+              type="button"
+              onClick={() => {
+                setProfileOpen(true);
+              }}
+              className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] px-3 text-sm font-medium text-[#465ab4]"
+            >
+              {sellerCopy.viewInvestor}
+            </button>
+          ) : null}
         </div>
       )}
       <div className="px-5 py-4">
-        <DealPipeline steps={thread.steps} role="seller" />
         {thread.stage === "pending" ? (
-          <div className="mt-4">
-            <SellerPending compact item={{ accessId: thread.accessId, codename: thread.codename, label: thread.label }} />
-          </div>
-        ) : null}
+          <SellerPending compact item={{ accessId: thread.accessId, codename: thread.codename, label: thread.label }} />
+        ) : (
+          <DealPipeline steps={thread.steps} role="seller" />
+        )}
       </div>
+      {thread.stage === "pending" ? (
+        <InvestorProfileDialog
+          label={thread.label}
+          profile={thread.profile}
+          open={profileOpen}
+          onClose={() => {
+            setProfileOpen(false);
+          }}
+        />
+      ) : null}
       {expandable && open ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
           <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

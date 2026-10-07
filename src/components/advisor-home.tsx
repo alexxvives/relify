@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AdvisorMandateBoard, type MandateDisplay } from "@/components/advisor-mandates";
 import { NoticeList } from "@/components/notice-list";
@@ -8,7 +8,7 @@ import { formatEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
 import type { PendingMatch } from "@/lib/billing";
 import type { MandateCard } from "@/server/listSaleMandates";
-import { trendItems } from "@/lib/seller-copy";
+import { blogPosts, formatBlogDate } from "@/lib/blog";
 
 function toMandateDisplay(project: MandateCard): MandateDisplay {
   return {
@@ -44,7 +44,7 @@ export function AdvisorHome({
   mandates: MandateCard[];
   pending: PendingMatch[];
 }) {
-  const news = trendItems.filter((item) => item.kind === "news").slice(0, 2);
+  const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
 
   return (
     <div className="flex flex-col gap-6">
@@ -88,12 +88,14 @@ export function AdvisorHome({
         </div>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {news.map((item) => (
-            <li key={item.id} className="rounded-2xl border border-[#e7eaee] p-4">
-              <p className="text-xs text-[#64748b]">
-                {item.source} · {item.tag}
-              </p>
-              <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.body}</p>
+            <li key={item.slug} className="rounded-2xl border border-[#e7eaee]">
+              <Link href={`/blog/${item.slug}`} className="block p-4 hover:bg-[#f7f8fb]">
+                <p className="text-xs text-[#64748b]">
+                  {item.category} · {formatBlogDate(item.date)}
+                </p>
+                <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.excerpt}</p>
+              </Link>
             </li>
           ))}
         </ul>

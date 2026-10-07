@@ -2,6 +2,7 @@ import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
+import { publicInvestorCard } from "@/lib/demo-profile";
 import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -90,14 +91,16 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     const openKey = new Set(open.map((access) => `${access.projectId}:${access.investorId}`));
     const visibleMessages = messages.filter((message) => openKey.has(`${message.projectId}:${message.investorId}`));
     const closedProjects = new Set(fees.map((fee) => fee.projectId));
+    const investorIds = [...new Set(labeled.map((access) => access.investorId))];
     const people =
-      open.length === 0
+      investorIds.length === 0
         ? []
         : await prisma.user.findMany({
-            where: { id: { in: [...new Set(open.map((access) => access.investorId))] } },
-            select: { id: true, name: true, lastName: true },
+            where: { id: { in: investorIds } },
+            select: { id: true, email: true, name: true, lastName: true },
           });
     const nameById = new Map(people.map((person) => [person.id, personName(person.name, person.lastName)]));
+    const profileById = new Map(people.map((person) => [person.id, publicInvestorCard(person.email)]));
     const threads = labeled.map((access) => {
       const stage: SellerThreadStage = access.sellerAcceptedAt === null ? "pending" : access.ndaAcceptedAt === null ? "nda" : "open";
       const threadMessages =
@@ -110,6 +113,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         codename: codenameById.get(access.projectId) ?? "",
         label: access.label,
         stage,
+        profile: profileById.get(access.investorId) ?? null,
         partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
         messages: threadMessages.map((message) =>
           toThreadMessage({
@@ -236,6 +240,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         codename: project.codename,
         label: project.codename,
         stage: "open",
+        profile: null,
         partyName: owner ? personName(owner.name, owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
         messages: messages.map((message) =>
           toThreadMessage({

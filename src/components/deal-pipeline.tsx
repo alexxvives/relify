@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, ShieldCheck } from "lucide-react";
 import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -14,41 +15,43 @@ export function DealPipeline({
   steps,
   role,
   onDark = false,
+  signTo,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   onDark?: boolean;
+  signTo?: string;
 }) {
   const current = steps.find((step) => step.state === "current");
   const cue = current ? stepCue(current.id, role) : { yours: false, action: "La compraventa está hecha." };
-  const signHref = cue.yours && (current?.id === "nda" || current?.id === "loi") ? "#firmar" : null;
+  const signHref = cue.yours && (current?.id === "nda" || current?.id === "loi") ? (signTo ?? "#firmar") : null;
+  const currentIndex = steps.findIndex((step) => step.state === "current");
+  const span = Math.max(steps.length - 1, 1);
+  const fill = currentIndex < 0 ? 1 : currentIndex / span;
 
   return (
     <div>
-      <div className="overflow-x-auto py-3">
-        <ol className="mx-auto flex min-w-[44rem] items-start" aria-label="Recorrido del proceso">
-          {steps.map((step, index) => {
-            const previous = steps[index - 1];
-            const doneLine = onDark ? "bg-[#8dffc4]" : "bg-[#17663a]";
-            const pendingLine = onDark ? "bg-white/25" : "bg-[#e1e6ee]";
-            const lineIn = index === 0 ? "bg-transparent" : previous?.state === "done" ? doneLine : pendingLine;
-            const lineOut = index === steps.length - 1 ? "bg-transparent" : step.state === "done" ? doneLine : pendingLine;
+      <div className="overflow-x-auto py-2">
+        <ol className="relative mx-auto flex min-w-[40rem] items-start" aria-label="Recorrido del proceso">
+          <span className={onDark ? "absolute top-3 right-4 left-4 h-1 rounded-full bg-white/20" : "absolute top-3 right-4 left-4 h-1 rounded-full bg-[#e6eaf2]"} aria-hidden />
+          <span
+            className={onDark ? "absolute top-3 left-4 h-1 rounded-full bg-[#8dffc4]" : "absolute top-3 left-4 h-1 rounded-full bg-[#465ab4]"}
+            style={{ width: `calc((100% - 2rem) * ${fill})` }}
+            aria-hidden
+          />
+          {steps.map((step) => {
             const labelClass =
               step.state === "current"
                 ? onDark
-                  ? "text-center text-xs font-semibold text-white"
-                  : "text-center text-xs font-semibold text-[#465ab4]"
-                : step.id === "close"
+                  ? "rounded-full bg-white/15 px-2 py-0.5 text-center text-[11px] font-semibold text-white"
+                  : "rounded-full bg-[#eef1ff] px-2 py-0.5 text-center text-[11px] font-semibold text-[#465ab4]"
+                : step.state === "done"
                   ? onDark
-                    ? "text-center text-xs font-semibold text-white"
-                    : "text-center text-xs font-semibold text-[#1c2740]"
-                  : step.state === "done"
-                    ? onDark
-                      ? "text-center text-xs font-medium text-[#b8ffd8]"
-                      : "text-center text-xs font-medium text-[#17663a]"
-                    : onDark
-                      ? "text-center text-xs text-white/55"
-                      : "text-center text-xs text-[#8b95a7]";
+                    ? "text-center text-[11px] font-medium text-[#b8ffd8]"
+                    : "text-center text-[11px] font-medium text-[#17663a]"
+                  : onDark
+                    ? "text-center text-[11px] text-white/55"
+                    : "text-center text-[11px] text-[#8b95a7]";
 
             return (
               <li
@@ -56,14 +59,8 @@ export function DealPipeline({
                 aria-current={step.state === "current" ? "step" : undefined}
                 className="flex min-w-0 flex-1 flex-col items-center gap-2"
               >
-                <span className="relative flex h-3.5 w-full items-center justify-center">
-                  {index > 0 ? <span className={`absolute top-1/2 left-0 h-0.5 w-1/2 -translate-y-1/2 ${lineIn}`} /> : null}
-                  {index < steps.length - 1 ? (
-                    <span className={`absolute top-1/2 right-0 h-0.5 w-1/2 -translate-y-1/2 ${lineOut}`} />
-                  ) : null}
-                  <span className="relative z-10">
-                    <StepDot state={step.state} onDark={onDark} />
-                  </span>
+                <span className="relative z-10 flex h-7 items-center justify-center">
+                  <StepDot state={step.state} onDark={onDark} />
                 </span>
                 <StepHint label={step.label} text={step.detail} className={labelClass} />
               </li>
@@ -85,6 +82,17 @@ function TurnCue({
   onDark: boolean;
   signHref: string | null;
 }) {
+  const router = useRouter();
+
+  function openSign(href: string) {
+    if (href.startsWith("#")) {
+      document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    router.push(href);
+  }
+
   if (cue.yours) {
     return (
       <div
@@ -103,9 +111,15 @@ function TurnCue({
           <span className="mt-0.5 block text-sm font-semibold text-[#1c2740]">{cue.action}</span>
         </span>
         {signHref ? (
-          <a href={signHref} className="shrink-0 text-sm font-semibold text-[#465ab4] hover:underline">
+          <button
+            type="button"
+            onClick={() => {
+              openSign(signHref);
+            }}
+            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#465ab4] px-3 text-sm font-semibold text-white"
+          >
             Firmar ahora
-          </a>
+          </button>
         ) : null}
       </div>
     );
@@ -163,19 +177,35 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
 function StepDot({ state, onDark = false }: { state: DealStep["state"]; onDark?: boolean }) {
   if (state === "current") {
     return (
-      <span className="relative block size-3.5 shrink-0">
+      <span className="relative block size-6 shrink-0">
         <span className="deal-pulse absolute -inset-1.5 rounded-full bg-[#465ab4]" />
-        <span className="relative block size-3.5 rounded-full border-2 border-white bg-[#465ab4]" />
+        <span className="relative block size-6 rounded-full border-2 border-white bg-[#465ab4] shadow-[0_0_0_4px_rgba(70,90,180,0.18)]" />
       </span>
     );
   }
 
   if (state === "done") {
-    return <span className={onDark ? "size-3.5 shrink-0 rounded-full bg-[#8dffc4]" : "size-3.5 shrink-0 rounded-full bg-[#17663a]"} />;
+    return (
+      <span
+        className={
+          onDark
+            ? "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-[#8dffc4] text-[#0d3d24]"
+            : "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-[#17663a] text-white"
+        }
+      >
+        <Check className="size-3.5" aria-hidden />
+      </span>
+    );
   }
 
   return (
-    <span className={onDark ? "size-3.5 shrink-0 rounded-full border-2 border-white/40 bg-transparent" : "size-3.5 shrink-0 rounded-full border-2 border-[#d5dbe3] bg-white"} />
+    <span
+      className={
+        onDark
+          ? "size-6 shrink-0 rounded-full border-2 border-white/45 bg-[#121826]"
+          : "size-6 shrink-0 rounded-full border-2 border-[#d5dbe3] bg-white"
+      }
+    />
   );
 }
 

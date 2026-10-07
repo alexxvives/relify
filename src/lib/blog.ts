@@ -14,17 +14,20 @@ export const blogCopy = {
   newsletterPrivacy: "Sin envíos por ahora. El correo no se almacena.",
 } as const;
 
+export type BlogLane = "guide" | "deal";
+
 export type BlogPost = {
   slug: string;
   title: string;
   excerpt: string;
   category: string;
+  lane: BlogLane;
   date: string;
   readTime: number;
   paragraphs: string[];
 };
 
-export const blogCategories = ["Confidencialidad", "Cuentas", "Proceso"] as const;
+export const blogCategories = ["Confidencialidad", "Cuentas", "Proceso", "Operaciones"] as const;
 
 export const blogPosts: BlogPost[] = [
   {
@@ -32,6 +35,7 @@ export const blogPosts: BlogPost[] = [
     title: "Qué ve un comprador antes del NDA",
     excerpt: "La ficha pública lleva un nombre de proyecto, la comunidad y cuatro cifras. La razón social se queda en el borrador.",
     category: "Confidencialidad",
+    lane: "guide",
     date: "2026-09-12",
     readTime: 4,
     paragraphs: [
@@ -45,6 +49,7 @@ export const blogPosts: BlogPost[] = [
     title: "Cómo leer el EBITDA de una pyme",
     excerpt: "El EBITDA sale del resultado de explotación menos la amortización cuando las cuentas traen ambas cifras. El ajustado lo escribe quien vende.",
     category: "Cuentas",
+    lane: "guide",
     date: "2026-09-02",
     readTime: 5,
     paragraphs: [
@@ -58,6 +63,7 @@ export const blogPosts: BlogPost[] = [
     title: "El recorrido de una compraventa",
     excerpt: "Interés, aceptación, NDA, preguntas, reunión, oferta, documentación y cierre. Un paso no se da por hecho si el anterior sigue abierto.",
     category: "Proceso",
+    lane: "guide",
     date: "2026-08-20",
     readTime: 4,
     paragraphs: [
@@ -71,12 +77,41 @@ export const blogPosts: BlogPost[] = [
     title: "Por qué el nombre de la empresa no sale en la ficha",
     excerpt: "El nombre público es un apodo del proyecto. Sirve para hablar de la empresa sin decir quién es.",
     category: "Confidencialidad",
+    lane: "guide",
     date: "2026-08-06",
     readTime: 3,
     paragraphs: [
       "El nombre de proyecto es la etiqueta de la ficha. Puede ser un apodo. No es la razón social y no tiene que coincidir con el rótulo del local.",
       "Eso permite enseñar la empresa a varios compradores y seguir operando con clientes y empleados sin anunciar la venta.",
       "Las fotos de la visita previa se quedan en el navegador del vendedor. El catálogo no las publica.",
+    ],
+  },
+  {
+    slug: "tres-obradores-del-norte",
+    title: "Tres obradores del norte cambian de manos",
+    excerpt: "Un grupo familiar compra tres obradores. La marca que ven los clientes se queda.",
+    category: "Operaciones",
+    lane: "deal",
+    date: "2026-10-01",
+    readTime: 3,
+    paragraphs: [
+      "La operación junta tres obradores de una misma comunidad. El comprador es un grupo familiar del sector. El precio no se publica, y tampoco el nombre de los locales.",
+      "Las cuentas que se enseñaron eran tres ejercicios cerrados y un equipo que sigue. La marca del mostrador no cambia.",
+      "En el diario contamos el tipo de operación, no la empresa. El nombre público, si lo hubiera, sería un apodo de proyecto.",
+    ],
+  },
+  {
+    slug: "taller-de-proximidad",
+    title: "Un taller de proximidad pasa a otro del oficio",
+    excerpt: "El comprador pedía tres años de cuentas y un equipo que se quedara. La venta se cierra dentro del sector.",
+    category: "Operaciones",
+    lane: "deal",
+    date: "2026-09-22",
+    readTime: 3,
+    paragraphs: [
+      "Un taller pequeño cambia de dueño dentro del mismo oficio. El comprador ya tenía otro local y buscaba uno más, con facturación por debajo del millón.",
+      "Lo que se revisó fue el EBITDA de tres años y la plantilla. No hizo falta anunciar el rótulo.",
+      "Este caso es una nota del diario. No es un listado del BORME ni una noticia de un medio.",
     ],
   },
 ];
