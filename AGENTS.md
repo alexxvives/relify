@@ -16,6 +16,7 @@ A task is finished only when all of these are true:
 - UI, routing, or rendered-data changes were clicked through in the Cursor IDE browser.
 - `docs/STATUS.md` matches what is actually on disk.
 - No extra dependency, page, or abstraction was added beyond the task.
+- That task is committed and pushed to `origin` (`https://github.com/alexxvives/releva.git`). One commit when the task is finished. Do not push every edit.
 
 If a check script does not exist yet, the task is not done.
 
