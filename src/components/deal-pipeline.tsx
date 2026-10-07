@@ -5,26 +5,27 @@ import { ShieldCheck } from "lucide-react";
 import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
+import { FieldHint } from "@/components/field-hint";
 import { attachmentNames } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
+import { stepWaiting, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
 
 export function DealPipeline({
   steps,
-  compact = false,
+  role,
   onDark = false,
 }: {
   steps: DealStep[];
-  compact?: boolean;
+  role: "investor" | "seller";
   onDark?: boolean;
 }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  const hint = steps.find((step) => step.id === hovered)?.detail ?? "";
+  const current = steps.find((step) => step.state === "current");
+  const waiting = current ? stepWaiting(current.id, role) : "La compraventa está hecha.";
 
   return (
     <div>
       <div className="overflow-x-auto">
-        <ol className={compact ? "flex min-w-[48rem] items-start py-1" : "flex min-w-[56rem] items-start py-3"} aria-label="Recorrido del proceso">
+        <ol className="mx-auto flex min-w-[44rem] items-start py-2" aria-label="Recorrido del proceso">
           {steps.map((step, index) => {
             const previous = steps[index - 1];
             const doneLine = onDark ? "bg-[#8dffc4]" : "bg-[#17663a]";
@@ -47,39 +48,30 @@ export function DealPipeline({
                     : onDark
                       ? "text-center text-xs text-white/55"
                       : "text-center text-xs text-[#8b95a7]";
+            const align = index === 0 ? "start" : index === steps.length - 1 ? "end" : "center";
 
             return (
               <li
                 key={step.id}
                 aria-current={step.state === "current" ? "step" : undefined}
-                tabIndex={0}
-                onMouseEnter={() => {
-                  setHovered(step.id);
-                }}
-                onMouseLeave={() => {
-                  setHovered(null);
-                }}
-                onFocus={() => {
-                  setHovered(step.id);
-                }}
-                onBlur={() => {
-                  setHovered(null);
-                }}
-                className="flex min-w-0 flex-1 flex-col items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]"
+                className="flex min-w-0 flex-1 flex-col items-center gap-2"
               >
                 <span className="flex w-full items-center">
                   <span className={`h-0.5 flex-1 ${lineIn}`} />
                   <StepDot state={step.state} onDark={onDark} />
                   <span className={`h-0.5 flex-1 ${lineOut}`} />
                 </span>
-                <span className={labelClass}>{step.label}</span>
+                <span className="inline-flex items-center justify-center gap-1">
+                  <span className={labelClass}>{step.label}</span>
+                  <FieldHint text={step.detail} align={align} tone={onDark ? "light" : "ink"} />
+                </span>
               </li>
             );
           })}
         </ol>
       </div>
-      <p className={onDark ? "min-h-5 text-center text-xs text-white/80" : "min-h-5 text-center text-xs text-[#5c6b78]"} aria-live="polite">
-        {hint}
+      <p className={onDark ? "mt-3 text-center text-sm font-medium text-white" : "mt-3 text-center text-sm font-medium text-[#1c2740]"}>
+        {waiting}
       </p>
     </div>
   );
@@ -88,9 +80,9 @@ export function DealPipeline({
 function StepDot({ state, onDark = false }: { state: DealStep["state"]; onDark?: boolean }) {
   if (state === "current") {
     return (
-      <span className="relative size-3.5 shrink-0">
+      <span className="relative size-7 shrink-0">
         <span className="deal-pulse absolute inset-0 rounded-full bg-[#465ab4]" />
-        <span className="relative block size-3.5 rounded-full border-2 border-white bg-[#465ab4] shadow-[0_0_0_4px_rgba(70,90,180,0.16)]" />
+        <span className="relative block size-7 rounded-full border-2 border-white bg-[#465ab4] shadow-[0_0_0_8px_rgba(70,90,180,0.2)]" />
       </span>
     );
   }

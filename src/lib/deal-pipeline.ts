@@ -120,6 +120,46 @@ export function pipelineStatus(steps: readonly DealStep[]): string {
   return steps.find((step) => step.state === "current")?.label ?? steps[steps.length - 1]?.label ?? "";
 }
 
+export function stepWaiting(id: DealStepId, role: "investor" | "seller"): string {
+  if (id === "solicitud") {
+    return role === "investor"
+      ? "Esperando a que el inversor (TÚ) envíe la solicitud"
+      : "Esperando a que el inversor envíe la solicitud";
+  }
+
+  if (id === "conexion") {
+    return role === "seller"
+      ? "Esperando a que el vendedor (TÚ) acepte la solicitud"
+      : "Esperando a que el vendedor acepte la solicitud";
+  }
+
+  if (id === "nda") {
+    return role === "investor"
+      ? "Esperando a que el inversor (TÚ) firme el NDA"
+      : "Esperando a que el inversor firme el NDA";
+  }
+
+  if (id === "qa") {
+    return "Preguntas y reuniones entre las dos partes";
+  }
+
+  if (id === "loi") {
+    return role === "investor"
+      ? "Esperando a que el inversor (TÚ) firme la carta de intenciones"
+      : "Esperando a que el inversor firme la carta de intenciones";
+  }
+
+  if (id === "diligence") {
+    return "Esperando a que un asesor revise la documentación compartida";
+  }
+
+  if (id === "documents") {
+    return "Esperando la firma del contrato";
+  }
+
+  return "Esperando a que se complete el pago";
+}
+
 export function investorProcessFiles(input: {
   ndaAcceptedAt: Date | null;
   granted: boolean;

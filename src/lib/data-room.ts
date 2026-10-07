@@ -109,6 +109,7 @@ export type OwnerFileView = DataRoomFileView & {
   id: string;
   stored: boolean;
   viewers: { accessId: string; label: string }[];
+  platform?: boolean;
 };
 
 export function toDataRoomFileView(file: { folder: string; fileName: string; storageKey?: string }): DataRoomFileView {

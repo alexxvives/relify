@@ -2,6 +2,14 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — Decoy figures, Releva drafts, and the waiting step
+
+A locked section renders a full statement and charts filled with 999.999,00 €. The real rows stay off the page, so removing the blur in the browser does not reveal the company. The same sentence and the connect or sign action sit on every locked section. The figures open after the company accepts the connection and the buyer signs the NDA.
+
+Mis documentos keeps Corporativo, Financiero, Comercial, Fiscal, Legal, and RRHH/Laboral, plus Releva. Releva holds the NDA and letter-of-intent drafts as PDFs. Those drafts use “El comprador” and “el proyecto”. They do not include a legal name, CIF, or address.
+
+The current sale step says who has to act. “(TÚ)” appears only for the person viewing the step. A past meeting stays fixed and is marked Hecha. A future proposal is Propuesta, and an accepted future meeting is Próxima.
+
 ## 2026-10-07 — NDA before the figures, and the sector treemap
 
 Detailed figures stay blurred until the buyer signs the NDA, and that signature is only offered after the company accepts the connection. The NDA and the letter of intent are generated from the project nickname, the region, and the public price. They do not include the legal name, the CIF, or the address. Signing on the platform records the acceptance. It is not a qualified electronic signature.

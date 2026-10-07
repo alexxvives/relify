@@ -14,6 +14,7 @@ import { FieldHint } from "@/components/field-hint";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { MarketCardFigures } from "@/components/market-card-figures";
+import { projectPhotoFrame, ProjectPhotoMark } from "@/components/project-photo";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
@@ -1660,8 +1661,8 @@ function MarketPreview({
         </div>
         <div className="mt-4 grid items-start gap-4 md:grid-cols-3">
           <SampleListing />
-          <article className="overflow-hidden rounded-2xl border border-[#465ab4] bg-white shadow-[0_16px_40px_-28px_rgba(70,90,180,0.8)]">
-            <div className="relative aspect-[16/9] bg-gradient-to-br from-[#d9e2fb] via-[#eef2ff] to-[#f6f1e8]">
+          <article className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+            <div className={projectPhotoFrame}>
               {shown && shown.startsWith("data:") ? (
                 // User-chosen bytes stay in this preview. next/image does not accept a data URL.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -1669,9 +1670,7 @@ function MarketPreview({
               ) : shown ? (
                 <Image src={shown} alt="" fill sizes="320px" className="object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center text-[#465ab4]">
-                  <Building2 className="size-10" aria-hidden />
-                </div>
+                <ProjectPhotoMark />
               )}
               <span className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">
                 <Heart className="size-4" aria-hidden />
@@ -1695,9 +1694,6 @@ function MarketPreview({
                 askingPriceCents={previewCents(askingPrice)}
                 ebitdaCents={previewCents(ebitda)}
               />
-              <span className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e1e6ee] text-sm font-medium text-[#1c2740]">
-                {marketCopy.details}
-              </span>
             </div>
           </article>
           <SampleListing />
@@ -1710,12 +1706,11 @@ function MarketPreview({
 function SampleListing() {
   return (
     <article aria-hidden className="overflow-hidden rounded-2xl border border-dashed border-[#d5dbe3] bg-white">
-      <div className="aspect-[16/9] bg-[#eef1f6]" />
+      <div className={projectPhotoFrame} />
       <div className="flex flex-col gap-3 p-5">
-        <div className="h-4 w-2/3 rounded bg-[#eef1f6]" />
+        <div className="h-5 w-2/3 rounded bg-[#eef1f6]" />
         <div className="h-3 w-1/3 rounded bg-[#eef1f6]" />
-        <div className="h-20 rounded-xl bg-[#f5f6fa]" />
-        <div className="h-11 rounded-xl bg-[#f5f6fa]" />
+        <div className="h-28 rounded-xl bg-[#f5f6fa]" />
       </div>
     </article>
   );

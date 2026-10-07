@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
+import { FieldHint } from "@/components/field-hint";
 import type { DemoInvestorProfile } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
 import { keepDigits } from "@/lib/numeric-input";
@@ -64,7 +65,10 @@ export function InvestorProfile({
     <div className="flex flex-col gap-4">
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.professionalTitle}</h2>
+          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+            {investorCopy.professionalTitle}
+            <FieldHint text={investorCopy.professionalHint} />
+          </h2>
           <div className="flex items-center gap-2">
             <Chip done={professionalDone} />
             <button
@@ -111,7 +115,10 @@ export function InvestorProfile({
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.thesisTitle}</h2>
+            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+              {investorCopy.thesisTitle}
+              <FieldHint text={investorCopy.thesisHint} />
+            </h2>
             <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.thesisBody}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -155,7 +162,10 @@ export function InvestorProfile({
       </section>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.trajectoryTitle}</h2>
+          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+            {investorCopy.trajectoryTitle}
+            <FieldHint text={investorCopy.trajectoryHint} />
+          </h2>
           <div className="flex items-center gap-2">
             <Chip done={trajectory.trim().length > 0} />
             <button

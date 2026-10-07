@@ -6,12 +6,13 @@ import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction, updateInvestorMeetingNotesAction } from "@/app/proyectos/[slug]/actions";
+import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LoiCard } from "@/components/loi-card";
 import { ConnectControl, ProjectAccessPanel } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
+import { accessCopy } from "@/lib/access-copy";
 import { companyCopy } from "@/lib/company-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
@@ -71,9 +72,17 @@ export function InvestorProject({
     region: project.region,
     dateLabel,
   };
-  const connect = (
-    <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} align="center" />
-  );
+  const figureAction =
+    access === "none" ? (
+      <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} align="center" />
+    ) : access === "requested" ? (
+      <a
+        href="#acceso-nda"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white"
+      >
+        {accessCopy.acceptAction}
+      </a>
+    ) : null;
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -84,7 +93,7 @@ export function InvestorProject({
 
       <CompanyBanner
         title={project.codename}
-        progress={steps.length > 0 ? <DealPipeline steps={steps} compact onDark /> : null}
+        progress={steps.length > 0 ? <DealPipeline steps={steps} role="investor" onDark /> : null}
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
         <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} />
@@ -106,7 +115,7 @@ export function InvestorProject({
                 project={project}
                 figuresOpen={access === "accepted"}
                 lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
-                lockAction={access === "none" ? connect : null}
+                lockAction={figureAction}
               />
               <RelatedCompanies items={recommendations} />
             </div>
@@ -146,7 +155,6 @@ export function InvestorProject({
             <MeetingDesk
               messages={messages}
               action={postInvestorMessageAction}
-              notesAction={updateInvestorMeetingNotesAction}
               approveAction={approveInvestorMeetingAction}
               rescheduleAction={rescheduleInvestorMeetingAction}
               today={today}
@@ -178,33 +186,28 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
       <ul className="mt-4 grid grid-cols-3 gap-4">
         {items.slice(0, 3).map((item) => (
           <li key={item.slug}>
-            <Link
-              href={`/proyectos/${item.slug}`}
-              className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white hover:border-[#c9d0ea]"
-            >
-              <ProjectPhoto
-                slug={item.slug}
-                alt=""
-                frameClassName="relative aspect-[4/3] bg-[#eef2ff]"
-              />
-              <span className="flex flex-1 flex-col gap-3 p-4">
-                <span>
-                  <span className="block text-base font-semibold text-[#1c2740]">{item.codename}</span>
-                  <span className="mt-1 flex items-center gap-1.5 text-sm text-[#5c6b78]">
-                    <MapPin className="size-3.5" aria-hidden />
-                    {item.region}
+            <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+              <Link href={`/proyectos/${item.slug}`} className="flex h-full flex-col">
+                <ProjectPhoto slug={item.slug} alt="" />
+                <span className="flex flex-1 flex-col gap-4 p-5">
+                  <span>
+                    <span className="block text-lg font-semibold tracking-tight text-[#1c2740]">{item.codename}</span>
+                    <span className="mt-1 flex items-center gap-1.5 text-sm text-[#5c6b78]">
+                      <MapPin className="size-3.5" aria-hidden />
+                      {item.region}
+                    </span>
                   </span>
+                  <MarketCardFigures
+                    revenue={formatWholeEur(item.revenueCents)}
+                    ebitda={formatWholeEur(item.ebitdaCents)}
+                    adjustedEbitda={formatWholeEur(item.adjustedEbitdaCents)}
+                    askingPrice={formatWholeEur(item.askingPriceCents)}
+                    askingPriceCents={item.askingPriceCents}
+                    ebitdaCents={item.ebitdaCents}
+                  />
                 </span>
-                <MarketCardFigures
-                  revenue={formatWholeEur(item.revenueCents)}
-                  ebitda={formatWholeEur(item.ebitdaCents)}
-                  adjustedEbitda={formatWholeEur(item.adjustedEbitdaCents)}
-                  askingPrice={formatWholeEur(item.askingPriceCents)}
-                  askingPriceCents={item.askingPriceCents}
-                  ebitdaCents={item.ebitdaCents}
-                />
-              </span>
-            </Link>
+              </Link>
+            </article>
           </li>
         ))}
       </ul>

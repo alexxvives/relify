@@ -163,14 +163,14 @@ export const sellerCopy = {
   meetingsChange: "Cambiar hora",
   meetingsUntitled: "Reunión",
   meetingsProposalTag: "Propuesta",
-  meetingsScheduledTag: "Programada",
+  meetingsScheduledTag: "Próxima",
+  meetingsDoneTag: "Hecha",
   meetingsAccept: "Aceptar",
   meetingsAcceptFailed: "No se ha podido aceptar la reunión.",
   meetingsNotesLocked: "Las notas se abren cuando la reunión está aceptada.",
   meetingsUpcoming: "Propuestas",
   meetingsPast: "Reuniones hechas",
-  meetingsPastHint: "Cuando pasa la fecha, la reunión queda aquí. También puedes registrarla a mano.",
-  meetingsLog: "Registrar una ya hecha",
+  meetingsPastHint: "Cuando pasa la fecha, la reunión queda fija.",
   meetingsSave: "Guardar notas",
   companiesCurrent: "Empresa en curso",
   addCompanyTitle: "Nueva empresa",
@@ -195,15 +195,13 @@ export const sellerCopy = {
 } as const;
 
 export const dataRoomFolderNames = [
-  "Documentación principal",
   "Corporativo",
   "Financiero",
   "Comercial",
   "Fiscal",
   "Legal",
   "RRHH/Laboral",
-  "IT/Propiedad intelectual",
-  "Otros",
+  "Releva",
 ] as const;
 
 export type DataRoomFolderName = (typeof dataRoomFolderNames)[number];

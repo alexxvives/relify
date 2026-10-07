@@ -39,9 +39,11 @@ function isEbitdaBand(value: string): value is EbitdaBandId {
 export function MarketBrowser({
   projects,
   favoriteSlugs,
+  heading,
 }: {
   projects: PublicProjectCard[];
   favoriteSlugs: string[];
+  heading?: string;
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<MarketSort>("recommended");
@@ -61,7 +63,8 @@ export function MarketBrowser({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {heading ? <h1 className="text-3xl tracking-tight text-public-ink">{heading}</h1> : <span />}
         <button
           type="button"
           role="switch"
@@ -69,7 +72,7 @@ export function MarketBrowser({
           onClick={() => {
             setFavoritesOnly((current) => !current);
           }}
-          className="inline-flex items-center gap-3 rounded-full border border-[#e7eaee] bg-white py-1.5 pr-1.5 pl-3"
+          className="inline-flex items-center gap-3"
         >
           <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
           <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>

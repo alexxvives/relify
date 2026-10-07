@@ -14,6 +14,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
+import { relevaDraftFolder, relevaDrafts } from "@/lib/releva-drafts";
 
 export type OwnerDataRoom = {
   audience: "owner";
@@ -86,15 +87,30 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       granted: granted.has(access.investorId),
     }));
 
+    const folders = visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) });
+    const stored = files.map((file) => ({
+      ...toDataRoomFileView(file),
+      id: file.id,
+      stored: dataRoomFileIsStored(file.id),
+      viewers: fileViewerLabels({ fileId: file.id, files, investors, shares: shareRows }),
+    }));
+    const drafts = folders.includes(relevaDraftFolder)
+      ? relevaDrafts
+          .filter((draft) => !stored.some((file) => file.folder === relevaDraftFolder && file.fileName === draft.fileName))
+          .map((draft) => ({
+            folder: relevaDraftFolder,
+            fileName: draft.fileName,
+            id: draft.id,
+            stored: true,
+            platform: true,
+            viewers: [],
+          }))
+      : [];
+
     return {
       audience: "owner",
-      folders: visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) }),
-      files: files.map((file) => ({
-        ...toDataRoomFileView(file),
-        id: file.id,
-        stored: dataRoomFileIsStored(file.id),
-        viewers: fileViewerLabels({ fileId: file.id, files, investors, shares: shareRows }),
-      })),
+      folders,
+      files: [...drafts, ...stored],
       shares: investors.map((access) =>
         toDataRoomShareView({ id: access.accessId, label: access.label, granted: access.granted }),
       ),

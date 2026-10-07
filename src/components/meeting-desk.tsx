@@ -64,111 +64,28 @@ function plusMinutes(time: string, minutes: number): string | null {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-function MeetingNotes({
-  messageId,
-  notes,
-  action,
-  hidden,
-  omitEmpty = false,
-}: {
-  messageId: string;
-  notes: string;
-  action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
-  hidden: { name: string; value: string }[];
-  omitEmpty?: boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(notes);
-  const [state, formAction, pending] = useActionState(action, null);
-  const [closed, setClosed] = useState<MessageActionState>(null);
-
-  if (state?.ok && state !== closed) {
-    setClosed(state);
-    setEditing(false);
-  }
-
-  if (!editing) {
-    return (
-      <div className="mt-2 flex items-start gap-3">
-        {notes.trim().length > 0 || !omitEmpty ? (
-          <p className="min-w-0 flex-1 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
-            {notes.trim().length > 0 ? notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          aria-label={sellerCopy.meetingsEditNotes}
-          onClick={() => {
-            setEditing(true);
-          }}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff]"
-        >
-          <SquarePenIcon size={16} aria-hidden />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <form action={formAction} className="mt-3">
-      {hidden.map((field) => (
-        <input key={field.name} type="hidden" name={field.name} value={field.value} />
-      ))}
-      <input type="hidden" name="messageId" value={messageId} />
-      <label className="text-sm font-medium text-[#1c2740]">
-        {sellerCopy.meetingsNotes}
-        <textarea
-          name="notes"
-          value={value}
-          maxLength={2000}
-          onChange={(event) => {
-            setValue(event.target.value);
-          }}
-          className="mt-1 min-h-20 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 py-2 text-sm"
-        />
-      </label>
-      <div className="mt-2 flex items-center justify-end gap-3">
-        {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
-        <button
-          type="button"
-          onClick={() => {
-            setValue(notes);
-            setEditing(false);
-          }}
-          className="inline-flex h-9 items-center rounded-full border border-[#e1e6ee] px-3 text-sm font-medium"
-        >
-          {sellerCopy.meetingsCancel}
-        </button>
-        <button
-          type="submit"
-          disabled={pending || value === notes}
-          className="inline-flex h-9 items-center rounded-full bg-[#3d34b8] px-3 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {pending ? sellerCopy.replying : sellerCopy.meetingsSave}
-        </button>
-      </div>
-    </form>
-  );
-}
-
 function MeetingCard({
   message,
   today,
-  notesAction,
   approveAction,
   hidden,
   onEdit,
 }: {
   message: ThreadMessageView;
   today: string;
-  notesAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   approveAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
   onEdit?: () => void;
 }) {
   const slot = readMeeting(message.body);
   const past = slot ? meetingIsPast(slot, today) : false;
-  const tag = slot && !past && slot.status === "proposed" ? sellerCopy.meetingsProposalTag : null;
+  const tag = !slot
+    ? null
+    : past
+      ? sellerCopy.meetingsDoneTag
+      : slot.status === "proposed"
+        ? sellerCopy.meetingsProposalTag
+        : sellerCopy.meetingsScheduledTag;
 
   return (
     <li className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
@@ -186,7 +103,7 @@ function MeetingCard({
                 </span>
               ) : null}
             </p>
-            {onEdit ? (
+            {onEdit && !past ? (
               <button
                 type="button"
                 aria-label={sellerCopy.meetingsChange}
@@ -198,10 +115,12 @@ function MeetingCard({
             ) : null}
           </div>
           {slot.description.length > 0 ? <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{slot.description}</p> : null}
-          {slot.status === "scheduled" && notesAction ? (
-            <MeetingNotes messageId={message.id} notes={slot.notes} action={notesAction} hidden={hidden} omitEmpty={past} />
+          {slot.status === "scheduled" ? (
+            <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
+              {slot.notes.trim().length > 0 ? slot.notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
+            </p>
           ) : null}
-          {slot.status === "proposed" && !message.mine && approveAction ? (
+          {slot.status === "proposed" && !past && !message.mine && approveAction ? (
             <AcceptMeeting messageId={message.id} action={approveAction} hidden={hidden} />
           ) : null}
         </>
@@ -440,7 +359,6 @@ function SlotForm({
   hidden,
   submitLabel,
   today,
-  mode,
   onDone,
   initial,
 }: {
@@ -448,7 +366,6 @@ function SlotForm({
   hidden: { name: string; value: string }[];
   submitLabel: string;
   today: string;
-  mode: "propose" | "log";
   onDone: () => void;
   initial?: { day: string; fromTime: string; toTime: string; text: string };
 }) {
@@ -465,9 +382,9 @@ function SlotForm({
           to: day,
           fromTime,
           toTime,
-          description: mode === "propose" ? text : "",
-          notes: mode === "log" ? text : "",
-          status: mode === "propose" ? "proposed" : "scheduled",
+          description: text,
+          notes: "",
+          status: "proposed",
         }) ?? "")
       : "";
 
@@ -490,7 +407,7 @@ function SlotForm({
           selected={day}
           marks={new Set()}
           today={today}
-          blocked={(value) => (mode === "log" ? value > today : value < today)}
+          blocked={(value) => value < today}
           onPick={setDay}
         />
         <div>
@@ -505,7 +422,7 @@ function SlotForm({
         </div>
       </div>
       <label className="text-sm font-medium text-[#1c2740]">
-        {mode === "propose" ? sellerCopy.meetingsDescription : sellerCopy.meetingsNotes}
+        {sellerCopy.meetingsDescription}
         <textarea
           value={text}
           maxLength={2000}
@@ -555,7 +472,6 @@ function MeetingDialog({
   hidden,
   submitLabel,
   today,
-  mode,
   initial,
 }: {
   dialogRef: RefObject<HTMLDialogElement | null>;
@@ -565,7 +481,6 @@ function MeetingDialog({
   hidden: { name: string; value: string }[];
   submitLabel: string;
   today: string;
-  mode: "propose" | "log";
   initial?: { day: string; fromTime: string; toTime: string; text: string };
 }) {
   const close = useCallback(() => {
@@ -582,7 +497,6 @@ function MeetingDialog({
         hidden={hidden}
         submitLabel={submitLabel}
         today={today}
-        mode={mode}
         initial={initial}
         onDone={close}
       />
@@ -606,7 +520,6 @@ function meetingDays(messages: ThreadMessageView[]): Set<string> {
 export function MeetingDesk({
   messages,
   action,
-  notesAction,
   approveAction,
   rescheduleAction,
   hidden,
@@ -614,7 +527,6 @@ export function MeetingDesk({
 }: {
   messages: ThreadMessageView[];
   action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
-  notesAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   approveAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   rescheduleAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
@@ -628,10 +540,8 @@ export function MeetingDesk({
   });
   const upcoming = meetings.filter((message) => !past.includes(message));
   const proposeRef = useRef<HTMLDialogElement>(null);
-  const logRef = useRef<HTMLDialogElement>(null);
   const editRef = useRef<HTMLDialogElement>(null);
   const [proposeKey, setProposeKey] = useState(0);
-  const [logKey, setLogKey] = useState(0);
   const [editKey, setEditKey] = useState(0);
   const [editing, setEditing] = useState<ThreadMessageView | null>(null);
   const editingSlot = editing ? readMeeting(editing.body) : null;
@@ -677,18 +587,7 @@ export function MeetingDesk({
         </div>
       </div>
       <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsRegister}</h3>
-          <button
-            type="button"
-            onClick={() => {
-              openDialog(logRef, setLogKey);
-            }}
-            className="inline-flex h-10 items-center rounded-full border border-[#d5dbe8] px-4 text-sm font-medium text-[#3d34b8]"
-          >
-            {sellerCopy.meetingsLog}
-          </button>
-        </div>
+        <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsRegister}</h3>
         {meetings.length === 0 ? <p className="mt-3 text-sm text-[#667085]">{sellerCopy.meetingsNone}</p> : null}
         <ul className="mt-3 flex flex-col gap-3">
           {[...upcoming, ...past].map((message) => (
@@ -696,7 +595,6 @@ export function MeetingDesk({
               key={message.id}
               message={message}
               today={today}
-              notesAction={notesAction}
               approveAction={approveAction}
               hidden={hidden}
               onEdit={
@@ -719,17 +617,6 @@ export function MeetingDesk({
         hidden={hidden}
         submitLabel={sellerCopy.meetingsPropose}
         today={today}
-        mode="propose"
-      />
-      <MeetingDialog
-        dialogRef={logRef}
-        title={sellerCopy.meetingsLog}
-        formKey={logKey}
-        action={action}
-        hidden={hidden}
-        submitLabel={sellerCopy.meetingsLog}
-        today={today}
-        mode="log"
       />
       {rescheduleAction && editing && editingSlot ? (
         <MeetingDialog
@@ -740,7 +627,6 @@ export function MeetingDesk({
           hidden={[...hidden, { name: "messageId", value: editing.id }]}
           submitLabel={sellerCopy.meetingsChange}
           today={today}
-          mode="propose"
           initial={{
             day: editingSlot.from,
             fromTime: editingSlot.fromTime,

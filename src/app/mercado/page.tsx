@@ -16,8 +16,8 @@ export default async function MarketPage() {
   const [projects, favoriteSlugs] = await Promise.all([listPublicProjects(), listFavoriteSlugs(user.id)]);
 
   return (
-    <SignedInPage title={marketCopy.title}>
-      <MarketBrowser projects={projects} favoriteSlugs={favoriteSlugs} />
+    <SignedInPage title={marketCopy.title} showTitle={false}>
+      <MarketBrowser projects={projects} favoriteSlugs={favoriteSlugs} heading={marketCopy.title} />
     </SignedInPage>
   );
 }

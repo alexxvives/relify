@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactNode } from "react";
 import {
   Building2,
   CalendarDays,
@@ -10,10 +10,12 @@ import {
   Users,
   EyeOff,
 } from "lucide-react";
+import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
+import { figureVeilBalance, figureVeilIncome, figureVeilSlices } from "@/lib/figure-veil";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur } from "@/lib/money";
@@ -22,11 +24,22 @@ function moneyOrUnavailable(cents: number | null): string {
   return cents === null ? companyCopy.unavailable : formatEur(cents);
 }
 
-export function SectionTitle({ id, icon: Icon, children }: { id: string; icon: typeof Building2; children: string }) {
+export function SectionTitle({
+  id,
+  icon: Icon,
+  hint,
+  children,
+}: {
+  id: string;
+  icon: typeof Building2;
+  hint?: string;
+  children: string;
+}) {
   return (
     <h2 id={id} className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
       <Icon className="size-5" aria-hidden />
       {children}
+      {hint ? <FieldHint text={hint} /> : null}
     </h2>
   );
 }
@@ -69,7 +82,7 @@ export function CompanyProfile({
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="descripcion-general">
-        <SectionTitle id="descripcion-general" icon={Building2}>
+        <SectionTitle id="descripcion-general" icon={Building2} hint={companyCopy.generalHint}>
           {companyCopy.generalHeading}
         </SectionTitle>
         <div className="mt-6 grid gap-6 sm:grid-cols-3">
@@ -92,7 +105,7 @@ export function CompanyProfile({
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="sectores">
-        <SectionTitle id="sectores" icon={Tags}>
+        <SectionTitle id="sectores" icon={Tags} hint={companyCopy.sectorsHint}>
           {companyCopy.sectorsHeading}
         </SectionTitle>
         <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
@@ -124,7 +137,7 @@ export function CompanyProfile({
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="metricas">
-        <SectionTitle id="metricas" icon={Receipt}>
+        <SectionTitle id="metricas" icon={Receipt} hint={companyCopy.metricsHint}>
           {companyCopy.metricsHeading}
         </SectionTitle>
         <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -138,10 +151,10 @@ export function CompanyProfile({
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="estructura">
-        <SectionTitle id="estructura" icon={PieChart}>
+        <SectionTitle id="estructura" icon={PieChart} hint={companyCopy.structureHint}>
           {companyCopy.structureHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<DonutStandIn />} note={lockedNote} action={lockAction}>
+        <LockedFigures open={figuresOpen} kind="structure" note={lockedNote} action={lockAction}>
           <div className="grid gap-4 lg:grid-cols-3">
             <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
             <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
@@ -158,10 +171,10 @@ export function CompanyProfile({
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="perdidas">
-        <SectionTitle id="perdidas" icon={Receipt}>
+        <SectionTitle id="perdidas" icon={Receipt} hint={companyCopy.incomeHint}>
           {companyCopy.incomeHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />} note={lockedNote}>
+        <LockedFigures open={figuresOpen} kind="income" note={lockedNote} action={lockAction}>
           <div className="overflow-x-auto">
             <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
           </div>
@@ -170,10 +183,10 @@ export function CompanyProfile({
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="balance">
-        <SectionTitle id="balance" icon={Scale}>
+        <SectionTitle id="balance" icon={Scale} hint={companyCopy.balanceHint}>
           {companyCopy.balanceHeading}
         </SectionTitle>
-        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />} note={lockedNote}>
+        <LockedFigures open={figuresOpen} kind="balance" note={lockedNote} action={lockAction}>
           <div className="overflow-x-auto">
             <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
           </div>
@@ -186,13 +199,13 @@ export function CompanyProfile({
 
 function LockedFigures({
   open,
-  standIn,
+  kind,
   note,
   action = null,
   children,
 }: {
   open: boolean;
-  standIn: ReactNode;
+  kind: "structure" | "income" | "balance";
   note: string;
   action?: ReactNode;
   children: ReactNode;
@@ -202,50 +215,49 @@ function LockedFigures({
   }
 
   return (
-    <div className="relative mt-6 min-h-40">
-      <div className="pointer-events-none select-none blur-md" aria-hidden>
-        {standIn}
+    <div className="relative mt-6">
+      <div className="pointer-events-none select-none blur-sm" aria-hidden>
+        <FigureVeil kind={kind} />
       </div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
-        <EyeOff className="size-5 text-[#465ab4]" aria-hidden />
-        <p className="max-w-md text-sm font-medium text-[#1c2740]">{note}</p>
-        {action}
-      </div>
-    </div>
-  );
-}
-
-function DonutStandIn() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      {[0, 1, 2].map((item) => (
-        <div key={item} className="rounded-xl bg-[#f4f7ff] p-4">
-          <div className="mx-auto size-28 rounded-full bg-[#d5dced]" />
-          <div className="mx-auto mt-4 h-3 w-24 rounded-full bg-[#d5dced]" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="pointer-events-auto sticky top-28 z-10 flex flex-col items-center gap-3 px-6 py-16 text-center">
+          <EyeOff className="size-5 text-[#465ab4]" aria-hidden />
+          <p className="max-w-md rounded-2xl bg-white/80 px-4 py-3 text-sm font-medium text-[#1c2740]">{note}</p>
+          {isValidElement(action) ? cloneElement(action) : action}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
 
-function StatementStandIn() {
+function FigureVeil({ kind }: { kind: "structure" | "income" | "balance" }) {
+  if (kind === "structure") {
+    return (
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ShareDonut title={companyCopy.chartCapital} slices={figureVeilSlices} palette="capital" />
+        <ShareDonut title={companyCopy.chartProduct} slices={figureVeilSlices} palette="product" />
+        <ShareDonut title={companyCopy.chartClient} slices={figureVeilSlices} palette="client" />
+      </div>
+    );
+  }
+
+  if (kind === "income") {
+    const income = figureVeilIncome();
+
+    return (
+      <div>
+        <FinancialTable years={income.years} rows={income.rows} />
+        <ProfileIncomeChart years={income.years} rows={income.rows} />
+      </div>
+    );
+  }
+
+  const balance = figureVeilBalance();
+
   return (
     <div>
-      <div className="grid gap-2">
-        {[0, 1, 2, 3, 4].map((row) => (
-          <div key={row} className="grid grid-cols-4 gap-3">
-            <div className="h-4 rounded bg-[#e6e9f0]" />
-            <div className="h-4 rounded bg-[#d5dced]" />
-            <div className="h-4 rounded bg-[#d5dced]" />
-            <div className="h-4 rounded bg-[#d5dced]" />
-          </div>
-        ))}
-      </div>
-      <div className="mt-6 flex h-36 items-end gap-3">
-        {[42, 68, 54, 80].map((height, index) => (
-          <div key={index} className="flex-1 rounded-t-lg bg-[#c5d0ea]" style={{ height: `${height}%` }} />
-        ))}
-      </div>
+      <FinancialTable years={balance.years} rows={balance.rows} />
+      <ProfileBalanceChart years={balance.years} rows={balance.rows} />
     </div>
   );
 }

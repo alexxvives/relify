@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags } from "./deal-pipeline";
+import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags, stepWaiting } from "./deal-pipeline";
 
 const openFlags = {
   accepted: false,
@@ -74,6 +74,13 @@ describe("dealPipeline", () => {
 
     expect(steps.every((step) => step.state === "done")).toBe(true);
     expect(pipelineStatus(steps)).toBe("Compraventa");
+  });
+
+  it("names the person who has to act, and adds TÚ only for that viewer", () => {
+    expect(stepWaiting("conexion", "seller")).toBe("Esperando a que el vendedor (TÚ) acepte la solicitud");
+    expect(stepWaiting("conexion", "investor")).toBe("Esperando a que el vendedor acepte la solicitud");
+    expect(stepWaiting("nda", "investor")).toBe("Esperando a que el inversor (TÚ) firme el NDA");
+    expect(stepWaiting("nda", "seller")).toBe("Esperando a que el inversor firme el NDA");
   });
 });
 

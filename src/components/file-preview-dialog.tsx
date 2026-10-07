@@ -82,8 +82,8 @@ export function FilePreviewDialog({
   );
 }
 
-export function fileHref(file: { id?: string; stored?: boolean } | null): string | null {
-  if (!file?.id || !file.stored) {
+export function fileHref(file: { id?: string; stored?: boolean; platform?: boolean } | null): string | null {
+  if (!file?.id || (!file.stored && !file.platform)) {
     return null;
   }
 

@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
-import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction, updateSellerMeetingNotesAction } from "@/app/mi-empresa/procesos/actions";
+import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -92,22 +92,20 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
         onClick={() => {
           setOpen((current) => !current);
         }}
-        className="flex w-full flex-col gap-4 px-5 py-4 text-left xl:flex-row xl:items-center"
+        className="flex w-full items-start gap-3 px-5 pt-4 text-left"
       >
-        <div className="flex min-w-0 items-start gap-3 xl:w-56">
-          <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
-          <span>
-            <span className="block text-base font-semibold text-[#1c2740]">
-              {thread.label}
-              <span className="ml-2 text-sm font-normal text-[#667085]">{thread.codename}</span>
-            </span>
-            <span className="mt-1 block text-sm text-[#667085]">{threadMessageCount(thread.messages.length)}</span>
+        <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
+        <span>
+          <span className="block text-base font-semibold text-[#1c2740]">
+            {thread.label}
+            <span className="ml-2 text-sm font-normal text-[#667085]">{thread.codename}</span>
           </span>
-        </div>
-        <span className="min-w-0 flex-1">
-          <DealPipeline steps={thread.steps} compact />
+          <span className="mt-1 block text-sm text-[#667085]">{threadMessageCount(thread.messages.length)}</span>
         </span>
       </button>
+      <div className="px-5 py-4">
+        <DealPipeline steps={thread.steps} role="seller" />
+      </div>
       {open ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
           <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -141,7 +139,6 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
           <MeetingDesk
             messages={thread.messages}
             action={postSellerMessageAction}
-            notesAction={updateSellerMeetingNotesAction}
             approveAction={approveSellerMeetingAction}
             rescheduleAction={rescheduleSellerMeetingAction}
             today={today}

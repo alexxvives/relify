@@ -1,3 +1,4 @@
+import { relevaDraftPdf } from "@/lib/releva-drafts";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { readDataRoomFileDownload } from "@/server/readDataRoomFile";
 
@@ -36,6 +37,23 @@ export async function GET(
   }
 
   const { fileId } = await context.params;
+  const draft = relevaDraftPdf(fileId);
+
+  if (draft) {
+    if (!user.onboarded || user.role !== "seller") {
+      return new Response(null, { status: 404 });
+    }
+
+    return new Response(new Uint8Array(draft.bytes), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": contentDisposition(draft.fileName),
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
+
   const file = await readDataRoomFileDownload(user, fileId);
 
   if (!file) {

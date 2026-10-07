@@ -447,6 +447,7 @@ export function SellerDocuments({
                     <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
                     <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
                   </button>
+                  {file.platform ? null : (
                   <div className="absolute top-2 right-2 flex items-center gap-1">
                     {file.viewers.length > 0 ? (
                       <span className="inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
@@ -463,9 +464,12 @@ export function SellerDocuments({
                     ) : null}
                     <ShareMenu file={file} investors={shares} />
                   </div>
+                  )}
+                  {file.platform ? null : (
                   <div className="absolute right-2 bottom-2">
                     <FileDelete id={file.id} />
                   </div>
+                  )}
                 </li>
               ))}
             </ul>

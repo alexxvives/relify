@@ -114,14 +114,12 @@ describe("visibleFolderNames", () => {
         usedByFiles: ["Fiscal", "Comercial"],
       }),
     ).toEqual([
-      "Documentación principal",
       "Corporativo",
       "Financiero",
       "Comercial",
       "Legal",
       "RRHH/Laboral",
-      "IT/Propiedad intelectual",
-      "Otros",
+      "Releva",
       "Due diligence",
     ]);
   });
