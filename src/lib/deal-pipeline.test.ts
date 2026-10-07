@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags, stepWaiting } from "./deal-pipeline";
+import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags, stepCue } from "./deal-pipeline";
 
 const openFlags = {
   accepted: false,
@@ -76,11 +76,19 @@ describe("dealPipeline", () => {
     expect(pipelineStatus(steps)).toBe("Compraventa");
   });
 
-  it("names the person who has to act, and adds TÚ only for that viewer", () => {
-    expect(stepWaiting("conexion", "seller")).toBe("Esperando a que el vendedor (TÚ) acepte la solicitud");
-    expect(stepWaiting("conexion", "investor")).toBe("Esperando a que el vendedor acepte la solicitud");
-    expect(stepWaiting("nda", "investor")).toBe("Esperando a que el inversor (TÚ) firme el NDA");
-    expect(stepWaiting("nda", "seller")).toBe("Esperando a que el inversor firme el NDA");
+  it("marks a turn only for the person who has to act", () => {
+    expect(stepCue("conexion", "seller")).toEqual({ yours: true, action: "Acepta la solicitud de conexión" });
+    expect(stepCue("conexion", "investor")).toEqual({
+      yours: false,
+      action: "El vendedor todavía no ha aceptado la solicitud",
+    });
+    expect(stepCue("nda", "investor")).toEqual({ yours: true, action: "Firma el acuerdo de confidencialidad" });
+    expect(stepCue("nda", "seller")).toEqual({
+      yours: false,
+      action: "El inversor todavía no ha firmado el acuerdo",
+    });
+    expect(stepCue("loi", "investor").yours).toBe(true);
+    expect(stepCue("loi", "seller").yours).toBe(false);
   });
 });
 

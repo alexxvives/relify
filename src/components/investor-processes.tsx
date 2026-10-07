@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DealPipeline } from "@/components/deal-pipeline";
-import { pipelineStatus } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 
@@ -16,9 +15,7 @@ export function InvestorProcesses({ items }: { items: InvestorProcessCard[] }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>
-                <p className="mt-1 text-sm text-[#64748b]">
-                  {item.region} · {pipelineStatus(item.steps)}
-                </p>
+                <p className="mt-1 text-sm text-[#64748b]">{item.region}</p>
               </div>
               <Link
                 href={`/proyectos/${item.slug}`}

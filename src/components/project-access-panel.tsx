@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
+import { SignBubble } from "@/components/deal-pipeline";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy, connectConfirm } from "@/lib/access-copy";
 import { billingCopy } from "@/lib/billing-copy";
@@ -101,6 +102,41 @@ export function ConnectControl({
   );
 }
 
+export function NdaSignBubble({ slug, agreement }: { slug: string; agreement: string }) {
+  const [acceptState, acceptAction, acceptPending] = useActionState(acceptNdaAction, null);
+  const [open, setOpen] = useState(false);
+
+  if (acceptState?.ok === true) {
+    return null;
+  }
+
+  return (
+    <SignBubble fileName="Acuerdo-de-confidencialidad.pdf" body="Ábrelo, léelo y fírmalo desde aquí. El chat se abre en cuanto quede firmado.">
+      <button
+        type="button"
+        className="text-sm font-semibold text-[#465ab4] hover:underline"
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
+      >
+        {open ? "Cerrar documento" : "Abrir documento"}
+      </button>
+      {open ? (
+        <div className="mt-2 max-h-48 overflow-y-auto rounded-xl bg-white p-3 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
+          {agreement}
+        </div>
+      ) : null}
+      <form action={acceptAction} className="mt-3 flex flex-col items-start gap-2">
+        <input type="hidden" name="slug" value={slug} />
+        <button type="submit" className={buttonClassName} disabled={acceptPending}>
+          {accessCopy.acceptAction}
+        </button>
+        <AccessError state={acceptState} />
+      </form>
+    </SignBubble>
+  );
+}
+
 export function ProjectAccessPanel({
   slug,
   status,
@@ -118,7 +154,7 @@ export function ProjectAccessPanel({
   }
 
   return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
+    <section id="firmar" className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
       <h2 id="acceso-nda" className="text-xl font-semibold">
         {accessCopy.ndaHeading}
       </h2>

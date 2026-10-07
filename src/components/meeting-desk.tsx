@@ -115,11 +115,6 @@ function MeetingCard({
             ) : null}
           </div>
           {slot.description.length > 0 ? <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{slot.description}</p> : null}
-          {slot.status === "scheduled" ? (
-            <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
-              {slot.notes.trim().length > 0 ? slot.notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
-            </p>
-          ) : null}
           {slot.status === "proposed" && !past && !message.mine && approveAction ? (
             <AcceptMeeting messageId={message.id} action={approveAction} hidden={hidden} />
           ) : null}

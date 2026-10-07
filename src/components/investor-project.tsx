@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
@@ -8,8 +8,8 @@ import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/favorite-button";
-import { LoiCard } from "@/components/loi-card";
-import { ConnectControl, ProjectAccessPanel } from "@/components/project-access-panel";
+import { LoiCard, LoiSignBubble } from "@/components/loi-card";
+import { ConnectControl, NdaSignBubble, ProjectAccessPanel } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
 import { accessCopy } from "@/lib/access-copy";
@@ -120,7 +120,18 @@ export function InvestorProject({
               <RelatedCompanies items={recommendations} />
             </div>
           ),
-          questions: locked ? (
+          questions: access === "requested" ? (
+            <section className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <LockedNote text={companyCopy.threadLocked} />
+              <ProcessRoom
+                files={[]}
+                bodies={[]}
+                nda={false}
+                empty=""
+                prompt={<NdaSignBubble slug={project.slug} agreement={ndaAgreement(agreementInput)} />}
+              />
+            </section>
+          ) : locked ? (
             <LockedNote text={companyCopy.threadLocked} />
           ) : (
             <section className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -146,6 +157,14 @@ export function InvestorProject({
                 bodies={chat.map((message) => message.body)}
                 nda
                 empty={sellerCopy.documentsEmpty}
+                prompt={
+                  signedOffer ? null : (
+                    <LoiSignBubble
+                      slug={project.slug}
+                      agreement={loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) })}
+                    />
+                  )
+                }
               />
             </section>
           ),
@@ -188,15 +207,8 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
           <li key={item.slug}>
             <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
               <Link href={`/proyectos/${item.slug}`} className="flex h-full flex-col">
-                <ProjectPhoto slug={item.slug} alt="" />
+                <ProjectPhoto slug={item.slug} alt="" title={item.codename} place={item.region} />
                 <span className="flex flex-1 flex-col gap-4 p-5">
-                  <span>
-                    <span className="block text-lg font-semibold tracking-tight text-[#1c2740]">{item.codename}</span>
-                    <span className="mt-1 flex items-center gap-1.5 text-sm text-[#5c6b78]">
-                      <MapPin className="size-3.5" aria-hidden />
-                      {item.region}
-                    </span>
-                  </span>
                   <MarketCardFigures
                     revenue={formatWholeEur(item.revenueCents)}
                     ebitda={formatWholeEur(item.ebitdaCents)}

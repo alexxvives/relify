@@ -15,7 +15,15 @@ import { FinancialTable } from "@/components/financial-table";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
-import { figureVeilBalance, figureVeilIncome, figureVeilSlices } from "@/lib/figure-veil";
+import {
+  figureVeilBalance,
+  figureVeilCapital,
+  figureVeilChartBalance,
+  figureVeilChartIncome,
+  figureVeilClient,
+  figureVeilIncome,
+  figureVeilProduct,
+} from "@/lib/figure-veil";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur } from "@/lib/money";
@@ -101,7 +109,7 @@ export function CompanyProfile({
         <h3 className="mt-8 flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
           {companyCopy.descriptionLabel}
         </h3>
-        <p className="mt-2 max-w-3xl whitespace-pre-wrap leading-7">{project.description ?? companyCopy.unavailable}</p>
+        <p className="mt-2 leading-7">{project.description ?? companyCopy.unavailable}</p>
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="sectores">
@@ -216,11 +224,11 @@ function LockedFigures({
 
   return (
     <div className="relative mt-6">
-      <div className="pointer-events-none select-none blur-sm" aria-hidden>
+      <div className="pointer-events-none select-none blur-md" aria-hidden>
         <FigureVeil kind={kind} />
       </div>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="pointer-events-auto sticky top-28 z-10 flex flex-col items-center gap-3 px-6 py-16 text-center">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="pointer-events-auto z-10 flex flex-col items-center gap-3 px-6 text-center">
           <EyeOff className="size-5 text-[#465ab4]" aria-hidden />
           <p className="max-w-md rounded-2xl bg-white/80 px-4 py-3 text-sm font-medium text-[#1c2740]">{note}</p>
           {isValidElement(action) ? cloneElement(action) : action}
@@ -234,30 +242,32 @@ function FigureVeil({ kind }: { kind: "structure" | "income" | "balance" }) {
   if (kind === "structure") {
     return (
       <div className="grid gap-4 lg:grid-cols-3">
-        <ShareDonut title={companyCopy.chartCapital} slices={figureVeilSlices} palette="capital" />
-        <ShareDonut title={companyCopy.chartProduct} slices={figureVeilSlices} palette="product" />
-        <ShareDonut title={companyCopy.chartClient} slices={figureVeilSlices} palette="client" />
+        <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />
+        <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
+        <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />
       </div>
     );
   }
 
   if (kind === "income") {
     const income = figureVeilIncome();
+    const chart = figureVeilChartIncome();
 
     return (
       <div>
         <FinancialTable years={income.years} rows={income.rows} />
-        <ProfileIncomeChart years={income.years} rows={income.rows} />
+        <ProfileIncomeChart years={chart.years} rows={chart.rows} />
       </div>
     );
   }
 
   const balance = figureVeilBalance();
+  const chart = figureVeilChartBalance();
 
   return (
     <div>
       <FinancialTable years={balance.years} rows={balance.rows} />
-      <ProfileBalanceChart years={balance.years} rows={balance.rows} />
+      <ProfileBalanceChart years={chart.years} rows={chart.rows} />
     </div>
   );
 }

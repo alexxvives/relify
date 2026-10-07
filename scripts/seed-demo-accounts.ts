@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@/generated/prisma/client";
-import { incomingAccessNotice } from "@/lib/notifications";
 import { prisma } from "@/server/db";
 
 const password = "@Releva1z2x";
@@ -424,24 +423,12 @@ async function main(): Promise<void> {
     ],
   });
 
-  const acceptedAt = new Date("2026-09-20T10:00:00.000Z");
-  const ndaAt = new Date("2026-09-21T10:00:00.000Z");
-  await prisma.projectAccess.upsert({
-    where: { projectId_investorId: { projectId, investorId: buyerId } },
-    create: {
-      id: "demo-access-inversor",
-      projectId,
-      investorId: buyerId,
-      requestedAt: new Date("2026-09-18T10:00:00.000Z"),
-      sellerAcceptedAt: acceptedAt,
-      ndaAcceptedAt: ndaAt,
-    },
-    update: { sellerAcceptedAt: acceptedAt, ndaAcceptedAt: ndaAt },
-  });
-  await prisma.dataRoomGrant.upsert({
-    where: { projectId_investorId: { projectId, investorId: buyerId } },
-    create: { id: "demo-grant-inversor", projectId, investorId: buyerId },
-    update: {},
+  await prisma.projectMessage.deleteMany({ where: { projectId } });
+  await prisma.dataRoomFileShare.deleteMany({ where: { investorId: buyerId } });
+  await prisma.dataRoomGrant.deleteMany({ where: { projectId } });
+  await prisma.projectAccess.deleteMany({ where: { projectId } });
+  await prisma.notification.deleteMany({
+    where: { id: { in: ["demo-note-seller", "demo-note-investor"] } },
   });
   await prisma.projectFavorite.upsert({
     where: { projectId_investorId: { projectId, investorId: buyerId } },
@@ -467,55 +454,6 @@ async function main(): Promise<void> {
       update: {},
     });
   }
-
-  const messages = [
-    {
-      id: "demo-msg-1",
-      author: "investor" as const,
-      kind: "question" as const,
-      body: "¿El equipo de tienda sigue después del traspaso?",
-      createdAt: new Date("2026-09-22T09:00:00.000Z"),
-    },
-    {
-      id: "demo-msg-2",
-      author: "seller" as const,
-      kind: "question" as const,
-      body: "Sí. Las cuatro personas de tienda quieren continuar.",
-      createdAt: new Date("2026-09-22T16:00:00.000Z"),
-    },
-  ];
-
-  for (const message of messages) {
-    await prisma.projectMessage.upsert({
-      where: { id: message.id },
-      create: { ...message, projectId, investorId: buyerId },
-      update: { body: message.body, author: message.author, kind: message.kind, investorId: buyerId },
-    });
-  }
-
-  const sellerNotice = incomingAccessNotice("Proyecto Cala");
-  await prisma.notification.upsert({
-    where: { id: "demo-note-seller" },
-    create: {
-      id: "demo-note-seller",
-      userId: sellerId,
-      title: sellerNotice.title,
-      body: sellerNotice.body,
-      href: "/mi-empresa/procesos",
-    },
-    update: { userId: sellerId, title: sellerNotice.title, body: sellerNotice.body, href: "/mi-empresa/procesos" },
-  });
-  await prisma.notification.upsert({
-    where: { id: "demo-note-investor" },
-    create: {
-      id: "demo-note-investor",
-      userId: buyerId,
-      title: "Solicitud aceptada",
-      body: "Proyecto Cala ha aceptado tu solicitud.",
-      href: "/proyectos/proyecto-cala",
-    },
-    update: { userId: buyerId },
-  });
 
   await prisma.user.deleteMany({ where: { email: "alexxvives@gmail.com" } });
 

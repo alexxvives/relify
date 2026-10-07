@@ -43,11 +43,11 @@ export function MarketCardFigures({
           )}
         </div>
       </div>
-      <dl className="flex flex-col divide-y divide-[#e7eaee]">
+      <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
         {row.map((item) => (
-          <div key={item.label} className="flex items-baseline justify-between gap-3 px-3 py-2.5">
-            <dt className="text-sm text-[#8b95a7]">{item.label}</dt>
-            <dd className="text-xl leading-6 font-semibold tracking-tight whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
+          <div key={item.label} className="min-w-0 px-2 py-3 text-center">
+            <dt className="text-[11px] leading-4 text-[#8b95a7]">{item.label}</dt>
+            <dd className="mt-1 text-xs leading-4 font-semibold tracking-tight whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

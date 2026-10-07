@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { SignBubble } from "@/components/deal-pipeline";
 import { accessCopy } from "@/lib/access-copy";
 
 const buttonClassName =
@@ -35,11 +36,44 @@ export function LoiCard({ slug, agreement, signedBody }: { slug: string; agreeme
   return <LoiSign slug={slug} agreement={agreement} />;
 }
 
+export function LoiSignBubble({ slug, agreement }: { slug: string; agreement: string }) {
+  const [state, action, pending] = useActionState(postInvestorMessageAction, null);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <SignBubble fileName="Carta-de-intenciones.pdf" body="Ábrela, léela y fírmala desde aquí. No hace falta salir del chat.">
+      <button
+        type="button"
+        className="text-sm font-semibold text-[#465ab4] hover:underline"
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
+      >
+        {open ? "Cerrar documento" : "Abrir documento"}
+      </button>
+      {open ? (
+        <div className="mt-2 max-h-48 overflow-y-auto rounded-xl bg-white p-3 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
+          {agreement}
+        </div>
+      ) : null}
+      <form action={action} className="mt-3 flex flex-col items-start gap-2">
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="kind" value="offer" />
+        <input type="hidden" name="body" value={agreement} />
+        <button type="submit" className={buttonClassName} disabled={pending}>
+          {accessCopy.signLoi}
+        </button>
+        <SignError state={state} />
+      </form>
+    </SignBubble>
+  );
+}
+
 function LoiSign({ slug, agreement }: { slug: string; agreement: string }) {
   const [state, action, pending] = useActionState(postInvestorMessageAction, null);
 
   return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
+    <section id="firmar" className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
       <h2 id="carta-intenciones" className="text-xl font-semibold">
         {accessCopy.loiHeading}
       </h2>

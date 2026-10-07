@@ -14,7 +14,7 @@ import { FieldHint } from "@/components/field-hint";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { MarketCardFigures } from "@/components/market-card-figures";
-import { projectPhotoFrame, ProjectPhotoMark } from "@/components/project-photo";
+import { PhotoScrim, projectPhotoFrame, ProjectPhotoMark } from "@/components/project-photo";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
@@ -1672,20 +1672,15 @@ function MarketPreview({
               ) : (
                 <ProjectPhotoMark />
               )}
-              <span className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">
+              <span className="absolute top-3 right-3 z-10 inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">
                 <Heart className="size-4" aria-hidden />
               </span>
+              <PhotoScrim
+                title={codename.trim().length > 0 ? codename : companyCopy.codenameLabel}
+                place={region.trim().length > 0 ? region : companyCopy.regionLabel}
+              />
             </div>
             <div className="flex flex-col gap-4 p-5">
-              <div>
-                <h3 className="text-lg font-semibold tracking-tight text-[#1c2740]">
-                  {codename.trim().length > 0 ? codename : companyCopy.codenameLabel}
-                </h3>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-[#5c6b78]">
-                  <MapPin className="size-3.5" aria-hidden />
-                  {region.trim().length > 0 ? region : companyCopy.regionLabel}
-                </p>
-              </div>
               <MarketCardFigures
                 revenue={figures[0]?.value ?? "—"}
                 ebitda={figures[1]?.value ?? "—"}

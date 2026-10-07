@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
@@ -167,15 +166,13 @@ export function MarketBrowser({
                   <FavoriteButton slug={project.slug} favorited={favoriteSlugs.includes(project.slug)} />
                 </div>
                 <Link href={`/proyectos/${project.slug}`} className="flex h-full flex-col">
-                  <ProjectPhoto slug={project.slug} alt={`Ilustración de ${project.codename}`} />
+                  <ProjectPhoto
+                    slug={project.slug}
+                    alt={`Ilustración de ${project.codename}`}
+                    title={project.codename}
+                    place={project.region}
+                  />
                   <div className="flex flex-1 flex-col gap-4 p-5">
-                    <div>
-                      <h2 className="text-lg font-semibold tracking-tight">{project.codename}</h2>
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-[#5c6b78]">
-                        <MapPin className="size-3.5" aria-hidden />
-                        {project.region}
-                      </p>
-                    </div>
                     <MarketCardFigures
                       revenue={formatWholeEur(project.revenueCents)}
                       ebitda={formatWholeEur(project.ebitdaCents)}

@@ -182,7 +182,6 @@ export const sellerCopy = {
   deletingCompany: "Eliminando…",
   companyDeleteForbidden: "Solo puedes borrar una empresa tuya.",
   meetingsEditNotes: "Editar notas",
-  meetingsNoNotes: "Sin notas",
   meetingsCancel: "Cancelar",
   activeEmpty: "No tienes procesos activos en este momento.",
   activeEmptyBody: "Cuando tengas procesos activos, podrás verlos aquí.",

@@ -120,44 +120,49 @@ export function pipelineStatus(steps: readonly DealStep[]): string {
   return steps.find((step) => step.state === "current")?.label ?? steps[steps.length - 1]?.label ?? "";
 }
 
-export function stepWaiting(id: DealStepId, role: "investor" | "seller"): string {
+export type StepCue = {
+  yours: boolean;
+  action: string;
+};
+
+export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
   if (id === "solicitud") {
     return role === "investor"
-      ? "Esperando a que el inversor (TÚ) envíe la solicitud"
-      : "Esperando a que el inversor envíe la solicitud";
+      ? { yours: true, action: "Envía la solicitud de conexión" }
+      : { yours: false, action: "El inversor todavía no ha enviado la solicitud" };
   }
 
   if (id === "conexion") {
     return role === "seller"
-      ? "Esperando a que el vendedor (TÚ) acepte la solicitud"
-      : "Esperando a que el vendedor acepte la solicitud";
+      ? { yours: true, action: "Acepta la solicitud de conexión" }
+      : { yours: false, action: "El vendedor todavía no ha aceptado la solicitud" };
   }
 
   if (id === "nda") {
     return role === "investor"
-      ? "Esperando a que el inversor (TÚ) firme el NDA"
-      : "Esperando a que el inversor firme el NDA";
+      ? { yours: true, action: "Firma el acuerdo de confidencialidad" }
+      : { yours: false, action: "El inversor todavía no ha firmado el acuerdo" };
   }
 
   if (id === "qa") {
-    return "Preguntas y reuniones entre las dos partes";
+    return { yours: false, action: "Podéis preguntar y proponer una reunión" };
   }
 
   if (id === "loi") {
     return role === "investor"
-      ? "Esperando a que el inversor (TÚ) firme la carta de intenciones"
-      : "Esperando a que el inversor firme la carta de intenciones";
+      ? { yours: true, action: "Firma la carta de intenciones" }
+      : { yours: false, action: "El inversor todavía no ha firmado la carta de intenciones" };
   }
 
   if (id === "diligence") {
-    return "Esperando a que un asesor revise la documentación compartida";
+    return { yours: false, action: "Falta que un asesor revise la documentación compartida" };
   }
 
   if (id === "documents") {
-    return "Esperando la firma del contrato";
+    return { yours: false, action: "Falta firmar el contrato" };
   }
 
-  return "Esperando a que se complete el pago";
+  return { yours: false, action: "Falta completar el pago" };
 }
 
 export function investorProcessFiles(input: {

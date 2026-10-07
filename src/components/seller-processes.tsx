@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useSessionChoice } from "@/components/session-flag";
+import { useActionState } from "react";
+import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
@@ -81,7 +81,7 @@ function ThreadList({
 }
 
 function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useSessionFlag(`releva:seller-thread:${thread.accessId}`, true);
   const chat = thread.messages.filter((message) => message.kind === "question");
 
   return (
@@ -90,7 +90,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
         type="button"
         aria-expanded={open}
         onClick={() => {
-          setOpen((current) => !current);
+          setOpen(!open);
         }}
         className="flex w-full items-start gap-3 px-5 pt-4 text-left"
       >

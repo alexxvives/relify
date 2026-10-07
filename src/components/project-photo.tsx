@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Building2 } from "lucide-react";
+import { Building2, MapPin } from "lucide-react";
 import { projectImageSrc } from "@/lib/project-image";
 
 export const projectPhotoFrame =
@@ -15,14 +15,30 @@ export function ProjectPhotoMark() {
   );
 }
 
+export function PhotoScrim({ title, place }: { title: string; place: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-[#0c1224]/85 via-[#0c1224]/45 to-transparent px-4 pt-16 pb-3">
+      <p className="text-base font-semibold tracking-tight text-white drop-shadow-sm">{title}</p>
+      <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/90">
+        <MapPin className="size-3.5 shrink-0" aria-hidden />
+        {place}
+      </p>
+    </div>
+  );
+}
+
 export function ProjectPhoto({
   slug,
   alt,
   frameClassName = projectPhotoFrame,
+  title,
+  place,
 }: {
   slug: string;
   alt: string;
   frameClassName?: string;
+  title?: string;
+  place?: string;
 }) {
   const src = projectImageSrc(slug);
 
@@ -33,6 +49,7 @@ export function ProjectPhoto({
       ) : (
         <ProjectPhotoMark />
       )}
+      {title && place ? <PhotoScrim title={title} place={place} /> : null}
     </div>
   );
 }
