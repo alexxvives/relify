@@ -10,6 +10,15 @@ export type SignInResult =
   | { ok: false; message: string };
 
 export async function signIn(input: SignInInput): Promise<SignInResult> {
+  const blocked = await prisma.user.findUnique({
+    where: { email: input.email },
+    select: { suspendedAt: true },
+  });
+
+  if (blocked?.suspendedAt) {
+    return { ok: false, message: authCopy.suspended };
+  }
+
   try {
     const signedIn = await auth.api.signInEmail({
       body: {
@@ -20,8 +29,14 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
     });
     const stored = await prisma.user.findUnique({
       where: { id: signedIn.user.id },
-      select: { role: true, onboardedAt: true },
+      select: { role: true, onboardedAt: true, suspendedAt: true },
     });
+
+    if (stored?.suspendedAt) {
+      await prisma.session.deleteMany({ where: { userId: signedIn.user.id } });
+      return { ok: false, message: authCopy.suspended };
+    }
+
     return {
       ok: true,
       role: readUserRole(stored?.role),

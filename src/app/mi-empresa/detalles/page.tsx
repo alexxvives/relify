@@ -5,6 +5,7 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
+import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
 import { companyNifIsVerified, getSellerCif, sellerHasRegistryPrefill } from "@/server/verifyCompanyNif";
 
@@ -27,10 +28,11 @@ export default async function CompanyDetailsPage({
     redirect("/mi-empresa");
   }
 
-  const [draft, cif, registryFilled] = await Promise.all([
+  const [draft, cif, registryFilled, listing] = await Promise.all([
     getCompanyDraft(user),
     getSellerCif(user),
     sellerHasRegistryPrefill(user),
+    getSellerListing(user.id),
   ]);
 
   return (
@@ -41,6 +43,7 @@ export default async function CompanyDetailsPage({
         registryFilled={registryFilled && (draft?.legalName.trim().length ?? 0) > 0}
         focus={focus}
         promptSetup={query.alta === "1"}
+        reviewPending={listing?.status === "pending"}
       />
     </SignedInPage>
   );

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { IndustryTreemap } from "@/components/industry-treemap";
+import { ApproveButton, PlanForm, RoleForm, SuspensionButton, UnpublishButton } from "@/components/admin-controls";
 import { adminCopy } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/money";
 import type { AdminOverview } from "@/server/getAdminOverview";
@@ -60,10 +62,31 @@ export function AdminHome({ overview }: { overview: AdminOverview }) {
                 <li key={project.id} className="rounded-xl bg-[#f4f7ff] px-3 py-3">
                   <p className="text-sm font-semibold text-[#1c2740]">{project.codename}</p>
                   <p className="mt-1 text-sm text-[#667085]">
-                    {project.region} · {project.status === "published" ? adminCopy.statusPublished : adminCopy.statusDraft} ·{" "}
-                    {formatEur(project.askingPriceCents)}
+                    {project.region} · {projectStatus(project.status)} · {formatEur(project.askingPriceCents)}
                   </p>
                   <p className="mt-1 text-xs text-[#8b95a7]">{project.ownerEmail ?? adminCopy.ownerMissing}</p>
+                  <dl className="mt-3 grid gap-2 text-sm text-[#1c2740] sm:grid-cols-2">
+                    <IdentityItem label={adminCopy.legalName} value={project.legalName} />
+                    <IdentityItem label={adminCopy.cif} value={project.cif} />
+                    <IdentityItem label={adminCopy.address} value={project.address} />
+                    <IdentityItem label={adminCopy.shareholders} value={project.shareholders.join(", ")} />
+                  </dl>
+                  <p className="mt-2 text-xs font-medium text-[#667085]">{adminCopy.files}</p>
+                  {project.fileNames.length === 0 ? (
+                    <p className="mt-1 text-sm text-[#8b95a7]">{adminCopy.identityEmpty}</p>
+                  ) : (
+                    <ul className="mt-1 flex flex-col gap-1">
+                      {project.fileNames.map((fileName, index) => (
+                        <li key={`${fileName}-${index}`} className="text-sm text-[#1c2740]">
+                          {fileName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-3">
+                    {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
+                    {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -81,7 +104,16 @@ export function AdminHome({ overview }: { overview: AdminOverview }) {
                   <p className="mt-1 text-sm text-[#667085]">
                     {account.email} · {roleLabel(account.role)}
                   </p>
-                  <p className="mt-1 text-xs text-[#8b95a7]">{account.onboarded ? adminCopy.onboarded : adminCopy.pendingOnboarding}</p>
+                  <p className="mt-1 text-xs text-[#8b95a7]">
+                    {account.onboarded ? adminCopy.onboarded : adminCopy.pendingOnboarding}
+                    {account.suspended ? ` · ${adminCopy.suspendedBadge}` : ""}
+                    {account.role === "investor" ? ` · ${adminCopy.planCurrent}: ${adminCopy.plans[account.plan]}` : ""}
+                  </p>
+                  <div className="mt-3 flex flex-col gap-3">
+                    <SuspensionButton userId={account.id} suspended={account.suspended} />
+                    <RoleForm userId={account.id} role={account.role} />
+                    {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -100,18 +132,46 @@ export function AdminHome({ overview }: { overview: AdminOverview }) {
                   <p className="text-sm font-semibold text-[#1c2740]">{connection.codename}</p>
                   <p className="mt-1 text-sm text-[#667085]">{connection.investorEmail}</p>
                 </div>
-                <p className="text-sm text-[#3d4a63]">
-                  {connection.accepted ? adminCopy.accepted : adminCopy.waiting}
-                  {" · "}
-                  {connection.nda ? adminCopy.ndaYes : adminCopy.ndaNo}
-                  {" · "}
-                  {when.format(connection.requestedAt)}
-                </p>
+                <div className="flex flex-col items-start gap-2 sm:items-end">
+                  <p className="text-sm text-[#3d4a63]">
+                    {connection.accepted ? adminCopy.accepted : adminCopy.waiting}
+                    {" · "}
+                    {connection.nda ? adminCopy.ndaYes : adminCopy.ndaNo}
+                    {" · "}
+                    {when.format(connection.requestedAt)}
+                  </p>
+                  <Link href={`/admin/chat/${connection.id}`} className="text-sm font-medium text-[#3d34b8]">
+                    {adminCopy.readChat}
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+function projectStatus(status: "draft" | "pending" | "published"): string {
+  if (status === "published") {
+    return adminCopy.statusPublished;
+  }
+
+  if (status === "pending") {
+    return adminCopy.statusPending;
+  }
+
+  return adminCopy.statusDraft;
+}
+
+function IdentityItem({ label, value }: { label: string; value: string }) {
+  const shown = value.trim().length > 0 ? value : adminCopy.identityEmpty;
+
+  return (
+    <div>
+      <dt className="text-xs text-[#667085]">{label}</dt>
+      <dd>{shown}</dd>
     </div>
   );
 }

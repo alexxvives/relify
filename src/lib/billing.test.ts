@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  ADVISOR_LISTING_NET_CENTS,
+  ADVISOR_INBOX_NET_CENTS,
+  SELLER_LISTING_NET_CENTS,
+  advisorPlatformFee,
   LIMITED_NET_CENTS,
   UNLIMITED_NET_CENTS,
   advisorPublishOutcome,
@@ -20,7 +22,8 @@ describe("prices", () => {
     expect(vatCents(LIMITED_NET_CENTS)).toBe(420);
     expect(grossCents(LIMITED_NET_CENTS)).toBe(2_420);
     expect(grossCents(UNLIMITED_NET_CENTS)).toBe(11_979);
-    expect(grossCents(ADVISOR_LISTING_NET_CENTS)).toBe(18_029);
+    expect(grossCents(SELLER_LISTING_NET_CENTS)).toBe(18_029);
+    expect(grossCents(ADVISOR_INBOX_NET_CENTS)).toBe(4_719);
   });
 
   it("records 1 percent and 2.5 percent of the closed price, plus IVA", () => {
@@ -111,15 +114,50 @@ describe("advisorPublishOutcome", () => {
 });
 
 describe("sellerPublishOutcome", () => {
-  it("publishes a seller draft without a charge", () => {
-    expect(sellerPublishOutcome({ isSeller: true, ownsDraft: true, alreadyPublished: false })).toEqual({
-      ok: true,
-      publish: true,
-    });
-    expect(sellerPublishOutcome({ isSeller: false, ownsDraft: true, alreadyPublished: false })).toEqual({
-      ok: false,
-      code: "forbidden",
-    });
+  it("publishes the first company free and asks for 149 euros after that", () => {
+    expect(
+      sellerPublishOutcome({
+        isSeller: true,
+        ownsDraft: true,
+        alreadyPublished: false,
+        liveCompanyCount: 0,
+        paid: false,
+      }),
+    ).toEqual({ ok: true, mode: "free" });
+    expect(
+      sellerPublishOutcome({
+        isSeller: true,
+        ownsDraft: true,
+        alreadyPublished: false,
+        liveCompanyCount: 1,
+        paid: false,
+      }),
+    ).toEqual({ ok: false, code: "payment" });
+    expect(
+      sellerPublishOutcome({
+        isSeller: true,
+        ownsDraft: true,
+        alreadyPublished: false,
+        liveCompanyCount: 1,
+        paid: true,
+      }),
+    ).toEqual({ ok: true, mode: "paid" });
+    expect(
+      sellerPublishOutcome({
+        isSeller: false,
+        ownsDraft: true,
+        alreadyPublished: false,
+        liveCompanyCount: 0,
+        paid: false,
+      }),
+    ).toEqual({ ok: false, code: "forbidden" });
+  });
+});
+
+describe("advisorPlatformFee", () => {
+  it("stores 15 percent of the advisor fee, plus IVA on that 15 percent", () => {
+    expect(advisorPlatformFee(10_000_00)).toEqual({ netCents: 1_500_00, vatCents: 315_00 });
+    expect(advisorPlatformFee(0)).toBeNull();
   });
 });
 

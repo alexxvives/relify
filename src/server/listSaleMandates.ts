@@ -3,7 +3,7 @@ import { toMandateView } from "@/lib/sale-mandate";
 import { prisma } from "@/server/db";
 
 export type MandateCard = PublicProjectCard & {
-  status: "draft" | "published";
+  status: "draft" | "pending" | "published";
   feeRecorded: boolean;
   owned: boolean;
 };

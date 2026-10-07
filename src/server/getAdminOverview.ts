@@ -22,9 +22,14 @@ export type AdminOverview = {
     id: string;
     codename: string;
     region: string;
-    status: "draft" | "published";
+    status: "draft" | "pending" | "published";
     askingPriceCents: number;
     ownerEmail: string | null;
+    legalName: string;
+    cif: string;
+    address: string;
+    shareholders: string[];
+    fileNames: string[];
   }[];
   accounts: {
     id: string;
@@ -32,6 +37,8 @@ export type AdminOverview = {
     email: string;
     role: string | null;
     onboarded: boolean;
+    suspended: boolean;
+    plan: "none" | "limited" | "unlimited";
   }[];
   connections: {
     id: string;
@@ -60,24 +67,35 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       listPublishedSectors(),
       prisma.project.findMany({
         orderBy: { createdAt: "desc" },
-        take: 8,
         select: {
           id: true,
           codename: true,
           region: true,
           status: true,
           askingPriceCents: true,
+          legalName: true,
+          cif: true,
+          address: true,
           owner: { select: { email: true } },
+          shareholders: { select: { name: true }, orderBy: { name: "asc" } },
+          dataRoomFiles: { select: { fileName: true }, orderBy: { createdAt: "asc" } },
         },
       }),
       prisma.user.findMany({
         orderBy: { createdAt: "desc" },
-        take: 8,
-        select: { id: true, name: true, lastName: true, email: true, role: true, onboardedAt: true },
+        select: {
+          id: true,
+          name: true,
+          lastName: true,
+          email: true,
+          role: true,
+          onboardedAt: true,
+          suspendedAt: true,
+          billingCustomer: { select: { plan: true } },
+        },
       }),
       prisma.projectAccess.findMany({
         orderBy: { requestedAt: "desc" },
-        take: 8,
         select: {
           id: true,
           requestedAt: true,
@@ -115,6 +133,11 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       status: project.status,
       askingPriceCents: project.askingPriceCents,
       ownerEmail: project.owner?.email ?? null,
+      legalName: project.legalName,
+      cif: project.cif,
+      address: project.address,
+      shareholders: project.shareholders.map((holder) => holder.name),
+      fileNames: project.dataRoomFiles.map((file) => file.fileName),
     })),
     accounts: accounts.map((account) => ({
       id: account.id,
@@ -122,6 +145,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       email: account.email,
       role: account.role,
       onboarded: account.onboardedAt !== null,
+      suspended: account.suspendedAt !== null,
+      plan: account.billingCustomer?.plan ?? "none",
     })),
     connections: connections.map((connection) => ({
       id: connection.id,

@@ -21,6 +21,7 @@ import { SellerTabs } from "@/components/seller-tabs";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
 import { projectImageSrc } from "@/lib/project-image";
+import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import { marketCopy } from "@/lib/market-copy";
 import { keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
@@ -552,11 +553,13 @@ export function CompanyDraftForm({
   cif,
   focus = null,
   promptSetup = false,
+  reviewPending = false,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
   promptSetup?: boolean;
+  reviewPending?: boolean;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1345,6 +1348,9 @@ export function CompanyDraftForm({
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>
+      {reviewPending ? (
+        <p className="rounded-2xl bg-[#fff8db] px-4 py-3 text-sm font-medium text-[#614d05]">{billingCopy.reviewPending}</p>
+      ) : null}
       <Panel
         id="panel-price"
         title={companyCopy.detailsDealTab}

@@ -8,6 +8,7 @@ import { prisma } from "@/server/db";
 import { getSellerOverview } from "@/server/getSellerOverview";
 import { listNotifications } from "@/server/listNotifications";
 import { getSellerListing } from "@/server/publishSellerProject";
+import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
@@ -17,8 +18,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function CompanyPage() {
+export default async function CompanyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
   const user = await requireRole("seller");
+  const query = await searchParams;
+
+  if (typeof query.session_id === "string" && query.session_id !== "") {
+    await fulfillCheckout(query.session_id, user.id);
+  }
+
   const nifVerified = await companyNifIsVerified(user);
 
   if (!nifVerified) {
@@ -44,6 +55,7 @@ export default async function CompanyPage() {
     <SignedInPage title={sellerGreeting(user.displayName)}>
       <SellerOverview
         listing={listing?.status ?? "missing"}
+        payToPublish={listing?.requiresPayment ?? false}
         interests={interests}
         questions={questions}
         meetings={meetings}

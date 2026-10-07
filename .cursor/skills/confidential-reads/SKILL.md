@@ -17,7 +17,11 @@ Releva sells anonymized SME projects. Identity stays on the seller's own draft. 
 | Public visitor | Codename, region, revenue, EBITDA, adjusted EBITDA, asking price. Deuda neta, capital circulante, and resultado neto render as bloqueado. | `legalName`, `cif`, address, shareholder names, `dataRoomFiles` / file names |
 | Signed-in investor | `investorProjectSelect` in `src/lib/investor-project.ts`: profile, CNAE, anonymous activity slices, headcount band, year statements | Same identity fields. NDA does not add them |
 | Seller, own draft | Legal name, CIF, and address on `/mi-empresa/detalles` only | Those fields on `/proyectos`, `/mercado`, notices, or another user's page |
-| Advisor | Mandate and services screens only | Another company's identity or files |
+| Advisor, public list | Commercial name, sectors, services, price range | NIF, email, documents, company legal name |
+| Advisor hired by an investor, before their own NDA | Public ficha of that one company | Legal name, CIF, address, files. The investor's NDA does not open them |
+| Advisor hired by an investor, after their own NDA | The same company view that investor can already see, including documents that investor can see | Other companies, and files that investor cannot see |
+| Advisor hired by the seller | Folders and the process the seller opened | Other investors, and folders the seller did not open |
+| Admin, on `/admin` only | Legal name, CIF, address, shareholder names, and data-room file names. A process chat is read-only and does not include an email | Those strings on every other route, including an investor page after the NDA |
 
 Seller notices say "Un inversor" plus the codename. They do not include the investor's name or email. Copy lives in `src/lib/notifications.ts`.
 

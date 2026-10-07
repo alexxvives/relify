@@ -1,6 +1,7 @@
 export const LIMITED_NET_CENTS = 2_000;
 export const UNLIMITED_NET_CENTS = 9_900;
-export const ADVISOR_LISTING_NET_CENTS = 14_900;
+export const SELLER_LISTING_NET_CENTS = 14_900;
+export const ADVISOR_INBOX_NET_CENTS = 3_900;
 export const LIMITED_MATCHES = 3;
 
 export type BuyerPlanName = "none" | "limited" | "unlimited";
@@ -130,7 +131,9 @@ export function sellerPublishOutcome(input: {
   isSeller: boolean;
   ownsDraft: boolean;
   alreadyPublished: boolean;
-}): { ok: true; publish: boolean } | { ok: false; code: "forbidden" | "missing" } {
+  liveCompanyCount: number;
+  paid: boolean;
+}): { ok: true; mode: "already" | "free" | "paid" } | { ok: false; code: "forbidden" | "missing" | "payment" } {
   if (!input.isSeller) {
     return { ok: false, code: "forbidden" };
   }
@@ -139,7 +142,37 @@ export function sellerPublishOutcome(input: {
     return { ok: false, code: "missing" };
   }
 
-  return { ok: true, publish: !input.alreadyPublished };
+  if (input.alreadyPublished) {
+    return { ok: true, mode: "already" };
+  }
+
+  if (input.liveCompanyCount === 0) {
+    return { ok: true, mode: "free" };
+  }
+
+  if (input.paid) {
+    return { ok: true, mode: "paid" };
+  }
+
+  return { ok: false, code: "payment" };
+}
+
+export type AdvisorPlatformFee = {
+  netCents: number;
+  vatCents: number;
+};
+
+export function advisorPlatformFee(chargedCents: number): AdvisorPlatformFee | null {
+  if (!Number.isInteger(chargedCents) || chargedCents <= 0) {
+    return null;
+  }
+
+  const netCents = Math.round((chargedCents * 15) / 100);
+
+  return {
+    netCents,
+    vatCents: vatCents(netCents),
+  };
 }
 
 export function buyerAcceptOutcome(input: {

@@ -34,6 +34,7 @@ const panelHref: Record<SellerFocusPanel, string> = {
 
 export function SellerOverview({
   listing,
+  payToPublish = false,
   interests,
   questions,
   meetings,
@@ -43,7 +44,8 @@ export function SellerOverview({
   mixes,
   costYears,
 }: {
-  listing: "missing" | "draft" | "published";
+  listing: "missing" | "draft" | "pending" | "published";
+  payToPublish?: boolean;
   interests: number;
   questions: number;
   meetings: number;
@@ -72,7 +74,7 @@ export function SellerOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      {listing === "published" ? null : (
+      {listing === "published" || listing === "pending" ? null : (
         <section className="flex flex-col gap-3 rounded-2xl bg-[#fff8db] px-4 py-3 text-[#614d05] sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-3">
             <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[#b58105]" aria-hidden />
@@ -140,9 +142,14 @@ export function SellerOverview({
         <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2 className={complete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
-              {listing === "published" ? billingCopy.sellerPublished : sellerCopy.unpublished}
+              {listing === "published"
+                ? billingCopy.sellerPublished
+                : listing === "pending"
+                  ? billingCopy.reviewPending
+                  : sellerCopy.unpublished}
             </h2>
-            {listing === "draft" ? <PublishSellerButton /> : null}
+            {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
+            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} /> : null}
             <CompletionMeter filled={filled} total={panelSteps.length} label={sellerCopy.completedLabel} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
               {panelSteps.map((item) => {

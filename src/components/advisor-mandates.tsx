@@ -19,7 +19,7 @@ export type MandateDisplay = {
   slug: string;
   codename: string;
   region: string;
-  status: "draft" | "published";
+  status: "draft" | "pending" | "published";
   feeRecorded: boolean;
   owned: boolean;
   figures: { label: string; value: string }[];

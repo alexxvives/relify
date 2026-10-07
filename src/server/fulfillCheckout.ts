@@ -28,6 +28,25 @@ function periodOf(subscription: Stripe.Subscription): { start: Date; end: Date }
   };
 }
 
+async function applyAdvisorInbox(userId: string, customerId: string, subscription: Stripe.Subscription): Promise<void> {
+  const active = subscription.status === "active" || subscription.status === "trialing";
+
+  await prisma.billingCustomer.upsert({
+    where: { userId },
+    create: {
+      userId,
+      stripeCustomerId: customerId,
+      plan: "none",
+      advisorInbox: active,
+      advisorSubscriptionId: subscription.id,
+    },
+    update: {
+      advisorInbox: active,
+      advisorSubscriptionId: subscription.id,
+    },
+  });
+}
+
 async function applySubscription(userId: string, customerId: string, subscription: Stripe.Subscription): Promise<void> {
   const plan = subscription.status === "active" ? planFromMetadata(subscription.metadata) : null;
   const period = periodOf(subscription);
@@ -52,9 +71,9 @@ async function applySubscription(userId: string, customerId: string, subscriptio
   });
 }
 
-async function applyListing(advisorId: string, projectId: string, sessionId: string): Promise<void> {
+async function applyListing(ownerId: string, projectId: string, sessionId: string): Promise<void> {
   const project = await prisma.project.findFirst({
-    where: { id: projectId, ownerId: advisorId },
+    where: { id: projectId, ownerId },
     select: { id: true, status: true },
   });
 
@@ -66,7 +85,7 @@ async function applyListing(advisorId: string, projectId: string, sessionId: str
     where: { stripeCheckoutSessionId: sessionId },
     create: {
       id: sessionId,
-      advisorId,
+      userId: ownerId,
       projectId,
       stripeCheckoutSessionId: sessionId,
     },
@@ -76,7 +95,7 @@ async function applyListing(advisorId: string, projectId: string, sessionId: str
   if (project.status === "draft") {
     await prisma.project.update({
       where: { id: project.id },
-      data: { status: "published" },
+      data: { status: "pending" },
     });
   }
 }
@@ -108,12 +127,22 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
       return { ok: false, message: billingCopy.unpaid };
     }
 
+    if (session.metadata?.kind === "advisor_inbox" || subscription.metadata.kind === "advisor_inbox") {
+      await applyAdvisorInbox(userId, customerId, subscription);
+      return { ok: true };
+    }
+
     await applySubscription(userId, customerId, subscription);
     return { ok: true };
   }
 
-  if (session.mode === "payment" && session.payment_status === "paid" && session.metadata?.kind === "advisor_listing") {
-    const projectId = session.metadata.projectId ?? "";
+  const listingKind = session.metadata?.kind;
+  if (
+    session.mode === "payment" &&
+    session.payment_status === "paid" &&
+    (listingKind === "advisor_listing" || listingKind === "seller_listing")
+  ) {
+    const projectId = session.metadata?.projectId ?? "";
 
     if (projectId === "") {
       return { ok: false, message: billingCopy.unpaid };
@@ -127,6 +156,28 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
 }
 
 export async function syncSubscription(subscription: Stripe.Subscription): Promise<void> {
+  if (subscription.metadata.kind === "advisor_inbox") {
+    const userId = subscription.metadata.userId;
+    const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+
+    if (!userId) {
+      const existing = await prisma.billingCustomer.findUnique({
+        where: { advisorSubscriptionId: subscription.id },
+        select: { userId: true, stripeCustomerId: true },
+      });
+
+      if (!existing) {
+        return;
+      }
+
+      await applyAdvisorInbox(existing.userId, existing.stripeCustomerId, subscription);
+      return;
+    }
+
+    await applyAdvisorInbox(userId, customerId, subscription);
+    return;
+  }
+
   const userId = subscription.metadata.userId;
 
   if (!userId) {

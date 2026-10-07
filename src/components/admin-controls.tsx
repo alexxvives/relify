@@ -1,0 +1,135 @@
+"use client";
+
+import { useActionState } from "react";
+import {
+  approveProjectAction,
+  changeRoleAction,
+  grantPlanAction,
+  reactivateAccountAction,
+  suspendAccountAction,
+  unpublishProjectAction,
+  type AdminActionState,
+} from "@/app/admin/actions";
+import { adminCopy } from "@/lib/admin-copy";
+import { userRoles, type UserRoleName } from "@/lib/auth-input";
+
+function Note({ state }: { state: AdminActionState }) {
+  if (!state) {
+    return null;
+  }
+
+  return (
+    <p className={state.ok ? "text-sm text-[#157a45]" : "text-sm text-red-700"} role={state.ok ? "status" : "alert"}>
+      {state.message}
+    </p>
+  );
+}
+
+const buttonClass =
+  "inline-flex h-9 items-center rounded-full bg-[#3d34b8] px-3 text-sm font-medium text-white disabled:opacity-60";
+const quietButtonClass =
+  "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740] disabled:opacity-60";
+
+export function UnpublishButton({ projectId }: { projectId: string }) {
+  const [state, action, pending] = useActionState(unpublishProjectAction, null);
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-2">
+      <input type="hidden" name="projectId" value={projectId} />
+      <button type="submit" disabled={pending} className={quietButtonClass}>
+        {pending ? adminCopy.unpublishing : adminCopy.unpublish}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+export function ApproveButton({ projectId }: { projectId: string }) {
+  const [state, action, pending] = useActionState(approveProjectAction, null);
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-2">
+      <input type="hidden" name="projectId" value={projectId} />
+      <button type="submit" disabled={pending} className={buttonClass}>
+        {pending ? adminCopy.approving : adminCopy.approve}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+export function SuspensionButton({ userId, suspended }: { userId: string; suspended: boolean }) {
+  const [state, action, pending] = useActionState(suspended ? reactivateAccountAction : suspendAccountAction, null);
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-2">
+      <input type="hidden" name="userId" value={userId} />
+      <button type="submit" disabled={pending} className={quietButtonClass}>
+        {pending
+          ? suspended
+            ? adminCopy.reactivating
+            : adminCopy.suspending
+          : suspended
+            ? adminCopy.reactivate
+            : adminCopy.suspend}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+export function RoleForm({ userId, role }: { userId: string; role: string | null }) {
+  const [state, action, pending] = useActionState(changeRoleAction, null);
+  const current = isAccountRole(role) ? role : "seller";
+  const fieldId = `role-${userId}`;
+
+  return (
+    <form action={action} className="flex flex-wrap items-end gap-2">
+      <input type="hidden" name="userId" value={userId} />
+      <div className="flex flex-col gap-1">
+        <label htmlFor={fieldId} className="text-xs text-[#667085]">
+          {adminCopy.roleLabel}
+        </label>
+        <select id={fieldId} name="role" defaultValue={current} className="h-9 rounded-xl border border-[#e7eaee] bg-white px-2 text-sm text-[#1c2740]">
+          {userRoles.map((item) => (
+            <option key={item} value={item}>
+              {adminCopy.accountRoles[item]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button type="submit" disabled={pending} className={buttonClass}>
+        {pending ? adminCopy.changingRole : adminCopy.changeRole}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+export function PlanForm({ userId }: { userId: string }) {
+  const [state, action, pending] = useActionState(grantPlanAction, null);
+  const fieldId = `plan-${userId}`;
+
+  return (
+    <form action={action} className="flex flex-wrap items-end gap-2">
+      <input type="hidden" name="userId" value={userId} />
+      <div className="flex flex-col gap-1">
+        <label htmlFor={fieldId} className="text-xs text-[#667085]">
+          {adminCopy.grantPlan}
+        </label>
+        <select id={fieldId} name="plan" defaultValue="limited" className="h-9 rounded-xl border border-[#e7eaee] bg-white px-2 text-sm text-[#1c2740]">
+          <option value="limited">{adminCopy.plans.limited}</option>
+          <option value="unlimited">{adminCopy.plans.unlimited}</option>
+        </select>
+      </div>
+      <button type="submit" disabled={pending} className={buttonClass}>
+        {pending ? adminCopy.grantingPlan : adminCopy.grantPlan}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+function isAccountRole(role: string | null): role is UserRoleName {
+  return role === "seller" || role === "investor" || role === "advisor" || role === "admin";
+}

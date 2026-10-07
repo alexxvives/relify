@@ -14,8 +14,8 @@ Roles are `seller`, `investor`, `advisor`, and `admin`. Homes live in `homeForRo
 | --- | --- | --- |
 | seller | `/mi-empresa` | Inicio, Detalles, Documentos, Procesos, Servicios |
 | investor | `/inversor` | Inicio, Empresas en venta (`/mercado`, con el filtro Solo favoritas), Procesos, Servicios |
-| advisor | `/mandatos` | Inicio, Mis servicios. No Ser premium in the sidebar |
-| admin | `/admin` | Inicio. The panel counts accounts, listings, and activity. It does not show a legal name, CIF, address, or file name |
+| advisor | `/mandatos` | Inicio, Mis servicios. No Ser premium. The inbox lives on Inicio and needs the 39 € plan |
+| admin | `/admin` | Inicio. On this page only, the admin sees legal name, CIF, address, shareholders, and data-room file names, and can unpublish, approve a publication request, suspend an account, change a role, grant an investor plan, and read a process chat |
 
 `destinationForUser` sends an unfinished account to `/onboarding`. `requireRole` in `src/server/requireRole.ts` sends a signed-out user to `/entrar`, an unfinished user to `/onboarding`, and the wrong role to `homeForRole`.
 

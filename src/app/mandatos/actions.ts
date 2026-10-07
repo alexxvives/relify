@@ -71,23 +71,7 @@ export async function publishClientCompanyAction(
   const user = await advisor();
   const slug = readText(formData, "slug");
   const result = await publishClientCompany(user, slug);
-
-  if ("url" in result) {
-    if (!result.ok) {
-      return result;
-    }
-
-    redirect(result.url);
-  }
-
-  if (!result.ok) {
-    return result;
-  }
-
-  revalidatePath("/mandatos");
-  revalidatePath("/proyectos");
-  revalidatePath(`/proyectos/${slug}`);
-  return { ok: true, message: billingCopy.published };
+  return result;
 }
 
 export async function acceptBuyerAction(

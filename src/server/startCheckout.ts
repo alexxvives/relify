@@ -1,4 +1,4 @@
-import { ADVISOR_LISTING_NET_CENTS, grossCents, planNetCents } from "@/lib/billing";
+import { ADVISOR_INBOX_NET_CENTS, SELLER_LISTING_NET_CENTS, grossCents, planNetCents } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import { readSiteUrl } from "@/lib/env";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -107,7 +107,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
 export async function startListingCheckout(user: CurrentUser, projectId: string): Promise<CheckoutStart> {
   const stripe = stripeClient();
 
-  if (stripe === null || user.role !== "advisor") {
+  if (stripe === null || user.role !== "seller") {
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
@@ -130,14 +130,14 @@ export async function startListingCheckout(user: CurrentUser, projectId: string)
         quantity: 1,
         price_data: {
           currency: "eur",
-          unit_amount: grossCents(ADVISOR_LISTING_NET_CENTS),
+          unit_amount: grossCents(SELLER_LISTING_NET_CENTS),
           product_data: { name: "Releva empresa adicional" },
         },
       },
     ],
-    metadata: { kind: "advisor_listing", userId: user.id, projectId },
-    success_url: `${origin}/mandatos?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/mandatos`,
+    metadata: { kind: "seller_listing", userId: user.id, projectId },
+    success_url: `${origin}/mi-empresa?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/mi-empresa`,
     integration_identifier: integrationLabel("releva_listing"),
   });
 
@@ -146,6 +146,64 @@ export async function startListingCheckout(user: CurrentUser, projectId: string)
   }
 
   return { ok: true, url: session.url };
+  } catch {
+    return { ok: false, message: billingCopy.stripeFailed };
+  }
+}
+
+export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<CheckoutStart> {
+  const stripe = stripeClient();
+
+  if (stripe === null || user.role !== "advisor") {
+    return { ok: false, message: billingCopy.stripeMissing };
+  }
+
+  const current = await prisma.billingCustomer.findUnique({
+    where: { userId: user.id },
+    select: { advisorInbox: true },
+  });
+
+  if (current?.advisorInbox) {
+    return openPortal(user);
+  }
+
+  const customer = await customerId(user);
+
+  if (customer === null) {
+    return { ok: false, message: billingCopy.stripeMissing };
+  }
+
+  const origin = readSiteUrl().origin;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer,
+      client_reference_id: user.id,
+      locale: "es",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: grossCents(ADVISOR_INBOX_NET_CENTS),
+            recurring: { interval: "month" },
+            product_data: { name: "Releva bandeja de encargos" },
+          },
+        },
+      ],
+      metadata: { kind: "advisor_inbox", userId: user.id },
+      subscription_data: { metadata: { kind: "advisor_inbox", userId: user.id } },
+      success_url: `${origin}/mandatos?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/mandatos`,
+      integration_identifier: integrationLabel("releva_inbox"),
+    });
+
+    if (!session.url) {
+      return { ok: false, message: billingCopy.stripeFailed };
+    }
+
+    return { ok: true, url: session.url };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }
@@ -167,7 +225,7 @@ export async function openPortal(user: CurrentUser): Promise<CheckoutStart> {
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: existing.stripeCustomerId,
-      return_url: `${origin}/premium`,
+      return_url: user.role === "advisor" ? `${origin}/mandatos` : `${origin}/premium`,
       locale: "es",
     });
 

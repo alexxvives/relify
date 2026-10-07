@@ -9,19 +9,28 @@ export function SellerCompanyPanel({
   registryFilled,
   focus = null,
   promptSetup = false,
+  reviewPending = false,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
   registryFilled: boolean;
   focus?: SellerFocusPanel | null;
   promptSetup?: boolean;
+  reviewPending?: boolean;
 }) {
   return (
     <>
       {registryFilled ? (
         <p className="mb-4 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-[#3d646c]">{companyCopy.nifPrefilled}</p>
       ) : null}
-      <CompanyDraftForm key={cif || "nueva"} draft={draft} cif={cif} focus={focus} promptSetup={promptSetup} />
+      <CompanyDraftForm
+        key={cif || "nueva"}
+        draft={draft}
+        cif={cif}
+        focus={focus}
+        promptSetup={promptSetup}
+        reviewPending={reviewPending}
+      />
     </>
   );
 }

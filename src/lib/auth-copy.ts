@@ -102,6 +102,7 @@ export const authCopy = {
   invalidCredentials: "El correo o la contraseña no son correctos.",
   signUpFailed: "No se ha podido crear la cuenta.",
   signInFailed: "No se ha podido entrar.",
+  suspended: "Esta cuenta está suspendida.",
   passwordCurrent: "Contraseña actual",
   passwordNew: "Contraseña nueva",
   passwordConfirm: "Repite la contraseña nueva",
