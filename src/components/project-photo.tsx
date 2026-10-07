@@ -5,7 +5,7 @@ import { projectImageSrc } from "@/lib/project-image";
 export function ProjectPhoto({
   slug,
   alt,
-  frameClassName = "relative aspect-[16/9] bg-[radial-gradient(120%_90%_at_0%_0%,#ffffff_0%,#d5e0ff_32%,#7f97e4_68%,#2c3f86_100%)]",
+  frameClassName = "relative aspect-[16/9] bg-[radial-gradient(120%_100%_at_15%_0%,#3a4d86_0%,#1c2a52_46%,#0c1224_100%)]",
 }: {
   slug: string;
   alt: string;
@@ -19,7 +19,7 @@ export function ProjectPhoto({
         <Image src={src} alt={alt} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" />
       ) : (
         <div className="flex h-full items-center justify-center">
-          <span className="inline-flex size-16 items-center justify-center rounded-2xl bg-white/25 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+          <span className="inline-flex size-16 items-center justify-center rounded-2xl bg-white/10 text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
             <Building2 className="size-8" aria-hidden />
           </span>
         </div>

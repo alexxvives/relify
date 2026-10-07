@@ -79,7 +79,7 @@ export function InvestorProject({
         panels={{
           company: (
             <div className="flex flex-col gap-6">
-              <CompanyProfile project={project} />
+              <CompanyProfile project={project} figuresOpen={access === "requested" || access === "accepted"} />
               <RelatedCompanies items={recommendations} />
             </div>
           ),

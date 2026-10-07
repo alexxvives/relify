@@ -4,7 +4,7 @@ import { useActionState, useEffect, useId, useRef, useState, type RefObject } fr
 import { usePathname } from "next/navigation";
 import { CheckIcon } from "@/components/ui/check";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
-import { DeleteIcon } from "@/components/ui/delete";
+import { Trash2Icon } from "@/components/ui/trash-2";
 import { PlusIcon } from "@/components/ui/plus";
 import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/mi-empresa/actions";
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
@@ -91,7 +91,7 @@ function CompanyDelete({ id }: { id: string }) {
         }}
         className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
       >
-        <DeleteIcon size={16} aria-hidden />
+        <Trash2Icon size={16} aria-hidden />
       </button>
     );
   }

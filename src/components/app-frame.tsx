@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
@@ -9,7 +9,7 @@ import { ChevronRightIcon } from "@animateicons/react/lucide/chevron-right-icon"
 import { CrownIcon } from "@animateicons/react/lucide/crown-icon";
 import { FilesIcon } from "@animateicons/react/lucide/files-icon";
 import { HeartIcon } from "@animateicons/react/lucide/heart-icon";
-import { HouseIcon } from "@animateicons/react/lucide/house-icon";
+import { HouseIcon, type HouseIconHandle } from "@animateicons/react/lucide/house-icon";
 import { LayoutDashboardIcon } from "@animateicons/react/lucide/layout-dashboard-icon";
 import { LogOutIcon } from "@animateicons/react/lucide/log-out-icon";
 import { MailIcon } from "@animateicons/react/lucide/mail-icon";
@@ -43,6 +43,44 @@ const iconForHref = {
   "/admin": LayoutDashboardIcon,
   "/mis-servicios": BriefcaseIcon,
 };
+
+function SideLink({
+  href,
+  label,
+  selected,
+  icon: Icon,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  selected: boolean;
+  icon: typeof HouseIcon;
+  onNavigate: () => void;
+}) {
+  const iconRef = useRef<HouseIconHandle>(null);
+
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      onMouseEnter={() => {
+        iconRef.current?.startAnimation();
+      }}
+      onMouseLeave={() => {
+        iconRef.current?.stopAnimation();
+      }}
+      aria-current={selected ? "page" : undefined}
+      className={
+        selected
+          ? "group flex h-11 items-center gap-3 rounded-2xl bg-public-sand px-4 text-base font-medium text-public-ink"
+          : "group flex h-11 items-center gap-3 rounded-2xl px-4 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
+      }
+    >
+      <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
+      {label}
+    </Link>
+  );
+}
 
 export function AppFrame({
   name,
@@ -99,9 +137,6 @@ export function AppFrame({
             <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Releva">
               <Logo size="lg" />
             </Link>
-            {canManageCompanies ? (
-              <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
-            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {showPremium ? (
@@ -113,6 +148,9 @@ export function AppFrame({
                 <CrownIcon size={16} aria-hidden />
                 {sellerCopy.premium}
               </Link>
+            ) : null}
+            {canManageCompanies ? (
+              <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
             ) : null}
             <NotificationBell items={notifications} />
             <button
@@ -127,7 +165,6 @@ export function AppFrame({
         </div>
         <nav aria-label={shellCopy.navLabel} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
           {destinations.map((item, index) => {
-            const Icon = iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon;
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = destinations[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
@@ -137,19 +174,13 @@ export function AppFrame({
                 {showSection ? (
                   <p className="px-4 pt-5 pb-1 text-xs font-medium tracking-wide text-public-muted">{item.section}</p>
                 ) : null}
-                <Link
+                <SideLink
                   href={item.href}
-                  onClick={closeMenu}
-                  aria-current={selected ? "page" : undefined}
-                  className={
-                    selected
-                      ? "group flex h-11 items-center gap-3 rounded-2xl bg-public-sand px-4 text-base font-medium text-public-ink"
-                      : "group flex h-11 items-center gap-3 rounded-2xl px-4 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
-                  }
-                >
-                  <Icon size={16} aria-hidden />
-                  {item.label}
-                </Link>
+                  label={item.label}
+                  selected={selected}
+                  icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
+                  onNavigate={closeMenu}
+                />
               </div>
             );
           })}

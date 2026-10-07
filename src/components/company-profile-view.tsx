@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   Building2,
   CalendarDays,
@@ -43,7 +44,13 @@ function PublicFact({ icon: Icon, label, value }: { icon: typeof Building2; labe
   );
 }
 
-export function CompanyProfile({ project }: { project: InvestorProjectProfile }) {
+export function CompanyProfile({
+  project,
+  figuresOpen = true,
+}: {
+  project: InvestorProjectProfile;
+  figuresOpen?: boolean;
+}) {
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const metrics = [
     { label: companyCopy.revenueLabel, value: formatEur(project.revenueCents) },
@@ -129,39 +136,97 @@ export function CompanyProfile({ project }: { project: InvestorProjectProfile })
         <SectionTitle id="estructura" icon={PieChart}>
           {companyCopy.structureHeading}
         </SectionTitle>
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
-          <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
-          {project.customerBase === "consumer" ? (
-            <section className="flex h-full flex-col gap-3 rounded-xl bg-[#f4f7ff] p-4">
-              <h3 className="text-sm font-semibold text-[#1c2740]">{companyCopy.chartClient}</h3>
-              <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.customerConsumerPublic}</p>
-            </section>
-          ) : (
-            <ShareDonut title={companyCopy.chartClient} slices={project.clients} palette="client" />
-          )}
-        </div>
+        <LockedFigures open={figuresOpen} standIn={<DonutStandIn />}>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
+            <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
+            {project.customerBase === "consumer" ? (
+              <section className="flex h-full flex-col gap-3 rounded-xl bg-[#f4f7ff] p-4">
+                <h3 className="text-sm font-semibold text-[#1c2740]">{companyCopy.chartClient}</h3>
+                <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.customerConsumerPublic}</p>
+              </section>
+            ) : (
+              <ShareDonut title={companyCopy.chartClient} slices={project.clients} palette="client" />
+            )}
+          </div>
+        </LockedFigures>
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="perdidas">
         <SectionTitle id="perdidas" icon={Receipt}>
           {companyCopy.incomeHeading}
         </SectionTitle>
-        <div className="mt-6 overflow-x-auto">
-          <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
-        </div>
-        <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
+        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />}>
+          <div className="overflow-x-auto">
+            <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
+          </div>
+          <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
+        </LockedFigures>
       </section>
 
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="balance">
         <SectionTitle id="balance" icon={Scale}>
           {companyCopy.balanceHeading}
         </SectionTitle>
-        <div className="mt-6 overflow-x-auto">
-          <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
-        </div>
-        <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
+        <LockedFigures open={figuresOpen} standIn={<StatementStandIn />}>
+          <div className="overflow-x-auto">
+            <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
+          </div>
+          <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
+        </LockedFigures>
       </section>
+    </div>
+  );
+}
+
+function LockedFigures({ open, standIn, children }: { open: boolean; standIn: ReactNode; children: ReactNode }) {
+  if (open) {
+    return <div className="mt-6">{children}</div>;
+  }
+
+  return (
+    <div className="relative mt-6">
+      <div className="pointer-events-none select-none blur-md" aria-hidden>
+        {standIn}
+      </div>
+      <p className="absolute inset-x-6 top-1/2 -translate-y-1/2 text-center text-sm font-medium text-[#1c2740]">
+        {companyCopy.figuresLocked}
+      </p>
+    </div>
+  );
+}
+
+function DonutStandIn() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {[0, 1, 2].map((item) => (
+        <div key={item} className="rounded-xl bg-[#f4f7ff] p-4">
+          <div className="mx-auto size-28 rounded-full bg-[#d5dced]" />
+          <div className="mx-auto mt-4 h-3 w-24 rounded-full bg-[#d5dced]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatementStandIn() {
+  return (
+    <div>
+      <div className="grid gap-2">
+        {[0, 1, 2, 3, 4].map((row) => (
+          <div key={row} className="grid grid-cols-4 gap-3">
+            <div className="h-4 rounded bg-[#e6e9f0]" />
+            <div className="h-4 rounded bg-[#d5dced]" />
+            <div className="h-4 rounded bg-[#d5dced]" />
+            <div className="h-4 rounded bg-[#d5dced]" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 flex h-36 items-end gap-3">
+        {[42, 68, 54, 80].map((height, index) => (
+          <div key={index} className="flex-1 rounded-t-lg bg-[#c5d0ea]" style={{ height: `${height}%` }} />
+        ))}
+      </div>
     </div>
   );
 }

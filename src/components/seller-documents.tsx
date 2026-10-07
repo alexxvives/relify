@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { ChevronLeft, Share2 } from "lucide-react";
-import { DeleteIcon } from "@/components/ui/delete";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -237,7 +236,7 @@ function FileDelete({ id }: { id: string }) {
         }}
         className="inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
       >
-        <DeleteIcon size={16} aria-hidden />
+        <Trash2Icon size={16} aria-hidden />
       </button>
     );
   }

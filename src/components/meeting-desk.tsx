@@ -69,11 +69,13 @@ function MeetingNotes({
   notes,
   action,
   hidden,
+  omitEmpty = false,
 }: {
   messageId: string;
   notes: string;
   action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
+  omitEmpty?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(notes);
@@ -88,9 +90,11 @@ function MeetingNotes({
   if (!editing) {
     return (
       <div className="mt-2 flex items-start gap-3">
-        <p className="min-w-0 flex-1 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
-          {notes.trim().length > 0 ? notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
-        </p>
+        {notes.trim().length > 0 || !omitEmpty ? (
+          <p className="min-w-0 flex-1 text-sm leading-6 whitespace-pre-wrap text-[#3d4a63]">
+            {notes.trim().length > 0 ? notes : <span className="text-[#8b95a7]">{sellerCopy.meetingsNoNotes}</span>}
+          </p>
+        ) : null}
         <button
           type="button"
           aria-label={sellerCopy.meetingsEditNotes}
@@ -164,7 +168,7 @@ function MeetingCard({
 }) {
   const slot = readMeeting(message.body);
   const past = slot ? meetingIsPast(slot, today) : false;
-  const tag = !slot || past ? null : slot.status === "proposed" ? sellerCopy.meetingsProposalTag : sellerCopy.meetingsScheduledTag;
+  const tag = slot && !past && slot.status === "proposed" ? sellerCopy.meetingsProposalTag : null;
 
   return (
     <li className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
@@ -176,27 +180,26 @@ function MeetingCard({
               <span className="ml-2 font-medium text-[#465ab4]">
                 {slot.fromTime}–{slot.toTime}
               </span>
-            </p>
-            <span className="flex shrink-0 items-center gap-2">
-              {onEdit ? (
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  className="text-xs font-medium text-[#465ab4] underline"
-                >
-                  {sellerCopy.meetingsChange}
-                </button>
-              ) : null}
               {tag ? (
-                <span className="rounded-full bg-[#eef2ff] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
+                <span className="ml-2 rounded-full bg-[#eef2ff] px-2 py-0.5 align-middle text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
                   {tag}
                 </span>
               ) : null}
-            </span>
+            </p>
+            {onEdit ? (
+              <button
+                type="button"
+                aria-label={sellerCopy.meetingsChange}
+                onClick={onEdit}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff]"
+              >
+                <SquarePenIcon size={16} aria-hidden />
+              </button>
+            ) : null}
           </div>
           {slot.description.length > 0 ? <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{slot.description}</p> : null}
           {slot.status === "scheduled" && notesAction ? (
-            <MeetingNotes messageId={message.id} notes={slot.notes} action={notesAction} hidden={hidden} />
+            <MeetingNotes messageId={message.id} notes={slot.notes} action={notesAction} hidden={hidden} omitEmpty={past} />
           ) : null}
           {slot.status === "proposed" && !message.mine && approveAction ? (
             <AcceptMeeting messageId={message.id} action={approveAction} hidden={hidden} />
@@ -246,6 +249,7 @@ function MonthGrid({
   blocked,
   marks,
   today,
+  legend = false,
 }: {
   cursor: string;
   onCursor: (next: string) => void;
@@ -254,6 +258,7 @@ function MonthGrid({
   blocked: (day: string) => boolean;
   marks: ReadonlySet<string>;
   today: string;
+  legend?: boolean;
 }) {
   const cells = monthCells(cursor);
   const [yearText, monthText] = cursor.split("-");
@@ -327,12 +332,48 @@ function MonthGrid({
           );
         })}
       </div>
+      {legend ? (
+        <div className="mt-3 flex items-center gap-4 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[#465ab4]" />
+            {sellerCopy.meetingsLegendMark}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full ring-1 ring-[#c9d4f5]" />
+            {sellerCopy.meetingsLegendToday}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
 
+function durationLabel(from: string, to: string): string {
+  const [fromHour, fromMinute] = from.split(":").map(Number);
+  const [toHour, toMinute] = to.split(":").map(Number);
+  const minutes = (toHour ?? 0) * 60 + (toMinute ?? 0) - ((fromHour ?? 0) * 60 + (fromMinute ?? 0));
+
+  if (minutes <= 0) {
+    return "";
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  if (hours === 0) {
+    return `${rest} min`;
+  }
+
+  if (rest === 0) {
+    return hours === 1 ? "1 h" : `${hours} h`;
+  }
+
+  return `${hours} h ${rest} min`;
+}
+
 function HourRange({ from, to, onChange }: { from: string; to: string; onChange: (from: string, to: string) => void }) {
   const drag = useRef<string | null>(null);
+  const span = durationLabel(from, to);
 
   function choose(slot: string) {
     const anchor = drag.current ?? slot;
@@ -343,40 +384,53 @@ function HourRange({ from, to, onChange }: { from: string; to: string; onChange:
   }
 
   return (
-    <div
-      className="max-h-80 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-white p-1.5"
-      onPointerUp={() => {
-        drag.current = null;
-      }}
-      onPointerCancel={() => {
-        drag.current = null;
-      }}
-    >
-      {timeSlots.map((slot) => {
-        const selected = slot >= from && slot < to;
-        return (
-          <button
-            key={slot}
-            type="button"
-            onPointerDown={() => {
-              drag.current = slot;
-              choose(slot);
-            }}
-            onPointerEnter={() => {
-              if (drag.current) {
+    <div className="flex flex-col gap-2">
+      <div className="rounded-2xl bg-[#eef2ff] px-3 py-2 text-center">
+        <p className="text-sm font-semibold text-[#465ab4]">
+          {from} – {to}
+        </p>
+        {span.length > 0 ? <p className="text-xs text-[#667085]">{span}</p> : null}
+      </div>
+      <div
+        className="max-h-72 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-[#f7f8fb] p-1.5"
+        onPointerUp={() => {
+          drag.current = null;
+        }}
+        onPointerCancel={() => {
+          drag.current = null;
+        }}
+      >
+        {timeSlots.map((slot, index) => {
+          const selected = slot >= from && slot < to;
+          const previous = timeSlots[index - 1];
+          const next = timeSlots[index + 1];
+          const starts = selected && (previous === undefined || previous < from);
+          const ends = selected && (next === undefined || next >= to);
+          return (
+            <button
+              key={slot}
+              type="button"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                drag.current = slot;
                 choose(slot);
+              }}
+              onPointerEnter={() => {
+                if (drag.current) {
+                  choose(slot);
+                }
+              }}
+              className={
+                selected
+                  ? `flex h-8 w-full items-center bg-[#465ab4] px-3 text-left text-xs font-semibold text-white ${starts ? "rounded-t-xl" : ""} ${ends ? "rounded-b-xl" : ""}`
+                  : "flex h-8 w-full items-center rounded-lg px-3 text-left text-xs text-[#667085] hover:bg-white"
               }
-            }}
-            className={
-              selected
-                ? "flex h-7 w-full items-center rounded-lg bg-[#e7edff] px-3 text-left text-xs font-semibold text-[#465ab4]"
-                : "flex h-7 w-full items-center rounded-lg px-3 text-left text-xs text-[#667085] hover:bg-[#f7f8fb]"
-            }
-          >
-            {slot}
-          </button>
-        );
-      })}
+            >
+              {slot}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -440,7 +494,6 @@ function SlotForm({
           onPick={setDay}
         />
         <div>
-          <p className="mb-2 text-sm font-medium text-[#1c2740]">{sellerCopy.meetingsStart}</p>
           <HourRange
             from={fromTime}
             to={toTime}
@@ -600,7 +653,7 @@ export function MeetingDesk({
     <section className="grid items-start gap-4 xl:grid-cols-2">
       <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsHeading}</h3>
+          <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsCalendar}</h3>
           <button
             type="button"
             onClick={() => {
@@ -611,16 +664,34 @@ export function MeetingDesk({
             {sellerCopy.meetingsPropose}
           </button>
         </div>
-        <p className="mt-1 text-sm text-[#667085]">{sellerCopy.meetingsGlance}</p>
         <div className="mt-4">
-          <MonthGrid cursor={cursor} onCursor={setCursor} selected="" marks={marks} today={today} blocked={() => false} />
+          <MonthGrid
+            cursor={cursor}
+            onCursor={setCursor}
+            selected=""
+            marks={marks}
+            today={today}
+            blocked={() => false}
+            legend
+          />
         </div>
       </div>
       <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
-        <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsUpcoming}</h3>
-        {upcoming.length === 0 ? <p className="mt-3 text-sm text-[#667085]">{sellerCopy.meetingsNone}</p> : null}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsRegister}</h3>
+          <button
+            type="button"
+            onClick={() => {
+              openDialog(logRef, setLogKey);
+            }}
+            className="inline-flex h-10 items-center rounded-full border border-[#d5dbe8] px-4 text-sm font-medium text-[#3d34b8]"
+          >
+            {sellerCopy.meetingsLog}
+          </button>
+        </div>
+        {meetings.length === 0 ? <p className="mt-3 text-sm text-[#667085]">{sellerCopy.meetingsNone}</p> : null}
         <ul className="mt-3 flex flex-col gap-3">
-          {upcoming.map((message) => (
+          {[...upcoming, ...past].map((message) => (
             <MeetingCard
               key={message.id}
               message={message}
@@ -637,25 +708,6 @@ export function MeetingDesk({
                   : undefined
               }
             />
-          ))}
-        </ul>
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsPast}</h3>
-          <button
-            type="button"
-            onClick={() => {
-              openDialog(logRef, setLogKey);
-            }}
-            className="inline-flex h-10 items-center rounded-full border border-[#d5dbe8] px-4 text-sm font-medium text-[#3d34b8]"
-          >
-            {sellerCopy.meetingsLog}
-          </button>
-        </div>
-        <p className="mt-1 text-sm text-[#667085]">{sellerCopy.meetingsPastHint}</p>
-        {past.length === 0 ? <p className="mt-3 text-sm text-[#667085]">{sellerCopy.meetingsNone}</p> : null}
-        <ul className="mt-3 flex flex-col gap-3">
-          {past.map((message) => (
-            <MeetingCard key={message.id} message={message} today={today} notesAction={notesAction} hidden={hidden} />
           ))}
         </ul>
       </div>

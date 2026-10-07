@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-07 — Figures before a connection, and the trash icon
+
+An investor sees Estructura y actividad empresarial, Pérdidas y ganancias, and Balance as a blur until the company accepts the connection. Those sections do not render the real figures before that. The public headline metrics stay visible. The seller preview stays clear.
+
+Company delete and document delete use the same trash icon as folder delete.
+
 ## 2026-10-07 — Meeting times and sidebar icons
 
 Changing the day or the hour of a meeting or a proposal sets it back to proposed. The other party accepts again. The person who last changed the time cannot accept their own change.

@@ -92,6 +92,7 @@ export const companyCopy = {
   sectorsHeading: "Sectores representativos",
   metricsHeading: "Métricas financieras",
   structureHeading: "Estructura y actividad empresarial",
+  figuresLocked: "Estas cifras se abren cuando la empresa acepta la conexión.",
   incomeHeading: "Pérdidas y ganancias",
   balanceHeading: "Balance",
   balanceChart: "Activo, pasivo y patrimonio",

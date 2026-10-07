@@ -130,16 +130,8 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
   const yOf = (cents: number) => padTop + ((scaleMax - cents) / span) * plotHeight;
   const zero = yOf(0);
   const groupWidth = (width - padLeft - padRight) / Math.max(points.length, 1);
-  const barWidth = hasEbitda ? 22 : 36;
-  const salesLabel = Math.max(
-    48,
-    ...points.flatMap((point) => (point.salesCents === null ? [] : [textWidth(formatCompactEur(point.salesCents))])),
-  );
-  const ebitdaLabel = Math.max(
-    48,
-    ...points.flatMap((point) => (point.ebitdaCents === null ? [] : [textWidth(formatCompactEur(point.ebitdaCents))])),
-  );
-  const pairGap = hasEbitda ? Math.max(18, salesLabel / 2 + ebitdaLabel / 2 + 12 - barWidth) : 0;
+  const barWidth = 32;
+  const pairGap = hasEbitda ? 10 : 0;
   const groups = points.map((point, index) => {
     const center = padLeft + groupWidth * index + groupWidth / 2;
     const cluster = hasEbitda ? barWidth * 2 + pairGap : barWidth;
@@ -315,19 +307,10 @@ export function GroupedYearBars({
   const yOf = (cents: number) => padTop + ((scaleMax - cents) / span) * plotHeight;
   const zero = yOf(0);
   const groupWidth = (width - padLeft - padRight) / Math.max(years.length, 1);
-  const labelWidths = drawn.map((item) =>
-    Math.max(48, ...item.values.flatMap((value) => (value === null ? [] : [textWidth(formatCompactEur(value))]))),
-  );
-  const barWidth = 20;
-  const preferredGap = labelWidths.slice(0, -1).map((labelWidth, index) => {
-    const next = labelWidths[index + 1] ?? 48;
-    return Math.max(14, labelWidth / 2 + next / 2 + 10 - barWidth);
-  });
-  const preferredCluster = drawn.length * barWidth + preferredGap.reduce((sum, gap) => sum + gap, 0);
-  const seriesGap =
-    preferredCluster > groupWidth - 8 && drawn.length > 1
-      ? preferredGap.map(() => Math.max(8, (groupWidth - 8 - drawn.length * barWidth) / (drawn.length - 1)))
-      : preferredGap;
+  const barWidth = 32;
+  const openGap =
+    drawn.length > 1 ? Math.max(4, Math.min(8, (groupWidth - 8 - drawn.length * barWidth) / (drawn.length - 1))) : 0;
+  const seriesGap = drawn.slice(0, -1).map(() => openGap);
   const cluster = drawn.length * barWidth + seriesGap.reduce((sum, gap) => sum + gap, 0);
   const groups = years.map((year, index) => {
     const center = padLeft + groupWidth * index + groupWidth / 2;
