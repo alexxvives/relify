@@ -7,6 +7,7 @@ const investorKeys = [
   "askingPriceCents",
   "cnaes",
   "codename",
+  "customerBase",
   "description",
   "ebitdaCents",
   "foundedYear",
@@ -56,6 +57,7 @@ describe("toInvestorProject", () => {
       askingPriceCents: 98_000_000,
       opexCents: null,
       headcountRange: "band_21_50",
+      customerBase: null,
       cnaes: [{ code: "46.34", role: "principal", position: 1 }],
       activitySlices: [
         { kind: "capital", position: 1, basisPoints: 6000 },

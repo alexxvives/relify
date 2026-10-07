@@ -6,22 +6,23 @@ import { usePathname } from "next/navigation";
 import {
   Briefcase,
   Building2,
-  CircleHelp,
+  ChevronRight,
   Crown,
-  EyeOff,
   Files,
   Heart,
   House,
+  LayoutDashboard,
   LogOut,
+  Mail,
   MessageCircleMore,
-  Newspaper,
   PanelLeft,
-  Search,
+  Phone,
   TableProperties,
-  User,
   X,
 } from "lucide-react";
 import { signOutAction } from "@/app/cuenta/actions";
+import { Logo } from "@/components/logo";
+import { CompanySwitcher } from "@/components/company-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
@@ -34,134 +35,70 @@ const iconForHref: Record<string, typeof Building2> = {
   "/asesoramiento": MessageCircleMore,
   "/mi-empresa": House,
   "/inversor": House,
-  "/inversor/perfil": User,
   "/mi-empresa/detalles": Building2,
   "/mi-empresa/documentos": Files,
-  "/dataroom": Files,
   "/mi-empresa/procesos": TableProperties,
   "/procesos": TableProperties,
   "/mi-empresa/servicios": MessageCircleMore,
-  "/tendencias": Newspaper,
-  "/busquedas": Search,
   "/favoritos": Heart,
-  "/ocultas": EyeOff,
   "/mandatos": House,
+  "/admin": LayoutDashboard,
   "/mis-servicios": Briefcase,
-  "/cuenta": User,
+};
+
+const motionForHref: Record<string, string> = {
+  "/mercado": "nav-motion-building",
+  "/asesoramiento": "nav-motion-chat",
+  "/mi-empresa": "nav-motion-house",
+  "/inversor": "nav-motion-house",
+  "/mi-empresa/detalles": "nav-motion-building",
+  "/mi-empresa/documentos": "nav-motion-files",
+  "/mi-empresa/procesos": "nav-motion-steps",
+  "/procesos": "nav-motion-steps",
+  "/mi-empresa/servicios": "nav-motion-chat",
+  "/favoritos": "nav-motion-heart",
+  "/mandatos": "nav-motion-house",
+  "/admin": "nav-motion-board",
+  "/mis-servicios": "nav-motion-case",
 };
 
 export function AppFrame({
   name,
-  roleLabel,
   destinations,
   title,
   showTitle = true,
   notifications,
+  showPremium = false,
+  companies = [],
+  activeCompanyId = null,
   children,
 }: {
   name: string;
-  roleLabel: string;
   destinations: ShellDestination[];
   title: string;
   showTitle?: boolean;
   notifications: NotificationView[];
+  showPremium?: boolean;
+  companies?: { id: string; legalName: string; codename: string }[];
+  activeCompanyId?: string | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const home = destinations[0]?.href ?? "/cuenta";
-  const workspace = destinations.some((item) => item.href === "/mi-empresa" || item.href === "/inversor" || item.href === "/mercado");
-  const firstName = name.trim().split(/\s+/)[0] ?? name;
+  const initials = accountInitials(name);
 
   function closeMenu() {
     setOpen(false);
   }
 
-  function toggleSidebar() {
-    if (window.matchMedia("(min-width: 768px)").matches) {
-      setCollapsed((current) => !current);
-      return;
-    }
-
-    setOpen((current) => !current);
-  }
-
   return (
-    <div className="min-h-screen bg-[#fcfcfc] text-[#2b3b4a]">
-      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-[#e7eaee] bg-[#f9fafb] px-2">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls="app-sidebar"
-          onClick={toggleSidebar}
-          className="inline-flex size-7 items-center justify-center rounded-full text-[#2b3b4a]"
-        >
-          {open ? <X className="size-4" aria-hidden /> : <PanelLeft className="size-4" aria-hidden />}
-          <span className="sr-only">{open ? shellCopy.menuClose : shellCopy.menuOpen}</span>
-        </button>
-        <div className="flex items-center gap-2 pr-2">
-          {workspace ? (
-            <Link
-              href="/cuenta"
-              className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[#ffaf4d] px-4 text-base font-medium text-[#2b3b4a]"
-            >
-              <Crown className="size-4" aria-hidden />
-              {sellerCopy.premium}
-            </Link>
-          ) : null}
-          <div className="relative">
-            <button
-              type="button"
-              aria-expanded={accountOpen}
-              aria-haspopup="menu"
-              onClick={() => {
-                setAccountOpen((current) => !current);
-              }}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#e7eaee] bg-white pr-3 pl-1.5 text-base font-medium text-[#2b3b4a]"
-            >
-              <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#f4f4f5] text-[#3f3f46]">
-                <User className="size-4" aria-hidden />
-              </span>
-              {firstName}
-              <span className="sr-only">{roleLabel}</span>
-            </button>
-            {accountOpen ? (
-              <div role="menu" className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-[#e7eaee] bg-white p-2 shadow-lg">
-                <p className="px-2 py-1 text-sm font-medium">{name}</p>
-                <p className="px-2 pb-2 text-xs text-[#64748b]">{roleLabel}</p>
-                <Link
-                  href="/cuenta"
-                  role="menuitem"
-                  onClick={() => {
-                    setAccountOpen(false);
-                  }}
-                  className="block rounded-xl px-2 py-2 text-sm hover:bg-[#f4f4f5]"
-                >
-                  {authCopy.accountTitle}
-                </Link>
-                <form action={signOutAction}>
-                  <button
-                    type="submit"
-                    role="menuitem"
-                    className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-sm hover:bg-[#f4f4f5]"
-                  >
-                    <LogOut className="size-4" aria-hidden />
-                    {authCopy.signOut}
-                  </button>
-                </form>
-              </div>
-            ) : null}
-          </div>
-          <NotificationBell items={notifications} />
-        </div>
-      </header>
+    <div className="min-h-screen bg-public-paper font-public text-public-ink">
       {open ? (
         <button
           type="button"
           aria-label={shellCopy.menuClose}
-          className="fixed inset-0 z-30 bg-[#1c2740]/30 md:hidden"
+          className="fixed inset-0 z-30 bg-public-ink/30 xl:hidden"
           onClick={closeMenu}
         />
       ) : null}
@@ -169,18 +106,43 @@ export function AppFrame({
         id="app-sidebar"
         className={
           open
-            ? "fixed top-16 bottom-0 left-0 z-40 flex w-[255px] flex-col bg-[#fafafa]"
-            : collapsed
-              ? "fixed top-16 bottom-0 left-0 z-40 hidden w-[255px] flex-col bg-[#fafafa]"
-              : "fixed top-16 bottom-0 left-0 z-40 hidden w-[255px] flex-col bg-[#fafafa] md:flex"
+            ? "fixed inset-y-0 left-0 z-40 flex w-[min(30rem,calc(100%-1rem))] flex-col border-r border-public-line bg-public-card xl:w-[30rem]"
+            : "fixed inset-y-0 left-0 z-40 hidden w-[30rem] flex-col border-r border-public-line bg-public-card xl:flex"
         }
       >
-        <Link href={home} onClick={closeMenu} className="px-5 pt-5 text-[26px] leading-none font-semibold tracking-tight text-[#243056]">
-          Releva
-        </Link>
-        <nav aria-label={shellCopy.navLabel} className="mt-6 flex min-h-0 flex-1 flex-col overflow-y-auto px-2">
+        <div className="relative z-20 flex items-center justify-between gap-3 px-6 pt-6 pb-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Releva">
+              <Logo size="lg" />
+            </Link>
+            <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            {showPremium ? (
+              <Link
+                href="/premium"
+                onClick={closeMenu}
+                className="group inline-flex h-10 items-center gap-2 rounded-full bg-public-clay px-3 text-sm text-white hover:bg-public-clay-deep"
+              >
+                <Crown className="nav-icon nav-motion-crown size-4" aria-hidden />
+                {sellerCopy.premium}
+              </Link>
+            ) : null}
+            <NotificationBell items={notifications} />
+            <button
+              type="button"
+              onClick={closeMenu}
+              className="inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand xl:hidden"
+            >
+              <X className="size-4" aria-hidden />
+              <span className="sr-only">{shellCopy.menuClose}</span>
+            </button>
+          </div>
+        </div>
+        <nav aria-label={shellCopy.navLabel} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
           {destinations.map((item, index) => {
             const Icon = iconForHref[item.href] ?? Building2;
+            const motion = motionForHref[item.href] ?? "nav-motion-building";
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = destinations[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
@@ -188,7 +150,7 @@ export function AppFrame({
             return (
               <div key={item.href}>
                 {showSection ? (
-                  <p className="flex h-8 items-center px-2 text-sm font-medium text-[#3f3f46]/70">{item.section}</p>
+                  <p className="px-4 pt-5 pb-1 text-xs font-medium tracking-wide text-public-muted">{item.section}</p>
                 ) : null}
                 <Link
                   href={item.href}
@@ -196,35 +158,81 @@ export function AppFrame({
                   aria-current={selected ? "page" : undefined}
                   className={
                     selected
-                      ? "flex h-11 items-center gap-2 rounded-[14px] bg-[#f4f4f5] p-2.5 text-base font-medium text-[#18181b]"
-                      : "flex h-11 items-center gap-2 rounded-[14px] p-2.5 text-base font-normal text-[#3f3f46] hover:bg-[#f4f4f5]"
+                      ? "group flex h-11 items-center gap-3 rounded-2xl bg-public-sand px-4 text-base font-medium text-public-ink"
+                      : "group flex h-11 items-center gap-3 rounded-2xl px-4 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
                   }
                 >
-                  <Icon className="size-4 shrink-0" aria-hidden />
+                  <Icon className={`nav-icon ${motion} size-4 shrink-0 ${selected ? "nav-icon-play" : ""}`} aria-hidden />
                   {item.label}
                 </Link>
               </div>
             );
           })}
         </nav>
-        <div className="p-3">
+        <div className="border-t border-public-line p-4">
+          <section className="rounded-2xl bg-public-sand px-4 py-4">
+            <h2 className="text-base font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
+            <p className="mt-1 text-sm leading-6 text-public-muted">{shellCopy.helpBody}</p>
+            <div className="mt-3 grid gap-2">
+              <a
+                href={shellCopy.helpPhoneHref}
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-base font-medium text-white hover:bg-public-clay-deep"
+              >
+                <Phone className="nav-icon nav-motion-phone size-4" aria-hidden />
+                {shellCopy.helpCall} {shellCopy.helpPhone}
+              </a>
+              <a
+                href={shellCopy.helpEmailHref}
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-base font-medium text-public-ink hover:bg-white"
+              >
+                <Mail className="nav-icon nav-motion-mail size-4" aria-hidden />
+                {shellCopy.helpEmail}
+              </a>
+            </div>
+          </section>
           <Link
             href="/cuenta"
             onClick={closeMenu}
-            className="inline-flex items-center gap-2 rounded-full border border-[#e7eaee] bg-white px-4 py-2 text-sm text-[#3f3f46]"
+            className="mt-3 flex items-center gap-3 rounded-2xl border border-public-line px-3 py-3 hover:bg-public-sand"
           >
-            <CircleHelp className="size-4" aria-hidden />
-            {sellerCopy.help}
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-public-sand text-sm font-medium text-public-clay">
+              {initials}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{name}</span>
+              <span className="block text-sm font-medium text-public-clay">{shellCopy.viewProfile}</span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-public-clay" aria-hidden />
           </Link>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-public-line text-base font-medium text-public-ink hover:bg-public-sand"
+            >
+              <LogOut className="size-4" aria-hidden />
+              {authCopy.signOut}
+            </button>
+          </form>
         </div>
       </aside>
-      <main className={collapsed ? "min-h-screen bg-[#fcfcfc] pt-16" : "min-h-screen bg-[#fcfcfc] pt-16 md:pl-[255px]"}>
-        <div className="mx-auto w-full max-w-7xl px-3 pt-4 pb-6 md:px-6">
-          {showTitle ? <h1 className="text-[28px] leading-none font-semibold tracking-tight text-[#2b3b4a]">{title}</h1> : null}
-          <div className={showTitle ? "mt-4" : undefined}>{children}</div>
+      <main className="min-h-screen xl:pl-[30rem]">
+        <div className="w-full px-6 py-6 md:px-8 md:py-8">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls="app-sidebar"
+            onClick={() => {
+              setOpen(true);
+            }}
+            className="mb-4 inline-flex size-10 items-center justify-center rounded-full bg-public-card text-public-ink shadow-public xl:hidden"
+          >
+            <PanelLeft className="size-4" aria-hidden />
+            <span className="sr-only">{shellCopy.menuOpen}</span>
+          </button>
+          {showTitle ? <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1> : null}
+          <div className={showTitle ? "mt-6" : undefined}>{children}</div>
         </div>
       </main>
-      <span className="sr-only">{accountInitials(name)}</span>
     </div>
   );
 }

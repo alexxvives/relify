@@ -104,13 +104,14 @@ ON CONFLICT (id) DO UPDATE SET
   project_id = EXCLUDED.project_id,
   name = EXCLUDED.name;
 
-INSERT INTO data_room_file (id, project_id, file_name) VALUES
-  ('seed_olivo_file', 'seed_olivo', 'cuentas-2025.pdf'),
-  ('seed_roble_file', 'seed_roble', 'balance-roble.xlsx'),
-  ('seed_duna_file', 'seed_duna', 'impuestos-duna.pdf')
+INSERT INTO data_room_file (id, project_id, file_name, folder) VALUES
+  ('seed_olivo_file', 'seed_olivo', 'cuentas-2025.pdf', 'Financiero'),
+  ('seed_roble_file', 'seed_roble', 'balance-roble.xlsx', 'Financiero'),
+  ('seed_duna_file', 'seed_duna', 'impuestos-duna.pdf', 'Fiscal')
 ON CONFLICT (id) DO UPDATE SET
   project_id = EXCLUDED.project_id,
-  file_name = EXCLUDED.file_name;
+  file_name = EXCLUDED.file_name,
+  folder = EXCLUDED.folder;
 
 INSERT INTO project_cnae (id, project_id, code, role, position) VALUES
   ('seed_olivo_cnae_1', 'seed_olivo', '46.34', 'principal', 1),

@@ -37,31 +37,6 @@ export function anonymousCodename(cif: string): string {
   return `Proyecto ${name}`;
 }
 
-const fixtureCompany: RegistryCompany = {
-  cif: "B12345674",
-  legalName: "Obrador Ficticio Norte S.L.",
-  address: "Calle Ficticia 12, 28001 Madrid",
-  region: "Madrid",
-  codename: anonymousCodename("B12345674"),
-  foundedYear: 2014,
-  description: "Obrador de pan y bollería. Vende en tienda propia y a cafeterías del barrio.",
-  principalCnae: "10.71",
-  secondaryCnaes: ["10.72"],
-  headcount: "band_6_10",
-  revenueCents: 185_000_000,
-  ebitdaCents: 24_000_000,
-  adjustedEbitdaCents: 21_000_000,
-  statementYear: 2024,
-};
-
-export function lookupFixtureCompany(cif: string): RegistryCompany | null {
-  if (normalizeCif(cif) !== fixtureCompany.cif) {
-    return null;
-  }
-
-  return fixtureCompany;
-}
-
 export function draftFromRegistry(record: RegistryCompany): CompanyDraftInput {
   const draft = emptyCompanyDraft();
   draft.legalName = record.legalName;

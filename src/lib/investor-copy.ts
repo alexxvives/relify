@@ -8,6 +8,10 @@ export const investorCopy = {
   favoritesTitle: "Empresas favoritas",
   hiddenTitle: "Empresas ocultas",
   pendingTitle: "Tienes 0 acciones pendientes",
+  stageWaiting: "Esperando a la empresa",
+  stageMatched: "La empresa ha aceptado",
+  stageNda: "NDA aceptado",
+  favoritesStat: "Empresas favoritas",
   pendingEmpty: "No tienes acciones pendientes de completar",
   pendingBody: "Cuando una empresa acepte tu solicitud, podrás enviar preguntas desde aquí.",
   goProcesses: "Ir a mis procesos",
@@ -19,9 +23,8 @@ export const investorCopy = {
   interestsSent: "Intereses enviados",
   questionsSent: "Q&A enviados",
   meetingsDone: "Reuniones realizadas",
-  opportunities: "Nuevas oportunidades",
-  opportunitiesBody: "Descubre las últimas empresas registradas",
-  goCompanies: "Ir a empresas en venta",
+  sectorsTitle: "Sectores en venta",
+  sectorsEmpty: "Todavía no hay empresas publicadas con un CNAE principal.",
   completeProfile: "Completa tu perfil",
   completeProfileBody: "Y serás el primero en descubrir empresas alineadas con tus intereses",
   completedLabel: "Completado",
@@ -51,13 +54,28 @@ export const investorCopy = {
   searchesEmpty: "Todavía no has guardado búsquedas.",
   searchesEmptyBody: "Cuando filtres empresas en venta, podrás volver a esa búsqueda desde aquí.",
   dataroomEmpty: "Todavía no tienes carpetas compartidas.",
-  dataroomEmptyBody: "El dataroom se abre cuando una empresa comparte documentación contigo.",
+  dataroomEmptyBody: "El dataroom se abre cuando una empresa comparte documentación contigo. Aceptar el NDA no basta.",
+  dataroomShared: "Documentación compartida",
+  dataroomFolderEmpty: "Esta empresa todavía no ha añadido documentos.",
   hiddenEmpty: "No has ocultado ninguna empresa.",
   hiddenEmptyBody: "Las empresas que marques como no interesantes dejarán de aparecer en tus recomendaciones.",
   favoritesEmpty: "Todavía no tienes empresas favoritas.",
   favoritesEmptyBody: "Marca el corazón en una empresa en venta y aparecerá en esta lista.",
   processesEmpty: "No tienes procesos activos en este momento.",
   processesEmptyBody: "Cuando conectes con una empresa, el proceso aparecerá aquí.",
+  messagesTitle: "Mensajes",
+  documentsTitle: "Documentación",
+  documentsLocked: "La documentación aparece cuando la empresa comparte el dataroom.",
+  documentsEmpty: "La empresa todavía no ha añadido documentos.",
+  openCompany: "Ver la ficha",
 } as const;
 
 export const investorTypes = ["Search Fund", "Industrial", "Family office", "Private equity", "Particular"] as const;
+
+export function pendingHeading(count: number): string {
+  if (count === 1) {
+    return "Tienes 1 acción pendiente";
+  }
+
+  return `Tienes ${count} acciones pendientes`;
+}

@@ -3,15 +3,21 @@ import {
   balanceValue,
   descriptionContainsSecret,
   ebitdaMarginBasisPoints,
+  filledSellerPanels,
   formatBasisPoints,
   grossMargin,
+  sellerPanelFlags,
   incomeValue,
   operatingResult,
   parsePercentToBasisPoints,
   percentsSumToHundred,
+  slicePercentIssue,
+  statementWindow,
+  statementYearIsBeforeFounding,
   statementEbitda,
   totalAssets,
   totalLiabilities,
+  activityKindsForCustomer,
   anonymousSliceLabel,
   type BalanceAmounts,
   type PnlAmounts,
@@ -68,6 +74,67 @@ describe("company profile statements", () => {
     expect(ebitdaMarginBasisPoints(10, 0)).toBeNull();
     expect(anonymousSliceLabel("capital", 1)).toBe("Accionista 1");
     expect(anonymousSliceLabel("client", 2)).toBe("Cliente 2");
+    expect(slicePercentIssue([])).toBe("ok");
+    expect(slicePercentIssue(["60", "40"])).toBe("ok");
+    expect(slicePercentIssue(["60", "50"])).toBe("over");
+    expect(slicePercentIssue(["60"])).toBe("short");
+  });
+
+  it("keeps three closed years and puts the open exercise in the forecast", () => {
+    expect(statementWindow(new Date("2026-10-06T12:00:00"))).toEqual({
+      closed: [2023, 2024, 2025],
+      forecast: 2026,
+    });
+    expect(statementWindow(new Date("2027-01-15T12:00:00"))).toEqual({
+      closed: [2024, 2025, 2026],
+      forecast: 2027,
+    });
+    expect(statementWindow(new Date("2026-06-30T12:00:00"), 6)).toEqual({
+      closed: [2024, 2025, 2026],
+      forecast: 2027,
+    });
+    expect(statementWindow(new Date("2026-06-29T12:00:00"), 6)).toEqual({
+      closed: [2023, 2024, 2025],
+      forecast: 2026,
+    });
+    expect(statementYearIsBeforeFounding("2023", "2024")).toBe(true);
+    expect(statementYearIsBeforeFounding("2024", "2024")).toBe(false);
+    expect(statementYearIsBeforeFounding("2024", "")).toBe(false);
+  });
+
+  it("counts the seven seller panels from the same fields as the draft", () => {
+    const empty = sellerPanelFlags({
+      legalName: " ",
+      cif: "",
+      description: "",
+      principalCnae: "",
+      closedYears: [{ sales: "", currentAssets: "", equity: "" }],
+      headcount: "",
+      capitalPercents: [" "],
+      askingPrice: "",
+    });
+    expect(filledSellerPanels(empty)).toBe(0);
+    expect(
+      filledSellerPanels(
+        sellerPanelFlags({
+          legalName: "Horno",
+          cif: "B00000000",
+          description: "Obrador",
+          principalCnae: "10.71",
+          closedYears: [{ sales: "1", currentAssets: "1", equity: "" }],
+          headcount: "",
+          capitalPercents: ["100"],
+          askingPrice: "10",
+        }),
+      ),
+    ).toBe(7);
+  });
+
+  it("hides client slices on the seller home when sales go only to consumers", () => {
+    expect(activityKindsForCustomer("consumer")).toEqual(["capital", "product"]);
+    expect(activityKindsForCustomer("business")).toEqual(["capital", "product", "client"]);
+    expect(activityKindsForCustomer("mixed")).toEqual(["capital", "product", "client"]);
+    expect(activityKindsForCustomer(null)).toEqual(["capital", "product", "client"]);
   });
 
   it("detects private text inside an investor description", () => {

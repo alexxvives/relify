@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { catalogCopy } from "@/lib/catalog-copy";
-import { formatEur } from "@/lib/money";
+import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 
 export function ProjectFigures({
@@ -16,7 +16,7 @@ export function ProjectFigures({
         {catalogCopy.metrics.map((metric) => (
           <div key={metric.key} className="bg-public-card px-3 py-2">
             <dt className="text-[11px] tracking-wide text-public-muted uppercase">{metric.label}</dt>
-            <dd className="mt-1 text-sm text-public-ink">{formatEur(project[metric.key])}</dd>
+            <dd className="mt-1 text-sm text-public-ink">{formatWholeEur(project[metric.key])}</dd>
           </div>
         ))}
       </dl>
@@ -28,7 +28,7 @@ export function ProjectFigures({
       {catalogCopy.metrics.map((metric) => (
         <div key={metric.key}>
           <dt className="text-xs text-muted-foreground">{metric.label}</dt>
-          <dd className="mt-1 text-sm font-medium">{formatEur(project[metric.key])}</dd>
+          <dd className="mt-1 text-sm font-medium">{formatWholeEur(project[metric.key])}</dd>
         </div>
       ))}
     </dl>

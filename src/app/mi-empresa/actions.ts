@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
+import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import {
   closedFieldName,
   companyDraftFieldMessage,
@@ -16,7 +17,9 @@ import {
 } from "@/lib/company-draft";
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
+import { createSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -74,6 +77,7 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     capitalPercents: readList(formData, "capitalPercent"),
     productPercents: readList(formData, "productPercent"),
     clientPercents: readList(formData, "clientPercent"),
+    customerBase: readText(formData, "customerBase"),
     headcount: headcount === "" ? "" : headcount,
     closedYears: [readClosedYear(formData, 0), readClosedYear(formData, 1), readClosedYear(formData, 2)],
     forecastYear: readForecastYear(formData),
@@ -106,7 +110,13 @@ export async function saveCompanyDraftAction(
     return { message: input.message, saved: false };
   }
 
-  const result = await saveCompanyDraft(user, input);
+  const cif = normalizeCif(readText(formData, "cif"));
+
+  if (cif.length > 0 && !isValidSpanishCif(cif)) {
+    return { message: companyCopy.nifInvalid, saved: false };
+  }
+
+  const result = await saveCompanyDraft(user, input, cif);
 
   if (!result.ok) {
     return { message: result.message, saved: false };
@@ -115,4 +125,77 @@ export async function saveCompanyDraftAction(
   revalidatePath("/mi-empresa");
   revalidatePath("/mi-empresa/detalles");
   return { message: companyCopy.saved, saved: true };
+}
+
+export type SellerPublishState = { ok: true } | { ok: false; message: string } | null;
+
+export async function publishSellerProjectAction(
+  state: SellerPublishState,
+  formData: FormData,
+): Promise<SellerPublishState> {
+  void state;
+  void formData;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  if (!user.onboarded || user.role !== "seller") {
+    redirect("/mi-empresa");
+  }
+
+  const result = await publishSellerProject(user);
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa");
+    revalidatePath("/proyectos");
+    revalidatePath("/mercado");
+  }
+
+  return result;
+}
+
+function safeSellerPath(value: string): string {
+  if (value === "/mi-empresa" || value.startsWith("/mi-empresa/")) {
+    return value;
+  }
+
+  return "/mi-empresa";
+}
+
+function refreshSellerPages(): void {
+  revalidatePath("/mi-empresa");
+  revalidatePath("/mi-empresa/detalles");
+  revalidatePath("/mi-empresa/documentos");
+  revalidatePath("/mi-empresa/procesos");
+  revalidatePath("/mi-empresa/servicios");
+}
+
+async function sellerUser() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  if (!user.onboarded || user.role !== "seller") {
+    redirect("/mi-empresa");
+  }
+
+  return user;
+}
+
+export async function selectSellerCompanyAction(formData: FormData): Promise<void> {
+  const user = await sellerUser();
+  const selected = await selectSellerCompany(user.id, readText(formData, "projectId"));
+  refreshSellerPages();
+  redirect(selected ? safeSellerPath(readText(formData, "next")) : "/mi-empresa");
+}
+
+export async function createSellerCompanyAction(): Promise<void> {
+  const user = await sellerUser();
+  await createSellerCompany(user);
+  refreshSellerPages();
+  redirect("/mi-empresa/detalles?alta=1");
 }

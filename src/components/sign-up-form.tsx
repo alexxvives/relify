@@ -30,7 +30,7 @@ export function SignUpForm() {
       <button
         type="submit"
         disabled={pending}
-        className="h-12 w-full bg-public-clay text-[15px] text-public-paper transition hover:bg-public-clay-deep disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-public-clay text-[15px] text-public-paper transition hover:bg-public-clay-deep disabled:opacity-50"
       >
         {pending ? authCopy.signUpPending : authCopy.signUpSubmit}
       </button>

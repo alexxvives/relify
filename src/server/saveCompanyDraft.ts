@@ -13,6 +13,7 @@ import {
 import { descriptionContainsSecret, parsePercentToBasisPoints, type SliceKind } from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type SaveCompanyDraftResult = { ok: true } | { ok: false; message: string };
 
@@ -95,6 +96,7 @@ const emptyBalance = {
 export async function saveCompanyDraft(
   user: CurrentUser,
   input: CompanyDraftInput,
+  cif: string,
 ): Promise<SaveCompanyDraftResult> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: companyCopy.notSeller };
@@ -102,16 +104,21 @@ export async function saveCompanyDraft(
 
   const capital = basisPointsFor(input.capitalPercents);
   const products = basisPointsFor(input.productPercents);
-  const clients = basisPointsFor(input.clientPercents);
+  const clientValues =
+    input.customerBase === "consumer"
+      ? input.clientPercents.map((value) => value.trim()).filter((value) => value.length > 0)
+      : input.clientPercents;
+  const clients = basisPointsFor(clientValues);
 
   if (!capital || !products || !clients) {
     return { ok: false, message: companyCopy.percentInvalid };
   }
 
-  const [existing, account] = await Promise.all([
-    prisma.project.findFirst({
-      where: { ownerId: user.id, status: "draft" },
-      orderBy: { createdAt: "desc" },
+  const activeId = await activeSellerProjectId(user.id);
+  const [existing, account, ownedCount] = await Promise.all([
+    activeId
+      ? prisma.project.findFirst({
+      where: { id: activeId, ownerId: user.id },
       select: {
         id: true,
         legalName: true,
@@ -120,16 +127,19 @@ export async function saveCompanyDraft(
         shareholders: { select: { name: true } },
         dataRoomFiles: { select: { fileName: true } },
       },
-    }),
+    })
+      : null,
     prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
+    prisma.project.count({ where: { ownerId: user.id } }),
   ]);
   const pendingCif = account?.pendingCif?.trim() ?? "";
-  const keptCif = existing && existing.cif.trim().length > 0 ? existing.cif : pendingCif;
+  const keptCif = existing && existing.cif.trim().length > 0 ? existing.cif : ownedCount <= 1 ? pendingCif : "";
+  const writtenCif = cif.length > 0 ? cif : keptCif;
 
   const secrets = [
     input.legalName,
     input.address,
-    keptCif,
+    writtenCif,
     existing?.legalName ?? "",
     existing?.cif ?? "",
     existing?.address ?? "",
@@ -154,6 +164,7 @@ export async function saveCompanyDraft(
     description: input.description === "" ? null : input.description,
     opexCents: optionalEurosToCents(input.opex),
     headcountRange: input.headcount === "" ? null : input.headcount,
+    customerBase: input.customerBase === "" ? null : input.customerBase,
   };
 
   const cnaes = [
@@ -173,8 +184,10 @@ export async function saveCompanyDraft(
   await prisma.$transaction(async (tx) => {
     const projectId = existing?.id ?? randomUUID();
 
+    const stored = writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
+
     if (existing) {
-      await tx.project.update({ where: { id: existing.id }, data: profile });
+      await tx.project.update({ where: { id: existing.id }, data: stored });
       await tx.projectCnae.deleteMany({ where: { projectId } });
       await tx.activitySlice.deleteMany({ where: { projectId } });
       await tx.projectYear.deleteMany({ where: { projectId } });
@@ -187,18 +200,14 @@ export async function saveCompanyDraft(
           netDebtCents: 0,
           workingCapitalCents: 0,
           netIncomeCents: 0,
-          cif: keptCif,
+          cif: writtenCif,
           status: "draft",
           ownerId: user.id,
         },
       });
     }
 
-    if (existing && existing.cif.trim().length === 0 && keptCif.length > 0) {
-      await tx.project.update({ where: { id: projectId }, data: { cif: keptCif } });
-    }
-
-    if (pendingCif.length > 0 && keptCif === pendingCif) {
+    if (pendingCif.length > 0 && writtenCif.length > 0) {
       await tx.user.update({ where: { id: user.id }, data: { pendingCif: null } });
     }
 

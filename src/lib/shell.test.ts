@@ -5,15 +5,9 @@ describe("destinationsForRole", () => {
   it("lists only that role's home", () => {
     expect(destinationsForRole("investor")).toEqual([
       { href: "/inversor", label: "Inicio" },
-      { href: "/inversor/perfil", label: "Perfil de Inversor" },
       { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
-      { href: "/busquedas", label: "Mis búsquedas", section: "Explorar" },
-      { href: "/tendencias", label: "Tendencias", section: "Explorar" },
       { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
-      { href: "/dataroom", label: "Dataroom", section: "Gestión de procesos" },
       { href: "/asesoramiento", label: "Solicitar servicios", section: "Gestión de procesos" },
-      { href: "/favoritos", label: "Empresas favoritas", section: "Gestión de empresas" },
-      { href: "/ocultas", label: "Empresas ocultas", section: "Gestión de empresas" },
     ]);
     expect(destinationsForRole("seller")).toEqual([
       { href: "/mi-empresa", label: "Inicio" },
@@ -21,14 +15,12 @@ describe("destinationsForRole", () => {
       { href: "/mi-empresa/documentos", label: "Mis documentos", section: "Mi empresa" },
       { href: "/mi-empresa/procesos", label: "Mis procesos", section: "Gestión de procesos" },
       { href: "/mi-empresa/servicios", label: "Solicitar servicios", section: "Gestión de procesos" },
-      { href: "/tendencias", label: "Tendencias", section: "Explorar" },
     ]);
     expect(destinationsForRole("advisor")).toEqual([
       { href: "/mandatos", label: "Inicio" },
-      { href: "/tendencias", label: "Tendencias", section: "Explorar" },
-      { href: "/mis-servicios", label: "Mis servicios", section: "Mis servicios" },
+      { href: "/mis-servicios", label: "Mis servicios" },
     ]);
-    expect(destinationsForRole("admin")).toEqual([{ href: "/cuenta", label: "Tu cuenta" }]);
+    expect(destinationsForRole("admin")).toEqual([{ href: "/admin", label: "Inicio" }]);
     expect(destinationsForRole(null)).toEqual([]);
   });
 });

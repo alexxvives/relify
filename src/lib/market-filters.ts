@@ -1,6 +1,7 @@
+import { recoveryYears } from "./money";
 import type { PublicProjectCard } from "@/lib/public-project";
 
-export const marketSorts = ["codename", "revenue", "price"] as const;
+export const marketSorts = ["recommended", "revenue", "price"] as const;
 
 export type MarketSort = (typeof marketSorts)[number];
 
@@ -75,6 +76,29 @@ export function filterMarketProjects(
       return right.askingPriceCents - left.askingPriceCents;
     }
 
-    return left.codename.localeCompare(right.codename, "es");
+    return comparePayback(left, right);
   });
+}
+
+function comparePayback(left: PublicProjectCard, right: PublicProjectCard): number {
+  const leftYears = recoveryYears(left.askingPriceCents, left.ebitdaCents);
+  const rightYears = recoveryYears(right.askingPriceCents, right.ebitdaCents);
+
+  if (leftYears === null && rightYears === null) {
+    return left.codename.localeCompare(right.codename, "es");
+  }
+
+  if (leftYears === null) {
+    return 1;
+  }
+
+  if (rightYears === null) {
+    return -1;
+  }
+
+  if (leftYears !== rightYears) {
+    return leftYears - rightYears;
+  }
+
+  return left.codename.localeCompare(right.codename, "es");
 }

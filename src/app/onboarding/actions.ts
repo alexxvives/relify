@@ -1,16 +1,25 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { homeForRole, onboardingFieldMessage, onboardingSchema, type OnboardingInput } from "@/lib/auth-input";
+import { authCopy } from "@/lib/auth-copy";
+import { homeForRole, onboardingFieldMessage, onboardingSchema, splitAccountName, type OnboardingInput } from "@/lib/auth-input";
 import { completeOnboarding } from "@/server/completeOnboarding";
 
 export type OnboardingState = { message: string } | null;
 
 function readOnboardingForm(formData: FormData): OnboardingInput | { message: string } {
+  const fullName = formData.get("fullName");
+  const split = splitAccountName(typeof fullName === "string" ? fullName : "");
+
+  if (!split) {
+    return { message: authCopy.fullNameRequired };
+  }
+
   const parsed = onboardingSchema.safeParse({
-    name: formData.get("name"),
-    lastName: formData.get("lastName"),
+    name: split.name,
+    lastName: split.lastName,
     nationalId: formData.get("nationalId"),
+    phoneCountry: formData.get("phoneCountry"),
     phone: formData.get("phone"),
     role: formData.get("role"),
     referralSource: formData.get("referralSource"),

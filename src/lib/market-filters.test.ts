@@ -34,7 +34,7 @@ const projects: PublicProjectCard[] = [
 
 const filters: MarketFilters = {
   query: "",
-  sort: "codename",
+  sort: "recommended",
   revenueBand: "any",
   ebitdaBand: "any",
   regions: [],
@@ -43,9 +43,9 @@ const filters: MarketFilters = {
 describe("filterMarketProjects", () => {
   it("keeps the public card and filters by region, revenue, and search", () => {
     expect(filterMarketProjects(projects, filters).map((project) => project.codename)).toEqual([
-      "Proyecto Duna",
       "Proyecto Olivo",
       "Proyecto Roble",
+      "Proyecto Duna",
     ]);
 
     expect(

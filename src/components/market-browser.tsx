@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
-import { SellerTabs } from "@/components/seller-tabs";
+import { MarketCardFigures } from "@/components/market-card-figures";
+import { ProjectPhoto } from "@/components/project-photo";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { marketCopy } from "@/lib/market-copy";
 import {
@@ -17,8 +17,7 @@ import {
   type MarketSort,
   type RevenueBandId,
 } from "@/lib/market-filters";
-import { formatEur } from "@/lib/money";
-import { projectImageSrc } from "@/lib/project-image";
+import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 
 const fieldClassName =
@@ -44,32 +43,23 @@ export function MarketBrowser({
   favoriteSlugs: string[];
 }) {
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<MarketSort>("codename");
+  const [sort, setSort] = useState<MarketSort>("recommended");
   const [revenueBand, setRevenueBand] = useState<RevenueBandId>("any");
   const [ebitdaBand, setEbitdaBand] = useState<EbitdaBandId>("any");
   const [regions, setRegions] = useState<string[]>([]);
-  const [tab, setTab] = useState<"picks" | "all">("picks");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
 
   const regionOptions = useMemo(
     () => [...new Set(projects.map((project) => project.region))].sort((left, right) => left.localeCompare(right, "es")),
     [projects],
   );
 
-  const visible = filterMarketProjects(projects, { query, sort, revenueBand, ebitdaBand, regions });
+  const matched = filterMarketProjects(projects, { query, sort, revenueBand, ebitdaBand, regions });
+  const visible = favoritesOnly ? matched.filter((project) => favoriteSlugs.includes(project.slug)) : matched;
   const regionValue = regions[0] ?? "";
 
   return (
     <div className="flex flex-col gap-6">
-      <SellerTabs
-        label={marketCopy.title}
-        tabs={[
-          { id: "picks", label: "Recomendaciones" },
-          { id: "all", label: "Todas las empresas" },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
-      {tab === "all" ? (
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))] lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
@@ -138,36 +128,33 @@ export function MarketBrowser({
             />
           </label>
         </div>
+        <button
+          type="button"
+          aria-pressed={favoritesOnly}
+          onClick={() => {
+            setFavoritesOnly((current) => !current);
+          }}
+          className={
+            favoritesOnly
+              ? "mt-3 inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white"
+              : "mt-3 inline-flex h-10 items-center rounded-full border border-[#e1e6ee] px-4 text-sm font-medium text-[#1c2740]"
+          }
+        >
+          {marketCopy.favoritesOnly}
+        </button>
       </div>
-      ) : (
-        <section className="rounded-2xl bg-[#f4f6fb] p-5">
-          <h2 className="text-xl font-semibold text-[#2b3b4a]">Según tu actividad</h2>
-        </section>
-      )}
       {visible.length === 0 ? (
-        <p className="text-sm text-[#5c6b78]">{marketCopy.empty}</p>
+        <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
-        <div className={tab === "picks" ? "-mt-2 flex gap-4 overflow-x-auto pb-2" : "grid gap-5 md:grid-cols-2 xl:grid-cols-3"}>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((project) => {
-            const imageSrc = projectImageSrc(project.slug);
-
             return (
-              <article key={project.slug} className={tab === "picks" ? "relative w-[280px] shrink-0 overflow-hidden rounded-2xl border border-[#e7eaee] bg-white" : "relative overflow-hidden rounded-2xl border border-[#e7eaee] bg-white"}>
+              <article key={project.slug} className="relative overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
                 <div className="absolute top-3 right-3 z-10">
                   <FavoriteButton slug={project.slug} favorited={favoriteSlugs.includes(project.slug)} />
                 </div>
                 <Link href={`/proyectos/${project.slug}`} className="flex h-full flex-col">
-                  {imageSrc ? (
-                    <div className="relative aspect-[16/9]">
-                      <Image
-                        src={imageSrc}
-                        alt={`Ilustración de ${project.codename}`}
-                        fill
-                        sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : null}
+                  <ProjectPhoto slug={project.slug} alt={`Ilustración de ${project.codename}`} />
                   <div className="flex flex-1 flex-col gap-4 p-5">
                     <div>
                       <h2 className="text-lg font-semibold tracking-tight">{project.codename}</h2>
@@ -176,14 +163,14 @@ export function MarketBrowser({
                         {project.region}
                       </p>
                     </div>
-                    <dl className="grid grid-cols-2 gap-3">
-                      {marketCopy.metrics.map((metric) => (
-                        <div key={metric.key} className="rounded-xl bg-[#f5f6fa] px-3 py-2">
-                          <dt className="text-xs text-[#8b95a7]">{metric.label}</dt>
-                          <dd className="mt-1 text-sm font-medium">{formatEur(project[metric.key])}</dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <MarketCardFigures
+                      revenue={formatWholeEur(project.revenueCents)}
+                      ebitda={formatWholeEur(project.ebitdaCents)}
+                      adjustedEbitda={formatWholeEur(project.adjustedEbitdaCents)}
+                      askingPrice={formatWholeEur(project.askingPriceCents)}
+                      askingPriceCents={project.askingPriceCents}
+                      ebitdaCents={project.ebitdaCents}
+                    />
                     <span className="mt-auto inline-flex h-11 items-center justify-center rounded-xl border border-[#e1e6ee] text-sm font-medium">
                       {marketCopy.details}
                     </span>

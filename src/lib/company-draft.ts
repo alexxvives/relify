@@ -2,17 +2,17 @@ import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
   balanceInputKeys,
-  defaultClosedYearNumbers,
-  defaultForecastYearNumber,
   descriptionMaxLength,
   headcountRanges,
   isFoundedYear,
   isStatementYear,
+  customerBases,
   maxActivitySlices,
   maxSecondaryCnaes,
   parsePercentToBasisPoints,
   percentsSumToHundred,
   pnlInputKeys,
+  statementWindow,
   type BalanceInputKey,
   type PnlInputKey,
 } from "./company-profile";
@@ -93,6 +93,7 @@ export const companyDraftSchema = z
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
     clientPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
+    customerBase: z.union([z.literal(""), z.enum(customerBases)]),
     headcount: z.union([z.literal(""), z.enum(headcountRanges)]),
     closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema]),
     forecastYear: forecastYearSchema,
@@ -101,7 +102,14 @@ export const companyDraftSchema = z
     validateCnaes(input.principalCnae, input.secondaryCnaes, ctx);
     validatePercents(input.capitalPercents, "capitalPercents", "percent-sum-capital", ctx);
     validatePercents(input.productPercents, "productPercents", "percent-sum-product", ctx);
-    validatePercents(input.clientPercents, "clientPercents", "percent-sum-client", ctx);
+    if (input.customerBase === "consumer") {
+      const kept = input.clientPercents.map((value) => value.trim()).filter((value) => value.length > 0);
+      if (kept.some((value) => parsePercentToBasisPoints(value) === null)) {
+        ctx.addIssue({ code: "custom", message: "percent", path: ["clientPercents"] });
+      }
+    } else {
+      validatePercents(input.clientPercents, "clientPercents", "percent-sum-client", ctx);
+    }
 
     const years = [
       inspectYear(input.closedYears[0], true, ["closedYears", 0], ctx),
@@ -235,8 +243,9 @@ export function emptyForecastYear(year: string): ForecastYearInput {
   };
 }
 
-export function emptyCompanyDraft(): CompanyDraftInput {
-  const [first = "2023", second = "2024", third = "2025"] = defaultClosedYearNumbers;
+export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
+  const window = statementWindow(today);
+  const [first, second, third] = window.closed;
 
   return {
     legalName: "",
@@ -255,10 +264,75 @@ export function emptyCompanyDraft(): CompanyDraftInput {
     capitalPercents: [],
     productPercents: [],
     clientPercents: [],
+    customerBase: "",
     headcount: "",
     closedYears: [emptyClosedYear(String(first)), emptyClosedYear(String(second)), emptyClosedYear(String(third))],
-    forecastYear: emptyForecastYear(String(defaultForecastYearNumber)),
+    forecastYear: emptyForecastYear(String(window.forecast)),
   };
+}
+
+export function placeStatementsOnWindow(
+  closed: ClosedYearInput[],
+  forecast: ForecastYearInput | null,
+  today = new Date(),
+): { closedYears: CompanyDraftInput["closedYears"]; forecastYear: ForecastYearInput } {
+  const window = statementWindow(today);
+  const byYear = new Map<string, ClosedYearInput | ForecastYearInput>();
+
+  for (const year of closed) {
+    if (/^\d{4}$/.test(year.year)) {
+      byYear.set(year.year, year);
+    }
+  }
+
+  if (forecast && /^\d{4}$/.test(forecast.year)) {
+    byYear.set(forecast.year, forecast);
+  }
+
+  const [first, second, third] = window.closed;
+
+  return {
+    closedYears: [
+      copyOntoClosed(byYear.get(String(first)), String(first)),
+      copyOntoClosed(byYear.get(String(second)), String(second)),
+      copyOntoClosed(byYear.get(String(third)), String(third)),
+    ],
+    forecastYear: copyOntoForecast(byYear.get(String(window.forecast)), String(window.forecast)),
+  };
+}
+
+function copyOntoClosed(source: ClosedYearInput | ForecastYearInput | undefined, year: string): ClosedYearInput {
+  const next = emptyClosedYear(year);
+
+  if (!source) {
+    return next;
+  }
+
+  for (const key of pnlInputKeys) {
+    next[key] = source[key];
+  }
+
+  if ("currentAssets" in source) {
+    for (const key of balanceInputKeys) {
+      next[key] = source[key];
+    }
+  }
+
+  return next;
+}
+
+function copyOntoForecast(source: ClosedYearInput | ForecastYearInput | undefined, year: string): ForecastYearInput {
+  const next = emptyForecastYear(year);
+
+  if (!source) {
+    return next;
+  }
+
+  for (const key of pnlInputKeys) {
+    next[key] = source[key];
+  }
+
+  return next;
 }
 
 export function closedFieldName(index: number, key: keyof ClosedYearInput): string {

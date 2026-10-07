@@ -11,7 +11,9 @@ import {
   signInSchema,
   signUpSchema,
   signupRoles,
+  splitAccountName,
 } from "./auth-input";
+import { readStoredPhone, storedPhone } from "./phone-countries";
 
 const validSignUp = {
   email: "Ana@Example.com",
@@ -39,6 +41,7 @@ describe("onboardingSchema", () => {
         name: " Ana ",
         lastName: " Ruiz ",
         nationalId: "B12345674",
+        phoneCountry: "ES",
         phone: "612345678",
         role: "investor",
         referralSource: "search",
@@ -47,6 +50,7 @@ describe("onboardingSchema", () => {
       name: "Ana",
       lastName: "Ruiz",
       nationalId: "B12345674",
+      phoneCountry: "ES",
       phone: "612345678",
       role: "investor",
       referralSource: "search",
@@ -59,6 +63,7 @@ describe("onboardingSchema", () => {
         name: "Ana",
         lastName: "Ruiz",
         nationalId: "B12345674",
+        phoneCountry: "ES",
         phone: "612345678",
         role: "admin",
         referralSource: "search",
@@ -69,11 +74,23 @@ describe("onboardingSchema", () => {
         name: "Ana",
         lastName: "Ruiz",
         nationalId: "B12345678",
+        phoneCountry: "ES",
         phone: "112345678",
         role: "seller",
         referralSource: "search",
       }).success,
     ).toBe(false);
+    expect(
+      onboardingSchema.safeParse({
+        name: "Ana",
+        lastName: "Ruiz",
+        nationalId: "B12345674",
+        phoneCountry: "FR",
+        phone: "612345678",
+        role: "seller",
+        referralSource: "search",
+      }).success,
+    ).toBe(true);
   });
 });
 
@@ -83,6 +100,22 @@ describe("destinationForUser", () => {
     expect(destinationForUser({ role: "investor", onboarded: false })).toBe("/onboarding");
     expect(destinationForUser({ role: "seller", onboarded: true })).toBe("/mi-empresa");
     expect(destinationForUser({ role: "advisor", onboarded: true })).toBe("/mandatos");
+  });
+});
+
+describe("splitAccountName", () => {
+  it("keeps the given name and the rest as surnames", () => {
+    expect(splitAccountName(" Elena Castro García ")).toEqual({ name: "Elena", lastName: "Castro García" });
+    expect(splitAccountName("Elena")).toBeNull();
+  });
+});
+
+describe("storedPhone", () => {
+  it("keeps the country on the stored number and still reads an older Spanish mobile", () => {
+    expect(storedPhone("ES", "612345678")).toBe("ES:+34612345678");
+    expect(readStoredPhone("ES:+34612345678")).toEqual({ iso: "ES", national: "612345678" });
+    expect(readStoredPhone("+34612345678")).toEqual({ iso: "ES", national: "612345678" });
+    expect(readStoredPhone("FR:+33612345678")).toEqual({ iso: "FR", national: "612345678" });
   });
 });
 
@@ -120,7 +153,7 @@ describe("homeForRole", () => {
     expect(homeForRole("investor")).toBe("/inversor");
     expect(homeForRole("seller")).toBe("/mi-empresa");
     expect(homeForRole("advisor")).toBe("/mandatos");
-    expect(homeForRole("admin")).toBe("/cuenta");
+    expect(homeForRole("admin")).toBe("/admin");
     expect(homeForRole(null)).toBe("/cuenta");
   });
 });

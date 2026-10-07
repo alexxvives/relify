@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function LandingFooter() {
   return (
     <footer className="px-5 pt-4 pb-10">
-      <div className="mx-auto max-w-5xl rounded-[2rem] bg-public-card px-8 py-12 shadow-public">
+      <div className="mx-auto w-full max-w-[1440px] rounded-[2rem] bg-public-card px-8 py-12 shadow-public sm:px-10">
         <div className="grid gap-10 md:grid-cols-[1.1fr_2fr]">
           <div>
-            <Link href="/" className="text-lg font-medium tracking-tight">
-              Releva
+            <Link href="/" aria-label="Releva">
+              <Logo />
             </Link>
             <p className="mt-3 max-w-xs text-sm text-public-muted">{landingCopy.footer.blurb}</p>
             <Link
@@ -35,7 +36,9 @@ export function LandingFooter() {
             ))}
           </div>
         </div>
-        <p className="mt-12 border-t border-public-line pt-4 text-xs text-public-muted">Releva {new Date().getFullYear()}</p>
+        <p suppressHydrationWarning className="mt-12 border-t border-public-line pt-4 text-xs text-public-muted">
+          Releva {new Date().getFullYear()}
+        </p>
       </div>
     </footer>
   );

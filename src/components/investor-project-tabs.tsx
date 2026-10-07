@@ -1,21 +1,25 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ArrowLeftRight, Building2, Calendar, FileText, MessageCircle } from "lucide-react";
+import { Building2, Calendar, MessageCircle } from "lucide-react";
 import { companyCopy } from "@/lib/company-copy";
 
 const tabs = [
   { id: "company", label: companyCopy.tabs.company, icon: Building2 },
-  { id: "transaction", label: companyCopy.tabs.transaction, icon: ArrowLeftRight },
   { id: "questions", label: companyCopy.tabs.questions, icon: MessageCircle },
   { id: "meetings", label: companyCopy.tabs.meetings, icon: Calendar },
-  { id: "offer", label: companyCopy.tabs.offer, icon: FileText },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
 
-export function InvestorProjectTabs({ panels }: { panels: Record<TabId, ReactNode> }) {
-  const [tab, setTab] = useState<TabId>("company");
+export function InvestorProjectTabs({
+  panels,
+  initialTab = "company",
+}: {
+  panels: Record<TabId, ReactNode>;
+  initialTab?: TabId;
+}) {
+  const [tab, setTab] = useState<TabId>(initialTab);
 
   return (
     <>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerCompanyPanel } from "@/components/seller-company-panel";
 import { SignedInPage } from "@/components/signed-in-page";
+import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
 import { requireRole } from "@/server/requireRole";
@@ -12,7 +13,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function CompanyDetailsPage() {
+export default async function CompanyDetailsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ seccion?: string; alta?: string }>;
+}) {
+  const query = await searchParams;
+  const focus = query.seccion && isSellerFocusPanel(query.seccion) ? query.seccion : null;
   const user = await requireRole("seller");
   const nifVerified = await companyNifIsVerified(user);
 
@@ -28,7 +35,13 @@ export default async function CompanyDetailsPage() {
 
   return (
     <SignedInPage title={sellerCopy.detailsTitle} showTitle={false}>
-      <SellerCompanyPanel draft={draft} cif={cif} registryFilled={registryFilled} />
+      <SellerCompanyPanel
+        draft={draft}
+        cif={cif}
+        registryFilled={registryFilled && (draft?.legalName.trim().length ?? 0) > 0}
+        focus={focus}
+        promptSetup={query.alta === "1"}
+      />
     </SignedInPage>
   );
 }

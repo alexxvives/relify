@@ -5,9 +5,11 @@ import { useActionState } from "react";
 import { BadgeEuro, Briefcase, Building2 } from "lucide-react";
 import { signOutAction } from "@/app/cuenta/actions";
 import { onboardingAction, type OnboardingState } from "@/app/onboarding/actions";
+import { PhoneField } from "@/components/phone-field";
 import { Button } from "@/components/ui/button";
 import { authCopy } from "@/lib/auth-copy";
-import { referralSources, signupRoles, type ReferralSource, type SignupRole } from "@/lib/auth-input";
+import { referralSources, signupRoles, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
+import { isValidPhoneNational } from "@/lib/phone-countries";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 
 const roleIcons = {
@@ -16,13 +18,12 @@ const roleIcons = {
   advisor: Briefcase,
 } as const;
 
-type OnboardingStep = "role" | "identity" | "phone" | "referral";
+type OnboardingStep = "role" | "identity" | "referral";
 
 const stepNumber: Record<OnboardingStep, number> = {
   role: 1,
   identity: 2,
-  phone: 3,
-  referral: 4,
+  referral: 3,
 };
 
 const fieldClass =
@@ -31,9 +32,9 @@ const fieldClass =
 export function OnboardingForm() {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(onboardingAction, null);
   const [step, setStep] = useState<OnboardingStep>("role");
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [nationalId, setNationalId] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("ES");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<SignupRole | "">("");
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
@@ -52,13 +53,8 @@ export function OnboardingForm() {
     }
 
     if (step === "identity") {
-      if (name.trim().length === 0) {
-        setLocalMessage(authCopy.nameRequired);
-        return;
-      }
-
-      if (lastName.trim().length === 0) {
-        setLocalMessage(authCopy.lastNameRequired);
+      if (!splitAccountName(fullName)) {
+        setLocalMessage(authCopy.fullNameRequired);
         return;
       }
 
@@ -72,18 +68,14 @@ export function OnboardingForm() {
         return;
       }
 
+      if (!isValidPhoneNational(phoneCountry, phone)) {
+        setLocalMessage(phoneCountry === "ES" ? authCopy.phoneInvalid : authCopy.phoneInvalidInternational);
+        return;
+      }
+
       setLocalMessage(null);
-      setStep("phone");
-      return;
+      setStep("referral");
     }
-
-    if (!/^[6-9]\d{8}$/.test(phone)) {
-      setLocalMessage(authCopy.phoneInvalid);
-      return;
-    }
-
-    setLocalMessage(null);
-    setStep("referral");
   }
 
   function goBack() {
@@ -93,12 +85,7 @@ export function OnboardingForm() {
       return;
     }
 
-    if (step === "phone") {
-      setStep("identity");
-      return;
-    }
-
-    setStep("phone");
+    setStep("identity");
   }
 
   return (
@@ -116,10 +103,10 @@ export function OnboardingForm() {
         }
       }}
     >
-      <input type="hidden" name="name" value={name} />
-      <input type="hidden" name="lastName" value={lastName} />
+      <input type="hidden" name="fullName" value={fullName} />
       <input type="hidden" name="nationalId" value={nationalId} />
       <input type="hidden" name="phone" value={phone} />
+      <input type="hidden" name="phoneCountry" value={phoneCountry} />
       <input type="hidden" name="role" value={role} />
       <input type="hidden" name="referralSource" value={referralSource} />
       <p className="text-sm text-[#5c6b78]">
@@ -163,76 +150,45 @@ export function OnboardingForm() {
         </fieldset>
       ) : null}
       {step === "identity" ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4">
           <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-            {authCopy.nameQuestion}
+            {authCopy.fullNameLabel}
             <input
               type="text"
-              autoComplete="given-name"
+              autoComplete="name"
               required
-              maxLength={80}
-              placeholder={authCopy.namePlaceholder}
-              value={name}
+              maxLength={161}
+              placeholder={authCopy.fullNamePlaceholder}
+              value={fullName}
               onChange={(event) => {
-                setName(event.target.value);
+                setFullName(event.target.value);
               }}
               className={fieldClass}
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-            {authCopy.lastNameLabel}
-            <input
-              type="text"
-              autoComplete="family-name"
-              required
-              maxLength={80}
-              placeholder={authCopy.lastNamePlaceholder}
-              value={lastName}
-              onChange={(event) => {
-                setLastName(event.target.value);
-              }}
-              className={fieldClass}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-            {authCopy.nationalIdLabel}
-            <input
-              type="text"
-              autoComplete="off"
-              required
-              maxLength={12}
-              placeholder={authCopy.nationalIdPlaceholder}
-              value={nationalId}
-              aria-invalid={localMessage === authCopy.nationalIdInvalid}
-              onChange={(event) => {
-                setNationalId(event.target.value.toUpperCase());
-              }}
-              className={fieldClass}
-            />
-          </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
+              {authCopy.nationalIdLabel}
+              <input
+                type="text"
+                autoComplete="off"
+                required
+                maxLength={12}
+                placeholder={authCopy.nationalIdPlaceholder}
+                value={nationalId}
+                aria-invalid={localMessage === authCopy.nationalIdInvalid}
+                onChange={(event) => {
+                  setNationalId(event.target.value.toUpperCase());
+                }}
+                className={fieldClass}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
+              {authCopy.phoneLabel}
+              <PhoneField country={phoneCountry} national={phone} onCountryChange={setPhoneCountry} onNationalChange={setPhone} />
+            </label>
+          </div>
         </div>
-      ) : null}
-      {step === "phone" ? (
-        <label className="flex max-w-md flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-          {authCopy.phoneLabel}
-          <span className="flex h-12 overflow-hidden rounded-xl border border-[#d9e2f2] bg-[#eef3ff]">
-            <span className="inline-flex items-center border-r border-[#d9e2f2] px-3 text-sm text-[#5c6b78]">
-              {authCopy.phonePrefix}
-            </span>
-            <input
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              required
-              maxLength={9}
-              value={phone}
-              onChange={(event) => {
-                setPhone(event.target.value.replace(/\D/g, "").slice(0, 9));
-              }}
-              className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none"
-            />
-          </span>
-        </label>
       ) : null}
       {step === "referral" ? (
         <fieldset className="flex flex-col gap-3">

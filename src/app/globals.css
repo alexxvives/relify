@@ -106,6 +106,7 @@
   --public-radius: 1.5rem;
   --public-shadow: 0 18px 40px -24px rgb(18 52 58 / 0.22);
   --public-font: var(--font-dm), "Segoe UI", sans-serif;
+  --public-display: var(--font-instrument), Georgia, "Times New Roman", serif;
 }
 
 .dark {
@@ -268,6 +269,1107 @@
   mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
 }
 
+@keyframes landing-metric {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-metric {
+  animation: landing-metric 0.55s ease both;
+}
+
+.landing-metric:nth-child(1) {
+  animation-delay: 0.15s;
+}
+
+.landing-metric:nth-child(2) {
+  animation-delay: 0.55s;
+}
+
+.landing-metric:nth-child(3) {
+  animation-delay: 0.95s;
+}
+
+.landing-metric:nth-child(4) {
+  animation-delay: 1.35s;
+}
+
+.releva-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 0.75rem 0.5rem;
+  padding: 3.25rem 1.25rem 3.5rem;
+  border: 1px solid var(--public-line);
+  border-radius: 2rem;
+  background:
+    radial-gradient(980px 620px at -8% -12%, #7ed9d0 0%, transparent 56%),
+    radial-gradient(760px 540px at 108% 0%, #0f6e73 0%, transparent 52%),
+    radial-gradient(640px 460px at 72% 118%, #9fe3dc 0%, transparent 58%),
+    linear-gradient(128deg, #f4fbfa 0%, #d2eeeb 34%, #eef8f7 62%, #b9e0dc 100%);
+  box-shadow: var(--public-shadow);
+}
+
+.releva-word {
+  font-family: var(--public-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.releva-hero-stage {
+  position: relative;
+  display: flex;
+  height: 28rem;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(280px 220px at 80% 12%, rgb(126 208 203 / 0.28), transparent 70%),
+    radial-gradient(240px 200px at 10% 88%, rgb(15 110 115 / 0.55), transparent 68%),
+    var(--public-ink);
+  padding: 1.25rem 1rem 0;
+  box-shadow: var(--public-shadow);
+}
+
+.releva-hero-kicker {
+  margin-bottom: 0.85rem;
+  color: rgb(255 255 255 / 0.62);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.releva-hero-mask {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 84%, transparent);
+}
+
+.releva-hero-reel {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0.4rem 0.35rem 0;
+  list-style: none;
+}
+
+.releva-hero-slip {
+  margin-bottom: 0.7rem;
+  display: grid;
+  grid-template-columns: 3.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  border-radius: 1.15rem;
+  background: #fff;
+  padding: 0.7rem 0.85rem 0.7rem 0.7rem;
+  color: var(--public-ink);
+  transform-origin: center center;
+}
+
+.releva-hero-portrait {
+  display: grid;
+  width: 3.35rem;
+  height: 3.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(15 110 115 / 0.16);
+}
+
+.releva-user {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: inherit;
+  background: radial-gradient(circle at 32% 22%, #ffffff 0%, #d7f4f0 42%, #7ed0cb 100%);
+  color: #0c3a3c;
+}
+
+.releva-user-b {
+  background: radial-gradient(circle at 32% 22%, #ffffff 0%, #c5ebe8 40%, #2f9d97 100%);
+}
+
+.releva-user-c {
+  background: radial-gradient(circle at 32% 22%, #ffffff 0%, #d3efe8 42%, #1c8f84 100%);
+}
+
+.releva-user-d {
+  background: radial-gradient(circle at 32% 22%, #ffffff 0%, #e7f7f5 36%, #5ebdb6 100%);
+}
+
+.releva-user-glyph {
+  width: 58%;
+  height: 58%;
+}
+
+.releva-hero-who,
+.releva-hero-city,
+.releva-hero-seek {
+  display: block;
+}
+
+.releva-hero-who {
+  color: var(--public-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.releva-hero-city {
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.releva-hero-seek {
+  margin-top: 0.1rem;
+  color: var(--public-clay);
+  font-size: 0.92rem;
+}
+
+.releva-hero-live {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #1c9a86;
+  box-shadow: 0 0 0 0 rgb(28 154 134 / 0.55);
+  animation: releva-hero-live 1.8s ease-out infinite;
+}
+
+.releva-hero-rise {
+  animation: releva-hv-card-in 0.7s ease both;
+}
+
+.releva-hero-rise-late {
+  animation-delay: 0.12s;
+}
+
+.releva-hero-rise-later {
+  animation-delay: 0.24s;
+}
+
+.releva-hero-photo {
+  animation: releva-hero-photo 18s ease-in-out infinite;
+}
+
+.releva-live-dot {
+  animation: releva-live-dot 1.8s ease-in-out infinite;
+}
+
+.deal-pulse {
+  animation: deal-pulse 1.6s ease-out infinite;
+}
+
+.completion-grow {
+  animation: completion-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.releva-net {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.85rem;
+  background:
+    radial-gradient(520px 340px at 50% 48%, rgb(15 110 115 / 0.55), transparent 68%),
+    radial-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1px),
+    linear-gradient(165deg, #18464d 0%, #102e33 58%, #0c3a3c 100%);
+  background-size: auto, 22px 22px, auto;
+  box-shadow: var(--public-shadow);
+}
+
+.releva-net-field {
+  position: relative;
+  aspect-ratio: 880 / 600;
+}
+
+.releva-node {
+  position: absolute;
+  z-index: 1;
+  width: 7.1%;
+  translate: -50% -50%;
+  text-align: center;
+}
+
+.releva-node-hub {
+  width: 11.4%;
+}
+
+.releva-node-photo {
+  position: relative;
+  display: grid;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid rgb(255 255 255 / 0.88);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.7);
+}
+
+.releva-node-hub .releva-node-photo {
+  border-width: 3px;
+  box-shadow:
+    0 0 0 6px rgb(126 208 203 / 0.28),
+    0 16px 30px -16px rgb(0 0 0 / 0.65);
+}
+
+.releva-node-label,
+.releva-node-seek {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: rgb(10 36 40 / 0.78);
+  white-space: nowrap;
+}
+
+.releva-node-label {
+  top: calc(100% + 0.4rem);
+  padding: 0.08rem 0.45rem;
+  color: #fff;
+  font-size: clamp(11px, 1.05vw, 14px);
+  font-weight: 500;
+}
+
+.releva-node-seek {
+  top: calc(100% + 1.55rem);
+  padding: 0.02rem 0.4rem;
+  color: #d5f4f1;
+  font-size: clamp(10px, 0.9vw, 12px);
+}
+
+.releva-node-hub .releva-node-label {
+  top: calc(100% + 0.95rem);
+  font-size: clamp(12px, 1.2vw, 16px);
+}
+
+.releva-net-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.releva-net-line,
+.releva-net-rim,
+.releva-net-dash {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.releva-net-line {
+  stroke: rgb(255 255 255 / 0.28);
+  stroke-width: 1.4;
+}
+
+.releva-net-rim {
+  stroke: rgb(126 208 203 / 0.35);
+  stroke-width: 1.1;
+}
+
+.releva-net-dash {
+  stroke: rgb(214 255 250 / 0.95);
+  stroke-width: 1.6;
+  stroke-dasharray: 8 22;
+  animation: releva-net-flow 7s linear infinite;
+}
+
+.releva-net-pin {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  translate: -50% -50%;
+  align-items: center;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.releva-net-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--public-clay);
+  box-shadow: 0 0 0 0 rgb(15 110 115 / 0.45);
+  animation: releva-net-pulse 2.6s ease-out infinite;
+}
+
+.releva-net-label {
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.15rem 0.45rem;
+  color: var(--public-ink);
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px -12px rgb(18 52 58 / 0.6);
+}
+
+@media (max-width: 639px) {
+  .releva-net-label {
+    display: none;
+  }
+}
+
+.releva-path-cursor {
+  display: none;
+}
+
+.releva-path-mark {
+  position: absolute;
+  top: 1.55rem;
+  right: 1.55rem;
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border: 2px solid var(--public-clay);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.releva-path-mark span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: transparent;
+  transform: scale(0.35);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.releva-path-mark-on {
+  border-color: #fff;
+}
+
+.releva-path-mark-on span {
+  background: var(--public-clay);
+  transform: scale(1);
+}
+
+.releva-path-wait .releva-path-mark {
+  animation: releva-path-ring 1.8s ease-out infinite;
+}
+
+.releva-path-wait {
+  animation: releva-path-glow 2.6s ease-in-out infinite;
+}
+
+.releva-how-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 72px;
+  align-items: start;
+}
+
+.releva-how-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.releva-how-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 20px;
+  align-content: center;
+  min-height: 42vh;
+  padding: 3vh 0;
+}
+
+.releva-how-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 13px;
+  display: block;
+  width: 1px;
+  background: rgb(18 52 58 / 0.14);
+}
+
+.releva-how-step:first-child .releva-how-rail {
+  background: linear-gradient(rgb(18 52 58 / 0), rgb(18 52 58 / 0.14) 40%);
+}
+
+.releva-how-step:last-child .releva-how-rail {
+  background: linear-gradient(rgb(18 52 58 / 0.14), rgb(18 52 58 / 0.14) 48%, rgb(18 52 58 / 0) 76%);
+}
+
+.releva-how-dot {
+  position: absolute;
+  top: calc(50% - 6px);
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgb(18 52 58 / 0.28);
+  border-radius: 50%;
+  background: var(--public-sand);
+  transform: translateX(-50%);
+  transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
+}
+
+.releva-how-on .releva-how-dot {
+  border-color: var(--public-clay);
+  background: var(--public-clay);
+  box-shadow: 0 0 0 5px rgb(15 110 115 / 0.12);
+}
+
+.releva-how-copy {
+  grid-column: 2;
+  opacity: 0.52;
+  transition: opacity 0.4s;
+}
+
+.releva-how-on .releva-how-copy {
+  opacity: 1;
+}
+
+.releva-how-num {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--public-clay);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.releva-how-title {
+  margin: 0 0 10px;
+  color: var(--public-ink);
+  font-size: clamp(22px, 2.4vw, 29px);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+.releva-how-body {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--public-muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.releva-how-inline {
+  display: none;
+}
+
+.releva-how-visual {
+  position: sticky;
+  top: clamp(124px, calc(-215px + 50vh), 300px);
+}
+
+.releva-hv-stage {
+  display: grid;
+}
+
+.releva-hv-layer {
+  grid-area: 1 / 1;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.releva-hv-from {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.releva-hv-layer-out {
+  opacity: 0;
+  transform: translateY(-16px);
+  pointer-events: none;
+}
+
+.releva-hv-card {
+  display: flex;
+  min-height: 396px;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid rgb(18 52 58 / 0.1);
+  border-radius: 22px;
+  background: var(--public-sand);
+  box-shadow: 0 30px 60px -38px rgb(18 52 58 / 0.45);
+}
+
+.releva-hv-enter {
+  animation: releva-hv-card-in 0.48s ease;
+}
+
+.releva-hv-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 16px;
+}
+
+.releva-hv-mark {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--public-clay);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.releva-hv-head-title {
+  color: var(--public-clay);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.releva-hv-chip {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border: 1px solid rgb(15 110 115 / 0.18);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.8);
+  color: var(--public-clay);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.releva-hv-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.releva-hv-row {
+  animation: releva-hv-row-in 0.34s ease both;
+}
+
+.releva-hv-field,
+.releva-hv-task,
+.releva-hv-person {
+  border: 1px solid rgb(18 52 58 / 0.08);
+  background: #fff;
+}
+
+.releva-hv-field {
+  padding: 13px 15px;
+  border-radius: 14px;
+}
+
+.releva-hv-label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--public-muted);
+  font-size: 13px;
+}
+
+.releva-hv-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.releva-hv-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgb(18 52 58 / 0.1);
+  border-radius: 999px;
+  background: var(--public-sand);
+  color: var(--public-muted);
+  font-size: 14px;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.releva-hv-opt-on {
+  border-color: var(--public-clay);
+  background: var(--public-clay);
+  color: #fff;
+  font-weight: 500;
+  animation: releva-hv-pick 0.34s ease;
+}
+
+.releva-hv-tick {
+  display: inline-flex;
+  width: 12px;
+  overflow: hidden;
+  animation: releva-hv-tick 0.26s ease;
+}
+
+.releva-hv-input {
+  display: flex;
+  height: 23px;
+  align-items: center;
+  color: var(--public-ink);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.releva-hv-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 16px;
+  margin-left: 3px;
+  background: var(--public-clay);
+}
+
+.releva-hv-caret-blink {
+  animation: releva-hv-blink 0.9s steps(1) infinite;
+}
+
+.releva-hv-progress {
+  display: block;
+  height: 5px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(15 110 115 / 0.12);
+}
+
+.releva-hv-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--public-clay);
+  transition: width 0.5s ease;
+}
+
+.releva-hv-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 15px;
+  border-radius: 12px;
+}
+
+.releva-hv-task-name {
+  color: var(--public-ink);
+  font-size: 14.5px;
+}
+
+.releva-hv-task-value {
+  color: var(--public-muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.releva-hv-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.releva-hv-state {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgb(15 110 115 / 0.12);
+  color: var(--public-clay);
+  font-size: 12.5px;
+  font-weight: 500;
+  animation: releva-hv-state-in 0.24s ease;
+}
+
+.releva-hv-state-pending {
+  background: rgb(18 52 58 / 0.05);
+  color: var(--public-muted);
+}
+
+.releva-hv-state-live {
+  margin-left: auto;
+}
+
+.releva-hv-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgb(61 100 108 / 0.3);
+  border-top-color: var(--public-muted);
+  border-radius: 50%;
+  animation: releva-hv-spin 0.9s linear infinite;
+}
+
+.releva-hv-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: 14px;
+}
+
+.releva-hv-avatar {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--public-clay);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgb(15 110 115 / 0.1), 0 8px 16px -10px rgb(18 52 58 / 0.45);
+}
+
+.releva-hv-person-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.releva-hv-person-name {
+  color: var(--public-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.releva-hv-person-role {
+  color: var(--public-muted);
+  font-size: 13px;
+}
+
+.releva-hv-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.releva-hv-day {
+  display: flex;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(18 52 58 / 0.08);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--public-muted);
+  font-size: 13px;
+}
+
+.releva-hv-day-on {
+  border-color: var(--public-clay);
+  background: var(--public-clay);
+  color: #fff;
+  font-weight: 600;
+  animation: releva-hv-day 0.3s ease;
+}
+
+.releva-hv-foot {
+  margin-top: auto;
+  padding: 14px 4px 2px;
+  opacity: 0;
+}
+
+.releva-hv-foot-in,
+.releva-hv-row.releva-hv-foot {
+  opacity: 1;
+}
+
+.releva-hv-foot-in {
+  transition: opacity 0.4s ease;
+}
+
+.releva-hv-strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--public-clay);
+  font-size: 15px;
+}
+
+.releva-hv-note {
+  display: block;
+  color: var(--public-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@keyframes releva-hv-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes releva-hv-card-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes releva-hv-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes releva-hv-pick {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes releva-hv-tick {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 12px;
+    opacity: 1;
+  }
+}
+
+@keyframes releva-hv-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes releva-hv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes releva-hv-state-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes releva-hv-day {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes releva-hero-photo {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes releva-hero-live {
+  0% {
+    box-shadow: 0 0 0 0 rgb(28 154 134 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgb(28 154 134 / 0);
+  }
+}
+
+@keyframes deal-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+
+  100% {
+    transform: scale(2.15);
+    opacity: 0;
+  }
+}
+
+@keyframes completion-grow {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+@keyframes releva-live-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.65);
+  }
+}
+
+@keyframes releva-net-flow {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+
+@keyframes releva-net-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(15 110 115 / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(15 110 115 / 0);
+  }
+}
+
+@keyframes releva-path-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(15 110 115 / 0.38);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(15 110 115 / 0);
+  }
+}
+
+@keyframes releva-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.releva-shake {
+  animation: releva-shake 0.45s ease;
+}
+
+@keyframes releva-path-glow {
+  0%,
+  100% {
+    box-shadow: 0 18px 40px -24px rgb(18 52 58 / 0.28);
+  }
+  50% {
+    box-shadow: 0 18px 40px -24px rgb(18 52 58 / 0.28), 0 0 0 7px rgb(15 110 115 / 0.14);
+  }
+}
+
+@media (min-width: 640px) {
+  .releva-hero {
+    margin-inline: 1.25rem;
+    padding: 4.5rem 2.5rem 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .releva-hero-stage {
+    height: 40rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .releva-path-cursor {
+    position: absolute;
+    z-index: 5;
+    top: 54%;
+    left: 16%;
+    display: block;
+    color: var(--public-ink);
+    pointer-events: none;
+    filter: drop-shadow(0 8px 10px rgb(18 52 58 / 0.2));
+  }
+}
+
+@media (max-width: 1023px) {
+  .releva-how-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .releva-how-visual {
+    display: none;
+  }
+
+  .releva-how-inline {
+    display: block;
+    grid-column: 2;
+    margin-top: 22px;
+  }
+
+  .releva-how-step {
+    align-content: start;
+    min-height: 0;
+    padding: 0 0 40px;
+  }
+
+  .releva-how-copy,
+  .releva-how-on .releva-how-copy {
+    opacity: 1;
+  }
+
+  .releva-how-dot,
+  .releva-how-on .releva-how-dot {
+    top: 5px;
+    border-color: var(--public-clay);
+    background: var(--public-clay);
+    box-shadow: none;
+  }
+
+  .releva-hv-card {
+    min-height: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .releva-reel-a,
   .releva-reel-b,
@@ -276,7 +1378,124 @@
   .releva-float-late,
   .releva-marquee,
   .releva-cursor,
-  .releva-toast {
+  .releva-toast,
+  .landing-metric,
+  .releva-hv-card,
+  .releva-hv-enter,
+  .releva-hv-layer,
+  .releva-hv-layer-out,
+  .releva-hv-row,
+  .releva-hv-opt-on,
+  .releva-hv-tick,
+  .releva-hv-caret-blink,
+  .releva-hv-spinner,
+  .releva-hv-state,
+  .releva-hv-day-on,
+  .releva-hero-rise,
+  .releva-hero-rise-late,
+  .releva-hero-rise-later,
+  .releva-hero-photo,
+  .releva-path-wait,
+  .releva-path-wait .releva-path-mark {
     animation: none;
   }
+
+  .releva-hv-foot {
+    opacity: 1;
+  }
+
+  .releva-hv-progress-fill {
+    transition: none;
+  }
+}
+
+.nav-icon {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nav-motion-house { --nav-motion: nav-house; }
+.nav-motion-building { --nav-motion: nav-building; }
+.nav-motion-files { --nav-motion: nav-files; }
+.nav-motion-steps { --nav-motion: nav-steps; }
+.nav-motion-heart { --nav-motion: nav-heart; }
+.nav-motion-chat { --nav-motion: nav-chat; }
+.nav-motion-case { --nav-motion: nav-case; }
+.nav-motion-board { --nav-motion: nav-board; }
+.nav-motion-crown { --nav-motion: nav-crown; }
+.nav-motion-bell { --nav-motion: nav-bell; }
+.nav-motion-phone { --nav-motion: nav-phone; }
+.nav-motion-mail { --nav-motion: nav-mail; }
+
+.group:hover .nav-icon,
+.group:focus-visible .nav-icon,
+.nav-icon-play {
+  animation-name: var(--nav-motion);
+  animation-duration: 0.7s;
+  animation-timing-function: ease;
+}
+
+@keyframes nav-house {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-3px); }
+}
+
+@keyframes nav-building {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px) scale(1.06); }
+}
+
+@keyframes nav-files {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(-8deg); }
+  70% { transform: rotate(4deg); }
+}
+
+@keyframes nav-steps {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+
+@keyframes nav-heart {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+}
+
+@keyframes nav-chat {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-2px); }
+}
+
+@keyframes nav-case {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+@keyframes nav-board {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes nav-crown {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  40% { transform: translateY(-2px) rotate(-6deg); }
+  70% { transform: rotate(4deg); }
+}
+
+@keyframes nav-bell {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-12deg); }
+  60% { transform: rotate(6deg); }
+}
+
+@keyframes nav-phone {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-10deg); }
+  60% { transform: rotate(8deg); }
+}
+
+@keyframes nav-mail {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }

@@ -31,9 +31,9 @@ export function readSiteUrl(): URL {
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   });
 
-  if (!parsed.success) {
-    throw new Error("Invalid server environment");
+  if (parsed.success) {
+    return new URL(parsed.data.BETTER_AUTH_URL);
   }
 
-  return new URL(parsed.data.BETTER_AUTH_URL);
+  return new URL("https://releva.alexxvives.workers.dev");
 }

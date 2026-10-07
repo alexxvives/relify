@@ -23,8 +23,8 @@ export default async function SellerServicesPage() {
   return (
     <SignedInPage title={sellerCopy.servicesHeading}>
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6">
-        <h2 className="text-lg font-semibold">{advisoryCopy.heading}</h2>
-        <p className="mt-1 text-sm text-[#667085]">{advisoryCopy.intro}</p>
+        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>
+        <p className="mt-1 text-sm text-[#64748b]">{advisoryCopy.intro}</p>
         <AdvisoryPicker layout="cards" />
       </section>
     </SignedInPage>

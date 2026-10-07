@@ -14,4 +14,7 @@ export const accessCopy = {
   forbidden: "Solo un inversor puede solicitar acceso.",
   missing: "Ese proyecto no está publicado.",
   ndaRequired: "Primero tienes que solicitar acceso.",
+  planRequired: "Elige un plan para conectar con empresas.",
+  matchLimit: "Has usado los 3 matches de este mes.",
+  waitingForSeller: "Solicitud enviada.",
 } as const;

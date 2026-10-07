@@ -14,7 +14,7 @@ export async function acceptNda(user: CurrentUser, input: ProjectAccessInput): P
   const existing = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { id: true, ndaAcceptedAt: true },
+        select: { id: true, ndaAcceptedAt: true, sellerAcceptedAt: true },
       })
     : null;
 
@@ -23,6 +23,7 @@ export async function acceptNda(user: CurrentUser, input: ProjectAccessInput): P
     role: user.role,
     projectStatus: project?.status ?? null,
     requested: existing !== null,
+    sellerMatched: existing !== null && existing.sellerAcceptedAt !== null,
     alreadyAccepted: existing !== null && existing.ndaAcceptedAt !== null,
   });
 

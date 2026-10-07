@@ -1,5 +1,8 @@
 import * as z from "zod";
 import { authCopy } from "./auth-copy";
+import { isValidPhoneNational, phoneCountryByIso } from "./phone-countries";
+
+export { storedPhone } from "./phone-countries";
 import { isValidSpanishCif } from "./spanish-cif";
 
 export const signupRoles = ["seller", "investor", "advisor"] as const;
@@ -25,27 +28,75 @@ export const signUpSchema = z.object({
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
-export const phoneNationalSchema = z.string().regex(/^[6-9]\d{8}$/);
+export function splitAccountName(value: string): { name: string; lastName: string } | null {
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  const space = trimmed.indexOf(" ");
 
-export const onboardingSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  lastName: z.string().trim().min(1).max(80),
-  nationalId: z.string().trim().superRefine((value, context) => {
-    if (value.length === 0) {
-      context.addIssue({ code: "custom", message: "required" });
-      return;
-    }
+  if (space <= 0) {
+    return null;
+  }
 
-    if (!isValidSpanishCif(value)) {
-      context.addIssue({ code: "custom", message: "invalid" });
-    }
-  }),
-  phone: phoneNationalSchema,
-  role: z.enum(signupRoles),
-  referralSource: z.enum(referralSources),
+  const name = trimmed.slice(0, space);
+  const lastName = trimmed.slice(space + 1);
+
+  if (name.length === 0 || name.length > 80 || lastName.length === 0 || lastName.length > 80) {
+    return null;
+  }
+
+  return { name, lastName };
+}
+
+const nationalIdSchema = z.string().trim().superRefine((value, context) => {
+  if (value.length === 0) {
+    context.addIssue({ code: "custom", message: "required" });
+    return;
+  }
+
+  if (!isValidSpanishCif(value)) {
+    context.addIssue({ code: "custom", message: "invalid" });
+  }
 });
 
+function refinePhone(value: { phoneCountry: string; phone: string }, context: z.RefinementCtx): void {
+  if (!phoneCountryByIso(value.phoneCountry)) {
+    context.addIssue({ code: "custom", path: ["phoneCountry"], message: "invalid" });
+    return;
+  }
+
+  if (!isValidPhoneNational(value.phoneCountry, value.phone)) {
+    context.addIssue({
+      code: "custom",
+      path: ["phone"],
+      message: value.phoneCountry === "ES" ? "spain" : "international",
+    });
+  }
+}
+
+export const onboardingSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    lastName: z.string().trim().min(1).max(80),
+    nationalId: nationalIdSchema,
+    phoneCountry: z.string(),
+    phone: z.string(),
+    role: z.enum(signupRoles),
+    referralSource: z.enum(referralSources),
+  })
+  .superRefine(refinePhone);
+
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
+
+export const accountProfileSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    lastName: z.string().trim().min(1).max(80),
+    nationalId: nationalIdSchema,
+    phoneCountry: z.string(),
+    phone: z.string(),
+  })
+  .superRefine(refinePhone);
+
+export type AccountProfileInput = z.infer<typeof accountProfileSchema>;
 
 export const signInSchema = z.object({
   email: emailSchema,
@@ -65,6 +116,10 @@ export function homeForRole(role: UserRoleName | null): string {
 
   if (role === "advisor") {
     return "/mandatos";
+  }
+
+  if (role === "admin") {
+    return "/admin";
   }
 
   return "/cuenta";
@@ -103,8 +158,9 @@ export function accountInitials(displayName: string): string {
   return letters.toLocaleUpperCase("es-ES");
 }
 
-export function storedPhone(national: string): string {
-  return `+34${national}`;
+export function parseAccountEmail(value: string): string | null {
+  const parsed = emailSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 export function pendingAccountName(email: string): string {
@@ -156,8 +212,9 @@ export function onboardingFieldMessage(error: z.ZodError): string {
     return issue?.message === "required" ? authCopy.nationalIdRequired : authCopy.nationalIdInvalid;
   }
 
-  if (field === "phone") {
-    return authCopy.phoneInvalid;
+  if (field === "phone" || field === "phoneCountry") {
+    const issue = error.issues.find((item) => item.path[0] === "phone" || item.path[0] === "phoneCountry");
+    return issue?.message === "international" ? authCopy.phoneInvalidInternational : authCopy.phoneInvalid;
   }
 
   if (field === "role") {
@@ -196,6 +253,14 @@ export function messageForAuthCode(code: string | undefined, fallback: string): 
 
   if (code === "PASSWORD_TOO_SHORT" || code === "PASSWORD_TOO_LONG") {
     return authCopy.passwordLength;
+  }
+
+  if (code === "INVALID_PASSWORD") {
+    return authCopy.passwordWrong;
+  }
+
+  if (code === "SESSION_NOT_FRESH" || code === "SESSION_EXPIRED") {
+    return authCopy.sessionStale;
   }
 
   return fallback;

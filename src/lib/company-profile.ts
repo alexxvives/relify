@@ -10,9 +10,25 @@ export const headcountLabels: Record<HeadcountRangeId, string> = {
   band_over_50: "+50",
 };
 
+export const customerBases = ["business", "consumer", "mixed"] as const;
+
+export type CustomerBaseId = (typeof customerBases)[number];
+
+export function isCustomerBase(value: string): value is CustomerBaseId {
+  return customerBases.some((item) => item === value);
+}
+
 export const sliceKinds = ["capital", "product", "client"] as const;
 
 export type SliceKind = (typeof sliceKinds)[number];
+
+export function activityKindsForCustomer(customerBase: CustomerBaseId | "" | null): SliceKind[] {
+  if (customerBase === "consumer") {
+    return ["capital", "product"];
+  }
+
+  return ["capital", "product", "client"];
+}
 
 export const maxSecondaryCnaes = 4;
 export const maxActivitySlices = 8;
@@ -20,8 +36,9 @@ export const descriptionMaxLength = 4000;
 export const foundedYearMin = 1800;
 export const statementYearMin = 1990;
 export const statementYearMax = 2100;
-export const defaultClosedYearNumbers = [2023, 2024, 2025] as const;
-export const defaultForecastYearNumber = 2026;
+export const statementHistoryCount = 3;
+/** Most Spanish SMEs close the exercise on 31 December. */
+export const defaultFiscalCloseMonth = 12;
 
 export const pnlInputKeys = [
   "sales",
@@ -127,6 +144,40 @@ export function isHeadcountRange(value: string): value is HeadcountRangeId {
 
 export function currentCalendarYear(): number {
   return new Date().getFullYear();
+}
+
+function lastDayOfMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
+export function lastCompletedStatementYear(today: Date, closeMonth = defaultFiscalCloseMonth): number {
+  const month = today.getMonth() + 1;
+  const year = today.getFullYear();
+
+  if (month > closeMonth || (month === closeMonth && today.getDate() >= lastDayOfMonth(year, closeMonth))) {
+    return year;
+  }
+
+  return year - 1;
+}
+
+export function statementWindow(
+  today: Date,
+  closeMonth = defaultFiscalCloseMonth,
+): { closed: [number, number, number]; forecast: number } {
+  const last = lastCompletedStatementYear(today, closeMonth);
+  return {
+    closed: [last - 2, last - 1, last],
+    forecast: last + 1,
+  };
+}
+
+export function statementYearIsBeforeFounding(yearText: string, foundedYearText: string): boolean {
+  if (!/^\d{4}$/.test(yearText) || !/^\d{4}$/.test(foundedYearText)) {
+    return false;
+  }
+
+  return Number(yearText) < Number(foundedYearText);
 }
 
 export function isFoundedYear(value: number): boolean {
@@ -276,6 +327,81 @@ export function sliceCenterNoun(kind: SliceKind, count: number): string {
 
 export function percentsSumToHundred(basisPoints: number[]): boolean {
   return basisPoints.reduce((total, value) => total + value, 0) === 10_000;
+}
+
+export function slicePercentIssue(values: string[]): "ok" | "over" | "short" {
+  const filled = values.map((value) => value.trim()).filter((value) => value.length > 0);
+
+  if (filled.length === 0) {
+    return "ok";
+  }
+
+  const parsed: number[] = [];
+
+  for (const value of filled) {
+    const points = parsePercentToBasisPoints(value);
+
+    if (points === null) {
+      return "short";
+    }
+
+    parsed.push(points);
+  }
+
+  const total = parsed.reduce((sum, value) => sum + value, 0);
+
+  if (total > 10_000) {
+    return "over";
+  }
+
+  if (total !== 10_000) {
+    return "short";
+  }
+
+  return "ok";
+}
+
+export const sellerFocusPanels = ["identity", "description", "cnae", "income", "balance", "structure", "price"] as const;
+
+export type SellerFocusPanel = (typeof sellerFocusPanels)[number];
+
+export type SellerPanelFlags = {
+  identity: boolean;
+  description: boolean;
+  cnae: boolean;
+  income: boolean;
+  balance: boolean;
+  structure: boolean;
+  price: boolean;
+};
+
+export function isSellerFocusPanel(value: string): value is SellerFocusPanel {
+  return sellerFocusPanels.some((panel) => panel === value);
+}
+
+export function sellerPanelFlags(input: {
+  legalName: string;
+  cif: string;
+  description: string;
+  principalCnae: string;
+  closedYears: { sales: string; currentAssets: string; equity: string }[];
+  headcount: string;
+  capitalPercents: string[];
+  askingPrice: string;
+}): SellerPanelFlags {
+  return {
+    identity: input.legalName.trim().length > 0 && input.cif.trim().length > 0,
+    description: input.description.trim().length > 0,
+    cnae: input.principalCnae.trim().length > 0,
+    income: input.closedYears.some((year) => year.sales.trim().length > 0),
+    balance: input.closedYears.some((year) => year.currentAssets.trim().length > 0 || year.equity.trim().length > 0),
+    structure: input.headcount.trim().length > 0 || input.capitalPercents.some((value) => value.trim().length > 0),
+    price: input.askingPrice.trim().length > 0,
+  };
+}
+
+export function filledSellerPanels(flags: SellerPanelFlags): number {
+  return Object.values(flags).filter(Boolean).length;
 }
 
 export function descriptionContainsSecret(description: string, secrets: string[]): boolean {

@@ -30,6 +30,7 @@ export const investorProjectSelect = {
   askingPriceCents: true,
   opexCents: true,
   headcountRange: true,
+  customerBase: true,
   cnaes: {
     select: {
       code: true,
@@ -113,6 +114,7 @@ export type InvestorProjectProfile = {
   capital: InvestorSlice[];
   products: InvestorSlice[];
   clients: InvestorSlice[];
+  customerBase: "business" | "consumer" | "mixed" | null;
   headcountRange: HeadcountRangeId | null;
   incomeYears: InvestorYearColumn[];
   incomeRows: InvestorStatementRow[];
@@ -132,6 +134,7 @@ type InvestorProjectRecord = {
   askingPriceCents: number;
   opexCents: number | null;
   headcountRange: string | null;
+  customerBase: "business" | "consumer" | "mixed" | null;
   cnaes: { code: string; role: "principal" | "secondary"; position: number }[];
   activitySlices: { kind: SliceKind; position: number; basisPoints: number }[];
   years: Array<{
@@ -255,6 +258,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     capital: slicesFor(record, "capital"),
     products: slicesFor(record, "product"),
     clients: slicesFor(record, "client"),
+    customerBase: record.customerBase,
     headcountRange: record.headcountRange && isHeadcountRange(record.headcountRange) ? record.headcountRange : null,
     incomeYears,
     incomeRows,

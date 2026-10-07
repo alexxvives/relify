@@ -4,6 +4,7 @@ import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 import { prisma } from "@/server/db";
+import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export type VerifyNifResult = { ok: true } | { ok: false; message: string };
 
@@ -41,7 +42,13 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
     return { ok: false, message: companyCopy.nifInvalid };
   }
 
-  const record = await lookupCompanyRegistry(cif);
+  const lookup = await lookupCompanyRegistry(cif);
+
+  if (!lookup.ok) {
+    return { ok: false, message: companyCopy.nifRegistryUnavailable };
+  }
+
+  const record = lookup.record;
 
   if (record) {
     const data = prefillData(record);
@@ -54,11 +61,13 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
     await prisma.companyRegistryPrefill.deleteMany({ where: { userId: user.id } });
   }
 
-  const draft = await prisma.project.findFirst({
-    where: { ownerId: user.id, status: "draft" },
-    orderBy: { createdAt: "desc" },
-    select: { id: true },
-  });
+  const activeId = await activeSellerProjectId(user.id);
+  const draft = activeId
+    ? await prisma.project.findFirst({
+        where: { id: activeId, ownerId: user.id },
+        select: { id: true },
+      })
+    : null;
 
   if (draft) {
     await prisma.project.update({ where: { id: draft.id }, data: { cif } });
@@ -75,30 +84,32 @@ export async function companyNifIsVerified(user: CurrentUser): Promise<boolean> 
     return false;
   }
 
-  const [draft, account] = await Promise.all([
+  const [owned, account] = await Promise.all([
     prisma.project.findFirst({
-      where: { ownerId: user.id, status: "draft" },
+      where: { ownerId: user.id, NOT: { cif: "" } },
       orderBy: { createdAt: "desc" },
       select: { cif: true },
     }),
     prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
   ]);
-  const stored = draft?.cif.trim() ?? "";
+  const stored = owned?.cif.trim() ?? "";
   const pending = account?.pendingCif?.trim() ?? "";
 
   return stored.length > 0 || pending.length > 0;
 }
 
 export async function getSellerCif(user: CurrentUser): Promise<string> {
-  const [draft, account] = await Promise.all([
-    prisma.project.findFirst({
-      where: { ownerId: user.id, status: "draft" },
-      orderBy: { createdAt: "desc" },
-      select: { cif: true },
-    }),
+  const activeId = await activeSellerProjectId(user.id);
+  const [owned, account] = await Promise.all([
+    activeId
+      ? prisma.project.findFirst({
+          where: { id: activeId, ownerId: user.id },
+          select: { cif: true },
+        })
+      : null,
     prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
   ]);
-  const stored = draft?.cif.trim() ?? "";
+  const stored = owned?.cif.trim() ?? "";
 
   if (stored.length > 0) {
     return stored;

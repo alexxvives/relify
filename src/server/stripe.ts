@@ -1,0 +1,46 @@
+import { randomBytes } from "node:crypto";
+import Stripe from "stripe";
+
+let client: Stripe | null = null;
+
+export function readStripeSecret(): string | null {
+  const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+
+  if (key.startsWith("sk_test_") || key.startsWith("rk_test_")) {
+    return key;
+  }
+
+  return null;
+}
+
+export function readStripeWebhookSecret(): string | null {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "";
+  return secret.startsWith("whsec_") ? secret : null;
+}
+
+export function stripeClient(): Stripe | null {
+  const key = readStripeSecret();
+
+  if (key === null) {
+    return null;
+  }
+
+  if (client === null) {
+    client = new Stripe(key);
+  }
+
+  return client;
+}
+
+export function integrationLabel(name: string): string {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz";
+  const bytes = randomBytes(8);
+  let suffix = "";
+
+  for (let index = 0; index < 8; index += 1) {
+    const byte = bytes[index] ?? 0;
+    suffix += alphabet[byte % alphabet.length];
+  }
+
+  return `${name}_${suffix}`;
+}

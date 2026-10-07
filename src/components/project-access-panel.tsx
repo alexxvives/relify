@@ -1,9 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy } from "@/lib/access-copy";
+import { billingCopy } from "@/lib/billing-copy";
+import type { BuyerPlanName } from "@/lib/billing";
 import type { ProjectAccessView } from "@/lib/project-access";
 
 const buttonClassName =
@@ -21,26 +24,29 @@ function AccessError({ state }: { state: ProjectAccessActionState }) {
   );
 }
 
-export function ConnectControl({ slug, status }: { slug: string; status: ProjectAccessView }) {
+export function ConnectControl({
+  slug,
+  status,
+  plan,
+}: {
+  slug: string;
+  status: ProjectAccessView;
+  plan: BuyerPlanName;
+}) {
   const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
   const accepted = status === "accepted";
-  const requested = accepted || status === "requested" || requestState?.ok === true;
+  const requested = accepted || status === "requested" || status === "awaiting-seller" || requestState?.ok === true;
 
-  if (accepted) {
-    return (
-      <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#eefaf3] px-4 text-sm font-medium text-[#157a45]">
-        <Link2 className="size-4" aria-hidden />
-        {accessCopy.connected}
-      </span>
-    );
+  if (accepted || requested) {
+    return null;
   }
 
-  if (requested) {
+  if (plan === "none") {
     return (
-      <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#f3f1ff] px-4 text-sm font-medium text-[#3d34b8]">
+      <Link href="/premium" className={buttonClassName}>
         <Link2 className="size-4" aria-hidden />
-        {accessCopy.pending}
-      </span>
+        {billingCopy.seePlans}
+      </Link>
     );
   }
 
@@ -60,19 +66,8 @@ export function ProjectAccessPanel({ slug, status }: { slug: string; status: Pro
   const [acceptState, acceptAction, acceptPending] = useActionState(acceptNdaAction, null);
   const accepted = status === "accepted" || acceptState?.ok === true;
 
-  if (status === "none") {
+  if (status === "none" || status === "awaiting-seller" || accepted) {
     return null;
-  }
-
-  if (accepted) {
-    return (
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
-        <h2 id="acceso-nda" className="text-xl font-semibold">
-          {accessCopy.accepted}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{accessCopy.acceptedBody}</p>
-      </section>
-    );
   }
 
   return (

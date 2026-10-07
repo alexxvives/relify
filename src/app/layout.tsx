@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Geist } from "next/font/google";
+import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
 import "./globals.css";
@@ -16,32 +16,42 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-const siteUrl = readSiteUrl();
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  style: "italic",
+  variable: "--font-instrument",
+  display: "swap",
+});
 
-export const metadata: Metadata = {
-  metadataBase: siteUrl,
-  title: landingCopy.title,
-  description: landingCopy.description,
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  const siteUrl = readSiteUrl();
+
+  return {
+    metadataBase: siteUrl,
     title: landingCopy.title,
     description: landingCopy.description,
-    url: "/",
-    locale: "es_ES",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: landingCopy.title,
-    description: landingCopy.description,
-  },
-};
+    alternates: {
+      canonical: "/",
+    },
+    openGraph: {
+      title: landingCopy.title,
+      description: landingCopy.description,
+      url: "/",
+      locale: "es_ES",
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: landingCopy.title,
+      description: landingCopy.description,
+    },
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${dmSans.variable} h-full antialiased`}>
+    <html lang="es" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">{children}</body>
     </html>
   );

@@ -6,6 +6,7 @@ export const catalogCopy = {
   indexIntro:
     "La ficha pública no incluye la razón social, el CIF, la dirección ni a los socios.",
   empty: "No hay proyectos publicados.",
+  detailKicker: "Empresa en venta",
   detailLockedHeading: "Cifras confidenciales",
   detailLockedNote: "Estas cifras no son públicas.",
   lockedLabel: "Bloqueado",

@@ -6,7 +6,7 @@ alwaysApply: false
 
 # UI
 
-Public pages use the Costa tokens in `src/app/globals.css` (`--public-*`): fog, ink, secondary text, and accent, with DM Sans. Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA ajustado, precio). Do not build a dense listings table. The signed-in workspace keeps its own chrome.
+Public pages and the signed-in shell use the Costa tokens in `src/app/globals.css` (`--public-*`): fog, ink, secondary text, and accent, with DM Sans. The word Releva uses Instrument Serif italic. Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA ajustado, precio). Do not build a dense listings table.
 
 - Server Components by default. Add `"use client"` only for state, events, or browser APIs.
 - Style with Tailwind utilities. No CSS-in-JS and no new component library.

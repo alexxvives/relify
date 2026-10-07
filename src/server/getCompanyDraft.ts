@@ -2,16 +2,15 @@ import { draftFromRegistry, type RegistryCompany } from "@/lib/company-registry"
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
   centsToEuroInput,
-  emptyClosedYear,
-  emptyCompanyDraft,
-  emptyForecastYear,
+  placeStatementsOnWindow,
   type ClosedYearInput,
   type CompanyDraftInput,
   type ForecastYearInput,
 } from "@/lib/company-draft";
-import { isHeadcountRange } from "@/lib/company-profile";
+import { isCustomerBase, isHeadcountRange } from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { activeSellerProjectId } from "@/server/sellerCompany";
 
 const yearSelect = {
   year: true,
@@ -144,11 +143,13 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     return null;
   }
 
+  const activeId = await activeSellerProjectId(user.id);
   const [draft, prefill] = await Promise.all([
-    prisma.project.findFirst({
-    where: { ownerId: user.id, status: "draft" },
-    orderBy: { createdAt: "desc" },
+    activeId
+      ? prisma.project.findFirst({
+    where: { id: activeId, ownerId: user.id },
     select: {
+      cif: true,
       legalName: true,
       address: true,
       codename: true,
@@ -161,11 +162,13 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       askingPriceCents: true,
       opexCents: true,
       headcountRange: true,
+      customerBase: true,
       cnaes: { select: { code: true, role: true, position: true } },
       activitySlices: { select: { kind: true, position: true, basisPoints: true } },
       years: { select: yearSelect },
     },
-  }),
+  })
+      : null,
     prisma.companyRegistryPrefill.findUnique({ where: { userId: user.id } }),
   ]);
 
@@ -177,7 +180,6 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     return draftFromRegistry(registryFromPrefill(prefill));
   }
 
-  const blank = emptyCompanyDraft();
   const principal = draft.cnaes.find((cnae) => cnae.role === "principal");
   const secondary = draft.cnaes
     .filter((cnae) => cnae.role === "secondary")
@@ -191,20 +193,10 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
   const closed = draft.years
     .filter((year) => year.kind === "closed")
     .sort((left, right) => left.year - right.year)
-    .slice(0, 3)
     .map(toClosed);
   const forecast = draft.years.find((year) => year.kind === "forecast");
-
-  while (closed.length < 3) {
-    const fallback = blank.closedYears[closed.length] ?? emptyClosedYear("");
-    closed.push(fallback);
-  }
-
-  const first = closed[0] ?? blank.closedYears[0];
-  const second = closed[1] ?? blank.closedYears[1];
-  const third = closed[2] ?? blank.closedYears[2];
-
-  return {
+  const placed = placeStatementsOnWindow(closed, forecast ? toForecast(forecast) : null);
+  const result: CompanyDraftInput = {
     legalName: draft.legalName,
     address: draft.address,
     codename: draft.codename,
@@ -221,8 +213,32 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     capitalPercents: percents("capital"),
     productPercents: percents("product"),
     clientPercents: percents("client"),
+    customerBase: draft.customerBase && isCustomerBase(draft.customerBase) ? draft.customerBase : "",
     headcount: draft.headcountRange && isHeadcountRange(draft.headcountRange) ? draft.headcountRange : "",
-    closedYears: [first, second, third],
-    forecastYear: forecast ? toForecast(forecast) : emptyForecastYear(blank.forecastYear.year),
+    closedYears: placed.closedYears,
+    forecastYear: placed.forecastYear,
   };
+
+  if (draft.legalName.trim().length === 0 && prefill && prefill.cif === draft.cif) {
+    const filled = draftFromRegistry(registryFromPrefill(prefill));
+    return {
+      ...result,
+      legalName: filled.legalName,
+      address: filled.address,
+      codename: filled.codename,
+      region: filled.region,
+      foundedYear: filled.foundedYear,
+      description: filled.description,
+      principalCnae: filled.principalCnae,
+      secondaryCnaes: filled.secondaryCnaes,
+      revenue: filled.revenue.length > 0 ? filled.revenue : result.revenue,
+      ebitda: filled.ebitda.length > 0 ? filled.ebitda : result.ebitda,
+      adjustedEbitda: filled.adjustedEbitda.length > 0 ? filled.adjustedEbitda : result.adjustedEbitda,
+      headcount: filled.headcount,
+      closedYears: filled.closedYears,
+      forecastYear: filled.forecastYear,
+    };
+  }
+
+  return result;
 }

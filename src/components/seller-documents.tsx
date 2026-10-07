@@ -1,114 +1,347 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Folder, Home } from "lucide-react";
-import { SellerTabs } from "@/components/seller-tabs";
-import { documentFolders, sellerCopy } from "@/lib/seller-copy";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { ChevronLeft, FileText, Folder, Share2, Trash2, Upload } from "lucide-react";
+import {
+  createDataRoomFolderAction,
+  deleteDataRoomFolderAction,
+  shareDataRoomFileFormAction,
+  storeDataRoomFileAction,
+  type DataRoomActionState,
+} from "@/app/mi-empresa/documentos/actions";
+import type { DataRoomShareView, OwnerFileView } from "@/lib/data-room";
+import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
 
-const tabs = [
-  { id: "documents", label: "Documentos" },
-  { id: "permissions", label: sellerCopy.permissions },
-] as const;
+function ActionNote({ state, saved }: { state: DataRoomActionState; saved: string }) {
+  if (!state) {
+    return null;
+  }
 
-type DocumentTab = (typeof tabs)[number]["id"];
-
-export function SellerDocuments() {
-  const [folder, setFolder] = useState<string | null>(null);
-  const [tab, setTab] = useState<DocumentTab>("documents");
-  const visible = folder === null ? documentFolders : documentFolders.filter((item) => item.name === folder);
+  if (state.ok) {
+    return <p className="text-sm text-[#157a45]">{saved}</p>;
+  }
 
   return (
-    <div>
-      <SellerTabs label={sellerCopy.documentsTitle} tabs={tabs} value={tab} onChange={setTab} />
-      {tab === "permissions" ? (
-        <section className="mt-6 rounded-2xl border border-[#e6e9f0] bg-white p-6">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{sellerCopy.permissionsTitle}</h2>
+    <p className="text-sm text-red-700" role="alert">
+      {state.message}
+    </p>
+  );
+}
+
+function DocumentDrop({ folder }: { folder: string }) {
+  const [state, setState] = useState<DataRoomActionState>(null);
+  const [pending, setPending] = useState(false);
+  const [over, setOver] = useState(false);
+
+  async function addFiles(list: File[]) {
+    if (list.length === 0 || pending) {
+      return;
+    }
+
+    setPending(true);
+    setState(null);
+    let last: DataRoomActionState = { ok: true };
+
+    for (const file of list) {
+      const name = file.name.split(/[/\\]/).pop()?.trim() ?? "";
+      const data = new FormData();
+      data.set("folder", folder);
+      data.set("fileName", name);
+      last = await storeDataRoomFileAction(null, data);
+
+      if (!last?.ok) {
+        break;
+      }
+    }
+
+    setState(last);
+    setPending(false);
+  }
+
+  return (
+    <div className="mt-6">
+      <div
+        onDragOver={(event) => {
+          event.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => {
+          setOver(false);
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          setOver(false);
+          void addFiles([...event.dataTransfer.files]);
+        }}
+        className={
+          over
+            ? "flex min-h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff] px-6 py-8 text-center"
+            : "flex min-h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff] px-6 py-8 text-center"
+        }
+      >
+        <Upload className="size-8 text-[#465ab4]" aria-hidden />
+        <p className="mt-3 text-sm font-medium text-[#1c2740]">{pending ? sellerCopy.addingDocument : sellerCopy.dropDocument}</p>
+        <label className="mt-3 inline-flex h-10 cursor-pointer items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
+          {sellerCopy.chooseDocuments}
+          <input
+            type="file"
+            multiple
+            className="sr-only"
+            disabled={pending}
+            onChange={(event) => {
+              const chosen = event.target.files ? [...event.target.files] : [];
+              event.target.value = "";
+              void addFiles(chosen);
+            }}
+          />
+        </label>
+      </div>
+      <div className="mt-3">
+        <ActionNote state={state} saved={sellerCopy.documentSaved} />
+      </div>
+    </div>
+  );
+}
+
+function ShareMenu({
+  file,
+  investors,
+}: {
+  file: OwnerFileView;
+  investors: DataRoomShareView[];
+}) {
+  const [open, setOpen] = useState(false);
+  const shared = new Set(file.viewers.map((viewer) => viewer.accessId));
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
+        className="inline-flex h-8 items-center gap-1 rounded-full border border-[#e1e6ee] bg-white px-2 text-xs font-medium text-[#3d34b8]"
+      >
+        <Share2 className="size-3.5" aria-hidden />
+        {sellerCopy.shareFile}
+      </button>
+      {open ? (
+        <div className="absolute top-9 right-0 z-20 w-56 rounded-2xl border border-[#e6e9f0] bg-white p-2 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
+          <p className="px-2 py-1 text-xs font-medium text-[#667085]">{sellerCopy.shareFileWith}</p>
+          {investors.length === 0 ? <p className="px-2 py-2 text-sm text-[#667085]">{sellerCopy.shareNone}</p> : null}
+          <ul className="flex flex-col">
+            {investors.map((investor) => {
+              const on = shared.has(investor.accessId);
+              return (
+                <li key={investor.accessId}>
+                  <form action={shareDataRoomFileFormAction}>
+                    <input type="hidden" name="fileId" value={file.id} />
+                    <input type="hidden" name="accessId" value={investor.accessId} />
+                    <input type="hidden" name="shared" value={on ? "0" : "1"} />
+                    <button
+                      type="submit"
+                      className="flex h-10 w-full items-center justify-between gap-2 rounded-xl px-2 text-left text-sm hover:bg-[#f4f7ff]"
+                    >
+                      <span className="truncate">{investor.label}</span>
+                      <span className={on ? "shrink-0 text-xs font-semibold text-[#17663a]" : "shrink-0 text-xs text-[#8b95a7]"}>
+                        {on ? sellerCopy.shareVisible : sellerCopy.shareFile}
+                      </span>
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function FolderDelete({ name }: { name: string }) {
+  const [state, action, pending] = useActionState(deleteDataRoomFolderAction, null);
+  const [confirming, setConfirming] = useState(false);
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        aria-label={sellerCopy.folderDelete}
+        onClick={() => {
+          setConfirming(true);
+        }}
+        className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
+      >
+        <Trash2 className="size-4" aria-hidden />
+      </button>
+    );
+  }
+
+  return (
+    <form action={action} className="flex items-center gap-1">
+      <input type="hidden" name="name" value={name} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-8 items-center rounded-full bg-red-700 px-2 text-xs font-medium text-white disabled:opacity-60"
+      >
+        {pending ? sellerCopy.folderDeleting : sellerCopy.folderDelete}
+      </button>
+      <ActionNote state={state} saved="" />
+    </form>
+  );
+}
+
+export function SellerDocuments({
+  files,
+  folders,
+  shares,
+}: {
+  files: OwnerFileView[];
+  folders: string[];
+  shares: DataRoomShareView[];
+}) {
+  const [folder, setFolder] = useState<string | null>(null);
+  const [openFile, setOpenFile] = useState<OwnerFileView | null>(null);
+  const [createState, createAction, createPending] = useActionState(createDataRoomFolderAction, null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const inFolder = files.filter((file) => file.folder === folder);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!openFile || !dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+  }, [openFile]);
+
+  return (
+    <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+      {folder === null ? (
+        <>
+          <form action={createAction} className="flex flex-wrap items-end gap-2 px-2">
+            <label className="text-sm font-medium text-[#1c2740]">
+              {sellerCopy.folderName}
+              <input
+                name="name"
+                required
+                maxLength={40}
+                className="mt-1 h-11 w-64 rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm"
+              />
+            </label>
             <button
-              type="button"
-              disabled
-              className="inline-flex h-10 items-center rounded-full bg-[#c9c3f5] px-4 text-sm font-medium text-white"
+              type="submit"
+              disabled={createPending}
+              className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
             >
-              {sellerCopy.addAccess}
+              {sellerCopy.folderCreate}
             </button>
-          </div>
-          <p className="mt-1 text-sm text-[#667085]">{sellerCopy.permissionsIntro}</p>
-          <p className="mt-8 text-center text-sm font-medium">{sellerCopy.permissionsEmpty}</p>
-          <p className="mt-1 text-center text-sm text-[#667085]">{sellerCopy.permissionsEmptyBody}</p>
-        </section>
+            <ActionNote state={createState} saved={sellerCopy.folderSaved} />
+          </form>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {folders.map((name) => {
+              const count = files.filter((file) => file.folder === name).length;
+              return (
+                <li key={name} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFolder(name);
+                    }}
+                    className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
+                  >
+                    <Folder className="size-16 text-[#d5dbe3]" strokeWidth={1.25} aria-hidden />
+                    <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
+                    <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
+                  </button>
+                  <div className="absolute top-3 right-3">
+                    <FolderDelete name={name} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       ) : (
-        <div className="mt-4 grid gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <div>
+        <div className="px-2 pb-4">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => {
                 setFolder(null);
               }}
-              className={
-                folder === null
-                  ? "flex w-full items-center justify-between rounded-lg bg-[#f4f5f7] px-3 py-2 text-left text-sm font-medium"
-                  : "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm"
-              }
+              className="inline-flex items-center gap-1 text-sm font-medium text-[#3d34b8]"
             >
-              <span className="inline-flex items-center gap-2">
-                <Home className="size-4" aria-hidden />
-                {sellerCopy.allFolders}
-              </span>
-              <ChevronDown className="size-4 text-[#667085]" aria-hidden />
+              <ChevronLeft className="size-4" aria-hidden />
+              {folder}
             </button>
-            <ul className="mt-2">
-              {documentFolders.map((item) => (
-                <li key={item.name}>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
+              <FolderDelete name={folder} />
+            </div>
+          </div>
+          {inFolder.length > 0 ? (
+            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+              {inFolder.map((file) => (
+                <li key={file.id} className="relative">
                   <button
                     type="button"
                     onClick={() => {
-                      setFolder(item.name);
+                      setOpenFile(file);
                     }}
-                    className={
-                      folder === item.name
-                        ? "flex w-full items-center gap-2 rounded-lg bg-[#f4f5f7] px-3 py-2 text-left text-sm font-medium"
-                        : "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#3d4a63]"
-                    }
+                    className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
                   >
-                    <Folder className="size-4 text-[#98a2b3]" aria-hidden />
-                    {item.name}
+                    <FileText className="size-16 text-[#465ab4]" strokeWidth={1.25} aria-hidden />
+                    <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
                   </button>
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    {file.viewers.length > 0 ? (
+                      <span className="inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
+                        {file.viewers.map((viewer) => (
+                          <span
+                            key={viewer.accessId}
+                            title={viewer.label}
+                            className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
+                          >
+                            {viewer.label.replace("Inversor ", "")}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    <ShareMenu file={file} investors={shares} />
+                  </div>
                 </li>
               ))}
             </ul>
-          </div>
-          <section>
-            <div className="flex items-center justify-between gap-3 px-2">
-              <h2 className="text-sm font-medium text-[#1c2740]">{folder ?? sellerCopy.allFolders}</h2>
-              <p className="text-sm text-[#667085]">{folder === null ? sellerCopy.folderCount : visible[0]?.count}</p>
-            </div>
-            {folder !== null && visible[0] !== undefined ? (
-              <div className="mt-6 px-2 pb-4">
-                <p className="font-medium">{sellerCopy.folderEmpty}</p>
-                <p className="mt-1 text-sm text-[#667085]">{sellerCopy.folderEmptyBody}</p>
-              </div>
-            ) : (
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {visible.map((item) => (
-                  <li key={item.name}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFolder(item.name);
-                      }}
-                      className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
-                    >
-                      <Folder className="size-16 text-[#d5dbe3]" strokeWidth={1.25} aria-hidden />
-                      <span className="mt-3 text-sm font-semibold text-[#1c2740]">{item.name}</span>
-                      <span className="mt-1 text-xs text-[#667085]">{item.count}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          ) : null}
+          <DocumentDrop folder={folder} />
         </div>
       )}
+      <dialog
+        ref={dialogRef}
+        className="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] backdrop:bg-[#1c2740]/40"
+        onClose={() => {
+          setOpenFile(null);
+        }}
+      >
+        <div className="flex flex-col items-center text-center">
+          <FileText className="size-16 text-[#465ab4]" strokeWidth={1.25} aria-hidden />
+          <h2 className="mt-4 text-lg font-semibold">{openFile?.fileName}</h2>
+          <p className="mt-1 text-sm text-[#667085]">{openFile?.folder}</p>
+          <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.documentViewerBody}</p>
+          <button
+            type="button"
+            onClick={() => {
+              dialogRef.current?.close();
+            }}
+            className="mt-5 inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white"
+          >
+            {sellerCopy.closeDocument}
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }

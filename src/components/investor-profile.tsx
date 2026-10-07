@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
+import type { DemoInvestorProfile } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
+import { keepDigits } from "@/lib/numeric-input";
 
 function Chip({ done }: { done: boolean }) {
   return (
@@ -41,15 +43,21 @@ function Fact({
   );
 }
 
-export function InvestorProfile({ displayName }: { displayName: string }) {
+export function InvestorProfile({
+  displayName,
+  initial,
+}: {
+  displayName: string;
+  initial: DemoInvestorProfile | null;
+}) {
   const [editingProfessional, setEditingProfessional] = useState(false);
   const [editingThesis, setEditingThesis] = useState(false);
   const [editingTrajectory, setEditingTrajectory] = useState(false);
-  const [tradeName, setTradeName] = useState(displayName);
-  const [nif, setNif] = useState("");
-  const [postal, setPostal] = useState("");
-  const [investorType, setInvestorType] = useState("");
-  const [trajectory, setTrajectory] = useState("");
+  const [tradeName, setTradeName] = useState(initial?.tradeName ?? displayName);
+  const [nif, setNif] = useState(initial?.nif ?? "");
+  const [postal, setPostal] = useState(initial?.postal ?? "");
+  const [investorType, setInvestorType] = useState(initial?.investorType ?? "");
+  const [trajectory, setTrajectory] = useState(initial?.trajectory ?? "");
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
 
   return (
@@ -83,7 +91,13 @@ export function InvestorProfile({ displayName }: { displayName: string }) {
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalPostal}
-              <input value={postal} onChange={(event) => setPostal(event.target.value)} className="h-11 rounded-[14px] border border-[#e7eaee] px-3" />
+              <input
+                inputMode="numeric"
+                maxLength={5}
+                value={postal}
+                onChange={(event) => setPostal(keepDigits(event.target.value, 5))}
+                className="h-11 rounded-[14px] border border-[#e7eaee] px-3"
+              />
             </label>
           </div>
         ) : (

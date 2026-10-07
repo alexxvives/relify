@@ -8,9 +8,9 @@ export const projectAccessInputSchema = z.object({
 
 export type ProjectAccessInput = z.infer<typeof projectAccessInputSchema>;
 
-export type ProjectAccessView = "none" | "requested" | "accepted";
+export type ProjectAccessView = "none" | "awaiting-seller" | "requested" | "accepted";
 
-export type AccessDenial = "forbidden" | "missing" | "nda-required";
+export type AccessDenial = "forbidden" | "missing" | "nda-required" | "waiting" | "plan" | "limit";
 
 type AccessContext = {
   onboarded: boolean;
@@ -43,7 +43,7 @@ export function requestAccessOutcome(
 }
 
 export function acceptNdaOutcome(
-  input: AccessContext & { requested: boolean; alreadyAccepted: boolean },
+  input: AccessContext & { requested: boolean; sellerMatched: boolean; alreadyAccepted: boolean },
 ): { ok: true; stamp: boolean } | { ok: false; code: AccessDenial } {
   const allowed = roleAndProject(input);
 
@@ -55,12 +55,16 @@ export function acceptNdaOutcome(
     return { ok: false, code: "nda-required" };
   }
 
+  if (!input.sellerMatched) {
+    return { ok: false, code: "waiting" };
+  }
+
   return { ok: true, stamp: !input.alreadyAccepted };
 }
 
 export function ndaAccessGate(
   input: AccessContext & { ndaAcceptedAt: Date | null },
-): { ok: true } | { ok: false; code: AccessDenial } {
+): { ok: true } | { ok: false; code: "forbidden" | "missing" | "nda-required" } {
   const allowed = roleAndProject(input);
 
   if (!allowed.ok) {
@@ -81,6 +85,18 @@ export function accessMessage(code: AccessDenial): string {
 
   if (code === "missing") {
     return accessCopy.missing;
+  }
+
+  if (code === "waiting") {
+    return accessCopy.waitingForSeller;
+  }
+
+  if (code === "plan") {
+    return accessCopy.planRequired;
+  }
+
+  if (code === "limit") {
+    return accessCopy.matchLimit;
   }
 
   return accessCopy.ndaRequired;

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SellerDocuments } from "@/components/seller-documents";
 import { SignedInPage } from "@/components/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
+import { listDataRoom } from "@/server/listDataRoom";
 import { requireRole } from "@/server/requireRole";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
 
@@ -19,9 +20,14 @@ export default async function DocumentsPage() {
     redirect("/mi-empresa");
   }
 
+  const room = await listDataRoom(user);
+  if (room.audience !== "owner") {
+    redirect("/mi-empresa");
+  }
+
   return (
     <SignedInPage title={sellerCopy.documentsTitle}>
-      <SellerDocuments />
+      <SellerDocuments files={room.files} folders={room.folders} shares={room.shares} />
     </SignedInPage>
   );
 }

@@ -1,65 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { DealCard } from "@/components/landing/deal-card";
-import { heroDeals, landingCopy } from "@/lib/landing-copy";
+import { landingCopy } from "@/lib/landing-copy";
+import { BuyerMark } from "@/components/landing/buyer-mark";
 
-function RotatingWord({ words }: { words: readonly string[] }) {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-  const widest = words.reduce((longest, word) => (word.length > longest.length ? word : longest), words[0]);
+function BuyerSlip({
+  person,
+  tone,
+  hidden = false,
+}: {
+  person: (typeof landingCopy.home.buyers)[number];
+  tone: number;
+  hidden?: boolean;
+}) {
+  return (
+    <li className="releva-hero-slip" data-slip="" aria-hidden={hidden || undefined}>
+      <span className="releva-hero-portrait">
+        <BuyerMark tone={tone} />
+      </span>
+      <span className="min-w-0">
+        <span className="releva-hero-who">{person.who}</span>
+        <span className="releva-hero-city">{person.city}</span>
+        <span className="releva-hero-seek">{person.seek}</span>
+      </span>
+      <span className="releva-hero-live" aria-hidden="true" />
+    </li>
+  );
+}
+
+function BuyerColumn() {
+  const reelRef = useRef<HTMLUListElement>(null);
+  const buyers = landingCopy.home.buyers;
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-    const id = window.setInterval(() => {
-      setVisible(false);
-      window.setTimeout(() => {
-        setIndex((current) => (current + 1) % words.length);
-        setVisible(true);
-      }, 280);
-    }, 2800);
-    return () => window.clearInterval(id);
-  }, [words.length]);
+    const reel = reelRef.current;
+    const mask = reel?.parentElement;
+    if (!reel || !mask) {
+      return;
+    }
+
+    let y = 0;
+    let frame = 0;
+    const tick = () => {
+      const half = reel.scrollHeight / 2;
+      if (half > 0) {
+        y = (y + 0.42) % half;
+        reel.style.transform = `translateY(${-y}px)`;
+      }
+      const bounds = mask.getBoundingClientRect();
+      const center = bounds.top + bounds.height * 0.46;
+      const cards = reel.querySelectorAll<HTMLElement>("[data-slip]");
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - center);
+        const near = Math.max(0, 1 - distance / (bounds.height * 0.42));
+        card.style.opacity = String(0.4 + near * 0.6);
+        card.style.transform = `scale(${0.94 + near * 0.08})`;
+        card.style.boxShadow = near > 0.62 ? "0 18px 34px -16px rgb(0 0 0 / 0.6), 0 0 0 2px #7ed0cb" : "none";
+      });
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
-    <span className="inline-grid align-bottom" aria-live="polite">
-      <span className="invisible col-start-1 row-start-1" aria-hidden="true">
-        {widest}
-      </span>
-      <span
-        className={`col-start-1 row-start-1 transition duration-300 ${visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
-      >
-        {words[index]}
-      </span>
-    </span>
+    <div className="releva-hero-stage" aria-label={landingCopy.home.buyersKicker}>
+      <p className="releva-hero-kicker">{landingCopy.home.buyersKicker}</p>
+      <div className="releva-hero-mask">
+        <ul ref={reelRef} className="releva-hero-reel">
+          {buyers.map((person, index) => (
+            <BuyerSlip key={person.id} person={person} tone={index} />
+          ))}
+          {buyers.map((person, index) => (
+            <BuyerSlip key={`${person.id}-loop`} person={person} tone={index} hidden />
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 
 export function Hero() {
+  const copy = landingCopy.home;
+
   return (
-    <section aria-labelledby="inicio" className="px-5 pt-12 pb-6 sm:pt-20">
-      <div className="mx-auto max-w-3xl text-center">
-        <h1 id="inicio" className="text-5xl leading-[1.05] font-medium tracking-tight sm:text-6xl">
-          Plataforma digital para <RotatingWord words={landingCopy.words} /> empresas
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-public-muted">{landingCopy.intro}</p>
-        <Link
-          href="/registro"
-          className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
-        >
-          {landingCopy.registerCta}
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </Link>
-      </div>
-      <div className="mx-auto mt-14 max-w-5xl rounded-[2rem] bg-public-card p-4 shadow-public sm:p-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          {heroDeals.slice(0, 3).map((deal) => (
-            <DealCard key={deal.codename} deal={deal} />
-          ))}
+    <section aria-labelledby="inicio" className="releva-hero">
+      <div className="relative z-10 mx-auto grid w-full max-w-[1440px] items-center gap-12 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-16">
+        <div>
+          <h1 id="inicio" className="releva-hero-rise max-w-[14ch] text-[clamp(2.7rem,4.5vw,4.15rem)] leading-[1.02] font-medium tracking-tight text-public-ink">
+            <span className="releva-word text-public-clay">Releva</span> tu negocio a la persona que ya lo está buscando
+          </h1>
+          <p className="releva-hero-rise releva-hero-rise-late mt-6 max-w-xl text-lg leading-8 text-public-muted">{copy.intro}</p>
+          <Link
+            href="/registro"
+            className="releva-hero-rise releva-hero-rise-later mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+          >
+            {copy.cta}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
         </div>
+        <BuyerColumn />
       </div>
     </section>
   );

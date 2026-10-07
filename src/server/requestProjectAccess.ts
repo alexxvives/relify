@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { accessCopy } from "@/lib/access-copy";
 import { accessRequestedNotice, incomingAccessNotice } from "@/lib/notifications";
 import { accessMessage, requestAccessOutcome, type ProjectAccessInput } from "@/lib/project-access";
+import { buyerMatchSlot } from "@/server/buyerPlan";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -32,11 +34,19 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
   }
 
   if (outcome.insert) {
+    const slot = await buyerMatchSlot(user.id);
+
+    if (!slot.ok) {
+      return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
+    }
+
+    const hasOwner = project.ownerId !== null && project.ownerId !== user.id;
     await prisma.projectAccess.create({
       data: {
         id: randomUUID(),
         projectId: project.id,
         investorId: user.id,
+        sellerAcceptedAt: hasOwner ? null : new Date(),
       },
     });
     const href = `/proyectos/${project.slug}`;
@@ -44,8 +54,13 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
     await recordNotification({ userId: user.id, ...investorNotice, href });
 
     if (project.ownerId && project.ownerId !== user.id) {
+      const owner = await prisma.user.findUnique({
+        where: { id: project.ownerId },
+        select: { role: true },
+      });
       const sellerNotice = incomingAccessNotice(project.codename);
-      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa" });
+      const ownerHref = owner?.role === "advisor" ? "/mandatos" : "/mi-empresa/procesos";
+      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: ownerHref });
     }
   }
 

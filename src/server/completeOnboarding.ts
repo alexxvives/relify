@@ -38,7 +38,7 @@ export async function completeOnboarding(input: OnboardingInput): Promise<Comple
         name: input.name,
         lastName: input.lastName,
         nationalId: normalizeCif(input.nationalId),
-        phone: storedPhone(input.phone),
+        phone: storedPhone(input.phoneCountry, input.phone),
         role: input.role,
         referralSource: input.referralSource,
         onboardedAt: new Date(),

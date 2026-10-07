@@ -1,34 +1,45 @@
-import { companyCopy } from "@/lib/company-copy";
-import { formatBasisPoints, sliceCenterNoun, type SliceKind } from "@/lib/company-profile";
+"use client";
 
-const sliceColors = ["#3d34b8", "#6d64d8", "#9d98e6", "#2a2468", "#8b95a7", "#4c6fff"];
+import { useState } from "react";
+import { companyCopy } from "@/lib/company-copy";
+import { formatBasisPoints, type SliceKind } from "@/lib/company-profile";
+
+const palettes: Record<SliceKind, readonly string[]> = {
+  client: ["#1b7a45", "#8fd0a8", "#0f4d2c", "#d4f0e0"],
+  product: ["#e07a3d", "#f6c7a4", "#b85a22", "#fbe4d4"],
+  capital: ["#c23b3b", "#f0a3a3", "#8d2424", "#f8d6d6"],
+};
 
 export function ShareDonut({
   title,
-  kind,
   slices,
+  palette,
 }: {
   title: string;
-  kind: SliceKind;
   slices: { label: string; basisPoints: number }[];
+  palette: SliceKind;
 }) {
+  const colors = palettes[palette];
+  const [active, setActive] = useState<number | null>(null);
   const rings = slices.map((slice, index) => ({
     label: slice.label,
+    detail: formatBasisPoints(slice.basisPoints),
     length: slice.basisPoints / 100,
     offset: slices.slice(0, index).reduce((sum, item) => sum + item.basisPoints / 100, 0),
-    color: sliceColors[index % sliceColors.length] ?? "#3d34b8",
+    color: colors[index % colors.length] ?? "#465ab4",
   }));
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex h-full min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
       <h3 className="text-sm font-semibold text-[#1c2740]">{title}</h3>
       {slices.length === 0 ? (
-        <p className="text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>
+        <p className="mt-3 text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>
       ) : (
-        <div className="flex flex-col items-center gap-4 sm:items-start">
-          <div className="relative h-40 w-40">
-            <svg viewBox="0 0 42 42" className="h-full w-full" aria-hidden="true">
-              {rings.map((ring) => (
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-3 py-2">
+          <div className="flex items-center justify-center">
+            <svg viewBox="0 0 42 42" className="h-auto w-full max-w-36" aria-hidden="true">
+              <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e6e9f0" strokeWidth="6" />
+              {rings.map((ring, index) => (
                 <circle
                   key={ring.label}
                   cx="21"
@@ -36,27 +47,42 @@ export function ShareDonut({
                   r="15.9155"
                   fill="transparent"
                   stroke={ring.color}
-                  strokeWidth="6"
+                  strokeWidth={active === index ? 8 : 6}
                   strokeDasharray={`${ring.length} ${100 - ring.length}`}
                   strokeDashoffset={-ring.offset}
                   transform="rotate(-90 21 21)"
+                  opacity={active === null || active === index ? 1 : 0.35}
+                  className="cursor-pointer"
+                  onMouseEnter={() => {
+                    setActive(index);
+                  }}
+                  onMouseLeave={() => {
+                    setActive(null);
+                  }}
                 />
               ))}
             </svg>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-semibold text-[#1c2740]">{slices.length}</span>
-              <span className="text-xs text-[#5c6b78]">{sliceCenterNoun(kind, slices.length)}</span>
-            </div>
           </div>
-          <ul className="flex flex-col gap-2 text-sm">
-            {slices.map((slice, index) => (
-              <li key={slice.label} className="flex items-center gap-2">
-                <span
-                  className="size-2.5 rounded-full"
-                  style={{ backgroundColor: sliceColors[index % sliceColors.length] }}
-                />
+          <ul className="flex min-w-0 flex-col gap-1 text-xs text-[#3d4a63]">
+            {rings.map((ring, index) => (
+              <li
+                key={ring.label}
+                onMouseEnter={() => {
+                  setActive(index);
+                }}
+                onMouseLeave={() => {
+                  setActive(null);
+                }}
+                className={
+                  active === index
+                    ? "flex items-start gap-2 rounded-lg bg-white px-2 py-1 font-semibold text-[#1c2740] shadow-sm"
+                    : "flex items-start gap-2 rounded-lg px-2 py-1"
+                }
+              >
+                <span className="mt-1 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ring.color }} />
                 <span>
-                  {slice.label} ({formatBasisPoints(slice.basisPoints)})
+                  {ring.label}
+                  <span className="mt-0.5 block font-medium text-[#1c2740]">{ring.detail}</span>
                 </span>
               </li>
             ))}

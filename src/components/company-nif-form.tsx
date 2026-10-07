@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LockKeyhole, Shuffle, Sparkles } from "lucide-react";
 import { verifyCompanyNifAction, type VerifyNifState } from "@/app/mi-empresa/nif-actions";
 import { companyCopy } from "@/lib/company-copy";
@@ -12,12 +13,20 @@ const notes = [
 ] as const;
 
 export function CompanyNifForm() {
+  const router = useRouter();
   const [state, action, pending] = useActionState<VerifyNifState, FormData>(verifyCompanyNifAction, null);
   const [nif, setNif] = useState("");
+
+  useEffect(() => {
+    if (state?.ok) {
+      router.push("/mi-empresa/detalles?alta=1");
+    }
+  }, [state, router]);
 
   return (
     <section className="mx-auto mt-6 w-full max-w-3xl rounded-3xl border border-[#e6e9f0] bg-white p-6 sm:p-8">
       <h2 className="text-2xl font-semibold tracking-tight">{companyCopy.nifTitle}</h2>
+      <p className="mt-1 text-xs font-medium tracking-wide text-[#5c6b78] uppercase">{companyCopy.setupNifStep}</p>
       <p className="mt-2 text-sm text-[#5c6b78]">{companyCopy.nifIntro}</p>
       <ul className="mt-6 grid gap-3 md:grid-cols-3">
         {notes.map((note) => (

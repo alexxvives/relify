@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { InvestorProfile } from "@/components/investor-profile";
 import { SignedInPage } from "@/components/signed-in-page";
+import { demoInvestorProfile } from "@/lib/demo-profile";
 import { investorCopy } from "@/lib/investor-copy";
 import { requireRole } from "@/server/requireRole";
 
@@ -14,7 +15,7 @@ export default async function InvestorProfilePage() {
 
   return (
     <SignedInPage title={investorCopy.profileTitle}>
-      <InvestorProfile displayName={user.displayName} />
+      <InvestorProfile displayName={user.displayName} initial={demoInvestorProfile(user.email)} />
     </SignedInPage>
   );
 }

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
-import { authCopy } from "@/lib/auth-copy";
 import { destinationsForRole } from "@/lib/shell";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
+import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
 export async function AppShell({
   title,
@@ -25,17 +25,22 @@ export async function AppShell({
     redirect("/onboarding");
   }
 
-  const roleLabel = user.role ? authCopy.roles[user.role] : authCopy.roleMissing;
-  const notifications = await listNotifications(user.id);
+  const [notifications, companies, activeCompanyId] = await Promise.all([
+    listNotifications(user.id),
+    user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
+    user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
+  ]);
 
   return (
     <AppFrame
       name={user.displayName}
-      roleLabel={roleLabel}
       destinations={destinationsForRole(user.role)}
       title={title}
       showTitle={showTitle}
       notifications={notifications}
+      showPremium={user.role === "investor"}
+      companies={companies}
+      activeCompanyId={activeCompanyId}
     >
       {children}
     </AppFrame>

@@ -7,6 +7,10 @@ import { projectAccessInputSchema, type ProjectAccessInput } from "@/lib/project
 import { acceptNda } from "@/server/acceptNda";
 import { getCurrentUser, type CurrentUser } from "@/server/getCurrentUser";
 import { requestProjectAccess } from "@/server/requestProjectAccess";
+import { companyCopy } from "@/lib/company-copy";
+import { investorMessageSchema } from "@/lib/project-message";
+import { postInvestorMessage } from "@/server/postProjectMessage";
+import { updateMeetingNotes } from "@/server/updateMeetingNotes";
 import { toggleProjectFavorite, type FavoriteResult } from "@/server/toggleProjectFavorite";
 
 export type ProjectAccessActionState = { ok: true } | { ok: false; message: string } | null;
@@ -71,6 +75,54 @@ export async function acceptNdaAction(
 
   if (result.ok) {
     revalidatePath(`/proyectos/${input.slug}`);
+  }
+
+  return result;
+}
+
+export async function postInvestorMessageAction(
+  _state: ProjectAccessActionState,
+  formData: FormData,
+): Promise<ProjectAccessActionState> {
+  const user = await currentUser();
+  const slug = formData.get("slug");
+  const kind = formData.get("kind");
+  const body = formData.get("body");
+  const parsed = investorMessageSchema.safeParse({
+    slug: typeof slug === "string" ? slug : "",
+    kind: typeof kind === "string" ? kind : "",
+    body: typeof body === "string" ? body : "",
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: companyCopy.messageInvalid };
+  }
+
+  const result = await postInvestorMessage(user, parsed.data);
+
+  if (result.ok) {
+    revalidatePath(`/proyectos/${parsed.data.slug}`);
+  }
+
+  return result;
+}
+
+export async function updateInvestorMeetingNotesAction(
+  _state: ProjectAccessActionState,
+  formData: FormData,
+): Promise<ProjectAccessActionState> {
+  const user = await currentUser();
+  const slug = formData.get("slug");
+  const messageId = formData.get("messageId");
+  const notes = formData.get("notes");
+  const result = await updateMeetingNotes(user, {
+    slug: typeof slug === "string" ? slug : "",
+    messageId: typeof messageId === "string" ? messageId : "",
+    notes: typeof notes === "string" ? notes : "",
+  });
+
+  if (result.ok && typeof slug === "string") {
+    revalidatePath(`/proyectos/${slug}`);
   }
 
   return result;

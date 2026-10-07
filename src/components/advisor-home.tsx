@@ -1,8 +1,29 @@
 import Link from "next/link";
-import { ArrowRight, Crown, Package } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AdvisorMandateBoard, type MandateDisplay } from "@/components/advisor-mandates";
+import { NoticeList } from "@/components/notice-list";
 import { advisorCopy } from "@/lib/advisor-copy";
+import { catalogCopy } from "@/lib/catalog-copy";
+import { formatEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
+import type { PendingMatch } from "@/lib/billing";
+import type { MandateCard } from "@/server/listSaleMandates";
 import { trendItems } from "@/lib/seller-copy";
+
+function toMandateDisplay(project: MandateCard): MandateDisplay {
+  return {
+    slug: project.slug,
+    codename: project.codename,
+    region: project.region,
+    status: project.status,
+    feeRecorded: project.feeRecorded,
+    owned: project.owned,
+    figures: catalogCopy.metrics.map((metric) => ({
+      label: metric.label,
+      value: formatEur(project[metric.key]),
+    })),
+  };
+}
 
 const counters = [
   advisorCopy.pendingActions,
@@ -15,9 +36,13 @@ const metrics = [advisorCopy.interestsManaged, advisorCopy.questions, advisorCop
 export function AdvisorHome({
   notifications,
   profileReady,
+  mandates,
+  pending,
 }: {
   notifications: NotificationView[];
   profileReady: boolean;
+  mandates: MandateCard[];
+  pending: PendingMatch[];
 }) {
   const news = trendItems.filter((item) => item.kind === "news").slice(0, 2);
 
@@ -25,31 +50,12 @@ export function AdvisorHome({
     <div className="flex flex-col gap-6">
       <section className="rounded-2xl border border-[#e7eaee] bg-white px-5 py-10">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.mandatesTitle}</h2>
-        <div className="mx-auto mt-8 flex max-w-md flex-col items-center text-center">
-          <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#f4f4f5] text-[#64748b]">
-            <Package className="size-5" aria-hidden />
-          </span>
-          <h3 className="mt-4 text-base font-semibold text-[#2b3b4a]">{advisorCopy.mandatesEmpty}</h3>
-          <p className="mt-2 text-sm text-[#64748b]">{advisorCopy.mandatesEmptyBody}</p>
-          <button
-            type="button"
-            className="mt-5 inline-flex h-11 items-center rounded-full bg-[#3d34b8] px-5 text-sm font-medium text-white"
-          >
-            {advisorCopy.addMandate}
-          </button>
-        </div>
+        <AdvisorMandateBoard mandates={mandates.map(toMandateDisplay)} pending={pending} />
       </section>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.investorProfile}</h2>
-            <Link
-              href="/cuenta"
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#ffaf4d] px-4 text-sm font-medium text-[#2b3b4a]"
-            >
-              <Crown className="size-4" aria-hidden />
-              {advisorCopy.choosePremium}
-            </Link>
           </div>
           <ul className="mt-6 grid gap-3 sm:grid-cols-3">
             {counters.map((label) => (
@@ -68,14 +74,7 @@ export function AdvisorHome({
               <p className="mt-2 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
             </div>
           ) : (
-            <ul className="mt-4 flex flex-col gap-3">
-              {notifications.slice(0, 4).map((item) => (
-                <li key={item.id}>
-                  <p className="text-sm font-medium text-[#2b3b4a]">{item.title}</p>
-                  <p className="text-sm text-[#64748b]">{item.body}</p>
-                </li>
-              ))}
-            </ul>
+            <NoticeList items={notifications} />
           )}
         </section>
       </div>

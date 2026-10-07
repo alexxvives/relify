@@ -5,6 +5,15 @@ export const shellCopy = {
   menuClose: "Cerrar menú",
   navLabel: "Secciones",
   accountLabel: "Cuenta",
+  viewProfile: "Ver perfil",
+  helpTitle: "¿Necesitas ayuda?",
+  helpBody: "Llámanos o escríbenos. Te acompañamos a rellenar la ficha.",
+  helpCall: "Llamar",
+  helpPhone: "910 88 40 12",
+  helpPhoneHref: "tel:+34910884012",
+  helpWrite: "Escribir",
+  helpEmail: "ayuda@itsreleva.com",
+  helpEmailHref: "mailto:ayuda@itsreleva.com",
 } as const;
 
 export type ShellDestination = {
@@ -16,15 +25,9 @@ export type ShellDestination = {
 const destinations = {
   investor: [
     { href: "/inversor", label: "Inicio" },
-    { href: "/inversor/perfil", label: "Perfil de Inversor" },
     { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
-    { href: "/busquedas", label: "Mis búsquedas", section: "Explorar" },
-    { href: "/tendencias", label: "Tendencias", section: "Explorar" },
     { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
-    { href: "/dataroom", label: "Dataroom", section: "Gestión de procesos" },
     { href: "/asesoramiento", label: "Solicitar servicios", section: "Gestión de procesos" },
-    { href: "/favoritos", label: "Empresas favoritas", section: "Gestión de empresas" },
-    { href: "/ocultas", label: "Empresas ocultas", section: "Gestión de empresas" },
   ],
   seller: [
     { href: "/mi-empresa", label: "Inicio" },
@@ -32,14 +35,12 @@ const destinations = {
     { href: "/mi-empresa/documentos", label: "Mis documentos", section: "Mi empresa" },
     { href: "/mi-empresa/procesos", label: "Mis procesos", section: "Gestión de procesos" },
     { href: "/mi-empresa/servicios", label: "Solicitar servicios", section: "Gestión de procesos" },
-    { href: "/tendencias", label: "Tendencias", section: "Explorar" },
   ],
   advisor: [
     { href: "/mandatos", label: "Inicio" },
-    { href: "/tendencias", label: "Tendencias", section: "Explorar" },
-    { href: "/mis-servicios", label: "Mis servicios", section: "Mis servicios" },
+    { href: "/mis-servicios", label: "Mis servicios" },
   ],
-  admin: [{ href: "/cuenta", label: "Tu cuenta" }],
+  admin: [{ href: "/admin", label: "Inicio" }],
 } as const satisfies Record<UserRoleName, readonly ShellDestination[]>;
 
 export function destinationsForRole(role: UserRoleName | null): ShellDestination[] {

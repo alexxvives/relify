@@ -1,66 +1,140 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { Bell } from "lucide-react";
-import { markNotificationsReadAction } from "@/app/cuenta/actions";
+import { Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { markNotificationReadAction } from "@/app/cuenta/actions";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
+
+function iconFor(title: string) {
+  if (title.includes("NDA")) {
+    return ShieldCheck;
+  }
+
+  if (title.includes("Pregunta") || title.includes("pregunta")) {
+    return MessageCircle;
+  }
+
+  if (title.includes("Reunión") || title.includes("reunión")) {
+    return CalendarClock;
+  }
+
+  if (title.includes("Oferta")) {
+    return Sparkles;
+  }
+
+  if (title.includes("Respuesta")) {
+    return Reply;
+  }
+
+  if (title.includes("Dataroom") || title.includes("document")) {
+    return FolderOpen;
+  }
+
+  if (title.includes("interés") || title.includes("Solicitud") || title.includes("Presupuesto")) {
+    return UserRound;
+  }
+
+  return Bell;
+}
 
 export function NotificationBell({ items }: { items: NotificationView[] }) {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
+  const rootRef = useRef<HTMLDivElement>(null);
   const rows = items.map((item) => ({ ...item, unread: item.unread && !seen.includes(item.id) }));
   const unread = rows.filter((item) => item.unread).length;
 
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-
-    if (next && unread > 0) {
-      setSeen(items.map((item) => item.id));
-      startTransition(async () => {
-        await markNotificationsReadAction();
-      });
+  useEffect(() => {
+    if (!open) {
+      return;
     }
+
+    function onPointer(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node) || !rootRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  function openItem(id: string) {
+    setSeen((current) => (current.includes(id) ? current : [...current, id]));
+    setOpen(false);
+    startTransition(async () => {
+      await markNotificationReadAction(id);
+    });
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       <button
         type="button"
         aria-expanded={open}
-        aria-label={notificationCopy.open}
-        onClick={toggle}
-        className="relative inline-flex size-11 items-center justify-center rounded-full text-[#2b3b4a] hover:bg-[#f4f4f5]"
+        aria-label={unread > 0 ? `${notificationCopy.open}. ${unread}` : notificationCopy.open}
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
+        className="group relative inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
       >
-        <Bell className="size-4" aria-hidden />
+        <Bell className="nav-icon nav-motion-bell size-4" aria-hidden />
         {unread > 0 ? (
-          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-[#3d34b8]" />
+          <span className="absolute top-1.5 right-1.5 inline-flex min-w-4 items-center justify-center rounded-full bg-public-clay px-1 text-[10px] leading-4 font-semibold text-white">
+            {unread > 9 ? "9+" : unread}
+          </span>
         ) : null}
       </button>
       {open ? (
-        <div className="absolute right-0 z-30 mt-2 w-80 rounded-2xl border border-[#e6e9f0] bg-white p-3 shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
-          <p className="px-2 text-sm font-semibold">{notificationCopy.title}</p>
+        <div className="absolute top-12 right-0 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public">
+          <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
+            <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>
+            <p className="text-xs font-medium text-public-muted">{unread > 0 ? String(unread) : notificationCopy.caughtUp}</p>
+          </div>
           {rows.length === 0 ? (
-            <p className="px-2 py-4 text-sm text-[#5c6b78]">{notificationCopy.empty}</p>
+            <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+              <Bell className="size-5 text-public-muted" aria-hidden />
+              <p className="text-sm text-public-muted">{notificationCopy.empty}</p>
+            </div>
           ) : (
-            <ul className="mt-2 flex max-h-80 flex-col gap-1 overflow-auto">
+            <ul className="flex max-h-96 flex-col overflow-auto p-2">
               {rows.map((item) => {
+                const Icon = iconFor(item.title);
                 const content = (
-                  <>
-                    <span className="block text-sm font-medium">{item.title}</span>
-                    <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">{item.body}</span>
-                  </>
+                  <span className="flex items-start gap-3">
+                    <span className={item.unread ? "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#eef2ff] text-[#465ab4]" : "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-public-sand text-public-muted"}>
+                      <Icon className="size-4" aria-hidden />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className={item.unread ? "block text-sm font-semibold text-public-ink" : "block text-sm font-normal text-public-muted"}>{item.title}</span>
+                      <span className={item.unread ? "mt-1 block text-sm leading-5 font-semibold text-public-ink" : "mt-1 block text-sm leading-5 text-public-muted"}>{item.body}</span>
+                    </span>
+                    {item.href ? <ChevronRight className="mt-1 size-4 shrink-0 text-public-muted" aria-hidden /> : null}
+                  </span>
                 );
                 return (
                   <li key={item.id}>
                     {item.href ? (
-                      <Link href={item.href} onClick={() => setOpen(false)} className="block rounded-xl px-2 py-2 hover:bg-[#f5f6fa]">
+                      <Link href={item.href} onClick={() => openItem(item.id)} className="block rounded-xl px-3 py-3 hover:bg-public-sand">
                         {content}
                       </Link>
                     ) : (
-                      <div className="rounded-xl px-2 py-2">{content}</div>
+                      <button type="button" onClick={() => openItem(item.id)} className="block w-full rounded-xl px-3 py-3 text-left hover:bg-public-sand">
+                        {content}
+                      </button>
                     )}
                   </li>
                 );

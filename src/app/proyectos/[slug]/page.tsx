@@ -3,17 +3,54 @@ import Link from "next/link";
 import { Heart, Link2, Lock, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { CatalogHeader } from "@/components/catalog-header";
 import { InvestorProject } from "@/components/investor-project";
+import { PublicSite } from "@/components/public-site";
 import { ProjectFigures } from "@/components/project-card";
 import { catalogCopy } from "@/lib/catalog-copy";
+import { dealPipeline, type DealStep } from "@/lib/deal-pipeline";
+import { madridToday } from "@/lib/meeting";
 import { otherPublishedProjects } from "@/lib/public-project";
+import type { ProjectAccessView } from "@/lib/project-access";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { loadBuyerPlan } from "@/server/buyerPlan";
 import { getInvestorProject } from "@/server/getInvestorProject";
 import { getProjectAccess } from "@/server/getProjectAccess";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
+import { listProjectMessages } from "@/server/listProjectMessages";
 import { getPublicProject } from "@/server/getPublicProject";
 import { listPublicProjects } from "@/server/listPublicProjects";
+
+type ProjectTab = "company" | "questions" | "meetings";
+
+function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
+  if (steps.length > 0) {
+    return steps;
+  }
+
+  if (access === "none") {
+    return [];
+  }
+
+  return dealPipeline("investor", {
+    accepted: false,
+    nda: false,
+    questions: false,
+    meeting: false,
+    offer: false,
+    documents: false,
+    closed: false,
+  });
+}
+
+function readTab(value: string | string[] | undefined): ProjectTab {
+  const tab = Array.isArray(value) ? value[0] : value;
+
+  if (tab === "company" || tab === "questions" || tab === "meetings") {
+    return tab;
+  }
+
+  return "company";
+}
 
 export async function generateMetadata({
   params,
@@ -36,8 +73,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProjectDetailPage({ params }: PageProps<"/proyectos/[slug]">) {
+export default async function ProjectDetailPage({
+  params,
+  searchParams,
+}: PageProps<"/proyectos/[slug]">) {
   const { slug } = await params;
+  const query = await searchParams;
   const project = await getPublicProject(slug);
 
   if (!project) {
@@ -55,32 +96,42 @@ export default async function ProjectDetailPage({ params }: PageProps<"/proyecto
     if (!profile) {
       notFound();
     }
-    const [published, access, favorites] = await Promise.all([
+    const [published, access, favorites, messages, billing] = await Promise.all([
       listPublicProjects(),
       getProjectAccess(user, slug),
       listFavoriteSlugs(user.id),
+      listProjectMessages(user, slug),
+      loadBuyerPlan(user.id),
     ]);
     return (
-      <AppShell title={profile.codename}>
+      <AppShell title={profile.codename} showTitle={false}>
         <InvestorProject
           project={profile}
           recommendations={otherPublishedProjects(published, profile.slug)}
           access={access}
+          plan={billing.plan}
           favorited={favorites.includes(profile.slug)}
+          messages={messages.threads[0]?.messages ?? []}
+          documents={messages.threads[0]?.documents ?? []}
+          steps={bannerSteps(access, messages.threads[0]?.steps ?? [])}
+          today={madridToday(new Date())}
+          initialTab={readTab(query.tab)}
         />
       </AppShell>
     );
   }
 
   return (
-    <div className="min-h-full bg-public-paper font-public text-public-ink">
-      <CatalogHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
+    <PublicSite>
+      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-16 sm:px-8">
         <section className="border border-public-ink bg-public-card p-6 shadow-public sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl tracking-tight sm:text-5xl">{project.codename}</h1>
-              <p className="mt-2 flex items-center gap-2 text-public-muted">
+              <p className="text-[11px] font-medium tracking-[0.28em] text-public-muted uppercase">{catalogCopy.detailKicker}</p>
+              <h1 className="mt-2 text-5xl leading-none tracking-tight text-public-ink italic [font-family:var(--public-display)] sm:text-6xl">
+                {project.codename}
+              </h1>
+              <p className="mt-3 flex items-center gap-2 text-public-muted">
                 <MapPin className="size-4" aria-hidden />
                 {project.region}
               </p>
@@ -126,6 +177,6 @@ export default async function ProjectDetailPage({ params }: PageProps<"/proyecto
           </dl>
         </section>
       </main>
-    </div>
+    </PublicSite>
   );
 }

@@ -12,7 +12,7 @@ Installed at the repo root. The resolved versions below are the versions from `p
 | App | Next.js App Router, single package at the repo root |
 | UI | React Server Components, Tailwind CSS, shadcn/ui copied into the repo |
 | Validation | Zod at every trust boundary |
-| Database | PostgreSQL 16. Local URL in `.env`. No SQLite. |
+| Database | PostgreSQL 16 locally in Docker. Production is Neon in Frankfurt, branch `production`, Postgres only. No SQLite. |
 | ORM | Prisma |
 | Auth | Better Auth, Prisma adapter |
 | Lint / types | ESLint and `tsc --noEmit` |
@@ -34,14 +34,14 @@ Add these scripts during scaffolding and keep them green:
 - Monorepo tooling
 - A second UI kit, CSS-in-JS, or a global state library
 - `next-intl` or any i18n framework
-- Stripe, Redis, a search engine, D1, SQLite, or MongoDB
+- Redis, a search engine, D1, SQLite, or MongoDB
 - OpenNext, Vercel, or a Cloudflare Worker created before the app boots locally
 
 ## Deployment
 
 Local: `npm run dev` on Node.
 
-Production: Cloudflare Workers, added with vinext after `npx vinext check` passes. PostgreSQL is reached through Hyperdrive. Data-room files go to R2 in a later phase. See `docs/DECISIONS.md`.
+Production: Cloudflare Workers, added with vinext after `npx vinext check` passes. PostgreSQL is Neon in Frankfurt, reached through Hyperdrive. Data-room files go to R2 in a later phase. See `docs/DECISIONS.md`.
 
 ## Resolved versions
 
@@ -52,11 +52,14 @@ Production: Cloudflare Workers, added with vinext after `npx vinext check` passe
 | typescript | 5.9.3 |
 | tailwindcss | 4.3.3 |
 | zod | 4.6.5 |
+| stripe | 22.4.0 |
 | prisma | 7.10.0 |
 | @prisma/client | 7.10.0 |
 | better-auth | 1.7.6 |
 | eslint | 9.39.5 |
 | vitest | 5.0.3 |
+| @neon/config | 1.8.4 |
+| @neon/env | 1.5.1 |
 
 ## Environment
 
@@ -66,3 +69,5 @@ Copy `.env.example` to `.env`. Required names:
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
 - `CONTEXT7_API_KEY` (read by the Context7 MCP, not by the app)
+- `STRIPE_SECRET_KEY` (test key only; a live key is ignored)
+- `STRIPE_WEBHOOK_SECRET`
