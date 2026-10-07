@@ -69,5 +69,8 @@ Copy `.env.example` to `.env`. Required names:
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
 - `CONTEXT7_API_KEY` (read by the Context7 MCP, not by the app)
-- `STRIPE_SECRET_KEY` (test key only; a live key is ignored)
+- `STRIPE_SECRET_KEY` (test key; used unless `STRIPE_MODE` is `live`)
 - `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_MODE` (optional; `live` selects the live pair below, anything else stays on test)
+- `STRIPE_LIVE_SECRET_KEY` (only read when `STRIPE_MODE` is `live`)
+- `STRIPE_LIVE_WEBHOOK_SECRET` (only read when `STRIPE_MODE` is `live`)

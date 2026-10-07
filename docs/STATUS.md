@@ -32,6 +32,8 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Verified
 
+- After the seller request card, the letter PDFs, and the centered Favoritas control, `npm run typecheck` exited 0 and `npm run lint` exited 0. `npm run test` exited 0 (110 tests). Signed in as Elena, Procesos activos shows Inversor 1 on Proyecto Cala with Tu turno and Aceptar inversor. Signed in as Martín, `/mercado` centers Favoritas in the content row. The NDA draft PDF is a letter with a header, the clauses, and a signature block.
+
 - After the deal bar, turn card, marketplace overlay, and demo reset, `npm run typecheck` exited 0 and `npm run lint` exited 0. `npm run test` exited 0 (110 tests). Signed in as Martín, `/mercado` puts the codename and the region on the photo, and Facturación, EBITDA, and EBITDA ajustado sit in three columns on one line. Proyecto Olivo keeps the description on one line. The locked sections center Conectar over a stronger blur, with donuts at different heights and 999.999,00 € in the table. Proyecto Cala starts at Conectar, with no messages. Elena's Mis procesos is empty. A live deal shows a continuous bar and a "Tu turno" card. `inversor@itsreleva.com` is Martín Soler. `asesor@itsreleva.com` is Irene Navarro with a draft Proyecto Nube.
 
 
@@ -119,7 +121,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Next
 
-The test secret key in `.env` reaches the Stripe account, the billing portal configuration exists, and `stripe listen` forwards `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, and `customer.subscription.deleted` to `localhost:3000/api/stripe/webhook`. The matching webhook secret is in `.env`. Checkout still creates the price on the session. The 1% and 2.5% are stored when someone records a sale and are not invoiced. Quotes stay introductions. Stripe Connect is not in this pass. Do not add vinext until `npx vinext check` passes.
+The test secret key in `.env` reaches the Stripe account, the billing portal configuration exists, and `stripe listen` forwards `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, and `customer.subscription.deleted` to `localhost:3000/api/stripe/webhook`. The matching webhook secret is in `.env`. Checkout still creates the price on the session. Real charges wait for `STRIPE_MODE=live` plus the live key and the live webhook secret. Until then `/premium` says the payments are a test. The 1% and 2.5% are stored when someone records a sale and are not invoiced. Quotes stay introductions. Stripe Connect is not in this pass. Do not add vinext until `npx vinext check` passes.
 
 Seller identity stays the OpenMercantil BORME lookup. eInforma stays unwired until its published REST path and `EINFORMA_API_USER` plus `EINFORMA_API_KEY` are both available. The optional accounts upload on `/mi-empresa/detalles` reads an XBRL or XML deposit, or modelo 200 XML. It does not read a PDF and it does not store the file.
 

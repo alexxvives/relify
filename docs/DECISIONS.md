@@ -146,6 +146,10 @@ Arc UI donut and bar stay out. Those registry items install `motion` and a secon
 
 The production database is the Neon project `RELEVA` (`delicate-cloud-90142183`), branch `production`, region `aws-eu-central-1`. Postgres only. Neon Auth, object storage, functions, and the AI gateway stay off. Login stays Better Auth. Data-room files stay headed for R2. Local development keeps the Docker `DATABASE_URL`. The Neon URL is not the app's local URL. Workers still reach production through Hyperdrive, which is not created yet. `neon.ts` is the branch policy. `.neon` stays gitignored.
 
+## 2026-10-07 — Stripe stays on test until the server says live
+
+This replaces the sentence that a live key is ignored. The default mode is test: `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. Real charges start only when `STRIPE_MODE` is `live` and `STRIPE_LIVE_SECRET_KEY` plus `STRIPE_LIVE_WEBHOOK_SECRET` are set. A live key in the test variable is still ignored. Test and live are two Stripe modes. There is no button in the product that flips them, because one click would charge every later buyer. Quotes stay records. The 1% and 2.5% stay stored rows.
+
 ## 2026-09-30 — Click-through validation uses the Cursor IDE browser
 
 This replaces the Playwright MCP. The IDE browser is already connected and can open the app, click, type, and read the page structure. Playwright is not a project MCP. A Playwright test package can wait until a flow is stable.

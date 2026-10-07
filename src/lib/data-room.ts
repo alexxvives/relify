@@ -36,7 +36,7 @@ type RoomContext = {
   onboarded: boolean;
   role: UserRoleName | null;
   ownsProject: boolean;
-  projectStatus: "draft" | "published" | null;
+  projectStatus: "draft" | "pending" | "published" | null;
   ndaAcceptedAt: Date | null;
   granted: boolean;
 };

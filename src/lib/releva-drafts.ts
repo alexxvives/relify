@@ -1,5 +1,5 @@
 import { loiAgreement, ndaAgreement } from "./deal-documents";
-import { plainPdf } from "./plain-pdf";
+import { letterPdf, type LetterPdfInput } from "./plain-pdf";
 
 export const relevaDraftFolder = "Releva";
 
@@ -34,13 +34,55 @@ export function relevaDraftText(id: string): string | null {
   return null;
 }
 
-export function relevaDraftPdf(id: string): { fileName: string; bytes: Buffer } | null {
-  const draft = relevaDrafts.find((item) => item.id === id);
-  const text = relevaDraftText(id);
+const signNote = "La firma se hace desde el proceso. Deja constancia y no es una firma electrónica cualificada.";
 
-  if (!draft || text === null) {
+function letterFor(id: string): LetterPdfInput | null {
+  const agreement =
+    id === "releva-nda"
+      ? ndaAgreement({
+          buyerName: "El comprador",
+          codename: "el proyecto",
+          region: "la provincia",
+          dateLabel: "la fecha de la firma",
+        })
+      : id === "releva-loi"
+        ? loiAgreement({
+            buyerName: "El comprador",
+            codename: "el proyecto",
+            region: "la provincia",
+            askingPrice: "el precio de la ficha",
+            dateLabel: "la fecha de la firma",
+          })
+        : null;
+
+  if (agreement === null) {
     return null;
   }
 
-  return { fileName: draft.fileName, bytes: plainPdf(text) };
+  const chunks = agreement
+    .split("\n\n")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  const date = chunks.find((part) => part.startsWith("Fecha:")) ?? "";
+  const paragraphs = chunks.filter((part) => part !== chunks[0] && part !== date);
+
+  return {
+    kicker: "Documento confidencial",
+    title: id === "releva-nda" ? "Acuerdo de confidencialidad" : "Carta de intenciones",
+    date,
+    lead: intro,
+    paragraphs,
+    signNote,
+  };
+}
+
+export function relevaDraftPdf(id: string): { fileName: string; bytes: Buffer } | null {
+  const draft = relevaDrafts.find((item) => item.id === id);
+  const letter = letterFor(id);
+
+  if (!draft || letter === null) {
+    return null;
+  }
+
+  return { fileName: draft.fileName, bytes: letterPdf(letter) };
 }

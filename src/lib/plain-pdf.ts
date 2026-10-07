@@ -16,6 +16,7 @@ function pdfText(value: string): string {
     "Ü": "\\334",
     "¿": "\\277",
     "¡": "\\241",
+    "·": "\\267",
     "€": " EUR",
     "\\": "\\\\",
     "(": "\\(",
@@ -63,23 +64,113 @@ export function wrapPdfLines(text: string, width = 88): string[] {
   return lines;
 }
 
-export function plainPdf(text: string): Buffer {
-  const commands = ["BT", "/F1 11 Tf", "50 800 Td"];
-  wrapPdfLines(text).forEach((line, index) => {
-    if (index > 0) {
-      commands.push("0 -14 Td");
+export type LetterPdfInput = {
+  kicker: string;
+  title: string;
+  date: string;
+  lead: string;
+  paragraphs: string[];
+  signNote: string;
+};
+
+function literal(value: string): string {
+  return `(${pdfText(value)})`;
+}
+
+export function letterPdf(input: LetterPdfInput): Buffer {
+  const commands = [
+    "0.110 0.153 0.251 rg",
+    "0 768 595 74 re f",
+    "0.275 0.353 0.706 rg",
+    "0 768 595 4 re f",
+    "BT",
+    "/F2 22 Tf",
+    "1 1 1 rg",
+    "1 0 0 1 48 808 Tm",
+    `${literal("Releva")} Tj`,
+    "/F1 9 Tf",
+    "0.816 0.847 0.910 rg",
+    "1 0 0 1 48 788 Tm",
+    `${literal(input.kicker)} Tj`,
+    "ET",
+    "BT",
+    "/F2 16 Tf",
+    "0.110 0.153 0.251 rg",
+    "1 0 0 1 48 730 Tm",
+    `${literal(input.title)} Tj`,
+    "/F1 10 Tf",
+    "0.361 0.420 0.471 rg",
+    "1 0 0 1 48 710 Tm",
+    `${literal(input.date)} Tj`,
+    "ET",
+    "0.863 0.886 0.910 RG",
+    "0.8 w",
+    "48 696 m 547 696 l S",
+    "BT",
+    "/F1 10 Tf",
+    "0.361 0.420 0.471 rg",
+  ];
+  let y = 674;
+
+  for (const line of wrapPdfLines(input.lead, 92)) {
+    commands.push(`1 0 0 1 48 ${y} Tm`);
+    commands.push(`${literal(line)} Tj`);
+    y -= 14;
+  }
+
+  y -= 10;
+  commands.push("ET");
+  commands.push("BT");
+  commands.push("/F1 11 Tf");
+  commands.push("0.110 0.153 0.251 rg");
+
+  for (const paragraph of input.paragraphs) {
+    for (const line of wrapPdfLines(paragraph, 88)) {
+      if (y < 176) {
+        break;
+      }
+
+      commands.push(`1 0 0 1 48 ${y} Tm`);
+      commands.push(`${literal(line)} Tj`);
+      y -= 16;
     }
 
-    commands.push(`(${pdfText(line)}) Tj`);
-  });
+    y -= 8;
+  }
+
   commands.push("ET");
+  commands.push("0.965 0.969 0.980 rg");
+  commands.push("48 96 499 62 re f");
+  commands.push("0.275 0.353 0.706 rg");
+  commands.push("48 96 3 62 re f");
+  commands.push("BT");
+  commands.push("/F2 11 Tf");
+  commands.push("0.110 0.153 0.251 rg");
+  commands.push("1 0 0 1 64 132 Tm");
+  commands.push(`${literal("Firma en Releva")} Tj`);
+  commands.push("/F1 9 Tf");
+  commands.push("0.361 0.420 0.471 rg");
+  commands.push("1 0 0 1 64 114 Tm");
+  commands.push(`${literal(input.signNote)} Tj`);
+  commands.push("ET");
+  commands.push("0.863 0.886 0.910 RG");
+  commands.push("0.6 w");
+  commands.push("48 78 m 547 78 l S");
+  commands.push("BT");
+  commands.push("/F1 8 Tf");
+  commands.push("0.545 0.580 0.627 rg");
+  commands.push("1 0 0 1 48 62 Tm");
+  commands.push(`${literal("Releva  ·  Borrador del proceso  ·  No incluye razón social, CIF ni domicilio")} Tj`);
+  commands.push("ET");
+
   const stream = commands.join("\n");
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
     `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>",
   ];
   let body = "%PDF-1.4\n";
   const offsets = [0];

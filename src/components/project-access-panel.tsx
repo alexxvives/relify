@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
+import { AgreementSheet } from "@/components/agreement-sheet";
 import { SignBubble } from "@/components/deal-pipeline";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy, connectConfirm } from "@/lib/access-copy";
@@ -122,8 +123,8 @@ export function NdaSignBubble({ slug, agreement }: { slug: string; agreement: st
         {open ? "Cerrar documento" : "Abrir documento"}
       </button>
       {open ? (
-        <div className="mt-2 max-h-48 overflow-y-auto rounded-xl bg-white p-3 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
-          {agreement}
+        <div className="mt-2 max-h-72 overflow-y-auto">
+          <AgreementSheet text={agreement} />
         </div>
       ) : null}
       <form action={acceptAction} className="mt-3 flex flex-col items-start gap-2">
@@ -158,8 +159,8 @@ export function ProjectAccessPanel({
       <h2 id="acceso-nda" className="text-xl font-semibold">
         {accessCopy.ndaHeading}
       </h2>
-      <div className="mt-4 max-h-80 overflow-y-auto rounded-xl bg-[#f7f8fb] p-4 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
-        {agreement}
+      <div className="mt-4 max-h-96 overflow-y-auto">
+        <AgreementSheet text={agreement} />
       </div>
       <form action={acceptAction} className="mt-4 flex flex-col items-start gap-3">
         <input type="hidden" name="slug" value={slug} />

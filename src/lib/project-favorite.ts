@@ -7,7 +7,7 @@ export type FavoriteDecision =
 export function favoriteDecision(input: {
   onboarded: boolean;
   role: UserRoleName | null;
-  projectStatus: "draft" | "published" | null;
+  projectStatus: "draft" | "pending" | "published" | null;
   alreadySaved: boolean;
 }): FavoriteDecision {
   if (!input.onboarded || input.role !== "investor" || input.projectStatus !== "published") {

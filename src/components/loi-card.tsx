@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { AgreementSheet } from "@/components/agreement-sheet";
 import { SignBubble } from "@/components/deal-pipeline";
 import { accessCopy } from "@/lib/access-copy";
 
@@ -28,7 +29,9 @@ export function LoiCard({ slug, agreement, signedBody }: { slug: string; agreeme
           {accessCopy.loiHeading}
         </h2>
         <p className="mt-2 text-sm font-medium text-[#17663a]">{accessCopy.loiSigned}</p>
-        <div className="mt-4 rounded-xl bg-[#f7f8fb] p-4 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">{signedBody}</div>
+        <div className="mt-4">
+          <AgreementSheet text={signedBody} />
+        </div>
       </section>
     );
   }
@@ -52,8 +55,8 @@ export function LoiSignBubble({ slug, agreement }: { slug: string; agreement: st
         {open ? "Cerrar documento" : "Abrir documento"}
       </button>
       {open ? (
-        <div className="mt-2 max-h-48 overflow-y-auto rounded-xl bg-white p-3 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
-          {agreement}
+        <div className="mt-2 max-h-72 overflow-y-auto">
+          <AgreementSheet text={agreement} />
         </div>
       ) : null}
       <form action={action} className="mt-3 flex flex-col items-start gap-2">
@@ -77,8 +80,8 @@ function LoiSign({ slug, agreement }: { slug: string; agreement: string }) {
       <h2 id="carta-intenciones" className="text-xl font-semibold">
         {accessCopy.loiHeading}
       </h2>
-      <div className="mt-4 max-h-80 overflow-y-auto rounded-xl bg-[#f7f8fb] p-4 text-sm leading-6 whitespace-pre-wrap text-[#1c2740]">
-        {agreement}
+      <div className="mt-4 max-h-96 overflow-y-auto">
+        <AgreementSheet text={agreement} />
       </div>
       <form action={action} className="mt-4 flex flex-col items-start gap-3">
         <input type="hidden" name="slug" value={slug} />

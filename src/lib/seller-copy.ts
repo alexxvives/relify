@@ -183,6 +183,8 @@ export const sellerCopy = {
   companyDeleteForbidden: "Solo puedes borrar una empresa tuya.",
   meetingsEditNotes: "Editar notas",
   meetingsCancel: "Cancelar",
+  pendingRequest: "Quiere conectar. Te toca aceptar.",
+  waitingNda: "Ya has aceptado. El inversor todavía no ha firmado el acuerdo de confidencialidad.",
   activeEmpty: "No tienes procesos activos en este momento.",
   activeEmptyBody: "Cuando tengas procesos activos, podrás verlos aquí.",
   inactiveEmpty: "No tienes procesos inactivos en este momento.",

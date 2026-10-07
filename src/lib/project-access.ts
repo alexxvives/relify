@@ -15,7 +15,7 @@ export type AccessDenial = "forbidden" | "missing" | "nda-required" | "waiting" 
 type AccessContext = {
   onboarded: boolean;
   role: UserRoleName | null;
-  projectStatus: "draft" | "published" | null;
+  projectStatus: "draft" | "pending" | "published" | null;
 };
 
 function roleAndProject(input: AccessContext): { ok: true } | { ok: false; code: "forbidden" | "missing" } {

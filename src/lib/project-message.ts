@@ -110,11 +110,14 @@ export function personName(name: string, lastName: string | null | undefined): s
   return [name, lastName ?? ""].map((part) => part.trim()).filter((part) => part.length > 0).join(" ");
 }
 
+export type SellerThreadStage = "pending" | "nda" | "open";
+
 export type SellerThread = {
   accessId: string;
   codename: string;
   label: string;
   partyName: string;
+  stage: SellerThreadStage;
   messages: ThreadMessageView[];
   steps: DealStep[];
   documents: ProcessFile[];

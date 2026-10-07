@@ -2,7 +2,7 @@ import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
-import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread } from "@/lib/project-message";
+import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -85,7 +85,8 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         select: { projectId: true },
       }),
     ]);
-    const open = labelAccesses(accesses).filter((access) => access.sellerAcceptedAt !== null && access.ndaAcceptedAt !== null);
+    const labeled = labelAccesses(accesses);
+    const open = labeled.filter((access) => access.sellerAcceptedAt !== null && access.ndaAcceptedAt !== null);
     const openKey = new Set(open.map((access) => `${access.projectId}:${access.investorId}`));
     const visibleMessages = messages.filter((message) => openKey.has(`${message.projectId}:${message.investorId}`));
     const closedProjects = new Set(fees.map((fee) => fee.projectId));
@@ -97,16 +98,19 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             select: { id: true, name: true, lastName: true },
           });
     const nameById = new Map(people.map((person) => [person.id, personName(person.name, person.lastName)]));
-    const threads = open.map((access) => {
-      const threadMessages = visibleMessages.filter(
-        (message) => message.projectId === access.projectId && message.investorId === access.investorId,
-      );
+    const threads = labeled.map((access) => {
+      const stage: SellerThreadStage = access.sellerAcceptedAt === null ? "pending" : access.ndaAcceptedAt === null ? "nda" : "open";
+      const threadMessages =
+        stage === "open"
+          ? visibleMessages.filter((message) => message.projectId === access.projectId && message.investorId === access.investorId)
+          : [];
 
       return {
         accessId: access.id,
         codename: codenameById.get(access.projectId) ?? "",
         label: access.label,
-        partyName: nameById.get(access.investorId) || sellerCopy.investorParty,
+        stage,
+        partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
         messages: threadMessages.map((message) =>
           toThreadMessage({
             id: message.id,
@@ -129,20 +133,23 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             closed: closedProjects.has(access.projectId),
           }),
         ),
-        documents: files
-          .filter((file) => file.projectId === access.projectId)
-          .map((file) => ({
-            id: file.id,
-            folder: file.folder,
-            fileName: file.fileName,
-            stored: dataRoomFileIsStored(file.id),
-            visible: sharedFileIds({
-              files: files.filter((item) => item.projectId === access.projectId),
-              investorId: access.investorId,
-              granted: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
-              shares,
-            }).has(file.id),
-          })),
+        documents:
+          stage === "open"
+            ? files
+                .filter((file) => file.projectId === access.projectId)
+                .map((file) => ({
+                  id: file.id,
+                  folder: file.folder,
+                  fileName: file.fileName,
+                  stored: dataRoomFileIsStored(file.id),
+                  visible: sharedFileIds({
+                    files: files.filter((item) => item.projectId === access.projectId),
+                    investorId: access.investorId,
+                    granted: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+                    shares,
+                  }).has(file.id),
+                }))
+            : [],
       };
     });
 
@@ -228,6 +235,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         accessId: "",
         codename: project.codename,
         label: project.codename,
+        stage: "open",
         partyName: owner ? personName(owner.name, owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
         messages: messages.map((message) =>
           toThreadMessage({
