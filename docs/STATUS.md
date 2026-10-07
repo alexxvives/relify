@@ -1,5 +1,7 @@
 # Status
 
+Demo sign-in accounts are `vendedor@itsreleva.com`, `inversor@itsreleva.com`, `asesor@itsreleva.com`, and `admin@itsreleva.com`. The buyer account is the investor role and holds the Proyecto Cala process.
+
 Phase: signed-in product. New accounts finish onboarding before a role home. Investors land on `/inversor` and browse published projects at `/mercado`. Sellers save a company draft at `/mi-empresa`. Advisors land on `/mandatos`. Public project pages stay anonymous. The SEO landing page remains at `/`. The public face (home, marketing, auth, and catalog) and the signed-in shell are Costa: fog, ink, secondary text, and accent in `src/app/globals.css`, with DM Sans. The word Releva uses Instrument Serif italic, next to a handoff mark in the header, footer, catalog header, auth panel, and the signed-in shell. The previous homepage stays at `/archivo`, with `noindex`, disallowed in `robots.txt`, and left out of the sitemap. `/` links to it with one Archivo button.
 
 ## Done
@@ -29,6 +31,10 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 - Billing uses Stripe Checkout in test mode, and Releva is the merchant. `/premium` is investor-only: looking is free, 20 €/mes allows 3 matches, and 99 €/mes is unlimited. The recommended card is 3 matches al mes. The three cards share one height. Each plan lists the 1% close fee as a check. There is no comparison table. Anual shows 200 €/año and 990 €/año, and choosing a plan still opens the monthly Checkout. IVA 21% is on top, so Checkout charges 24,20 € or 119,79 €. A buyer with no active plan sees Ver planes instead of Conectar. A match is the company accepting the buyer. A seeded project with no owner counts the match when the buyer connects, so the existing NDA demo still works. A seller publishes their own draft for free from `/mi-empresa`. An advisor publishes a client company from `/mandatos`; the first is free and each extra is 149 € plus IVA (180,29 €) once, before it goes live. Recording a sale stores the buyer 1% and the seller 2.5% of the closed price, plus 21% IVA, and does not charge. Stripe Tax and Stripe Connect are off. A missing test key returns a Spanish message and does not throw. Advisory quotes stay unpaid introductions.
 
 ## Verified
+
+- After one investor demo login and the advisor desk, `npm run typecheck` exited 0 and `npm run lint` exited 0. `inversor@itsreleva.com` is Martín Soler and holds the Proyecto Cala NDA. `asesor@itsreleva.com` is Irene Navarro with a draft Proyecto Nube. `comprador@itsreleva.com` and `alexxvives@gmail.com` are gone.
+
+
 
 - After the decoy figures, marketplace cards, meeting tags, and Releva drafts, `npm run typecheck` exited 0 and `npm run lint` exited 0. `npm run test` exited 0 (110 tests). Signed in as Laura, Favoritas sits on the Empresas title row. The card amounts read on one line, including Facturación 1.250.000 €. Proyecto Bruma blurs the three sections with 999.999,00 € behind them, the NDA sentence, and Conectar on each. Proyecto Cala says "Esperando a que el inversor (TÚ) firme la carta de intenciones". Proyecto Duna on Mis procesos says the seller must accept, without TÚ. A 1 oct 2026 meeting is Hecha and has no edit control. Signed in as Elena, the same letter of intent says the investor must sign, without TÚ. Mis documentos lists Releva with Acuerdo-de-confidencialidad.pdf and Carta-de-intenciones.pdf. That PDF starts with %PDF-1.4, names El comprador, and does not contain Horno. Proyecto Bruma and Proyecto Cala do not contain Horno de la Cala, Calle Demo, or B00000000.
 

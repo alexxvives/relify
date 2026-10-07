@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
+import type { Prisma } from "@/generated/prisma/client";
 import { incomingAccessNotice } from "@/lib/notifications";
 import { prisma } from "@/server/db";
 
@@ -7,7 +8,7 @@ const password = "@Releva1z2x";
 const projectId = "demo-project-cala";
 const projectSlug = "proyecto-cala";
 
-type RoleName = "investor" | "seller" | "admin";
+type RoleName = "investor" | "seller" | "advisor" | "admin";
 
 type DemoAccount = {
   email: string;
@@ -19,19 +20,12 @@ type DemoAccount = {
   role: RoleName;
 };
 
+const retiredBuyerEmails = ["inversor.ui@example.com"];
+
 const accounts: DemoAccount[] = [
   {
     email: "inversor@itsreleva.com",
-    aliases: ["inversor.ui@example.com"],
-    name: "Laura",
-    lastName: "Vidal",
-    phone: "+34610000001",
-    nationalId: "A00000000",
-    role: "investor",
-  },
-  {
-    email: "comprador@itsreleva.com",
-    aliases: [],
+    aliases: ["comprador@itsreleva.com"],
     name: "Martín",
     lastName: "Soler",
     phone: "+34610000002",
@@ -46,6 +40,15 @@ const accounts: DemoAccount[] = [
     phone: "+34610000003",
     nationalId: "B00000000",
     role: "seller",
+  },
+  {
+    email: "asesor@itsreleva.com",
+    aliases: [],
+    name: "Irene",
+    lastName: "Navarro",
+    phone: "+34610000005",
+    nationalId: "A33333337",
+    role: "advisor",
   },
   {
     email: "admin@itsreleva.com",
@@ -130,6 +133,169 @@ async function ensureBuyerPlan(userId: string, plan: "limited" | "unlimited", st
   });
 }
 
+async function keepRicherRow(
+  retiredId: string,
+  buyerId: string,
+  rows: { id: string; projectId: string }[],
+  findKept: (projectId: string) => Promise<{ id: string } | null>,
+  remove: (id: string) => Promise<unknown>,
+  reassign: (id: string) => Promise<unknown>,
+): Promise<void> {
+  for (const row of rows) {
+    if (retiredId === buyerId) {
+      return;
+    }
+    const kept = await findKept(row.projectId);
+    if (kept && kept.id !== row.id) {
+      await remove(row.id);
+    } else if (!kept) {
+      await reassign(row.id);
+    }
+  }
+}
+
+async function giveBuyerTheDemo(retiredId: string, buyerId: string): Promise<void> {
+  const accesses = await prisma.projectAccess.findMany({
+    where: { investorId: retiredId },
+    select: { id: true, projectId: true, requestedAt: true, sellerAcceptedAt: true, ndaAcceptedAt: true },
+  });
+
+  for (const access of accesses) {
+    const kept = await prisma.projectAccess.findUnique({
+      where: { projectId_investorId: { projectId: access.projectId, investorId: buyerId } },
+      select: { id: true, requestedAt: true, sellerAcceptedAt: true, ndaAcceptedAt: true },
+    });
+    await prisma.projectMessage.updateMany({
+      where: { investorId: retiredId, projectId: access.projectId },
+      data: { investorId: buyerId },
+    });
+    if (kept) {
+      await prisma.projectAccess.update({
+        where: { id: kept.id },
+        data: {
+          requestedAt: kept.requestedAt < access.requestedAt ? kept.requestedAt : access.requestedAt,
+          sellerAcceptedAt: kept.sellerAcceptedAt ?? access.sellerAcceptedAt,
+          ndaAcceptedAt: kept.ndaAcceptedAt ?? access.ndaAcceptedAt,
+        },
+      });
+      await prisma.projectAccess.delete({ where: { id: access.id } });
+    } else {
+      await prisma.projectAccess.update({ where: { id: access.id }, data: { investorId: buyerId } });
+    }
+  }
+
+  await prisma.projectMessage.updateMany({ where: { investorId: retiredId }, data: { investorId: buyerId } });
+
+  const favorites = await prisma.projectFavorite.findMany({
+    where: { investorId: retiredId },
+    select: { id: true, projectId: true },
+  });
+  await keepRicherRow(
+    retiredId,
+    buyerId,
+    favorites,
+    (projectId) =>
+      prisma.projectFavorite.findUnique({
+        where: { projectId_investorId: { projectId, investorId: buyerId } },
+        select: { id: true },
+      }),
+    (id) => prisma.projectFavorite.delete({ where: { id } }),
+    (id) => prisma.projectFavorite.update({ where: { id }, data: { investorId: buyerId } }),
+  );
+
+  const grants = await prisma.dataRoomGrant.findMany({
+    where: { investorId: retiredId },
+    select: { id: true, projectId: true },
+  });
+  await keepRicherRow(
+    retiredId,
+    buyerId,
+    grants,
+    (projectId) =>
+      prisma.dataRoomGrant.findUnique({
+        where: { projectId_investorId: { projectId, investorId: buyerId } },
+        select: { id: true },
+      }),
+    (id) => prisma.dataRoomGrant.delete({ where: { id } }),
+    (id) => prisma.dataRoomGrant.update({ where: { id }, data: { investorId: buyerId } }),
+  );
+
+  const shares = await prisma.dataRoomFileShare.findMany({
+    where: { investorId: retiredId },
+    select: { id: true, fileId: true },
+  });
+  for (const share of shares) {
+    const kept = await prisma.dataRoomFileShare.findUnique({
+      where: { fileId_investorId: { fileId: share.fileId, investorId: buyerId } },
+      select: { id: true },
+    });
+    if (kept) {
+      await prisma.dataRoomFileShare.delete({ where: { id: share.id } });
+    } else {
+      await prisma.dataRoomFileShare.update({ where: { id: share.id }, data: { investorId: buyerId } });
+    }
+  }
+
+  await prisma.notification.updateMany({ where: { userId: retiredId }, data: { userId: buyerId } });
+  await prisma.advisoryQuote.updateMany({ where: { investorId: retiredId }, data: { investorId: buyerId } });
+  await prisma.project.updateMany({ where: { ownerId: retiredId }, data: { ownerId: null } });
+  await prisma.user.delete({ where: { id: retiredId } });
+}
+
+async function ensureAdvisorDesk(advisorId: string): Promise<void> {
+  const services: Prisma.InputJsonValue = [
+    { serviceType: "COMPANY_VALUATION", priceFromCents: 250_000, priceToCents: 600_000 },
+    { serviceType: "DUE_DILIGENCE", priceFromCents: 400_000, priceToCents: 900_000 },
+  ];
+  const profile = {
+    businessName: "Navarro Advisory S.L.",
+    nif: "A33333337",
+    postalCode: "08001",
+    description:
+      "Asesoría de compraventa de pymes. Acompaño al propietario desde la ficha hasta el cierre, con la identidad de la empresa fuera del escaparate.",
+    sectors: ["C", "G"],
+    services,
+    closedOperations: [] as Prisma.InputJsonValue,
+    dealsAnswered: true,
+  };
+
+  await prisma.advisorProfile.upsert({
+    where: { userId: advisorId },
+    create: { userId: advisorId, ...profile },
+    update: profile,
+  });
+
+  const projectId = "demo-project-nube";
+  const company = {
+    slug: "proyecto-nube",
+    codename: "Proyecto Nube",
+    region: "Cataluña",
+    revenueCents: 64_000_000,
+    ebitdaCents: 9_000_000,
+    adjustedEbitdaCents: 8_000_000,
+    askingPriceCents: 48_000_000,
+    netDebtCents: 0,
+    workingCapitalCents: 0,
+    netIncomeCents: 0,
+    legalName: "Taller Nube Demo S.L.",
+    cif: "B77777779",
+    address: "Carrer Demo 8, 08001 Barcelona",
+    status: "draft" as const,
+    ownerId: advisorId,
+  };
+
+  await prisma.project.upsert({
+    where: { id: projectId },
+    create: { id: projectId, ...company },
+    update: company,
+  });
+  await prisma.saleMandate.upsert({
+    where: { advisorId_projectId: { advisorId, projectId } },
+    create: { id: "demo-mandate-nube", advisorId, projectId },
+    update: {},
+  });
+}
+
 async function main(): Promise<void> {
   const passwordHash = await hashPassword(password);
   const ids = new Map<string, string>();
@@ -139,15 +305,22 @@ async function main(): Promise<void> {
   }
 
   const sellerId = ids.get("vendedor@itsreleva.com");
-  const investorId = ids.get("inversor@itsreleva.com");
-  const buyerId = ids.get("comprador@itsreleva.com");
+  const buyerId = ids.get("inversor@itsreleva.com");
+  const advisorId = ids.get("asesor@itsreleva.com");
 
-  if (!sellerId || !investorId || !buyerId) {
+  if (!sellerId || !buyerId || !advisorId) {
     throw new Error("Demo accounts were not created");
   }
 
-  await ensureBuyerPlan(investorId, "unlimited", "demo_cus_inversor");
-  await ensureBuyerPlan(buyerId, "limited", "demo_cus_comprador");
+  for (const email of retiredBuyerEmails) {
+    const retired = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (retired && retired.id !== buyerId) {
+      await giveBuyerTheDemo(retired.id, buyerId);
+    }
+  }
+
+  await ensureBuyerPlan(buyerId, "unlimited", "demo_cus_comprador");
+  await ensureAdvisorDesk(advisorId);
 
   await prisma.project.upsert({
     where: { id: projectId },
@@ -254,35 +427,25 @@ async function main(): Promise<void> {
   const acceptedAt = new Date("2026-09-20T10:00:00.000Z");
   const ndaAt = new Date("2026-09-21T10:00:00.000Z");
   await prisma.projectAccess.upsert({
-    where: { projectId_investorId: { projectId, investorId } },
+    where: { projectId_investorId: { projectId, investorId: buyerId } },
     create: {
       id: "demo-access-inversor",
       projectId,
-      investorId,
+      investorId: buyerId,
       requestedAt: new Date("2026-09-18T10:00:00.000Z"),
       sellerAcceptedAt: acceptedAt,
       ndaAcceptedAt: ndaAt,
     },
     update: { sellerAcceptedAt: acceptedAt, ndaAcceptedAt: ndaAt },
   });
-  await prisma.projectAccess.upsert({
-    where: { projectId_investorId: { projectId, investorId: buyerId } },
-    create: {
-      id: "demo-access-comprador",
-      projectId,
-      investorId: buyerId,
-      requestedAt: new Date(),
-    },
-    update: { sellerAcceptedAt: null, ndaAcceptedAt: null },
-  });
   await prisma.dataRoomGrant.upsert({
-    where: { projectId_investorId: { projectId, investorId } },
-    create: { id: "demo-grant-inversor", projectId, investorId },
+    where: { projectId_investorId: { projectId, investorId: buyerId } },
+    create: { id: "demo-grant-inversor", projectId, investorId: buyerId },
     update: {},
   });
   await prisma.projectFavorite.upsert({
-    where: { projectId_investorId: { projectId, investorId } },
-    create: { id: "demo-fav-inversor-cala", projectId, investorId },
+    where: { projectId_investorId: { projectId, investorId: buyerId } },
+    create: { id: "demo-fav-inversor-cala", projectId, investorId: buyerId },
     update: {},
   });
 
@@ -292,15 +455,15 @@ async function main(): Promise<void> {
   if (olivo) {
     await prisma.projectFavorite.upsert({
       where: { projectId_investorId: { projectId: olivo.id, investorId: buyerId } },
-      create: { id: "demo-fav-comprador-olivo", projectId: olivo.id, investorId: buyerId },
+      create: { id: "demo-fav-inversor-olivo", projectId: olivo.id, investorId: buyerId },
       update: {},
     });
   }
 
   if (duna) {
     await prisma.projectFavorite.upsert({
-      where: { projectId_investorId: { projectId: duna.id, investorId } },
-      create: { id: "demo-fav-inversor-duna", projectId: duna.id, investorId },
+      where: { projectId_investorId: { projectId: duna.id, investorId: buyerId } },
+      create: { id: "demo-fav-inversor-duna", projectId: duna.id, investorId: buyerId },
       update: {},
     });
   }
@@ -322,17 +485,11 @@ async function main(): Promise<void> {
     },
   ];
 
-  await prisma.projectMessage.deleteMany({
-    where: {
-      OR: [{ id: "demo-msg-3" }, { body: "Propongo una reunión la semana que viene para ver el obrador." }],
-    },
-  });
-
   for (const message of messages) {
     await prisma.projectMessage.upsert({
       where: { id: message.id },
-      create: { ...message, projectId, investorId },
-      update: { body: message.body, author: message.author, kind: message.kind },
+      create: { ...message, projectId, investorId: buyerId },
+      update: { body: message.body, author: message.author, kind: message.kind, investorId: buyerId },
     });
   }
 
@@ -352,15 +509,17 @@ async function main(): Promise<void> {
     where: { id: "demo-note-investor" },
     create: {
       id: "demo-note-investor",
-      userId: investorId,
+      userId: buyerId,
       title: "Solicitud aceptada",
       body: "Proyecto Cala ha aceptado tu solicitud.",
       href: "/proyectos/proyecto-cala",
     },
-    update: { userId: investorId },
+    update: { userId: buyerId },
   });
 
-  console.log("Demo accounts ready: inversor@itsreleva.com, comprador@itsreleva.com, vendedor@itsreleva.com, admin@itsreleva.com");
+  await prisma.user.deleteMany({ where: { email: "alexxvives@gmail.com" } });
+
+  console.log("Demo accounts ready: inversor@itsreleva.com, vendedor@itsreleva.com, asesor@itsreleva.com, admin@itsreleva.com");
 }
 
 main()
