@@ -7,6 +7,7 @@ import { eurosToCents } from "@/lib/company-draft";
 import { sellerCopy } from "@/lib/seller-copy";
 import { sellerMessageSchema } from "@/lib/project-message";
 import { acceptBuyer } from "@/server/acceptBuyer";
+import { acceptLoi } from "@/server/acceptLoi";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { postSellerMessage } from "@/server/postProjectMessage";
 import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
@@ -156,6 +157,23 @@ export async function acceptSellerBuyerAction(
 
   if (result.ok) {
     revalidatePath("/mi-empresa/procesos");
+    return { ok: true };
+  }
+
+  return result;
+}
+
+export async function acceptSellerLoiAction(
+  _state: SellerMessageState,
+  formData: FormData,
+): Promise<SellerMessageState> {
+  const user = await seller();
+  const result = await acceptLoi(user, readText(formData, "accessId"));
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/procesos");
+    revalidatePath("/procesos");
+    revalidatePath(`/proyectos/${result.slug}`);
     return { ok: true };
   }
 

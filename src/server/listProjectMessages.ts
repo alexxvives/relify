@@ -60,6 +60,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           requestedAt: true,
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
+          loiAcceptedAt: true,
           diligencePassedAt: true,
         },
         orderBy: { requestedAt: "asc" },
@@ -134,6 +135,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             questions: threadMessages.some((message) => message.kind === "question"),
             meeting: threadMessages.some((message) => message.kind === "meeting"),
             offer: threadMessages.some((message) => message.kind === "offer"),
+            loiAccepted: access.loiAcceptedAt !== null,
             roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
             passedDiligence: access.diligencePassedAt !== null,
             closed: closedProjects.has(access.projectId),
@@ -173,7 +175,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   const access = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, diligencePassedAt: true, id: true },
+        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true, id: true },
       })
     : null;
   const gate = ndaAccessGate({
@@ -262,6 +264,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             questions: messages.some((message) => message.kind === "question"),
             meeting: messages.some((message) => message.kind === "meeting"),
             offer: messages.some((message) => message.kind === "offer"),
+            loiAccepted: access?.loiAcceptedAt !== null && access?.loiAcceptedAt !== undefined,
             roomShared: grant !== null,
             passedDiligence: access?.diligencePassedAt !== null && access?.diligencePassedAt !== undefined,
             closed: fee !== null,

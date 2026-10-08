@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DealPipeline, ProcessHeaderCue } from "@/components/deal-pipeline";
+import { LiveRefresh } from "@/components/live-refresh";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { investorCopy } from "@/lib/investor-copy";
@@ -24,7 +25,9 @@ export function InvestorProcesses({
   dateLabel: string;
 }) {
   return (
-    <ul className="flex flex-col gap-3">
+    <div>
+      <LiveRefresh />
+      <ul className="flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
           <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
@@ -94,6 +97,7 @@ export function InvestorProcesses({
           </section>
         </li>
       ))}
-    </ul>
+      </ul>
+    </div>
   );
 }

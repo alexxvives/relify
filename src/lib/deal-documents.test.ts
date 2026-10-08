@@ -21,6 +21,10 @@ describe("deal documents", () => {
     expect(nda).toContain("Proyecto Duna");
     expect(nda).toContain("Canarias");
     expect(loi).toContain("1.200.000 €");
+    expect(loi).toContain("seis meses");
+    expect(nda).toContain("No reserva la empresa");
+    expect(nda).not.toContain("La reserva dura");
+    expect(loi).not.toContain("B11223344");
     expect(nda).not.toContain("B11223344");
     expect(loi).not.toContain("Duna Servicios");
     expect(nda.length).toBeLessThan(2000);

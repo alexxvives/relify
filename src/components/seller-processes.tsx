@@ -6,6 +6,7 @@ import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
+import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -230,6 +231,14 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             role="seller"
             hideAsideCue
             diligence={{ accessId: thread.accessId, advisorHref: "/mi-empresa/servicios" }}
+            acceptLoi={
+              thread.messages.some((message) => message.kind === "offer")
+                ? {
+                    accessId: thread.accessId,
+                    body: thread.messages.find((message) => message.kind === "offer")?.body ?? "",
+                  }
+                : undefined
+            }
           />
         </div>
       )}
@@ -293,13 +302,14 @@ export function SellerProcesses({
 }) {
   const [tab, setTab] = useSessionChoice(
     "releva:seller-process-tab",
-    "summary",
+    "active",
     tabs.map((item) => item.id),
   );
   const counterValues = [counts.accepted, counts.questionsIn, counts.questionsOut, counts.meetings];
 
   return (
     <div>
+      <LiveRefresh />
       <SellerTabs label={sellerCopy.processesTitle} tabs={tabs} value={tab} onChange={setTab} />
       {tab === "summary" ? (
         <div className="mt-4 flex flex-col gap-4">

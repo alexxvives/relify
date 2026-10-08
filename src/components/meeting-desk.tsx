@@ -57,7 +57,7 @@ function plusMinutes(time: string, minutes: number): string | null {
 
   const total = hour * 60 + minute + minutes;
 
-  if (total > 20 * 60) {
+  if (total > 20 * 60 + 30) {
     return null;
   }
 
@@ -262,89 +262,48 @@ function MonthGrid({
   );
 }
 
-function durationLabel(from: string, to: string): string {
-  const [fromHour, fromMinute] = from.split(":").map(Number);
-  const [toHour, toMinute] = to.split(":").map(Number);
-  const minutes = (toHour ?? 0) * 60 + (toMinute ?? 0) - ((fromHour ?? 0) * 60 + (fromMinute ?? 0));
-
-  if (minutes <= 0) {
-    return "";
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-
-  if (hours === 0) {
-    return `${rest} min`;
-  }
-
-  if (rest === 0) {
-    return hours === 1 ? "1 h" : `${hours} h`;
-  }
-
-  return `${hours} h ${rest} min`;
-}
-
 function HourRange({ from, to, onChange }: { from: string; to: string; onChange: (from: string, to: string) => void }) {
-  const drag = useRef<string | null>(null);
-  const span = durationLabel(from, to);
+  const [anchor, setAnchor] = useState(from);
 
-  function choose(slot: string) {
-    const anchor = drag.current ?? slot;
+  function pick(slot: string) {
     const start = anchor < slot ? anchor : slot;
     const end = anchor < slot ? slot : anchor;
-    const finish = start === end ? (plusMinutes(start, 30) ?? "20:00") : end;
+    const finish = plusMinutes(end, 30);
+
+    if (!finish) {
+      return;
+    }
+
     onChange(start, finish);
+    setAnchor(start);
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-2xl bg-[#eef2ff] px-3 py-2 text-center">
-        <p className="text-sm font-semibold text-[#465ab4]">
-          {from} – {to}
-        </p>
-        {span.length > 0 ? <p className="text-xs text-[#667085]">{span}</p> : null}
-      </div>
-      <div
-        className="max-h-72 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-[#f7f8fb] p-1.5"
-        onPointerUp={() => {
-          drag.current = null;
-        }}
-        onPointerCancel={() => {
-          drag.current = null;
-        }}
-      >
-        {timeSlots.map((slot, index) => {
-          const selected = slot >= from && slot < to;
-          const previous = timeSlots[index - 1];
-          const next = timeSlots[index + 1];
-          const starts = selected && (previous === undefined || previous < from);
-          const ends = selected && (next === undefined || next >= to);
-          return (
-            <button
-              key={slot}
-              type="button"
-              onPointerDown={(event) => {
-                event.currentTarget.setPointerCapture(event.pointerId);
-                drag.current = slot;
-                choose(slot);
-              }}
-              onPointerEnter={() => {
-                if (drag.current) {
-                  choose(slot);
-                }
-              }}
-              className={
-                selected
-                  ? `flex h-8 w-full items-center bg-[#465ab4] px-3 text-left text-xs font-semibold text-white ${starts ? "rounded-t-xl" : ""} ${ends ? "rounded-b-xl" : ""}`
-                  : "flex h-8 w-full items-center rounded-lg px-3 text-left text-xs text-[#667085] hover:bg-white"
-              }
-            >
-              {slot}
-            </button>
-          );
-        })}
-      </div>
+    <div className="max-h-72 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-[#f7f8fb] p-1.5">
+      {timeSlots.map((slot, index) => {
+        const selected = slot >= from && slot < to;
+        const previous = timeSlots[index - 1];
+        const next = timeSlots[index + 1];
+        const starts = selected && (previous === undefined || previous < from);
+        const ends = selected && (next === undefined || next >= to);
+        return (
+          <button
+            key={slot}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => {
+              pick(slot);
+            }}
+            className={
+              selected
+                ? `flex h-8 w-full items-center bg-[#465ab4] px-3 text-left text-xs font-semibold text-white ${starts ? "rounded-t-xl" : ""} ${ends ? "rounded-b-xl" : ""}`
+                : "flex h-8 w-full items-center rounded-lg px-3 text-left text-xs text-[#667085] hover:bg-white"
+            }
+          >
+            {slot}
+          </button>
+        );
+      })}
     </div>
   );
 }

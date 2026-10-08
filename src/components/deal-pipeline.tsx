@@ -8,6 +8,7 @@ import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { acceptSellerLoiAction } from "@/app/mi-empresa/procesos/actions";
 import { passDiligenceAction } from "@/app/procesos/pass-action";
 import { AgreementSheet } from "@/components/agreement-sheet";
 import { attachmentNames } from "@/lib/meeting";
@@ -37,6 +38,7 @@ export function DealPipeline({
   onDark = false,
   sign,
   diligence,
+  acceptLoi,
   hideAsideCue = false,
   hideQaNote = false,
 }: {
@@ -45,32 +47,37 @@ export function DealPipeline({
   onDark?: boolean;
   sign?: { slug: string; nda: string; loi: string };
   diligence?: { accessId: string; advisorHref: string };
+  acceptLoi?: { accessId: string; body: string };
   hideAsideCue?: boolean;
   hideQaNote?: boolean;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
+  const [acceptOpen, setAcceptOpen] = useState(false);
   const current = steps.find((step) => step.state === "current");
-  const cue = current ? stepCue(current.id, role) : { yours: false, action: "La compraventa está hecha." };
-  const signKindFor = signTarget(current?.id, cue.yours, role);
+  const cue = current ? stepCue(current.id, role, current.pendingLoi === true) : { yours: false, action: "La compraventa está hecha." };
+  const signKindFor = current?.pendingLoi ? null : signTarget(current?.id, cue.yours, role);
   const canSign = Boolean(sign) && signKindFor !== null;
+  const canAccept = role === "seller" && current?.pendingLoi === true && acceptLoi !== undefined && acceptLoi.body.length > 0;
   const currentIndex = steps.findIndex((step) => step.state === "current");
-  const span = Math.max(steps.length - 1, 1);
-  const fill = currentIndex < 0 ? 1 : currentIndex / span;
+  const count = Math.max(steps.length, 1);
+  const edge = `calc(100% / ${count * 2})`;
+  const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
-  const parkCue = hideAsideCue && !showDiligence && !cue.yours && current !== undefined;
-  const hideQa = hideQaNote && current?.id === "qa";
+  const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
+  const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
   return (
     <div>
       <div className="overflow-x-auto px-1 pt-6 pb-2">
         <ol className="relative mx-auto flex min-w-[40rem] items-start" aria-label="Recorrido del proceso">
           <span
-            className={onDark ? "absolute top-3 right-4 left-4 h-1 rounded-full bg-white/20" : "absolute top-3 right-4 left-4 h-1 rounded-full bg-[#e6eaf2]"}
+            className={onDark ? "absolute top-3 h-1 rounded-full bg-white/20" : "absolute top-3 h-1 rounded-full bg-[#e6eaf2]"}
+            style={{ left: edge, right: edge }}
             aria-hidden
           />
           <span
-            className={onDark ? "absolute top-3 left-4 h-1 rounded-full bg-[#8dffc4]" : "absolute top-3 left-4 h-1 rounded-full bg-[#178a45]"}
-            style={{ width: `calc((100% - 2rem) * ${fill})` }}
+            className={onDark ? "absolute top-3 h-1 rounded-full bg-[#8dffc4]" : "absolute top-3 h-1 rounded-full bg-[#178a45]"}
+            style={{ left: edge, width: `calc(100% * ${fillSteps} / ${count})` }}
             aria-hidden
           />
           {steps.map((step) => {
@@ -109,13 +116,26 @@ export function DealPipeline({
           cue={cue}
           onDark={onDark}
           canSign={canSign}
+          canAccept={canAccept}
           onSign={() => {
             if (signKindFor) {
               setSignKind(signKindFor);
             }
           }}
+          onAccept={() => {
+            setAcceptOpen(true);
+          }}
         />
       )}
+      {acceptLoi && acceptOpen ? (
+        <AcceptLoiDialog
+          accessId={acceptLoi.accessId}
+          body={acceptLoi.body}
+          onClose={() => {
+            setAcceptOpen(false);
+          }}
+        />
+      ) : null}
       {sign && signKind ? (
         <ProcessSignDialog
           kind={signKind}
@@ -134,12 +154,16 @@ function TurnCue({
   cue,
   onDark,
   canSign,
+  canAccept,
   onSign,
+  onAccept,
 }: {
   cue: { yours: boolean; action: string };
   onDark: boolean;
   canSign: boolean;
+  canAccept: boolean;
   onSign: () => void;
+  onAccept: () => void;
 }) {
   if (cue.yours) {
     return (
@@ -158,6 +182,7 @@ function TurnCue({
           <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#17663a] uppercase">Tu turno</span>
           <span className="mt-0.5 block text-sm font-semibold text-[#1c2740]">{cue.action}</span>
         </span>
+        {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
         {canSign ? <SignNow onSign={onSign} /> : null}
       </div>
     );
@@ -175,8 +200,21 @@ function TurnCue({
       ) : (
         <DealWaitingCue cue={cue} className="min-w-0 flex-1" />
       )}
+      {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
       {canSign ? <SignNow onSign={onSign} /> : null}
     </div>
+  );
+}
+
+function AcceptNow({ onAccept }: { onAccept: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onAccept}
+      className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#465ab4] px-3 text-sm font-semibold text-white"
+    >
+      Aceptar carta
+    </button>
   );
 }
 
@@ -203,9 +241,9 @@ export function ProcessHeaderCue({
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const current = steps.find((step) => step.state === "current");
-  const cue = current && current.id !== "diligence" ? stepCue(current.id, role) : null;
+  const cue = current && current.id !== "diligence" ? stepCue(current.id, role, current.pendingLoi === true) : null;
   const waiting = cue !== null && !cue.yours;
-  const canSign = Boolean(sign) && role === "investor" && current?.id === "qa";
+  const canSign = Boolean(sign) && role === "investor" && current?.id === "qa" && current.pendingLoi !== true;
 
   if (!waiting || !cue) {
     return null;
@@ -334,7 +372,7 @@ function ProcessSignDialog({
       <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
         <AgreementSheet text={agreement} />
       </div>
-      <form action={formAction} className="mt-3 flex items-center justify-end gap-3 px-1">
+      <form action={formAction} className="mt-3 flex items-center justify-center gap-3 px-1">
         <input type="hidden" name="slug" value={slug} />
         {kind === "loi" ? (
           <>
@@ -345,12 +383,68 @@ function ProcessSignDialog({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-10 items-center rounded-full bg-[#17663a] px-4 text-sm font-semibold text-white disabled:opacity-60"
+          className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
         >
           {pending ? "Firmando…" : submitLabel}
         </button>
       </form>
       <SignError state={state} />
+    </dialog>
+  );
+}
+
+function AcceptLoiDialog({ accessId, body, onClose }: { accessId: string; body: string; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [state, formAction, pending] = useActionState(acceptSellerLoiAction, null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+  }, []);
+
+  useEffect(() => {
+    if (state?.ok) {
+      dialogRef.current?.close();
+    }
+  }, [state]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#d5dbe3] bg-[#eef1f4] p-3 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/45"
+      onClose={onClose}
+    >
+      <div className="flex items-center justify-between gap-3 px-2 py-1">
+        <p className="truncate text-sm font-medium text-[#3d4a63]">Carta-de-intenciones.pdf</p>
+        <form method="dialog">
+          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
+            Cerrar
+          </button>
+        </form>
+      </div>
+      <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
+        <AgreementSheet text={body} />
+      </div>
+      <form action={formAction} className="mt-3 flex items-center justify-center px-1">
+        <input type="hidden" name="accessId" value={accessId} />
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {pending ? "Aceptando…" : "Aceptar carta"}
+        </button>
+      </form>
+      {state && !state.ok ? (
+        <p className="mt-2 px-1 text-sm text-red-700" role="alert">
+          {state.message}
+        </p>
+      ) : null}
     </dialog>
   );
 }

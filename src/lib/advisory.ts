@@ -57,6 +57,8 @@ export const advisoryCopy = {
   forbidden: "Solo un vendedor o un inversor puede solicitar presupuesto.",
   noticeTitle: "Presupuesto solicitado",
   noticeBody: "Has pedido presupuesto de asesoramiento.",
+  adminNoticeTitle: "Solicitud de asesoramiento",
+  adminNoticeBody: "Hay una solicitud sin asesor elegido.",
 } as const;
 
 const serviceIdSchema = z.enum(advisoryServiceIds);

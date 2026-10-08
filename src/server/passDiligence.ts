@@ -22,12 +22,13 @@ export async function passDiligence(
       projectId: true,
       sellerAcceptedAt: true,
       ndaAcceptedAt: true,
+      loiAcceptedAt: true,
       project: { select: { ownerId: true, slug: true } },
     },
   });
   const allowed = access !== null && (access.investorId === user.id || access.project.ownerId === user.id);
 
-  if (!access || !allowed || access.sellerAcceptedAt === null || access.ndaAcceptedAt === null) {
+  if (!access || !allowed || access.sellerAcceptedAt === null || access.ndaAcceptedAt === null || access.loiAcceptedAt === null) {
     return { ok: false, message: "No se ha podido continuar." };
   }
 

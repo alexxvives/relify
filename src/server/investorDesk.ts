@@ -60,6 +60,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
         id: true,
         sellerAcceptedAt: true,
         ndaAcceptedAt: true,
+        loiAcceptedAt: true,
         diligencePassedAt: true,
         project: {
           select: {
@@ -139,6 +140,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
           questions: access.project.messages.some((message) => message.kind === "question"),
           meeting: access.project.messages.some((message) => message.kind === "meeting"),
           offer: access.project.messages.some((message) => message.kind === "offer"),
+          loiAccepted: access.loiAcceptedAt !== null,
           roomShared: granted,
           passedDiligence: access.diligencePassedAt !== null,
           closed: access.project.successFee !== null,

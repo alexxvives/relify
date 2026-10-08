@@ -26,12 +26,10 @@ export function InvestorPublicCard({
               <ProfileFact label={sellerCopy.investorTypeLabel} value={profile.investorType} />
               <ProfileFact label={sellerCopy.investorTicketLabel} value={profile.ticket} />
               <ProfileFact label={sellerCopy.investorSectorsLabel} value={profile.sectors} />
-              <ProfileFact label={sellerCopy.investorPlaceLabel} value={profile.place} />
+              <ProfileFact label={sellerCopy.investorOfferLabel} value={profile.contribution} />
             </dl>
             <p className="mt-5 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorThesisLabel}</p>
             <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.thesis}</p>
-            <p className="mt-4 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorOfferLabel}</p>
-            <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.contribution}</p>
           </>
         ) : (
           <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.investorProfileEmpty}</p>
@@ -53,7 +51,7 @@ function ProfilePhoto({ photo }: { photo: string }) {
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={photo} alt="" className="size-20 rounded-full border-4 border-white object-cover" />
+    <img src={photo} alt="" className="size-20 rounded-full border-4 border-white bg-[#1c2740] object-cover" />
   );
 }
 
@@ -61,7 +59,7 @@ function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-[#f7f8fb] px-3 py-3">
       <dt className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{label}</dt>
-      <dd className="mt-1 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
+      <dd className="mt-1 line-clamp-3 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
     </div>
   );
 }

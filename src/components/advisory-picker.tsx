@@ -18,14 +18,32 @@ const serviceStyle = {
   labor: { icon: Users, wash: "bg-[#fdeeee] text-[#9b3b2f]", fill: "bg-[#fce4e4]", mark: "bg-[#9b3b2f]" },
 } as const;
 
-const offerTitle: Record<AdvisoryServiceId, string> = {
-  "due-diligence": "Due Diligence",
-  valuation: "Valoración de empresas",
-  legal: "Consultoría legal",
-  tax: "Consultoría fiscal",
-  "business-plan": "Business Plan",
-  labor: "Consultoría laboral",
+const titleToService: Record<string, AdvisoryServiceId> = {
+  "Due Diligence": "due-diligence",
+  "Valoración de empresas": "valuation",
+  "Valoración Empresa": "valuation",
+  "Consultoría legal": "legal",
+  "Consultoría Legal": "legal",
+  "Consultoría fiscal": "tax",
+  "Consultoría Fiscal": "tax",
+  "Business Plan": "business-plan",
+  "Consultoría laboral": "labor",
+  "Consultoría Laboral": "labor",
 };
+
+function marketServiceIds(titles: readonly string[]): AdvisoryServiceId[] {
+  const ids: AdvisoryServiceId[] = [];
+
+  for (const title of titles) {
+    const id = titleToService[title];
+
+    if (id && !ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+
+  return ids;
+}
 
 export function AdvisoryPicker({
   layout = "list",
@@ -41,12 +59,12 @@ export function AdvisoryPicker({
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
   const [advisorId, setAdvisorId] = useState("");
+  const [tab, setTab] = useState<"general" | "market">("general");
   const cards = layout === "cards";
-  const visibleAdvisors =
-    selected.length === 0
-      ? advisors
-      : advisors.filter((advisor) => selected.every((id) => advisor.services.some((service) => service.title === offerTitle[id])));
-  const chosen = visibleAdvisors.some((advisor) => advisor.id === advisorId) ? advisorId : "";
+  const chosen = advisors.some((advisor) => advisor.id === advisorId) ? advisorId : "";
+  const chosenAdvisor = advisors.find((advisor) => advisor.id === chosen);
+  const marketServices = marketServiceIds(chosenAdvisor?.services.map((service) => service.title) ?? []);
+  const general = tab === "general";
 
   function toggle(id: AdvisoryServiceId) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -54,11 +72,37 @@ export function AdvisoryPicker({
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-4">
-      {selected.map((id) => (
+      {(general ? selected : marketServices).map((id) => (
         <input key={id} type="hidden" name="services" value={id} />
       ))}
       {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
-      <input type="hidden" name="advisorId" value={chosen} />
+      <input type="hidden" name="advisorId" value={general ? "" : chosen} />
+      <div className="flex gap-1 border-b border-[#e7eaee]" role="tablist" aria-label={advisoryCopy.heading}>
+        {(
+          [
+            ["general", engagementCopy.generalTab],
+            ["market", engagementCopy.marketTab],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => {
+              setTab(id);
+            }}
+            className={
+              tab === id
+                ? "-mb-px border-b-2 border-[#465ab4] px-3 py-2 text-base text-[#465ab4]"
+                : "-mb-px border-b-2 border-transparent px-3 py-2 text-base text-[#64748b]"
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="text-sm text-[#5c6b78]">{general ? engagementCopy.generalHint : engagementCopy.marketplaceHint}</p>
       {companies.length > 0 ? (
         <label className="text-sm font-medium text-[#1c2740]">
           {engagementCopy.pickCompany}
@@ -72,7 +116,7 @@ export function AdvisoryPicker({
           </select>
         </label>
       ) : null}
-      <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
+      {general ? <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
         {advisoryServices.map((service) => {
           const style = serviceStyle[service.id];
           const Icon = style.icon;
@@ -112,32 +156,37 @@ export function AdvisoryPicker({
             </li>
           );
         })}
-      </ul>
-      <AdvisorMarket advisors={visibleAdvisors} chosen={chosen} onChoose={setAdvisorId} />
+      </ul> : (
+        <AdvisorMarket advisors={advisors} chosen={chosen} onChoose={setAdvisorId} />
+      )}
       {state ? (
         <p role="status" className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-red-700"}>
           {state.message}
         </p>
       ) : null}
       <div className={cards ? "mt-2 flex items-center justify-end gap-4" : "flex flex-wrap items-center justify-between gap-3"}>
-        <button
-          type="button"
-          onClick={() => {
-            setSelected([]);
-          }}
-          className="text-sm font-medium text-[#3d4a63] hover:text-[#465ab4]"
-        >
-          {advisoryCopy.clear}
-        </button>
+        {general ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSelected([]);
+            }}
+            className="text-sm font-medium text-[#3d4a63] hover:text-[#465ab4]"
+          >
+            {advisoryCopy.clear}
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           type="submit"
-          disabled={pending || selected.length === 0 || chosen.length === 0}
+          disabled={pending || (general ? selected.length === 0 : chosen.length === 0 || marketServices.length === 0)}
           className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
         >
           {pending ? advisoryCopy.pending : advisoryCopy.submit}
         </button>
       </div>
-      {selected.length > 0 && chosen.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.chooseAdvisor}</p> : null}
+      {!general && chosen.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.chooseAdvisor}</p> : null}
     </form>
   );
 }

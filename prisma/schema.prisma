@@ -286,6 +286,7 @@ model ProjectAccess {
   requestedAt      DateTime  @default(now()) @map("requested_at")
   sellerAcceptedAt   DateTime? @map("seller_accepted_at")
   ndaAcceptedAt      DateTime? @map("nda_accepted_at")
+  loiAcceptedAt      DateTime? @map("loi_accepted_at")
   diligencePassedAt  DateTime? @map("diligence_passed_at")
 
   @@unique([projectId, investorId])

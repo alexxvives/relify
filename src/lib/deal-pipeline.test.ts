@@ -87,7 +87,12 @@ describe("dealPipeline", () => {
       yours: false,
       action: "El inversor debe firmar el NDA para proceder.",
     });
-    expect(stepCue("qa", "investor").action).toContain("firma la carta de intenciones");
+    expect(stepCue("qa", "investor").action).toContain("firma la carta de intenciones (LOI)");
+    expect(stepCue("qa", "investor", true)).toEqual({
+      yours: false,
+      action: "El vendedor todavía no ha aceptado la carta de intenciones",
+    });
+    expect(stepCue("qa", "seller", true).yours).toBe(true);
     expect(stepCue("qa", "seller").action).toContain("firmará la carta de intenciones");
     expect(stepCue("qa", "investor").action).not.toBe(stepCue("qa", "seller").action);
     expect(stepCue("loi", "investor").yours).toBe(true);
@@ -104,6 +109,7 @@ describe("processFlags", () => {
         questions: true,
         meeting: false,
         offer: false,
+        loiAccepted: false,
         roomShared: true,
         passedDiligence: false,
         closed: false,
@@ -111,8 +117,9 @@ describe("processFlags", () => {
     ).toEqual({
       accepted: true,
       nda: true,
-      qa: true,
+      qa: false,
       loi: false,
+      loiPending: false,
       diligence: true,
       documents: false,
       closed: false,
@@ -124,6 +131,7 @@ describe("processFlags", () => {
         questions: false,
         meeting: false,
         offer: true,
+        loiAccepted: true,
         roomShared: false,
         passedDiligence: false,
         closed: true,
@@ -136,11 +144,46 @@ describe("processFlags", () => {
         questions: true,
         meeting: false,
         offer: true,
+        loiAccepted: true,
         roomShared: false,
         passedDiligence: true,
         closed: false,
       }).diligence,
     ).toBe(true);
+  });
+
+  it("stays on Q&A until the seller accepts the letter", () => {
+    const chatting = processFlags({
+      accepted: true,
+      nda: true,
+      questions: true,
+      meeting: true,
+      offer: false,
+      loiAccepted: false,
+      roomShared: false,
+      passedDiligence: false,
+      closed: false,
+    });
+    const signed = processFlags({
+      accepted: true,
+      nda: true,
+      questions: true,
+      meeting: false,
+      offer: true,
+      loiAccepted: false,
+      roomShared: true,
+      passedDiligence: false,
+      closed: false,
+    });
+
+    expect(dealPipeline("investor", chatting).find((step) => step.state === "current")?.id).toBe("qa");
+    expect(dealPipeline("investor", signed).find((step) => step.state === "current")?.id).toBe("qa");
+    expect(dealPipeline("seller", signed).find((step) => step.id === "qa")?.pendingLoi).toBe(true);
+    expect(
+      dealPipeline("investor", { ...signed, loi: true, qa: true, loiPending: false, diligence: false }).find(
+        (step) => step.state === "current",
+      )?.id,
+    ).toBe("diligence");
   });
 });
 

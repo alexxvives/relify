@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
+import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -88,6 +89,7 @@ export function InvestorProject({
 
   return (
     <div className="flex w-full flex-col gap-6">
+      <LiveRefresh />
       <Link href="/mercado" className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#3d34b8] hover:underline">
         <ArrowLeft className="size-4" aria-hidden />
         {companyCopy.backToMarket}

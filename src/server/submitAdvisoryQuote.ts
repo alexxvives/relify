@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { advisoryCopy, type AdvisoryQuoteInput } from "@/lib/advisory";
+import { advisoryCopy, advisoryServices, type AdvisoryQuoteInput } from "@/lib/advisory";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { advisorIsPublic, createEngagement, engagementProject } from "@/server/advisoryEngagement";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -34,14 +34,35 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
       services: [...input.services],
     },
   });
-  await createEngagement({
-    projectId: project.projectId,
-    requesterId: user.id,
-    client: project.client,
-    services: [...input.services],
-    advisorId: input.advisorId ?? null,
-    codename: project.codename,
-  });
+
+  if (input.advisorId) {
+    await createEngagement({
+      projectId: project.projectId,
+      requesterId: user.id,
+      client: project.client,
+      services: [...input.services],
+      advisorId: input.advisorId,
+      codename: project.codename,
+    });
+  } else {
+    const names = input.services
+      .map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id)
+      .join(", ");
+    const admins = await prisma.user.findMany({
+      where: { role: "admin" },
+      select: { id: true },
+    });
+
+    for (const admin of admins) {
+      await recordNotification({
+        userId: admin.id,
+        title: advisoryCopy.adminNoticeTitle,
+        body: `${project.codename}: ${names}. ${advisoryCopy.adminNoticeBody}`,
+        href: "/admin",
+      });
+    }
+  }
+
   await recordNotification({
     userId: user.id,
     title: advisoryCopy.noticeTitle,

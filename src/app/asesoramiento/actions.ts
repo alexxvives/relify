@@ -45,5 +45,6 @@ export async function requestAdvisoryQuoteAction(
   revalidatePath("/asesoramiento");
   revalidatePath("/mi-empresa/servicios");
   revalidatePath("/mandatos");
+  revalidatePath("/admin");
   return { ok: true, message: advisoryCopy.saved };
 }

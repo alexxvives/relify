@@ -11,6 +11,7 @@ export type DealStep = {
   label: string;
   detail: string;
   state: DealStepState;
+  pendingLoi?: boolean;
 };
 
 export type DealFlags = {
@@ -21,6 +22,7 @@ export type DealFlags = {
   diligence: boolean;
   documents: boolean;
   closed: boolean;
+  loiPending?: boolean;
 };
 
 export function processFlags(input: {
@@ -29,18 +31,22 @@ export function processFlags(input: {
   questions: boolean;
   meeting: boolean;
   offer: boolean;
+  loiAccepted: boolean;
   roomShared: boolean;
   passedDiligence: boolean;
   closed: boolean;
 }): DealFlags {
+  const loi = input.offer && input.loiAccepted;
+
   return {
     accepted: input.accepted,
     nda: input.nda,
-    qa: input.questions || input.meeting || input.offer,
-    loi: input.offer,
+    qa: loi,
+    loi,
     diligence: input.roomShared || input.passedDiligence,
     documents: input.closed,
     closed: input.closed,
+    loiPending: input.offer && !input.loiAccepted,
   };
 }
 
@@ -71,9 +77,9 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
   qa: {
     label: "Q&A",
     investor:
-      "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones.",
+      "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones (LOI).",
     seller:
-      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
+      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones (LOI).",
   },
   loi: {
     label: "LOI",
@@ -114,13 +120,15 @@ export function dealPipeline(role: "investor" | "seller", flags: DealFlags): Dea
     const copy = stepCopy[id];
     const detail = copy[role];
 
+    const pendingLoi = id === "qa" && flags.loiPending === true;
+
     if (!currentAssigned && doneById[id]) {
-      return { id, label: copy.label, detail, state: "done" };
+      return { id, label: copy.label, detail, state: "done", pendingLoi };
     }
 
     if (!currentAssigned) {
       currentAssigned = true;
-      return { id, label: copy.label, detail, state: "current" };
+      return { id, label: copy.label, detail, state: "current", pendingLoi };
     }
 
     return { id, label: copy.label, detail, state: "upcoming" };
@@ -136,7 +144,13 @@ export type StepCue = {
   action: string;
 };
 
-export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
+export function stepCue(id: DealStepId, role: "investor" | "seller", pendingLoi = false): StepCue {
+  if (id === "qa" && pendingLoi) {
+    return role === "seller"
+      ? { yours: true, action: "Acepta la carta de intenciones" }
+      : { yours: false, action: "El vendedor todavía no ha aceptado la carta de intenciones" };
+  }
+
   if (id === "solicitud") {
     return role === "investor"
       ? { yours: true, action: "Envía la solicitud de conexión" }

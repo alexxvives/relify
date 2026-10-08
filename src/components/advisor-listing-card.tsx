@@ -12,8 +12,8 @@ export function AdvisorListingCard({
   onChoose?: (id: string) => void;
 }) {
   const frame = active
-    ? "flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#465ab4] bg-white text-left"
-    : "flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white text-left";
+    ? "flex h-full w-full -translate-y-1 flex-col overflow-hidden rounded-3xl border border-[#465ab4] bg-white text-left shadow-[0_22px_50px_-20px_rgba(28,39,64,0.55)] ring-2 ring-[#465ab4]/25"
+    : "flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_24px_48px_-20px_rgba(28,39,64,0.5)]";
   const body = (
     <>
       <span className="bg-[#1c2740] px-5 py-6">
