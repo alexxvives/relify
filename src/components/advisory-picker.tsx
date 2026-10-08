@@ -4,8 +4,8 @@ import { useActionState, useState } from "react";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
-import { engagementCopy } from "@/lib/engagement-copy";
 import type { PublicAdvisorCard } from "@/lib/advisor-directory";
+import { engagementCopy } from "@/lib/engagement-copy";
 
 const serviceStyle = {
   "due-diligence": { icon: Search, wash: "bg-[#eef2ff] text-[#465ab4]", fill: "bg-[#e4ebff]", mark: "bg-[#465ab4]" },
@@ -15,6 +15,15 @@ const serviceStyle = {
   "business-plan": { icon: Briefcase, wash: "bg-[#e7f6f6] text-[#0f6e73]", fill: "bg-[#d9f3f3]", mark: "bg-[#0f6e73]" },
   labor: { icon: Users, wash: "bg-[#fdeeee] text-[#9b3b2f]", fill: "bg-[#fce4e4]", mark: "bg-[#9b3b2f]" },
 } as const;
+
+const offerTitle: Record<AdvisoryServiceId, string> = {
+  "due-diligence": "Due Diligence",
+  valuation: "Valoración de empresas",
+  legal: "Consultoría legal",
+  tax: "Consultoría fiscal",
+  "business-plan": "Business Plan",
+  labor: "Consultoría laboral",
+};
 
 export function AdvisoryPicker({
   layout = "list",
@@ -31,6 +40,11 @@ export function AdvisoryPicker({
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
   const [advisorId, setAdvisorId] = useState("");
   const cards = layout === "cards";
+  const visibleAdvisors =
+    selected.length === 0
+      ? advisors
+      : advisors.filter((advisor) => selected.every((id) => advisor.services.some((service) => service.title === offerTitle[id])));
+  const chosen = visibleAdvisors.some((advisor) => advisor.id === advisorId) ? advisorId : "";
 
   function toggle(id: AdvisoryServiceId) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -42,7 +56,7 @@ export function AdvisoryPicker({
         <input key={id} type="hidden" name="services" value={id} />
       ))}
       {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
-      <input type="hidden" name="advisorId" value={advisorId} />
+      <input type="hidden" name="advisorId" value={chosen} />
       {companies.length > 0 ? (
         <label className="text-sm font-medium text-[#1c2740]">
           {engagementCopy.pickCompany}
@@ -56,45 +70,6 @@ export function AdvisoryPicker({
           </select>
         </label>
       ) : null}
-      <fieldset className="rounded-2xl border border-[#e7eaee] p-4">
-        <legend className="px-1 text-sm font-semibold text-[#1c2740]">{engagementCopy.pickAdvisor}</legend>
-        <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.inboxChoiceBody}</p>
-        {advisors.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.directoryEmpty}</p> : null}
-        <div className="mt-3 grid gap-3">
-          <label className="flex cursor-pointer gap-3 rounded-xl border border-[#e7eaee] bg-white p-3">
-            <input
-              type="radio"
-              name="advisorChoice"
-              checked={advisorId === ""}
-              onChange={() => {
-                setAdvisorId("");
-              }}
-            />
-            <span>
-              <span className="block text-sm font-semibold text-[#1c2740]">{engagementCopy.inboxChoice}</span>
-            </span>
-          </label>
-          {advisors.map((advisor) => (
-            <label key={advisor.id} className="flex cursor-pointer gap-3 rounded-xl border border-[#e7eaee] bg-white p-3">
-              <input
-                type="radio"
-                name="advisorChoice"
-                checked={advisorId === advisor.id}
-                onChange={() => {
-                  setAdvisorId(advisor.id);
-                }}
-              />
-              <span>
-                <span className="block text-sm font-semibold text-[#1c2740]">{advisor.businessName}</span>
-                <span className="mt-1 block text-sm text-[#5c6b78]">{advisor.sectors.join(", ")}</span>
-                <span className="mt-1 block text-sm text-[#3d4a63]">
-                  {advisor.services.map((service) => `${service.title}: ${service.range}`).join(" · ")}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
       <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
         {advisoryServices.map((service) => {
           const style = serviceStyle[service.id];
@@ -136,6 +111,7 @@ export function AdvisoryPicker({
           );
         })}
       </ul>
+      <AdvisorMarket advisors={visibleAdvisors} chosen={chosen} onChoose={setAdvisorId} />
       {state ? (
         <p role="status" className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-red-700"}>
           {state.message}
@@ -153,12 +129,70 @@ export function AdvisoryPicker({
         </button>
         <button
           type="submit"
-          disabled={pending || selected.length === 0}
+          disabled={pending || selected.length === 0 || chosen.length === 0}
           className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
         >
           {pending ? advisoryCopy.pending : advisoryCopy.submit}
         </button>
       </div>
+      {selected.length > 0 && chosen.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.chooseAdvisor}</p> : null}
     </form>
+  );
+}
+
+function AdvisorMarket({
+  advisors,
+  chosen,
+  onChoose,
+}: {
+  advisors: PublicAdvisorCard[];
+  chosen: string;
+  onChoose: (id: string) => void;
+}) {
+  return (
+    <section>
+      <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
+      <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.marketplaceHint}</p>
+      {advisors.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
+      <ul className="mt-4 grid gap-4 md:grid-cols-2">
+        {advisors.map((advisor) => {
+          const active = advisor.id === chosen;
+          return (
+            <li key={advisor.id}>
+              <button
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  onChoose(advisor.id);
+                }}
+                className={
+                  active
+                    ? "flex h-full w-full flex-col rounded-2xl border border-[#465ab4] bg-[#f4f6ff] p-4 text-left"
+                    : "flex h-full w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4 text-left"
+                }
+              >
+                <span className="text-base font-semibold text-[#1c2740]">{advisor.businessName}</span>
+                <span className="mt-1 text-sm text-[#5c6b78]">{advisor.sectors.join(", ")}</span>
+                <span className="mt-3 text-sm text-[#3d4a63]">
+                  {advisor.services.map((service) => `${service.title}: ${service.range}`).join(" · ")}
+                </span>
+                <span className="mt-3 text-xs font-semibold tracking-wide text-[#8a6112] uppercase">{engagementCopy.noRatings}</span>
+                <span className="mt-3 text-xs font-semibold tracking-wide text-[#667085] uppercase">{engagementCopy.casesTitle}</span>
+                {advisor.cases.length === 0 ? <span className="mt-1 text-sm text-[#667085]">{engagementCopy.noCases}</span> : null}
+                {advisor.cases.length > 0 ? (
+                  <span className="mt-2 flex flex-col gap-2">
+                    {advisor.cases.map((item) => (
+                      <span key={`${item.title}-${item.closedOn}`} className="text-sm text-[#3d4a63]">
+                        {item.title} · {item.sector} · {item.closedOn} · {item.value}
+                      </span>
+                    ))}
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

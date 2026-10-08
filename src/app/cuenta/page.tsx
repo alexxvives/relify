@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/account-settings";
 import { AppShell } from "@/components/app-shell";
+import { InvestorProfile } from "@/components/investor-profile";
 import { authCopy } from "@/lib/auth-copy";
+import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/server/getAccountNationalId";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { loadInvestorDraft } from "@/server/investorProfile";
 
 export const metadata: Metadata = {
   title: authCopy.accountTitle,
@@ -23,9 +26,15 @@ export default async function AccountPage() {
   }
 
   const nationalId = await getAccountNationalId(user.id);
+  const investorDraft = user.role === "investor" ? await loadInvestorDraft(user.id, user.email) : null;
 
   return (
     <AppShell title={authCopy.accountTitle}>
+      {investorDraft ? (
+        <div className="mb-6">
+          <InvestorProfile displayName={user.displayName} initial={demoInvestorProfile(user.email)} draft={investorDraft} publicOnly />
+        </div>
+      ) : null}
       <AccountSettings name={user.name} lastName={user.lastName} email={user.email} phone={user.phone} nationalId={nationalId} />
     </AppShell>
   );

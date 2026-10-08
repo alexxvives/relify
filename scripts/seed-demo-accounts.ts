@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@/generated/prisma/client";
@@ -254,7 +255,24 @@ async function ensureAdvisorDesk(advisorId: string): Promise<void> {
       "Asesoría de compraventa de pymes. Acompaño al propietario desde la ficha hasta el cierre, con la identidad de la empresa fuera del escaparate.",
     sectors: ["C", "G"],
     services,
-    closedOperations: [] as Prisma.InputJsonValue,
+    closedOperations: [
+      {
+        name: "Obrador familiar",
+        closingDate: "2025-06-12",
+        sectorId: "C",
+        revenueCents: 92_000_000,
+        ebitdaCents: 18_000_000,
+        enterpriseValueCents: 120_000_000,
+      },
+      {
+        name: "Taller de proximidad",
+        closingDate: "2025-11-03",
+        sectorId: "G",
+        revenueCents: 64_000_000,
+        ebitdaCents: 9_000_000,
+        enterpriseValueCents: 48_000_000,
+      },
+    ] as Prisma.InputJsonValue,
     dealsAnswered: true,
   };
 
@@ -428,7 +446,10 @@ async function main(): Promise<void> {
   await prisma.dataRoomGrant.deleteMany({ where: { projectId } });
   await prisma.projectAccess.deleteMany({ where: { projectId } });
   await prisma.notification.deleteMany({
-    where: { id: { in: ["demo-note-seller", "demo-note-investor"] } },
+    where: {
+      userId: { in: [sellerId, buyerId] },
+      OR: [{ body: { contains: "Proyecto Cala" } }, { title: { contains: "NDA" } }, { title: { contains: "Solicitud" } }],
+    },
   });
   await prisma.projectFavorite.upsert({
     where: { projectId_investorId: { projectId, investorId: buyerId } },

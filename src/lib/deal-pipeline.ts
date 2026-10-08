@@ -52,38 +52,48 @@ export type ProcessFile = {
   stored?: boolean;
 };
 
-const stepCopy: Record<DealStepId, { label: string; detail: string }> = {
+const stepCopy: Record<DealStepId, { label: string; investor: string; seller: string }> = {
   solicitud: {
     label: "Solicitud",
-    detail: "El comprador envía la conexión.",
+    investor: "Tú envías la conexión. La empresa decide si la acepta.",
+    seller: "El comprador envía la conexión. Tú decides si la aceptas.",
   },
   conexion: {
     label: "Conexión",
-    detail: "El vendedor acepta la conexión.",
+    investor: "Esperas a que el vendedor acepte. Hasta entonces no firmas el acuerdo.",
+    seller: "Aceptas al comprador si encaja. Después le toca firmar el acuerdo de confidencialidad.",
   },
   nda: {
     label: "NDA",
-    detail: "El comprador firma el acuerdo de confidencialidad.",
+    investor: "Firmas el acuerdo de confidencialidad. Sin esa firma no se abre el detalle ni el chat.",
+    seller: "El comprador debe firmar el NDA para seguir. Tú no firmas este paso.",
   },
   qa: {
     label: "Q&A",
-    detail: "Preguntas y reuniones entre las dos partes.",
+    investor:
+      "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones.",
+    seller:
+      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
   },
   loi: {
     label: "LOI",
-    detail: "Carta de intenciones de compra.",
+    investor: "Firmas la carta de intenciones. No obliga a cerrar la compra.",
+    seller: "El comprador firma la carta de intenciones y te llega como oferta indicativa.",
   },
   diligence: {
     label: "Due diligence",
-    detail: "Puedes pedir un asesor de Releva o seguir a la documentación.",
+    investor: "Puedes pedir un asesor de Releva o seguir a la documentación. El contrato lo sube el vendedor.",
+    seller: "El comprador revisa con un asesor o sigue adelante. El contrato de compraventa lo subes tú.",
   },
   documents: {
     label: "Documentación",
-    detail: "El vendedor sube el contrato de compraventa. Releva no lo redacta.",
+    investor: "El vendedor sube el contrato de compraventa. Releva no lo redacta.",
+    seller: "Subes el contrato de compraventa. Releva no lo redacta.",
   },
   close: {
     label: "Compraventa",
-    detail: "El pago queda hecho.",
+    investor: "El pago queda hecho y la compra se cierra.",
+    seller: "El pago queda hecho y la venta se cierra.",
   },
 };
 
@@ -102,7 +112,7 @@ export function dealPipeline(role: "investor" | "seller", flags: DealFlags): Dea
 
   return dealStepIds.map((id) => {
     const copy = stepCopy[id];
-    const detail = id === "close" && role === "seller" ? "El pago queda hecho y la venta se cierra." : copy.detail;
+    const detail = copy[role];
 
     if (!currentAssigned && doneById[id]) {
       return { id, label: copy.label, detail, state: "done" };
@@ -146,17 +156,7 @@ export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
   }
 
   if (id === "qa") {
-    return role === "investor"
-      ? {
-          yours: false,
-          action:
-            "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones.",
-        }
-      : {
-          yours: false,
-          action:
-            "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
-        };
+    return { yours: false, action: stepCopy.qa[role] };
   }
 
   if (id === "loi") {

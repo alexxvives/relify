@@ -53,10 +53,12 @@ export function InvestorProfile({
   displayName,
   initial,
   draft,
+  publicOnly = false,
 }: {
   displayName: string;
   initial: DemoInvestorProfile | null;
   draft: InvestorProfileDraft;
+  publicOnly?: boolean;
 }) {
   const [editingProfessional, setEditingProfessional] = useState(false);
   const [tradeName, setTradeName] = useState(initial?.tradeName ?? displayName);
@@ -210,6 +212,7 @@ export function InvestorProfile({
           {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
         </div>
       </form>
+      {publicOnly ? null : (
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -259,6 +262,7 @@ export function InvestorProfile({
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }

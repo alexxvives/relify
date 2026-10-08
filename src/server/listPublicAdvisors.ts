@@ -11,6 +11,7 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
       description: true,
       sectors: true,
       services: true,
+      closedOperations: true,
     },
     orderBy: { businessName: "asc" },
   });

@@ -18,7 +18,8 @@ describe("toPublicAdvisorCard", () => {
     expect(card?.businessName).toBe("Navarro Asesores");
     expect(card?.sectors).toEqual(["Actividades profesionales, científicas y técnicas"]);
     expect(card?.services[0]?.title).toBe("Due Diligence");
-    expect(publicAdvisorFields).toEqual(["userId", "businessName", "sectors", "services"]);
+    expect(card?.cases).toEqual([]);
+    expect(publicAdvisorFields).toEqual(["userId", "businessName", "sectors", "services", "cases"]);
 
     for (const key of privateAdvisorFields) {
       expect(card).not.toHaveProperty(key);

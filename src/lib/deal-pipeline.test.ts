@@ -26,7 +26,7 @@ describe("dealPipeline", () => {
       "Compraventa",
     ]);
     expect(steps.find((step) => step.state === "current")?.id).toBe("conexion");
-    expect(steps[0]?.detail).toBe("El comprador envía la conexión.");
+    expect(steps[0]?.detail).toBe("Tú envías la conexión. La empresa decide si la acepta.");
     expect(steps[steps.length - 1]?.id).toBe("close");
   });
 

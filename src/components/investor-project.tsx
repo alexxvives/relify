@@ -106,6 +106,7 @@ export function InvestorProject({
                 nda: ndaAgreement(agreementInput),
                 loi: loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) }),
               }}
+              hideQaNote
               diligence={accessId.length > 0 ? { accessId, advisorHref: "/asesoramiento" } : undefined}
             />
           ) : null

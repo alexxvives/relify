@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
-import { DealPipeline, DealWaitingCue, ProcessRoom } from "@/components/deal-pipeline";
+import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
@@ -12,13 +13,13 @@ import { SellerTabs } from "@/components/seller-tabs";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
-import { stepCue, type DealStep, type StepCue } from "@/lib/deal-pipeline";
-import { pendingActionsTitle, sellerCopy, threadMessageCount } from "@/lib/seller-copy";
+import { engagementCopy } from "@/lib/engagement-copy";
+import type { DealStep } from "@/lib/deal-pipeline";
+import { pendingActionsTitle, sellerCopy } from "@/lib/seller-copy";
 
 const tabs = [
   { id: "summary", label: sellerCopy.summary },
   { id: "active", label: sellerCopy.active },
-  { id: "inactive", label: sellerCopy.inactive },
 ] as const;
 
 const counters = [
@@ -113,15 +114,9 @@ function ThreadList({
   );
 }
 
-function sellerHeaderCue(steps: readonly DealStep[]): StepCue | null {
+function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-
-  if (!current || current.id === "diligence") {
-    return null;
-  }
-
-  const cue = stepCue(current.id, "seller");
-  return cue.yours ? null : cue;
+  return current?.id === "qa" || current?.id === "diligence";
 }
 
 function InvestorProfileDialog({
@@ -190,12 +185,10 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
   const [open, setOpen] = useSessionFlag(`releva:seller-thread:${thread.accessId}`, true);
   const chat = thread.messages.filter((message) => message.kind === "question");
   const expandable = thread.stage === "open";
-  const subtitle = thread.stage === "open" ? threadMessageCount(thread.messages.length) : "";
-  const headerCue = thread.stage === "pending" ? null : sellerHeaderCue(thread.steps);
 
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white">
-      <div className={thread.stage === "pending" ? "flex flex-wrap items-start justify-between gap-3 px-5 py-4" : "flex flex-wrap items-start justify-between gap-3 px-5 pt-4"}>
+      <div className={thread.stage === "pending" ? "flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4" : "flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pt-4"}>
         {expandable ? (
           <button
             type="button"
@@ -203,30 +196,32 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             onClick={() => {
               setOpen(!open);
             }}
-            className="flex min-w-0 flex-1 items-start gap-3 text-left"
+            className="inline-flex items-center gap-2 text-left"
           >
-            <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
-            <span>
-              <span className="block text-base font-semibold text-[#1c2740]">{thread.label}</span>
-              {subtitle ? <span className="mt-1 block text-sm text-[#667085]">{subtitle}</span> : null}
-            </span>
+            <ChevronDown className={open ? "size-4 shrink-0 text-[#465ab4]" : "size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
+            <span className="text-base font-semibold text-[#1c2740]">{thread.label}</span>
           </button>
         ) : (
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-semibold text-[#1c2740]">{thread.label}</p>
-            {subtitle ? <p className="mt-1 text-sm text-[#667085]">{subtitle}</p> : null}
-          </div>
+          <p className="text-base font-semibold text-[#1c2740]">{thread.label}</p>
         )}
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {headerCue ? <DealWaitingCue cue={headerCue} className="max-w-md" /> : null}
-          {thread.stage === "pending" ? (
+        {thread.stage === "pending" ? null : <ProcessHeaderCue steps={thread.steps} role="seller" />}
+        {wantsAdvisor(thread.steps) ? (
+          <Link
+            href="/mi-empresa/servicios"
+            className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
+          >
+            {engagementCopy.contactAdvisor}
+          </Link>
+        ) : null}
+        {thread.stage === "pending" ? (
+          <div className="ml-auto">
             <SellerPending
               named={false}
               item={{ accessId: thread.accessId, codename: thread.codename, label: thread.label }}
               profile={thread.profile}
             />
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
       {thread.stage === "pending" ? null : (
         <div className="px-5 pb-4">
@@ -356,9 +351,6 @@ export function SellerProcesses({
       ) : null}
       {tab === "active" ? (
         <ThreadList threads={threads} emptyTitle={sellerCopy.activeEmpty} emptyBody={sellerCopy.activeEmptyBody} today={today} />
-      ) : null}
-      {tab === "inactive" ? (
-        <ThreadList threads={[]} emptyTitle={sellerCopy.inactiveEmpty} emptyBody={sellerCopy.inactiveEmptyBody} today={today} />
       ) : null}
     </div>
   );

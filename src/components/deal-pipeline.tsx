@@ -38,6 +38,7 @@ export function DealPipeline({
   sign,
   diligence,
   hideAsideCue = false,
+  hideQaNote = false,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
@@ -45,6 +46,7 @@ export function DealPipeline({
   sign?: { slug: string; nda: string; loi: string };
   diligence?: { accessId: string; advisorHref: string };
   hideAsideCue?: boolean;
+  hideQaNote?: boolean;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const current = steps.find((step) => step.state === "current");
@@ -56,6 +58,7 @@ export function DealPipeline({
   const fill = currentIndex < 0 ? 1 : currentIndex / span;
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
   const parkCue = hideAsideCue && !showDiligence && !cue.yours && current !== undefined;
+  const hideQa = hideQaNote && current?.id === "qa";
 
   return (
     <div>
@@ -101,7 +104,7 @@ export function DealPipeline({
       </div>
       {showDiligence && diligence ? (
         <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} />
-      ) : parkCue ? null : (
+      ) : parkCue || hideQa ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
@@ -186,6 +189,51 @@ function SignNow({ onSign }: { onSign: () => void }) {
     >
       Firmar ahora
     </button>
+  );
+}
+
+export function ProcessHeaderCue({
+  steps,
+  role,
+  sign,
+}: {
+  steps: DealStep[];
+  role: "investor" | "seller";
+  sign?: { slug: string; nda: string; loi: string };
+}) {
+  const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
+  const current = steps.find((step) => step.state === "current");
+  const cue = current && current.id !== "diligence" ? stepCue(current.id, role) : null;
+  const waiting = cue !== null && !cue.yours;
+  const canSign = Boolean(sign) && role === "investor" && current?.id === "qa";
+
+  if (!waiting || !cue) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
+        <DealWaitingCue cue={cue} />
+        {canSign ? (
+          <SignNow
+            onSign={() => {
+              setSignKind("loi");
+            }}
+          />
+        ) : null}
+      </div>
+      {sign && signKind ? (
+        <ProcessSignDialog
+          kind={signKind}
+          slug={sign.slug}
+          agreement={signKind === "nda" ? sign.nda : sign.loi}
+          onClose={() => {
+            setSignKind(null);
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -352,7 +400,7 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
             <span
               role="tooltip"
               style={{ left: box.x, top: box.y - 8 }}
-              className="pointer-events-none fixed z-[80] w-64 -translate-x-1/2 -translate-y-full rounded-xl bg-[#1c2740] px-3 py-2 text-left text-xs leading-5 font-normal text-white shadow-lg"
+              className="pointer-events-none fixed z-[80] w-72 -translate-x-1/2 -translate-y-full rounded-xl bg-[#1c2740] px-3 py-2 text-left text-xs leading-5 font-normal text-white shadow-lg"
             >
               {text}
             </span>,
