@@ -87,6 +87,9 @@ describe("dealPipeline", () => {
       yours: false,
       action: "El inversor debe firmar el NDA para proceder.",
     });
+    expect(stepCue("qa", "investor").action).toContain("firma la carta de intenciones");
+    expect(stepCue("qa", "seller").action).toContain("firmará la carta de intenciones");
+    expect(stepCue("qa", "investor").action).not.toBe(stepCue("qa", "seller").action);
     expect(stepCue("loi", "investor").yours).toBe(true);
     expect(stepCue("loi", "seller").yours).toBe(false);
   });

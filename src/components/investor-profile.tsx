@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
 import { saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
 import { FieldHint } from "@/components/field-hint";
-import type { DemoInvestorProfile, InvestorProfileDraft } from "@/lib/demo-profile";
+import { InvestorPublicCard } from "@/components/investor-public-card";
+import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
 import { investorTicketBands } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
@@ -73,6 +74,16 @@ export function InvestorProfile({
   const [state, action, pending] = useActionState(saveInvestorProfileAction, null);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0;
+  const preview = publicCardFromDraft({
+    photo,
+    city,
+    province,
+    investorType,
+    ticket,
+    sectors,
+    thesis,
+    contribution,
+  });
 
   function readPhoto(file: File | undefined) {
     setPhotoError("");
@@ -107,6 +118,10 @@ export function InvestorProfile({
             <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.publicHint}</p>
           </div>
           <Chip done={publicDone} />
+        </div>
+        <div className="mt-5 max-w-lg">
+          <p className="mb-3 text-sm text-[#64748b]">{investorCopy.cardPreview}</p>
+          <InvestorPublicCard label={investorCopy.cardPreviewName} profile={preview} />
         </div>
         <div id="foto" className="mt-5 flex scroll-mt-8 items-center gap-4">
           {photo.length > 0 ? (

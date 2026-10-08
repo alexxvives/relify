@@ -15,27 +15,47 @@ import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { stepCue, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
 
+function signTarget(id: DealStep["id"] | undefined, yours: boolean, role: "investor" | "seller"): "nda" | "loi" | null {
+  if (id === "nda" && yours) {
+    return "nda";
+  }
+
+  if (id === "loi" && yours) {
+    return "loi";
+  }
+
+  if (id === "qa" && role === "investor") {
+    return "loi";
+  }
+
+  return null;
+}
+
 export function DealPipeline({
   steps,
   role,
   onDark = false,
   sign,
   diligence,
+  hideAsideCue = false,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   onDark?: boolean;
   sign?: { slug: string; nda: string; loi: string };
   diligence?: { accessId: string; advisorHref: string };
+  hideAsideCue?: boolean;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const current = steps.find((step) => step.state === "current");
   const cue = current ? stepCue(current.id, role) : { yours: false, action: "La compraventa está hecha." };
-  const canSign = Boolean(sign) && cue.yours && (current?.id === "nda" || current?.id === "loi");
+  const signKindFor = signTarget(current?.id, cue.yours, role);
+  const canSign = Boolean(sign) && signKindFor !== null;
   const currentIndex = steps.findIndex((step) => step.state === "current");
   const span = Math.max(steps.length - 1, 1);
   const fill = currentIndex < 0 ? 1 : currentIndex / span;
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
+  const parkCue = hideAsideCue && !showDiligence && !cue.yours && current !== undefined;
 
   return (
     <div>
@@ -81,14 +101,14 @@ export function DealPipeline({
       </div>
       {showDiligence && diligence ? (
         <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} />
-      ) : (
+      ) : parkCue ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
           canSign={canSign}
           onSign={() => {
-            if (current?.id === "nda" || current?.id === "loi") {
-              setSignKind(current.id);
+            if (signKindFor) {
+              setSignKind(signKindFor);
             }
           }}
         />
@@ -135,25 +155,47 @@ function TurnCue({
           <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#17663a] uppercase">Tu turno</span>
           <span className="mt-0.5 block text-sm font-semibold text-[#1c2740]">{cue.action}</span>
         </span>
-        {canSign ? (
-          <button
-            type="button"
-            onClick={onSign}
-            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
-          >
-            Firmar ahora
-          </button>
-        ) : null}
+        {canSign ? <SignNow onSign={onSign} /> : null}
       </div>
     );
   }
 
   return (
-    <div className={onDark ? "mt-4 flex items-start gap-3" : "mt-4 flex items-start gap-3"}>
+    <div className="mt-4 flex items-start justify-between gap-3">
+      {onDark ? (
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+            Qué sigue
+          </span>
+          <p className="pt-0.5 text-sm leading-5 text-white/85">{cue.action}</p>
+        </div>
+      ) : (
+        <DealWaitingCue cue={cue} className="min-w-0 flex-1" />
+      )}
+      {canSign ? <SignNow onSign={onSign} /> : null}
+    </div>
+  );
+}
+
+function SignNow({ onSign }: { onSign: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onSign}
+      className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
+    >
+      Firmar ahora
+    </button>
+  );
+}
+
+export function DealWaitingCue({ cue, className = "" }: { cue: { action: string }; className?: string }) {
+  return (
+    <div className={`flex items-start gap-3 ${className}`}>
       <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
         Qué sigue
       </span>
-      <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
+      <p className="pt-0.5 text-sm leading-5 text-[#3d4a63]">{cue.action}</p>
     </div>
   );
 }

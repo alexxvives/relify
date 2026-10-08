@@ -4,13 +4,15 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
 import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
-import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
+import { DealPipeline, DealWaitingCue, ProcessRoom } from "@/components/deal-pipeline";
+import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { SellerTabs } from "@/components/seller-tabs";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
+import { stepCue, type DealStep, type StepCue } from "@/lib/deal-pipeline";
 import { pendingActionsTitle, sellerCopy, threadMessageCount } from "@/lib/seller-copy";
 
 const tabs = [
@@ -70,6 +72,9 @@ function SellerPending({
       <InvestorProfileDialog
         label={item.label}
         profile={profile}
+        accessId={item.accessId}
+        action={action}
+        pending={pending}
         open={profileOpen}
         onClose={() => {
           setProfileOpen(false);
@@ -108,14 +113,31 @@ function ThreadList({
   );
 }
 
+function sellerHeaderCue(steps: readonly DealStep[]): StepCue | null {
+  const current = steps.find((step) => step.state === "current");
+
+  if (!current || current.id === "diligence") {
+    return null;
+  }
+
+  const cue = stepCue(current.id, "seller");
+  return cue.yours ? null : cue;
+}
+
 function InvestorProfileDialog({
   label,
   profile,
+  accessId,
+  action,
+  pending,
   open,
   onClose,
 }: {
   label: string;
   profile: InvestorPublicProfile | null;
+  accessId: string;
+  action: (payload: FormData) => void;
+  pending: boolean;
   open: boolean;
   onClose: () => void;
 }) {
@@ -134,59 +156,33 @@ function InvestorProfileDialog({
   return (
     <dialog
       ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-[#e7eaee] bg-white p-0 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40"
+      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 backdrop:bg-[#1c2740]/40"
       onClose={onClose}
     >
-      <div className="bg-[#1c2740] px-6 pt-5 pb-14">
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase">Perfil del inversor</p>
-      </div>
-      <div className="-mt-10 px-6 pb-6">
-        <ProfilePhoto photo={profile?.photo ?? ""} />
-        <h2 className="mt-3 text-xl font-semibold">{label}</h2>
-        {profile?.place ? <p className="mt-1 text-sm text-[#5c6b78]">{profile.place}</p> : null}
-        {profile ? (
-          <>
-            <dl className="mt-5 grid grid-cols-2 gap-3">
-              <ProfileFact label={sellerCopy.investorTypeLabel} value={profile.investorType} />
-              <ProfileFact label={sellerCopy.investorTicketLabel} value={profile.ticket} />
-              <ProfileFact label={sellerCopy.investorSectorsLabel} value={profile.sectors} />
-              <ProfileFact label={sellerCopy.investorPlaceLabel} value={profile.place} />
-            </dl>
-            <p className="mt-5 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorThesisLabel}</p>
-            <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.thesis}</p>
-            <p className="mt-4 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorOfferLabel}</p>
-            <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.contribution}</p>
-          </>
-        ) : (
-          <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.investorProfileEmpty}</p>
-        )}
-        <form method="dialog" className="mt-5">
-          <button type="submit" className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white">
-            {sellerCopy.closeProfile}
-          </button>
-        </form>
-      </div>
+      <InvestorPublicCard
+        label={label}
+        profile={profile}
+        footer={
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <form action={action}>
+              <input type="hidden" name="accessId" value={accessId} />
+              <button
+                type="submit"
+                disabled={pending}
+                className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white disabled:opacity-60"
+              >
+                {pending ? billingCopy.acceptingBuyer : billingCopy.acceptBuyer}
+              </button>
+            </form>
+            <form method="dialog">
+              <button type="submit" className="inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740]">
+                {sellerCopy.closeProfile}
+              </button>
+            </form>
+          </div>
+        }
+      />
     </dialog>
-  );
-}
-
-function ProfilePhoto({ photo }: { photo: string }) {
-  if (photo.length === 0) {
-    return <span className="inline-flex size-20 items-center justify-center rounded-full border-4 border-white bg-[#e7edf8] text-sm font-semibold text-[#1c2740]">I</span>;
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={photo} alt="" className="size-20 rounded-full border-4 border-white object-cover" />
-  );
-}
-
-function ProfileFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-[#f7f8fb] px-3 py-3">
-      <dt className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{label}</dt>
-      <dd className="mt-1 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
-    </div>
   );
 }
 
@@ -195,30 +191,34 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
   const chat = thread.messages.filter((message) => message.kind === "question");
   const expandable = thread.stage === "open";
   const subtitle = thread.stage === "open" ? threadMessageCount(thread.messages.length) : "";
+  const headerCue = thread.stage === "pending" ? null : sellerHeaderCue(thread.steps);
 
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white">
-      {expandable ? (
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => {
-            setOpen(!open);
-          }}
-          className="flex w-full items-start gap-3 px-5 pt-4 text-left"
-        >
-          <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
-          <span>
-            <span className="block text-base font-semibold text-[#1c2740]">{thread.label}</span>
-            {subtitle ? <span className="mt-1 block text-sm text-[#667085]">{subtitle}</span> : null}
-          </span>
-        </button>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
-          <div>
+      <div className={thread.stage === "pending" ? "flex flex-wrap items-start justify-between gap-3 px-5 py-4" : "flex flex-wrap items-start justify-between gap-3 px-5 pt-4"}>
+        {expandable ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => {
+              setOpen(!open);
+            }}
+            className="flex min-w-0 flex-1 items-start gap-3 text-left"
+          >
+            <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
+            <span>
+              <span className="block text-base font-semibold text-[#1c2740]">{thread.label}</span>
+              {subtitle ? <span className="mt-1 block text-sm text-[#667085]">{subtitle}</span> : null}
+            </span>
+          </button>
+        ) : (
+          <div className="min-w-0 flex-1">
             <p className="text-base font-semibold text-[#1c2740]">{thread.label}</p>
             {subtitle ? <p className="mt-1 text-sm text-[#667085]">{subtitle}</p> : null}
           </div>
+        )}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {headerCue ? <DealWaitingCue cue={headerCue} className="max-w-md" /> : null}
           {thread.stage === "pending" ? (
             <SellerPending
               named={false}
@@ -227,10 +227,15 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             />
           ) : null}
         </div>
-      )}
+      </div>
       {thread.stage === "pending" ? null : (
         <div className="px-5 pb-4">
-          <DealPipeline steps={thread.steps} role="seller" diligence={{ accessId: thread.accessId, advisorHref: "/mi-empresa/servicios" }} />
+          <DealPipeline
+            steps={thread.steps}
+            role="seller"
+            hideAsideCue
+            diligence={{ accessId: thread.accessId, advisorHref: "/mi-empresa/servicios" }}
+          />
         </div>
       )}
       {expandable && open ? (

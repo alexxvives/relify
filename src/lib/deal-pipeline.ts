@@ -146,7 +146,17 @@ export function stepCue(id: DealStepId, role: "investor" | "seller"): StepCue {
   }
 
   if (id === "qa") {
-    return { yours: false, action: "Estás listo para entregar el LOI." };
+    return role === "investor"
+      ? {
+          yours: false,
+          action:
+            "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones.",
+        }
+      : {
+          yours: false,
+          action:
+            "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
+        };
   }
 
   if (id === "loi") {

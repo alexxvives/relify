@@ -47,6 +47,8 @@ export const investorCopy = {
     "Especifica tus criterios de compra y/o inversión para encontrar a las empresas que más se ajusten a tus intereses",
   publicTitle: "Lo que ve el vendedor",
   publicHint: "Foto, lugar, tipo y qué buscas. El nombre, el NIF, el email y el teléfono no salen.",
+  cardPreview: "Así ve el vendedor tu ficha",
+  cardPreviewName: "Inversor",
   photoLabel: "Foto",
   photoChange: "Cambiar foto",
   photoHeavy: "Usa una foto de menos de 180 KB.",
