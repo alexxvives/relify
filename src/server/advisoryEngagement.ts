@@ -12,7 +12,7 @@ import {
   type EngagementClientName,
 } from "@/lib/engagement";
 import { advisorPlatformFee } from "@/lib/billing";
-import { folderNameSchema } from "@/lib/data-room";
+import { folderNameSchema, visibleFolderNames } from "@/lib/data-room";
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur } from "@/lib/money";
 import { publicProjectSelect } from "@/lib/public-project";
@@ -43,6 +43,7 @@ export type SellerAdvisorAccess = {
     engagementId: string;
     advisorName: string;
     folders: string[];
+    fileIds: string[];
     processOpened: boolean;
   }[];
 };
@@ -255,6 +256,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       requesterId: true,
       project: { select: { id: true, ...publicProjectSelect } },
       folders: { select: { folder: true } },
+      fileShares: { select: { file: { select: { id: true, folder: true, fileName: true } } } },
     },
   });
 
@@ -283,6 +285,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       : null;
   const documents = view === "investor" ? await investorVisibleFiles(row.requesterId, row.project.id) : [];
   const opened = row.folders.map((folder) => folder.folder);
+  const sharedFiles = view === "seller" ? row.fileShares.map((share) => share.file) : [];
   const sellerFiles =
     view === "seller" && opened.length > 0
       ? await prisma.dataRoomFile.findMany({
@@ -291,9 +294,21 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
           orderBy: { createdAt: "asc" },
         })
       : [];
-  const folders = opened.map((name) => ({
+  const visibleFiles = [...sellerFiles];
+  for (const file of sharedFiles) {
+    if (!visibleFiles.some((item) => item.id === file.id)) {
+      visibleFiles.push(file);
+    }
+  }
+  const folderNames = [...opened];
+  for (const file of visibleFiles) {
+    if (!folderNames.includes(file.folder)) {
+      folderNames.push(file.folder);
+    }
+  }
+  const folders = folderNames.map((name) => ({
     name,
-    files: sellerFiles.filter((file) => file.folder === name),
+    files: visibleFiles.filter((file) => file.folder === name),
   }));
 
   return {
@@ -439,6 +454,102 @@ export async function setAdvisorFolder(user: CurrentUser, id: string, folder: st
   return { ok: true };
 }
 
+export async function shareAdvisorDocuments(
+  user: CurrentUser,
+  input: { engagementId: string; scope: "file" | "folder" | "room"; fileId: string; folder: string; shared: boolean },
+): Promise<EngagementResult> {
+  const grant = await sellerGrant(user, input.engagementId);
+
+  if (!grant) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  if (input.scope === "file") {
+    return shareOneAdvisorFile(grant.id, grant.projectId, input.fileId, input.shared);
+  }
+
+  const names = await projectFolderNames(grant.projectId);
+  const targets = input.scope === "folder" ? names.filter((name) => name === input.folder) : names;
+
+  if (input.scope === "folder" && targets.length === 0) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  for (const folder of targets) {
+    const result = await setAdvisorFolder(user, grant.id, folder, input.shared);
+    if (!result.ok) {
+      return result;
+    }
+  }
+
+  if (!input.shared && input.scope === "room") {
+    await prisma.advisorFileShare.deleteMany({ where: { engagementId: grant.id } });
+  }
+
+  if (!input.shared && input.scope === "folder") {
+    await prisma.advisorFileShare.deleteMany({
+      where: { engagementId: grant.id, file: { folder: input.folder, projectId: grant.projectId } },
+    });
+  }
+
+  return { ok: true };
+}
+
+async function shareOneAdvisorFile(engagementId: string, projectId: string, fileId: string, shared: boolean): Promise<EngagementResult> {
+  const file = await prisma.dataRoomFile.findFirst({
+    where: { id: fileId, projectId },
+    select: { id: true, folder: true },
+  });
+
+  if (!file) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  const open = await prisma.advisorFolderOpen.findUnique({
+    where: { engagementId_folder: { engagementId, folder: file.folder } },
+    select: { id: true },
+  });
+
+  if (shared) {
+    if (!open) {
+      await prisma.advisorFileShare.upsert({
+        where: { engagementId_fileId: { engagementId, fileId: file.id } },
+        create: { id: randomUUID(), engagementId, fileId: file.id },
+        update: {},
+      });
+    }
+    return { ok: true };
+  }
+
+  await prisma.advisorFileShare.deleteMany({ where: { engagementId, fileId: file.id } });
+
+  if (open) {
+    await prisma.advisorFolderOpen.delete({ where: { id: open.id } });
+    const siblings = await prisma.dataRoomFile.findMany({
+      where: { projectId, folder: file.folder, id: { not: file.id } },
+      select: { id: true },
+    });
+    for (const sibling of siblings) {
+      await prisma.advisorFileShare.upsert({
+        where: { engagementId_fileId: { engagementId, fileId: sibling.id } },
+        create: { id: randomUUID(), engagementId, fileId: sibling.id },
+        update: {},
+      });
+    }
+  }
+
+  return { ok: true };
+}
+
+async function projectFolderNames(projectId: string): Promise<string[]> {
+  const [files, folderRows] = await Promise.all([
+    prisma.dataRoomFile.findMany({ where: { projectId }, select: { folder: true } }),
+    prisma.dataRoomFolder.findMany({ where: { projectId }, select: { name: true, hidden: true } }),
+  ]);
+
+  return visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) });
+}
+
 export async function setAdvisorProcess(user: CurrentUser, id: string, open: boolean): Promise<EngagementResult> {
   const grant = await sellerGrant(user, id);
 
@@ -466,6 +577,7 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
       advisorId: true,
       processOpened: true,
       folders: { select: { folder: true } },
+      fileShares: { select: { fileId: true } },
       advisor: { select: { advisorProfile: { select: { businessName: true } } } },
     },
     orderBy: { createdAt: "desc" },
@@ -485,6 +597,7 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
           engagementId: row.id,
           advisorName: name === "" ? "Asesor" : name,
           folders: row.folders.map((folder) => folder.folder),
+          fileIds: row.fileShares.map((share) => share.fileId),
           processOpened: row.processOpened,
         },
       ];
@@ -509,11 +622,12 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
       requesterId: true,
       advisorNdaAcceptedAt: true,
       folders: { select: { folder: true } },
+      fileShares: { where: { fileId: file.id }, select: { id: true } },
     },
   });
 
   for (const row of rows) {
-    if (row.client === "seller" && row.folders.some((folder) => folder.folder === file.folder)) {
+    if (row.client === "seller" && (row.folders.some((folder) => folder.folder === file.folder) || row.fileShares.length > 0)) {
       return true;
     }
 

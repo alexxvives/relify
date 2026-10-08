@@ -323,7 +323,6 @@ export function SellerProcesses({
           <div className="grid items-start gap-4 xl:grid-cols-2">
             <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
               <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length)}</h2>
-              <p className="mt-1 text-sm text-[#667085]">{sellerCopy.pendingChatNote}</p>
               {pendingMatches.length > 0 ? (
                 <ul className="mt-4 flex flex-col gap-2">
                   {pendingMatches.map((item) => (

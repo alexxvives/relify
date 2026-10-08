@@ -3,7 +3,7 @@ import { InvestorProfile } from "@/components/investor-profile";
 import { SignedInPage } from "@/components/signed-in-page";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { investorCopy } from "@/lib/investor-copy";
-import { loadInvestorDraft } from "@/server/investorProfile";
+import { investorGazeAvatar, loadInvestorDraft } from "@/server/investorProfile";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -17,7 +17,12 @@ export default async function InvestorProfilePage() {
 
   return (
     <SignedInPage title={investorCopy.profileTitle}>
-      <InvestorProfile displayName={user.displayName} initial={demoInvestorProfile(user.email)} draft={draft} />
+      <InvestorProfile
+        displayName={user.displayName}
+        initial={demoInvestorProfile(user.email)}
+        draft={draft}
+        avatarUrl={investorGazeAvatar(user.id)}
+      />
     </SignedInPage>
   );
 }

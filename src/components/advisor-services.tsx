@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveDealsAction, saveServicesAction } from "@/app/mis-servicios/actions";
+import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { advisorCopy } from "@/lib/advisor-copy";
+import { toPublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
@@ -100,6 +102,16 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
   const [deals, setDeals] = useState<DealDraft[]>(dealsFrom(initial.operations));
 
   const nifMessage = nif.trim().length > 0 && !isValidSpanishCif(nif) ? advisorCopy.nifInvalid : null;
+  const listing = toPublicAdvisorCard({
+    userId: "preview",
+    businessName: profile.businessName,
+    nif: profile.nif,
+    postalCode: profile.postalCode,
+    description: profile.description,
+    sectors: profile.sectors,
+    services: profile.services,
+    closedOperations: profile.operations,
+  });
   const visibleSectors = advisorSectors.filter((sector) =>
     sector.name.toLocaleLowerCase("es-ES").includes(sectorQuery.trim().toLocaleLowerCase("es-ES")),
   );
@@ -594,6 +606,18 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
           </div>
         ) : (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.documentsEmpty}</p>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
+        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
+        {listing ? (
+          <div className="mt-4 max-w-md">
+            <AdvisorListingCard advisor={listing} />
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
         )}
       </section>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, Share2 } from "lucide-react";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { FileTextIcon } from "@/components/ui/file-text";
@@ -14,11 +14,20 @@ import {
   deleteDataRoomFileAction,
   deleteDataRoomFolderAction,
   renameDataRoomFolderAction,
-  shareDataRoomFileFormAction,
+  shareDataRoomScopeFormAction,
   storeDataRoomFileAction,
   type DataRoomActionState,
 } from "@/app/mi-empresa/documentos/actions";
 import type { DataRoomShareView, OwnerFileView } from "@/lib/data-room";
+
+export type DocumentAdvisor = {
+  engagementId: string;
+  name: string;
+  folders: string[];
+  fileIds: string[];
+};
+
+type ShareScope = { kind: "file"; fileId: string } | { kind: "folder"; folder: string } | { kind: "room" };
 import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
 
 function ActionNote({ state, saved }: { state: DataRoomActionState; saved: string }) {
@@ -69,8 +78,8 @@ function DocumentDrop({ folder }: { folder: string }) {
   }
 
   return (
-    <div className="mt-6">
-      <div
+    <div>
+      <label
         onDragOver={(event) => {
           event.preventDefault();
           setOver(true);
@@ -85,44 +94,78 @@ function DocumentDrop({ folder }: { folder: string }) {
         }}
         className={
           over
-            ? "flex min-h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff] px-6 py-8 text-center"
-            : "flex min-h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff] px-6 py-8 text-center"
+            ? "flex h-44 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff] px-3 text-center"
+            : "flex h-44 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff] px-3 text-center"
         }
       >
-        <UploadIcon size={32} className="text-[#465ab4]" aria-hidden />
-        <p className="mt-3 text-sm font-medium text-[#1c2740]">{pending ? sellerCopy.addingDocument : sellerCopy.dropDocument}</p>
-        <label className="mt-3 inline-flex h-10 cursor-pointer items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
-          {sellerCopy.chooseDocuments}
-          <input
-            type="file"
-            multiple
-            className="sr-only"
-            disabled={pending}
-            onChange={(event) => {
-              const chosen = event.target.files ? [...event.target.files] : [];
-              event.target.value = "";
-              void addFiles(chosen);
-            }}
-          />
-        </label>
-      </div>
-      <div className="mt-3">
+        <UploadIcon size={40} className="text-[#465ab4]" aria-hidden />
+        <span className="mt-3 text-sm font-medium text-[#1c2740]">{pending ? sellerCopy.addingDocument : sellerCopy.dropDocument}</span>
+        <span className="mt-1 text-xs font-medium text-[#465ab4]">{sellerCopy.chooseDocuments}</span>
+        <input
+          type="file"
+          multiple
+          className="sr-only"
+          disabled={pending}
+          onChange={(event) => {
+            const chosen = event.target.files ? [...event.target.files] : [];
+            event.target.value = "";
+            void addFiles(chosen);
+          }}
+        />
+      </label>
+      <div className="mt-2">
         <ActionNote state={state} saved={sellerCopy.documentSaved} />
       </div>
     </div>
   );
 }
 
+function shareableFiles(files: OwnerFileView[], scope: ShareScope): OwnerFileView[] {
+  const stored = files.filter((file) => !file.platform);
+  if (scope.kind === "file") {
+    return stored.filter((file) => file.id === scope.fileId);
+  }
+  if (scope.kind === "folder") {
+    return stored.filter((file) => file.folder === scope.folder);
+  }
+  return stored;
+}
+
+function investorIsOn(accessId: string, files: OwnerFileView[], scope: ShareScope): boolean {
+  const chosen = shareableFiles(files, scope);
+  return chosen.length > 0 && chosen.every((file) => file.viewers.some((viewer) => viewer.accessId === accessId));
+}
+
+function advisorIsOn(advisor: DocumentAdvisor, files: OwnerFileView[], folders: string[], scope: ShareScope): boolean {
+  if (scope.kind === "file") {
+    const file = files.find((item) => item.id === scope.fileId);
+    return advisor.fileIds.includes(scope.fileId) || (file ? advisor.folders.includes(file.folder) : false);
+  }
+  if (scope.kind === "folder") {
+    return advisor.folders.includes(scope.folder);
+  }
+  return folders.length > 0 && folders.every((folder) => advisor.folders.includes(folder));
+}
+
 function ShareMenu({
-  file,
+  scope,
   investors,
+  advisors,
+  files,
+  folders,
+  label,
+  align = "right",
 }: {
-  file: OwnerFileView;
+  scope: ShareScope;
   investors: DataRoomShareView[];
+  advisors: DocumentAdvisor[];
+  files: OwnerFileView[];
+  folders: string[];
+  label: string;
+  align?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const shared = new Set(file.viewers.map((viewer) => viewer.accessId));
 
   useEffect(() => {
     if (!open) {
@@ -153,31 +196,48 @@ function ShareMenu({
         className="inline-flex h-8 items-center gap-1 rounded-full border border-[#e1e6ee] bg-white px-2 text-xs font-medium text-[#3d34b8]"
       >
         <Share2 className="size-3.5" aria-hidden />
-        {sellerCopy.shareFile}
+        {label}
       </button>
       {open ? (
-        <div className="absolute top-9 right-0 z-20 w-56 rounded-2xl border border-[#e6e9f0] bg-white p-2 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
-          <p className="px-2 py-1 text-xs font-medium text-[#667085]">{sellerCopy.shareFileWith}</p>
+        <div
+          className={
+            align === "left"
+              ? "absolute top-9 left-0 z-20 w-64 rounded-2xl border border-[#e6e9f0] bg-white p-2 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
+              : "absolute top-9 right-0 z-20 w-64 rounded-2xl border border-[#e6e9f0] bg-white p-2 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
+          }
+        >
+          <p className="px-2 py-1 text-xs font-medium text-[#667085]">{sellerCopy.shareInvestors}</p>
           {investors.length === 0 ? <p className="px-2 py-2 text-sm text-[#667085]">{sellerCopy.shareNone}</p> : null}
           <ul className="flex flex-col">
             {investors.map((investor) => {
-              const on = shared.has(investor.accessId);
+              const on = investorIsOn(investor.accessId, files, scope);
               return (
                 <li key={investor.accessId}>
-                  <form action={shareDataRoomFileFormAction}>
-                    <input type="hidden" name="fileId" value={file.id} />
-                    <input type="hidden" name="accessId" value={investor.accessId} />
-                    <input type="hidden" name="shared" value={on ? "0" : "1"} />
-                    <button
-                      type="submit"
-                      className="flex h-10 w-full items-center justify-between gap-2 rounded-xl px-2 text-left text-sm hover:bg-[#f4f7ff]"
-                    >
-                      <span className="truncate">{investor.label}</span>
-                      <span className={on ? "shrink-0 text-xs font-semibold text-[#17663a]" : "shrink-0 text-xs text-[#8b95a7]"}>
-                        {on ? sellerCopy.shareVisible : sellerCopy.shareFile}
-                      </span>
-                    </button>
-                  </form>
+                  <ShareTargetForm
+                    scope={scope}
+                    accessId={investor.accessId}
+                    engagementId=""
+                    on={on}
+                    label={investor.label}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 px-2 py-1 text-xs font-medium text-[#667085]">{sellerCopy.shareAdvisors}</p>
+          {advisors.length === 0 ? <p className="px-2 py-2 text-sm text-[#667085]">{sellerCopy.shareNoAdvisor}</p> : null}
+          <ul className="flex flex-col">
+            {advisors.map((advisor) => {
+              const on = advisorIsOn(advisor, files, folders, scope);
+              return (
+                <li key={advisor.engagementId}>
+                  <ShareTargetForm
+                    scope={scope}
+                    accessId=""
+                    engagementId={advisor.engagementId}
+                    on={on}
+                    label={advisor.name}
+                  />
                 </li>
               );
             })}
@@ -185,6 +245,37 @@ function ShareMenu({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function ShareTargetForm({
+  scope,
+  accessId,
+  engagementId,
+  on,
+  label,
+}: {
+  scope: ShareScope;
+  accessId: string;
+  engagementId: string;
+  on: boolean;
+  label: string;
+}) {
+  return (
+    <form action={shareDataRoomScopeFormAction}>
+      <input type="hidden" name="scope" value={scope.kind} />
+      <input type="hidden" name="fileId" value={scope.kind === "file" ? scope.fileId : ""} />
+      <input type="hidden" name="folder" value={scope.kind === "folder" ? scope.folder : ""} />
+      <input type="hidden" name="accessId" value={accessId} />
+      <input type="hidden" name="engagementId" value={engagementId} />
+      <input type="hidden" name="shared" value={on ? "0" : "1"} />
+      <button type="submit" className="flex h-10 w-full items-center justify-between gap-2 rounded-xl px-2 text-left text-sm hover:bg-[#f4f7ff]">
+        <span className="truncate">{label}</span>
+        <span className={on ? "shrink-0 text-xs font-semibold text-[#17663a]" : "shrink-0 text-xs text-[#8b95a7]"}>
+          {on ? sellerCopy.shareVisible : sellerCopy.shareFile}
+        </span>
+      </button>
+    </form>
   );
 }
 
@@ -256,7 +347,7 @@ function FileDelete({ id }: { id: string }) {
   );
 }
 
-function FolderCard({ name, count, onOpen }: { name: string; count: number; onOpen: () => void }) {
+function FolderCard({ name, count, onOpen, share }: { name: string; count: number; onOpen: () => void; share: ReactNode }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(name);
   const [state, action, pending] = useActionState(renameDataRoomFolderAction, null);
@@ -316,6 +407,7 @@ function FolderCard({ name, count, onOpen }: { name: string; count: number; onOp
             <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
           </button>
+          <div className="absolute top-3 left-3">{share}</div>
           <div className="absolute top-3 right-3 flex items-center">
             <button
               type="button"
@@ -339,10 +431,12 @@ export function SellerDocuments({
   files,
   folders,
   shares,
+  advisors,
 }: {
   files: OwnerFileView[];
   folders: string[];
   shares: DataRoomShareView[];
+  advisors: DocumentAdvisor[];
 }) {
   const [folder, setFolder] = useState<string | null>(null);
   const [namingFolder, setNamingFolder] = useState(false);
@@ -359,6 +453,10 @@ export function SellerDocuments({
   return (
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
+        <>
+        <div className="mb-4 flex justify-end">
+          <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={files} folders={folders} label={sellerCopy.shareAll} />
+        </div>
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <li>
             {namingFolder ? (
@@ -415,9 +513,21 @@ export function SellerDocuments({
               onOpen={() => {
                 setFolder(name);
               }}
+              share={
+                <ShareMenu
+                  scope={{ kind: "folder", folder: name }}
+                  investors={shares}
+                  advisors={advisors}
+                  files={files}
+                  folders={folders}
+                  label={sellerCopy.shareFile}
+                  align="left"
+                />
+              }
             />
           ))}
         </ul>
+        </>
       ) : (
         <div className="px-2 pb-4">
           <div className="flex items-center justify-between gap-3">
@@ -431,10 +541,22 @@ export function SellerDocuments({
               <ChevronLeft className="size-4" aria-hidden />
               {folder}
             </button>
-            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
+              <ShareMenu
+                scope={{ kind: "folder", folder }}
+                investors={shares}
+                advisors={advisors}
+                files={files}
+                folders={folders}
+                label={sellerCopy.shareFolder}
+              />
+            </div>
           </div>
-          {inFolder.length > 0 ? (
-            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            <li>
+              <DocumentDrop folder={folder} />
+            </li>
               {inFolder.map((file) => (
                 <li key={file.id} className="relative">
                   <button
@@ -462,7 +584,14 @@ export function SellerDocuments({
                         ))}
                       </span>
                     ) : null}
-                    <ShareMenu file={file} investors={shares} />
+                    <ShareMenu
+                      scope={{ kind: "file", fileId: file.id }}
+                      investors={shares}
+                      advisors={advisors}
+                      files={files}
+                      folders={folders}
+                      label={sellerCopy.shareFile}
+                    />
                   </div>
                   )}
                   {file.platform ? null : (
@@ -473,8 +602,6 @@ export function SellerDocuments({
                 </li>
               ))}
             </ul>
-          ) : null}
-          <DocumentDrop folder={folder} />
         </div>
       )}
       <FilePreviewDialog

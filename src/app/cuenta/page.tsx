@@ -7,7 +7,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/server/getAccountNationalId";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { loadInvestorDraft } from "@/server/investorProfile";
+import { investorGazeAvatar, loadInvestorDraft } from "@/server/investorProfile";
 
 export const metadata: Metadata = {
   title: authCopy.accountTitle,
@@ -30,12 +30,18 @@ export default async function AccountPage() {
 
   return (
     <AppShell title={authCopy.accountTitle}>
+      <AccountSettings name={user.name} lastName={user.lastName} email={user.email} phone={user.phone} nationalId={nationalId} />
       {investorDraft ? (
-        <div className="mb-6">
-          <InvestorProfile displayName={user.displayName} initial={demoInvestorProfile(user.email)} draft={investorDraft} publicOnly />
+        <div className="mt-6">
+          <InvestorProfile
+            displayName={user.displayName}
+            initial={demoInvestorProfile(user.email)}
+            draft={investorDraft}
+            avatarUrl={investorGazeAvatar(user.id)}
+            publicOnly
+          />
         </div>
       ) : null}
-      <AccountSettings name={user.name} lastName={user.lastName} email={user.email} phone={user.phone} nationalId={nationalId} />
     </AppShell>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useMemo, useActionState, useState } from "react";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
+import { AdvisorListingCard } from "@/components/advisor-listing-card";
+import { FilterSelect } from "@/components/ui/filter-select";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
-import type { PublicAdvisorCard } from "@/lib/advisor-directory";
+import { advisorPriceBands, filterPublicAdvisors, type AdvisorPriceBand, type PublicAdvisorCard } from "@/lib/advisor-directory";
 import { engagementCopy } from "@/lib/engagement-copy";
 
 const serviceStyle = {
@@ -140,6 +142,17 @@ export function AdvisoryPicker({
   );
 }
 
+const priceLabels: Record<AdvisorPriceBand, string> = {
+  any: engagementCopy.marketplacePriceAny,
+  "under-3": engagementCopy.marketplacePriceUnder,
+  mid: engagementCopy.marketplacePriceMid,
+  "over-6": engagementCopy.marketplacePriceOver,
+};
+
+function isPriceBand(value: string): value is AdvisorPriceBand {
+  return advisorPriceBands.some((band) => band === value);
+}
+
 function AdvisorMarket({
   advisors,
   chosen,
@@ -149,49 +162,84 @@ function AdvisorMarket({
   chosen: string;
   onChoose: (id: string) => void;
 }) {
+  const [query, setQuery] = useState("");
+  const [sector, setSector] = useState("");
+  const [service, setService] = useState("");
+  const [price, setPrice] = useState<AdvisorPriceBand>("any");
+  const sectors = useMemo(
+    () => [...new Set(advisors.flatMap((advisor) => advisor.sectors))].sort((left, right) => left.localeCompare(right, "es")),
+    [advisors],
+  );
+  const services = useMemo(
+    () => [...new Set(advisors.flatMap((advisor) => advisor.services.map((item) => item.title)))].sort((left, right) => left.localeCompare(right, "es")),
+    [advisors],
+  );
+  const visible = filterPublicAdvisors(advisors, { query, sector, service, price });
+
   return (
-    <section>
-      <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
-      <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.marketplaceHint}</p>
-      {advisors.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="mt-4 grid gap-4 md:grid-cols-2">
-        {advisors.map((advisor) => {
-          const active = advisor.id === chosen;
-          return (
-            <li key={advisor.id}>
-              <button
-                type="button"
-                aria-pressed={active}
-                onClick={() => {
-                  onChoose(advisor.id);
-                }}
-                className={
-                  active
-                    ? "flex h-full w-full flex-col rounded-2xl border border-[#465ab4] bg-[#f4f6ff] p-4 text-left"
-                    : "flex h-full w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4 text-left"
+    <section className="flex flex-col gap-4">
+      <div>
+        <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
+        <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.marketplaceHint}</p>
+      </div>
+      <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+        <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            {engagementCopy.marketplaceSearch}
+            <input
+              type="search"
+              value={query}
+              placeholder={engagementCopy.marketplaceSearchPlaceholder}
+              onChange={(event) => {
+                setQuery(event.target.value);
+              }}
+              className="h-11 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0]"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            {engagementCopy.marketplaceSector}
+            <FilterSelect
+              label={engagementCopy.marketplaceSector}
+              value={sector}
+              options={[{ value: "", label: engagementCopy.marketplaceSectorAll }, ...sectors.map((item) => ({ value: item, label: item }))]}
+              onValueChange={setSector}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            {engagementCopy.marketplaceService}
+            <FilterSelect
+              label={engagementCopy.marketplaceService}
+              value={service}
+              options={[{ value: "", label: engagementCopy.marketplaceServiceAll }, ...services.map((item) => ({ value: item, label: item }))]}
+              onValueChange={setService}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            {engagementCopy.marketplacePrice}
+            <FilterSelect
+              label={engagementCopy.marketplacePrice}
+              value={price}
+              options={advisorPriceBands.map((band) => ({ value: band, label: priceLabels[band] }))}
+              onValueChange={(next) => {
+                if (isPriceBand(next)) {
+                  setPrice(next);
                 }
-              >
-                <span className="text-base font-semibold text-[#1c2740]">{advisor.businessName}</span>
-                <span className="mt-1 text-sm text-[#5c6b78]">{advisor.sectors.join(", ")}</span>
-                <span className="mt-3 text-sm text-[#3d4a63]">
-                  {advisor.services.map((service) => `${service.title}: ${service.range}`).join(" · ")}
-                </span>
-                <span className="mt-3 text-xs font-semibold tracking-wide text-[#8a6112] uppercase">{engagementCopy.noRatings}</span>
-                <span className="mt-3 text-xs font-semibold tracking-wide text-[#667085] uppercase">{engagementCopy.casesTitle}</span>
-                {advisor.cases.length === 0 ? <span className="mt-1 text-sm text-[#667085]">{engagementCopy.noCases}</span> : null}
-                {advisor.cases.length > 0 ? (
-                  <span className="mt-2 flex flex-col gap-2">
-                    {advisor.cases.map((item) => (
-                      <span key={`${item.title}-${item.closedOn}`} className="text-sm text-[#3d4a63]">
-                        {item.title} · {item.sector} · {item.closedOn} · {item.value}
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-              </button>
-            </li>
-          );
-        })}
+              }}
+            />
+          </label>
+        </div>
+      </div>
+      {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
+      <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {visible.map((advisor) => (
+          <li key={advisor.id}>
+            <AdvisorListingCard
+              advisor={advisor}
+              active={advisor.id === chosen}
+              onChoose={onChoose}
+            />
+          </li>
+        ))}
       </ul>
     </section>
   );

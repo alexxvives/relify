@@ -1,8 +1,15 @@
+import { createHash } from "node:crypto";
 import type { InvestorProfileDraft, PublicInvestorCard } from "@/lib/demo-profile";
 import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
+import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import type { InvestorProfileInput } from "@/lib/investor-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+
+export function investorGazeAvatar(userId: string): string {
+  const seed = createHash("sha256").update(`releva-investor:${userId}`).digest("hex").slice(0, 16);
+  return gazeAvatarUrl(seed);
+}
 
 const emptyDraft: InvestorProfileDraft = {
   photo: "",
@@ -102,7 +109,8 @@ export async function publicCardsByInvestor(
   for (const person of people) {
     const row = byId.get(person.id);
     const draft = row ? draftFromRow(row) : demoInvestorProfile(person.email);
-    cards.set(person.id, draft ? publicCardFromDraft(draft) : null);
+    const card = draft ? publicCardFromDraft(draft) : null;
+    cards.set(person.id, card ? { ...card, photo: investorGazeAvatar(person.id) } : null);
   }
 
   return cards;

@@ -402,6 +402,7 @@ model DataRoomFile {
   folder    String   @default("Otros")
   createdAt DateTime @default(now()) @map("created_at")
   shares    DataRoomFileShare[]
+  advisorShares AdvisorFileShare[]
 
   @@index([projectId])
   @@map("data_room_file")
@@ -527,6 +528,7 @@ model AdvisoryEngagement {
   processOpened        Boolean            @default(false) @map("process_opened")
   createdAt            DateTime           @default(now()) @map("created_at")
   folders              AdvisorFolderOpen[]
+  fileShares           AdvisorFileShare[]
 
   @@index([projectId])
   @@index([advisorId])
@@ -544,6 +546,20 @@ model AdvisorFolderOpen {
   @@unique([engagementId, folder])
   @@index([engagementId])
   @@map("advisor_folder_open")
+}
+
+model AdvisorFileShare {
+  id           String             @id
+  engagementId String             @map("engagement_id")
+  engagement   AdvisoryEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  fileId       String             @map("file_id")
+  file         DataRoomFile       @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  @@unique([engagementId, fileId])
+  @@index([engagementId])
+  @@index([fileId])
+  @@map("advisor_file_share")
 }
 
 model SuccessFee {

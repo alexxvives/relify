@@ -15,9 +15,13 @@ export type PublicAdvisorCard = {
   id: string;
   businessName: string;
   sectors: string[];
-  services: { title: string; range: string }[];
+  services: { title: string; range: string; fromCents: number }[];
   cases: PublicAdvisorCase[];
 };
+
+export const advisorPriceBands = ["any", "under-3", "mid", "over-6"] as const;
+
+export type AdvisorPriceBand = (typeof advisorPriceBands)[number];
 
 const privateAdvisorFields = ["nif", "postalCode", "description", "email", "closedOperations"] as const;
 
@@ -64,6 +68,7 @@ export function toPublicAdvisorCard(profile: {
   const services = readStoredServices(profile.services).map((service) => ({
     title: advisorCopy.serviceTypes[service.serviceType],
     range: `${formatAdvisorEuros(service.priceFromCents)} – ${formatAdvisorEuros(service.priceToCents)}`,
+    fromCents: service.priceFromCents,
   }));
   const cases = readStoredOperations(profile.closedOperations).map((operation) => ({
     title: operation.name,
@@ -79,6 +84,40 @@ export function toPublicAdvisorCard(profile: {
     services,
     cases,
   };
+}
+
+function priceInBand(cents: number, band: AdvisorPriceBand): boolean {
+  if (band === "under-3") {
+    return cents <= 300_000;
+  }
+  if (band === "mid") {
+    return cents > 300_000 && cents <= 600_000;
+  }
+  if (band === "over-6") {
+    return cents > 600_000;
+  }
+  return true;
+}
+
+export function filterPublicAdvisors(
+  advisors: readonly PublicAdvisorCard[],
+  input: { query: string; sector: string; service: string; price: AdvisorPriceBand },
+): PublicAdvisorCard[] {
+  const query = input.query.trim().toLocaleLowerCase("es-ES");
+
+  return advisors.filter((advisor) => {
+    if (query.length > 0 && !advisor.businessName.toLocaleLowerCase("es-ES").includes(query)) {
+      return false;
+    }
+    if (input.sector.length > 0 && !advisor.sectors.includes(input.sector)) {
+      return false;
+    }
+    const services = advisor.services.filter((service) => input.service.length === 0 || service.title === input.service);
+    if (services.length === 0) {
+      return false;
+    }
+    return input.price === "any" || services.some((service) => priceInBand(service.fromCents, input.price));
+  });
 }
 
 export function publicAdvisorCardKeys(card: PublicAdvisorCard): string[] {

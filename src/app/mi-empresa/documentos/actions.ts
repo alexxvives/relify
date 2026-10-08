@@ -8,6 +8,7 @@ import { createDataRoomFolder, deleteDataRoomFolder, renameDataRoomFolder } from
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { grantDataRoomAccess } from "@/server/grantDataRoomAccess";
 import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
+import { shareDataRoomScope } from "@/server/shareDataRoomScope";
 import { dataRoomByteLimit } from "@/server/dataRoomDisk";
 import { deleteDataRoomFile } from "@/server/deleteDataRoomFile";
 import { storeDataRoomFile } from "@/server/storeDataRoomFile";
@@ -160,6 +161,25 @@ export async function shareDataRoomFileAction(
 
 export async function shareDataRoomFileFormAction(formData: FormData): Promise<void> {
   await shareDataRoomFileAction(null, formData);
+}
+
+export async function shareDataRoomScopeFormAction(formData: FormData): Promise<void> {
+  const user = await sellerUser();
+  const result = await shareDataRoomScope(user, {
+    scope: readText(formData, "scope"),
+    fileId: readText(formData, "fileId"),
+    folder: readText(formData, "folder"),
+    accessId: readText(formData, "accessId"),
+    engagementId: readText(formData, "engagementId"),
+    shared: readText(formData, "shared") === "1",
+  });
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/documentos");
+    revalidatePath("/dataroom");
+    revalidatePath("/mi-empresa/procesos");
+    revalidatePath("/mandatos/encargos", "layout");
+  }
 }
 
 export async function deleteDataRoomFileAction(

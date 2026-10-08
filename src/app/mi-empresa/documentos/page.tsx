@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AdvisorAccessPanel } from "@/components/advisor-access-panel";
 import { SellerDocuments } from "@/components/seller-documents";
 import { SignedInPage } from "@/components/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -31,8 +30,17 @@ export default async function DocumentsPage() {
 
   return (
     <SignedInPage title={sellerCopy.documentsTitle}>
-      <AdvisorAccessPanel access={access} folders={room.folders} mode="folders" />
-      <SellerDocuments files={room.files} folders={room.folders} shares={room.shares} />
+      <SellerDocuments
+        files={room.files}
+        folders={room.folders}
+        shares={room.shares}
+        advisors={access.ready.map((row) => ({
+          engagementId: row.engagementId,
+          name: row.advisorName,
+          folders: row.folders,
+          fileIds: row.fileIds,
+        }))}
+      />
     </SignedInPage>
   );
 }
