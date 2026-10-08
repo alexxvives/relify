@@ -23,3 +23,4 @@ Append-only. One line per project-specific pitfall:
 - 2026-10-07: the Worker build could not load `@/generated/prisma/client` — that client is gitignored and Cloudflare skips Prisma's install script — generate it at the start of `vite build`.
 - 2026-10-07: `tsc` rejects `createAuth(): Auth` when `Auth` is `ReturnType<typeof betterAuth>` — the specific options return is not the generic Better Auth type — infer `Auth` from `ReturnType<typeof createAuth>`.
 - 2026-10-07: importing Arc `foundation.css` restyles Costa — that file sets `:root` tokens the app already uses — scope them to `.arc-scope` and do not keep its global focus rules.
+- 2026-10-08: renaming a demo data-room file returned "sin barras ni rutas" — seed file ids are `demo-cala-file-N`, not UUIDs — accept that id shape in `renameDataRoomFileSchema`.

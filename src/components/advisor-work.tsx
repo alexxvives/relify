@@ -88,7 +88,7 @@ export function AdvisorWork({
         <ul className="mt-4 grid gap-3 md:grid-cols-2">
           {advisors.map((advisor) => (
             <li key={advisor.id} className="rounded-2xl bg-[#f7f8fb] p-4">
-              <p className="text-base font-semibold text-[#1c2740]">{advisor.businessName}</p>
+              <p className="text-base font-semibold text-[#1c2740]">{engagementCopy.advisorFallback}</p>
               <p className="mt-2 text-sm text-[#5c6b78]">{advisor.sectors.join(", ")}</p>
               <p className="mt-2 text-sm text-[#3d4a63]">
                 {advisor.services.map((service) => `${service.title}: ${service.range}`).join(" · ")}

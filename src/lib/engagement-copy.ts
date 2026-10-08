@@ -1,6 +1,6 @@
 export const engagementCopy = {
   directoryTitle: "Asesores",
-  directoryIntro: "El nombre comercial, los sectores, los servicios y el rango. El NIF, el correo y los documentos no salen.",
+  directoryIntro: "Sectores, servicios y rango. El nombre, el NIF, el correo y los documentos no salen.",
   directoryEmpty: "Aún no hay asesores con la ficha completa.",
   pickAdvisor: "Elige un asesor",
   contactAdvisor: "Contacta con un asesor",
@@ -25,7 +25,7 @@ export const engagementCopy = {
   marketplaceTitle: "Asesores",
   marketplaceHint: "Elige una ficha. El presupuesto usa los servicios que ese asesor publica.",
   marketplaceSearch: "Buscar",
-  marketplaceSearchPlaceholder: "Nombre de la asesoría",
+  marketplaceSearchPlaceholder: "Sector o servicio",
   marketplaceSector: "Sector",
   marketplaceSectorAll: "Todos los sectores",
   marketplaceService: "Servicio",

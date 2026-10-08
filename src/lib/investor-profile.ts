@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { investorTypes } from "./investor-copy";
 
-export const investorStakes = ["Mayoría", "Minoría", "Flexible"] as const;
+export const investorStakes = ["Completa", "Mayoría", "Minoría", "Flexible"] as const;
 
 export const investorTicketBands = [
   "Menos de 500 mil €",

@@ -64,7 +64,7 @@ export function AdvisorListingCard({
             <Stars />
             <span className="text-[10px] font-semibold tracking-wide text-white/70 uppercase">{engagementCopy.noRatings}</span>
           </span>
-          <span className="block pr-28 text-lg font-semibold text-white">{advisor.businessName}</span>
+          <span className="block pr-28 text-lg font-semibold text-white">{engagementCopy.advisorFallback}</span>
           <span className="mt-1 block pr-28 text-sm text-white/70">{advisor.sectors.join(" · ")}</span>
         </span>
         <span className="flex flex-1 flex-col gap-3 p-5">
@@ -92,7 +92,7 @@ export function AdvisorListingCard({
               <Stars />
               <span className="text-[10px] font-semibold tracking-wide text-white/70 uppercase">{engagementCopy.noRatings}</span>
             </span>
-            <h2 className="pr-28 text-2xl font-semibold text-white">{advisor.businessName}</h2>
+            <h2 className="pr-28 text-2xl font-semibold text-white">{engagementCopy.advisorFallback}</h2>
             <p className="mt-1 pr-28 text-sm text-white/70">{advisor.sectors.join(" · ")}</p>
           </div>
           <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-6 py-5">

@@ -97,7 +97,6 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
   projectId: string;
   codename: string;
   region: string;
-  businessName: string;
   side: Side;
 } | null> {
   if (!user.onboarded) {
@@ -114,7 +113,6 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
       services: true,
       projectId: true,
       project: { select: { codename: true, region: true } },
-      advisor: { select: { advisorProfile: { select: { businessName: true } } } },
     },
   });
 
@@ -145,7 +143,6 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
     projectId: row.projectId,
     codename: row.project.codename,
     region: row.project.region,
-    businessName: row.advisor?.advisorProfile?.businessName.trim() || engagementCopy.advisorFallback,
     side,
   };
 }
@@ -157,7 +154,6 @@ function viewOf(
     services: string[];
     codename: string;
     region: string;
-    businessName: string;
     side: Side;
   },
   messages: ThreadMessageView[],
@@ -167,10 +163,10 @@ function viewOf(
 
   return {
     id: row.id,
-    heading: row.side === "client" ? row.businessName : row.codename,
+    heading: row.side === "client" ? engagementCopy.advisorFallback : row.codename,
     detail: row.side === "client" ? `${row.codename} · ${row.region}` : row.region,
     services: serviceLabel(row.services),
-    partyName: row.side === "client" ? row.businessName : clientLabel,
+    partyName: row.side === "client" ? engagementCopy.advisorFallback : clientLabel,
     placeholder:
       row.side === "client"
         ? engagementCopy.threadPlaceholder
@@ -217,7 +213,6 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
       projectId: true,
       requesterId: true,
       project: { select: { codename: true, region: true } },
-      advisor: { select: { advisorProfile: { select: { businessName: true } } } },
       messages: {
         orderBy: { createdAt: "asc" },
         select: { id: true, kind: true, body: true, author: true, createdAt: true },
@@ -227,7 +222,6 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
   const contacts: AdvisorContactView[] = [];
 
   for (const row of rows) {
-    const businessName = row.advisor?.advisorProfile?.businessName.trim() || engagementCopy.advisorFallback;
     const documents = await sharedFiles(row);
     contacts.push(
       viewOf(
@@ -237,7 +231,6 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
           services: row.services,
           codename: row.project.codename,
           region: row.project.region,
-          businessName,
           side: "client",
         },
         row.messages.map((message) =>

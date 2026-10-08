@@ -15,26 +15,27 @@ describe("toPublicAdvisorCard", () => {
   it("lists a finished profile without the NIF, the email, or documents", () => {
     const card = toPublicAdvisorCard(complete);
 
-    expect(card?.businessName).toBe("Navarro Asesores");
     expect(card?.description).toContain("compraventa");
     expect(card?.sectors).toEqual(["Actividades profesionales, científicas y técnicas"]);
     expect(card?.services[0]?.title).toBe("Due Diligence");
     expect(card?.services[0]?.fromCents).toBe(100_000);
     expect(card?.cases).toEqual([]);
-    expect(publicAdvisorFields).toEqual(["userId", "businessName", "description", "sectors", "services", "cases"]);
+    expect(JSON.stringify(card)).not.toContain("Navarro");
+    expect(publicAdvisorFields).toEqual(["userId", "description", "sectors", "services", "cases"]);
 
     for (const key of privateAdvisorFields) {
       expect(card).not.toHaveProperty(key);
     }
   });
 
-  it("filters the directory by name, sector, service, and starting price", () => {
+  it("filters the directory by sector, service, and starting price, and not by the firm name", () => {
     const card = toPublicAdvisorCard(complete);
     expect(card).not.toBeNull();
     if (!card) {
       return;
     }
-    expect(filterPublicAdvisors([card], { query: "navarro", sector: "", service: "", price: "any" })).toHaveLength(1);
+    expect(filterPublicAdvisors([card], { query: "navarro", sector: "", service: "", price: "any" })).toHaveLength(0);
+    expect(filterPublicAdvisors([card], { query: "due", sector: "", service: "", price: "any" })).toHaveLength(1);
     expect(filterPublicAdvisors([card], { query: "", sector: "Hostelería", service: "", price: "any" })).toHaveLength(0);
     expect(filterPublicAdvisors([card], { query: "", sector: "", service: "Due Diligence", price: "under-3" })).toHaveLength(1);
     expect(filterPublicAdvisors([card], { query: "", sector: "", service: "Due Diligence", price: "over-6" })).toHaveLength(0);

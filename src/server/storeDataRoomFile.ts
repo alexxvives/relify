@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { dataRoomMessage, dataRoomReadGate, visibleFolderNames, type StoreDataRoomFileInput } from "@/lib/data-room";
+import { dataRoomMessage, dataRoomReadGate, renameDataRoomFileSchema, visibleFolderNames, type StoreDataRoomFileInput } from "@/lib/data-room";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -67,5 +67,34 @@ export async function storeDataRoomFile(
     return { ok: false, message: sellerCopy.documentFailed };
   }
 
+  return { ok: true };
+}
+
+export async function renameDataRoomFile(user: CurrentUser, fileId: string, fileName: string): Promise<DataRoomWriteResult> {
+  const parsed = renameDataRoomFileSchema.safeParse({ fileId, fileName });
+
+  if (!parsed.success || !user.onboarded || user.role !== "seller") {
+    return { ok: false, message: parsed.success ? sellerCopy.documentForbidden : sellerCopy.documentInvalid };
+  }
+
+  const activeId = await activeSellerProjectId(user.id);
+  const file = await prisma.dataRoomFile.findFirst({
+    where: { id: parsed.data.fileId, project: { id: activeId ?? "", ownerId: user.id } },
+    select: { id: true, project: { select: { status: true } } },
+  });
+  const gate = dataRoomReadGate({
+    onboarded: user.onboarded,
+    role: user.role,
+    ownsProject: file !== null,
+    projectStatus: file?.project.status ?? null,
+    ndaAcceptedAt: null,
+    granted: false,
+  });
+
+  if (!gate.ok || gate.audience !== "owner" || !file) {
+    return { ok: false, message: dataRoomMessage(gate.ok ? "missing" : gate.code) };
+  }
+
+  await prisma.dataRoomFile.update({ where: { id: file.id }, data: { fileName: parsed.data.fileName } });
   return { ok: true };
 }

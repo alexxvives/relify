@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-08 — The advisor's name stays off the marketplace
+
+A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Releva. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.
+
 ## 2026-10-08 — Advisor thread, and the investor stake
 
 Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Releva and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.

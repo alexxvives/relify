@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
 import { saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
 import { FieldHint } from "@/components/field-hint";
+import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
@@ -170,50 +171,42 @@ export function InvestorProfile({
           </label>
         </div>
         <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-sm">
             {investorCopy.investorType}
-            <select
+            <OptionSelect
               name="investorType"
+              label={investorCopy.investorType}
               value={investorType}
-              onChange={(event) => setInvestorType(event.target.value)}
-              className={`${fieldClass} bg-white`}
-            >
-              <option value="">{investorCopy.investorTypeEmpty}</option>
-              {investorTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
+              options={[{ value: "", label: investorCopy.investorTypeEmpty }, ...investorTypes.map((type) => ({ value: type, label: type }))]}
+              onValueChange={setInvestorType}
+            />
+          </div>
+          <div className="flex flex-col gap-2 text-sm">
             {investorCopy.ticketLabel}
-            <select name="ticket" value={ticket} onChange={(event) => setTicket(event.target.value)} className={`${fieldClass} bg-white`}>
-              <option value="">{investorCopy.investorTypeEmpty}</option>
-              {investorTicketBands.map((band) => (
-                <option key={band} value={band}>
-                  {band}
-                </option>
-              ))}
-            </select>
-          </label>
+            <OptionSelect
+              name="ticket"
+              label={investorCopy.ticketLabel}
+              value={ticket}
+              options={[{ value: "", label: investorCopy.investorTypeEmpty }, ...investorTicketBands.map((band) => ({ value: band, label: band }))]}
+              onValueChange={setTicket}
+            />
+          </div>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label id="busqueda" className="flex scroll-mt-8 flex-col gap-2 text-sm">
             {investorCopy.sectorsLabel}
             <input name="sectors" value={sectors} onChange={(event) => setSectors(event.target.value)} className={fieldClass} />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-sm">
             {investorCopy.stakeLabel}
-            <select name="stake" value={stake} onChange={(event) => setStake(event.target.value)} className={`${fieldClass} bg-white`}>
-              <option value="">{investorCopy.investorTypeEmpty}</option>
-              {investorStakes.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
+            <OptionSelect
+              name="stake"
+              label={investorCopy.stakeLabel}
+              value={stake}
+              options={[{ value: "", label: investorCopy.investorTypeEmpty }, ...investorStakes.map((item) => ({ value: item, label: item }))]}
+              onValueChange={setStake}
+            />
+          </div>
         </div>
         <div id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
           <span className="flex items-center gap-2">

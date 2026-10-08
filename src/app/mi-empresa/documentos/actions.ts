@@ -11,7 +11,7 @@ import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
 import { shareDataRoomScope } from "@/server/shareDataRoomScope";
 import { dataRoomByteLimit } from "@/server/dataRoomDisk";
 import { deleteDataRoomFile } from "@/server/deleteDataRoomFile";
-import { storeDataRoomFile } from "@/server/storeDataRoomFile";
+import { renameDataRoomFile, storeDataRoomFile } from "@/server/storeDataRoomFile";
 
 export type DataRoomActionState = { ok: true } | { ok: false; message: string } | null;
 
@@ -113,6 +113,21 @@ export async function renameDataRoomFolderAction(
 
   if (result.ok) {
     revalidatePath("/mi-empresa/documentos");
+  }
+
+  return result;
+}
+
+export async function renameDataRoomFileAction(
+  _state: DataRoomActionState,
+  formData: FormData,
+): Promise<DataRoomActionState> {
+  const user = await sellerUser();
+  const result = await renameDataRoomFile(user, readText(formData, "fileId"), readText(formData, "name"));
+
+  if (result.ok) {
+    revalidatePath("/mi-empresa/documentos");
+    revalidatePath("/dataroom");
   }
 
   return result;

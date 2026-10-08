@@ -13,6 +13,7 @@ import {
   createDataRoomFolderAction,
   deleteDataRoomFileAction,
   deleteDataRoomFolderAction,
+  renameDataRoomFileAction,
   renameDataRoomFolderAction,
   shareDataRoomScopeFormAction,
   storeDataRoomFileAction,
@@ -427,6 +428,107 @@ function FolderCard({ name, count, onOpen, share }: { name: string; count: numbe
   );
 }
 
+function FileCard({
+  file,
+  onOpen,
+  share,
+}: {
+  file: OwnerFileView;
+  onOpen: () => void;
+  share: ReactNode;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(file.fileName);
+  const [state, action, pending] = useActionState(renameDataRoomFileAction, null);
+  const [closed, setClosed] = useState<DataRoomActionState>(null);
+
+  if (state?.ok && state !== closed) {
+    setClosed(state);
+    setEditing(false);
+  }
+
+  return (
+    <li className="relative">
+      {editing ? (
+        <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-3">
+          <input type="hidden" name="fileId" value={file.id} />
+          <input
+            name="name"
+            required
+            maxLength={120}
+            value={value}
+            aria-label={sellerCopy.folderRename}
+            onChange={(event) => {
+              setValue(event.target.value);
+            }}
+            className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setValue(file.fileName);
+                setEditing(false);
+              }}
+              className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
+            >
+              {sellerCopy.meetingsCancel}
+            </button>
+            <button
+              type="submit"
+              disabled={pending || value.trim() === file.fileName}
+              className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
+            >
+              {sellerCopy.folderRename}
+            </button>
+          </div>
+          <ActionNote state={state} saved={sellerCopy.folderRenamed} />
+        </form>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
+          >
+            <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
+            <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
+          </button>
+          {file.platform ? null : <div className="absolute top-3 left-3">{share}</div>}
+          {file.platform ? null : (
+            <div className="absolute top-3 right-3 flex items-center">
+              {file.viewers.length > 0 ? (
+                <span className="mr-1 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
+                  {file.viewers.map((viewer) => (
+                    <span
+                      key={viewer.accessId}
+                      title={viewer.label}
+                      className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
+                    >
+                      {viewer.label.replace("Inversor ", "")}
+                    </span>
+                  ))}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                aria-label={sellerCopy.folderRename}
+                onClick={() => {
+                  setEditing(true);
+                }}
+                className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
+              >
+                <SquarePenIcon size={16} aria-hidden />
+              </button>
+              <FileDelete id={file.id} />
+            </div>
+          )}
+        </>
+      )}
+    </li>
+  );
+}
+
 export function SellerDocuments({
   files,
   folders,
@@ -558,19 +660,13 @@ export function SellerDocuments({
               <DocumentDrop folder={folder} />
             </li>
               {inFolder.map((file) => (
-                <li key={file.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenFile(file);
-                    }}
-                    className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
-                  >
-                    <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
-                    <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
-                  </button>
-                  {file.platform ? null : (
-                  <div className="absolute top-3 left-3">
+                <FileCard
+                  key={file.id}
+                  file={file}
+                  onOpen={() => {
+                    setOpenFile(file);
+                  }}
+                  share={
                     <ShareMenu
                       scope={{ kind: "file", fileId: file.id }}
                       investors={shares}
@@ -580,27 +676,8 @@ export function SellerDocuments({
                       label={sellerCopy.shareFile}
                       align="left"
                     />
-                  </div>
-                  )}
-                  {file.platform ? null : (
-                  <div className="absolute top-3 right-3 flex items-center">
-                    {file.viewers.length > 0 ? (
-                      <span className="mr-1 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
-                        {file.viewers.map((viewer) => (
-                          <span
-                            key={viewer.accessId}
-                            title={viewer.label}
-                            className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
-                          >
-                            {viewer.label.replace("Inversor ", "")}
-                          </span>
-                        ))}
-                      </span>
-                    ) : null}
-                    <FileDelete id={file.id} />
-                  </div>
-                  )}
-                </li>
+                  }
+                />
               ))}
             </ul>
         </div>

@@ -578,7 +578,6 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
       processOpened: true,
       folders: { select: { folder: true } },
       fileShares: { select: { fileId: true } },
-      advisor: { select: { advisorProfile: { select: { businessName: true } } } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -590,12 +589,10 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
         return [];
       }
 
-      const name = row.advisor?.advisorProfile?.businessName.trim() ?? "";
-
       return [
         {
           engagementId: row.id,
-          advisorName: name === "" ? "Asesor" : name,
+          advisorName: "Asesor",
           folders: row.folders.map((folder) => folder.folder),
           fileIds: row.fileShares.map((share) => share.fileId),
           processOpened: row.processOpened,

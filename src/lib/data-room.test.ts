@@ -4,6 +4,7 @@ import {
   fileViewerLabels,
   grantDataRoomOutcome,
   sharedFileIds,
+  renameDataRoomFileSchema,
   storeDataRoomFileSchema,
   toDataRoomFileView,
   toDataRoomShareView,
@@ -83,6 +84,15 @@ describe("storeDataRoomFileSchema", () => {
       false,
     );
     expect(storeDataRoomFileSchema.safeParse({ folder: "Fiscal", fileName: "a/b.pdf" }).success).toBe(false);
+  });
+});
+
+describe("renameDataRoomFileSchema", () => {
+  it("accepts a stored file id and a display name", () => {
+    expect(
+      renameDataRoomFileSchema.safeParse({ fileId: "demo-cala-file-1", fileName: "cuentas-2024-revisado.pdf" }).success,
+    ).toBe(true);
+    expect(renameDataRoomFileSchema.safeParse({ fileId: "../secret", fileName: "cuentas.pdf" }).success).toBe(false);
   });
 });
 

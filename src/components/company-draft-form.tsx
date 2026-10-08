@@ -279,7 +279,7 @@ function FigureField({
   const amount = shown.length > 0 ? shown : "—";
 
   return (
-    <label className="flex min-w-0 flex-col gap-2">
+    <label className={light ? "flex min-w-0 flex-col items-center gap-2 text-center" : "flex min-w-0 flex-col gap-2"}>
       <span className={light ? "text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase" : "text-[11px] font-semibold tracking-wide text-[#667085] uppercase"}>
         {label}
       </span>
@@ -343,9 +343,9 @@ function FichaMetrics({
   return (
     <div className="mt-6 overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
       <div className="grid lg:grid-cols-[minmax(16rem,0.9fr)_minmax(0,1.3fr)]">
-        <div className="flex flex-col justify-between gap-8 bg-[#1c2740] p-6">
+        <div className="flex flex-col items-center justify-center gap-8 bg-[#1c2740] p-6 text-center">
           <FigureField tone="light" label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} />
-          <div className="inline-flex w-fit items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+          <div className="inline-flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
             <span className="text-[11px] font-semibold tracking-wide text-white/70 uppercase">{companyCopy.ebitdaMarginLabel}</span>
             <span className="text-lg font-semibold text-white tabular-nums">{margin}</span>
           </div>
@@ -1738,9 +1738,9 @@ function MarketPreview({
             </div>
           ))}
         </div>
-        <div className="mt-4 grid items-start gap-4 md:grid-cols-3">
+        <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
           <SampleListing />
-          <article className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+          <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div className={projectPhotoFrame}>
               {shown && shown.startsWith("data:") ? (
                 // User-chosen bytes stay in this preview. next/image does not accept a data URL.
@@ -1759,7 +1759,7 @@ function MarketPreview({
                 place={region.trim().length > 0 ? region : companyCopy.regionLabel}
               />
             </div>
-            <div className="flex flex-col gap-4 p-5">
+            <div className="flex flex-1 flex-col gap-4 p-5">
               <MarketCardFigures
                 revenue={figures[0]?.value ?? "—"}
                 ebitda={figures[1]?.value ?? "—"}
@@ -1779,12 +1779,20 @@ function MarketPreview({
 
 function SampleListing() {
   return (
-    <article aria-hidden className="overflow-hidden rounded-2xl border border-dashed border-[#d5dbe3] bg-white">
-      <div className={projectPhotoFrame} />
-      <div className="flex flex-col gap-3 p-5">
-        <div className="h-5 w-2/3 rounded bg-[#eef1f6]" />
-        <div className="h-3 w-1/3 rounded bg-[#eef1f6]" />
-        <div className="h-28 rounded-xl bg-[#f5f6fa]" />
+    <article aria-hidden className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+      <div className={projectPhotoFrame}>
+        <div className="absolute inset-x-4 bottom-4 flex animate-pulse flex-col gap-2">
+          <div className="h-4 w-2/3 rounded bg-white/25" />
+          <div className="h-3 w-1/3 rounded bg-white/15" />
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <div className="h-16 animate-pulse rounded-xl bg-[#f4f6fb]" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
+          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
+          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
+        </div>
       </div>
     </article>
   );

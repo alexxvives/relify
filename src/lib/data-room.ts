@@ -22,6 +22,18 @@ export const storeDataRoomFileSchema = z.object({
   fileName: displayNameSchema,
 });
 
+const recordIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(80)
+  .regex(/^[A-Za-z0-9-]+$/);
+
+export const renameDataRoomFileSchema = z.object({
+  fileId: recordIdSchema,
+  fileName: displayNameSchema,
+});
+
 export type StoreDataRoomFileInput = z.infer<typeof storeDataRoomFileSchema>;
 
 export const grantDataRoomSchema = z.object({

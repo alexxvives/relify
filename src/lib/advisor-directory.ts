@@ -2,7 +2,7 @@ import { advisorCopy } from "./advisor-copy";
 import { corporateIsComplete, formatAdvisorEuros, readStoredOperations, readStoredServices, type AdvisorServiceId } from "./advisor-profile";
 import { advisorSectorName } from "./advisor-sectors";
 
-export const publicAdvisorFields = ["userId", "businessName", "description", "sectors", "services", "cases"] as const;
+export const publicAdvisorFields = ["userId", "description", "sectors", "services", "cases"] as const;
 
 export type PublicAdvisorCase = {
   sector: string;
@@ -12,7 +12,6 @@ export type PublicAdvisorCase = {
 
 export type PublicAdvisorCard = {
   id: string;
-  businessName: string;
   description: string;
   sectors: string[];
   services: { title: string; range: string; fromCents: number }[];
@@ -78,7 +77,6 @@ export function toPublicAdvisorCard(profile: {
 
   return {
     id: profile.userId,
-    businessName: profile.businessName,
     description: profile.description.trim(),
     sectors: profile.sectors.map((sector) => advisorSectorName(sector)),
     services,
@@ -106,7 +104,10 @@ export function filterPublicAdvisors(
   const query = input.query.trim().toLocaleLowerCase("es-ES");
 
   return advisors.filter((advisor) => {
-    if (query.length > 0 && !advisor.businessName.toLocaleLowerCase("es-ES").includes(query)) {
+    const haystack = [...advisor.sectors, ...advisor.services.map((service) => service.title)]
+      .join(" ")
+      .toLocaleLowerCase("es-ES");
+    if (query.length > 0 && !haystack.includes(query)) {
       return false;
     }
     if (input.sector.length > 0 && !advisor.sectors.includes(input.sector)) {

@@ -72,9 +72,11 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
     };
   }, [open]);
 
-  function openItem(id: string) {
+  function markSeen(id: string, close: boolean) {
     setSeen((current) => (current.includes(id) ? current : [...current, id]));
-    setOpen(false);
+    if (close) {
+      setOpen(false);
+    }
     startTransition(async () => {
       await markNotificationReadAction(id);
     });
@@ -99,7 +101,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         ) : null}
       </button>
       {open ? (
-        <div className="absolute top-12 right-0 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public">
+        <div className="absolute top-12 right-0 z-50 w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public">
           <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
             <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>
             <p className="text-xs font-medium text-public-muted">{unread > 0 ? String(unread) : notificationCopy.caughtUp}</p>
@@ -110,7 +112,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
               <p className="text-sm text-public-muted">{notificationCopy.empty}</p>
             </div>
           ) : (
-            <ul className="flex max-h-96 flex-col overflow-auto p-2">
+            <ul className="flex max-h-[32rem] flex-col overflow-auto p-2">
               {rows.map((item) => {
                 const Icon = iconFor(item.title);
                 const content = (
@@ -126,16 +128,25 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
                   </span>
                 );
                 return (
-                  <li key={item.id}>
+                  <li key={item.id} className="flex items-stretch gap-1 rounded-xl hover:bg-public-sand">
                     {item.href ? (
-                      <Link href={item.href} onClick={() => openItem(item.id)} className="block rounded-xl px-3 py-3 hover:bg-public-sand">
+                      <Link href={item.href} onClick={() => markSeen(item.id, true)} className="block min-w-0 flex-1 rounded-xl px-3 py-3">
                         {content}
                       </Link>
                     ) : (
-                      <button type="button" onClick={() => openItem(item.id)} className="block w-full rounded-xl px-3 py-3 text-left hover:bg-public-sand">
+                      <button type="button" onClick={() => markSeen(item.id, true)} className="block min-w-0 flex-1 rounded-xl px-3 py-3 text-left">
                         {content}
                       </button>
                     )}
+                    {item.unread ? (
+                      <button
+                        type="button"
+                        onClick={() => markSeen(item.id, false)}
+                        className="my-3 mr-2 inline-flex h-8 shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 text-xs font-medium text-[#1c2740] hover:bg-white"
+                      >
+                        {notificationCopy.markSeen}
+                      </button>
+                    ) : null}
                   </li>
                 );
               })}
