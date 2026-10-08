@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/cuenta/actions";
@@ -19,12 +19,14 @@ export function AccountSettings({
   email: initialEmail,
   phone: initialPhone,
   nationalId: initialNationalId,
+  middle = null,
 }: {
   name: string;
   lastName: string | null;
   email: string;
   phone: string | null;
   nationalId: string | null;
+  middle?: ReactNode;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -168,6 +170,8 @@ export function AccountSettings({
           ) : null}
         </form>
       </section>
+
+      {middle}
 
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>

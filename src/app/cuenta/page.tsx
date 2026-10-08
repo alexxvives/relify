@@ -30,18 +30,24 @@ export default async function AccountPage() {
 
   return (
     <AppShell title={authCopy.accountTitle}>
-      <AccountSettings name={user.name} lastName={user.lastName} email={user.email} phone={user.phone} nationalId={nationalId} />
-      {investorDraft ? (
-        <div className="mt-6">
-          <InvestorProfile
-            displayName={user.displayName}
-            initial={demoInvestorProfile(user.email)}
-            draft={investorDraft}
-            avatarUrl={investorGazeAvatar(user.id)}
-            publicOnly
-          />
-        </div>
-      ) : null}
+      <AccountSettings
+        name={user.name}
+        lastName={user.lastName}
+        email={user.email}
+        phone={user.phone}
+        nationalId={nationalId}
+        middle={
+          investorDraft ? (
+            <InvestorProfile
+              displayName={user.displayName}
+              initial={demoInvestorProfile(user.email)}
+              draft={investorDraft}
+              avatarUrl={investorGazeAvatar(user.id)}
+              publicOnly
+            />
+          ) : null
+        }
+      />
     </AppShell>
   );
 }

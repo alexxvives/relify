@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { AdvisoryPicker } from "@/components/advisory-picker";
 import { SignedInPage } from "@/components/signed-in-page";
 import { advisoryCopy } from "@/lib/advisory";
+import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
+import { listClientContacts } from "@/server/engagementThread";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
@@ -22,14 +24,24 @@ export default async function SellerServicesPage() {
     redirect("/mi-empresa");
   }
 
-  const [advisors, listing] = await Promise.all([listPublicAdvisors(), getSellerListing(user.id)]);
+  const [advisors, listing, contacts] = await Promise.all([
+    listPublicAdvisors(),
+    getSellerListing(user.id),
+    listClientContacts(user),
+  ]);
 
   return (
     <SignedInPage title={sellerCopy.servicesHeading}>
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{advisoryCopy.intro}</p>
-        <AdvisoryPicker layout="cards" advisors={advisors} projectSlug={listing?.slug} />
+        <AdvisoryPicker
+          layout="cards"
+          advisors={advisors}
+          projectSlug={listing?.slug}
+          contacts={contacts}
+          today={madridToday(new Date())}
+        />
       </section>
     </SignedInPage>
   );

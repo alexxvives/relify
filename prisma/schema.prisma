@@ -380,6 +380,7 @@ model InvestorProfile {
   sectors      String   @default("")
   thesis       String   @default("") @db.Text
   contribution String   @default("") @db.Text
+  stake        String   @default("")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("investor_profile")
@@ -510,6 +511,13 @@ enum EngagementClient {
   @@map("engagement_client")
 }
 
+enum EngagementAuthor {
+  client
+  advisor
+
+  @@map("engagement_author")
+}
+
 model AdvisoryEngagement {
   id                   String             @id
   projectId            String             @map("project_id")
@@ -530,6 +538,7 @@ model AdvisoryEngagement {
   createdAt            DateTime           @default(now()) @map("created_at")
   folders              AdvisorFolderOpen[]
   fileShares           AdvisorFileShare[]
+  messages             EngagementMessage[]
 
   @@index([projectId])
   @@index([advisorId])
@@ -561,6 +570,19 @@ model AdvisorFileShare {
   @@index([engagementId])
   @@index([fileId])
   @@map("advisor_file_share")
+}
+
+model EngagementMessage {
+  id           String             @id
+  engagementId String             @map("engagement_id")
+  engagement   AdvisoryEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  author       EngagementAuthor
+  kind         MessageKind
+  body         String             @db.Text
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  @@index([engagementId, createdAt])
+  @@map("engagement_message")
 }
 
 model SuccessFee {

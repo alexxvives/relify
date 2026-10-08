@@ -1,9 +1,19 @@
 import { AdvisorCloseForm, AdvisorNdaForm } from "@/components/advisor-engagement-forms";
+import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { engagementCopy } from "@/lib/engagement-copy";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorEngagementPage } from "@/server/advisoryEngagement";
 
-export function AdvisorEngagementView({ engagement }: { engagement: AdvisorEngagementPage }) {
+export function AdvisorEngagementView({
+  engagement,
+  thread,
+  today,
+}: {
+  engagement: AdvisorEngagementPage;
+  thread: AdvisorContactView | null;
+  today: string;
+}) {
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -22,6 +32,7 @@ export function AdvisorEngagementView({ engagement }: { engagement: AdvisorEngag
         {engagement.view === "public" ? <p className="mt-4 text-sm text-[#614d05]">{engagementCopy.publicOnly}</p> : null}
       </section>
       {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
+      {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} /> : null}
       {engagement.profile ? <CompanyProfile project={engagement.profile} /> : null}
       {engagement.view === "investor" ? (
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">

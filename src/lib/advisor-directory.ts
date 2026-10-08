@@ -2,10 +2,9 @@ import { advisorCopy } from "./advisor-copy";
 import { corporateIsComplete, formatAdvisorEuros, readStoredOperations, readStoredServices, type AdvisorServiceId } from "./advisor-profile";
 import { advisorSectorName } from "./advisor-sectors";
 
-export const publicAdvisorFields = ["userId", "businessName", "sectors", "services", "cases"] as const;
+export const publicAdvisorFields = ["userId", "businessName", "description", "sectors", "services", "cases"] as const;
 
 export type PublicAdvisorCase = {
-  title: string;
   sector: string;
   closedOn: string;
   value: string;
@@ -14,6 +13,7 @@ export type PublicAdvisorCase = {
 export type PublicAdvisorCard = {
   id: string;
   businessName: string;
+  description: string;
   sectors: string[];
   services: { title: string; range: string; fromCents: number }[];
   cases: PublicAdvisorCase[];
@@ -23,7 +23,7 @@ export const advisorPriceBands = ["any", "under-3", "mid", "over-6"] as const;
 
 export type AdvisorPriceBand = (typeof advisorPriceBands)[number];
 
-const privateAdvisorFields = ["nif", "postalCode", "description", "email", "closedOperations"] as const;
+const privateAdvisorFields = ["nif", "postalCode", "email", "closedOperations"] as const;
 
 export function advisorIsListed(profile: {
   businessName: string;
@@ -71,7 +71,6 @@ export function toPublicAdvisorCard(profile: {
     fromCents: service.priceFromCents,
   }));
   const cases = readStoredOperations(profile.closedOperations).map((operation) => ({
-    title: operation.name,
     sector: advisorSectorName(operation.sectorId),
     closedOn: caseDate(operation.closingDate),
     value: formatAdvisorEuros(operation.enterpriseValueCents),
@@ -80,6 +79,7 @@ export function toPublicAdvisorCard(profile: {
   return {
     id: profile.userId,
     businessName: profile.businessName,
+    description: profile.description.trim(),
     sectors: profile.sectors.map((sector) => advisorSectorName(sector)),
     services,
     cases,

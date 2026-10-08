@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-08 — Advisor thread, and the investor stake
+
+Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Releva and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.
+
 ## 2026-10-07 — The seller sees a public investor profile, and the seller uploads the sale contract
 
 The investor profile that a seller opens is stored. It can include a photo, a city and province, the investor type, a ticket band, sectors, what they are looking for, and what they bring. It does not include the legal name, NIF, email, phone, or postal code. The five phases on the investor home are those public fields. The private professional panel stays on the investor's own page.

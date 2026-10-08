@@ -36,6 +36,7 @@ export async function saveInvestorProfileAction(
     sectors: readText(formData, "sectors"),
     thesis: readText(formData, "thesis"),
     contribution: readText(formData, "contribution"),
+    stake: readText(formData, "stake"),
   });
 
   if (!parsed.success) {

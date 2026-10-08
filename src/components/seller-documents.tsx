@@ -325,7 +325,7 @@ function FileDelete({ id }: { id: string }) {
         onClick={() => {
           setConfirming(true);
         }}
-        className="inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
+        className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
       >
         <Trash2Icon size={16} aria-hidden />
       </button>
@@ -570,9 +570,22 @@ export function SellerDocuments({
                     <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
                   </button>
                   {file.platform ? null : (
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                  <div className="absolute top-3 left-3">
+                    <ShareMenu
+                      scope={{ kind: "file", fileId: file.id }}
+                      investors={shares}
+                      advisors={advisors}
+                      files={files}
+                      folders={folders}
+                      label={sellerCopy.shareFile}
+                      align="left"
+                    />
+                  </div>
+                  )}
+                  {file.platform ? null : (
+                  <div className="absolute top-3 right-3 flex items-center">
                     {file.viewers.length > 0 ? (
-                      <span className="inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
+                      <span className="mr-1 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
                         {file.viewers.map((viewer) => (
                           <span
                             key={viewer.accessId}
@@ -584,18 +597,6 @@ export function SellerDocuments({
                         ))}
                       </span>
                     ) : null}
-                    <ShareMenu
-                      scope={{ kind: "file", fileId: file.id }}
-                      investors={shares}
-                      advisors={advisors}
-                      files={files}
-                      folders={folders}
-                      label={sellerCopy.shareFile}
-                    />
-                  </div>
-                  )}
-                  {file.platform ? null : (
-                  <div className="absolute right-2 bottom-2">
                     <FileDelete id={file.id} />
                   </div>
                   )}

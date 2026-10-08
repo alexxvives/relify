@@ -7,7 +7,7 @@ import { FieldHint } from "@/components/field-hint";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
-import { investorTicketBands } from "@/lib/investor-profile";
+import { investorStakes, investorTicketBands } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
 
 function Chip({ done }: { done: boolean }) {
@@ -73,9 +73,10 @@ export function InvestorProfile({
   const [sectors, setSectors] = useState(draft.sectors);
   const [thesis, setThesis] = useState(draft.thesis);
   const [contribution, setContribution] = useState(draft.contribution);
+  const [stake, setStake] = useState(draft.stake);
   const [state, action, pending] = useActionState(saveInvestorProfileAction, null);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
-  const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0;
+  const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
   const drafted = publicCardFromDraft({
     photo: avatarUrl,
     city,
@@ -85,6 +86,7 @@ export function InvestorProfile({
     sectors,
     thesis,
     contribution,
+    stake,
   });
   const preview = drafted ? { ...drafted, photo: avatarUrl } : null;
 
@@ -196,24 +198,40 @@ export function InvestorProfile({
             </select>
           </label>
         </div>
-        <label id="busqueda" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
-          {investorCopy.sectorsLabel}
-          <input name="sectors" value={sectors} onChange={(event) => setSectors(event.target.value)} className={fieldClass} />
-        </label>
-        <label className="mt-4 flex flex-col gap-2 text-sm">
-          {investorCopy.searchLabel}
-          <textarea name="thesis" value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
-        </label>
-        <label id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
-          {investorCopy.contributionTitle}
-          <FieldHint text={investorCopy.contributionHint} />
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <label id="busqueda" className="flex scroll-mt-8 flex-col gap-2 text-sm">
+            {investorCopy.sectorsLabel}
+            <input name="sectors" value={sectors} onChange={(event) => setSectors(event.target.value)} className={fieldClass} />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            {investorCopy.stakeLabel}
+            <select name="stake" value={stake} onChange={(event) => setStake(event.target.value)} className={`${fieldClass} bg-white`}>
+              <option value="">{investorCopy.investorTypeEmpty}</option>
+              {investorStakes.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
+          <span className="flex items-center gap-2">
+            <label htmlFor="investor-contribution">{investorCopy.contributionTitle}</label>
+            <FieldHint text={investorCopy.contributionHint} />
+          </span>
           <textarea
+            id="investor-contribution"
             name="contribution"
             value={contribution}
             onChange={(event) => setContribution(event.target.value)}
             rows={3}
             className="rounded-xl border border-[#e7eaee] px-3 py-2"
           />
+        </div>
+        <label className="mt-4 flex flex-col gap-2 text-sm">
+          {investorCopy.searchLabel}
+          <textarea name="thesis" value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
         </label>
         <div className="mt-4 flex items-center gap-3">
           <button type="submit" disabled={pending} className="inline-flex h-10 items-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white disabled:opacity-60">

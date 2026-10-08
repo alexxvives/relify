@@ -11,6 +11,7 @@ describe("publicInvestorCard", () => {
     expect(card?.photo.startsWith("/investors/")).toBe(true);
     expect(card?.thesis.length).toBeGreaterThan(0);
     expect(card?.contribution.length).toBeGreaterThan(0);
+    expect(card?.stake).toBe("Mayoría");
     const text = JSON.stringify(card);
     expect(text).not.toContain("Martín");
     expect(text).not.toContain("Soler");
@@ -37,6 +38,7 @@ describe("publicInvestorCard", () => {
         sectors: card.sectors,
         thesis: card.thesis,
         contribution: card.contribution,
+        stake: card.stake,
       }),
     ).toEqual({ photo: true, place: true, kind: true, search: true, offer: true });
   });
@@ -54,6 +56,7 @@ describe("investorProfileSchema", () => {
         sectors: "Comercio",
         thesis: "Una tienda con equipo.",
         contribution: "Tiempo.",
+        stake: "Mayoría",
       }).success,
     ).toBe(false);
   });

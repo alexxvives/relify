@@ -249,23 +249,123 @@ function RemoveRowButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function DealField({ label, children }: { label: string; children: ReactNode }) {
+function groupedEuro(value: string): string {
+  const parsed = previewAmount(value);
+
+  if (value.trim().length === 0 || parsed === "—") {
+    return value;
+  }
+
+  return parsed.replace(/ €$/, "");
+}
+
+function FigureField({
+  label,
+  name,
+  value,
+  onChange,
+  locked = false,
+  tone,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange?: (next: string) => void;
+  locked?: boolean;
+  tone: "light" | "ink";
+}) {
+  const shown = groupedEuro(value);
+  const light = tone === "light";
+  const amount = shown.length > 0 ? shown : "—";
+
   return (
-    <label className="flex flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <span className="text-sm font-medium text-[#5c6b78]">{label}</span>
-      {children}
+    <label className="flex min-w-0 flex-col gap-2">
+      <span className={light ? "text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase" : "text-[11px] font-semibold tracking-wide text-[#667085] uppercase"}>
+        {label}
+      </span>
+      <input type="hidden" name={name} value={value} />
+      {locked || !onChange ? (
+        <span className={light ? "text-4xl font-semibold tracking-tight text-white tabular-nums" : "text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums"}>
+          {amount}
+          <span className={light ? "ml-2 text-lg font-medium text-white/70" : "ml-1 text-sm font-medium text-[#667085]"}>€</span>
+        </span>
+      ) : (
+        <span className="inline-flex max-w-full items-baseline gap-1.5">
+          <input
+            inputMode="decimal"
+            value={shown}
+            placeholder="0"
+            onChange={(event) => {
+              onChange(keepUnsignedEuro(event.target.value));
+            }}
+            className={
+              light
+                ? "field-sizing-content max-w-full min-w-[1ch] bg-transparent text-4xl font-semibold tracking-tight text-white tabular-nums outline-none placeholder:text-white/40"
+                : "field-sizing-content max-w-full min-w-[1ch] bg-transparent text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none"
+            }
+          />
+          <span className={light ? "text-lg font-medium text-white/70" : "text-sm font-medium text-[#667085]"}>€</span>
+        </span>
+      )}
     </label>
   );
 }
 
-function LockedEuro({ name, value }: { name: string; value: string }) {
+function FichaMetrics({
+  revenue,
+  revenueLocked,
+  onRevenue,
+  opex,
+  onOpex,
+  askingPrice,
+  onAskingPrice,
+  ebitda,
+  ebitdaLocked,
+  onEbitda,
+  adjustedEbitda,
+  onAdjustedEbitda,
+  margin,
+}: {
+  revenue: string;
+  revenueLocked: boolean;
+  onRevenue: (value: string) => void;
+  opex: string;
+  onOpex: (value: string) => void;
+  askingPrice: string;
+  onAskingPrice: (value: string) => void;
+  ebitda: string;
+  ebitdaLocked: boolean;
+  onEbitda: (value: string) => void;
+  adjustedEbitda: string;
+  onAdjustedEbitda: (value: string) => void;
+  margin: string;
+}) {
   return (
-    <>
-      <span className="flex h-11 items-center rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base font-semibold tabular-nums">
-        {previewAmount(value)}
-      </span>
-      <input type="hidden" name={name} value={value} />
-    </>
+    <div className="mt-6 overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
+      <div className="grid lg:grid-cols-[minmax(16rem,0.9fr)_minmax(0,1.3fr)]">
+        <div className="flex flex-col justify-between gap-8 bg-[#1c2740] p-6">
+          <FigureField tone="light" label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} />
+          <div className="inline-flex w-fit items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+            <span className="text-[11px] font-semibold tracking-wide text-white/70 uppercase">{companyCopy.ebitdaMarginLabel}</span>
+            <span className="text-lg font-semibold text-white tabular-nums">{margin}</span>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2">
+          <div className="border-b border-[#eef0f3] p-4 sm:border-r">
+            <FigureField tone="ink" label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} />
+          </div>
+          <div className="border-b border-[#eef0f3] p-4">
+            <FigureField tone="ink" label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} />
+          </div>
+          <div className="border-b border-[#eef0f3] p-4 sm:border-r sm:border-b-0">
+            <FigureField tone="ink" label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} />
+          </div>
+          <div className="p-4">
+            <FigureField tone="ink" label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1374,48 +1474,21 @@ export function CompanyDraftForm({
           adjustedEbitda={adjustedEbitda}
           askingPrice={askingPrice}
         >
-          <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <DealField label={companyCopy.revenueLabel}>
-              {salesFromAccounts ? (
-                <LockedEuro name="revenue" value={salesFromAccounts} />
-              ) : (
-                <input name="revenue" inputMode="decimal" value={revenue} onChange={(event) => setRevenue(keepUnsignedEuro(event.target.value))} className={fieldClassName} />
-              )}
-            </DealField>
-            <DealField label={companyCopy.opexLabel}>
-              <input name="opex" inputMode="decimal" value={opex} onChange={(event) => setOpex(keepUnsignedEuro(event.target.value))} className={fieldClassName} />
-            </DealField>
-            <DealField label={companyCopy.askingPriceLabel}>
-              <input
-                name="askingPrice"
-                value={askingPrice}
-                inputMode="decimal"
-                onChange={(event) => setAskingPrice(keepUnsignedEuro(event.target.value))}
-                className={fieldClassName}
-              />
-            </DealField>
-            <DealField label={companyCopy.ebitdaLabel}>
-              {ebitdaFromAccounts ? (
-                <LockedEuro name="ebitda" value={ebitdaFromAccounts} />
-              ) : (
-                <input name="ebitda" inputMode="decimal" value={ebitda} onChange={(event) => setEbitda(keepUnsignedEuro(event.target.value))} className={fieldClassName} />
-              )}
-            </DealField>
-            <DealField label={companyCopy.adjustedEbitdaLabel}>
-              <input
-                name="adjustedEbitda"
-                value={adjustedEbitda}
-                inputMode="decimal"
-                onChange={(event) => setAdjustedEbitda(keepUnsignedEuro(event.target.value))}
-                className={fieldClassName}
-              />
-            </DealField>
-            <DealField label={companyCopy.ebitdaMarginLabel}>
-              <span className="flex h-11 items-center rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base font-semibold tabular-nums">
-                {marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-              </span>
-            </DealField>
-          </div>
+          <FichaMetrics
+            revenue={salesFromAccounts ?? revenue}
+            revenueLocked={salesFromAccounts !== null}
+            onRevenue={setRevenue}
+            opex={opex}
+            onOpex={setOpex}
+            askingPrice={askingPrice}
+            onAskingPrice={setAskingPrice}
+            ebitda={ebitdaFromAccounts ?? ebitda}
+            ebitdaLocked={ebitdaFromAccounts !== null}
+            onEbitda={setEbitda}
+            adjustedEbitda={adjustedEbitda}
+            onAdjustedEbitda={setAdjustedEbitda}
+            margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+          />
         </PublicFicha>
         <div className="mt-8 flex flex-col gap-4">
           <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">

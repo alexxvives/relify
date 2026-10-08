@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { AdvisoryPicker } from "@/components/advisory-picker";
 import { SignedInPage } from "@/components/signed-in-page";
 import { advisoryCopy } from "@/lib/advisory";
+import { madridToday } from "@/lib/meeting";
+import { listClientContacts } from "@/server/engagementThread";
+import { listInvestorNdaCompanies } from "@/server/listInvestorNdaCompanies";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
-import { listPublicProjects } from "@/server/listPublicProjects";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -12,8 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdvisoryPage() {
-  await requireRole("investor");
-  const [advisors, projects] = await Promise.all([listPublicAdvisors(), listPublicProjects()]);
+  const user = await requireRole("investor");
+  const [advisors, companies, contacts] = await Promise.all([
+    listPublicAdvisors(),
+    listInvestorNdaCompanies(user.id),
+    listClientContacts(user),
+  ]);
 
   return (
     <SignedInPage title={advisoryCopy.title}>
@@ -23,7 +29,9 @@ export default async function AdvisoryPage() {
         <AdvisoryPicker
           layout="cards"
           advisors={advisors}
-          companies={projects.map((project) => ({ slug: project.slug, codename: project.codename, region: project.region }))}
+          companies={companies}
+          contacts={contacts}
+          today={madridToday(new Date())}
         />
       </section>
     </SignedInPage>

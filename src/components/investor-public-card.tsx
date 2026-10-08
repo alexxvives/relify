@@ -26,10 +26,10 @@ export function InvestorPublicCard({
               <ProfileFact label={sellerCopy.investorTypeLabel} value={profile.investorType} />
               <ProfileFact label={sellerCopy.investorTicketLabel} value={profile.ticket} />
               <ProfileFact label={sellerCopy.investorSectorsLabel} value={profile.sectors} />
-              <ProfileFact label={sellerCopy.investorOfferLabel} value={profile.contribution} />
+              <ProfileFact label={sellerCopy.investorStakeLabel} value={profile.stake} />
             </dl>
-            <p className="mt-5 text-xs font-semibold tracking-wide text-[#667085] uppercase">{sellerCopy.investorThesisLabel}</p>
-            <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{profile.thesis}</p>
+            <ProfileNote label={sellerCopy.investorOfferLabel} value={profile.contribution} />
+            <ProfileNote label={sellerCopy.investorThesisLabel} value={profile.thesis} />
           </>
         ) : (
           <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.investorProfileEmpty}</p>
@@ -52,6 +52,15 @@ function ProfilePhoto({ photo }: { photo: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={photo} alt="" className="size-20 rounded-full border-4 border-white bg-[#1c2740] object-cover" />
+  );
+}
+
+function ProfileNote({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="mt-5">
+      <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{label}</p>
+      <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{value.length > 0 ? value : "—"}</p>
+    </div>
   );
 }
 

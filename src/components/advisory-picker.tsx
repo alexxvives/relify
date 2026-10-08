@@ -3,7 +3,9 @@
 import { useMemo, useActionState, useState } from "react";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
+import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
 import { advisorPriceBands, filterPublicAdvisors, type AdvisorPriceBand, type PublicAdvisorCard } from "@/lib/advisor-directory";
@@ -50,16 +52,20 @@ export function AdvisoryPicker({
   advisors = [],
   projectSlug,
   companies = [],
+  contacts = [],
+  today,
 }: {
   layout?: "list" | "cards";
   advisors?: PublicAdvisorCard[];
   projectSlug?: string;
   companies?: { slug: string; codename: string; region: string }[];
+  contacts?: AdvisorContactView[];
+  today: string;
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
   const [advisorId, setAdvisorId] = useState("");
-  const [tab, setTab] = useState<"general" | "market">("general");
+  const [tab, setTab] = useState<"general" | "market" | "contacts">("general");
   const cards = layout === "cards";
   const chosen = advisors.some((advisor) => advisor.id === advisorId) ? advisorId : "";
   const chosenAdvisor = advisors.find((advisor) => advisor.id === chosen);
@@ -70,18 +76,17 @@ export function AdvisoryPicker({
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
 
+  const needsCompany = !projectSlug && companies.length === 0;
+  const hint = tab === "contacts" ? engagementCopy.contactsHint : general ? engagementCopy.generalHint : engagementCopy.marketplaceHint;
+
   return (
-    <form action={action} className="mt-6 flex flex-col gap-4">
-      {(general ? selected : marketServices).map((id) => (
-        <input key={id} type="hidden" name="services" value={id} />
-      ))}
-      {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
-      <input type="hidden" name="advisorId" value={general ? "" : chosen} />
+    <div className="mt-6 flex flex-col gap-4">
       <div className="flex gap-1 border-b border-[#e7eaee]" role="tablist" aria-label={advisoryCopy.heading}>
         {(
           [
             ["general", engagementCopy.generalTab],
             ["market", engagementCopy.marketTab],
+            ["contacts", engagementCopy.contactsTab],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -102,7 +107,14 @@ export function AdvisoryPicker({
           </button>
         ))}
       </div>
-      <p className="text-sm text-[#5c6b78]">{general ? engagementCopy.generalHint : engagementCopy.marketplaceHint}</p>
+      <p className="text-sm text-[#5c6b78]">{hint}</p>
+      {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} /> : (
+      <form action={action} className="flex flex-col gap-4">
+      {(general ? selected : marketServices).map((id) => (
+        <input key={id} type="hidden" name="services" value={id} />
+      ))}
+      {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
+      <input type="hidden" name="advisorId" value={general ? "" : chosen} />
       {companies.length > 0 ? (
         <label className="text-sm font-medium text-[#1c2740]">
           {engagementCopy.pickCompany}
@@ -115,6 +127,8 @@ export function AdvisoryPicker({
             ))}
           </select>
         </label>
+      ) : needsCompany ? (
+        <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p>
       ) : null}
       {general ? <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
         {advisoryServices.map((service) => {
@@ -180,14 +194,16 @@ export function AdvisoryPicker({
         )}
         <button
           type="submit"
-          disabled={pending || (general ? selected.length === 0 : chosen.length === 0 || marketServices.length === 0)}
+          disabled={pending || needsCompany || (general ? selected.length === 0 : chosen.length === 0 || marketServices.length === 0)}
           className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
         >
           {pending ? advisoryCopy.pending : advisoryCopy.submit}
         </button>
       </div>
       {!general && chosen.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.chooseAdvisor}</p> : null}
-    </form>
+      </form>
+      )}
+    </div>
   );
 }
 
@@ -229,7 +245,6 @@ function AdvisorMarket({
     <section className="flex flex-col gap-4">
       <div>
         <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
-        <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.marketplaceHint}</p>
       </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-4 lg:items-end">

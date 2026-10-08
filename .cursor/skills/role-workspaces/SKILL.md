@@ -12,8 +12,8 @@ Roles are `seller`, `investor`, `advisor`, and `admin`. Homes live in `homeForRo
 
 | Role | Home | Sidebar root |
 | --- | --- | --- |
-| seller | `/mi-empresa` | Inicio, Detalles, Documentos, Procesos, Servicios |
-| investor | `/inversor` | Inicio, Empresas en venta (`/mercado`, con el filtro Solo favoritas), Procesos, Servicios |
+| seller | `/mi-empresa` | Inicio, Detalles, Documentos, Procesos, Mi asesor |
+| investor | `/inversor` | Inicio, Empresas en venta (`/mercado`, con el filtro Solo favoritas), Procesos, Mi asesor |
 | advisor | `/mandatos` | Inicio, Mis servicios. No Ser premium. The inbox lives on Inicio and needs the 39 € plan |
 | admin | `/admin` | Inicio. On this page only, the admin sees legal name, CIF, address, shareholders, and data-room file names, and can unpublish, approve a publication request, suspend an account, change a role, grant an investor plan, and read a process chat |
 

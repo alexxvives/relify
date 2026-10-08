@@ -9,6 +9,7 @@ export type InvestorProfileDraft = {
   sectors: string;
   thesis: string;
   contribution: string;
+  stake: string;
 };
 
 export type DemoInvestorProfile = InvestorProfileDraft & {
@@ -31,6 +32,7 @@ const profiles: Record<string, DemoInvestorProfile> = {
     thesis:
       "Busco una pyme rentable en alimentación o comercio para continuarla, con cuentas de tres años y un equipo que se quede.",
     contribution: "Capital paciente y continuidad del equipo. No busco un relevo inmediato de la gestión.",
+    stake: "Mayoría",
   },
 };
 
@@ -46,6 +48,7 @@ export type PublicInvestorCard = {
   sectors: string;
   thesis: string;
   contribution: string;
+  stake: string;
 };
 
 export function publicCardFromDraft(draft: InvestorProfileDraft): PublicInvestorCard | null {
@@ -65,6 +68,7 @@ export function publicCardFromDraft(draft: InvestorProfileDraft): PublicInvestor
     sectors: draft.sectors.trim(),
     thesis: draft.thesis.trim(),
     contribution: draft.contribution.trim(),
+    stake: draft.stake.trim(),
   };
 }
 

@@ -20,6 +20,7 @@ const emptyDraft: InvestorProfileDraft = {
   sectors: "",
   thesis: "",
   contribution: "",
+  stake: "",
 };
 
 function draftFromRow(row: {
@@ -31,6 +32,7 @@ function draftFromRow(row: {
   sectors: string;
   thesis: string;
   contribution: string;
+  stake: string;
 }): InvestorProfileDraft {
   return {
     photo: row.photoPath,
@@ -41,6 +43,7 @@ function draftFromRow(row: {
     sectors: row.sectors,
     thesis: row.thesis,
     contribution: row.contribution,
+    stake: row.stake,
   };
 }
 
@@ -56,6 +59,7 @@ export async function loadInvestorDraft(userId: string, email: string): Promise<
       sectors: true,
       thesis: true,
       contribution: true,
+      stake: true,
     },
   });
 
@@ -78,6 +82,7 @@ export async function loadInvestorDraft(userId: string, email: string): Promise<
     sectors: demo.sectors,
     thesis: demo.thesis,
     contribution: demo.contribution,
+    stake: demo.stake,
   };
 }
 
@@ -102,6 +107,7 @@ export async function publicCardsByInvestor(
       sectors: true,
       thesis: true,
       contribution: true,
+      stake: true,
     },
   });
   const byId = new Map(rows.map((row) => [row.userId, row]));
@@ -133,6 +139,7 @@ export async function saveInvestorProfile(user: CurrentUser, input: InvestorProf
       sectors: input.sectors,
       thesis: input.thesis,
       contribution: input.contribution,
+      stake: input.stake,
     },
     update: {
       photoPath: input.photo,
@@ -143,6 +150,7 @@ export async function saveInvestorProfile(user: CurrentUser, input: InvestorProf
       sectors: input.sectors,
       thesis: input.thesis,
       contribution: input.contribution,
+      stake: input.stake,
     },
   });
 

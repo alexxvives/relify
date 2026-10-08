@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { investorTypes } from "./investor-copy";
 
+export const investorStakes = ["Mayoría", "Minoría", "Flexible"] as const;
+
 export const investorTicketBands = [
   "Menos de 500 mil €",
   "Entre 500 mil y 1 millón",
@@ -24,6 +26,7 @@ export const investorProfileSchema = z.object({
   sectors: z.string().trim().min(1).max(160),
   thesis: z.string().trim().min(1).max(600),
   contribution: z.string().trim().min(1).max(400),
+  stake: z.enum(investorStakes),
 });
 
 export type InvestorProfileInput = z.infer<typeof investorProfileSchema>;

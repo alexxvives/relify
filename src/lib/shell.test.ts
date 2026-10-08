@@ -7,14 +7,14 @@ describe("destinationsForRole", () => {
       { href: "/inversor", label: "Inicio" },
       { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
       { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
-      { href: "/asesoramiento", label: "Solicitar servicios", section: "Gestión de procesos" },
+      { href: "/asesoramiento", label: "Mi asesor", section: "Gestión de procesos" },
     ]);
     expect(destinationsForRole("seller")).toEqual([
       { href: "/mi-empresa", label: "Inicio" },
       { href: "/mi-empresa/detalles", label: "Detalles de empresa", section: "Mi empresa" },
       { href: "/mi-empresa/documentos", label: "Mis documentos", section: "Mi empresa" },
       { href: "/mi-empresa/procesos", label: "Mis procesos", section: "Gestión de procesos" },
-      { href: "/mi-empresa/servicios", label: "Solicitar servicios", section: "Gestión de procesos" },
+      { href: "/mi-empresa/servicios", label: "Mi asesor", section: "Gestión de procesos" },
     ]);
     expect(destinationsForRole("advisor")).toEqual([
       { href: "/mandatos", label: "Inicio" },

@@ -57,6 +57,7 @@ export const investorCopy = {
   ticketLabel: "Ticket",
   sectorsLabel: "Sectores",
   searchLabel: "Qué busca",
+  stakeLabel: "Participación",
   contributionTitle: "Qué aportas",
   contributionHint: "Cómo ayudas a quien vende. Sin nombres de terceros.",
   saveProfile: "Guardar perfil",
