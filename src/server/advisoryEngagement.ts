@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { advisorIsListed } from "@/lib/advisor-directory";
-import { advisoryServices } from "@/lib/advisory";
+import { advisorInterestBody, advisoryServices } from "@/lib/advisory";
 import { advisorNdaAgreement, spanishDate } from "@/lib/deal-documents";
 import { engagementCopy } from "@/lib/engagement-copy";
 import {
@@ -137,6 +137,17 @@ export async function createEngagement(input: {
   });
 
   if (input.advisorId) {
+    const titles = input.services.map((serviceId) => advisoryServices.find((service) => service.id === serviceId)?.title ?? serviceId);
+
+    await prisma.engagementMessage.create({
+      data: {
+        id: randomUUID(),
+        engagementId: id,
+        author: "client",
+        kind: "question",
+        body: advisorInterestBody(titles),
+      },
+    });
     await recordNotification({
       userId: input.advisorId,
       title: "Nuevo encargo",
@@ -144,6 +155,24 @@ export async function createEngagement(input: {
       href: `/mandatos/encargos/${id}`,
     });
   }
+}
+
+export async function deleteClientEngagement(user: CurrentUser, engagementId: string): Promise<EngagementResult> {
+  if (!user.onboarded || (user.role !== "investor" && user.role !== "seller")) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  const row = await prisma.advisoryEngagement.findFirst({
+    where: { id: engagementId, requesterId: user.id },
+    select: { id: true },
+  });
+
+  if (!row) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  await prisma.advisoryEngagement.delete({ where: { id: row.id } });
+  return { ok: true };
 }
 
 export async function engagementProject(input: {

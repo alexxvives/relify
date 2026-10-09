@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   approveEngagementMeetingAction,
+  deleteClientEngagementAction,
   postEngagementMessageAction,
   rescheduleEngagementMeetingAction,
 } from "@/app/asesoramiento/thread-actions";
+import { Trash2Icon } from "@/components/ui/trash-2";
 import { ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
@@ -15,14 +17,72 @@ import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 
+function ContactDelete({ id }: { id: string }) {
+  const [state, action, pending] = useActionState(deleteClientEngagementAction, null);
+  const [confirming, setConfirming] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!confirming) {
+      return;
+    }
+
+    function cancel(event: MouseEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || !boxRef.current?.contains(target)) {
+        setConfirming(false);
+      }
+    }
+
+    document.addEventListener("click", cancel);
+    return () => {
+      document.removeEventListener("click", cancel);
+    };
+  }, [confirming]);
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        aria-label={engagementCopy.removeAdvisor}
+        onClick={() => {
+          setConfirming(true);
+        }}
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
+      >
+        <Trash2Icon size={16} aria-hidden />
+      </button>
+    );
+  }
+
+  return (
+    <div ref={boxRef} className="flex shrink-0 flex-col items-end gap-1">
+      <form action={action}>
+        <input type="hidden" name="engagementId" value={id} />
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex h-8 items-center rounded-full bg-red-700 px-2 text-xs font-medium text-white disabled:opacity-60"
+        >
+          {pending ? engagementCopy.removingAdvisor : engagementCopy.removeAdvisor}
+        </button>
+      </form>
+      {state && !state.ok ? <p className="text-xs text-red-700">{state.message}</p> : null}
+    </div>
+  );
+}
+
 export function AdvisorContactDesk({
   contacts,
   today,
   showDocuments = true,
+  allowRemove = false,
 }: {
   contacts: AdvisorContactView[];
   today: string;
   showDocuments?: boolean;
+  allowRemove?: boolean;
 }) {
   const [openId, setOpenId] = useState(contacts[0]?.id ?? "");
 
@@ -42,21 +102,24 @@ export function AdvisorContactDesk({
         const open = contact.id === openId;
         return (
           <section key={contact.id} className="rounded-2xl border border-[#e6e9f0] bg-white">
-            <button
-              type="button"
-              aria-expanded={open}
-              onClick={() => {
-                setOpenId(open ? "" : contact.id);
-              }}
-              className="flex w-full items-start gap-3 px-5 py-4 text-left"
-            >
-              <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
-              <span>
-                <span className="block text-base font-semibold text-[#1c2740]">{contact.heading}</span>
-                <span className="mt-1 block text-sm text-[#64748b]">{contact.detail}</span>
-                <span className="mt-1 block text-sm text-[#3d4a63]">{contact.services}</span>
-              </span>
-            </button>
+            <div className="flex items-start gap-3 px-5 py-4">
+              <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => {
+                  setOpenId(open ? "" : contact.id);
+                }}
+                className="flex min-w-0 flex-1 items-start gap-3 text-left"
+              >
+                <ChevronDown className={open ? "mt-1 size-4 shrink-0 text-[#465ab4]" : "mt-1 size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
+                <span>
+                  <span className="block text-base font-semibold text-[#1c2740]">{contact.heading}</span>
+                  <span className="mt-1 block text-sm text-[#64748b]">{contact.detail}</span>
+                  <span className="mt-1 block text-sm text-[#3d4a63]">{contact.services}</span>
+                </span>
+              </button>
+              {allowRemove ? <ContactDelete id={contact.id} /> : null}
+            </div>
             {open ? (
               <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
                 <div className={showDocuments ? "grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid"}>

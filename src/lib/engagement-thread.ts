@@ -2,7 +2,7 @@ import * as z from "zod";
 import type { ProcessFile } from "./deal-pipeline";
 import type { ThreadMessageView } from "./project-message";
 
-const engagementIdSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{7,80}$/);
+export const engagementIdSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{7,80}$/);
 
 export const engagementMessageSchema = z.object({
   engagementId: engagementIdSchema,

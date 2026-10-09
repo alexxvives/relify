@@ -124,6 +124,10 @@ export type OwnerFileView = DataRoomFileView & {
   platform?: boolean;
 };
 
+export function filesWithBytes<T extends { stored?: boolean; platform?: boolean }>(files: readonly T[]): T[] {
+  return files.filter((file) => file.platform === true || file.stored === true);
+}
+
 export function toDataRoomFileView(file: { folder: string; fileName: string; storageKey?: string }): DataRoomFileView {
   return { folder: file.folder, fileName: file.fileName };
 }

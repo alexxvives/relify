@@ -625,8 +625,9 @@ export function ProcessRoom({
   empty: string;
   prompt?: ReactNode;
 }) {
-  const shared = files.filter((file) => file.visible !== false);
-  const hidden = files.filter((file) => file.visible === false);
+  const held = files.filter((file) => file.stored === true);
+  const shared = held.filter((file) => file.visible !== false);
+  const hidden = held.filter((file) => file.visible === false);
   const sent = attachmentNames(bodies);
   const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);

@@ -2,6 +2,7 @@ import {
   dataRoomReadGate,
   fileViewerLabels,
   sharedFileIds,
+  filesWithBytes,
   toDataRoomFileView,
   toDataRoomShareView,
   visibleFolderNames,
@@ -110,7 +111,7 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
     return {
       audience: "owner",
       folders,
-      files: [...drafts, ...stored],
+      files: filesWithBytes([...drafts, ...stored]),
       shares: investors.map((access) =>
         toDataRoomShareView({ id: access.accessId, label: access.label, granted: access.granted }),
       ),
@@ -176,7 +177,7 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       slug: grant.project.slug,
       codename: grant.project.codename,
       files: grant.project.dataRoomFiles
-        .filter((file) => visible.has(file.id))
+        .filter((file) => visible.has(file.id) && dataRoomFileIsStored(file.id))
         .map((file) => toDataRoomFileView(file)),
     });
   }

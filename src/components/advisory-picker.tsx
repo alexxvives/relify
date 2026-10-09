@@ -20,33 +20,6 @@ const serviceStyle = {
   labor: { icon: Users, wash: "bg-[#fdeeee] text-[#9b3b2f]", fill: "bg-[#fce4e4]", mark: "bg-[#9b3b2f]" },
 } as const;
 
-const titleToService: Record<string, AdvisoryServiceId> = {
-  "Due Diligence": "due-diligence",
-  "Valoración de empresas": "valuation",
-  "Valoración Empresa": "valuation",
-  "Consultoría legal": "legal",
-  "Consultoría Legal": "legal",
-  "Consultoría fiscal": "tax",
-  "Consultoría Fiscal": "tax",
-  "Business Plan": "business-plan",
-  "Consultoría laboral": "labor",
-  "Consultoría Laboral": "labor",
-};
-
-function marketServiceIds(titles: readonly string[]): AdvisoryServiceId[] {
-  const ids: AdvisoryServiceId[] = [];
-
-  for (const title of titles) {
-    const id = titleToService[title];
-
-    if (id && !ids.includes(id)) {
-      ids.push(id);
-    }
-  }
-
-  return ids;
-}
-
 export function AdvisoryPicker({
   layout = "list",
   advisors = [],
@@ -64,12 +37,8 @@ export function AdvisoryPicker({
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
-  const [advisorId, setAdvisorId] = useState("");
   const [tab, setTab] = useState<"general" | "market" | "contacts">("general");
   const cards = layout === "cards";
-  const chosen = advisors.some((advisor) => advisor.id === advisorId) ? advisorId : "";
-  const chosenAdvisor = advisors.find((advisor) => advisor.id === chosen);
-  const marketServices = marketServiceIds(chosenAdvisor?.services.map((service) => service.title) ?? []);
   const general = tab === "general";
 
   function toggle(id: AdvisoryServiceId) {
@@ -77,7 +46,7 @@ export function AdvisoryPicker({
   }
 
   const needsCompany = !projectSlug && companies.length === 0;
-  const hint = tab === "contacts" ? engagementCopy.contactsHint : general ? engagementCopy.generalHint : engagementCopy.marketplaceHint;
+  const hint = tab === "contacts" ? engagementCopy.contactsHint : general ? engagementCopy.generalHint : null;
 
   return (
     <div className="mt-6 flex flex-col gap-4">
@@ -107,15 +76,14 @@ export function AdvisoryPicker({
           </button>
         ))}
       </div>
-      <p className="text-sm text-[#5c6b78]">{hint}</p>
-      {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} /> : (
+      {hint ? <p className="text-sm text-[#5c6b78]">{hint}</p> : null}
+      {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} allowRemove /> : (
       <form action={action} className="flex flex-col gap-4">
-      {(general ? selected : marketServices).map((id) => (
-        <input key={id} type="hidden" name="services" value={id} />
-      ))}
+      {general
+        ? selected.map((id) => <input key={id} type="hidden" name="services" value={id} />)
+        : null}
       {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
-      <input type="hidden" name="advisorId" value={general ? "" : chosen} />
-      {companies.length > 0 ? (
+      {general && companies.length > 0 ? (
         <label className="text-sm font-medium text-[#1c2740]">
           {engagementCopy.pickCompany}
           <select name="projectSlug" required className="mt-1 h-11 w-full rounded-xl border border-[#d5dbe3] bg-white px-3">
@@ -127,7 +95,7 @@ export function AdvisoryPicker({
             ))}
           </select>
         </label>
-      ) : needsCompany ? (
+      ) : general && needsCompany ? (
         <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p>
       ) : null}
       {general ? <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
@@ -171,36 +139,33 @@ export function AdvisoryPicker({
           );
         })}
       </ul> : (
-        <AdvisorMarket advisors={advisors} chosen={chosen} onChoose={setAdvisorId} />
+        <AdvisorMarket advisors={advisors} companies={companies} projectSlug={projectSlug} pending={pending} />
       )}
       {state ? (
         <p role="status" className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-red-700"}>
           {state.message}
         </p>
       ) : null}
+      {general ? (
       <div className={cards ? "mt-2 flex items-center justify-end gap-4" : "flex flex-wrap items-center justify-between gap-3"}>
-        {general ? (
-          <button
-            type="button"
-            onClick={() => {
-              setSelected([]);
-            }}
-            className="text-sm font-medium text-[#3d4a63] hover:text-[#465ab4]"
-          >
-            {advisoryCopy.clear}
-          </button>
-        ) : (
-          <span />
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            setSelected([]);
+          }}
+          className="text-sm font-medium text-[#3d4a63] hover:text-[#465ab4]"
+        >
+          {advisoryCopy.clear}
+        </button>
         <button
           type="submit"
-          disabled={pending || needsCompany || (general ? selected.length === 0 : chosen.length === 0 || marketServices.length === 0)}
+          disabled={pending || needsCompany || selected.length === 0}
           className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
         >
           {pending ? advisoryCopy.pending : advisoryCopy.submit}
         </button>
       </div>
-      {!general && chosen.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.chooseAdvisor}</p> : null}
+      ) : null}
       </form>
       )}
     </div>
@@ -220,12 +185,14 @@ function isPriceBand(value: string): value is AdvisorPriceBand {
 
 function AdvisorMarket({
   advisors,
-  chosen,
-  onChoose,
+  companies,
+  projectSlug,
+  pending,
 }: {
   advisors: PublicAdvisorCard[];
-  chosen: string;
-  onChoose: (id: string) => void;
+  companies: { slug: string; codename: string; region: string }[];
+  projectSlug?: string;
+  pending: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("");
@@ -294,13 +261,15 @@ function AdvisorMarket({
         </div>
       </div>
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(16rem,18rem))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
             <AdvisorListingCard
               advisor={advisor}
-              active={advisor.id === chosen}
-              onChoose={onChoose}
+              connect
+              companies={companies}
+              projectSlug={projectSlug}
+              pending={pending}
             />
           </li>
         ))}

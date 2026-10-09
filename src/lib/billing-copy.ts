@@ -19,8 +19,6 @@ export const billingCopy = {
   choosing: "Abriendo el pago…",
   manage: "Gestionar suscripción",
   stripeMissing: "Falta la clave de Stripe de Releva para este modo. Añádela en el servidor y vuelve a intentarlo.",
-  testModeNote: "Pagos de prueba. Una tarjeta real no se cobra. El cambio a pagos reales se hace en el servidor.",
-  liveModeNote: "Pagos reales. Una tarjeta de prueba no sirve en este modo.",
   stripeFailed: "No se ha podido abrir el pago.",
   paid: "El pago queda registrado.",
   unpaid: "El pago no se ha completado.",

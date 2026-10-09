@@ -19,7 +19,7 @@ import {
   storeDataRoomFileAction,
   type DataRoomActionState,
 } from "@/app/mi-empresa/documentos/actions";
-import type { DataRoomShareView, OwnerFileView } from "@/lib/data-room";
+import { filesWithBytes, type DataRoomShareView, type OwnerFileView } from "@/lib/data-room";
 
 export type DocumentAdvisor = {
   engagementId: string;
@@ -545,7 +545,8 @@ export function SellerDocuments({
   const [openFile, setOpenFile] = useState<OwnerFileView | null>(null);
   const [createState, createAction, createPending] = useActionState(createDataRoomFolderAction, null);
   const [createClosed, setCreateClosed] = useState<DataRoomActionState>(null);
-  const inFolder = files.filter((file) => file.folder === folder);
+  const listed = filesWithBytes(files);
+  const inFolder = listed.filter((file) => file.folder === folder);
 
   if (createState?.ok && createState !== createClosed) {
     setCreateClosed(createState);
@@ -557,7 +558,7 @@ export function SellerDocuments({
       {folder === null ? (
         <>
         <div className="mb-4 flex justify-end">
-          <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={files} folders={folders} label={sellerCopy.shareAll} />
+          <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <li>
@@ -611,7 +612,7 @@ export function SellerDocuments({
             <FolderCard
               key={name}
               name={name}
-              count={files.filter((file) => file.folder === name).length}
+              count={listed.filter((file) => file.folder === name).length}
               onOpen={() => {
                 setFolder(name);
               }}
@@ -620,7 +621,7 @@ export function SellerDocuments({
                   scope={{ kind: "folder", folder: name }}
                   investors={shares}
                   advisors={advisors}
-                  files={files}
+                  files={listed}
                   folders={folders}
                   label={sellerCopy.shareFile}
                   align="left"
@@ -649,7 +650,7 @@ export function SellerDocuments({
                 scope={{ kind: "folder", folder }}
                 investors={shares}
                 advisors={advisors}
-                files={files}
+                files={listed}
                 folders={folders}
                 label={sellerCopy.shareFolder}
               />
@@ -671,7 +672,7 @@ export function SellerDocuments({
                       scope={{ kind: "file", fileId: file.id }}
                       investors={shares}
                       advisors={advisors}
-                      files={files}
+                      files={listed}
                       folders={folders}
                       label={sellerCopy.shareFile}
                       align="left"

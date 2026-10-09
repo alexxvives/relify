@@ -71,6 +71,38 @@ export const advisoryQuoteSchema = z.object({
 
 export type AdvisoryQuoteInput = z.infer<typeof advisoryQuoteSchema>;
 
+const titleToService: Record<string, AdvisoryServiceId> = {
+  "Due Diligence": "due-diligence",
+  "Valoración de empresas": "valuation",
+  "Valoración Empresa": "valuation",
+  "Consultoría legal": "legal",
+  "Consultoría Legal": "legal",
+  "Consultoría fiscal": "tax",
+  "Consultoría Fiscal": "tax",
+  "Business Plan": "business-plan",
+  "Consultoría laboral": "labor",
+  "Consultoría Laboral": "labor",
+};
+
+export function advisoryServiceIdFromTitle(title: string): AdvisoryServiceId | null {
+  return titleToService[title] ?? null;
+}
+
+export function advisorInterestBody(titles: readonly string[]): string {
+  const names = titles.map((title) => title.trim()).filter((title) => title.length > 0);
+
+  if (names.length === 0) {
+    return "Hola, me interesan estos servicios.";
+  }
+
+  if (names.length === 1) {
+    return `Hola, me interesan estos servicios: ${names[0]}.`;
+  }
+
+  const last = names[names.length - 1];
+  return `Hola, me interesan estos servicios: ${names.slice(0, -1).join(", ")} y ${last}.`;
+}
+
 export function uniqueAdvisoryServices(values: string[]): AdvisoryServiceId[] {
   const selected: AdvisoryServiceId[] = [];
 

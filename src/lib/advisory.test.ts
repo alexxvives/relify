@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { advisoryQuoteSchema, uniqueAdvisoryServices } from "./advisory";
+import { advisorInterestBody, advisoryQuoteSchema, advisoryServiceIdFromTitle, uniqueAdvisoryServices } from "./advisory";
+
+describe("advisorInterestBody", () => {
+  it("names the services the client asked for", () => {
+    expect(advisorInterestBody(["Due Diligence"])).toBe("Hola, me interesan estos servicios: Due Diligence.");
+    expect(advisorInterestBody(["Due Diligence", "Consultoría Fiscal"])).toBe(
+      "Hola, me interesan estos servicios: Due Diligence y Consultoría Fiscal.",
+    );
+    expect(advisoryServiceIdFromTitle("Consultoría fiscal")).toBe("tax");
+    expect(advisoryServiceIdFromTitle("Otro")).toBeNull();
+  });
+});
 
 describe("uniqueAdvisoryServices", () => {
   it("keeps known services once and drops the rest", () => {

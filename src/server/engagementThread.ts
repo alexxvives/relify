@@ -8,6 +8,7 @@ import type { MessageKindName, ThreadMessageView } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { investorVisibleFiles } from "@/server/investorVisibleFiles";
 import { recordNotification } from "@/server/recordNotification";
 
@@ -54,7 +55,7 @@ async function sharedFiles(engagement: {
 }): Promise<ProcessFile[]> {
   if (engagement.client === "investor") {
     const files = await investorVisibleFiles(engagement.requesterId, engagement.projectId);
-    return files.map((file) => ({ ...file, stored: true, visible: true }));
+    return files.filter((file) => dataRoomFileIsStored(file.id)).map((file) => ({ ...file, stored: true, visible: true }));
   }
 
   const [folders, shares] = await Promise.all([
@@ -85,7 +86,9 @@ async function sharedFiles(engagement: {
     byId.set(share.file.id, share.file);
   }
 
-  return [...byId.values()].map((file) => ({ ...file, stored: true, visible: true }));
+  return [...byId.values()]
+    .filter((file) => dataRoomFileIsStored(file.id))
+    .map((file) => ({ ...file, stored: true, visible: true }));
 }
 
 async function loadSide(user: CurrentUser, engagementId: string): Promise<{

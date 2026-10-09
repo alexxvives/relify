@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { engagementMeetingSchema, engagementMessageSchema } from "@/lib/engagement-thread";
+import { engagementIdSchema, engagementMeetingSchema, engagementMessageSchema } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { deleteClientEngagement } from "@/server/advisoryEngagement";
 import {
   approveEngagementMeeting,
   postEngagementMessage,
@@ -37,6 +38,27 @@ function refresh(engagementId: string) {
   revalidatePath("/asesoramiento");
   revalidatePath("/mi-empresa/servicios");
   revalidatePath(`/mandatos/encargos/${engagementId}`);
+}
+
+export async function deleteClientEngagementAction(
+  _state: EngagementMessageState,
+  formData: FormData,
+): Promise<EngagementMessageState> {
+  const user = await reader();
+  const parsed = engagementIdSchema.safeParse(readText(formData, "engagementId"));
+
+  if (!parsed.success) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  const result = await deleteClientEngagement(user, parsed.data);
+
+  if (result.ok) {
+    refresh(parsed.data);
+    return { ok: true };
+  }
+
+  return result;
 }
 
 export async function postEngagementMessageAction(

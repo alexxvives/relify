@@ -6,6 +6,7 @@ import {
   sharedFileIds,
   renameDataRoomFileSchema,
   storeDataRoomFileSchema,
+  filesWithBytes,
   toDataRoomFileView,
   toDataRoomShareView,
   visibleFolderNames,
@@ -93,6 +94,18 @@ describe("renameDataRoomFileSchema", () => {
       renameDataRoomFileSchema.safeParse({ fileId: "demo-cala-file-1", fileName: "cuentas-2024-revisado.pdf" }).success,
     ).toBe(true);
     expect(renameDataRoomFileSchema.safeParse({ fileId: "../secret", fileName: "cuentas.pdf" }).success).toBe(false);
+  });
+});
+
+describe("filesWithBytes", () => {
+  it("drops a name that has no file on disk", () => {
+    expect(
+      filesWithBytes([
+        { fileName: "escrituras.pdf", stored: false },
+        { fileName: "cuentas.pdf", stored: true },
+        { fileName: "Acuerdo-de-confidencialidad.pdf", stored: false, platform: true },
+      ]).map((file) => file.fileName),
+    ).toEqual(["cuentas.pdf", "Acuerdo-de-confidencialidad.pdf"]);
   });
 });
 

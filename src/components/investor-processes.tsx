@@ -70,7 +70,6 @@ export function InvestorProcesses({
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
               </div>
-              <p className="mt-1 text-sm text-[#64748b]">{item.region}</p>
             </div>
             <DealPipeline
               steps={item.steps}

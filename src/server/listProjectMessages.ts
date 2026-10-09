@@ -1,4 +1,4 @@
-import { sharedFileIds } from "@/lib/data-room";
+import { filesWithBytes, sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
@@ -143,20 +143,22 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         ),
         documents:
           stage === "open"
-            ? files
-                .filter((file) => file.projectId === access.projectId)
-                .map((file) => ({
-                  id: file.id,
-                  folder: file.folder,
-                  fileName: file.fileName,
-                  stored: dataRoomFileIsStored(file.id),
-                  visible: sharedFileIds({
-                    files: files.filter((item) => item.projectId === access.projectId),
-                    investorId: access.investorId,
-                    granted: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
-                    shares,
-                  }).has(file.id),
-                }))
+            ? filesWithBytes(
+                files
+                  .filter((file) => file.projectId === access.projectId)
+                  .map((file) => ({
+                    id: file.id,
+                    folder: file.folder,
+                    fileName: file.fileName,
+                    stored: dataRoomFileIsStored(file.id),
+                    visible: sharedFileIds({
+                      files: files.filter((item) => item.projectId === access.projectId),
+                      investorId: access.investorId,
+                      granted: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+                      shares,
+                    }).has(file.id),
+                  })),
+              )
             : [],
       };
     });
@@ -231,9 +233,11 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   const documents = investorProcessFiles({
     ndaAcceptedAt: access?.ndaAcceptedAt ?? null,
     granted: grant !== null,
-    files: files
-      .filter((file) => visible.has(file.id))
-      .map((file) => ({ ...file, stored: dataRoomFileIsStored(file.id) })),
+    files: filesWithBytes(
+      files
+        .filter((file) => visible.has(file.id))
+        .map((file) => ({ ...file, stored: dataRoomFileIsStored(file.id) })),
+    ),
   });
 
   return {

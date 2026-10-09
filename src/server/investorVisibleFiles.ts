@@ -1,5 +1,6 @@
 import { dataRoomReadGate, sharedFileIds } from "@/lib/data-room";
 import { prisma } from "@/server/db";
+import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 
 export type VisibleFile = {
   id: string;
@@ -51,5 +52,5 @@ export async function investorVisibleFiles(investorId: string, projectId: string
 
   const visible = sharedFileIds({ files, investorId, granted: true, shares });
 
-  return files.filter((file) => visible.has(file.id));
+  return files.filter((file) => visible.has(file.id) && dataRoomFileIsStored(file.id));
 }
