@@ -35,12 +35,10 @@ export function FinanceCharts({
   points,
   mixes,
   costYears,
-  cards = true,
 }: {
   points: ChartYearPoint[];
   mixes: SellerMix[];
   costYears: ChartCostYear[];
-  cards?: boolean;
 }) {
   const progress = useGrow();
   const row = mixRowOrder.flatMap((kind) => {
@@ -52,8 +50,8 @@ export function FinanceCharts({
   return (
     <div className="mt-4 flex flex-col gap-6">
       <div className={split ? "grid items-start gap-6 lg:grid-cols-2" : undefined}>
-        <SalesBars points={points} progress={progress} cards={cards} />
-        {split ? <CostBars years={costYears} cards={cards} /> : null}
+        <SalesBars points={points} progress={progress} />
+        {split ? <CostBars years={costYears} /> : null}
       </div>
       {row.length > 0 ? (
         <div className={mixRowClass(row.length)}>
@@ -101,7 +99,7 @@ function useGrow(): number {
   return progress;
 }
 
-function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; progress: number; cards: boolean }) {
+function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: number }) {
   const hasEbitda = points.some((point) => point.ebitdaCents !== null);
   const [hover, setHover] = useState<string | null>(null);
   const frame = chartFrame(hasEbitda ? 2 : 1);
@@ -243,24 +241,6 @@ function SalesBars({ points, progress, cards }: { points: ChartYearPoint[]; prog
       </svg>
       <ChartKey items={legend} />
       </div>
-      {cards ? (
-      <ul className="mt-4 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))" }}>
-        {points.map((point) => (
-          <li key={point.year} className="rounded-xl bg-[#f4f7ff] px-3 py-2 text-center">
-            <p className="text-xs text-[#667085]">
-              {point.year}
-              {point.forecast ? ` · ${sellerCopy.financeForecast}` : ""}
-            </p>
-            <p className="mt-1 flex items-baseline justify-center gap-3">
-              <span className="text-sm font-semibold whitespace-nowrap text-[#465ab4] tabular-nums">{point.salesLabel}</span>
-              {point.ebitdaLabel === null ? null : (
-                <span className="text-sm font-semibold whitespace-nowrap text-[#17663a] tabular-nums">{point.ebitdaLabel}</span>
-              )}
-            </p>
-          </li>
-        ))}
-      </ul>
-      ) : null}
     </div>
   );
 }
@@ -271,7 +251,6 @@ export function GroupedYearBars({
   years,
   series,
   paired = false,
-  showCards = false,
   axis = "left",
 }: {
   title: string;
@@ -279,7 +258,6 @@ export function GroupedYearBars({
   years: { year: number; forecast: boolean }[];
   series: { label: string; color: string; values: Array<number | null> }[];
   paired?: boolean;
-  showCards?: boolean;
   axis?: "left" | "right";
 }) {
   const progress = useGrow();
@@ -419,31 +397,6 @@ export function GroupedYearBars({
       </svg>
       <ChartKey items={drawn.map((item) => ({ label: item.label, color: item.color }))} />
       </div>
-      {showCards ? (
-        <ul className="mt-4 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))" }}>
-          {years.map((year, index) => (
-            <li key={year.year} className="rounded-xl bg-[#f4f7ff] px-3 py-2 text-center">
-              <p className="text-xs text-[#667085]">
-                {year.year}
-                {year.forecast ? ` · ${sellerCopy.financeForecast}` : ""}
-              </p>
-              <p className="mt-1 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
-                {drawn.map((item) => {
-                  const value = item.values[index] ?? null;
-                  if (value === null) {
-                    return null;
-                  }
-                  return (
-                    <span key={item.label} className="text-sm font-semibold whitespace-nowrap tabular-nums" style={{ color: item.color }}>
-                      {formatCompactEur(value)}
-                    </span>
-                  );
-                })}
-              </p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </div>
   );
 }
@@ -584,7 +537,7 @@ function Bar({
   );
 }
 
-function CostBars({ years, cards }: { years: ChartCostYear[]; cards: boolean }) {
+function CostBars({ years }: { years: ChartCostYear[] }) {
   const ordered = [...years].sort((left, right) => left.year - right.year);
   const labels = ordered.flatMap((year) => year.slices.map((slice) => slice.label)).filter((label, index, all) => all.indexOf(label) === index);
   const series = labels.map((label) => ({
@@ -600,7 +553,6 @@ function CostBars({ years, cards }: { years: ChartCostYear[]; cards: boolean }) 
       years={ordered.map((year) => ({ year: year.year, forecast: false }))}
       series={series}
       paired
-      showCards={cards}
       axis="right"
     />
   );

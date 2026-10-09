@@ -24,3 +24,4 @@ Append-only. One line per project-specific pitfall:
 - 2026-10-07: `tsc` rejects `createAuth(): Auth` when `Auth` is `ReturnType<typeof betterAuth>` — the specific options return is not the generic Better Auth type — infer `Auth` from `ReturnType<typeof createAuth>`.
 - 2026-10-07: importing Arc `foundation.css` restyles Costa — that file sets `:root` tokens the app already uses — scope them to `.arc-scope` and do not keep its global focus rules.
 - 2026-10-08: renaming a demo data-room file returned "sin barras ni rutas" — seed file ids are `demo-cala-file-N`, not UUIDs — accept that id shape in `renameDataRoomFileSchema`.
+- 2026-10-09: Ctrl+Z did nothing in the ficha euro fields — `groupedEuro` rewrote the input on every keystroke, and Chrome drops the undo stack when the controlled value is not the typed text — show the raw value while that field is focused.

@@ -265,29 +265,25 @@ function FigureField({
   value,
   onChange,
   locked = false,
-  tone,
 }: {
   label: string;
   name: string;
   value: string;
   onChange?: (next: string) => void;
   locked?: boolean;
-  tone: "light" | "ink";
 }) {
-  const shown = groupedEuro(value);
-  const light = tone === "light";
+  const [editing, setEditing] = useState(false);
+  const shown = editing ? value : groupedEuro(value);
   const amount = shown.length > 0 ? shown : "—";
 
   return (
-    <label className={light ? "flex min-w-0 flex-col items-center gap-2 text-center" : "flex min-w-0 flex-col gap-2"}>
-      <span className={light ? "text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase" : "text-[11px] font-semibold tracking-wide text-[#667085] uppercase"}>
-        {label}
-      </span>
+    <label className="flex min-w-0 flex-col gap-2">
+      <span className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{label}</span>
       <input type="hidden" name={name} value={value} />
       {locked || !onChange ? (
-        <span className={light ? "text-4xl font-semibold tracking-tight text-white tabular-nums" : "text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums"}>
+        <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
           {amount}
-          <span className={light ? "ml-2 text-lg font-medium text-white/70" : "ml-1 text-sm font-medium text-[#667085]"}>€</span>
+          <span className="ml-1 text-sm font-medium text-[#667085]">€</span>
         </span>
       ) : (
         <span className="inline-flex max-w-full items-baseline gap-1.5">
@@ -295,16 +291,18 @@ function FigureField({
             inputMode="decimal"
             value={shown}
             placeholder="0"
+            onFocus={() => {
+              setEditing(true);
+            }}
+            onBlur={() => {
+              setEditing(false);
+            }}
             onChange={(event) => {
               onChange(keepUnsignedEuro(event.target.value));
             }}
-            className={
-              light
-                ? "field-sizing-content max-w-full min-w-[1ch] bg-transparent text-4xl font-semibold tracking-tight text-white tabular-nums outline-none placeholder:text-white/40"
-                : "field-sizing-content max-w-full min-w-[1ch] bg-transparent text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none"
-            }
+            className="field-sizing-content max-w-full min-w-[1ch] bg-transparent text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none"
           />
-          <span className={light ? "text-lg font-medium text-white/70" : "text-sm font-medium text-[#667085]"}>€</span>
+          <span className="text-sm font-medium text-[#667085]">€</span>
         </span>
       )}
     </label>
@@ -340,33 +338,44 @@ function FichaMetrics({
   onAdjustedEbitda: (value: string) => void;
   margin: string;
 }) {
+  const cells = [
+    { id: "asking-price", frame: metricCellFrame(0), node: <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} /> },
+    {
+      id: "margin",
+      frame: metricCellFrame(1),
+      node: (
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{companyCopy.ebitdaMarginLabel}</span>
+          <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+        </div>
+      ),
+    },
+    { id: "revenue", frame: metricCellFrame(2), node: <FigureField label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} /> },
+    { id: "ebitda", frame: metricCellFrame(3), node: <FigureField label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} /> },
+    { id: "adjusted", frame: metricCellFrame(4), node: <FigureField label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} /> },
+    { id: "opex", frame: metricCellFrame(5), node: <FigureField label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} /> },
+  ];
+
   return (
     <div className="mt-6 overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
-      <div className="grid lg:grid-cols-[minmax(16rem,0.9fr)_minmax(0,1.3fr)]">
-        <div className="flex flex-col items-center justify-center gap-8 bg-[#1c2740] p-6 text-center">
-          <FigureField tone="light" label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} />
-          <div className="inline-flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
-            <span className="text-[11px] font-semibold tracking-wide text-white/70 uppercase">{companyCopy.ebitdaMarginLabel}</span>
-            <span className="text-lg font-semibold text-white tabular-nums">{margin}</span>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3">
+        {cells.map((cell) => (
+          <div key={cell.id} className={`border-[#eef0f3] p-4 ${cell.frame}`}>
+            {cell.node}
           </div>
-        </div>
-        <div className="grid sm:grid-cols-2">
-          <div className="border-b border-[#eef0f3] p-4 sm:border-r">
-            <FigureField tone="ink" label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} />
-          </div>
-          <div className="border-b border-[#eef0f3] p-4">
-            <FigureField tone="ink" label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} />
-          </div>
-          <div className="border-b border-[#eef0f3] p-4 sm:border-r sm:border-b-0">
-            <FigureField tone="ink" label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} />
-          </div>
-          <div className="p-4">
-            <FigureField tone="ink" label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} />
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
+}
+
+function metricCellFrame(index: number): string {
+  const bottom = index < 5 ? "border-b" : "";
+  const pairRight = index % 2 === 0 ? "sm:border-r" : "";
+  const pairBottom = index >= 4 ? "sm:border-b-0" : "";
+  const tripleRight = index % 3 === 2 ? "lg:border-r-0" : "lg:border-r";
+  const tripleBottom = index >= 3 ? "lg:border-b-0" : "";
+  return [bottom, pairRight, pairBottom, tripleRight, tripleBottom].filter((part) => part.length > 0).join(" ");
 }
 
 function SaveButton({

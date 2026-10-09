@@ -51,7 +51,7 @@ export function ProfileIncomeChart({
     return slices.length === 0 ? [] : [{ year: year.year, slices }];
   });
 
-  return <FinanceCharts points={points} mixes={[]} costYears={costYears} cards={false} />;
+  return <FinanceCharts points={points} mixes={[]} costYears={costYears} />;
 }
 
 export function ProfileBalanceChart({
