@@ -364,13 +364,13 @@ function FileDelete({ id }: { id: string }) {
     return (
       <button
         type="button"
+        aria-label={sellerCopy.documentDelete}
         onClick={() => {
           setConfirming(true);
         }}
-        className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-[#8b95a7] shadow-sm hover:text-red-700"
+        className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
       >
-        <Trash2Icon size={14} aria-hidden />
-        {sellerCopy.documentRemove}
+        <Trash2Icon size={16} aria-hidden />
       </button>
     );
   }
@@ -536,35 +536,33 @@ function FileCard({
             <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
             <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
           </button>
-          {file.platform ? null : <div className="absolute top-3 left-3">{share}</div>}
-          {file.platform ? null : (
-            <div className="absolute top-3 right-3 flex items-center">
-              {file.viewers.length > 0 ? (
-                <span className="mr-1 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
-                  {file.viewers.map((viewer) => (
-                    <span
-                      key={viewer.accessId}
-                      title={viewer.label}
-                      className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
-                    >
-                      {viewer.label.replace("Inversor ", "")}
-                    </span>
-                  ))}
+          {file.platform ? null : <div className="absolute top-2 left-2 z-10">{share}</div>}
+          {file.viewers.length > 0 ? (
+            <span className="absolute bottom-2 left-2 z-10 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
+              {file.viewers.map((viewer) => (
+                <span
+                  key={viewer.accessId}
+                  title={viewer.label}
+                  className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
+                >
+                  {viewer.label.replace("Inversor ", "")}
                 </span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(true);
-                }}
-                className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-[#465ab4] shadow-sm"
-              >
-                <SquarePenIcon size={14} aria-hidden />
-                {sellerCopy.documentEdit}
-              </button>
-              <FileDelete id={file.id} />
-            </div>
-          )}
+              ))}
+            </span>
+          ) : null}
+          <div className="absolute top-2 right-2 z-10 flex items-center">
+            <button
+              type="button"
+              aria-label={sellerCopy.documentEdit}
+              onClick={() => {
+                setEditing(true);
+              }}
+              className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
+            >
+              <SquarePenIcon size={16} aria-hidden />
+            </button>
+            <FileDelete id={file.id} />
+          </div>
         </>
       )}
     </li>

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { dataRoomMessage, dataRoomReadGate, renameDataRoomFileSchema, visibleFolderNames, type StoreDataRoomFileInput } from "@/lib/data-room";
+import { relevaDraftFolder, relevaDraftPdf, relevaDrafts } from "@/lib/releva-drafts";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -75,6 +76,36 @@ export async function renameDataRoomFile(user: CurrentUser, fileId: string, file
 
   if (!parsed.success || !user.onboarded || user.role !== "seller") {
     return { ok: false, message: parsed.success ? sellerCopy.documentForbidden : sellerCopy.documentInvalid };
+  }
+
+  const draft = relevaDrafts.find((item) => item.id === parsed.data.fileId);
+
+  if (draft) {
+    const pdf = relevaDraftPdf(draft.id);
+    const activeId = await activeSellerProjectId(user.id);
+    const project = activeId
+      ? await prisma.project.findFirst({
+          where: { id: activeId, ownerId: user.id },
+          select: { id: true },
+        })
+      : null;
+
+    if (!pdf || !project) {
+      return { ok: false, message: sellerCopy.documentForbidden };
+    }
+
+    const existing = await prisma.dataRoomFile.findFirst({
+      where: { projectId: project.id, folder: relevaDraftFolder, fileName: draft.fileName },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await prisma.dataRoomFile.create({
+        data: { id: randomUUID(), projectId: project.id, folder: relevaDraftFolder, fileName: draft.fileName },
+      });
+    }
+
+    return storeDataRoomFile(user, { folder: relevaDraftFolder, fileName: parsed.data.fileName }, pdf.bytes);
   }
 
   const activeId = await activeSellerProjectId(user.id);

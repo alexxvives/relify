@@ -19,6 +19,7 @@ export function AccountSettings({
   email: initialEmail,
   phone: initialPhone,
   nationalId: initialNationalId,
+  photo = null,
   middle = null,
 }: {
   name: string;
@@ -26,6 +27,7 @@ export function AccountSettings({
   email: string;
   phone: string | null;
   nationalId: string | null;
+  photo?: ReactNode;
   middle?: ReactNode;
 }) {
   const router = useRouter();
@@ -104,6 +106,8 @@ export function AccountSettings({
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
+          <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
+          {photo}
           <div className="grid gap-4 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.fullNameLabel}
@@ -151,6 +155,7 @@ export function AccountSettings({
                 onNationalChange={setPhone}
               />
             </label>
+          </div>
           </div>
           {profileState ? (
             <p role={profileState.saved ? "status" : "alert"} className={profileState.saved ? "text-sm text-[#17663a]" : "text-sm text-[#c0362c]"}>

@@ -126,6 +126,11 @@ export function AdvisorListingCard({
         <dialog
           ref={dialogRef}
           className={dialogClass}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              close();
+            }
+          }}
           onClose={() => {
             setOpen(false);
           }}
@@ -191,13 +196,10 @@ export function AdvisorListingCard({
                 ))}
               </div>
             )}
-            <div className="flex items-center justify-end gap-3">
-              <button type="button" onClick={close} className="inline-flex h-10 items-center rounded-full border border-[#e7eaee] px-4 text-sm font-medium">
-                {engagementCopy.closeAdvisor}
-              </button>
-              {connect ? (
-                <>
-                  {projectSlug ? <input type="hidden" name="advisorId" value={advisor.id} /> : null}
+            {connect ? (
+              <div className="flex items-center justify-end">
+                {projectSlug ? <input type="hidden" name="advisorId" value={advisor.id} /> : null}
+                <span title={projectSlug ? undefined : engagementCopy.connectNeedsCompany} className="inline-flex">
                   <button
                     type="submit"
                     disabled={pending || picked.length === 0 || !projectSlug}
@@ -205,9 +207,9 @@ export function AdvisorListingCard({
                   >
                     {pending ? advisoryCopy.pending : engagementCopy.chooseThisAdvisor}
                   </button>
-                </>
-              ) : null}
-            </div>
+                </span>
+              </div>
+            ) : null}
           </div>
         </dialog>
       ) : null}

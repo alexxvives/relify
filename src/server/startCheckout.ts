@@ -45,19 +45,19 @@ async function customerId(user: CurrentUser): Promise<string | null> {
 }
 
 export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "unlimited"): Promise<CheckoutStart> {
-  const stripe = stripeClient();
-
-  if (stripe === null || user.role !== "investor") {
-    return { ok: false, message: billingCopy.stripeMissing };
-  }
-
   const current = await prisma.billingCustomer.findUnique({
     where: { userId: user.id },
     select: { plan: true },
   });
 
   if (current && current.plan !== "none") {
-    return openPortal(user);
+    return { ok: true, url: `${readSiteUrl().origin}/premium/suscripcion` };
+  }
+
+  const stripe = stripeClient();
+
+  if (stripe === null || user.role !== "investor") {
+    return { ok: false, message: billingCopy.stripeMissing };
   }
 
   const customer = await customerId(user);
@@ -164,7 +164,7 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
   });
 
   if (current?.advisorInbox) {
-    return openPortal(user);
+    return { ok: false, message: billingCopy.advisorAlready };
   }
 
   const customer = await customerId(user);
@@ -209,59 +209,3 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
   }
 }
 
-async function relevaPortalConfiguration(
-  stripe: NonNullable<ReturnType<typeof stripeClient>>,
-): Promise<string | undefined> {
-  try {
-    const listed = await stripe.billingPortal.configurations.list({ limit: 20 });
-    const existing = listed.data.find((item) => item.metadata?.purpose === "releva-portal" && item.active);
-
-    if (existing) {
-      return existing.id;
-    }
-
-    const created = await stripe.billingPortal.configurations.create({
-      name: "Releva",
-      metadata: { purpose: "releva-portal" },
-      business_profile: { headline: "Gestiona tu plan de Releva" },
-      features: {
-        invoice_history: { enabled: true },
-        payment_method_update: { enabled: true },
-        customer_update: { enabled: true, allowed_updates: ["email"] },
-        subscription_cancel: { enabled: true, mode: "at_period_end", proration_behavior: "none" },
-      },
-    });
-
-    return created.id;
-  } catch {
-    return undefined;
-  }
-}
-
-export async function openPortal(user: CurrentUser): Promise<CheckoutStart> {
-  const stripe = stripeClient();
-  const existing = await prisma.billingCustomer.findUnique({
-    where: { userId: user.id },
-    select: { stripeCustomerId: true },
-  });
-
-  if (stripe === null || !existing) {
-    return { ok: false, message: billingCopy.stripeMissing };
-  }
-
-  const origin = readSiteUrl().origin;
-
-  try {
-    const configuration = await relevaPortalConfiguration(stripe);
-    const session = await stripe.billingPortal.sessions.create({
-      customer: existing.stripeCustomerId,
-      return_url: user.role === "advisor" ? `${origin}/mandatos` : `${origin}/premium`,
-      locale: "es",
-      ...(configuration ? { configuration } : {}),
-    });
-
-    return { ok: true, url: session.url };
-  } catch {
-    return { ok: false, message: billingCopy.stripeFailed };
-  }
-}

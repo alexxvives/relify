@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { InvestorProfileDraft, PublicInvestorCard } from "@/lib/demo-profile";
 import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
 import { gazeAvatarUrl } from "@/lib/gaze-avatar";
-import type { InvestorProfileInput } from "@/lib/investor-profile";
+import { investorPhotoSchema, type InvestorProfileInput } from "@/lib/investor-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
@@ -121,6 +121,20 @@ export async function publicCardsByInvestor(
   }
 
   return cards;
+}
+
+export async function saveInvestorPhoto(user: CurrentUser, photo: string): Promise<{ ok: true } | { ok: false }> {
+  if (user.role !== "investor" || !user.onboarded || !investorPhotoSchema.safeParse(photo).success) {
+    return { ok: false };
+  }
+
+  await prisma.investorProfile.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, photoPath: photo },
+    update: { photoPath: photo },
+  });
+
+  return { ok: true };
 }
 
 export async function saveInvestorProfile(user: CurrentUser, input: InvestorProfileInput): Promise<{ ok: true } | { ok: false }> {

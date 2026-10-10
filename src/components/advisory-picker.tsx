@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useActionState, useState } from "react";
+import { useMemo, useActionState, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
@@ -106,7 +106,6 @@ export function AdvisoryPicker({
       )}
       {askOpen ? (
         <ServiceAskDialog
-          companies={companies}
           company={company}
           cards={cards}
           onClose={() => {
@@ -224,20 +223,24 @@ function AdvisorMarket({
           </li>
         ))}
       </ul>
-      <button type="button" onClick={onAsk} className="w-fit text-sm font-medium text-[#465ab4] underline">
-        {engagementCopy.missingAsk}
-      </button>
+      <div className="flex justify-center pt-2">
+        <button
+          type="button"
+          onClick={onAsk}
+          className="inline-flex h-12 items-center rounded-full border border-[#c5d0f5] bg-[#f4f7ff] px-6 text-base font-semibold text-[#465ab4] hover:bg-[#e8eeff]"
+        >
+          {engagementCopy.missingAsk}
+        </button>
+      </div>
     </section>
   );
 }
 
 function ServiceAskDialog({
-  companies,
   company,
   cards,
   onClose,
 }: {
-  companies: { slug: string; codename: string; region: string }[];
   company: string;
   cards: boolean;
   onClose: () => void;
@@ -246,16 +249,41 @@ function ServiceAskDialog({
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
   useModalScrollLock(true);
 
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
   function toggle(id: AdvisoryServiceId) {
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
 
   const dialog = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/50 p-4">
-      <form action={action} className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl">
-        <h2 className="text-xl font-semibold">{engagementCopy.missingAsk}</h2>
-        <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{engagementCopy.missingAskBody}</p>
-        {companies.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p> : null}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/50 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <form
+        action={action}
+        onMouseDown={(event) => {
+          event.stopPropagation();
+        }}
+        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl"
+      >
+        <h2 className="text-center text-xl font-semibold">{engagementCopy.missingAsk}</h2>
+        <p className="mt-2 text-center text-sm leading-6 text-[#5c6b78]">{engagementCopy.missingAskBody}</p>
         {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
         {selected.map((id) => (
           <input key={id} type="hidden" name="services" value={id} />
@@ -303,13 +331,10 @@ function ServiceAskDialog({
             {state.message}
           </p>
         ) : null}
-        <div className="mt-5 flex items-center justify-end gap-3">
-          <button type="button" onClick={onClose} className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]">
-            {engagementCopy.closeAdvisor}
-          </button>
+        <div className="mt-5 flex items-center justify-end">
           <button
             type="submit"
-            disabled={pending || companies.length === 0 || company.length === 0 || selected.length === 0 || state?.ok === true}
+            disabled={pending || selected.length === 0 || state?.ok === true}
             className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
           >
             {pending ? advisoryCopy.pending : advisoryCopy.submit}

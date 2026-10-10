@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
-import { saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
+import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User } from "lucide-react";
+import { saveInvestorPhotoAction, saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
 import { FieldHint } from "@/components/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor-public-card";
@@ -57,12 +57,18 @@ export function InvestorProfile({
   draft,
   avatarUrl,
   publicOnly = false,
+  photoValue,
+  onPhotoChange,
+  hidePhotoControl = false,
 }: {
   displayName: string;
   initial: DemoInvestorProfile | null;
   draft: InvestorProfileDraft;
   avatarUrl: string;
   publicOnly?: boolean;
+  photoValue?: string;
+  onPhotoChange?: (value: string) => void;
+  hidePhotoControl?: boolean;
 }) {
   const [editingProfessional, setEditingProfessional] = useState(false);
   const [tradeName, setTradeName] = useState(initial?.tradeName ?? displayName);
@@ -73,7 +79,9 @@ export function InvestorProfile({
   const [investorType, setInvestorType] = useState(draft.investorType);
   const [ticket, setTicket] = useState(draft.ticket);
   const [sectors, setSectors] = useState(draft.sectors);
-  const [photo, setPhoto] = useState(draft.photo);
+  const [photoState, setPhotoState] = useState(draft.photo);
+  const photo = photoValue ?? photoState;
+  const setPhoto = onPhotoChange ?? setPhotoState;
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const [thesis, setThesis] = useState(draft.thesis);
   const [contribution, setContribution] = useState(draft.contribution);
@@ -239,39 +247,112 @@ export function InvestorProfile({
         </div>
         </div>
         <div id="foto" className="scroll-mt-24 lg:col-span-1">
-          <p className="mb-3 text-sm text-[#64748b]">{investorCopy.cardPreview}</p>
-          <label className="mb-3 inline-flex h-10 cursor-pointer items-center rounded-full border border-[#e7eaee] bg-white px-4 text-sm font-medium text-[#1c2740]">
-            {investorCopy.photoChange}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-
-                if (!file) {
-                  return;
-                }
-
-                readInvestorPhoto(
-                  file,
-                  (next) => {
-                    setPhoto(next);
-                    setPhotoMessage(null);
-                  },
-                  () => {
-                    setPhotoMessage(investorCopy.photoHeavy);
-                  },
-                );
+          {hidePhotoControl ? null : (
+            <InvestorPhotoDrop
+              photo={photo}
+              fallback={avatarUrl}
+              message={photoMessage}
+              onReady={(next) => {
+                setPhoto(next);
+                setPhotoMessage(null);
+              }}
+              onHeavy={() => {
+                setPhotoMessage(investorCopy.photoHeavy);
               }}
             />
-          </label>
-          {photoMessage ? <p className="mb-3 text-sm text-[#c0362c]">{photoMessage}</p> : null}
-          <InvestorPublicCard label={investorCopy.cardPreviewName} profile={preview} />
+          )}
+          <div className={hidePhotoControl ? "" : "mt-4"}>
+            <InvestorPublicCard label={investorCopy.cardPreviewName} profile={preview} />
+          </div>
         </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+export function InvestorPhotoDrop({
+  photo,
+  fallback,
+  message,
+  onReady,
+  onHeavy,
+}: {
+  photo: string;
+  fallback: string;
+  message: string | null;
+  onReady: (value: string) => void;
+  onHeavy: () => void;
+}) {
+  const [over, setOver] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const shown = photo.length > 0 ? photo : fallback;
+  const note = message ?? saveMessage;
+
+  function take(file: File | undefined) {
+    if (!file) {
+      return;
+    }
+
+    setSaveMessage(null);
+    readInvestorPhoto(
+      file,
+      (next) => {
+        onReady(next);
+        void saveInvestorPhotoAction(next).then((result) => {
+          if (!result.ok) {
+            setSaveMessage(investorCopy.photoFailed);
+          }
+        });
+      },
+      onHeavy,
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <label
+        onDragOver={(event) => {
+          event.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => {
+          setOver(false);
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          setOver(false);
+          take(event.dataTransfer.files[0]);
+        }}
+        className={
+          over
+            ? "relative flex size-32 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff]"
+            : "relative flex size-32 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff]"
+        }
+      >
+        {shown.length > 0 ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={shown} alt="" className="size-full object-cover" />
+        ) : (
+          <User className="size-8 text-[#465ab4]" aria-hidden />
+        )}
+        <span className="absolute inset-x-0 bottom-0 bg-[#1c2740]/75 px-2 py-1.5 text-center text-[11px] leading-4 font-medium text-white">
+          <Upload className="mr-1 inline size-3" aria-hidden />
+          {investorCopy.photoDrop}
+        </span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            take(file);
+          }}
+        />
+      </label>
+      <p className="text-xs text-[#667085]">{investorCopy.photoDropHint}</p>
+      {note ? <p className="text-sm text-[#c0362c]">{note}</p> : null}
     </div>
   );
 }
@@ -349,31 +430,18 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
 
     write([...chips, next]);
     setCustom("");
+    setOpen(false);
   }
 
   return (
     <div ref={rootRef} className="flex flex-col gap-2">
       <input type="hidden" name="sectors" value={value} />
-      {chips.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {chips.map((chip) => (
-            <li key={chip}>
-              <button
-                type="button"
-                onClick={() => {
-                  write(chips.filter((item) => item !== chip));
-                }}
-                className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm text-[#1c2740]"
-              >
-                {chip} ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
       <input
         value={query}
         placeholder={investorCopy.sectorsSearch}
+        onMouseDown={() => {
+          setOpen(true);
+        }}
         onFocus={() => {
           setOpen(true);
         }}
@@ -385,6 +453,23 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
       />
       {open ? (
         <ul className="max-h-48 overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1">
+          <li className="border-b border-[#e7eaee] px-2 py-2">
+            <input
+              value={custom}
+              placeholder={investorCopy.sectorsCustom}
+              aria-label={investorCopy.sectorsCustom}
+              onChange={(event) => {
+                setCustom(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addCustom();
+                }
+              }}
+              className="h-9 w-full rounded-lg border border-[#e7eaee] px-3 text-sm"
+            />
+          </li>
           {choices.map((label) => (
             <li key={label}>
               <button
@@ -402,25 +487,23 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
           ))}
         </ul>
       ) : null}
-      <div className="flex gap-2">
-        <input
-          value={custom}
-          placeholder={investorCopy.sectorsCustom}
-          onChange={(event) => {
-            setCustom(event.target.value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              addCustom();
-            }
-          }}
-          className={fieldClass}
-        />
-        <button type="button" onClick={addCustom} className="inline-flex h-11 shrink-0 items-center rounded-full border border-[#e7eaee] px-3 text-sm">
-          {investorCopy.sectorsAdd}
-        </button>
-      </div>
+      {chips.length > 0 ? (
+        <ul className="flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <li key={chip}>
+              <button
+                type="button"
+                onClick={() => {
+                  write(chips.filter((item) => item !== chip));
+                }}
+                className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm text-[#1c2740]"
+              >
+                {chip} ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

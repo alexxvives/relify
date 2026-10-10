@@ -1,11 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { EyeIcon } from "@/components/ui/eye";
 import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
 import { HeartIcon } from "@/components/ui/heart";
 import { CheckIcon } from "@/components/ui/check";
-import { openBillingPortalAction, startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
+import { startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
 
@@ -74,7 +75,6 @@ const plans = [
 
 export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: string | null }) {
   const [yearly, setYearly] = useState(false);
-  const [portalState, portalAction, portalPending] = useActionState(openBillingPortalAction, null);
   const current =
     plan === "limited" ? billingCopy.currentLimited : plan === "unlimited" ? billingCopy.currentUnlimited : billingCopy.currentFree;
 
@@ -181,16 +181,12 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
                 {item.id === "limited" && plan === "none" ? <PlanButton plan="limited" label={billingCopy.chooseLimited} /> : null}
                 {item.id === "unlimited" && plan === "none" ? <PlanButton plan="unlimited" label={billingCopy.chooseUnlimited} /> : null}
                 {active && plan !== "none" ? (
-                  <form action={portalAction} className="mt-6 flex flex-col gap-2">
-                    <button
-                      type="submit"
-                      disabled={portalPending}
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
-                    >
-                      {billingCopy.manage}
-                    </button>
-                    <Note state={portalState} />
-                  </form>
+                  <Link
+                    href="/premium/suscripcion"
+                    className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
+                  >
+                    {billingCopy.manage}
+                  </Link>
                 ) : null}
               </div>
             </section>

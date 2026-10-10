@@ -1,11 +1,15 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { openPortal, startBuyerCheckout } from "@/server/startCheckout";
+import { startBuyerCheckout } from "@/server/startCheckout";
+import { setSubscriptionCancel, startCardSetup, updateBillingEmail } from "@/server/subscriptionDesk";
 
 export type PlanActionState = { ok: false; message: string } | null;
+
+export type SubscriptionActionState = { ok: boolean; message: string } | null;
 
 async function investor() {
   const user = await getCurrentUser();
@@ -38,14 +42,46 @@ export async function startBuyerPlanAction(_state: PlanActionState, formData: Fo
   redirect(result.url);
 }
 
-export async function openBillingPortalAction(state: PlanActionState, formData: FormData): Promise<PlanActionState> {
-  void state;
-  void formData;
+export async function setSubscriptionCancelAction(
+  _state: SubscriptionActionState,
+  formData: FormData,
+): Promise<SubscriptionActionState> {
   const user = await investor();
-  const result = await openPortal(user);
+  const cancel = formData.get("cancel") === "1";
+  const result = await setSubscriptionCancel(user, cancel);
 
   if (!result.ok) {
-    return result;
+    return { ok: false, message: result.message };
+  }
+
+  revalidatePath("/premium/suscripcion");
+  revalidatePath("/premium");
+  return { ok: true, message: cancel ? billingCopy.cancelSaved : billingCopy.keepSaved };
+}
+
+export async function updateBillingEmailAction(
+  _state: SubscriptionActionState,
+  formData: FormData,
+): Promise<SubscriptionActionState> {
+  const user = await investor();
+  const email = formData.get("email");
+  const result = await updateBillingEmail(user, typeof email === "string" ? email : "");
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  revalidatePath("/premium/suscripcion");
+  return { ok: true, message: billingCopy.billingEmailSaved };
+}
+
+export async function startCardSetupAction(_state: SubscriptionActionState, formData: FormData): Promise<SubscriptionActionState> {
+  void formData;
+  const user = await investor();
+  const result = await startCardSetup(user);
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
   }
 
   redirect(result.url);

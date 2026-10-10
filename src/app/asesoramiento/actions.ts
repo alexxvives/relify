@@ -25,9 +25,10 @@ export async function requestAdvisoryQuoteAction(
 
   const advisorRaw = formData.get("advisorId");
   const slugRaw = formData.get("projectSlug");
+  const slug = typeof slugRaw === "string" ? slugRaw.trim() : "";
   const parsed = advisoryQuoteSchema.safeParse({
     services: uniqueAdvisoryServices(formData.getAll("services").filter((value): value is string => typeof value === "string")),
-    projectSlug: typeof slugRaw === "string" ? slugRaw : "",
+    ...(slug !== "" ? { projectSlug: slug } : {}),
     ...(typeof advisorRaw === "string" && advisorRaw !== "" ? { advisorId: advisorRaw } : {}),
   });
 

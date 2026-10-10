@@ -63,11 +63,19 @@ export const advisoryCopy = {
 
 const serviceIdSchema = z.enum(advisoryServiceIds);
 
-export const advisoryQuoteSchema = z.object({
-  services: z.array(serviceIdSchema).min(1),
-  projectSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  advisorId: z.string().trim().min(1).max(80).optional(),
-});
+const projectSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+export const advisoryQuoteSchema = z
+  .object({
+    services: z.array(serviceIdSchema).min(1),
+    projectSlug: projectSlugSchema.optional(),
+    advisorId: z.string().trim().min(1).max(80).optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.advisorId && !value.projectSlug) {
+      context.addIssue({ code: "custom", path: ["projectSlug"], message: "company" });
+    }
+  });
 
 export type AdvisoryQuoteInput = z.infer<typeof advisoryQuoteSchema>;
 

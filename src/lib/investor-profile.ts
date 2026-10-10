@@ -10,7 +10,7 @@ export const investorTicketBands = [
   "Más de 3 millones",
 ] as const;
 
-const photoSchema = z
+export const investorPhotoSchema = z
   .string()
   .max(180_000)
   .refine((value) => value.length === 0 || value.startsWith("/") || value.startsWith("data:image/"), {
@@ -18,7 +18,7 @@ const photoSchema = z
   });
 
 export const investorProfileSchema = z.object({
-  photo: photoSchema,
+  photo: investorPhotoSchema,
   city: z.string().trim().min(1).max(80),
   province: z.string().trim().min(1).max(80),
   investorType: z.enum(investorTypes),

@@ -13,10 +13,15 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
     return { ok: false, message: advisoryCopy.forbidden };
   }
 
-  const project = await engagementProject({ slug: input.projectSlug, user });
+  const slug = input.projectSlug ?? "";
+  const project = slug === "" ? null : await engagementProject({ slug, user });
 
-  if (!project.ok) {
+  if (project && !project.ok) {
     return project;
+  }
+
+  if (input.advisorId && !project) {
+    return { ok: false, message: engagementCopy.companyRequired };
   }
 
   if (input.advisorId) {
@@ -35,7 +40,7 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
     },
   });
 
-  if (input.advisorId) {
+  if (input.advisorId && project) {
     await createEngagement({
       projectId: project.projectId,
       requesterId: user.id,
@@ -44,10 +49,11 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
       advisorId: input.advisorId,
       codename: project.codename,
     });
-  } else {
+  } else if (!input.advisorId) {
     const names = input.services
       .map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id)
       .join(", ");
+    const place = project ? project.codename : "Sin empresa";
     const admins = await prisma.user.findMany({
       where: { role: "admin" },
       select: { id: true },
@@ -57,7 +63,7 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
       await recordNotification({
         userId: admin.id,
         title: advisoryCopy.adminNoticeTitle,
-        body: `${project.codename}: ${names}. ${user.email}. ${advisoryCopy.adminNoticeBody}`,
+        body: `${place}: ${names}. ${user.email}. ${advisoryCopy.adminNoticeBody}`,
         href: "/admin",
       });
     }

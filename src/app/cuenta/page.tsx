@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/account-settings";
 import { AppShell } from "@/components/app-shell";
-import { InvestorProfile } from "@/components/investor-profile";
+import { InvestorAccount } from "@/components/investor-account";
 import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/server/getAccountNationalId";
@@ -30,24 +30,27 @@ export default async function AccountPage() {
 
   return (
     <AppShell title={authCopy.accountTitle}>
-      <AccountSettings
-        name={user.name}
-        lastName={user.lastName}
-        email={user.email}
-        phone={user.phone}
-        nationalId={nationalId}
-        middle={
-          investorDraft ? (
-            <InvestorProfile
-              displayName={user.displayName}
-              initial={demoInvestorProfile(user.email)}
-              draft={investorDraft}
-              avatarUrl={investorGazeAvatar(user.id)}
-              publicOnly
-            />
-          ) : null
-        }
-      />
+      {investorDraft ? (
+        <InvestorAccount
+          name={user.name}
+          lastName={user.lastName}
+          email={user.email}
+          phone={user.phone}
+          nationalId={nationalId}
+          displayName={user.displayName}
+          initial={demoInvestorProfile(user.email)}
+          draft={investorDraft}
+          avatarUrl={investorGazeAvatar(user.id)}
+        />
+      ) : (
+        <AccountSettings
+          name={user.name}
+          lastName={user.lastName}
+          email={user.email}
+          phone={user.phone}
+          nationalId={nationalId}
+        />
+      )}
     </AppShell>
   );
 }

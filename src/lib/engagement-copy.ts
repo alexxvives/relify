@@ -25,7 +25,7 @@ export const engagementCopy = {
   closeAdvisor: "Cerrar",
   removeAdvisor: "Eliminar asesor",
   removingAdvisor: "Eliminando…",
-  companyNdaOnly: "Solo puedes encargar un asesor para una empresa con la que ya has contactado y firmado el NDA.",
+  connectNeedsCompany: "Elige primero una empresa con el NDA firmado.",
   missingAsk: "¿No encuentras lo que buscas?",
   missingAskBody: "Elige los servicios. La solicitud llega a Releva, sin elegir asesor.",
   marketplaceTitle: "Asesores",

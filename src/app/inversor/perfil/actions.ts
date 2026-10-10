@@ -4,13 +4,32 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { investorProfileSchema } from "@/lib/investor-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { saveInvestorProfile } from "@/server/investorProfile";
+import { saveInvestorPhoto, saveInvestorProfile } from "@/server/investorProfile";
 
 export type InvestorProfileState = { ok: true } | { ok: false; message: string } | null;
 
 function readText(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
+}
+
+export async function saveInvestorPhotoAction(photo: string): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+
+  if (!user || !user.onboarded || user.role !== "investor") {
+    return { ok: false };
+  }
+
+  const saved = await saveInvestorPhoto(user, photo);
+
+  if (saved.ok) {
+    revalidatePath("/inversor");
+    revalidatePath("/inversor/perfil");
+    revalidatePath("/cuenta");
+    revalidatePath("/mi-empresa/procesos");
+  }
+
+  return saved;
 }
 
 export async function saveInvestorProfileAction(
