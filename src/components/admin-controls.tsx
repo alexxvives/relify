@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useSyncExternalStore } from "react";
 import {
   approveProjectAction,
   changeRoleAction,
@@ -10,6 +10,7 @@ import {
   unpublishProjectAction,
   type AdminActionState,
 } from "@/app/admin/actions";
+import { AppToast } from "@/components/app-toast";
 import { adminCopy } from "@/lib/admin-copy";
 import { userRoles, type UserRoleName } from "@/lib/auth-input";
 
@@ -25,8 +26,68 @@ function Note({ state }: { state: AdminActionState }) {
   );
 }
 
+function ErrorNote({ state }: { state: AdminActionState }) {
+  if (!state || state.ok) {
+    return null;
+  }
+
+  return (
+    <p className="text-sm text-red-700" role="alert">
+      {state.message}
+    </p>
+  );
+}
+
+type AccountToast = { message: string; pulse: number };
+
+let accountToast: AccountToast | null = null;
+const toastListeners = new Set<() => void>();
+
+function publishAccountToast(message: string) {
+  accountToast = { message, pulse: Date.now() };
+
+  for (const listener of toastListeners) {
+    listener();
+  }
+}
+
+function subscribeAccountToast(listener: () => void) {
+  toastListeners.add(listener);
+  return () => {
+    toastListeners.delete(listener);
+  };
+}
+
+function readAccountToast() {
+  return accountToast;
+}
+
+function readServerAccountToast() {
+  return null;
+}
+
+export function AccountToastHost() {
+  const toast = useSyncExternalStore(subscribeAccountToast, readAccountToast, readServerAccountToast);
+
+  return <AppToast message={toast?.message ?? null} pulse={toast?.pulse ?? 0} />;
+}
+
+function useAccountAction(actionFn: (state: AdminActionState, formData: FormData) => Promise<AdminActionState>) {
+  const [state, formAction, pending] = useActionState(async (previous: AdminActionState, formData: FormData) => {
+    const result = await actionFn(previous, formData);
+
+    if (result?.ok) {
+      publishAccountToast(result.message);
+    }
+
+    return result;
+  }, null);
+
+  return { state, formAction, pending };
+}
+
 const buttonClass =
-  "inline-flex h-9 items-center rounded-full bg-[#3d34b8] px-3 text-sm font-medium text-white disabled:opacity-60";
+  "inline-flex h-9 items-center rounded-full bg-[#465ab4] px-3 text-sm font-medium text-white disabled:opacity-60";
 const quietButtonClass =
   "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740] disabled:opacity-60";
 
@@ -59,10 +120,10 @@ export function ApproveButton({ projectId }: { projectId: string }) {
 }
 
 export function SuspensionButton({ userId, suspended }: { userId: string; suspended: boolean }) {
-  const [state, action, pending] = useActionState(suspended ? reactivateAccountAction : suspendAccountAction, null);
+  const { state, formAction, pending } = useAccountAction(suspended ? reactivateAccountAction : suspendAccountAction);
 
   return (
-    <form action={action} className="flex flex-col items-start gap-2">
+    <form action={formAction} className="flex flex-col items-start gap-2">
       <input type="hidden" name="userId" value={userId} />
       <button type="submit" disabled={pending} className={quietButtonClass}>
         {pending
@@ -73,18 +134,18 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
             ? adminCopy.reactivate
             : adminCopy.suspend}
       </button>
-      <Note state={state} />
+      <ErrorNote state={state} />
     </form>
   );
 }
 
 export function RoleForm({ userId, role }: { userId: string; role: string | null }) {
-  const [state, action, pending] = useActionState(changeRoleAction, null);
+  const { state, formAction, pending } = useAccountAction(changeRoleAction);
   const current = isAccountRole(role) ? role : "seller";
   const fieldId = `role-${userId}`;
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
+    <form action={formAction} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="userId" value={userId} />
       <div className="flex flex-col gap-1">
         <label htmlFor={fieldId} className="text-xs text-[#667085]">
@@ -101,17 +162,17 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? adminCopy.changingRole : adminCopy.changeRole}
       </button>
-      <Note state={state} />
+      <ErrorNote state={state} />
     </form>
   );
 }
 
 export function PlanForm({ userId }: { userId: string }) {
-  const [state, action, pending] = useActionState(grantPlanAction, null);
+  const { state, formAction, pending } = useAccountAction(grantPlanAction);
   const fieldId = `plan-${userId}`;
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
+    <form action={formAction} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="userId" value={userId} />
       <div className="flex flex-col gap-1">
         <label htmlFor={fieldId} className="text-xs text-[#667085]">
@@ -125,7 +186,7 @@ export function PlanForm({ userId }: { userId: string }) {
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? adminCopy.grantingPlan : adminCopy.grantPlan}
       </button>
-      <Note state={state} />
+      <ErrorNote state={state} />
     </form>
   );
 }

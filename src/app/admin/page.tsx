@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { AdminHome } from "@/components/admin-home";
 import { SignedInPage } from "@/components/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
-import { getAdminOverview } from "@/server/getAdminOverview";
+import { getAdminDashboard } from "@/server/getAdminDashboard";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -11,8 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
-  await requireRole("admin");
-  const overview = await getAdminOverview();
+  const user = await requireRole("admin");
+  const overview = await getAdminDashboard(user);
+
+  if (!overview) {
+    notFound();
+  }
 
   return (
     <SignedInPage title={adminCopy.homeTitle}>

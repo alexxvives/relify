@@ -20,7 +20,14 @@ describe("destinationsForRole", () => {
       { href: "/mandatos", label: "Inicio" },
       { href: "/mis-servicios", label: "Mis servicios" },
     ]);
-    expect(destinationsForRole("admin")).toEqual([{ href: "/admin", label: "Inicio" }]);
+    expect(destinationsForRole("admin")).toEqual([
+      { href: "/admin", label: "Inicio" },
+      { href: "/admin/empresas", label: "Empresas" },
+      { href: "/admin/cuentas", label: "Cuentas" },
+      { href: "/admin/conexiones", label: "Conexiones" },
+      { href: "/admin/asesores", label: "Asesores" },
+      { href: "/admin/facturacion", label: "Facturación" },
+    ]);
     expect(destinationsForRole(null)).toEqual([]);
   });
 });
@@ -33,5 +40,9 @@ describe("destinationIsCurrent", () => {
     expect(destinationIsCurrent("/mi-empresa", "/proyectos/proyecto-duna")).toBe(false);
     expect(destinationIsCurrent("/mi-empresa", "/mi-empresa/detalles")).toBe(false);
     expect(destinationIsCurrent("/mi-empresa/detalles", "/mi-empresa/detalles")).toBe(true);
+    expect(destinationIsCurrent("/admin", "/admin")).toBe(true);
+    expect(destinationIsCurrent("/admin", "/admin/empresas")).toBe(false);
+    expect(destinationIsCurrent("/admin/conexiones", "/admin/chat/acceso")).toBe(true);
+    expect(destinationIsCurrent("/admin/empresas", "/admin/chat/acceso")).toBe(false);
   });
 });

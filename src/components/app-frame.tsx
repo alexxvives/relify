@@ -8,6 +8,7 @@ import { Building2Icon } from "@animateicons/react/lucide/building-2-icon";
 import { ChevronRightIcon } from "@animateicons/react/lucide/chevron-right-icon";
 import { CrownIcon } from "@animateicons/react/lucide/crown-icon";
 import { FilesIcon } from "@animateicons/react/lucide/files-icon";
+import { HandshakeIcon } from "@animateicons/react/lucide/handshake-icon";
 import { HeartIcon } from "@animateicons/react/lucide/heart-icon";
 import { HouseIcon, type HouseIconHandle } from "@animateicons/react/lucide/house-icon";
 import { LayoutDashboardIcon } from "@animateicons/react/lucide/layout-dashboard-icon";
@@ -16,7 +17,9 @@ import { MailIcon } from "@animateicons/react/lucide/mail-icon";
 import { MessageCircleMoreIcon } from "@animateicons/react/lucide/message-circle-more-icon";
 import { PanelLeftIcon } from "@animateicons/react/lucide/panel-left-icon";
 import { PhoneIcon } from "@animateicons/react/lucide/phone-icon";
+import { ReceiptIcon } from "@animateicons/react/lucide/receipt-icon";
 import { TableIcon } from "@animateicons/react/lucide/table-icon";
+import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/cuenta/actions";
 import { Logo } from "@/components/logo";
@@ -41,6 +44,11 @@ const iconForHref = {
   "/favoritos": HeartIcon,
   "/mandatos": HouseIcon,
   "/admin": LayoutDashboardIcon,
+  "/admin/empresas": Building2Icon,
+  "/admin/cuentas": UsersIcon,
+  "/admin/conexiones": HandshakeIcon,
+  "/admin/asesores": BriefcaseIcon,
+  "/admin/facturacion": ReceiptIcon,
   "/mis-servicios": BriefcaseIcon,
 };
 

@@ -40,7 +40,14 @@ const destinations = {
     { href: "/mandatos", label: "Inicio" },
     { href: "/mis-servicios", label: "Mis servicios" },
   ],
-  admin: [{ href: "/admin", label: "Inicio" }],
+  admin: [
+    { href: "/admin", label: "Inicio" },
+    { href: "/admin/empresas", label: "Empresas" },
+    { href: "/admin/cuentas", label: "Cuentas" },
+    { href: "/admin/conexiones", label: "Conexiones" },
+    { href: "/admin/asesores", label: "Asesores" },
+    { href: "/admin/facturacion", label: "Facturación" },
+  ],
 } as const satisfies Record<UserRoleName, readonly ShellDestination[]>;
 
 export function destinationsForRole(role: UserRoleName | null): ShellDestination[] {
@@ -56,5 +63,9 @@ export function destinationIsCurrent(href: string, pathname: string): boolean {
     return true;
   }
 
-  return href === "/mercado" && pathname.startsWith("/proyectos/");
+  if (href === "/mercado" && pathname.startsWith("/proyectos/")) {
+    return true;
+  }
+
+  return href === "/admin/conexiones" && pathname.startsWith("/admin/chat/");
 }

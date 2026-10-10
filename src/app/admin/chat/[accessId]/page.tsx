@@ -23,7 +23,7 @@ export default async function AdminChatPage({ params }: { params: Promise<{ acce
   return (
     <SignedInPage title={adminCopy.chatTitle}>
       <div className="flex flex-col gap-4">
-        <Link href="/admin" className="text-sm font-medium text-[#3d34b8]">
+        <Link href="/admin/conexiones" className="text-sm font-medium text-[#465ab4]">
           {adminCopy.chatBack}
         </Link>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">

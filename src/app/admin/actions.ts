@@ -15,8 +15,17 @@ function readText(formData: FormData, name: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function refreshCatalog(): void {
+function refreshAdmin(): void {
   revalidatePath("/admin");
+  revalidatePath("/admin/empresas");
+  revalidatePath("/admin/cuentas");
+  revalidatePath("/admin/conexiones");
+  revalidatePath("/admin/asesores");
+  revalidatePath("/admin/facturacion");
+}
+
+function refreshCatalog(): void {
+  refreshAdmin();
   revalidatePath("/proyectos");
   revalidatePath("/mercado");
   revalidatePath("/mi-empresa");
@@ -51,7 +60,7 @@ export async function suspendAccountAction(_state: AdminActionState, formData: F
   const result = await setAccountSuspension(user, readText(formData, "userId"), true);
 
   if (result.ok) {
-    revalidatePath("/admin");
+    refreshAdmin();
   }
 
   return result;
@@ -62,7 +71,7 @@ export async function reactivateAccountAction(_state: AdminActionState, formData
   const result = await setAccountSuspension(user, readText(formData, "userId"), false);
 
   if (result.ok) {
-    revalidatePath("/admin");
+    refreshAdmin();
   }
 
   return result;
@@ -73,7 +82,7 @@ export async function changeRoleAction(_state: AdminActionState, formData: FormD
   const result = await changeAccountRole(user, readText(formData, "userId"), readText(formData, "role"));
 
   if (result.ok) {
-    revalidatePath("/admin");
+    refreshAdmin();
   }
 
   return result;
@@ -84,7 +93,7 @@ export async function grantPlanAction(_state: AdminActionState, formData: FormDa
   const result = await grantInvestorPlan(user, readText(formData, "userId"), readText(formData, "plan"));
 
   if (result.ok) {
-    revalidatePath("/admin");
+    refreshAdmin();
     revalidatePath("/premium");
   }
 
