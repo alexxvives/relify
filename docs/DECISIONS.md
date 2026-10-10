@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-10 — An advisor pays a refundable deposit to open a request
+
+A named request stays a record until the advisor pays. Before that payment the advisor sees the codename, the region, the sector, the headcount band, the year, and the public description, plus the investor type, city, ticket, stake, and sectors. The name, email, NIF, phone, and the euro figures stay off that page. The chat, the NDA, and the company file stay closed.
+
+The deposit is 50 € plus half the asking price, stored in euro cents, with no IVA on top, because it is a hold and not a fee. Stripe Checkout takes it in test mode and Releva is the merchant. Paying it notifies the person who asked that the advisor accepted, and then the NDA and the figures open. The money is returned later; this pass does not call a refund. A general request with no company still does not charge.
+
 ## 2026-10-10 — Advisor marketplace order
 
 The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Releva (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.

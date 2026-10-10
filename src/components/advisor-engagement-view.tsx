@@ -1,5 +1,6 @@
-import { AdvisorCloseForm, AdvisorNdaForm } from "@/components/advisor-engagement-forms";
+import { AdvisorCloseForm, AdvisorDepositForm, AdvisorNdaForm } from "@/components/advisor-engagement-forms";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { AppToast } from "@/components/app-toast";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
@@ -9,28 +10,62 @@ export function AdvisorEngagementView({
   engagement,
   thread,
   today,
+  notice,
 }: {
   engagement: AdvisorEngagementPage;
   thread: AdvisorContactView | null;
   today: string;
+  notice: string | null;
 }) {
   return (
     <div className="flex flex-col gap-6">
+      <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <p className="text-sm text-[#64748b]">{engagement.clientLabel}</p>
         <h2 className="mt-1 text-3xl font-semibold text-[#1c2740]">{engagement.codename}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{engagement.region}</p>
         <p className="mt-2 text-sm text-[#3d4a63]">{engagement.services}</p>
-        <dl className="mt-4 grid grid-cols-2 gap-4">
-          {engagement.figures.map((figure) => (
-            <div key={figure.label}>
-              <dt className="text-xs text-[#64748b]">{figure.label}</dt>
-              <dd className="mt-1 text-sm font-medium">{figure.value}</dd>
-            </div>
-          ))}
-        </dl>
-        {engagement.view === "public" ? <p className="mt-4 text-sm text-[#614d05]">{engagementCopy.publicOnly}</p> : null}
+        {engagement.preview?.description ? <p className="mt-3 max-w-3xl text-sm leading-6 text-[#3d4a63]">{engagement.preview.description}</p> : null}
+        {engagement.preview && engagement.preview.facts.length > 0 ? (
+          <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+            {engagement.preview.facts.map((fact) => (
+              <div key={fact.label}>
+                <dt className="text-xs text-[#64748b]">{fact.label}</dt>
+                <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+        {engagement.preview?.showInvestor ? (
+          <div className="mt-5">
+            <h3 className="text-sm font-semibold text-[#1c2740]">{engagementCopy.depositInvestor}</h3>
+            {engagement.preview.investor.length === 0 ? (
+              <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.depositInvestorEmpty}</p>
+            ) : (
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                {engagement.preview.investor.map((fact) => (
+                  <div key={fact.label}>
+                    <dt className="text-xs text-[#64748b]">{fact.label}</dt>
+                    <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        ) : null}
+        {engagement.figures.length > 0 ? (
+          <dl className="mt-4 grid grid-cols-2 gap-4">
+            {engagement.figures.map((figure) => (
+              <div key={figure.label}>
+                <dt className="text-xs text-[#64748b]">{figure.label}</dt>
+                <dd className="mt-1 text-sm font-medium">{figure.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+        {engagement.deposit.paid && engagement.view === "public" ? <p className="mt-4 text-sm text-[#614d05]">{engagementCopy.publicOnly}</p> : null}
       </section>
+      {engagement.deposit.paid ? null : <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />}
       {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
       {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} /> : null}
       {engagement.profile ? <CompanyProfile project={engagement.profile} /> : null}
@@ -90,7 +125,7 @@ export function AdvisorEngagementView({
           )}
         </section>
       ) : null}
-      <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
+      {engagement.deposit.paid ? <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} /> : null}
     </div>
   );
 }

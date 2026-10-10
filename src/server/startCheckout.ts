@@ -1,4 +1,5 @@
-import { ADVISOR_INBOX_NET_CENTS, SELLER_LISTING_NET_CENTS, grossCents, planNetCents } from "@/lib/billing";
+import { ADVISOR_INBOX_NET_CENTS, SELLER_LISTING_NET_CENTS, advisorDepositCents, grossCents, planNetCents } from "@/lib/billing";
+import { engagementCopy } from "@/lib/engagement-copy";
 import { billingCopy } from "@/lib/billing-copy";
 import { readSiteUrl } from "@/lib/env";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -197,6 +198,71 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
       success_url: `${origin}/mandatos?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/mandatos`,
       integration_identifier: integrationLabel("releva_inbox"),
+    });
+
+    if (!session.url) {
+      return { ok: false, message: billingCopy.stripeFailed };
+    }
+
+    return { ok: true, url: session.url };
+  } catch {
+    return { ok: false, message: billingCopy.stripeFailed };
+  }
+}
+
+export async function startAdvisorDepositCheckout(user: CurrentUser, engagementId: string): Promise<CheckoutStart> {
+  const stripe = stripeClient();
+
+  if (stripe === null || user.role !== "advisor") {
+    return { ok: false, message: billingCopy.stripeMissing };
+  }
+
+  const row = await prisma.advisoryEngagement.findFirst({
+    where: { id: engagementId, advisorId: user.id },
+    select: {
+      id: true,
+      depositPaidAt: true,
+      project: { select: { codename: true, askingPriceCents: true } },
+    },
+  });
+
+  if (!row) {
+    return { ok: false, message: engagementCopy.missing };
+  }
+
+  const origin = readSiteUrl().origin;
+  const back = `${origin}/mandatos/encargos/${row.id}`;
+
+  if (row.depositPaidAt) {
+    return { ok: true, url: back };
+  }
+
+  const customer = await customerId(user);
+
+  if (customer === null) {
+    return { ok: false, message: billingCopy.stripeMissing };
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer,
+      client_reference_id: user.id,
+      locale: "es",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: advisorDepositCents(row.project.askingPriceCents),
+            product_data: { name: `Depósito Releva · ${row.project.codename}` },
+          },
+        },
+      ],
+      metadata: { kind: "advisor_deposit", userId: user.id, engagementId: row.id },
+      success_url: `${back}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: back,
+      integration_identifier: integrationLabel("releva_deposit"),
     });
 
     if (!session.url) {

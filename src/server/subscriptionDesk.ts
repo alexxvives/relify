@@ -30,6 +30,8 @@ export type SubscriptionDesk =
       whenLabel: string;
       periodStart: string;
       card: string | null;
+      cardBrand: string | null;
+      cardLast4: string | null;
       cardExpires: string | null;
       email: string;
       invoices: SubscriptionInvoice[];
@@ -58,7 +60,7 @@ function planLabel(plan: string): string {
   return billingCopy.freeName;
 }
 
-function cardLabel(method: Stripe.PaymentMethod | string | null): { label: string; expires: string } | null {
+function cardLabel(method: Stripe.PaymentMethod | string | null): { label: string; brand: string; last4: string; expires: string } | null {
   if (!method || typeof method === "string" || !method.card) {
     return null;
   }
@@ -66,7 +68,12 @@ function cardLabel(method: Stripe.PaymentMethod | string | null): { label: strin
   const brand = method.card.brand;
   const name = brand.length > 0 ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Tarjeta";
   const month = String(method.card.exp_month).padStart(2, "0");
-  return { label: `${name} ···· ${method.card.last4}`, expires: `${month}/${method.card.exp_year}` };
+  return {
+    label: `${name} ···· ${method.card.last4}`,
+    brand: name,
+    last4: method.card.last4,
+    expires: `${month}/${method.card.exp_year}`,
+  };
 }
 
 function statusLabel(status: string): string {
@@ -145,6 +152,8 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
       whenLabel: renews,
       periodStart: started,
       card: card?.label ?? null,
+      cardBrand: card?.brand ?? null,
+      cardLast4: card?.last4 ?? null,
       cardExpires: card?.expires ?? null,
       email: billingEmail,
       invoices: listed.data.flatMap((invoice) => {

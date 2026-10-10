@@ -32,13 +32,18 @@ export function advisorNdaOutcome(input: {
   hiredByInvestor: boolean;
   ownsEngagement: boolean;
   alreadySigned: boolean;
-}): { ok: true; stamp: boolean } | { ok: false; code: "forbidden" | "missing" } {
+  depositPaid: boolean;
+}): { ok: true; stamp: boolean } | { ok: false; code: "forbidden" | "missing" | "deposit" } {
   if (!input.isAdvisor) {
     return { ok: false, code: "forbidden" };
   }
 
   if (!input.hiredByInvestor || !input.ownsEngagement) {
     return { ok: false, code: "missing" };
+  }
+
+  if (!input.depositPaid) {
+    return { ok: false, code: "deposit" };
   }
 
   return { ok: true, stamp: !input.alreadySigned };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Check } from "lucide-react";
 
 export function AppToast({
   message,
@@ -44,11 +45,16 @@ export function AppToast({
       role={tone === "ok" ? "status" : "alert"}
       className={
         tone === "ok"
-          ? "fixed bottom-6 left-1/2 z-[80] w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 rounded-2xl bg-[#1c2740] px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.7)]"
-          : "fixed bottom-6 left-1/2 z-[80] w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 rounded-2xl bg-[#7a1f1a] px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.7)]"
+          ? "fixed right-6 bottom-6 z-[80] flex w-[min(22rem,calc(100%-3rem))] items-start gap-3 rounded-2xl border border-[#b7e4c7] bg-[#e8f6ee] px-4 py-3 text-sm leading-6 text-[#17663a] shadow-[0_16px_40px_-24px_rgba(23,102,58,0.55)]"
+          : "fixed right-6 bottom-6 z-[80] flex w-[min(22rem,calc(100%-3rem))] items-start gap-3 rounded-2xl border border-[#f3c1bd] bg-[#fdecec] px-4 py-3 text-sm leading-6 text-[#7a1f1a] shadow-[0_16px_40px_-24px_rgba(122,31,26,0.45)]"
       }
     >
-      {message}
+      {tone === "ok" ? (
+        <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-[#17663a] text-white">
+          <Check className="size-3" aria-hidden />
+        </span>
+      ) : null}
+      <span>{message}</span>
     </p>,
     document.body,
   );

@@ -2,6 +2,7 @@ export const LIMITED_NET_CENTS = 2_000;
 export const UNLIMITED_NET_CENTS = 9_900;
 export const SELLER_LISTING_NET_CENTS = 14_900;
 export const ADVISOR_INBOX_NET_CENTS = 3_900;
+export const ADVISOR_DEPOSIT_FLAT_CENTS = 5_000;
 export const LIMITED_MATCHES = 3;
 
 export type BuyerPlanName = "none" | "limited" | "unlimited";
@@ -22,6 +23,14 @@ export function grossCents(netCents: number): number {
 
 export function planNetCents(plan: "limited" | "unlimited"): number {
   return plan === "limited" ? LIMITED_NET_CENTS : UNLIMITED_NET_CENTS;
+}
+
+export function advisorDepositCents(askingPriceCents: number): number {
+  if (!Number.isInteger(askingPriceCents) || askingPriceCents < 0) {
+    return ADVISOR_DEPOSIT_FLAT_CENTS;
+  }
+
+  return ADVISOR_DEPOSIT_FLAT_CENTS + Math.round(askingPriceCents / 2);
 }
 
 export type SuccessFeeAmounts = {

@@ -1,9 +1,36 @@
 "use client";
 
 import { useActionState, type ChangeEvent } from "react";
-import { acceptAdvisorNdaAction, closeEngagementAction } from "@/app/mandatos/encargos/actions";
+import { acceptAdvisorNdaAction, closeEngagementAction, startAdvisorDepositAction } from "@/app/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
+
+export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId: string; amountLabel: string }) {
+  const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
+
+  return (
+    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.depositTitle}</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
+      <p className="mt-4 text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
+      <form action={action} className="mt-4 flex flex-col items-start gap-2">
+        <input type="hidden" name="engagementId" value={engagementId} />
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+        >
+          {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
+        </button>
+        {state && !state.ok ? (
+          <p role="alert" className="text-sm text-red-700">
+            {state.message}
+          </p>
+        ) : null}
+      </form>
+    </section>
+  );
+}
 
 export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; text: string }) {
   const [state, action, pending] = useActionState(acceptAdvisorNdaAction, null);

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ADVISOR_INBOX_NET_CENTS,
   SELLER_LISTING_NET_CENTS,
+  ADVISOR_DEPOSIT_FLAT_CENTS,
+  advisorDepositCents,
   advisorPlatformFee,
   LIMITED_NET_CENTS,
   UNLIMITED_NET_CENTS,
@@ -24,6 +26,11 @@ describe("prices", () => {
     expect(grossCents(UNLIMITED_NET_CENTS)).toBe(11_979);
     expect(grossCents(SELLER_LISTING_NET_CENTS)).toBe(18_029);
     expect(grossCents(ADVISOR_INBOX_NET_CENTS)).toBe(4_719);
+  });
+
+  it("holds 50 euros plus half the asking price, with no IVA", () => {
+    expect(advisorDepositCents(1_200_000_00)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS + 600_000_00);
+    expect(advisorDepositCents(0)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS);
   });
 
   it("records 1 percent and 2.5 percent of the closed price, plus IVA", () => {

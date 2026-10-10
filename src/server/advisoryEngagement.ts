@@ -11,7 +11,9 @@ import {
   requestEngagementOutcome,
   type EngagementClientName,
 } from "@/lib/engagement";
-import { advisorPlatformFee } from "@/lib/billing";
+import { advisorDepositCents, advisorPlatformFee } from "@/lib/billing";
+import { cnaeSection } from "@/lib/cnae-section";
+import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { folderNameSchema, visibleFolderNames } from "@/lib/data-room";
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur } from "@/lib/money";
@@ -63,6 +65,13 @@ export type AdvisorEngagementPage = {
   ndaText: string | null;
   closed: boolean;
   feeLabel: string | null;
+  deposit: { paid: boolean; amountLabel: string };
+  preview: {
+    description: string;
+    facts: { label: string; value: string }[];
+    investor: { label: string; value: string }[];
+    showInvestor: boolean;
+  } | null;
 };
 
 function serviceLabel(ids: string[]): string {
@@ -282,8 +291,18 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       closedAt: true,
       platformNetCents: true,
       platformVatCents: true,
+      depositPaidAt: true,
       requesterId: true,
-      project: { select: { id: true, ...publicProjectSelect } },
+      project: {
+        select: {
+          id: true,
+          ...publicProjectSelect,
+          description: true,
+          foundedYear: true,
+          headcountRange: true,
+          cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
+        },
+      },
       folders: { select: { folder: true } },
       fileShares: { select: { file: { select: { id: true, folder: true, fileName: true } } } },
     },
@@ -291,6 +310,32 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
 
   if (!row) {
     return null;
+  }
+
+  const depositAmount = formatEur(advisorDepositCents(row.project.askingPriceCents));
+
+  if (row.depositPaidAt === null) {
+    return {
+      id: row.id,
+      codename: row.project.codename,
+      region: row.project.region,
+      figures: [],
+      clientLabel: clientLabel(row.client),
+      services: serviceLabel(row.services),
+      view: "public",
+      profile: null,
+      documents: [],
+      folders: [],
+      processOpened: false,
+      ndaText: null,
+      closed: false,
+      feeLabel: null,
+      deposit: { paid: false, amountLabel: depositAmount },
+      preview: {
+        ...(await blindPreview(row.client, row.requesterId, row.project)),
+        showInvestor: row.client === "investor",
+      },
+    };
   }
 
   const access =
@@ -371,23 +416,76 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       row.platformNetCents !== null && row.platformVatCents !== null
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
+    deposit: { paid: true, amountLabel: depositAmount },
+    preview: null,
+  };
+}
+
+async function blindPreview(
+  client: EngagementClientName,
+  requesterId: string,
+  project: {
+    description: string | null;
+    foundedYear: number | null;
+    headcountRange: string | null;
+    cnaes: { code: string }[];
+  },
+): Promise<{ description: string; facts: { label: string; value: string }[]; investor: { label: string; value: string }[] }> {
+  const sectorCode = project.cnaes[0]?.code ?? "";
+  const sector = sectorCode.length > 0 ? cnaeSection(sectorCode)?.label : undefined;
+  const workers = project.headcountRange && isHeadcountRange(project.headcountRange) ? headcountLabels[project.headcountRange] : "";
+  const facts: { label: string; value: string }[] = [];
+
+  if (sector) {
+    facts.push({ label: engagementCopy.depositSector, value: sector });
+  }
+
+  if (workers.length > 0) {
+    facts.push({ label: engagementCopy.depositWorkers, value: workers });
+  }
+
+  if (project.foundedYear) {
+    facts.push({ label: engagementCopy.depositYear, value: String(project.foundedYear) });
+  }
+  const profile =
+    client === "investor"
+      ? await prisma.investorProfile.findUnique({
+          where: { userId: requesterId },
+          select: { city: true, investorType: true, ticket: true, stake: true, sectors: true },
+        })
+      : null;
+  const investor = profile
+    ? [
+        { label: "Tipo", value: profile.investorType },
+        { label: "Ciudad", value: profile.city },
+        { label: "Ticket", value: profile.ticket },
+        { label: "Participación", value: profile.stake },
+        { label: "Sectores", value: profile.sectors },
+      ].filter((item) => item.value.trim().length > 0)
+    : [];
+
+  return {
+    description: project.description?.trim() ?? "",
+    facts,
+    investor,
   };
 }
 
 export async function acceptAdvisorNda(user: CurrentUser, id: string): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findFirst({
     where: { id, advisorId: user.id },
-    select: { id: true, client: true, advisorNdaAcceptedAt: true },
+    select: { id: true, client: true, advisorNdaAcceptedAt: true, depositPaidAt: true },
   });
   const outcome = advisorNdaOutcome({
     isAdvisor: user.onboarded && user.role === "advisor",
     hiredByInvestor: row?.client === "investor",
     ownsEngagement: row !== null,
     alreadySigned: row?.advisorNdaAcceptedAt !== null && row?.advisorNdaAcceptedAt !== undefined,
+    depositPaid: row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
   });
 
   if (!outcome.ok || !row) {
-    return { ok: false, message: outcome.ok ? engagementCopy.missing : engagementCopy.missing };
+    return { ok: false, message: outcome.ok ? engagementCopy.missing : outcome.code === "deposit" ? engagementCopy.depositRequired : engagementCopy.missing };
   }
 
   if (outcome.stamp) {
@@ -646,6 +744,7 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
     select: {
       client: true,
       requesterId: true,
+      depositPaidAt: true,
       advisorNdaAcceptedAt: true,
       folders: { select: { folder: true } },
       fileShares: { where: { fileId: file.id }, select: { id: true } },
@@ -653,6 +752,10 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
   });
 
   for (const row of rows) {
+    if (row.depositPaidAt === null) {
+      continue;
+    }
+
     if (row.client === "seller" && (row.folders.some((folder) => folder.folder === file.folder) || row.fileShares.length > 0)) {
       return true;
     }

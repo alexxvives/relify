@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { CreditCard } from "lucide-react";
 import {
   setSubscriptionCancelAction,
   startCardSetupAction,
@@ -36,7 +35,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
   const noticeTone = notice === billingCopy.cardSaved ? "ok" : "error";
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <AppToast message={notice} tone={noticeTone} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -116,15 +115,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.cardLabel}</h3>
-              <div className="mt-4 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,#8ea2ff_0%,#465ab4_42%,#1c2740_78%)] px-5 py-5 text-white">
-                <CreditCard className="size-6" aria-hidden />
-                <p className="mt-6 text-lg font-medium tracking-wide">{desk.card ?? billingCopy.cardMissing}</p>
-                {desk.cardExpires ? (
-                  <p className="mt-1 text-sm text-white/75">
-                    {billingCopy.cardExpires} {desk.cardExpires}
-                  </p>
-                ) : null}
-              </div>
+              <PaymentCard brand={desk.cardBrand} last4={desk.cardLast4} expires={desk.cardExpires} />
               <p className="mt-3 text-sm leading-6 text-[#5c6b78]">{billingCopy.cardNote}</p>
               <form action={cardAction} className="mt-4 flex flex-col items-start gap-2">
                 <button
@@ -208,6 +199,34 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
           </section>
         </>
       ) : null}
+    </div>
+  );
+}
+
+function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: string | null; expires: string | null }) {
+  const brandName = brand ?? "Tarjeta";
+  const ending = last4 ?? "••••";
+
+  return (
+    <div className="relative mt-4 aspect-[1.586/1] w-full max-w-[26rem] overflow-hidden rounded-[22px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-6 text-white shadow-[0_28px_50px_-28px_rgba(28,39,64,0.9)]">
+      <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-white/10" />
+      <div className="pointer-events-none absolute -bottom-24 -left-10 size-48 rounded-full bg-[#8ea2ff]/20" />
+      <div className="relative flex items-start justify-between">
+        <span className="relative block h-9 w-12 overflow-hidden rounded-[6px] bg-[linear-gradient(160deg,#f8ecc8_0%,#d4b56a_45%,#a6853d_100%)] shadow-[inset_0_0_0_1px_rgba(90,64,16,0.25)]">
+          <span className="absolute inset-x-1 top-2 h-px bg-[#8a7040]/70" />
+          <span className="absolute inset-x-1 top-4 h-px bg-[#8a7040]/50" />
+          <span className="absolute inset-y-1 left-4 w-px bg-[#8a7040]/50" />
+        </span>
+        <span className="text-lg tracking-wide italic">Releva</span>
+      </div>
+      <p className="relative mt-8 font-mono text-[1.35rem] tracking-[0.22em]">{`••••  ••••  ••••  ${ending}`}</p>
+      <div className="relative mt-6 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] tracking-[0.16em] text-white/60 uppercase">{billingCopy.cardExpires}</p>
+          <p className="mt-1 text-sm tabular-nums">{expires ?? "—"}</p>
+        </div>
+        <p className="text-lg font-semibold tracking-[0.12em] uppercase">{brandName}</p>
+      </div>
     </div>
   );
 }

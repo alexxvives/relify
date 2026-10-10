@@ -6,7 +6,7 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import { eurosToCents } from "@/lib/company-draft";
 import { acceptAdvisorNda, claimEngagement, closeEngagement, setAdvisorFolder, setAdvisorProcess } from "@/server/advisoryEngagement";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { startAdvisorInboxCheckout } from "@/server/startCheckout";
+import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/server/startCheckout";
 
 export type EngagementActionState = { ok: boolean; message: string } | null;
 
@@ -51,6 +51,21 @@ export async function startInboxCheckoutAction(
   void formData;
   const user = await signedIn();
   const result = await startAdvisorInboxCheckout(user);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  redirect(result.url);
+}
+
+export async function startAdvisorDepositAction(
+  state: EngagementActionState,
+  formData: FormData,
+): Promise<EngagementActionState> {
+  void state;
+  const user = await signedIn();
+  const result = await startAdvisorDepositCheckout(user, readText(formData, "engagementId"));
 
   if (!result.ok) {
     return result;

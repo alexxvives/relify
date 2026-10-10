@@ -31,11 +31,32 @@ describe("advisorCompanyView", () => {
 describe("advisorNdaOutcome", () => {
   it("stamps only the advisor hired by an investor", () => {
     expect(
-      advisorNdaOutcome({ isAdvisor: true, hiredByInvestor: true, ownsEngagement: true, alreadySigned: false }),
+      advisorNdaOutcome({
+        isAdvisor: true,
+        hiredByInvestor: true,
+        ownsEngagement: true,
+        alreadySigned: false,
+        depositPaid: true,
+      }),
     ).toEqual({ ok: true, stamp: true });
     expect(
-      advisorNdaOutcome({ isAdvisor: true, hiredByInvestor: false, ownsEngagement: true, alreadySigned: false }),
+      advisorNdaOutcome({
+        isAdvisor: true,
+        hiredByInvestor: false,
+        ownsEngagement: true,
+        alreadySigned: false,
+        depositPaid: true,
+      }),
     ).toEqual({ ok: false, code: "missing" });
+    expect(
+      advisorNdaOutcome({
+        isAdvisor: true,
+        hiredByInvestor: true,
+        ownsEngagement: true,
+        alreadySigned: false,
+        depositPaid: false,
+      }),
+    ).toEqual({ ok: false, code: "deposit" });
   });
 });
 

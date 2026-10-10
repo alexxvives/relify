@@ -1,5 +1,8 @@
+import { advisorDepositCents } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
+import { engagementCopy } from "@/lib/engagement-copy";
 import { prisma } from "@/server/db";
+import { recordNotification } from "@/server/recordNotification";
 import { stripeClient } from "@/server/stripe";
 import type Stripe from "stripe";
 
@@ -152,7 +155,57 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
     return { ok: true };
   }
 
+  if (session.mode === "payment" && session.payment_status === "paid" && session.metadata?.kind === "advisor_deposit") {
+    const engagementId = session.metadata.engagementId ?? "";
+
+    if (engagementId === "") {
+      return { ok: false, message: billingCopy.unpaid };
+    }
+
+    const applied = await applyAdvisorDeposit(userId, engagementId, session);
+
+    return applied ? { ok: true } : { ok: false, message: engagementCopy.depositFailed };
+  }
+
   return { ok: false, message: billingCopy.unpaid };
+}
+
+async function applyAdvisorDeposit(userId: string, engagementId: string, session: Stripe.Checkout.Session): Promise<boolean> {
+  const row = await prisma.advisoryEngagement.findFirst({
+    where: { id: engagementId, advisorId: userId },
+    select: {
+      id: true,
+      depositPaidAt: true,
+      requesterId: true,
+      client: true,
+      project: { select: { codename: true, askingPriceCents: true } },
+    },
+  });
+
+  if (!row || session.amount_total !== advisorDepositCents(row.project.askingPriceCents)) {
+    return false;
+  }
+
+  if (row.depositPaidAt) {
+    return true;
+  }
+
+  await prisma.advisoryEngagement.update({
+    where: { id: row.id },
+    data: {
+      depositPaidAt: new Date(),
+      depositCents: advisorDepositCents(row.project.askingPriceCents),
+      depositSessionId: session.id,
+    },
+  });
+  await recordNotification({
+    userId: row.requesterId,
+    title: "El asesor ha aceptado",
+    body: `El asesor ha aceptado tu solicitud para ${row.project.codename}.`,
+    href: row.client === "seller" ? "/mi-empresa/servicios" : "/asesoramiento",
+  });
+
+  return true;
 }
 
 export async function syncSubscription(subscription: Stripe.Subscription): Promise<void> {
