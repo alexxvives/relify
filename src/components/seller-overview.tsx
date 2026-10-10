@@ -7,6 +7,7 @@ import { NoticeList } from "@/components/notice-list";
 import { PublishSellerButton } from "@/components/publish-seller";
 import { FinanceCharts } from "@/components/seller-finance-charts";
 import { billingCopy } from "@/lib/billing-copy";
+import { companyCopy } from "@/lib/company-copy";
 import { formatCompactEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
 import { filledSellerPanels, type SellerFocusPanel, type SellerPanelFlags } from "@/lib/company-profile";
@@ -24,6 +25,8 @@ const panelSteps = [
   { key: "price", label: sellerCopy.panelPrice },
 ] as const;
 
+const photoHref = "/mi-empresa/detalles?seccion=price#fotos";
+
 const panelHref: Record<SellerFocusPanel, string> = {
   identity: "/mi-empresa/detalles?seccion=identity#panel-identity",
   description: "/mi-empresa/detalles?seccion=description#panel-description",
@@ -37,6 +40,7 @@ const panelHref: Record<SellerFocusPanel, string> = {
 export function SellerOverview({
   listing,
   payToPublish = false,
+  hasPhoto = false,
   interests,
   questions,
   meetings,
@@ -49,6 +53,7 @@ export function SellerOverview({
 }: {
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
+  hasPhoto?: boolean;
   interests: number;
   questions: number;
   meetings: number;
@@ -59,8 +64,8 @@ export function SellerOverview({
   costYears: SellerCostYear[];
   pending: HomePendingAction[];
 }) {
-  const filled = filledSellerPanels(panels);
-  const complete = filled === panelSteps.length;
+  const filled = filledSellerPanels(panels) + (hasPhoto ? 1 : 0);
+  const complete = filled === panelSteps.length + 1;
   const activity = [
     { label: sellerCopy.interests, value: interests },
     { label: sellerCopy.questions, value: questions },
@@ -155,7 +160,7 @@ export function SellerOverview({
             </h2>
             {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
             {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} /> : null}
-            <CompletionMeter filled={filled} total={panelSteps.length} label={sellerCopy.completedLabel} />
+            <CompletionMeter filled={filled} total={panelSteps.length + 1} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
               {panelSteps.map((item) => {
                 const done = panels[item.key];
@@ -184,6 +189,19 @@ export function SellerOverview({
                   </li>
                 );
               })}
+              <li className="border-t border-[#e6eaf5]">
+                {hasPhoto ? (
+                  <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740]">
+                    <span className="text-[#17663a]">{sellerCopy.panelPhoto}</span>
+                    <Check className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+                  </div>
+                ) : (
+                  <Link href={photoHref} className="flex items-center justify-between gap-3 bg-[#fff8db] px-3 py-3 text-sm text-[#1c2740]">
+                    <span>{sellerCopy.panelPhoto}</span>
+                    <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
+                  </Link>
+                )}
+              </li>
             </ul>
           </section>
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">

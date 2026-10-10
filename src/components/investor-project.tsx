@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CompanyBanner } from "@/components/company-banner";
@@ -25,10 +26,11 @@ import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
 
-function LockedNote({ text }: { text: string }) {
+function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
     <section className="rounded-2xl border border-[#e6e9f0] bg-white px-6 py-12 text-center">
       <p className="mx-auto max-w-lg text-sm leading-6 text-[#5c6b78]">{text}</p>
+      {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </section>
   );
 }
@@ -77,7 +79,7 @@ export function InvestorProject({
   };
   const figureAction =
     access === "none" ? (
-      <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} align="center" />
+      <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} align="center" />
     ) : access === "requested" ? (
       <Link
         href="/procesos"
@@ -116,7 +118,7 @@ export function InvestorProject({
         }
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
-        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} />
+        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />
       </CompanyBanner>
 
       {access === "accepted" && signedOffer ? (
@@ -138,9 +140,9 @@ export function InvestorProject({
             </div>
           ),
           questions: access === "requested" ? (
-            <LockedNote text={accessCopy.signOnProcesses} />
+            <LockedNote text={accessCopy.signOnProcesses} action={<ProcessLink />} />
           ) : locked ? (
-            <LockedNote text={companyCopy.threadLocked} />
+            <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />} />
           ) : (
             <section className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -169,7 +171,16 @@ export function InvestorProject({
             </section>
           ),
           meetings: locked ? (
-            <LockedNote text={companyCopy.threadLocked} />
+            <LockedNote
+              text={access === "requested" ? accessCopy.signOnProcesses : companyCopy.threadLocked}
+              action={
+                access === "requested" ? (
+                  <ProcessLink />
+                ) : (
+                  <LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />
+                )
+              }
+            />
           ) : (
             <MeetingDesk
               messages={messages}
@@ -190,6 +201,34 @@ export function InvestorProject({
   );
 }
 
+function ProcessLink() {
+  return (
+    <Link href="/procesos" className="inline-flex h-11 items-center rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white">
+      Ir a Mis procesos
+    </Link>
+  );
+}
+
+function LockedWriteAction({
+  slug,
+  access,
+  plan,
+  matchesLeft,
+  title,
+}: {
+  slug: string;
+  access: ProjectAccessView;
+  plan: BuyerPlanName;
+  matchesLeft: number | null;
+  title: string;
+}) {
+  if (access === "awaiting-seller") {
+    return <ProcessLink />;
+  }
+
+  return <ConnectControl slug={slug} status={access} plan={plan} matchesLeft={matchesLeft} title={title} />;
+}
+
 function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
   if (items.length === 0) {
     return null;
@@ -207,7 +246,7 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
           <li key={item.slug}>
             <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
               <Link href={`/proyectos/${item.slug}`} className="flex h-full flex-col">
-                <ProjectPhoto slug={item.slug} alt="" title={item.codename} place={item.region} />
+                <ProjectPhoto slug={item.slug} src={item.coverSrc} alt="" title={item.codename} place={item.region} />
                 <span className="flex flex-1 flex-col gap-4 p-5">
                   <MarketCardFigures
                     revenue={formatWholeEur(item.revenueCents)}

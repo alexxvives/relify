@@ -17,9 +17,9 @@ export function ProjectPhotoMark() {
 
 export function PhotoScrim({ title, place }: { title: string; place: string }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-[#0c1224]/85 via-[#0c1224]/45 to-transparent px-4 pt-16 pb-3">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-[#0c1224]/80 via-[#0c1224]/40 to-transparent px-14 pt-4 pb-16 text-center">
       <p className="text-base font-semibold tracking-tight text-white drop-shadow-sm">{title}</p>
-      <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/90">
+      <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-white/90">
         <MapPin className="size-3.5 shrink-0" aria-hidden />
         {place}
       </p>
@@ -33,19 +33,26 @@ export function ProjectPhoto({
   frameClassName = projectPhotoFrame,
   title,
   place,
+  src,
 }: {
   slug: string;
   alt: string;
   frameClassName?: string;
   title?: string;
   place?: string;
+  src?: string | null;
 }) {
-  const src = projectImageSrc(slug);
+  const image = src && src.length > 0 ? src : projectImageSrc(slug);
+  const uploaded = image?.includes("/portadas/") === true;
 
   return (
     <div className={frameClassName}>
-      {src ? (
-        <Image src={src} alt={alt} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" />
+      {uploaded && image ? (
+        // The cover is served by the app route, not a static file next/image can import.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={image} alt={alt} className="absolute inset-0 size-full object-cover" />
+      ) : image ? (
+        <Image src={image} alt={alt} fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" />
       ) : (
         <ProjectPhotoMark />
       )}

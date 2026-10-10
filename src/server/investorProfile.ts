@@ -116,7 +116,8 @@ export async function publicCardsByInvestor(
     const row = byId.get(person.id);
     const draft = row ? draftFromRow(row) : demoInvestorProfile(person.email);
     const card = draft ? publicCardFromDraft(draft) : null;
-    cards.set(person.id, card ? { ...card, photo: investorGazeAvatar(person.id) } : null);
+    const stored = card?.photo.trim() ?? "";
+    cards.set(person.id, card ? { ...card, photo: stored.length > 0 ? stored : investorGazeAvatar(person.id) } : null);
   }
 
   return cards;

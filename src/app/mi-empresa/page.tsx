@@ -3,6 +3,7 @@ import { CompanyNifForm } from "@/components/company-nif-form";
 import { SellerOverview } from "@/components/seller-overview";
 import { SignedInPage } from "@/components/signed-in-page";
 import { companyCopy } from "@/lib/company-copy";
+import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy, sellerGreeting } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
@@ -12,6 +13,7 @@ import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
+import { projectCoverIsStored } from "@/server/projectCover";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
 
@@ -59,6 +61,7 @@ export default async function CompanyPage({
       <SellerOverview
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
+        hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
         interests={interests}
         questions={questions}
         meetings={meetings}

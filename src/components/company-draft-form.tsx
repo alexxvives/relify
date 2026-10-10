@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Heart, ImagePlus, Map, MapPin, Pencil, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
-import { saveCompanyDraftAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
+import { saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
 import { AccountsUpload } from "@/components/accounts-upload";
 import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
@@ -663,12 +663,14 @@ export function CompanyDraftForm({
   focus = null,
   promptSetup = false,
   reviewPending = false,
+  coverSrc = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
   promptSetup?: boolean;
   reviewPending?: boolean;
+  coverSrc?: string | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -717,6 +719,9 @@ export function CompanyDraftForm({
     "releva:panel:structure",
     focus === "structure",
     focus === "structure",
+  );
+  const [listedPhoto, setListedPhoto] = useState(
+    () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
   const [openDeal, setOpenDeal] = usePanelOpen(
     "releva:panel:deal",
@@ -1467,7 +1472,7 @@ export function CompanyDraftForm({
         hint={dealNote}
         open={saveClosed === "deal" ? false : openDeal}
         dirty={dealDirty}
-        done={askingPrice.trim().length > 0}
+        done={askingPrice.trim().length > 0 && listedPhoto}
         onEdit={() => {
           setSaveClosed("");
           setOpenDeal(true);
@@ -1476,6 +1481,8 @@ export function CompanyDraftForm({
       >
         <PublicFicha
           codename={codename}
+          coverSrc={coverSrc}
+          onListed={setListedPhoto}
           onCodename={setCodename}
           region={region}
           revenue={salesFromAccounts ?? revenue}
@@ -1530,6 +1537,8 @@ const cardPhotoBytes = 8 * 1024 * 1024;
 
 function PublicFicha({
   codename,
+  coverSrc,
+  onListed,
   onCodename,
   region,
   revenue,
@@ -1539,6 +1548,8 @@ function PublicFicha({
   children,
 }: {
   codename: string;
+  coverSrc: string | null;
+  onListed: (listed: boolean) => void;
   onCodename: (value: string) => void;
   region: string;
   revenue: string;
@@ -1547,16 +1558,33 @@ function PublicFicha({
   askingPrice: string;
   children: ReactNode;
 }) {
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [active, setActive] = useState(0);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const imageSrc = projectImageSrc(projectSlug(codename));
-  const shown = photos[active] ?? imageSrc;
+  const shown = photos[active] ?? coverSrc ?? imageSrc;
+  const recommended = photos.length === 0 && !coverSrc && !imageSrc;
 
   function storePhotos(next: string[]) {
     setPhotos(next);
     setActive((current) => Math.min(current, Math.max(next.length - 1, 0)));
+    onListed(next.length > 0 || Boolean(coverSrc) || Boolean(imageSrc));
+  }
+
+  async function uploadCover(file: File) {
+    const body = new FormData();
+    body.set("cover", file);
+    const result = await saveProjectCoverAction(body);
+
+    if (!result.ok) {
+      setPhotoMessage(result.message);
+      return;
+    }
+
+    onListed(true);
+    router.refresh();
   }
 
   async function addPhotos(files: File[]) {
@@ -1594,6 +1622,12 @@ function PublicFicha({
       return;
     }
 
+    const first = accepted[0];
+
+    if (photos.length === 0 && first) {
+      void uploadCover(first);
+    }
+
     storePhotos([...photos, ...next].slice(0, cardPhotoLimit));
   }
 
@@ -1617,17 +1651,26 @@ function PublicFicha({
             className={fieldClassName}
           />
         </div>
-        <div className="flex flex-col gap-2">
+        <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
           <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
             {companyCopy.cardPhotos}
             <FieldHint text={companyCopy.cardPhotosHint} />
+            {recommended ? (
+              <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">
+                {companyCopy.cardPhotosRecommended}
+              </span>
+            ) : null}
           </span>
           <button
             type="button"
             onClick={() => {
               fileRef.current?.click();
             }}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
+            className={
+              recommended
+                ? "inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-[#e8b931] bg-[#fff8db] px-3 text-sm font-medium text-[#1c2740]"
+                : "inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
+            }
           >
             <ImagePlus className="size-4" aria-hidden />
             {companyCopy.cardPhotos}
@@ -1751,7 +1794,7 @@ function MarketPreview({
           <SampleListing />
           <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div className={projectPhotoFrame}>
-              {shown && shown.startsWith("data:") ? (
+              {shown && (shown.startsWith("data:") || shown.includes("/portadas/")) ? (
                 // User-chosen bytes stay in this preview. next/image does not accept a data URL.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={shown} alt="" className="absolute inset-0 size-full object-cover" />

@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useActionState, useState } from "react";
+import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
+import { useModalScrollLock } from "@/components/file-preview-dialog";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
 import {
@@ -42,18 +44,11 @@ export function AdvisoryPicker({
   today: string;
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
-  const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
-  const [tab, setTab] = useState<"general" | "market" | "contacts">("market");
+  const [tab, setTab] = useState<"market" | "contacts">("market");
   const [company, setCompany] = useState(initialCompany);
+  const [askOpen, setAskOpen] = useState(false);
   const cards = layout === "cards";
-  const general = tab === "general";
-
-  function toggle(id: AdvisoryServiceId) {
-    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
-  }
-
-  const needsCompany = companies.length === 0 || company.length === 0;
-  const hint = tab === "contacts" ? engagementCopy.contactsHint : general ? engagementCopy.generalHint : null;
+  const hint = tab === "contacts" ? engagementCopy.contactsHint : null;
 
   return (
     <div className="mt-6 flex flex-col gap-4">
@@ -61,7 +56,6 @@ export function AdvisoryPicker({
         {(
           [
             ["market", engagementCopy.marketTab],
-            ["general", engagementCopy.generalTab],
             ["contacts", engagementCopy.contactsTab],
           ] as const
         ).map(([id, label]) => (
@@ -86,83 +80,16 @@ export function AdvisoryPicker({
       {hint ? <p className="text-sm text-[#5c6b78]">{hint}</p> : null}
       {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} allowRemove /> : (
       <form action={action} className="flex flex-col gap-4">
-      {general
-        ? selected.map((id) => <input key={id} type="hidden" name="services" value={id} />)
-        : null}
-      {general && companies.length > 1 ? (
-        <label className="text-sm font-medium text-[#1c2740]">
-          {engagementCopy.pickCompany}
-          <select
-            name="projectSlug"
-            required
-            value={company}
-            onChange={(event) => {
-              setCompany(event.target.value);
-            }}
-            className="mt-1 h-11 w-full rounded-xl border border-[#d5dbe3] bg-white px-3"
-          >
-            <option value="">{engagementCopy.companyRequired}</option>
-            {companies.map((item) => (
-              <option key={item.slug} value={item.slug}>
-                {item.codename} · {item.region}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : general && companies.length === 0 ? (
-        <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p>
-      ) : general && company ? (
-        <input type="hidden" name="projectSlug" value={company} />
-      ) : null}
-      {general ? <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
-        {advisoryServices.map((service) => {
-          const style = serviceStyle[service.id];
-          const Icon = style.icon;
-          const active = selected.includes(service.id);
-          const frame = cards ? "flex h-full cursor-pointer flex-col rounded-2xl border p-5" : "flex cursor-pointer gap-4 rounded-2xl border p-4";
-          return (
-            <li key={service.id}>
-              <label className={active ? `${frame} border-transparent ${style.fill}` : `${frame} border-[#e7eaee] bg-white`}>
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={active}
-                  onChange={() => {
-                    toggle(service.id);
-                  }}
-                />
-                <span className={cards ? "flex items-start justify-between gap-3" : "contents"}>
-                  <span className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl ${style.wash}`}>
-                    <Icon className="size-5" aria-hidden />
-                  </span>
-                  <span
-                    className={
-                      active
-                        ? `inline-flex size-6 shrink-0 items-center justify-center rounded-full text-white ${style.mark}`
-                        : "inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-[#d5dbe3] bg-white"
-                    }
-                    aria-hidden
-                  >
-                    {active ? <Check className="size-3.5" /> : null}
-                  </span>
-                </span>
-                <span className={cards ? "mt-4" : undefined}>
-                  <span className="block text-base font-semibold text-[#1c2740]">{service.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-[#5c6b78]">{service.body}</span>
-                </span>
-              </label>
-            </li>
-          );
-        })}
-      </ul> : (
         <AdvisorMarket
           advisors={advisors}
           companies={companies}
           company={company}
           onCompany={setCompany}
           pending={pending}
+          onAsk={() => {
+            setAskOpen(true);
+          }}
         />
-      )}
       {state ? (
         <p
           role="status"
@@ -175,28 +102,18 @@ export function AdvisoryPicker({
           {state.message}
         </p>
       ) : null}
-      {general ? (
-      <div className={cards ? "mt-2 flex items-center justify-end gap-4" : "flex flex-wrap items-center justify-between gap-3"}>
-        <button
-          type="button"
-          onClick={() => {
-            setSelected([]);
-          }}
-          className="text-sm font-medium text-[#3d4a63] hover:text-[#465ab4]"
-        >
-          {advisoryCopy.clear}
-        </button>
-        <button
-          type="submit"
-          disabled={pending || needsCompany || selected.length === 0}
-          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
-        >
-          {pending ? advisoryCopy.pending : advisoryCopy.submit}
-        </button>
-      </div>
-      ) : null}
       </form>
       )}
+      {askOpen ? (
+        <ServiceAskDialog
+          companies={companies}
+          company={company}
+          cards={cards}
+          onClose={() => {
+            setAskOpen(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -217,12 +134,14 @@ function AdvisorMarket({
   company,
   onCompany,
   pending,
+  onAsk,
 }: {
   advisors: PublicAdvisorCard[];
   companies: { slug: string; codename: string; region: string }[];
   company: string;
   onCompany: (slug: string) => void;
   pending: boolean;
+  onAsk: () => void;
 }) {
   const [sector, setSector] = useState("");
   const [service, setService] = useState("");
@@ -296,7 +215,6 @@ function AdvisorMarket({
           </label>
         </div>
       </div>
-      {companies.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p> : null}
       {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
       <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(32rem,36rem))]">
@@ -306,6 +224,100 @@ function AdvisorMarket({
           </li>
         ))}
       </ul>
+      <button type="button" onClick={onAsk} className="w-fit text-sm font-medium text-[#465ab4] underline">
+        {engagementCopy.missingAsk}
+      </button>
     </section>
   );
+}
+
+function ServiceAskDialog({
+  companies,
+  company,
+  cards,
+  onClose,
+}: {
+  companies: { slug: string; codename: string; region: string }[];
+  company: string;
+  cards: boolean;
+  onClose: () => void;
+}) {
+  const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
+  const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
+  useModalScrollLock(true);
+
+  function toggle(id: AdvisoryServiceId) {
+    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  }
+
+  const dialog = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/50 p-4">
+      <form action={action} className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl">
+        <h2 className="text-xl font-semibold">{engagementCopy.missingAsk}</h2>
+        <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{engagementCopy.missingAskBody}</p>
+        {companies.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p> : null}
+        {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
+        {selected.map((id) => (
+          <input key={id} type="hidden" name="services" value={id} />
+        ))}
+        <ul className={cards ? "mt-5 grid gap-4 md:grid-cols-2" : "mt-5 grid gap-3"}>
+          {advisoryServices.map((service) => {
+            const style = serviceStyle[service.id];
+            const Icon = style.icon;
+            const active = selected.includes(service.id);
+            return (
+              <li key={service.id}>
+                <label className={active ? `flex cursor-pointer gap-4 rounded-2xl border border-transparent p-4 ${style.fill}` : "flex cursor-pointer gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4"}>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={active}
+                    onChange={() => {
+                      toggle(service.id);
+                    }}
+                  />
+                  <span className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl ${style.wash}`}>
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <span>
+                    <span className="block text-base font-semibold">{service.title}</span>
+                    <span className="mt-1 block text-sm leading-6 text-[#5c6b78]">{service.body}</span>
+                  </span>
+                  <span
+                    className={
+                      active
+                        ? `ml-auto inline-flex size-6 shrink-0 items-center justify-center rounded-full text-white ${style.mark}`
+                        : "ml-auto inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-[#d5dbe3] bg-white"
+                    }
+                    aria-hidden
+                  >
+                    {active ? <Check className="size-3.5" /> : null}
+                  </span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+        {state ? (
+          <p role="status" className={state.ok ? "mt-4 text-sm text-[#17663a]" : "mt-4 text-sm text-red-700"}>
+            {state.message}
+          </p>
+        ) : null}
+        <div className="mt-5 flex items-center justify-end gap-3">
+          <button type="button" onClick={onClose} className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]">
+            {engagementCopy.closeAdvisor}
+          </button>
+          <button
+            type="submit"
+            disabled={pending || companies.length === 0 || company.length === 0 || selected.length === 0 || state?.ok === true}
+            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white disabled:bg-[#e6e8f6] disabled:text-[#9aa3c7]"
+          >
+            {pending ? advisoryCopy.pending : advisoryCopy.submit}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+
+  return createPortal(dialog, document.body);
 }

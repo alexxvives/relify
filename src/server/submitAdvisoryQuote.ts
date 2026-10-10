@@ -57,7 +57,7 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
       await recordNotification({
         userId: admin.id,
         title: advisoryCopy.adminNoticeTitle,
-        body: `${project.codename}: ${names}. ${advisoryCopy.adminNoticeBody}`,
+        body: `${project.codename}: ${names}. ${user.email}. ${advisoryCopy.adminNoticeBody}`,
         href: "/admin",
       });
     }

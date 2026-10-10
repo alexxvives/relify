@@ -364,13 +364,13 @@ function FileDelete({ id }: { id: string }) {
     return (
       <button
         type="button"
-        aria-label={sellerCopy.documentDelete}
         onClick={() => {
           setConfirming(true);
         }}
-        className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#fff1f1] hover:text-red-700"
+        className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-[#8b95a7] shadow-sm hover:text-red-700"
       >
-        <Trash2Icon size={16} aria-hidden />
+        <Trash2Icon size={14} aria-hidden />
+        {sellerCopy.documentRemove}
       </button>
     );
   }
@@ -554,13 +554,13 @@ function FileCard({
               ) : null}
               <button
                 type="button"
-                aria-label={sellerCopy.folderRename}
                 onClick={() => {
                   setEditing(true);
                 }}
-                className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
+                className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-[#465ab4] shadow-sm"
               >
-                <SquarePenIcon size={16} aria-hidden />
+                <SquarePenIcon size={14} aria-hidden />
+                {sellerCopy.documentEdit}
               </button>
               <FileDelete id={file.id} />
             </div>
@@ -686,17 +686,7 @@ export function SellerDocuments({
               <ChevronLeft className="size-4" aria-hidden />
               {folder}
             </button>
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
-              <ShareMenu
-                scope={{ kind: "folder", folder }}
-                investors={shares}
-                advisors={advisors}
-                files={listed}
-                folders={folders}
-                label={sellerCopy.shareFolder}
-              />
-            </div>
+            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
           </div>
           <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             <li>

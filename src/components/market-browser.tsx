@@ -168,6 +168,7 @@ export function MarketBrowser({
                 <Link href={`/proyectos/${project.slug}`} className="flex h-full flex-col">
                   <ProjectPhoto
                     slug={project.slug}
+                    src={project.coverSrc}
                     alt={`Ilustración de ${project.codename}`}
                     title={project.codename}
                     place={project.region}

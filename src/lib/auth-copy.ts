@@ -112,6 +112,7 @@ export const authCopy = {
   passwordWrong: "La contraseña actual no es correcta.",
   sessionStale: "Vuelve a entrar para cambiar la contraseña.",
   accountPasswordTitle: "Contraseña",
+  passwordSave: "Guardar contraseña",
   accountPasswordIntro: "Escribe la contraseña actual y elige una nueva de al menos 8 caracteres.",
   deleteTitle: "Eliminar cuenta",
   deleteBody: "Se borra la cuenta, la sesión y los datos ligados a ella. Esta acción no se puede deshacer.",

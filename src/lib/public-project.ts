@@ -23,6 +23,7 @@ export type PublicProjectCard = {
   ebitdaCents: number;
   adjustedEbitdaCents: number;
   askingPriceCents: number;
+  coverSrc?: string | null;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

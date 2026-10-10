@@ -67,7 +67,6 @@ export function DealPipeline({
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
   const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
   const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
-  const hideWaiting = hideWaitingCue && !cue.yours && !canAccept;
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
   return (
@@ -115,7 +114,7 @@ export function DealPipeline({
       </div>
       {showDiligence && diligence ? (
         <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} hideWaitingCue={hideWaitingCue} />
-      ) : parkCue || parkYourTurn || hideQa || hideWaiting ? null : (
+      ) : parkCue || parkYourTurn || hideQa ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
@@ -197,6 +196,19 @@ function TurnCue({
     );
   }
 
+  if (center) {
+    return (
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-center">
+        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+          Qué sigue
+        </span>
+        <p className={onDark ? "text-sm leading-5 text-white" : "text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
+        {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
+        {canSign ? <SignNow onSign={onSign} /> : null}
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 flex items-start justify-between gap-3">
       {onDark ? (
@@ -204,7 +216,7 @@ function TurnCue({
           <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
             Qué sigue
           </span>
-          <p className="pt-0.5 text-sm leading-5 text-white/85">{cue.action}</p>
+          <p className="pt-0.5 text-sm leading-5 text-white">{cue.action}</p>
         </div>
       ) : (
         <DealWaitingCue cue={cue} className="min-w-0 flex-1" />

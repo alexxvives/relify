@@ -17,9 +17,10 @@ import {
 } from "@/lib/company-draft";
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { writeProjectCover } from "@/server/projectCover";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
-import { addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
+import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -217,6 +218,29 @@ export async function addSellerCompanyAction(
 
   refreshSellerPages();
   redirect("/mi-empresa/detalles");
+}
+
+export async function saveProjectCoverAction(
+  formData: FormData,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const user = await sellerUser();
+  const projectId = await activeSellerProjectId(user.id);
+  const file = formData.get("cover");
+
+  if (!projectId || !(file instanceof File)) {
+    return { ok: false, message: companyCopy.cardPhotosType };
+  }
+
+  const saved = await writeProjectCover(projectId, file.type, new Uint8Array(await file.arrayBuffer()));
+
+  if (!saved) {
+    return { ok: false, message: file.size > 8 * 1024 * 1024 ? companyCopy.cardPhotosLarge : companyCopy.cardPhotosType };
+  }
+
+  refreshSellerPages();
+  revalidatePath("/mercado");
+  revalidatePath("/proyectos");
+  return { ok: true };
 }
 
 export async function deleteSellerCompanyAction(formData: FormData): Promise<void> {

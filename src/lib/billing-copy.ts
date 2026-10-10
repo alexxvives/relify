@@ -20,7 +20,7 @@ export const billingCopy = {
   manage: "Gestionar suscripción",
   stripeMissing: "Falta la clave de Stripe de Releva para este modo. Añádela en el servidor y vuelve a intentarlo.",
   stripeFailed: "No se ha podido abrir el pago.",
-  paid: "El pago queda registrado.",
+  paid: "Pago recibido. Tu plan ya está activo.",
   unpaid: "El pago no se ha completado.",
   seePlans: "Ver planes",
   planRequired: "Elige un plan para conectar con empresas.",

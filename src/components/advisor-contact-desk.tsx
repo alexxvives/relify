@@ -14,6 +14,7 @@ import { ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
+import { SellerTabs } from "@/components/seller-tabs";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -74,6 +75,72 @@ function ContactDelete({ id }: { id: string }) {
   );
 }
 
+const contactTabs = [
+  { id: "chat", label: engagementCopy.threadTitle },
+  { id: "meetings", label: sellerCopy.meetingsHeading },
+] as const;
+
+function ContactPanels({
+  contact,
+  today,
+  showDocuments,
+}: {
+  contact: AdvisorContactView;
+  today: string;
+  showDocuments: boolean;
+}) {
+  const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
+
+  return (
+    <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
+      <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} />
+      {tab === "chat" ? (
+        <div className={showDocuments ? "grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid"}>
+          <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
+            <div className="flex flex-1 flex-col">
+              <ProjectThread
+                viewer={contact.viewer}
+                partyName={contact.partyName}
+                messages={contact.messages.filter((message) => message.kind === "question")}
+                action={postEngagementMessageAction}
+                hidden={[
+                  { name: "engagementId", value: contact.id },
+                  { name: "kind", value: "question" },
+                ]}
+                placeholder={contact.placeholder}
+                submitLabel={sellerCopy.chatSend}
+                pendingLabel={sellerCopy.replying}
+                savedLabel={sellerCopy.replySaved}
+                invalidFallback={sellerCopy.replyInvalid}
+              />
+            </div>
+          </section>
+          {showDocuments ? (
+            <ProcessRoom
+              files={contact.documents}
+              bodies={contact.messages.map((message) => message.body)}
+              nda={false}
+              empty={engagementCopy.contactDocumentsEmpty}
+            />
+          ) : null}
+        </div>
+      ) : (
+        <MeetingDesk
+          messages={contact.messages}
+          action={postEngagementMessageAction}
+          approveAction={approveEngagementMeetingAction}
+          rescheduleAction={rescheduleEngagementMeetingAction}
+          today={today}
+          hidden={[
+            { name: "engagementId", value: contact.id },
+            { name: "kind", value: "meeting" },
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
 export function AdvisorContactDesk({
   contacts,
   today,
@@ -121,51 +188,7 @@ export function AdvisorContactDesk({
               </button>
               {allowRemove ? <ContactDelete id={contact.id} /> : null}
             </div>
-            {open ? (
-              <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
-                <div className={showDocuments ? "grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid"}>
-                  <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
-                    <h3 className="text-sm font-semibold text-[#1c2740]">{engagementCopy.threadTitle}</h3>
-                    <div className="mt-4 flex flex-1 flex-col">
-                      <ProjectThread
-                        viewer={contact.viewer}
-                        partyName={contact.partyName}
-                        messages={contact.messages.filter((message) => message.kind === "question")}
-                        action={postEngagementMessageAction}
-                        hidden={[
-                          { name: "engagementId", value: contact.id },
-                          { name: "kind", value: "question" },
-                        ]}
-                        placeholder={contact.placeholder}
-                        submitLabel={sellerCopy.chatSend}
-                        pendingLabel={sellerCopy.replying}
-                        savedLabel={sellerCopy.replySaved}
-                        invalidFallback={sellerCopy.replyInvalid}
-                      />
-                    </div>
-                  </section>
-                  {showDocuments ? (
-                    <ProcessRoom
-                      files={contact.documents}
-                      bodies={contact.messages.map((message) => message.body)}
-                      nda={false}
-                      empty={engagementCopy.contactDocumentsEmpty}
-                    />
-                  ) : null}
-                </div>
-                <MeetingDesk
-                  messages={contact.messages}
-                  action={postEngagementMessageAction}
-                  approveAction={approveEngagementMeetingAction}
-                  rescheduleAction={rescheduleEngagementMeetingAction}
-                  today={today}
-                  hidden={[
-                    { name: "engagementId", value: contact.id },
-                    { name: "kind", value: "meeting" },
-                  ]}
-                />
-              </div>
-            ) : null}
+            {open ? <ContactPanels contact={contact} today={today} showDocuments={showDocuments} /> : null}
           </section>
         );
       })}

@@ -10,6 +10,7 @@ export function SellerCompanyPanel({
   focus = null,
   promptSetup = false,
   reviewPending = false,
+  coverSrc = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -17,6 +18,7 @@ export function SellerCompanyPanel({
   focus?: SellerFocusPanel | null;
   promptSetup?: boolean;
   reviewPending?: boolean;
+  coverSrc?: string | null;
 }) {
   return (
     <>
@@ -30,6 +32,7 @@ export function SellerCompanyPanel({
         focus={focus}
         promptSetup={promptSetup}
         reviewPending={reviewPending}
+        coverSrc={coverSrc}
       />
     </>
   );

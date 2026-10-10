@@ -2,9 +2,11 @@
 
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { Link2 } from "lucide-react";
 import { AgreementSheet } from "@/components/agreement-sheet";
 import { SignBubble } from "@/components/deal-pipeline";
+import { useModalScrollLock } from "@/components/file-preview-dialog";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy, connectConfirm } from "@/lib/access-copy";
 import { billingCopy } from "@/lib/billing-copy";
@@ -26,17 +28,59 @@ function AccessError({ state }: { state: ProjectAccessActionState }) {
   );
 }
 
+function ConnectConfirm({
+  slug,
+  title,
+  matchesLeft,
+  onClose,
+}: {
+  slug: string;
+  title: string;
+  matchesLeft: number;
+  onClose: () => void;
+}) {
+  const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
+  useModalScrollLock(true);
+
+  if (requestState?.ok === true) {
+    return null;
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/55 p-4">
+      <form action={requestAction} className="w-full max-w-sm rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl">
+        <input type="hidden" name="slug" value={slug} />
+        {title.length > 0 ? <p className="text-lg font-semibold">{title}</p> : null}
+        <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{connectConfirm(matchesLeft)}</p>
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button type="button" onClick={onClose} className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]">
+            {accessCopy.connectCancel}
+          </button>
+          <button type="submit" className={buttonClassName} disabled={requestPending}>
+            <Link2 className="size-4" aria-hidden />
+            {accessCopy.connectYes}
+          </button>
+        </div>
+        <AccessError state={requestState} />
+      </form>
+    </div>,
+    document.body,
+  );
+}
+
 export function ConnectControl({
   slug,
   status,
   plan,
   matchesLeft,
+  title = "",
   align = "end",
 }: {
   slug: string;
   status: ProjectAccessView;
   plan: BuyerPlanName;
   matchesLeft: number | null;
+  title?: string;
   align?: "end" | "center";
 }) {
   const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
@@ -62,42 +106,33 @@ export function ConnectControl({
     return <p className="max-w-xs text-sm text-[#5c6b78]">{accessCopy.matchLimit}</p>;
   }
 
-  if (plan === "limited" && !confirming) {
+  if (plan === "limited") {
     return (
-      <button
-        type="button"
-        className={buttonClassName}
-        onClick={() => {
-          setConfirming(true);
-        }}
-      >
-        <Link2 className="size-4" aria-hidden />
-        {accessCopy.connect}
-      </button>
+      <>
+        <button
+          type="button"
+          className={buttonClassName}
+          onClick={() => {
+            setConfirming(true);
+          }}
+        >
+          <Link2 className="size-4" aria-hidden />
+          {accessCopy.connect}
+        </button>
+        {confirming ? (
+          <ConnectConfirm slug={slug} title={title} matchesLeft={matchesLeft ?? 0} onClose={() => setConfirming(false)} />
+        ) : null}
+      </>
     );
   }
 
   return (
     <form action={requestAction} className={stack}>
       <input type="hidden" name="slug" value={slug} />
-      {plan === "limited" ? <p className="max-w-xs text-sm text-[#1c2740]">{connectConfirm(matchesLeft ?? 0)}</p> : null}
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <button type="submit" className={buttonClassName} disabled={requestPending}>
-          <Link2 className="size-4" aria-hidden />
-          {plan === "limited" ? accessCopy.connectYes : accessCopy.connect}
-        </button>
-        {plan === "limited" ? (
-          <button
-            type="button"
-            className="inline-flex h-11 items-center justify-center rounded-xl px-3 text-sm font-medium text-[#5c6b78]"
-            onClick={() => {
-              setConfirming(false);
-            }}
-          >
-            {accessCopy.connectCancel}
-          </button>
-        ) : null}
-      </div>
+      <button type="submit" className={buttonClassName} disabled={requestPending}>
+        <Link2 className="size-4" aria-hidden />
+        {accessCopy.connect}
+      </button>
       <AccessError state={requestState} />
     </form>
   );

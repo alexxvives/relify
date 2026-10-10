@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, User } from "lucide-react";
 import { saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
 import { FieldHint } from "@/components/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
+import { cnaeSectionLabels } from "@/lib/cnae-section";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
 import { investorStakes, investorTicketBands } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
@@ -72,14 +73,17 @@ export function InvestorProfile({
   const [investorType, setInvestorType] = useState(draft.investorType);
   const [ticket, setTicket] = useState(draft.ticket);
   const [sectors, setSectors] = useState(draft.sectors);
+  const [photo, setPhoto] = useState(draft.photo);
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const [thesis, setThesis] = useState(draft.thesis);
   const [contribution, setContribution] = useState(draft.contribution);
   const [stake, setStake] = useState(draft.stake);
   const [state, action, pending] = useActionState(saveInvestorProfileAction, null);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
+  const shownPhoto = photo.length > 0 ? photo : avatarUrl;
   const drafted = publicCardFromDraft({
-    photo: avatarUrl,
+    photo,
     city,
     province,
     investorType,
@@ -89,7 +93,7 @@ export function InvestorProfile({
     contribution,
     stake,
   });
-  const preview = drafted ? { ...drafted, photo: avatarUrl } : null;
+  const preview = drafted ? { ...drafted, photo: shownPhoto } : null;
 
   const professional = publicOnly ? null : (
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -159,7 +163,7 @@ export function InvestorProfile({
         </div>
         <div className="mt-5 grid items-start gap-6 lg:grid-cols-4">
         <div className="lg:col-span-3">
-        <input type="hidden" name="photo" value={draft.photo} />
+        <input type="hidden" name="photo" value={photo} />
         <div id="lugar" className="grid scroll-mt-8 gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm">
             {investorCopy.cityLabel}
@@ -193,10 +197,10 @@ export function InvestorProfile({
           </div>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <label id="busqueda" className="flex scroll-mt-8 flex-col gap-2 text-sm">
+          <div id="busqueda" className="flex scroll-mt-8 flex-col gap-2 text-sm">
             {investorCopy.sectorsLabel}
-            <input name="sectors" value={sectors} onChange={(event) => setSectors(event.target.value)} className={fieldClass} />
-          </label>
+            <SectorField value={sectors} onChange={setSectors} />
+          </div>
           <div className="flex flex-col gap-2 text-sm">
             {investorCopy.stakeLabel}
             <OptionSelect
@@ -234,12 +238,189 @@ export function InvestorProfile({
           {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
         </div>
         </div>
-        <div className="lg:col-span-1">
+        <div id="foto" className="scroll-mt-24 lg:col-span-1">
           <p className="mb-3 text-sm text-[#64748b]">{investorCopy.cardPreview}</p>
+          <label className="mb-3 inline-flex h-10 cursor-pointer items-center rounded-full border border-[#e7eaee] bg-white px-4 text-sm font-medium text-[#1c2740]">
+            {investorCopy.photoChange}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+
+                if (!file) {
+                  return;
+                }
+
+                readInvestorPhoto(
+                  file,
+                  (next) => {
+                    setPhoto(next);
+                    setPhotoMessage(null);
+                  },
+                  () => {
+                    setPhotoMessage(investorCopy.photoHeavy);
+                  },
+                );
+              }}
+            />
+          </label>
+          {photoMessage ? <p className="mb-3 text-sm text-[#c0362c]">{photoMessage}</p> : null}
           <InvestorPublicCard label={investorCopy.cardPreviewName} profile={preview} />
         </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+function readInvestorPhoto(file: File, onReady: (value: string) => void, onHeavy: () => void) {
+  if (!file.type.startsWith("image/") || file.size > 100_000) {
+    onHeavy();
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const value = typeof reader.result === "string" ? reader.result : "";
+
+    if (value.length === 0 || value.length > 180_000) {
+      onHeavy();
+      return;
+    }
+
+    onReady(value);
+  };
+  reader.readAsDataURL(file);
+}
+
+function sectorChips(value: string): string[] {
+  return value
+    .split(" · ")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function SectorField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const chips = sectorChips(value);
+  const [query, setQuery] = useState("");
+  const [custom, setCustom] = useState("");
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const needle = query.trim().toLocaleLowerCase("es-ES");
+  const choices = cnaeSectionLabels.filter(
+    (label) => !chips.includes(label) && label.toLocaleLowerCase("es-ES").includes(needle),
+  );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function close(event: MouseEvent) {
+      if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+    };
+  }, [open]);
+
+  function write(next: string[]) {
+    const joined = next.join(" · ");
+
+    if (joined.length <= 160) {
+      onChange(joined);
+    }
+  }
+
+  function addCustom() {
+    const next = custom.trim();
+
+    if (next.length === 0 || chips.includes(next)) {
+      setCustom("");
+      return;
+    }
+
+    write([...chips, next]);
+    setCustom("");
+  }
+
+  return (
+    <div ref={rootRef} className="flex flex-col gap-2">
+      <input type="hidden" name="sectors" value={value} />
+      {chips.length > 0 ? (
+        <ul className="flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <li key={chip}>
+              <button
+                type="button"
+                onClick={() => {
+                  write(chips.filter((item) => item !== chip));
+                }}
+                className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm text-[#1c2740]"
+              >
+                {chip} ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <input
+        value={query}
+        placeholder={investorCopy.sectorsSearch}
+        onFocus={() => {
+          setOpen(true);
+        }}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          setOpen(true);
+        }}
+        className={fieldClass}
+      />
+      {open ? (
+        <ul className="max-h-48 overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1">
+          {choices.map((label) => (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => {
+                  write([...chips, label]);
+                  setQuery("");
+                  setOpen(false);
+                }}
+                className="flex h-10 w-full items-center px-3 text-left text-sm hover:bg-[#f4f7ff]"
+              >
+                {label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="flex gap-2">
+        <input
+          value={custom}
+          placeholder={investorCopy.sectorsCustom}
+          onChange={(event) => {
+            setCustom(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addCustom();
+            }
+          }}
+          className={fieldClass}
+        />
+        <button type="button" onClick={addCustom} className="inline-flex h-11 shrink-0 items-center rounded-full border border-[#e7eaee] px-3 text-sm">
+          {investorCopy.sectorsAdd}
+        </button>
+      </div>
     </div>
   );
 }

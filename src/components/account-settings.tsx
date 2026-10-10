@@ -185,7 +185,7 @@ export function AccountSettings({
             disabled={passwordPending}
             className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
           >
-            {passwordPending ? authCopy.onboardingPending : authCopy.accountPasswordTitle}
+            {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </button>
           {passwordState ? (
             <p

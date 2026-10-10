@@ -20,7 +20,11 @@ export default async function InvestorProcessesPage() {
   return (
     <SignedInPage title={investorCopy.processesTitle}>
       {desk.processes.length === 0 ? (
-        <WorkspaceNote title={investorCopy.processesEmpty} body={investorCopy.processesEmptyBody} />
+        <WorkspaceNote
+          title={investorCopy.processesEmpty}
+          body={investorCopy.processesEmptyBody}
+          action={{ href: "/mercado", label: investorCopy.processesCta }}
+        />
       ) : (
         <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} />
       )}

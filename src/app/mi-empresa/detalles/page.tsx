@@ -5,8 +5,10 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
+import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
+import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified, getSellerCif, sellerHasRegistryPrefill } from "@/server/verifyCompanyNif";
 
 export const metadata: Metadata = {
@@ -28,12 +30,15 @@ export default async function CompanyDetailsPage({
     redirect("/mi-empresa");
   }
 
-  const [draft, cif, registryFilled, listing] = await Promise.all([
+  const [draft, cif, registryFilled, listing, projectId] = await Promise.all([
     getCompanyDraft(user),
     getSellerCif(user),
     sellerHasRegistryPrefill(user),
     getSellerListing(user.id),
+    activeSellerProjectId(user.id),
   ]);
+  const coverVersion = projectId && projectCoverIsStored(projectId) ? projectCoverVersion(projectId) : null;
+  const coverSrc = listing && coverVersion ? projectCoverHref(listing.slug, coverVersion) : null;
 
   return (
     <SignedInPage title={sellerCopy.detailsTitle} showTitle={false}>
@@ -44,6 +49,7 @@ export default async function CompanyDetailsPage({
         focus={focus}
         promptSetup={query.alta === "1"}
         reviewPending={listing?.status === "pending"}
+        coverSrc={coverSrc}
       />
     </SignedInPage>
   );

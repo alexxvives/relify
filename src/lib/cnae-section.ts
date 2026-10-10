@@ -41,6 +41,8 @@ export type IndustrySector = {
   companies?: SectorCompany[];
 };
 
+export const cnaeSectionLabels = sections.map((section) => section.label);
+
 export function cnaeSection(code: string): CnaeSection | null {
   const division = Number(code.slice(0, 2));
 
