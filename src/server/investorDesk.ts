@@ -17,6 +17,7 @@ export type InvestorProcessCard = {
   stage: string;
   open: boolean;
   nda: boolean;
+  sellerAccepted: boolean;
   steps: DealStep[];
   messages: ThreadMessageView[];
   documents: ProcessFile[];
@@ -139,6 +140,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       stage: stage.stage,
       open: stage.open,
       nda: access.ndaAcceptedAt !== null,
+      sellerAccepted: access.sellerAcceptedAt !== null,
       steps: dealPipeline(
         "investor",
         processFlags({

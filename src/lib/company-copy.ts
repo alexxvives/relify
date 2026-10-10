@@ -160,6 +160,8 @@ export const companyCopy = {
   offerLocked: "Conecta con la empresa y acepta el NDA antes de preparar una oferta.",
   threadLocked: "Conecta con la empresa y acepta el NDA antes de escribir.",
   threadLockedCta: "Conectar con la empresa",
+  threadWaiting: "El vendedor todavía no ha aceptado la solicitud.",
+  threadSignNda: "Firma el acuerdo de confidencialidad para escribir.",
   questionPrompt: "Escribe un mensaje",
   attachFile: "Adjuntar archivo",
   attachImage: "Adjuntar imagen",

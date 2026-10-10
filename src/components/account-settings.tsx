@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/cuenta/actions";
+import { AppToast } from "@/components/app-toast";
 import { PhoneField } from "@/components/phone-field";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
@@ -157,8 +158,9 @@ export function AccountSettings({
             </label>
           </div>
           </div>
-          {profileState ? (
-            <p role={profileState.saved ? "status" : "alert"} className={profileState.saved ? "text-sm text-[#17663a]" : "text-sm text-[#c0362c]"}>
+          <AppToast message={profileState?.saved ? profileState.message : null} />
+          {profileState && !profileState.saved ? (
+            <p role="alert" className="text-sm text-[#c0362c]">
               {profileState.message}
             </p>
           ) : null}
@@ -192,11 +194,9 @@ export function AccountSettings({
           >
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </button>
-          {passwordState ? (
-            <p
-              role={passwordState.saved ? "status" : "alert"}
-              className={passwordState.saved ? "text-sm text-[#17663a] lg:col-span-4" : "text-sm text-[#c0362c] lg:col-span-4"}
-            >
+          <AppToast message={passwordState?.saved ? passwordState.message : null} />
+          {passwordState && !passwordState.saved ? (
+            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-4">
               {passwordState.message}
             </p>
           ) : null}

@@ -112,10 +112,11 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
       }
 
       const top = rect.bottom + 8;
+      const room = Math.max(160, window.innerHeight - top - margin);
       currentPanel.style.top = `${top}px`;
       currentPanel.style.left = `${left}px`;
       currentPanel.style.width = `${width}px`;
-      currentPanel.style.maxHeight = `${Math.max(160, window.innerHeight - top - margin)}px`;
+      currentPanel.style.maxHeight = `${Math.round(room / 2)}px`;
     }
 
     place();
@@ -169,7 +170,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         <div
           ref={panelRef}
           className="fixed z-[60] flex w-[min(36rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public"
-          style={{ top: 0, left: 12, width: "min(36rem, calc(100vw - 1.5rem))", maxHeight: "calc(100vh - 1.5rem)" }}
+          style={{ top: 0, left: 12, width: "min(36rem, calc(100vw - 1.5rem))", maxHeight: "50vh" }}
         >
           <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
             <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>

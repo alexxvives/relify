@@ -40,12 +40,9 @@ function ProcessConversation({ item, today }: { item: InvestorProcessCard; today
         onChange={setTab}
       />
       {item.nda ? null : (
-        <div className="flex flex-col items-start gap-3">
-          <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.threadLocked}</p>
-          <Link href={`/proyectos/${item.slug}`} className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
-            {companyCopy.threadLockedCta}
-          </Link>
-        </div>
+        <p className="text-sm leading-6 text-[#5c6b78]">
+          {item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting}
+        </p>
       )}
       {tab === "chat" && item.nda ? (
         <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

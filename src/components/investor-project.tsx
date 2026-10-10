@@ -14,7 +14,6 @@ import { LoiCard } from "@/components/loi-card";
 import { ConnectControl } from "@/components/project-access-panel";
 import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
-import { accessCopy } from "@/lib/access-copy";
 import { companyCopy } from "@/lib/company-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
@@ -139,8 +138,10 @@ export function InvestorProject({
               <RelatedCompanies items={recommendations} />
             </div>
           ),
-          questions: access === "requested" ? (
-            <LockedNote text={accessCopy.signOnProcesses} action={<ProcessLink />} />
+          questions: access === "awaiting-seller" ? (
+            <LockedNote text={companyCopy.threadWaiting} />
+          ) : access === "requested" ? (
+            <LockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
           ) : locked ? (
             <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />} />
           ) : (
@@ -170,16 +171,14 @@ export function InvestorProject({
               />
             </section>
           ),
-          meetings: locked ? (
+          meetings: access === "awaiting-seller" ? (
+            <LockedNote text={companyCopy.threadWaiting} />
+          ) : access === "requested" ? (
+            <LockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
+          ) : locked ? (
             <LockedNote
-              text={access === "requested" ? accessCopy.signOnProcesses : companyCopy.threadLocked}
-              action={
-                access === "requested" ? (
-                  <ProcessLink />
-                ) : (
-                  <LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />
-                )
-              }
+              text={companyCopy.threadLocked}
+              action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />}
             />
           ) : (
             <MeetingDesk

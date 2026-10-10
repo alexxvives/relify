@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { InvestorProfileDraft, PublicInvestorCard } from "@/lib/demo-profile";
 import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
-import { gazeAvatarUrl } from "@/lib/gaze-avatar";
+import { gazeAvatarUrl, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import { investorPhotoSchema, type InvestorProfileInput } from "@/lib/investor-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -116,7 +116,7 @@ export async function publicCardsByInvestor(
     const row = byId.get(person.id);
     const draft = row ? draftFromRow(row) : demoInvestorProfile(person.email);
     const card = draft ? publicCardFromDraft(draft) : null;
-    const stored = card?.photo.trim() ?? "";
+    const stored = uploadedInvestorPhoto(card?.photo.trim() ?? "");
     cards.set(person.id, card ? { ...card, photo: stored.length > 0 ? stored : investorGazeAvatar(person.id) } : null);
   }
 

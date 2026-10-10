@@ -10,9 +10,12 @@ import type Stripe from "stripe";
 
 export type SubscriptionInvoice = {
   id: string;
+  number: string;
   date: string;
   amount: string;
+  status: "paid" | "open";
   href: string | null;
+  pdf: string | null;
 };
 
 export type SubscriptionDesk =
@@ -21,9 +24,13 @@ export type SubscriptionDesk =
   | {
       kind: "stripe";
       planLabel: string;
+      statusLabel: string;
+      amountLabel: string | null;
       canceling: boolean;
       whenLabel: string;
+      periodStart: string;
       card: string | null;
+      cardExpires: string | null;
       email: string;
       invoices: SubscriptionInvoice[];
     };
@@ -51,14 +58,50 @@ function planLabel(plan: string): string {
   return billingCopy.freeName;
 }
 
-function cardLabel(method: Stripe.PaymentMethod | string | null): string | null {
+function cardLabel(method: Stripe.PaymentMethod | string | null): { label: string; expires: string } | null {
   if (!method || typeof method === "string" || !method.card) {
     return null;
   }
 
   const brand = method.card.brand;
   const name = brand.length > 0 ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Tarjeta";
-  return `${name} ···· ${method.card.last4}`;
+  const month = String(method.card.exp_month).padStart(2, "0");
+  return { label: `${name} ···· ${method.card.last4}`, expires: `${month}/${method.card.exp_year}` };
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    active: "Activa",
+    past_due: "Pago pendiente",
+    canceled: "Cancelada",
+    unpaid: "Impagada",
+    trialing: "En prueba",
+    incomplete: "Incompleta",
+    incomplete_expired: "Caducada",
+    paused: "En pausa",
+  };
+
+  return labels[status] ?? status;
+}
+
+function paidOrOpen(status: string): "paid" | "open" | null {
+  if (status === "paid" || status === "open") {
+    return status;
+  }
+
+  return null;
+}
+
+function amountLabel(item: Stripe.SubscriptionItem | undefined): string | null {
+  const cents = item?.price.unit_amount;
+
+  if (typeof cents !== "number") {
+    return null;
+  }
+
+  const interval = item?.price.recurring?.interval;
+  const period = interval === "year" ? "año" : interval === "month" ? "mes" : null;
+  return period ? `${formatEur(cents)}/${period}` : formatEur(cents);
 }
 
 export async function loadSubscriptionDesk(userId: string, email: string): Promise<SubscriptionDesk> {
@@ -87,19 +130,27 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
     });
     const item = subscription.items.data[0];
     const renews = item ? longDate(item.current_period_end) : "";
-    const listed = await stripe.invoices.list({ customer: row.stripeCustomerId, limit: 8 });
+    const started = item ? longDate(item.current_period_start) : "";
+    const listed = await stripe.invoices.list({ customer: row.stripeCustomerId, limit: 12 });
     const customer = await stripe.customers.retrieve(row.stripeCustomerId);
     const billingEmail = customer.deleted ? email : (customer.email ?? email);
+    const card = cardLabel(subscription.default_payment_method);
 
     return {
       kind: "stripe",
       planLabel: planLabel(row.plan),
+      statusLabel: statusLabel(subscription.status),
+      amountLabel: amountLabel(item),
       canceling: subscription.cancel_at_period_end,
       whenLabel: renews,
-      card: cardLabel(subscription.default_payment_method),
+      periodStart: started,
+      card: card?.label ?? null,
+      cardExpires: card?.expires ?? null,
       email: billingEmail,
       invoices: listed.data.flatMap((invoice) => {
-        if (!invoice.id || (invoice.status !== "paid" && invoice.status !== "open")) {
+        const status = invoice.status ? paidOrOpen(invoice.status) : null;
+
+        if (!invoice.id || !status) {
           return [];
         }
 
@@ -107,9 +158,12 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
         return [
           {
             id: invoice.id,
+            number: invoice.number ?? invoice.id,
             date: longDate(invoice.created),
             amount: formatEur(cents),
+            status,
             href: invoice.hosted_invoice_url ?? null,
+            pdf: invoice.invoice_pdf ?? null,
           },
         ];
       }),

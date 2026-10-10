@@ -22,6 +22,7 @@ export const engagementCopy = {
   advisorFallback: "Asesor",
   pickServices: "Elige los servicios",
   chooseThisAdvisor: "Conectar",
+  requestService: "Solicitar servicio",
   closeAdvisor: "Cerrar",
   removeAdvisor: "Eliminar asesor",
   removingAdvisor: "Eliminando…",

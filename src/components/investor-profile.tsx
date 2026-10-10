@@ -1,15 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User } from "lucide-react";
-import { saveInvestorPhotoAction, saveInvestorProfileAction } from "@/app/inversor/perfil/actions";
+import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/inversor/perfil/actions";
+import { AppToast } from "@/components/app-toast";
 import { FieldHint } from "@/components/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
 import { cnaeSectionLabels } from "@/lib/cnae-section";
+import { investorDisplayPhoto, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
-import { investorStakes, investorTicketBands } from "@/lib/investor-profile";
+import { investorProfileSchema, investorStakes, investorTicketBands } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
 
 function Chip({ done }: { done: boolean }) {
@@ -86,10 +88,14 @@ export function InvestorProfile({
   const [thesis, setThesis] = useState(draft.thesis);
   const [contribution, setContribution] = useState(draft.contribution);
   const [stake, setStake] = useState(draft.stake);
-  const [state, action, pending] = useActionState(saveInvestorProfileAction, null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [savedPulse, setSavedPulse] = useState(0);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
-  const shownPhoto = photo.length > 0 ? photo : avatarUrl;
+  const shownPhoto = investorDisplayPhoto(photo, avatarUrl);
+  const savedPhoto = uploadedInvestorPhoto(photo);
+  const lastSaved = useRef("");
   const drafted = publicCardFromDraft({
     photo,
     city,
@@ -102,6 +108,63 @@ export function InvestorProfile({
     stake,
   });
   const preview = drafted ? { ...drafted, photo: shownPhoto } : null;
+  const draftKey = JSON.stringify({
+    photo: savedPhoto,
+    city,
+    province,
+    investorType,
+    ticket,
+    sectors,
+    thesis,
+    contribution,
+    stake,
+  });
+
+  useEffect(() => {
+    if (lastSaved.current.length === 0) {
+      lastSaved.current = draftKey;
+      return;
+    }
+
+    if (lastSaved.current === draftKey) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      const parsed = investorProfileSchema.safeParse({
+        photo: savedPhoto,
+        city,
+        province,
+        investorType,
+        ticket,
+        sectors,
+        thesis,
+        contribution,
+        stake,
+      });
+
+      if (!parsed.success) {
+        return;
+      }
+
+      void saveInvestorProfileLiveAction(parsed.data).then((result) => {
+        if (result?.ok) {
+          lastSaved.current = draftKey;
+          setSaveError(null);
+          setSavedNote(investorCopy.profileSaved);
+          setSavedPulse((current) => current + 1);
+          return;
+        }
+
+        setSavedNote(null);
+        setSaveError(result && !result.ok ? result.message : "No se ha podido guardar el perfil.");
+      });
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [city, contribution, draftKey, investorType, province, savedPhoto, sectors, stake, thesis, ticket]);
 
   const professional = publicOnly ? null : (
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -158,7 +221,9 @@ export function InvestorProfile({
   return (
     <div className="flex flex-col gap-4">
       {professional}
-      <form action={action} className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <AppToast message={savedNote} pulse={savedPulse} />
+      <AppToast message={saveError} tone="error" />
+      <div className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -171,15 +236,14 @@ export function InvestorProfile({
         </div>
         <div className="mt-5 grid items-start gap-6 lg:grid-cols-4">
         <div className="lg:col-span-3">
-        <input type="hidden" name="photo" value={photo} />
         <div id="lugar" className="grid scroll-mt-8 gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm">
             {investorCopy.cityLabel}
-            <input name="city" value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
+            <input value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
           </label>
           <label className="flex flex-col gap-2 text-sm">
             {investorCopy.provinceLabel}
-            <input name="province" value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
+            <input value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
           </label>
         </div>
         <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2">
@@ -227,7 +291,6 @@ export function InvestorProfile({
           </span>
           <textarea
             id="investor-contribution"
-            name="contribution"
             value={contribution}
             onChange={(event) => setContribution(event.target.value)}
             rows={3}
@@ -236,15 +299,8 @@ export function InvestorProfile({
         </div>
         <label className="mt-4 flex flex-col gap-2 text-sm">
           {investorCopy.searchLabel}
-          <textarea name="thesis" value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
+          <textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
         </label>
-        <div className="mt-4 flex items-center gap-3">
-          <button type="submit" disabled={pending} className="inline-flex h-10 items-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white disabled:opacity-60">
-            {pending ? investorCopy.savingProfile : investorCopy.saveProfile}
-          </button>
-          {state?.ok ? <p className="text-sm text-[#17663a]">{investorCopy.profileSaved}</p> : null}
-          {state && !state.ok ? <p className="text-sm text-red-700">{state.message}</p> : null}
-        </div>
         </div>
         <div id="foto" className="scroll-mt-24 lg:col-span-1">
           {hidePhotoControl ? null : (
@@ -266,7 +322,7 @@ export function InvestorProfile({
           </div>
         </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
@@ -286,7 +342,7 @@ export function InvestorPhotoDrop({
 }) {
   const [over, setOver] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const shown = photo.length > 0 ? photo : fallback;
+  const shown = investorDisplayPhoto(photo, fallback);
   const note = message ?? saveMessage;
 
   function take(file: File | undefined) {
@@ -435,7 +491,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
 
   return (
     <div ref={rootRef} className="flex flex-col gap-2">
-      <input type="hidden" name="sectors" value={value} />
+      <div className="relative">
       <input
         value={query}
         placeholder={investorCopy.sectorsSearch}
@@ -452,7 +508,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
         className={fieldClass}
       />
       {open ? (
-        <ul className="max-h-48 overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1">
+        <ul className="absolute top-full z-30 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
           <li className="border-b border-[#e7eaee] px-2 py-2">
             <input
               value={custom}
@@ -487,6 +543,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
           ))}
         </ul>
       ) : null}
+      </div>
       {chips.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {chips.map((chip) => (

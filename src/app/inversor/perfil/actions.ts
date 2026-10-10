@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { investorProfileSchema } from "@/lib/investor-profile";
+import { investorProfileSchema, type InvestorProfileInput } from "@/lib/investor-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { saveInvestorPhoto, saveInvestorProfile } from "@/server/investorProfile";
 
@@ -30,6 +30,32 @@ export async function saveInvestorPhotoAction(photo: string): Promise<{ ok: bool
   }
 
   return saved;
+}
+
+export async function saveInvestorProfileLiveAction(input: InvestorProfileInput): Promise<InvestorProfileState> {
+  const user = await getCurrentUser();
+
+  if (!user || !user.onboarded || user.role !== "investor") {
+    return { ok: false, message: "No se ha podido guardar el perfil." };
+  }
+
+  const parsed = investorProfileSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { ok: false, message: "Revisa la foto, dónde estás, el tipo, el ticket y qué buscas." };
+  }
+
+  const saved = await saveInvestorProfile(user, parsed.data);
+
+  if (!saved.ok) {
+    return { ok: false, message: "No se ha podido guardar el perfil." };
+  }
+
+  revalidatePath("/inversor");
+  revalidatePath("/inversor/perfil");
+  revalidatePath("/cuenta");
+  revalidatePath("/mi-empresa/procesos");
+  return { ok: true };
 }
 
 export async function saveInvestorProfileAction(

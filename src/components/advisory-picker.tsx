@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useActionState, useEffect, useState } from "react";
+import { useMemo, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { AppToast } from "@/components/app-toast";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { useModalScrollLock } from "@/components/file-preview-dialog";
@@ -43,10 +44,10 @@ export function AdvisoryPicker({
   contacts?: AdvisorContactView[];
   today: string;
 }) {
-  const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [tab, setTab] = useState<"market" | "contacts">("market");
   const [company, setCompany] = useState(initialCompany);
   const [askOpen, setAskOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const cards = layout === "cards";
   const hint = tab === "contacts" ? engagementCopy.contactsHint : null;
 
@@ -79,37 +80,27 @@ export function AdvisoryPicker({
       </div>
       {hint ? <p className="text-sm text-[#5c6b78]">{hint}</p> : null}
       {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} allowRemove /> : (
-      <form action={action} className="flex flex-col gap-4">
         <AdvisorMarket
           advisors={advisors}
           companies={companies}
           company={company}
           onCompany={setCompany}
-          pending={pending}
           onAsk={() => {
             setAskOpen(true);
           }}
         />
-      {state ? (
-        <p
-          role="status"
-          className={
-            state.ok
-              ? "fixed top-6 right-8 z-50 max-w-sm rounded-2xl bg-[#17663a] px-4 py-3 text-sm leading-6 text-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.55)]"
-              : "fixed top-6 right-8 z-50 max-w-sm rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm leading-6 text-red-700 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.55)]"
-          }
-        >
-          {state.message}
-        </p>
-      ) : null}
-      </form>
       )}
+      <AppToast message={toast} />
       {askOpen ? (
         <ServiceAskDialog
           company={company}
           cards={cards}
           onClose={() => {
             setAskOpen(false);
+          }}
+          onDone={(message) => {
+            setAskOpen(false);
+            setToast(message);
           }}
         />
       ) : null}
@@ -132,14 +123,12 @@ function AdvisorMarket({
   companies,
   company,
   onCompany,
-  pending,
   onAsk,
 }: {
   advisors: PublicAdvisorCard[];
   companies: { slug: string; codename: string; region: string }[];
   company: string;
   onCompany: (slug: string) => void;
-  pending: boolean;
   onAsk: () => void;
 }) {
   const [sector, setSector] = useState("");
@@ -214,12 +203,11 @@ function AdvisorMarket({
           </label>
         </div>
       </div>
-      {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
       <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(32rem,36rem))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
-            <AdvisorListingCard advisor={advisor} connect={companies.length > 0} projectSlug={company} pending={pending} />
+            <AdvisorListingCard advisor={advisor} connect projectSlug={company.length > 0 ? company : undefined} />
           </li>
         ))}
       </ul>
@@ -240,14 +228,24 @@ function ServiceAskDialog({
   company,
   cards,
   onClose,
+  onDone,
 }: {
   company: string;
   cards: boolean;
   onClose: () => void;
+  onDone: (message: string) => void;
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
+  const told = useRef(false);
   useModalScrollLock(true);
+
+  useEffect(() => {
+    if (state?.ok && !told.current) {
+      told.current = true;
+      onDone(state.message);
+    }
+  }, [onDone, state]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -326,8 +324,8 @@ function ServiceAskDialog({
             );
           })}
         </ul>
-        {state ? (
-          <p role="status" className={state.ok ? "mt-4 text-sm text-[#17663a]" : "mt-4 text-sm text-red-700"}>
+        {state && !state.ok ? (
+          <p role="alert" className="mt-4 text-sm text-red-700">
             {state.message}
           </p>
         ) : null}

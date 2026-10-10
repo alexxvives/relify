@@ -6,6 +6,7 @@ import { EyeIcon } from "@/components/ui/eye";
 import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
 import { HeartIcon } from "@/components/ui/heart";
 import { CheckIcon } from "@/components/ui/check";
+import { AppToast } from "@/components/app-toast";
 import { startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
@@ -93,18 +94,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
         </h2>
         <p className="mt-4 text-sm leading-6 text-white/80 sm:whitespace-nowrap">{billingCopy.intro}</p>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
-        {notice ? (
-          <p
-            role="status"
-            className={
-              notice === billingCopy.paid
-                ? "mx-auto mt-6 max-w-xl rounded-2xl bg-white px-5 py-4 text-base font-semibold text-[#17663a]"
-                : "mx-auto mt-6 max-w-xl rounded-2xl bg-[#fff5f5] px-5 py-4 text-sm font-medium text-[#b42318]"
-            }
-          >
-            {notice}
-          </p>
-        ) : null}
+        <AppToast message={notice} tone={notice === billingCopy.paid ? "ok" : "error"} />
       </section>
       <div className="flex justify-center">
         <div className="inline-flex rounded-full bg-[#1c2740] p-1" role="group" aria-label={billingCopy.periodLabel}>
@@ -183,7 +173,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
                 {active && plan !== "none" ? (
                   <Link
                     href="/premium/suscripcion"
-                    className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
+                    className="mt-6 flex h-11 w-full items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
                   >
                     {billingCopy.manage}
                   </Link>

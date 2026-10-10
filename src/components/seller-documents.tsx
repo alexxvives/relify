@@ -600,7 +600,7 @@ export function SellerDocuments({
         <div className="mb-4 flex justify-end">
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <li>
             {namingFolder ? (
               <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
@@ -686,7 +686,7 @@ export function SellerDocuments({
             </button>
             <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
           </div>
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
             <li>
               <DocumentDrop folder={folder} />
             </li>
