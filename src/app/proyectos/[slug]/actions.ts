@@ -55,6 +55,10 @@ export async function requestProjectAccessAction(
 
   if (result.ok) {
     revalidatePath(`/proyectos/${input.slug}`);
+    revalidatePath("/procesos");
+    revalidatePath("/mi-empresa/procesos");
+    revalidatePath("/inversor");
+    revalidatePath("/mi-empresa");
   }
 
   return result;

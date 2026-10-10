@@ -14,6 +14,8 @@ export const engagementCopy = {
   threadPlaceholder: "Escribe al asesor",
   threadPlaceholderSeller: "Escribe al vendedor",
   threadPlaceholderInvestor: "Escribe al inversor",
+  stayOnPlatform:
+    "Este mensaje no se envía. El chat del asesor no admite un correo, un teléfono ni una pista para seguir fuera (WhatsApp, llámame, por privado, mi móvil).",
   threadNoticeAdvisor: "Mensaje sobre un encargo",
   threadNoticeClient: "Mensaje de tu asesor",
   contactDocumentsEmpty: "Todavía no hay documentos en este encargo.",

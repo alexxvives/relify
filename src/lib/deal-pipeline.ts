@@ -190,6 +190,38 @@ export function stepCue(id: DealStepId, role: "investor" | "seller", pendingLoi 
   return { yours: false, action: "Falta completar el pago" };
 }
 
+export type HomePendingAction = {
+  id: string;
+  title: string;
+  detail: string;
+  href: string;
+};
+
+export function homePendingActions(
+  role: "investor" | "seller",
+  items: readonly { id: string; who: string; href: string; steps: readonly DealStep[] }[],
+): HomePendingAction[] {
+  const actions: HomePendingAction[] = [];
+
+  for (const item of items) {
+    const current = item.steps.find((step) => step.state === "current");
+
+    if (!current || current.id === "diligence") {
+      continue;
+    }
+
+    const cue = stepCue(current.id, role, current.pendingLoi === true);
+
+    if (!cue.yours) {
+      continue;
+    }
+
+    actions.push({ id: item.id, title: cue.action, detail: item.who, href: item.href });
+  }
+
+  return actions;
+}
+
 export function investorProcessFiles(input: {
   ndaAcceptedAt: Date | null;
   granted: boolean;

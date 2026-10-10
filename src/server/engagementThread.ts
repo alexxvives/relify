@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { advisorMessageLeavesPlatform } from "@/lib/advisor-directory";
 import { advisoryServices } from "@/lib/advisory";
 import type { ProcessFile } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
@@ -291,6 +292,10 @@ export async function postEngagementMessage(
 
   if (!row) {
     return { ok: false, message: engagementCopy.missing };
+  }
+
+  if (advisorMessageLeavesPlatform(input.body)) {
+    return { ok: false, message: engagementCopy.stayOnPlatform };
   }
 
   let body = input.body;

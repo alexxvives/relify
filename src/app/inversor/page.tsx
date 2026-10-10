@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { InvestorHome } from "@/components/investor-home";
 import { SignedInPage } from "@/components/signed-in-page";
+import { homePendingActions } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
 import { sellerGreeting } from "@/lib/seller-copy";
 import { loadInvestorDesk } from "@/server/investorDesk";
@@ -31,6 +32,15 @@ export default async function InvestorHomePage() {
         meetings={desk.meetings}
         profileChecks={desk.profileChecks}
         sectors={sectors}
+        pending={homePendingActions(
+          "investor",
+          desk.processes.map((process) => ({
+            id: process.accessId,
+            who: process.codename,
+            href: "/procesos",
+            steps: process.steps,
+          })),
+        )}
       />
     </SignedInPage>
   );

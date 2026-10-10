@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dealPipeline, investorProcessFiles, pipelineStatus, processFlags, stepCue } from "./deal-pipeline";
+import { dealPipeline, homePendingActions, investorProcessFiles, pipelineStatus, processFlags, stepCue } from "./deal-pipeline";
 
 const openFlags = {
   accepted: false,
@@ -215,5 +215,28 @@ describe("investorProcessFiles", () => {
         files,
       }),
     ).toEqual(files);
+  });
+});
+
+describe("homePendingActions", () => {
+  it("keeps only the steps that are this person's turn", () => {
+    const waiting = dealPipeline("investor", openFlags);
+    const signing = dealPipeline("investor", { ...openFlags, accepted: true });
+    const seller = dealPipeline("seller", openFlags);
+
+    expect(
+      homePendingActions("investor", [
+        { id: "wait", who: "Proyecto Duna", href: "/procesos", steps: waiting },
+        { id: "sign", who: "Proyecto Cala", href: "/procesos", steps: signing },
+      ]).map((item) => item.title),
+    ).toEqual(["Firma el acuerdo de confidencialidad"]);
+    expect(homePendingActions("seller", [{ id: "accept", who: "Inversor 1", href: "/mi-empresa/procesos", steps: seller }])).toEqual([
+      {
+        id: "accept",
+        title: "Acepta la solicitud de conexión",
+        detail: "Inversor 1",
+        href: "/mi-empresa/procesos",
+      },
+    ]);
   });
 });

@@ -283,6 +283,26 @@ function ShareTargetForm({
 function FolderDelete({ name }: { name: string }) {
   const [state, action, pending] = useActionState(deleteDataRoomFolderAction, null);
   const [confirming, setConfirming] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!confirming) {
+      return;
+    }
+
+    function cancel(event: MouseEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || !boxRef.current?.contains(target)) {
+        setConfirming(false);
+      }
+    }
+
+    document.addEventListener("click", cancel);
+    return () => {
+      document.removeEventListener("click", cancel);
+    };
+  }, [confirming]);
 
   if (!confirming) {
     return (
@@ -300,23 +320,45 @@ function FolderDelete({ name }: { name: string }) {
   }
 
   return (
-    <form action={action} className="flex items-center gap-1">
-      <input type="hidden" name="name" value={name} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex h-8 items-center rounded-full bg-red-700 px-2 text-xs font-medium text-white disabled:opacity-60"
-      >
-        {pending ? sellerCopy.folderDeleting : sellerCopy.folderDelete}
-      </button>
-      <ActionNote state={state} saved="" />
-    </form>
+    <div ref={boxRef} className="flex items-center gap-1">
+      <form action={action} className="flex items-center gap-1">
+        <input type="hidden" name="name" value={name} />
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex h-8 items-center rounded-full bg-red-700 px-2 text-xs font-medium text-white disabled:opacity-60"
+        >
+          {pending ? sellerCopy.folderDeleting : sellerCopy.folderDelete}
+        </button>
+        <ActionNote state={state} saved="" />
+      </form>
+    </div>
   );
 }
 
 function FileDelete({ id }: { id: string }) {
   const [state, action, pending] = useActionState(deleteDataRoomFileAction, null);
   const [confirming, setConfirming] = useState(false);
+  const boxRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!confirming) {
+      return;
+    }
+
+    function cancel(event: MouseEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || !boxRef.current?.contains(target)) {
+        setConfirming(false);
+      }
+    }
+
+    document.addEventListener("click", cancel);
+    return () => {
+      document.removeEventListener("click", cancel);
+    };
+  }, [confirming]);
 
   if (!confirming) {
     return (
@@ -334,7 +376,7 @@ function FileDelete({ id }: { id: string }) {
   }
 
   return (
-    <form action={action}>
+    <form ref={boxRef} action={action}>
       <input type="hidden" name="fileId" value={id} />
       <button
         type="submit"

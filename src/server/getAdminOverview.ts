@@ -1,3 +1,11 @@
+import {
+  advisorRankJustification,
+  advisorScoreBreakdown,
+  sortPublicAdvisors,
+  toPublicAdvisorCard,
+  type AdvisorScoreBreakdown,
+  type PublicAdvisorCard,
+} from "@/lib/advisor-directory";
 import type { IndustrySector } from "@/lib/cnae-section";
 import { prisma } from "@/server/db";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
@@ -48,9 +56,131 @@ export type AdminOverview = {
     accepted: boolean;
     requestedAt: Date;
   }[];
+  advisors: AdminAdvisorRow[];
 };
 
+export type AdminAdvisorRow = {
+  id: string;
+  name: string;
+  email: string;
+  businessName: string;
+  listed: boolean;
+  place: number | null;
+  total: number;
+  breakdown: AdvisorScoreBreakdown | null;
+  justification: string;
+};
+
+function personName(name: string, lastName: string | null): string {
+  return [name, lastName ?? ""].filter((part) => part.trim().length > 0).join(" ");
+}
+
+async function loadAdminAdvisorRanks(): Promise<AdminAdvisorRow[]> {
+  const advisors = await prisma.user.findMany({
+    where: { role: "advisor" },
+    select: {
+      id: true,
+      name: true,
+      lastName: true,
+      email: true,
+      advisorProfile: {
+        select: {
+          userId: true,
+          businessName: true,
+          nif: true,
+          postalCode: true,
+          description: true,
+          sectors: true,
+          services: true,
+          closedOperations: true,
+        },
+      },
+    },
+  });
+  const ids = advisors.map((advisor) => advisor.id);
+  const messages =
+    ids.length === 0
+      ? []
+      : await prisma.engagementMessage.findMany({
+          where: { author: "advisor", engagement: { advisorId: { in: ids } } },
+          select: { body: true, engagement: { select: { advisorId: true } } },
+        });
+  const bodies = new Map<string, string[]>();
+
+  for (const message of messages) {
+    const advisorId = message.engagement.advisorId;
+
+    if (!advisorId) {
+      continue;
+    }
+
+    const current = bodies.get(advisorId) ?? [];
+    current.push(message.body);
+    bodies.set(advisorId, current);
+  }
+
+  const breakdownById = new Map<string, AdvisorScoreBreakdown>();
+  const cards: PublicAdvisorCard[] = [];
+
+  for (const advisor of advisors) {
+    if (!advisor.advisorProfile) {
+      continue;
+    }
+
+    const card = toPublicAdvisorCard(advisor.advisorProfile);
+
+    if (!card) {
+      continue;
+    }
+
+    cards.push(card);
+    breakdownById.set(card.id, advisorScoreBreakdown(card, bodies.get(card.id) ?? []));
+  }
+
+  const ranked = sortPublicAdvisors(cards, "recommended", (id) => breakdownById.get(id)?.reliability ?? 100);
+  const placeById = new Map(ranked.map((card, index) => [card.id, index + 1]));
+  const total = ranked.length;
+
+  return advisors
+    .map((advisor) => {
+      const card = advisor.advisorProfile ? toPublicAdvisorCard(advisor.advisorProfile) : null;
+      const breakdown = card ? (breakdownById.get(card.id) ?? null) : null;
+      const place = card ? (placeById.get(card.id) ?? null) : null;
+
+      return {
+        id: advisor.id,
+        name: personName(advisor.name, advisor.lastName),
+        email: advisor.email,
+        businessName: advisor.advisorProfile?.businessName.trim() ?? "",
+        listed: card !== null,
+        place,
+        total,
+        breakdown,
+        justification:
+          breakdown && place !== null
+            ? advisorRankJustification(place, total, breakdown)
+            : "No entra en el ranking porque la ficha no está completa.",
+      };
+    })
+    .sort((left, right) => {
+      if (left.place === null && right.place === null) {
+        return left.name.localeCompare(right.name, "es");
+      }
+
+      if (left.place === null) {
+        return 1;
+      }
+
+      if (right.place === null) {
+        return -1;
+      }
+
+      return left.place - right.place;
+    });
+}
+
 export async function getAdminOverview(): Promise<AdminOverview> {
+  const advisorRanksPromise = loadAdminAdvisorRanks();
   const [users, unfinished, published, drafts, asking, accesses, ndas, messages, favorites, quotes, plans, sectors, projects, accounts, connections] =
     await Promise.all([
       prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
@@ -106,6 +236,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         },
       }),
     ]);
+  const advisors = await advisorRanksPromise;
 
   const roleCounts = new Map(users.map((row) => [row.role ?? "none", row._count._all]));
   const planCounts = new Map(plans.map((row) => [row.plan, row._count._all]));
@@ -156,5 +287,6 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       accepted: connection.sellerAcceptedAt !== null,
       requestedAt: connection.requestedAt,
     })),
+    advisors,
   };
 }

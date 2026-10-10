@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  advisorMessageLeavesPlatform,
   advisorQuality,
   advisorRank,
+  advisorRankJustification,
   advisorReliability,
+  advisorScoreBreakdown,
   filterPublicAdvisors,
   privateAdvisorFields,
   publicAdvisorFields,
@@ -91,6 +94,17 @@ describe("toPublicAdvisorCard", () => {
     expect(sortPublicAdvisors([leaky, proven], "recommended", reliability).map((card) => card.id)).toEqual(["proven", "leaky"]);
     expect(sortPublicAdvisors([dear, leaky], "price-asc").map((card) => card.id)).toEqual(["leaky", "dear"]);
     expect(sortPublicAdvisors([leaky, dear], "price-desc").map((card) => card.id)).toEqual(["dear", "leaky"]);
+    expect(advisorMessageLeavesPlatform("Seguimos por WhatsApp")).toBe(true);
+    expect(advisorMessageLeavesPlatform("Te escribo a irene@example.com")).toBe(true);
+    expect(advisorMessageLeavesPlatform("Mi móvil es 612 345 678")).toBe(true);
+    expect(advisorMessageLeavesPlatform("Hola, me interesan estos servicios: Due Diligence.")).toBe(false);
+
+    const breakdown = advisorScoreBreakdown(proven, ["irene@example.com"]);
+    expect(breakdown.cases).toBe(16);
+    expect(breakdown.email).toBe(true);
+    expect(breakdown.reliability).toBe(70);
+    expect(advisorRankJustification(1, 2, breakdown)).toContain("Puesto 1 de 2");
+    expect(advisorRankJustification(1, 2, breakdown)).toContain("un correo");
   });
 
   it("preselects the only company, or the company opened from a process", () => {

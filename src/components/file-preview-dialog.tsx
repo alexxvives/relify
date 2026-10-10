@@ -19,6 +19,40 @@ function previewKind(fileName: string): "image" | "pdf" | null {
   return null;
 }
 
+export function useModalScrollLock(open: boolean) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtml = html.style.overflow;
+    const previousBody = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    function block(event: Event) {
+      const target = event.target;
+
+      if (target instanceof Element && target.closest("dialog")) {
+        return;
+      }
+
+      event.preventDefault();
+    }
+
+    document.addEventListener("wheel", block, { passive: false });
+    document.addEventListener("touchmove", block, { passive: false });
+    return () => {
+      html.style.overflow = previousHtml;
+      body.style.overflow = previousBody;
+      document.removeEventListener("wheel", block);
+      document.removeEventListener("touchmove", block);
+    };
+  }, [open]);
+}
+
 export function FilePreviewDialog({
   file,
   onClose,
@@ -28,6 +62,7 @@ export function FilePreviewDialog({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const kind = file ? previewKind(file.fileName) : null;
+  useModalScrollLock(file !== null);
 
   useEffect(() => {
     const dialog = dialogRef.current;

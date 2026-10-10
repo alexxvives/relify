@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Circle, Info, TriangleAlert } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
+import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
 import { NoticeList } from "@/components/notice-list";
 import { PublishSellerButton } from "@/components/publish-seller";
@@ -9,6 +10,7 @@ import { billingCopy } from "@/lib/billing-copy";
 import { formatCompactEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
 import { filledSellerPanels, type SellerFocusPanel, type SellerPanelFlags } from "@/lib/company-profile";
+import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { SellerCostYear, SellerMix, SellerYearPoint } from "@/server/getSellerOverview";
 
@@ -43,6 +45,7 @@ export function SellerOverview({
   series,
   mixes,
   costYears,
+  pending,
 }: {
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
@@ -54,6 +57,7 @@ export function SellerOverview({
   series: SellerYearPoint[];
   mixes: SellerMix[];
   costYears: SellerCostYear[];
+  pending: HomePendingAction[];
 }) {
   const filled = filledSellerPanels(panels);
   const complete = filled === panelSteps.length;
@@ -90,6 +94,7 @@ export function SellerOverview({
       )}
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex flex-col gap-6">
+          <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
               {sellerCopy.financeTitle}

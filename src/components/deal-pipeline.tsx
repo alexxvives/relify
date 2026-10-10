@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Check, ShieldCheck } from "lucide-react";
-import { FilePreviewDialog, fileHref } from "@/components/file-preview-dialog";
+import { FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
@@ -64,6 +64,7 @@ export function DealPipeline({
   const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
   const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
+  const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
   return (
@@ -111,7 +112,7 @@ export function DealPipeline({
       </div>
       {showDiligence && diligence ? (
         <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} />
-      ) : parkCue || hideQa ? null : (
+      ) : parkCue || parkYourTurn || hideQa ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
@@ -242,21 +243,30 @@ export function ProcessHeaderCue({
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const current = steps.find((step) => step.state === "current");
   const cue = current && current.id !== "diligence" ? stepCue(current.id, role, current.pendingLoi === true) : null;
-  const waiting = cue !== null && !cue.yours;
-  const canSign = Boolean(sign) && role === "investor" && current?.id === "qa" && current.pendingLoi !== true;
+  const signKindFor = current && !current.pendingLoi ? signTarget(current.id, cue?.yours === true, role) : null;
+  const canSign = Boolean(sign) && signKindFor !== null;
 
-  if (!waiting || !cue) {
+  if (!cue || (cue.yours && role === "seller")) {
     return null;
   }
 
   return (
     <>
       <div className="flex min-w-0 flex-wrap items-center gap-3">
-        <DealWaitingCue cue={cue} />
-        {canSign ? (
+        {cue.yours ? (
+          <span className="flex min-w-0 items-start gap-3">
+            <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+              Tu turno
+            </span>
+            <p className="pt-0.5 text-sm leading-5 font-semibold text-[#1c2740]">{cue.action}</p>
+          </span>
+        ) : (
+          <DealWaitingCue cue={cue} />
+        )}
+        {canSign && signKindFor ? (
           <SignNow
             onSign={() => {
-              setSignKind("loi");
+              setSignKind(signKindFor);
             }}
           />
         ) : null}
@@ -334,6 +344,7 @@ function ProcessSignDialog({
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  useModalScrollLock(true);
   const action = kind === "nda" ? acceptNdaAction : postInvestorMessageAction;
   const [state, formAction, pending] = useActionState(action, null);
   const fileName = kind === "nda" ? "Acuerdo-de-confidencialidad.pdf" : "Carta-de-intenciones.pdf";
@@ -395,6 +406,7 @@ function ProcessSignDialog({
 
 function AcceptLoiDialog({ accessId, body, onClose }: { accessId: string; body: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  useModalScrollLock(true);
   const [state, formAction, pending] = useActionState(acceptSellerLoiAction, null);
 
   useEffect(() => {

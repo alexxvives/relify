@@ -3,10 +3,12 @@ import { CompanyNifForm } from "@/components/company-nif-form";
 import { SellerOverview } from "@/components/seller-overview";
 import { SignedInPage } from "@/components/signed-in-page";
 import { companyCopy } from "@/lib/company-copy";
+import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy, sellerGreeting } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
 import { getSellerOverview } from "@/server/getSellerOverview";
 import { listNotifications } from "@/server/listNotifications";
+import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
@@ -42,13 +44,14 @@ export default async function CompanyPage({
 
   const projectId = await activeSellerProjectId(user.id);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [listing, interests, questions, meetings, notifications, overview] = await Promise.all([
+  const [listing, interests, questions, meetings, notifications, overview, messages] = await Promise.all([
     getSellerListing(user.id),
     prisma.projectAccess.count({ where: { project: projectScope } }),
     prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
     prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
     listNotifications(user.id),
     getSellerOverview(user.id),
+    listProjectMessages(user, null),
   ]);
 
   return (
@@ -64,6 +67,15 @@ export default async function CompanyPage({
         series={overview.series}
         mixes={overview.mixes}
         costYears={overview.costYears}
+        pending={homePendingActions(
+          "seller",
+          messages.threads.map((thread) => ({
+            id: thread.accessId,
+            who: thread.codename.length > 0 ? `${thread.label} · ${thread.codename}` : thread.label,
+            href: "/mi-empresa/procesos",
+            steps: thread.steps,
+          })),
+        )}
       />
     </SignedInPage>
   );

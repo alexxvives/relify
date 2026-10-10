@@ -45,9 +45,9 @@ export function MarketCardFigures({
       </div>
       <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
         {row.map((item) => (
-          <div key={item.label} className="min-w-0 px-2 py-3 text-center">
-            <dt className="text-[11px] leading-4 text-[#8b95a7]">{item.label}</dt>
-            <dd className="mt-1 text-xs leading-4 font-semibold tracking-tight whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
+          <div key={item.label} className="min-w-0 px-2 py-4 text-center">
+            <dt className="text-[22px] leading-6 font-medium text-[#5c6b78]">{item.label}</dt>
+            <dd className="mt-1 text-2xl leading-7 font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IndustryTreemap } from "@/components/industry-treemap";
 import { ApproveButton, PlanForm, RoleForm, SuspensionButton, UnpublishButton } from "@/components/admin-controls";
 import { adminCopy } from "@/lib/admin-copy";
+import type { AdvisorScoreBreakdown } from "@/lib/advisor-directory";
 import { formatEur } from "@/lib/money";
 import type { AdminOverview } from "@/server/getAdminOverview";
 
@@ -47,6 +48,7 @@ export function AdminHome({ overview }: { overview: AdminOverview }) {
           <Meter rows={overview.plans.map((row) => ({ label: adminCopy.plans[row.plan], value: row.count }))} />
         </section>
       </div>
+      <AdvisorRanks advisors={overview.advisors} />
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{adminCopy.sectorsTitle}</h2>
         <IndustryTreemap sectors={overview.sectors} empty={adminCopy.sectorsEmpty} />
@@ -150,6 +152,79 @@ export function AdminHome({ overview }: { overview: AdminOverview }) {
         )}
       </section>
     </div>
+  );
+}
+
+const scoreFormat = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
+
+function scoreText(value: number): string {
+  return scoreFormat.format(value);
+}
+
+function AdvisorRanks({ advisors }: { advisors: AdminOverview["advisors"] }) {
+  return (
+    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <h2 className="text-2xl font-semibold text-[#2b3b4a]">{adminCopy.advisorsTitle}</h2>
+      <p className="mt-1 text-sm text-[#667085]">{adminCopy.advisorsIntro}</p>
+      {advisors.length === 0 ? (
+        <p className="mt-4 text-sm text-[#667085]">{adminCopy.advisorsEmpty}</p>
+      ) : (
+        <ul className="mt-4 flex flex-col gap-3">
+          {advisors.map((advisor) => (
+            <li key={advisor.id} className="rounded-xl border border-[#e6eaf5] bg-[#f7f8fb] px-4 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-base font-semibold text-[#1c2740]">{advisor.name}</p>
+                  <p className="mt-1 text-sm text-[#667085]">{advisor.email}</p>
+                  {advisor.businessName.length > 0 ? (
+                    <p className="mt-1 text-sm text-[#3d4a63]">
+                      {adminCopy.advisorBusiness}: {advisor.businessName}
+                    </p>
+                  ) : null}
+                </div>
+                <p className="rounded-full bg-[#e8f6ee] px-3 py-1 text-sm font-semibold text-[#17663a]">
+                  {advisor.place === null
+                    ? adminCopy.advisorUnranked
+                    : `${adminCopy.advisorPlace} ${advisor.place} de ${advisor.total}`}
+                </p>
+              </div>
+              {advisor.breakdown ? <AdvisorScoreTable breakdown={advisor.breakdown} /> : null}
+              <p className="mt-3 text-sm leading-6 text-[#1c2740]">{advisor.justification}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function AdvisorScoreTable({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
+  const rows = [
+    { label: adminCopy.advisorCases, detail: String(breakdown.caseCount), value: scoreText(breakdown.cases) },
+    { label: adminCopy.advisorServices, detail: String(breakdown.serviceCount), value: scoreText(breakdown.services) },
+    {
+      label: adminCopy.advisorDescription,
+      detail: `${breakdown.descriptionLength} caracteres`,
+      value: scoreText(breakdown.description),
+    },
+    { label: adminCopy.advisorSectors, detail: String(breakdown.sectorCount), value: scoreText(breakdown.sectors) },
+    { label: adminCopy.advisorQuality, detail: "", value: scoreText(breakdown.quality) },
+    { label: adminCopy.advisorReliability, detail: "", value: scoreText(breakdown.reliability) },
+    { label: adminCopy.advisorRank, detail: "", value: scoreText(breakdown.rank) },
+  ];
+
+  return (
+    <dl className="mt-4 grid gap-2 sm:grid-cols-2">
+      {rows.map((row) => (
+        <div key={row.label} className="flex items-baseline justify-between gap-3 rounded-lg bg-white px-3 py-2">
+          <dt className="text-sm text-[#3d4a63]">
+            {row.label}
+            {row.detail.length > 0 ? <span className="text-[#8b95a7]"> · {row.detail}</span> : null}
+          </dt>
+          <dd className="text-sm font-semibold text-[#1c2740] tabular-nums">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

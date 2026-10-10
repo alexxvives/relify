@@ -40,13 +40,11 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
       return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
     }
 
-    const hasOwner = project.ownerId !== null && project.ownerId !== user.id;
     await prisma.projectAccess.create({
       data: {
         id: randomUUID(),
         projectId: project.id,
         investorId: user.id,
-        sellerAcceptedAt: hasOwner ? null : new Date(),
       },
     });
     const href = `/proyectos/${project.slug}`;

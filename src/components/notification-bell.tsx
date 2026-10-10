@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { markNotificationReadAction } from "@/app/cuenta/actions";
@@ -43,6 +44,8 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
   const [seen, setSeen] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const rows = items.map((item) => ({ ...item, unread: item.unread && !seen.includes(item.id) }));
   const unread = rows.filter((item) => item.unread).length;
 
@@ -53,9 +56,16 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
 
     function onPointer(event: PointerEvent) {
       const target = event.target;
-      if (!(target instanceof Node) || !rootRef.current?.contains(target)) {
+      if (!(target instanceof Node)) {
         setOpen(false);
+        return;
       }
+
+      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) {
+        return;
+      }
+
+      setOpen(false);
     }
 
     function onKey(event: KeyboardEvent) {
@@ -72,6 +82,51 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
     };
   }, [open]);
 
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    const button = buttonRef.current;
+
+    if (!open || !panel || !button) {
+      return;
+    }
+
+    function place() {
+      const currentPanel = panelRef.current;
+      const currentButton = buttonRef.current;
+
+      if (!currentPanel || !currentButton) {
+        return;
+      }
+
+      const rect = currentButton.getBoundingClientRect();
+      const margin = 12;
+      const width = Math.min(36 * 16, window.innerWidth - margin * 2);
+      let left = rect.right - width;
+
+      if (left < margin) {
+        left = margin;
+      }
+
+      if (left + width > window.innerWidth - margin) {
+        left = Math.max(margin, window.innerWidth - margin - width);
+      }
+
+      const top = rect.bottom + 8;
+      currentPanel.style.top = `${top}px`;
+      currentPanel.style.left = `${left}px`;
+      currentPanel.style.width = `${width}px`;
+      currentPanel.style.maxHeight = `${Math.max(160, window.innerHeight - top - margin)}px`;
+    }
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
+
   function markSeen(id: string, close: boolean) {
     setSeen((current) => (current.includes(id) ? current : [...current, id]));
     if (close) {
@@ -85,6 +140,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
   return (
     <div className="relative" ref={rootRef}>
       <button
+        ref={buttonRef}
         type="button"
         aria-expanded={open}
         aria-label={unread > 0 ? `${notificationCopy.open}. ${unread}` : notificationCopy.open}
@@ -100,8 +156,13 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
           </span>
         ) : null}
       </button>
-      {open ? (
-        <div className="absolute top-12 right-0 z-50 w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public">
+      {open
+        ? createPortal(
+        <div
+          ref={panelRef}
+          className="fixed z-[60] flex w-[min(36rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public"
+          style={{ top: 0, left: 12, width: "min(36rem, calc(100vw - 1.5rem))", maxHeight: "calc(100vh - 1.5rem)" }}
+        >
           <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
             <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>
             <p className="text-xs font-medium text-public-muted">{unread > 0 ? String(unread) : notificationCopy.caughtUp}</p>
@@ -112,7 +173,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
               <p className="text-sm text-public-muted">{notificationCopy.empty}</p>
             </div>
           ) : (
-            <ul className="flex max-h-[32rem] flex-col overflow-auto p-2">
+            <ul className="flex min-h-0 flex-1 flex-col overflow-auto p-2">
               {rows.map((item) => {
                 const Icon = iconFor(item.title);
                 const content = (
@@ -153,8 +214,10 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
             </ul>
           )}
           {pending ? <span className="sr-only">{notificationCopy.title}</span> : null}
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
+import { PendingActions } from "@/components/pending-actions";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { NoticeList } from "@/components/notice-list";
 import { investorCopy } from "@/lib/investor-copy";
 import type { IndustrySector } from "@/lib/cnae-section";
+import type { HomePendingAction } from "@/lib/deal-pipeline";
 import type { NotificationView } from "@/lib/notifications";
 import type { InvestorProfileChecks } from "@/server/investorDesk";
 import { blogPosts, formatBlogDate } from "@/lib/blog";
@@ -25,6 +27,7 @@ export function InvestorHome({
   meetings,
   profileChecks,
   sectors,
+  pending,
 }: {
   notifications: NotificationView[];
   favorites: number;
@@ -33,6 +36,7 @@ export function InvestorHome({
   meetings: number;
   profileChecks: InvestorProfileChecks;
   sectors: IndustrySector[];
+  pending: HomePendingAction[];
 }) {
   const stats = [
     { label: investorCopy.favoritesStat, value: favorites },
@@ -47,6 +51,7 @@ export function InvestorHome({
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex flex-col gap-6">
+        <PendingActions items={pending} empty={investorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
