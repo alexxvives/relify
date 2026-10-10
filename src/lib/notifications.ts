@@ -7,7 +7,8 @@ export const notificationCopy = {
   caughtUp: "Al día",
   all: "Todos",
   unread: "Sin leer",
-  markSeen: "Visto",
+  markSeen: "Leído",
+  markAllRead: "Marcar todos como leídos",
 } as const;
 
 export type NotificationView = {
@@ -15,6 +16,7 @@ export type NotificationView = {
   title: string;
   body: string;
   href: string | null;
+  when: string;
   unread: boolean;
 };
 

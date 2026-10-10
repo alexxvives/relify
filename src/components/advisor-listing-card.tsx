@@ -17,14 +17,6 @@ function caseCount(count: number): string {
   return `${count} casos cerrados`;
 }
 
-function caseLabel(count: number): string {
-  if (count === 0) {
-    return engagementCopy.noCases;
-  }
-
-  return caseCount(count);
-}
-
 function Stars() {
   return (
     <span className="inline-flex items-center gap-0.5 text-white/80" aria-hidden>
@@ -49,7 +41,7 @@ function SectorTags({ sectors }: { sectors: string[] }) {
   return (
     <span className="mt-3 flex flex-wrap gap-1.5 pr-36">
       {sectors.map((sector) => (
-        <span key={sector} className="rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 text-white">
+        <span key={sector} className="rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 whitespace-nowrap text-white">
           {sector}
         </span>
       ))}
@@ -199,20 +191,6 @@ export function AdvisorListingCard({
                 ))}
               </div>
             )}
-            {connect && !projectSlug ? <p className="text-sm text-[#5c6b78]">{engagementCopy.companyRequired}</p> : null}
-            <div>
-              <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{engagementCopy.casesTitle}</p>
-              <p className="mt-2 text-sm font-medium">{caseLabel(advisor.cases.length)}</p>
-              {advisor.cases.length > 0 ? (
-                <ul className="mt-2 flex flex-col gap-1">
-                  {advisor.cases.map((item) => (
-                    <li key={`${item.sector}-${item.closedOn}-${item.value}`} className="text-sm text-[#3d4a63]">
-                      {item.sector} · {item.closedOn} · {item.value}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
             <div className="flex items-center justify-end gap-3">
               <button type="button" onClick={close} className="inline-flex h-10 items-center rounded-full border border-[#e7eaee] px-4 text-sm font-medium">
                 {engagementCopy.closeAdvisor}

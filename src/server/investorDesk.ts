@@ -1,5 +1,6 @@
 import { sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
+import { companyCopy } from "@/lib/company-copy";
 import { investorCopy } from "@/lib/investor-copy";
 import { investorProfileChecks } from "@/lib/demo-profile";
 import { toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
@@ -20,6 +21,7 @@ export type InvestorProcessCard = {
   messages: ThreadMessageView[];
   documents: ProcessFile[];
   documentsNote: string;
+  partyName: string;
 };
 
 export type InvestorProfileChecks = {
@@ -39,6 +41,10 @@ export type InvestorDesk = {
   meetings: number;
   profileChecks: InvestorProfileChecks;
 };
+
+function personName(name: string, lastName: string | null): string {
+  return [name, lastName ?? ""].filter((part) => part.trim().length > 0).join(" ");
+}
 
 function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date | null }): { stage: string; open: boolean } {
   if (access.ndaAcceptedAt) {
@@ -70,6 +76,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
             region: true,
             askingPriceCents: true,
             successFee: { select: { id: true } },
+            owner: { select: { name: true, lastName: true } },
             dataRoomGrants: {
               where: { investorId: userId },
               select: { id: true },
@@ -158,6 +165,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       ),
       documents,
       documentsNote,
+      partyName: access.project.owner ? personName(access.project.owner.name, access.project.owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
     };
   });
   const draft = await loadInvestorDraft(userId, email);

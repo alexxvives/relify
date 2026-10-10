@@ -1,12 +1,21 @@
 import type { NotificationView } from "@/lib/notifications";
 import { prisma } from "@/server/db";
 
+function noticeDate(value: Date): string {
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Europe/Madrid",
+  }).format(value);
+}
+
 export async function listNotifications(userId: string): Promise<NotificationView[]> {
   const rows = await prisma.notification.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
     take: 20,
-    select: { id: true, title: true, body: true, href: true, readAt: true },
+    select: { id: true, title: true, body: true, href: true, readAt: true, createdAt: true },
   });
 
   return rows.filter((row) => row.title !== "Pregunta enviada").map((row) => ({
@@ -14,6 +23,7 @@ export async function listNotifications(userId: string): Promise<NotificationVie
     title: row.title,
     body: row.body,
     href: row.href,
+    when: noticeDate(row.createdAt),
     unread: row.readAt === null,
   }));
 }

@@ -299,7 +299,7 @@ function AdvisorMarket({
       {companies.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p> : null}
       {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(22rem,24rem))]">
+      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(32rem,36rem))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
             <AdvisorListingCard advisor={advisor} connect={companies.length > 0} projectSlug={company} pending={pending} />

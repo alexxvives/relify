@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "rea
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
-import { markNotificationReadAction } from "@/app/cuenta/actions";
+import { markNotificationReadAction, markNotificationsReadAction } from "@/app/cuenta/actions";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
 
 function iconFor(title: string) {
@@ -137,6 +137,14 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
     });
   }
 
+  function markAllRead() {
+    const ids = rows.filter((item) => item.unread).map((item) => item.id);
+    setSeen((current) => [...current, ...ids.filter((id) => !current.includes(id))]);
+    startTransition(async () => {
+      await markNotificationsReadAction();
+    });
+  }
+
   return (
     <div className="relative" ref={rootRef}>
       <button
@@ -165,7 +173,13 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         >
           <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
             <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>
-            <p className="text-xs font-medium text-public-muted">{unread > 0 ? String(unread) : notificationCopy.caughtUp}</p>
+            {unread > 0 ? (
+              <button type="button" onClick={markAllRead} className="text-xs font-medium text-[#465ab4] hover:underline">
+                {notificationCopy.markAllRead}
+              </button>
+            ) : (
+              <p className="text-xs font-medium text-public-muted">{notificationCopy.caughtUp}</p>
+            )}
           </div>
           {rows.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">

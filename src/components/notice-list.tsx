@@ -7,8 +7,11 @@ export function NoticeList({ items }: { items: NotificationView[] }) {
       {items.slice(0, 4).map((item) => {
         const body = (
           <>
-            <p className="text-sm font-semibold text-[#1c2740]">{item.title}</p>
-            <p className="mt-1 text-sm text-[#667085]">{item.body}</p>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className={item.unread ? "text-sm font-semibold text-[#1c2740]" : "text-sm font-normal text-[#667085]"}>{item.title}</p>
+              <time className="shrink-0 text-xs text-[#98a2b3]">{item.when}</time>
+            </div>
+            <p className={item.unread ? "mt-1 text-sm font-semibold text-[#1c2740]" : "mt-1 text-sm font-normal text-[#667085]"}>{item.body}</p>
           </>
         );
 

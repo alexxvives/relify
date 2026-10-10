@@ -41,6 +41,7 @@ export function DealPipeline({
   acceptLoi,
   hideAsideCue = false,
   hideQaNote = false,
+  hideWaitingCue = false,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
@@ -50,6 +51,7 @@ export function DealPipeline({
   acceptLoi?: { accessId: string; body: string };
   hideAsideCue?: boolean;
   hideQaNote?: boolean;
+  hideWaitingCue?: boolean;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const [acceptOpen, setAcceptOpen] = useState(false);
@@ -65,6 +67,7 @@ export function DealPipeline({
   const showDiligence = current?.id === "diligence" && diligence !== undefined;
   const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
   const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
+  const hideWaiting = hideWaitingCue && !cue.yours && !canAccept;
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
   return (
@@ -111,11 +114,12 @@ export function DealPipeline({
         </ol>
       </div>
       {showDiligence && diligence ? (
-        <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} />
-      ) : parkCue || parkYourTurn || hideQa ? null : (
+        <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} hideWaitingCue={hideWaitingCue} />
+      ) : parkCue || parkYourTurn || hideQa || hideWaiting ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
+          center={hideWaitingCue}
           canSign={canSign}
           canAccept={canAccept}
           onSign={() => {
@@ -154,6 +158,7 @@ export function DealPipeline({
 function TurnCue({
   cue,
   onDark,
+  center,
   canSign,
   canAccept,
   onSign,
@@ -161,27 +166,30 @@ function TurnCue({
 }: {
   cue: { yours: boolean; action: string };
   onDark: boolean;
+  center: boolean;
   canSign: boolean;
   canAccept: boolean;
   onSign: () => void;
   onAccept: () => void;
 }) {
   if (cue.yours) {
+    const frame = center
+      ? onDark
+        ? "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl bg-white px-4 py-3 text-center shadow-lg"
+        : "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-center"
+      : onDark
+        ? "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-lg"
+        : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-left";
+
     return (
-      <div
-        className={
-          onDark
-            ? "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-lg"
-            : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#c9e8d4] bg-[#f3fbf6] px-4 py-3 text-left"
-        }
-      >
+      <div className={frame}>
         <span className="relative flex size-3 shrink-0" aria-hidden>
-          <span className="deal-pulse absolute inset-0 rounded-full bg-[#178a45]" />
-          <span className="relative size-3 rounded-full bg-[#178a45]" />
+          <span className="deal-pulse absolute inset-0 rounded-full bg-[#d92d20]" />
+          <span className="relative size-3 rounded-full bg-[#d92d20]" />
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#17663a] uppercase">Tu turno</span>
-          <span className="mt-0.5 block text-sm font-semibold text-[#1c2740]">{cue.action}</span>
+        <span className={center ? "min-w-0" : "min-w-0 flex-1"}>
+          <span className="block text-xs font-semibold tracking-[0.14em] text-[#b42318] uppercase">Tu turno</span>
+          <span className="mt-0.5 block text-sm text-[#1c2740]">{cue.action}</span>
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
         {canSign ? <SignNow onSign={onSign} /> : null}
@@ -255,10 +263,10 @@ export function ProcessHeaderCue({
       <div className="flex min-w-0 flex-wrap items-center gap-3">
         {cue.yours ? (
           <span className="flex min-w-0 items-start gap-3">
-            <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">
               Tu turno
             </span>
-            <p className="pt-0.5 text-sm leading-5 font-semibold text-[#1c2740]">{cue.action}</p>
+            <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{cue.action}</p>
           </span>
         ) : (
           <DealWaitingCue cue={cue} />
@@ -296,15 +304,27 @@ export function DealWaitingCue({ cue, className = "" }: { cue: { action: string 
   );
 }
 
-function DiligenceChoice({ accessId, advisorHref, onDark }: { accessId: string; advisorHref: string; onDark: boolean }) {
+function DiligenceChoice({
+  accessId,
+  advisorHref,
+  onDark,
+  hideWaitingCue,
+}: {
+  accessId: string;
+  advisorHref: string;
+  onDark: boolean;
+  hideWaitingCue: boolean;
+}) {
   const [state, action, pending] = useActionState(passDiligenceAction, null);
 
   return (
     <div className={onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
       <div className="flex items-start gap-3">
-        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
-          Qué sigue
-        </span>
+        {hideWaitingCue ? null : (
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+            Qué sigue
+          </span>
+        )}
         <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
           Revisa con un asesor de Releva, o sigue a la documentación. El contrato lo sube el vendedor.
         </p>

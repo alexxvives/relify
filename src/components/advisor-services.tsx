@@ -613,7 +613,7 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
         {listing ? (
-          <div className="mt-4 max-w-md">
+          <div className="mt-4 max-w-[36rem]">
             <AdvisorListingCard advisor={listing} />
           </div>
         ) : (
