@@ -1,4 +1,4 @@
-import { toPublicAdvisorCard, type PublicAdvisorCard } from "@/lib/advisor-directory";
+import { advisorReliability, sortPublicAdvisors, toPublicAdvisorCard, type PublicAdvisorCard } from "@/lib/advisor-directory";
 import { prisma } from "@/server/db";
 
 export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
@@ -13,7 +13,6 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
       services: true,
       closedOperations: true,
     },
-    orderBy: { businessName: "asc" },
   });
   const cards: PublicAdvisorCard[] = [];
 
@@ -25,5 +24,27 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
     }
   }
 
-  return cards;
+  const ids = cards.map((card) => card.id);
+  const messages =
+    ids.length === 0
+      ? []
+      : await prisma.engagementMessage.findMany({
+          where: { author: "advisor", engagement: { advisorId: { in: ids } } },
+          select: { body: true, engagement: { select: { advisorId: true } } },
+        });
+  const bodies = new Map<string, string[]>();
+
+  for (const message of messages) {
+    const advisorId = message.engagement.advisorId;
+
+    if (!advisorId) {
+      continue;
+    }
+
+    const current = bodies.get(advisorId) ?? [];
+    current.push(message.body);
+    bodies.set(advisorId, current);
+  }
+
+  return sortPublicAdvisors(cards, "recommended", (id) => advisorReliability(bodies.get(id) ?? []));
 }

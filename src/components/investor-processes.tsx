@@ -56,7 +56,7 @@ export function InvestorProcesses({
                 />
                 {wantsAdvisor(item.steps) ? (
                   <Link
-                    href="/asesoramiento"
+                    href={`/asesoramiento?empresa=${item.slug}`}
                     className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
                   >
                     {engagementCopy.contactAdvisor}
@@ -91,7 +91,7 @@ export function InvestorProcesses({
                   dateLabel,
                 }),
               }}
-              diligence={{ accessId: item.accessId, advisorHref: "/asesoramiento" }}
+              diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
           </section>
         </li>

@@ -109,7 +109,7 @@ export function InvestorProject({
                 loi: loiAgreement({ ...agreementInput, askingPrice: formatWholeEur(project.askingPriceCents) }),
               }}
               hideQaNote
-              diligence={accessId.length > 0 ? { accessId, advisorHref: "/asesoramiento" } : undefined}
+              diligence={accessId.length > 0 ? { accessId, advisorHref: `/asesoramiento?empresa=${project.slug}` } : undefined}
             />
           ) : null
         }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { useSessionString } from "@/components/session-flag";
 import { ChevronDown } from "lucide-react";
 import {
   approveEngagementMeetingAction,
@@ -84,7 +85,7 @@ export function AdvisorContactDesk({
   showDocuments?: boolean;
   allowRemove?: boolean;
 }) {
-  const [openId, setOpenId] = useState(contacts[0]?.id ?? "");
+  const [openId, setOpenId] = useSessionString("releva:advisor-contact-open", contacts[0]?.id ?? "");
 
   if (contacts.length === 0) {
     return (

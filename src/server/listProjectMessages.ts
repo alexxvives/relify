@@ -40,11 +40,12 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     const projects = activeId
       ? await prisma.project.findMany({
           where: { id: activeId, ownerId: user.id },
-          select: { id: true, codename: true },
+          select: { id: true, codename: true, slug: true },
         })
       : [];
     const ids = projects.map((project) => project.id);
     const codenameById = new Map(projects.map((project) => [project.id, project.codename]));
+    const slugById = new Map(projects.map((project) => [project.id, project.slug]));
 
     if (ids.length === 0) {
       return { viewer: "seller", threads: [], counts: emptyCounts };
@@ -112,6 +113,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
 
       return {
         accessId: access.id,
+        slug: slugById.get(access.projectId) ?? "",
         codename: codenameById.get(access.projectId) ?? "",
         label: access.label,
         stage,
@@ -245,6 +247,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     threads: [
       {
         accessId: access?.id ?? "",
+        slug,
         codename: project.codename,
         label: project.codename,
         stage: "open",

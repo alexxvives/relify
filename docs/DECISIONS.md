@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-10 — Advisor marketplace order
+
+The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Releva (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.
+
 ## 2026-10-08 — The advisor's name stays off the marketplace
 
 A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Releva. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.

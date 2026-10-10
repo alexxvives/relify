@@ -117,6 +117,7 @@ export type SellerThreadStage = "pending" | "nda" | "open";
 
 export type SellerThread = {
   accessId: string;
+  slug: string;
   codename: string;
   label: string;
   partyName: string;

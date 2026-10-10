@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { filterPublicAdvisors, privateAdvisorFields, publicAdvisorFields, toPublicAdvisorCard } from "./advisor-directory";
+import {
+  advisorQuality,
+  advisorRank,
+  advisorReliability,
+  filterPublicAdvisors,
+  privateAdvisorFields,
+  publicAdvisorFields,
+  selectedEngagementCompany,
+  sortPublicAdvisors,
+  toPublicAdvisorCard,
+} from "./advisor-directory";
 
 const complete = {
   userId: "advisor-1",
@@ -28,17 +38,70 @@ describe("toPublicAdvisorCard", () => {
     }
   });
 
-  it("filters the directory by sector, service, and starting price, and not by the firm name", () => {
+  it("filters the directory by sector and service, and keeps the firm name off the card", () => {
     const card = toPublicAdvisorCard(complete);
     expect(card).not.toBeNull();
     if (!card) {
       return;
     }
-    expect(filterPublicAdvisors([card], { query: "navarro", sector: "", service: "", price: "any" })).toHaveLength(0);
-    expect(filterPublicAdvisors([card], { query: "due", sector: "", service: "", price: "any" })).toHaveLength(1);
-    expect(filterPublicAdvisors([card], { query: "", sector: "Hostelería", service: "", price: "any" })).toHaveLength(0);
-    expect(filterPublicAdvisors([card], { query: "", sector: "", service: "Due Diligence", price: "under-3" })).toHaveLength(1);
-    expect(filterPublicAdvisors([card], { query: "", sector: "", service: "Due Diligence", price: "over-6" })).toHaveLength(0);
+    expect(filterPublicAdvisors([card], { sector: "Hostelería", service: "" })).toHaveLength(0);
+    expect(filterPublicAdvisors([card], { sector: "", service: "Due Diligence" })).toHaveLength(1);
+    expect(filterPublicAdvisors([card], { sector: "", service: "Valoración de empresas" })).toHaveLength(0);
+    expect(JSON.stringify(card)).not.toContain("Navarro");
+  });
+
+  it("ranks a proven advisor above one that takes the chat off the platform, and sorts price separately", () => {
+    const proven = toPublicAdvisorCard({
+      ...complete,
+      userId: "proven",
+      closedOperations: [
+        {
+          name: "Caso",
+          closingDate: "2024-06-01",
+          sectorId: "I",
+          revenueCents: 100,
+          ebitdaCents: 20,
+          enterpriseValueCents: 400,
+        },
+      ],
+    });
+    const leaky = toPublicAdvisorCard({ ...complete, userId: "leaky" });
+    const dear = toPublicAdvisorCard({
+      ...complete,
+      userId: "dear",
+      services: [{ serviceType: "DUE_DILIGENCE", priceFromCents: 900_000, priceToCents: 1_200_000 }],
+    });
+    expect(proven).not.toBeNull();
+    expect(leaky).not.toBeNull();
+    expect(dear).not.toBeNull();
+    if (!proven || !leaky || !dear) {
+      return;
+    }
+
+    expect(advisorReliability([])).toBe(100);
+    expect(advisorReliability(["Te escribo a irene@example.com"])).toBe(70);
+    expect(advisorReliability(["612345678"])).toBe(70);
+    expect(advisorReliability(["Mi móvil es 612 345 678"])).toBe(45);
+    expect(advisorReliability(["Seguimos por WhatsApp"])).toBe(75);
+    expect(advisorReliability(["irene@example.com y luego por WhatsApp al 612345678"])).toBe(15);
+    expect(advisorQuality(proven)).toBeGreaterThan(advisorQuality(leaky));
+    expect(advisorRank(proven, 40)).toBeLessThan(advisorRank(leaky, 100));
+
+    const reliability = (id: string) => (id === "leaky" ? 40 : 100);
+    expect(sortPublicAdvisors([leaky, proven], "recommended", reliability).map((card) => card.id)).toEqual(["proven", "leaky"]);
+    expect(sortPublicAdvisors([dear, leaky], "price-asc").map((card) => card.id)).toEqual(["leaky", "dear"]);
+    expect(sortPublicAdvisors([leaky, dear], "price-desc").map((card) => card.id)).toEqual(["dear", "leaky"]);
+  });
+
+  it("preselects the only company, or the company opened from a process", () => {
+    const companies = [
+      { slug: "proyecto-cala" },
+      { slug: "proyecto-duna" },
+    ];
+    expect(selectedEngagementCompany(companies, "proyecto-duna")).toBe("proyecto-duna");
+    expect(selectedEngagementCompany(companies, "otra")).toBe("");
+    expect(selectedEngagementCompany([{ slug: "proyecto-cala" }], undefined)).toBe("proyecto-cala");
+    expect(selectedEngagementCompany([], "proyecto-cala")).toBe("");
   });
 
   it("hides a half-finished profile", () => {

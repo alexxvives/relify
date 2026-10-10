@@ -18,9 +18,9 @@ export type PublicAdvisorCard = {
   cases: PublicAdvisorCase[];
 };
 
-export const advisorPriceBands = ["any", "under-3", "mid", "over-6"] as const;
+export const advisorMarketplaceSorts = ["recommended", "price-asc", "price-desc"] as const;
 
-export type AdvisorPriceBand = (typeof advisorPriceBands)[number];
+export type AdvisorMarketplaceSort = (typeof advisorMarketplaceSorts)[number];
 
 const privateAdvisorFields = ["nif", "postalCode", "email", "closedOperations"] as const;
 
@@ -84,41 +84,120 @@ export function toPublicAdvisorCard(profile: {
   };
 }
 
-function priceInBand(cents: number, band: AdvisorPriceBand): boolean {
-  if (band === "under-3") {
-    return cents <= 300_000;
+const emailLeak = /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i;
+const phoneLeak = /(?:\+34[\s.-]*)?(?:[6-9]\d{2})[\s.-]?\d{3}[\s.-]?\d{3}/;
+const offPlatformLeak =
+  /whatsapp|telegram|ll[aá]mame|mi correo|mi e-?mail|mi m[oó]vil|mi tel[eé]fono|mi n[uú]mero|fuera de la plataforma|por privado|hablamos fuera/i;
+
+export function advisorReliability(bodies: readonly string[]): number {
+  if (bodies.length === 0) {
+    return 100;
   }
-  if (band === "mid") {
-    return cents > 300_000 && cents <= 600_000;
+
+  const text = bodies.join("\n");
+  let score = 100;
+
+  if (emailLeak.test(text)) {
+    score -= 30;
   }
-  if (band === "over-6") {
-    return cents > 600_000;
+
+  if (phoneLeak.test(text)) {
+    score -= 30;
   }
-  return true;
+
+  if (offPlatformLeak.test(text)) {
+    score -= 25;
+  }
+
+  return Math.max(0, score);
+}
+
+export function advisorQuality(card: PublicAdvisorCard): number {
+  const cases = Math.min(card.cases.length, 4) * 16;
+  const services = Math.min(card.services.length, 4) * 5;
+  const description = card.description.length >= 180 ? 12 : card.description.length >= 50 ? 8 : 0;
+  const sectors = card.sectors.length === 0 ? 0 : card.sectors.length <= 3 ? 8 : 3;
+
+  return cases + services + description + sectors;
+}
+
+export function advisorRank(card: PublicAdvisorCard, reliability: number): number {
+  return advisorQuality(card) * (reliability / 100);
+}
+
+function startingPrice(card: PublicAdvisorCard): number {
+  const prices = card.services.map((service) => service.fromCents);
+
+  if (prices.length === 0) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  return Math.min(...prices);
 }
 
 export function filterPublicAdvisors(
   advisors: readonly PublicAdvisorCard[],
-  input: { query: string; sector: string; service: string; price: AdvisorPriceBand },
+  input: { sector: string; service: string },
 ): PublicAdvisorCard[] {
-  const query = input.query.trim().toLocaleLowerCase("es-ES");
-
   return advisors.filter((advisor) => {
-    const haystack = [...advisor.sectors, ...advisor.services.map((service) => service.title)]
-      .join(" ")
-      .toLocaleLowerCase("es-ES");
-    if (query.length > 0 && !haystack.includes(query)) {
-      return false;
-    }
     if (input.sector.length > 0 && !advisor.sectors.includes(input.sector)) {
       return false;
     }
-    const services = advisor.services.filter((service) => input.service.length === 0 || service.title === input.service);
-    if (services.length === 0) {
-      return false;
-    }
-    return input.price === "any" || services.some((service) => priceInBand(service.fromCents, input.price));
+
+    return advisor.services.some((service) => input.service.length === 0 || service.title === input.service);
   });
+}
+
+export function sortPublicAdvisors(
+  advisors: readonly PublicAdvisorCard[],
+  sort: AdvisorMarketplaceSort,
+  reliabilityFor: (id: string) => number = () => 100,
+): PublicAdvisorCard[] {
+  const copy = [...advisors];
+
+  if (sort === "price-asc" || sort === "price-desc") {
+    const direction = sort === "price-asc" ? 1 : -1;
+    copy.sort((left, right) => {
+      const delta = startingPrice(left) - startingPrice(right);
+
+      if (delta !== 0) {
+        return delta * direction;
+      }
+
+      return left.id.localeCompare(right.id);
+    });
+    return copy;
+  }
+
+  copy.sort((left, right) => {
+    const delta = advisorRank(right, reliabilityFor(right.id)) - advisorRank(left, reliabilityFor(left.id));
+
+    if (delta !== 0) {
+      return delta;
+    }
+
+    const cases = right.cases.length - left.cases.length;
+
+    if (cases !== 0) {
+      return cases;
+    }
+
+    return left.id.localeCompare(right.id);
+  });
+
+  return copy;
+}
+
+export function selectedEngagementCompany(companies: readonly { slug: string }[], requested: string | undefined): string {
+  if (requested && companies.some((company) => company.slug === requested)) {
+    return requested;
+  }
+
+  if (companies.length === 1) {
+    return companies[0]?.slug ?? "";
+  }
+
+  return "";
 }
 
 export function publicAdvisorCardKeys(card: PublicAdvisorCard): string[] {

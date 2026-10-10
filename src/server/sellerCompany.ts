@@ -24,6 +24,16 @@ const cookieOptions = {
   maxAge: 60 * 60 * 24 * 365,
 };
 
+export async function listSellerAdvisoryCompanies(
+  ownerId: string,
+): Promise<{ slug: string; codename: string; region: string }[]> {
+  return prisma.project.findMany({
+    where: { ownerId, NOT: { cif: "" } },
+    orderBy: { createdAt: "asc" },
+    select: { slug: true, codename: true, region: true },
+  });
+}
+
 export async function listSellerCompanies(ownerId: string): Promise<SellerCompanyChoice[]> {
   const [rows, prefill] = await Promise.all([
     prisma.project.findMany({

@@ -8,7 +8,13 @@ import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
-import { advisorPriceBands, filterPublicAdvisors, type AdvisorPriceBand, type PublicAdvisorCard } from "@/lib/advisor-directory";
+import {
+  advisorMarketplaceSorts,
+  filterPublicAdvisors,
+  sortPublicAdvisors,
+  type AdvisorMarketplaceSort,
+  type PublicAdvisorCard,
+} from "@/lib/advisor-directory";
 import { engagementCopy } from "@/lib/engagement-copy";
 
 const serviceStyle = {
@@ -23,21 +29,22 @@ const serviceStyle = {
 export function AdvisoryPicker({
   layout = "list",
   advisors = [],
-  projectSlug,
   companies = [],
+  initialCompany = "",
   contacts = [],
   today,
 }: {
   layout?: "list" | "cards";
   advisors?: PublicAdvisorCard[];
-  projectSlug?: string;
   companies?: { slug: string; codename: string; region: string }[];
+  initialCompany?: string;
   contacts?: AdvisorContactView[];
   today: string;
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [selected, setSelected] = useState<AdvisoryServiceId[]>([]);
-  const [tab, setTab] = useState<"general" | "market" | "contacts">("general");
+  const [tab, setTab] = useState<"general" | "market" | "contacts">("market");
+  const [company, setCompany] = useState(initialCompany);
   const cards = layout === "cards";
   const general = tab === "general";
 
@@ -45,7 +52,7 @@ export function AdvisoryPicker({
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
 
-  const needsCompany = !projectSlug && companies.length === 0;
+  const needsCompany = companies.length === 0 || company.length === 0;
   const hint = tab === "contacts" ? engagementCopy.contactsHint : general ? engagementCopy.generalHint : null;
 
   return (
@@ -53,8 +60,8 @@ export function AdvisoryPicker({
       <div className="flex gap-1 border-b border-[#e7eaee]" role="tablist" aria-label={advisoryCopy.heading}>
         {(
           [
-            ["general", engagementCopy.generalTab],
             ["market", engagementCopy.marketTab],
+            ["general", engagementCopy.generalTab],
             ["contacts", engagementCopy.contactsTab],
           ] as const
         ).map(([id, label]) => (
@@ -82,21 +89,30 @@ export function AdvisoryPicker({
       {general
         ? selected.map((id) => <input key={id} type="hidden" name="services" value={id} />)
         : null}
-      {projectSlug ? <input type="hidden" name="projectSlug" value={projectSlug} /> : null}
-      {general && companies.length > 0 ? (
+      {general && companies.length > 1 ? (
         <label className="text-sm font-medium text-[#1c2740]">
           {engagementCopy.pickCompany}
-          <select name="projectSlug" required className="mt-1 h-11 w-full rounded-xl border border-[#d5dbe3] bg-white px-3">
+          <select
+            name="projectSlug"
+            required
+            value={company}
+            onChange={(event) => {
+              setCompany(event.target.value);
+            }}
+            className="mt-1 h-11 w-full rounded-xl border border-[#d5dbe3] bg-white px-3"
+          >
             <option value="">{engagementCopy.companyRequired}</option>
-            {companies.map((company) => (
-              <option key={company.slug} value={company.slug}>
-                {company.codename} · {company.region}
+            {companies.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.codename} · {item.region}
               </option>
             ))}
           </select>
         </label>
-      ) : general && needsCompany ? (
+      ) : general && companies.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p>
+      ) : general && company ? (
+        <input type="hidden" name="projectSlug" value={company} />
       ) : null}
       {general ? <ul className={cards ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "grid gap-3"}>
         {advisoryServices.map((service) => {
@@ -139,10 +155,23 @@ export function AdvisoryPicker({
           );
         })}
       </ul> : (
-        <AdvisorMarket advisors={advisors} companies={companies} projectSlug={projectSlug} pending={pending} />
+        <AdvisorMarket
+          advisors={advisors}
+          companies={companies}
+          company={company}
+          onCompany={setCompany}
+          pending={pending}
+        />
       )}
       {state ? (
-        <p role="status" className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-red-700"}>
+        <p
+          role="status"
+          className={
+            state.ok
+              ? "fixed top-6 right-8 z-50 max-w-sm rounded-2xl bg-[#17663a] px-4 py-3 text-sm leading-6 text-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.55)]"
+              : "fixed top-6 right-8 z-50 max-w-sm rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm leading-6 text-red-700 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.55)]"
+          }
+        >
           {state.message}
         </p>
       ) : null}
@@ -172,32 +201,32 @@ export function AdvisoryPicker({
   );
 }
 
-const priceLabels: Record<AdvisorPriceBand, string> = {
-  any: engagementCopy.marketplacePriceAny,
-  "under-3": engagementCopy.marketplacePriceUnder,
-  mid: engagementCopy.marketplacePriceMid,
-  "over-6": engagementCopy.marketplacePriceOver,
+const sortLabels: Record<AdvisorMarketplaceSort, string> = {
+  recommended: engagementCopy.marketplaceSortRecommended,
+  "price-asc": engagementCopy.marketplaceSortPriceAsc,
+  "price-desc": engagementCopy.marketplaceSortPriceDesc,
 };
 
-function isPriceBand(value: string): value is AdvisorPriceBand {
-  return advisorPriceBands.some((band) => band === value);
+function isAdvisorSort(value: string): value is AdvisorMarketplaceSort {
+  return advisorMarketplaceSorts.some((sort) => sort === value);
 }
 
 function AdvisorMarket({
   advisors,
   companies,
-  projectSlug,
+  company,
+  onCompany,
   pending,
 }: {
   advisors: PublicAdvisorCard[];
   companies: { slug: string; codename: string; region: string }[];
-  projectSlug?: string;
+  company: string;
+  onCompany: (slug: string) => void;
   pending: boolean;
 }) {
-  const [query, setQuery] = useState("");
   const [sector, setSector] = useState("");
   const [service, setService] = useState("");
-  const [price, setPrice] = useState<AdvisorPriceBand>("any");
+  const [sort, setSort] = useState<AdvisorMarketplaceSort>("recommended");
   const sectors = useMemo(
     () => [...new Set(advisors.flatMap((advisor) => advisor.sectors))].sort((left, right) => left.localeCompare(right, "es")),
     [advisors],
@@ -206,7 +235,8 @@ function AdvisorMarket({
     () => [...new Set(advisors.flatMap((advisor) => advisor.services.map((item) => item.title)))].sort((left, right) => left.localeCompare(right, "es")),
     [advisors],
   );
-  const visible = filterPublicAdvisors(advisors, { query, sector, service, price });
+  const filtered = filterPublicAdvisors(advisors, { sector, service });
+  const visible = sort === "recommended" ? filtered : sortPublicAdvisors(filtered, sort);
 
   return (
     <section className="flex flex-col gap-4">
@@ -216,16 +246,22 @@ function AdvisorMarket({
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
-            {engagementCopy.marketplaceSearch}
-            <input
-              type="search"
-              value={query}
-              placeholder={engagementCopy.marketplaceSearchPlaceholder}
-              onChange={(event) => {
-                setQuery(event.target.value);
-              }}
-              className="h-11 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0]"
-            />
+            {engagementCopy.pickCompany}
+            {companies.length > 0 ? (
+              <FilterSelect
+                label={engagementCopy.pickCompany}
+                value={company}
+                options={[
+                  ...(companies.length === 1 ? [] : [{ value: "", label: engagementCopy.companyRequired }]),
+                  ...companies.map((item) => ({ value: item.slug, label: `${item.codename} · ${item.region}` })),
+                ]}
+                onValueChange={onCompany}
+              />
+            ) : (
+              <span className="flex h-11 items-center rounded-xl border border-[#e1e6ee] bg-[#f7f8fb] px-3 text-sm text-[#8b95a7]">
+                {engagementCopy.marketplaceCompanyEmpty}
+              </span>
+            )}
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {engagementCopy.marketplaceSector}
@@ -246,31 +282,27 @@ function AdvisorMarket({
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
-            {engagementCopy.marketplacePrice}
+            {engagementCopy.marketplaceSort}
             <FilterSelect
-              label={engagementCopy.marketplacePrice}
-              value={price}
-              options={advisorPriceBands.map((band) => ({ value: band, label: priceLabels[band] }))}
+              label={engagementCopy.marketplaceSort}
+              value={sort}
+              options={advisorMarketplaceSorts.map((item) => ({ value: item, label: sortLabels[item] }))}
               onValueChange={(next) => {
-                if (isPriceBand(next)) {
-                  setPrice(next);
+                if (isAdvisorSort(next)) {
+                  setSort(next);
                 }
               }}
             />
           </label>
         </div>
       </div>
+      {companies.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.companyNdaOnly}</p> : null}
+      {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(16rem,18rem))]">
+      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(22rem,24rem))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
-            <AdvisorListingCard
-              advisor={advisor}
-              connect
-              companies={companies}
-              projectSlug={projectSlug}
-              pending={pending}
-            />
+            <AdvisorListingCard advisor={advisor} connect={companies.length > 0} projectSlug={company} pending={pending} />
           </li>
         ))}
       </ul>

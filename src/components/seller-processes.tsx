@@ -208,7 +208,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
         {thread.stage === "pending" ? null : <ProcessHeaderCue steps={thread.steps} role="seller" />}
         {wantsAdvisor(thread.steps) ? (
           <Link
-            href="/mi-empresa/servicios"
+            href={`/mi-empresa/servicios?empresa=${thread.slug}`}
             className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
           >
             {engagementCopy.contactAdvisor}
@@ -230,7 +230,7 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             steps={thread.steps}
             role="seller"
             hideAsideCue
-            diligence={{ accessId: thread.accessId, advisorHref: "/mi-empresa/servicios" }}
+            diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
             acceptLoi={
               thread.messages.some((message) => message.kind === "offer")
                 ? {
