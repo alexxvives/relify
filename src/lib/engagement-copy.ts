@@ -56,6 +56,7 @@ export const engagementCopy = {
     "El plan gratis deja ver la lista de asesores y editar tu ficha. Por 39 € al mes ves la bandeja y puedes coger encargos.",
   inboxEmpty: "No hay solicitudes en la bandeja.",
   mineTitle: "Encargos para ti",
+  mineIntro: "Son las empresas que te han contratado. El depósito es 50 € más el 0,5 % del precio de venta y se devuelve.",
   mineEmpty: "Nadie te ha elegido todavía.",
   claim: "Coger encargo",
   claiming: "Cogiendo…",
@@ -65,7 +66,7 @@ export const engagementCopy = {
   missing: "Ese encargo no está en tu lista.",
   depositTitle: "Depósito para aceptar",
   depositBody:
-    "Antes del depósito ves la empresa en general y un apunte del inversor, sin su nombre y sin los números. El depósito es 50 € más la mitad del precio de venta. Se devuelve. Al pagarlo aceptas la solicitud.",
+    "Antes del depósito ves la empresa en general y un apunte del inversor, sin su nombre y sin los números. El depósito es 50 € más el 0,5 % del precio de venta. Se devuelve. Al pagarlo aceptas la solicitud.",
   depositPay: "Pagar depósito",
   depositPaying: "Abriendo el pago…",
   depositPaidNote: "Depósito registrado. Ya puedes firmar el NDA.",

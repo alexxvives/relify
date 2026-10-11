@@ -19,7 +19,7 @@ describe("destinationsForRole", () => {
     expect(destinationsForRole("advisor")).toEqual([
       { href: "/mandatos", label: "Inicio" },
       { href: "/mandatos/encargos", label: "Encargos" },
-      { href: "/mandatos/venta", label: "Mandatos" },
+      { href: "/mandatos/venta", label: "Mis procesos" },
       { href: "/mis-servicios", label: "Mis servicios" },
     ]);
     expect(destinationsForRole("admin")).toEqual([

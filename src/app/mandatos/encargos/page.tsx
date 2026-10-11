@@ -27,7 +27,7 @@ export default async function AdvisorEngagementsPage({
 
   return (
     <SignedInPage title={advisorCopy.encargosTitle}>
-      <AdvisorWork paid={work.paid} mine={work.mine} inbox={work.inbox} />
+      <AdvisorWork mine={work.mine} />
     </SignedInPage>
   );
 }

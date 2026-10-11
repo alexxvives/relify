@@ -103,7 +103,20 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
   },
 };
 
-export function dealPipeline(role: "investor" | "seller", flags: DealFlags): DealStep[] {
+export type DealViewer = "investor" | "seller" | "advisor";
+
+const advisorWatch: Record<DealStepId, string> = {
+  solicitud: "El comprador envía la conexión.",
+  conexion: "El vendedor todavía no ha aceptado.",
+  nda: "El comprador todavía no ha firmado el NDA.",
+  qa: "Preguntas y reuniones, hasta la carta de intenciones.",
+  loi: "Falta la carta de intenciones.",
+  diligence: "Due diligence en curso.",
+  documents: "Falta el contrato de compraventa.",
+  close: "La compraventa está cerrada.",
+};
+
+export function dealPipeline(role: DealViewer, flags: DealFlags): DealStep[] {
   const doneById: Record<DealStepId, boolean> = {
     solicitud: true,
     conexion: flags.accepted,
@@ -118,7 +131,7 @@ export function dealPipeline(role: "investor" | "seller", flags: DealFlags): Dea
 
   return dealStepIds.map((id) => {
     const copy = stepCopy[id];
-    const detail = copy[role];
+    const detail = role === "advisor" ? advisorWatch[id] : copy[role];
 
     const pendingLoi = id === "qa" && flags.loiPending === true;
 
@@ -144,7 +157,11 @@ export type StepCue = {
   action: string;
 };
 
-export function stepCue(id: DealStepId, role: "investor" | "seller", pendingLoi = false): StepCue {
+export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): StepCue {
+  if (role === "advisor") {
+    return { yours: false, action: advisorWatch[id] };
+  }
+
   if (id === "qa" && pendingLoi) {
     return role === "seller"
       ? { yours: true, action: "Acepta la carta de intenciones" }

@@ -28,8 +28,8 @@ describe("prices", () => {
     expect(grossCents(ADVISOR_INBOX_NET_CENTS)).toBe(4_719);
   });
 
-  it("holds 50 euros plus half the asking price, with no IVA", () => {
-    expect(advisorDepositCents(1_200_000_00)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS + 600_000_00);
+  it("holds 50 euros plus 0.5 percent of the asking price, with no IVA", () => {
+    expect(advisorDepositCents(1_200_000_00)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS + 6_000_00);
     expect(advisorDepositCents(0)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS);
   });
 

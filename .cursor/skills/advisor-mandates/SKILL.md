@@ -8,7 +8,7 @@ description: >-
 
 # Advisor mandates
 
-`/mandatos` is the advisor home. Existing drafts, including Proyecto Nube, stay on `/mandatos/venta`. Do not add a new mandate or make the advisor publish the client's company. The 149 € listing fee belongs to the seller. `/mis-servicios` stores the public profile: name, NIF, postal code, description, sectors, and a price range per service. A finished profile appears to investors and sellers with the commercial name, sectors, services, and range. It does not show the NIF, the email, or documents. A half profile stays off that list. Service quotes stay unpaid records.
+`/mandatos` is the advisor home. `/mandatos/venta` is Mis procesos: one card per company, with the sale steps. A buyer hire shows that buyer's process. A seller hire, once the seller opens the process, shows each buyer as Inversor 1, Inversor 2, without a name or an email. Do not add a new mandate or make the advisor publish the client's company. The 149 € listing fee belongs to the seller. The deposit is 50 € plus 0.5% of the asking price. `/mis-servicios` stores the public profile: name, NIF, postal code, description, sectors, and a price range inside each service. A finished profile appears to investors and sellers with the commercial name, sectors, services, and range. It does not show the NIF, the email, or documents. A half profile stays off that list. Service quotes stay unpaid records.
 
 Build mandates after the data room and messages, unless the user explicitly asks now.
 

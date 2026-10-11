@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { casesForVerifiedCloses, toPublicAdvisorCard } from "@/lib/advisor-directory";
+import { toPublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
@@ -25,29 +25,117 @@ const fieldClass =
 function EuroInput({
   label,
   value,
+  disabled,
   onChange,
 }: {
   label: string;
   value: string;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-[#2b3b4a]">
+    <label className={`flex flex-col gap-1 text-sm ${disabled ? "text-[#8b95a7]" : "text-[#2b3b4a]"}`}>
       {label}
       <span className="relative">
         <input
           inputMode="numeric"
           value={value}
+          disabled={disabled}
           onChange={(event) => {
             onChange(event.target.value.replace(/\D/g, ""));
           }}
-          className={`${fieldClass} pr-8`}
+          className={`${fieldClass} pr-8 disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]`}
         />
         <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#64748b]" aria-hidden>
           €
         </span>
       </span>
     </label>
+  );
+}
+
+function SectorMenu({ selected, onToggle }: { selected: string[]; onToggle: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const options = [...advisorSectors].sort((left, right) => left.name.localeCompare(right.name, "es"));
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function onPointer(event: MouseEvent) {
+      if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
+        className={`${fieldClass} flex items-center justify-between gap-2 bg-white text-left`}
+      >
+        <span>{advisorCopy.sectorSearch}</span>
+        <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />
+      </button>
+      {open ? (
+        <ul
+          role="listbox"
+          aria-label={advisorCopy.sectors}
+          aria-multiselectable="true"
+          className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-[#e6e9f0] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
+        >
+          {options.map((sector) => {
+            const checked = selected.includes(sector.id);
+            return (
+              <li key={sector.id} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={checked}
+                  onClick={() => {
+                    onToggle(sector.id);
+                  }}
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm font-normal text-[#2b3b4a] hover:bg-[#f5f6fa]"
+                >
+                  <span
+                    className={
+                      checked
+                        ? "mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded bg-[#465ab4] text-white"
+                        : "mt-0.5 inline-flex size-4 shrink-0 rounded border border-[#c5ced8] bg-white"
+                    }
+                    aria-hidden
+                  >
+                    {checked ? <Check className="size-3" /> : null}
+                  </span>
+                  {sector.name}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -88,7 +176,7 @@ export function AdvisorServices({
   closes = [],
 }: {
   initial: AdvisorProfileView;
-  closes?: { id: string; codename: string; closedLabel: string }[];
+  closes?: { id: string; codename: string; closedLabel: string; services: string; clientLabel: string }[];
 }) {
   const [profile, setProfile] = useState(initial);
   const [editing, setEditing] = useState<PanelId | null>(null);
@@ -99,27 +187,40 @@ export function AdvisorServices({
   const [postalCode, setPostalCode] = useState(initial.postalCode);
   const [description, setDescription] = useState(initial.description);
   const [sectors, setSectors] = useState<string[]>(initial.sectors);
-  const [sectorQuery, setSectorQuery] = useState("");
   const [selectedServices, setSelectedServices] = useState<AdvisorServiceId[]>(
     initial.services.map((service) => service.serviceType),
   );
   const [prices, setPrices] = useState(pricesFrom(initial.services));
 
   const nifMessage = nif.trim().length > 0 && !isValidSpanishCif(nif) ? advisorCopy.nifInvalid : null;
-  const listing = toPublicAdvisorCard({
+  const draftServices =
+    editing === "services"
+      ? selectedServices.map((serviceType) => ({
+          serviceType,
+          priceFromCents: Number(prices[serviceType].from || "0") * 100,
+          priceToCents: Number(prices[serviceType].to || "0") * 100,
+        }))
+      : profile.services;
+  const draftListing = toPublicAdvisorCard({
     userId: "preview",
     businessName: profile.businessName,
     nif: profile.nif,
     postalCode: profile.postalCode,
     description: profile.description,
     sectors: profile.sectors,
-    services: profile.services,
+    services: draftServices,
     closedOperations: [],
   });
-  const publicListing = listing ? { ...listing, cases: casesForVerifiedCloses(closes.length) } : null;
-  const visibleSectors = advisorSectors.filter((sector) =>
-    sector.name.toLocaleLowerCase("es-ES").includes(sectorQuery.trim().toLocaleLowerCase("es-ES")),
-  );
+  const publicListing = draftListing
+    ? {
+        ...draftListing,
+        cases: closes.map((close) => ({
+          sector: close.clientLabel,
+          closedOn: close.closedLabel,
+          value: close.services,
+        })),
+      }
+    : null;
 
   function open(panel: PanelId) {
     setMessage(null);
@@ -247,11 +348,11 @@ export function AdvisorServices({
             </label>
             <div className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
               {advisorCopy.sectors}
-              <input
-                value={sectorQuery}
-                placeholder={advisorCopy.sectorSearch}
-                onChange={(event) => setSectorQuery(event.target.value)}
-                className={fieldClass}
+              <SectorMenu
+                selected={sectors}
+                onToggle={(id) => {
+                  setSectors((current) => (current.includes(id) ? current.filter((sector) => sector !== id) : [...current, id]));
+                }}
               />
               {sectors.length > 0 ? (
                 <ul className="flex flex-wrap gap-2">
@@ -268,28 +369,6 @@ export function AdvisorServices({
                   ))}
                 </ul>
               ) : null}
-              <ul className="max-h-48 overflow-y-auto rounded-[14px] border border-[#e7eaee]">
-                {visibleSectors.map((sector) => {
-                  const checked = sectors.includes(sector.id);
-                  return (
-                    <li key={sector.id}>
-                      <label className="flex items-start gap-2 px-3 py-2 text-sm font-normal text-[#2b3b4a]">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => {
-                            setSectors((current) =>
-                              checked ? current.filter((id) => id !== sector.id) : [...current, sector.id],
-                            );
-                          }}
-                          className="mt-1 accent-[#5c4de0]"
-                        />
-                        {sector.name}
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
             {message && editing === "corporate" ? <p className="text-sm text-red-700">{message}</p> : null}
             <div className="flex justify-end gap-2">
@@ -337,6 +416,7 @@ export function AdvisorServices({
         )}
       </section>
 
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
         <PanelHeading
           title={advisorCopy.servicesPanelTitle}
@@ -348,12 +428,12 @@ export function AdvisorServices({
         />
         {editing === "services" ? (
           <div className="mt-6 flex flex-col gap-4">
-            <ul className="grid gap-3 md:grid-cols-2">
+            <ul className="grid gap-3">
               {advisorServiceIds.map((id) => {
                 const checked = selectedServices.includes(id);
                 return (
-                  <li key={id}>
-                    <label className="flex items-center gap-3 rounded-2xl border border-[#e7eaee] px-4 py-3 text-sm">
+                  <li key={id} className="rounded-2xl border border-[#e7eaee] p-4">
+                    <label className="flex items-center gap-3 text-sm font-medium text-[#2b3b4a]">
                       <input
                         type="checkbox"
                         checked={checked}
@@ -366,39 +446,28 @@ export function AdvisorServices({
                       />
                       {advisorCopy.serviceTypes[id]}
                     </label>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <EuroInput
+                        label={advisorCopy.priceFrom}
+                        value={prices[id].from}
+                        disabled={!checked}
+                        onChange={(from) => {
+                          setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
+                        }}
+                      />
+                      <EuroInput
+                        label={advisorCopy.priceTo}
+                        value={prices[id].to}
+                        disabled={!checked}
+                        onChange={(to) => {
+                          setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
+                        }}
+                      />
+                    </div>
                   </li>
                 );
               })}
             </ul>
-            {selectedServices.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.priceTitle}</h3>
-                <p className="text-sm text-[#64748b]">{advisorCopy.priceSubtitle}</p>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {selectedServices.map((id) => (
-                    <div key={id} className="rounded-2xl border border-[#e7eaee] p-4">
-                      <p className="text-sm font-medium text-[#2b3b4a]">{advisorCopy.serviceTypes[id]}</p>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <EuroInput
-                          label={advisorCopy.priceFrom}
-                          value={prices[id].from}
-                          onChange={(from) => {
-                            setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
-                          }}
-                        />
-                        <EuroInput
-                          label={advisorCopy.priceTo}
-                          value={prices[id].to}
-                          onChange={(to) => {
-                            setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
             {message && editing === "services" ? <p className="text-sm text-red-700">{message}</p> : null}
             <SaveRow pending={pending} onCancel={close} onSave={() => void saveServices()} />
           </div>
@@ -415,6 +484,32 @@ export function AdvisorServices({
           </ul>
         ) : null}
       </section>
+      <aside className="rounded-2xl border border-[#e7eaee] bg-white p-5 xl:sticky xl:top-6">
+        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
+        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
+        {publicListing ? (
+          <div className="mt-4">
+            <AdvisorListingCard advisor={publicListing} />
+            {closes.length > 0 ? (
+              <ul className="mt-4 grid gap-2">
+                {closes.map((close) => (
+                  <li key={close.id} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
+                    <p className="text-sm font-medium text-[#2b3b4a]">{close.codename}</p>
+                    <p className="text-sm text-[#64748b]">
+                      {close.clientLabel}
+                      {close.services.length > 0 ? ` · ${close.services}` : ""}
+                    </p>
+                    <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
+        )}
+      </aside>
+      </div>
 
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.dealsTitle}</h2>
@@ -426,6 +521,10 @@ export function AdvisorServices({
             {closes.map((close) => (
               <li key={close.id} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
                 <p className="text-sm font-medium text-[#2b3b4a]">{close.codename}</p>
+                <p className="mt-1 text-sm text-[#3d4a63]">
+                  {close.clientLabel}
+                  {close.services.length > 0 ? ` · ${close.services}` : ""}
+                </p>
                 <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
               </li>
             ))}
@@ -458,17 +557,6 @@ export function AdvisorServices({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
-        {publicListing ? (
-          <div className="mt-4 max-w-[36rem]">
-            <AdvisorListingCard advisor={publicListing} />
-          </div>
-        ) : (
-          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
-        )}
-      </section>
     </div>
   );
 }

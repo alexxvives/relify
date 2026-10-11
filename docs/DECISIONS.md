@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-11 — The advisor deposit is 50 € plus 0.5% and the inbox leaves the desk
+
+The hold is 50 € plus 0.5% of the asking price, in euro cents, with no IVA, because it is a deposit and not a fee. It replaces the earlier hold of half the asking price. Stripe Checkout still takes it in test mode. Paying it still opens the NDA and the figures. The money is returned later; this pass does not call a refund.
+
+Encargos no longer shows the shared inbox or the 39 € plan. A request names an advisor. Mis procesos, at `/mandatos/venta`, groups those jobs by company and shows the sale steps. Hired by a buyer, the advisor sees that buyer's process. Hired by the seller, and once the seller opens the process, each buyer is a lane on the same company. The lanes say Inversor 1 and Inversor 2. They do not show a name or an email.
+
 ## 2026-10-10 — An advisor pays a refundable deposit to open a request
 
 A named request stays a record until the advisor pays. Before that payment the advisor sees the codename, the region, the sector, the headcount band, the year, and the public description, plus the investor type, city, ticket, stake, and sectors. The name, email, NIF, phone, and the euro figures stay off that page. The chat, the NDA, and the company file stay closed.

@@ -37,7 +37,6 @@ export function AdvisorHome({
 }) {
   const stats = [
     { label: advisorCopy.openEngagements, value: desk.open.count, href: desk.open.href },
-    { label: advisorCopy.inboxStat, value: desk.inbox.count, href: desk.inbox.href },
     { label: advisorCopy.pendingDeposits, value: desk.deposits.count, href: desk.deposits.href },
     { label: advisorCopy.pendingNdas, value: desk.ndas.count, href: desk.ndas.href },
   ];
@@ -55,7 +54,7 @@ export function AdvisorHome({
     <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
         <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {stats.map((item) => (
             <li key={item.label}>
               <Link href={item.href} className="block h-full rounded-2xl border border-[#e7eaee] bg-white px-4 py-4 hover:border-[#465ab4]">
@@ -69,7 +68,7 @@ export function AdvisorHome({
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <CountBars
             stacked
-            rows={desk.steps.map((step) => ({
+            rows={desk.steps.filter((step) => step.step !== "request").map((step) => ({
               label: stepLabel[step.step].label,
               value: step.count,
               href: step.href,

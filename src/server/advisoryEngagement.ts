@@ -15,6 +15,11 @@ import {
   type AdvisorStep,
   type EngagementClientName,
 } from "@/lib/engagement";
+import {
+  advisorProjectBoards,
+  type AdvisorEngagementSnapshot,
+  type AdvisorProjectBoard,
+} from "@/lib/advisor-processes";
 import { advisorDepositCents, advisorPlatformFee } from "@/lib/billing";
 import { cnaeSection } from "@/lib/cnae-section";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
@@ -839,13 +844,21 @@ export type AdvisorPlatformClose = {
   id: string;
   codename: string;
   closedLabel: string;
+  services: string;
+  clientLabel: string;
 };
 
 export async function listAdvisorPlatformCloses(advisorId: string): Promise<AdvisorPlatformClose[]> {
   const rows = await prisma.advisoryEngagement.findMany({
     where: { advisorId, closedAt: { not: null } },
     orderBy: { closedAt: "desc" },
-    select: { id: true, closedAt: true, project: { select: { codename: true } } },
+    select: {
+      id: true,
+      closedAt: true,
+      client: true,
+      services: true,
+      project: { select: { codename: true } },
+    },
   });
 
   return rows.flatMap((row) => {
@@ -853,8 +866,104 @@ export async function listAdvisorPlatformCloses(advisorId: string): Promise<Advi
       return [];
     }
 
-    return [{ id: row.id, codename: row.project.codename, closedLabel: madridDate(row.closedAt) }];
+    return [
+      {
+        id: row.id,
+        codename: row.project.codename,
+        closedLabel: madridDate(row.closedAt),
+        services: serviceLabel(row.services),
+        clientLabel: clientLabel(row.client),
+      },
+    ];
   });
+}
+
+export async function listAdvisorProjectBoards(advisorId: string): Promise<AdvisorProjectBoard[]> {
+  const rows = await prisma.advisoryEngagement.findMany({
+    where: { advisorId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      client: true,
+      requesterId: true,
+      services: true,
+      depositPaidAt: true,
+      advisorNdaAcceptedAt: true,
+      processOpened: true,
+      closedAt: true,
+      project: {
+        select: {
+          id: true,
+          slug: true,
+          codename: true,
+          region: true,
+          successFee: { select: { id: true } },
+          accesses: {
+            select: {
+              investorId: true,
+              requestedAt: true,
+              sellerAcceptedAt: true,
+              ndaAcceptedAt: true,
+              loiAcceptedAt: true,
+              diligencePassedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const projectIds = [...new Set(rows.map((row) => row.project.id))];
+  const [messages, grants] = await Promise.all([
+    prisma.projectMessage.findMany({
+      where: { projectId: { in: projectIds } },
+      select: { projectId: true, investorId: true, kind: true },
+    }),
+    prisma.dataRoomGrant.findMany({
+      where: { projectId: { in: projectIds } },
+      select: { projectId: true, investorId: true },
+    }),
+  ]);
+  const grantKeys = new Set(grants.map((grant) => `${grant.projectId}:${grant.investorId}`));
+  const snapshots: AdvisorEngagementSnapshot[] = rows.map((row) => ({
+    id: row.id,
+    client: row.client,
+    requesterId: row.requesterId,
+    services: serviceLabel(row.services),
+    depositPaid: row.depositPaidAt !== null,
+    advisorNda: row.advisorNdaAcceptedAt !== null,
+    processOpened: row.processOpened,
+    closed: row.closedAt !== null,
+    projectId: row.project.id,
+    slug: row.project.slug,
+    codename: row.project.codename,
+    region: row.project.region,
+    saleClosed: row.project.successFee !== null,
+    accesses: row.project.accesses.map((access) => {
+      const thread = messages.filter(
+        (message) => message.projectId === row.project.id && message.investorId === access.investorId,
+      );
+
+      return {
+        investorId: access.investorId,
+        requestedAt: access.requestedAt,
+        accepted: access.sellerAcceptedAt !== null,
+        nda: access.ndaAcceptedAt !== null,
+        questions: thread.some((message) => message.kind === "question"),
+        meeting: thread.some((message) => message.kind === "meeting"),
+        offer: thread.some((message) => message.kind === "offer"),
+        loiAccepted: access.loiAcceptedAt !== null,
+        roomShared: grantKeys.has(`${row.project.id}:${access.investorId}`),
+        passedDiligence: access.diligencePassedAt !== null,
+      };
+    }),
+  }));
+
+  return advisorProjectBoards(snapshots);
 }
 
 export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<string, number>> {

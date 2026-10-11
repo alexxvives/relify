@@ -30,7 +30,7 @@ export function advisorDepositCents(askingPriceCents: number): number {
     return ADVISOR_DEPOSIT_FLAT_CENTS;
   }
 
-  return ADVISOR_DEPOSIT_FLAT_CENTS + Math.round(askingPriceCents / 2);
+  return ADVISOR_DEPOSIT_FLAT_CENTS + Math.round(askingPriceCents / 200);
 }
 
 export type SuccessFeeAmounts = {

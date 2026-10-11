@@ -14,9 +14,9 @@ import { AgreementSheet } from "@/components/agreement-sheet";
 import { attachmentNames } from "@/lib/meeting";
 import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
-import { stepCue, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
+import { stepCue, type DealStep, type DealViewer, type ProcessFile } from "@/lib/deal-pipeline";
 
-function signTarget(id: DealStep["id"] | undefined, yours: boolean, role: "investor" | "seller"): "nda" | "loi" | null {
+function signTarget(id: DealStep["id"] | undefined, yours: boolean, role: DealViewer): "nda" | "loi" | null {
   if (id === "nda" && yours) {
     return "nda";
   }
@@ -44,7 +44,7 @@ export function DealPipeline({
   hideWaitingCue = false,
 }: {
   steps: DealStep[];
-  role: "investor" | "seller";
+  role: DealViewer;
   onDark?: boolean;
   sign?: { slug: string; nda: string; loi: string };
   diligence?: { accessId: string; advisorHref: string };
