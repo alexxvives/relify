@@ -131,8 +131,8 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
 
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
-      <div className="flex items-start gap-3">
+    <article className="flex h-full flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
         </span>
@@ -161,7 +161,7 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
           </ul>
         </div>
       </div>
-      <div className="mt-4 flex flex-1 flex-col gap-3 border-t border-[#eef0f3] pt-4">
+      <div className="flex shrink-0 flex-col items-stretch gap-3 sm:items-end">
         {self ? <p className="text-sm text-[#667085]">{adminCopy.ownSuspend}</p> : <SuspensionButton userId={account.id} suspended={account.suspended} />}
         {self ? <p className="text-sm text-[#667085]">{adminCopy.ownRole}</p> : <RoleForm userId={account.id} role={account.role} />}
         {account.role === "investor" ? <PlanForm userId={account.id} /> : null}

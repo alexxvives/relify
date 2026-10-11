@@ -45,6 +45,8 @@ describe("destinationIsCurrent", () => {
     expect(destinationIsCurrent("/admin", "/admin")).toBe(true);
     expect(destinationIsCurrent("/admin", "/admin/empresas")).toBe(false);
     expect(destinationIsCurrent("/admin/conexiones", "/admin/chat/acceso")).toBe(true);
+    expect(destinationIsCurrent("/admin/conexiones", "/admin/conexiones/acceso")).toBe(true);
+    expect(destinationIsCurrent("/admin/empresas", "/admin/empresas/proyecto-cala")).toBe(true);
     expect(destinationIsCurrent("/admin/empresas", "/admin/chat/acceso")).toBe(false);
     expect(destinationIsCurrent("/mandatos/encargos", "/mandatos/encargos/abc")).toBe(true);
     expect(destinationIsCurrent("/mandatos", "/mandatos/encargos")).toBe(false);

@@ -47,7 +47,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           total={overview.published + overview.drafts + overview.pending}
           palette="orange"
           rows={listings}
-          aside={overview.publishedAskingCents > 0 ? `${adminCopy.asking} ${formatEur(overview.publishedAskingCents)}` : undefined}
+          aside={overview.publishedAskingCents > 0 ? formatEur(overview.publishedAskingCents) : undefined}
         />
         <ChartLink
           href="/admin/facturacion"
@@ -96,13 +96,20 @@ function ChartLink({
 }) {
   return (
     <Link href={href} className={cardClass}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="text-2xl font-semibold text-[#1c2740]">{title}</h2>
-        <p className="text-right">
-          <span className="block text-xs text-[#667085]">{adminCopy.totalLabel}</span>
-          <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{total}</span>
-          {aside ? <span className="mt-1 block max-w-40 text-xs text-[#667085]">{aside}</span> : null}
-        </p>
+        <div className="flex items-start gap-4">
+          {aside ? (
+            <p className="text-right">
+              <span className="block text-xs text-[#667085]">{adminCopy.asking}</span>
+              <span className="text-sm font-semibold tracking-tight text-[#1c2740] tabular-nums">{aside}</span>
+            </p>
+          ) : null}
+          <p className="text-right">
+            <span className="block text-xs text-[#667085]">{adminCopy.totalLabel}</span>
+            <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{total}</span>
+          </p>
+        </div>
       </div>
       {total === 0 ? <p className="mt-4 text-sm text-[#667085]">{adminCopy.empty}</p> : <CountDonut rows={rows} palette={palette} />}
     </Link>
@@ -116,12 +123,14 @@ function ActivityTile({
 }) {
   const body = (
     <>
-      <item.icon className="size-4" aria-hidden />
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
-      <p className="mt-1 text-sm text-[#3d4a63]">{item.label}</p>
+      <div className="min-w-0">
+        <p className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
+        <p className="mt-1 text-sm text-[#3d4a63]">{item.label}</p>
+      </div>
+      <item.icon className="size-8 shrink-0" aria-hidden />
     </>
   );
-  const className = `flex h-full flex-col rounded-2xl px-4 py-4 ${item.tone}`;
+  const className = `flex h-full items-center justify-between gap-3 rounded-2xl px-4 py-4 ${item.tone}`;
 
   if (!item.href) {
     return <div className={className}>{body}</div>;

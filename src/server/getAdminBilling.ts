@@ -14,13 +14,13 @@ import { stripeMode } from "@/server/stripe";
 export type InvestorPlanCount = { plan: "none" | "limited" | "unlimited"; count: number };
 
 const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" });
-const recentLimit = 8;
 
 export type BillingEntry = {
   id: string;
   title: string;
   detail: string;
   amount: string;
+  cents: number;
 };
 
 export type BillingBook = {
@@ -65,12 +65,8 @@ function serviceNames(ids: readonly string[]): string {
     .join(", ");
 }
 
-function recent<T>(rows: T[]): T[] {
-  return rows.slice(0, recentLimit);
-}
-
 function asEntry(row: { id: string; title: string; detail: string; amount: string; cents: number }): BillingEntry {
-  return { id: row.id, title: row.title, detail: row.detail, amount: row.amount };
+  return { id: row.id, title: row.title, detail: row.detail, amount: row.amount, cents: row.cents };
 }
 
 export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling | null> {
@@ -161,23 +157,27 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
 
     if (customer.plan === "limited" || customer.plan === "unlimited") {
       const subscribed = customer.stripeSubscriptionId !== null;
+      const cents = subscribed ? grossCents(planNetCents(customer.plan)) : 0;
       rows.push({
         id: `${customer.userId}-plan`,
         title: customer.user.email,
         detail: subscribed
           ? `${adminCopy.billingMonthly}${customer.periodEnd ? ` · ${adminCopy.billingUntil} ${dated(customer.periodEnd)}` : ""}`
           : adminCopy.billingGranted,
-        amount: subscribed ? formatEur(grossCents(planNetCents(customer.plan))) : adminCopy.billingNoCharge,
+        amount: subscribed ? formatEur(cents) : adminCopy.billingNoCharge,
+        cents,
       });
     }
 
     if (customer.advisorInbox) {
       const subscribed = customer.advisorSubscriptionId !== null;
+      const cents = subscribed ? grossCents(ADVISOR_INBOX_NET_CENTS) : 0;
       rows.push({
         id: `${customer.userId}-inbox`,
         title: customer.user.email,
         detail: subscribed ? adminCopy.billingInbox : adminCopy.billingGranted,
-        amount: subscribed ? formatEur(grossCents(ADVISOR_INBOX_NET_CENTS)) : adminCopy.billingNoCharge,
+        amount: subscribed ? formatEur(cents) : adminCopy.billingNoCharge,
+        cents,
       });
     }
 
@@ -185,14 +185,15 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
   });
   const closeTotal = closeRows.reduce((sum, row) => sum + row.cents, 0);
   const advisorTotal = advisorRows.reduce((sum, row) => sum + row.cents, 0);
+  const subscriptionTotal = subscriptionRows.reduce((sum, row) => sum + row.cents, 0);
   const books: BillingBook[] = [
     {
       id: "subscriptions",
       title: adminCopy.billingSubsTitle,
       note: adminCopy.billingSubsNote,
-      total: String(subscriptionRows.length),
+      total: formatEur(subscriptionTotal),
       count: subscriptionRows.length,
-      entries: recent(subscriptionRows),
+      entries: subscriptionRows,
     },
     {
       id: "listings",
@@ -200,14 +201,13 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
       note: adminCopy.billingListingsNote,
       total: formatEur(listingTotal),
       count: listings.length,
-      entries: recent(
-        listings.map((row) => ({
-          id: row.id,
-          title: row.project.codename,
-          detail: `${row.user.email} · ${dated(row.createdAt)}`,
-          amount: formatEur(listingGross),
-        })),
-      ),
+      entries: listings.map((row) => ({
+        id: row.id,
+        title: row.project.codename,
+        detail: `${row.user.email} · ${dated(row.createdAt)}`,
+        amount: formatEur(listingGross),
+        cents: listingGross,
+      })),
     },
     {
       id: "deposits",
@@ -215,14 +215,13 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
       note: adminCopy.billingDepositsNote,
       total: formatEur(depositTotal),
       count: deposits.length,
-      entries: recent(
-        deposits.map((row) => ({
-          id: row.id,
-          title: row.project.codename,
-          detail: dated(row.depositPaidAt),
-          amount: formatEur(row.depositCents),
-        })),
-      ),
+      entries: deposits.map((row) => ({
+        id: row.id,
+        title: row.project.codename,
+        detail: dated(row.depositPaidAt),
+        amount: formatEur(row.depositCents),
+        cents: row.depositCents,
+      })),
     },
     {
       id: "closes",
@@ -230,7 +229,7 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
       note: adminCopy.billingCloseNote,
       total: formatEur(closeTotal),
       count: closeRows.length,
-      entries: recent(closeRows.map(asEntry)),
+      entries: closeRows.map(asEntry),
     },
     {
       id: "advisor-fees",
@@ -238,22 +237,21 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
       note: adminCopy.billingAdvisorFeeNote,
       total: formatEur(advisorTotal),
       count: advisorRows.length,
-      entries: recent(advisorRows.map(asEntry)),
+      entries: advisorRows.map(asEntry),
     },
     {
       id: "quotes",
       title: adminCopy.quotesTitle,
       note: adminCopy.billingQuotesNote,
-      total: String(quotes.length),
+      total: formatEur(0),
       count: quotes.length,
-      entries: recent(
-        quotes.map((quote) => ({
-          id: quote.id,
-          title: quote.investor.email,
-          detail: `${serviceNames(quote.services)} · ${dated(quote.createdAt)}`,
-          amount: adminCopy.billingNoCharge,
-        })),
-      ),
+      entries: quotes.map((quote) => ({
+        id: quote.id,
+        title: quote.investor.email,
+        detail: `${serviceNames(quote.services)} · ${dated(quote.createdAt)}`,
+        amount: adminCopy.billingNoCharge,
+        cents: 0,
+      })),
     },
   ];
 

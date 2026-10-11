@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ApproveButton, UnpublishButton } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -96,6 +97,9 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
   );
 }
 
+const fichaClass =
+  "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740]";
+
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
   const figures = [
     { label: companyCopy.revenueLabel, value: formatEur(project.revenueCents) },
@@ -103,8 +107,12 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
     { label: companyCopy.adjustedEbitdaLabel, value: formatEur(project.adjustedEbitdaCents) },
     { label: companyCopy.askingPriceLabel, value: formatEur(project.askingPriceCents) },
   ];
-  const shownFiles = project.fileNames.slice(0, 8);
-  const hiddenFiles = project.fileNames.length - shownFiles.length;
+  const identity = [
+    { label: adminCopy.legalName, value: project.legalName },
+    { label: adminCopy.cif, value: project.cif },
+    { label: adminCopy.address, value: project.address },
+    { label: adminCopy.shareholders, value: project.shareholders.join(", ") },
+  ];
 
   return (
     <article className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -120,54 +128,32 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
             {[project.region, project.ownerEmail ?? adminCopy.ownerMissing].filter((part) => part.trim().length > 0).join(" · ")}
           </p>
         </div>
-        {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
-        {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/empresas/${project.slug}`} className={fichaClass}>
+            {adminCopy.viewCompany}
+          </Link>
+          {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
+          {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
+        </div>
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-[#e7eaee] lg:grid-cols-4">
-        {figures.map((figure) => (
-          <div key={figure.label} className="bg-[#f7f8fb] px-3 py-3">
-            <dt className="text-xs text-[#667085]">{figure.label}</dt>
-            <dd className="mt-1 text-sm font-semibold text-[#1c2740] tabular-nums">{figure.value}</dd>
-          </div>
-        ))}
-      </dl>
-      <dl className="mt-4 grid gap-3 text-sm text-[#1c2740] sm:grid-cols-2">
-        <IdentityItem label={adminCopy.legalName} value={project.legalName} />
-        <IdentityItem label={adminCopy.cif} value={project.cif} />
-        <IdentityItem label={adminCopy.address} value={project.address} />
-        <IdentityItem label={adminCopy.shareholders} value={project.shareholders.join(", ")} />
-      </dl>
-      <div className="mt-4">
-        <p className="text-xs font-medium text-[#667085]">
-          {adminCopy.files}
-          {project.fileNames.length > 0 ? ` · ${project.fileNames.length}` : ""}
-        </p>
-        {project.fileNames.length === 0 ? (
-          <p className="mt-2 text-sm text-[#8b95a7]">{adminCopy.identityEmpty}</p>
-        ) : (
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {shownFiles.map((fileName, index) => (
-              <li key={`${fileName}-${index}`} className="max-w-full truncate rounded-full bg-[#f4f7ff] px-3 py-1 text-xs text-[#1c2740]">
-                {fileName}
-              </li>
-            ))}
-            {hiddenFiles > 0 ? (
-              <li className="rounded-full bg-[#f4f5f7] px-3 py-1 text-xs text-[#667085]">+{hiddenFiles}</li>
-            ) : null}
-          </ul>
-        )}
+      <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <dl className="grid min-w-0 flex-1 gap-y-2 text-sm text-[#1c2740]">
+          {identity.map((item) => (
+            <div key={item.label} className="grid gap-x-4 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+              <dt className="text-[#667085]">{item.label}</dt>
+              <dd className="break-words">{item.value.trim().length > 0 ? item.value : adminCopy.identityEmpty}</dd>
+            </div>
+          ))}
+        </dl>
+        <dl className="grid grid-cols-2 gap-2 lg:w-80 lg:shrink-0">
+          {figures.map((figure) => (
+            <div key={figure.label} className="rounded-xl bg-[#f7f8fb] px-3 py-2">
+              <dt className="text-xs text-[#667085]">{figure.label}</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-[#1c2740] tabular-nums">{figure.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </article>
-  );
-}
-
-function IdentityItem({ label, value }: { label: string; value: string }) {
-  const shown = value.trim().length > 0 ? value : adminCopy.identityEmpty;
-
-  return (
-    <div className="min-w-0 rounded-xl border border-[#eef0f3] px-3 py-2">
-      <dt className="text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 break-words">{shown}</dd>
-    </div>
   );
 }

@@ -1,92 +1,89 @@
-import { CountDonut } from "@/components/admin-charts";
+"use client";
+
+import { useState } from "react";
+import { donutPalettes, type DonutPalette } from "@/components/admin-charts";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminBilling, BillingBook } from "@/server/getAdminBilling";
 
-export function AdminBilling({ billing }: { billing: AdminBilling }) {
-  const plans = billing.plans.map((row) => ({
-    label: adminCopy.plans[row.plan],
-    value: row.count,
-  }));
-  const planTotal = plans.reduce((sum, row) => sum + row.value, 0);
-  const summary = [
-    { label: adminCopy.billingCollected, value: billing.collected, hint: adminCopy.billingCollectedHint },
-    { label: adminCopy.billingRecorded, value: billing.recorded, hint: adminCopy.billingRecordedHint },
-    { label: adminCopy.quotesTitle, value: String(billing.quotes), hint: adminCopy.billingQuotesNote },
-  ];
+const bookPalette: Record<string, DonutPalette> = {
+  subscriptions: "blue",
+  listings: "orange",
+  deposits: "green",
+  closes: "red",
+  "advisor-fees": "blue",
+  quotes: "orange",
+};
 
+export function AdminBilling({ billing }: { billing: AdminBilling }) {
   return (
-    <div className="flex flex-col gap-6">
-      <p
-        className={
-          billing.live
-            ? "rounded-2xl bg-[#1c2740] px-4 py-3 text-sm text-white"
-            : "rounded-2xl bg-[#fff8db] px-4 py-3 text-sm text-[#614d05]"
-        }
-      >
-        {billing.live ? adminCopy.paymentsLive : adminCopy.paymentsTest} {adminCopy.billingNote}
-      </p>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.plansTitle}</h2>
-            <p className="text-right">
-              <span className="block text-xs text-[#667085]">{adminCopy.totalLabel}</span>
-              <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{planTotal}</span>
-            </p>
-          </div>
-          {planTotal === 0 ? <p className="mt-4 text-sm text-[#667085]">{adminCopy.empty}</p> : <CountDonut rows={plans} palette="red" />}
-        </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.billingSummary}</h2>
-          <ul className="mt-4 flex flex-col gap-3">
-            {summary.map((item) => (
-              <li key={item.label} className="rounded-xl bg-[#f7f8fb] px-4 py-3">
-                <p className="text-xs text-[#667085]">{item.label}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
-                <p className="mt-1 text-sm text-[#3d4a63]">{item.hint}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-      <div className="grid gap-6 xl:grid-cols-2">
-        {billing.books.map((book) => (
-          <Book key={book.id} book={book} />
-        ))}
-      </div>
+    <div className="grid gap-4 xl:grid-cols-2">
+      {billing.books.map((book) => (
+        <BillingSource key={book.id} book={book} />
+      ))}
     </div>
   );
 }
 
-function Book({ book }: { book: BillingBook }) {
+function BillingSource({ book }: { book: BillingBook }) {
+  const [open, setOpen] = useState(false);
+  const color = donutPalettes[bookPalette[book.id] ?? "blue"][0];
+
   return (
     <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-xl font-semibold text-[#1c2740]">{book.title}</h2>
           <p className="mt-1 text-sm text-[#667085]">{book.note}</p>
         </div>
-        <p className="text-right">
-          <span className="block text-xs text-[#667085]">{adminCopy.totalLabel}</span>
-          <span className="text-lg font-semibold text-[#1c2740] tabular-nums">{book.total}</span>
-        </p>
+        <p className="shrink-0 text-right text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{book.total}</p>
       </div>
       {book.entries.length === 0 ? (
         <p className="mt-4 text-sm text-[#667085]">{adminCopy.billingNone}</p>
       ) : (
-        <ul className="mt-4 flex flex-col gap-2">
-          {book.entries.map((entry) => (
-            <li key={entry.id} className="flex items-start justify-between gap-3 rounded-xl bg-[#f7f8fb] px-3 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-[#1c2740]">{entry.title}</p>
-                <p className="mt-0.5 text-xs text-[#667085]">{entry.detail}</p>
-              </div>
-              <p className="shrink-0 text-sm font-semibold text-[#1c2740] tabular-nums">{entry.amount}</p>
-            </li>
-          ))}
-        </ul>
+        <>
+          <SourceChart values={book.entries.map((entry) => entry.cents)} color={color} label={book.title} />
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => {
+              setOpen((current) => !current);
+            }}
+            className="mt-3 text-sm font-medium text-[#465ab4]"
+          >
+            {open ? adminCopy.billingHide : adminCopy.billingShow}
+            {` · ${book.count}`}
+          </button>
+          {open ? (
+            <ul className="mt-3 flex max-h-80 flex-col gap-2 overflow-y-auto">
+              {book.entries.map((entry) => (
+                <li key={entry.id} className="flex items-start justify-between gap-3 rounded-xl bg-[#f7f8fb] px-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-[#1c2740]">{entry.title}</p>
+                    <p className="mt-0.5 text-xs text-[#667085]">{entry.detail}</p>
+                  </div>
+                  <p className="shrink-0 text-sm font-semibold text-[#1c2740] tabular-nums">{entry.amount}</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
       )}
-      {book.count > book.entries.length ? <p className="mt-3 text-xs text-[#667085]">{adminCopy.billingRecent}</p> : null}
     </section>
+  );
+}
+
+function SourceChart({ values, color, label }: { values: number[]; color: string; label: string }) {
+  const flat = values.every((value) => value <= 0);
+  const bars = flat ? values.map(() => 1) : values;
+  const peak = Math.max(...bars, 1);
+  const width = Math.max(bars.length * 14, 14);
+
+  return (
+    <svg viewBox={`0 0 ${width} 48`} className="mt-4 h-16 w-full" role="img" aria-label={label}>
+      {bars.map((value, index) => {
+        const height = Math.max((value / peak) * 40, 3);
+        return <rect key={index} x={index * 14 + 2} y={46 - height} width={10} height={height} rx={2} fill={color} />;
+      })}
+    </svg>
   );
 }

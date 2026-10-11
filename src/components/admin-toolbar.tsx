@@ -26,7 +26,7 @@ export function AdminSearchField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label htmlFor={id} className="flex h-9 items-center gap-2 rounded-full border border-[#e7eaee] bg-white px-3">
+    <label htmlFor={id} className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-[#e7eaee] bg-white px-3">
       <span className="shrink-0 text-xs text-[#667085]">{label}</span>
       <input
         id={id}
@@ -36,7 +36,7 @@ export function AdminSearchField({
         onChange={(event) => {
           onChange(event.target.value);
         }}
-        className="w-32 bg-transparent text-sm text-[#1c2740] outline-none placeholder:text-[#98a2b3] sm:w-40"
+        className="w-44 bg-transparent text-sm text-[#1c2740] outline-none placeholder:text-[#98a2b3] sm:w-52"
       />
     </label>
   );

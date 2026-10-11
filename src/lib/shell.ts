@@ -73,5 +73,12 @@ export function destinationIsCurrent(href: string, pathname: string): boolean {
     return true;
   }
 
-  return href === "/admin/conexiones" && pathname.startsWith("/admin/chat/");
+  if (href === "/admin/empresas" && pathname.startsWith("/admin/empresas/")) {
+    return true;
+  }
+
+  return (
+    href === "/admin/conexiones" &&
+    (pathname.startsWith("/admin/chat/") || pathname.startsWith("/admin/conexiones/"))
+  );
 }

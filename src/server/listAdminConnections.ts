@@ -6,6 +6,7 @@ const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "
 
 export type AdminConnectionRow = {
   id: string;
+  slug: string;
   codename: string;
   region: string;
   investorEmail: string;
@@ -33,6 +34,7 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
       investor: { select: { email: true } },
       project: {
         select: {
+          slug: true,
           codename: true,
           region: true,
           successFee: { select: { id: true } },
@@ -65,6 +67,7 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
 
     return {
       id: connection.id,
+      slug: connection.project.slug,
       codename: connection.project.codename,
       region: connection.project.region,
       investorEmail: connection.investor.email,

@@ -65,7 +65,11 @@ export function AdminConnections({ connections }: { connections: AdminConnection
             <li key={connection.id} className="rounded-2xl border border-[#e7eaee] bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg font-semibold text-[#1c2740]">{connection.codename}</h2>
+                  <h2 className="text-lg font-semibold text-[#1c2740]">
+                    <Link href={`/admin/conexiones/${connection.id}`} className="hover:text-[#465ab4]">
+                      {connection.codename}
+                    </Link>
+                  </h2>
                   <p className="mt-1 text-sm text-[#667085]">
                     {connection.region} · {connection.investorEmail}
                   </p>
@@ -75,8 +79,8 @@ export function AdminConnections({ connections }: { connections: AdminConnection
                     {connection.steps.length > 0 ? pipelineStatus(connection.steps) : adminCopy.waiting}
                   </p>
                   <p className="mt-1 text-xs text-[#667085]">{connection.when}</p>
-                  <Link href={`/admin/chat/${connection.id}`} className="mt-2 inline-block text-sm font-medium text-[#465ab4]">
-                    {adminCopy.readChat}
+                  <Link href={`/admin/conexiones/${connection.id}`} className="mt-2 inline-block text-sm font-medium text-[#465ab4]">
+                    {adminCopy.viewCompany}
                   </Link>
                 </div>
               </div>

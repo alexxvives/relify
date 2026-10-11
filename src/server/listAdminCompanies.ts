@@ -3,6 +3,7 @@ import { prisma } from "@/server/db";
 
 export type AdminCompanyRow = {
   id: string;
+  slug: string;
   codename: string;
   region: string;
   status: "draft" | "pending" | "published";
@@ -15,7 +16,6 @@ export type AdminCompanyRow = {
   cif: string;
   address: string;
   shareholders: string[];
-  fileNames: string[];
 };
 
 export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompanyRow[] | null> {
@@ -27,6 +27,7 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      slug: true,
       codename: true,
       region: true,
       status: true,
@@ -39,12 +40,12 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
       address: true,
       owner: { select: { email: true } },
       shareholders: { select: { name: true }, orderBy: { name: "asc" } },
-      dataRoomFiles: { select: { fileName: true }, orderBy: { createdAt: "asc" } },
     },
   });
 
   return projects.map((project) => ({
     id: project.id,
+    slug: project.slug,
     codename: project.codename,
     region: project.region,
     status: project.status,
@@ -57,6 +58,5 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     cif: project.cif,
     address: project.address,
     shareholders: project.shareholders.map((holder) => holder.name),
-    fileNames: project.dataRoomFiles.map((file) => file.fileName),
   }));
 }

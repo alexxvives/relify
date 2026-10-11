@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useSyncExternalStore } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 import {
   approveProjectAction,
   changeRoleAction,
@@ -11,6 +11,7 @@ import {
   type AdminActionState,
 } from "@/app/admin/actions";
 import { AppToast } from "@/components/app-toast";
+import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { userRoles, type UserRoleName } from "@/lib/auth-input";
 
@@ -142,22 +143,21 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
 export function RoleForm({ userId, role }: { userId: string; role: string | null }) {
   const { state, formAction, pending } = useAccountAction(changeRoleAction);
   const current = isAccountRole(role) ? role : "seller";
-  const fieldId = `role-${userId}`;
+  const [nextRole, setNextRole] = useState<string>(current);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-2">
+    <form action={formAction} className="flex w-full flex-col items-stretch gap-2 sm:w-44 sm:items-end">
       <input type="hidden" name="userId" value={userId} />
-      <div className="flex flex-col gap-1">
-        <label htmlFor={fieldId} className="text-xs text-[#667085]">
-          {adminCopy.roleLabel}
-        </label>
-        <select id={fieldId} name="role" defaultValue={current} className="h-9 rounded-xl border border-[#e7eaee] bg-white px-2 text-sm text-[#1c2740]">
-          {userRoles.map((item) => (
-            <option key={item} value={item}>
-              {adminCopy.accountRoles[item]}
-            </option>
-          ))}
-        </select>
+      <input type="hidden" name="role" value={nextRole} />
+      <p className="text-xs text-[#667085]">{adminCopy.roleLabel}</p>
+      <div className="w-full">
+        <FilterSelect
+          compact
+          label={adminCopy.roleLabel}
+          value={nextRole}
+          options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
+          onValueChange={setNextRole}
+        />
       </div>
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? adminCopy.changingRole : adminCopy.changeRole}
@@ -169,19 +169,24 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
 
 export function PlanForm({ userId }: { userId: string }) {
   const { state, formAction, pending } = useAccountAction(grantPlanAction);
-  const fieldId = `plan-${userId}`;
+  const [plan, setPlan] = useState("limited");
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-2">
+    <form action={formAction} className="flex w-full flex-col items-stretch gap-2 sm:w-44 sm:items-end">
       <input type="hidden" name="userId" value={userId} />
-      <div className="flex flex-col gap-1">
-        <label htmlFor={fieldId} className="text-xs text-[#667085]">
-          {adminCopy.grantPlan}
-        </label>
-        <select id={fieldId} name="plan" defaultValue="limited" className="h-9 rounded-xl border border-[#e7eaee] bg-white px-2 text-sm text-[#1c2740]">
-          <option value="limited">{adminCopy.plans.limited}</option>
-          <option value="unlimited">{adminCopy.plans.unlimited}</option>
-        </select>
+      <input type="hidden" name="plan" value={plan} />
+      <p className="text-xs text-[#667085]">{adminCopy.grantPlan}</p>
+      <div className="w-full">
+        <FilterSelect
+          compact
+          label={adminCopy.grantPlan}
+          value={plan}
+          options={[
+            { value: "limited", label: adminCopy.plans.limited },
+            { value: "unlimited", label: adminCopy.plans.unlimited },
+          ]}
+          onValueChange={setPlan}
+        />
       </div>
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? adminCopy.grantingPlan : adminCopy.grantPlan}

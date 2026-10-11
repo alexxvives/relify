@@ -15,7 +15,7 @@ Roles are `seller`, `investor`, `advisor`, and `admin`. Homes live in `homeForRo
 | seller | `/mi-empresa` | Inicio, Detalles, Documentos, Procesos, Mi asesor |
 | investor | `/inversor` | Inicio, Empresas en venta (`/mercado`, con el filtro Solo favoritas), Procesos, Mi asesor |
 | advisor | `/mandatos` | Inicio, Encargos (`/mandatos/encargos`), Mis procesos (`/mandatos/venta`), Mis servicios. No Ser premium. Encargos lists named hires. It does not show the shared inbox |
-| admin | `/admin` | Inicio, Empresas, Cuentas, Conexiones, Asesores, Facturación. Legal name, CIF, address, shareholders, and file names stay on `/admin/empresas`. Suspend, role, and plan grants stay on `/admin/cuentas`. Chat from Conexiones stays read-only |
+| admin | `/admin` | Inicio, Empresas, Cuentas, Conexiones, Asesores, Facturación. Legal name, CIF, address, and shareholders stay on the Empresas cards. Ver ficha opens the investor company page (banner, chat, reuniones) and that page stays read-only, without those strings or file names. Suspend, role, and plan grants stay on `/admin/cuentas`. |
 
 `destinationForUser` sends an unfinished account to `/onboarding`. `requireRole` in `src/server/requireRole.ts` sends a signed-out user to `/entrar`, an unfinished user to `/onboarding`, and the wrong role to `homeForRole`.
 
