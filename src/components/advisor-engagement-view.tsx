@@ -1,7 +1,9 @@
 import { AdvisorCloseForm, AdvisorDepositForm, AdvisorNdaForm } from "@/components/advisor-engagement-forms";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
+import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
+import { DealPipeline } from "@/components/deal-pipeline";
 import { FloatingInvestorCard } from "@/components/floating-investor-card";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
@@ -30,11 +32,22 @@ export function AdvisorEngagementView({
   today: string;
   notice: string | null;
 }) {
+  const rail = engagement.hiredByInvestor || !engagement.deposit.paid;
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className={`flex flex-col gap-6 ${engagement.deposit.paid ? "" : "max-xl:pb-44"}`}>
       <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
-      <div className={engagement.hiredByInvestor ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
+      <div className={rail ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
         <div className="flex min-w-0 flex-col gap-6">
+          <CompanyBanner
+            title={engagement.codename}
+            subtitle={engagement.region}
+            progress={
+              engagement.steps.length > 0 ? (
+                <DealPipeline steps={engagement.steps} role="advisor" onDark hideWaitingCue />
+              ) : null
+            }
+          />
           <p className="text-sm text-[#64748b]">
             {engagement.clientLabel}
             {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
@@ -99,16 +112,28 @@ export function AdvisorEngagementView({
             </section>
           ) : null}
           {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} /> : null}
-          {engagement.deposit.paid ? null : (
-            <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />
-          )}
           {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {engagement.hiredByInvestor ? (
-          <FloatingInvestorCard name={engagement.clientLabel} profile={engagement.investorCard} />
+        {rail ? (
+          <aside className="xl:sticky xl:top-6 xl:flex xl:h-[calc(100dvh-3rem)] xl:flex-col">
+            {engagement.hiredByInvestor ? (
+              <div className="xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-y-auto">
+                <div className="w-full xl:my-auto">
+                  <FloatingInvestorCard name={engagement.clientLabel} profile={engagement.investorCard} />
+                </div>
+              </div>
+            ) : (
+              <div className="hidden xl:block xl:min-h-0 xl:flex-1" />
+            )}
+            {engagement.deposit.paid ? null : (
+              <div className="max-xl:fixed max-xl:right-4 max-xl:bottom-4 max-xl:z-30 max-xl:w-[min(22rem,calc(100vw-2rem))] xl:w-full xl:shrink-0 xl:pt-4">
+                <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />
+              </div>
+            )}
+          </aside>
         ) : null}
       </div>
     </div>

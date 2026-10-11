@@ -52,10 +52,12 @@ export function AdvisorListingCard({
   advisor,
   connect = false,
   projectSlug,
+  natural = false,
 }: {
   advisor: PublicAdvisorCard;
   connect?: boolean;
   projectSlug?: string;
+  natural?: boolean;
 }) {
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [picked, setPicked] = useState<AdvisoryServiceId[]>([]);
@@ -63,8 +65,9 @@ export function AdvisorListingCard({
     const id = advisoryServiceIdFromTitle(service.title);
     return id ? [{ id, title: service.title, range: service.range }] : [];
   });
-  const frame =
-    "flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]";
+  const frame = natural
+    ? "flex w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]"
+    : "flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]";
 
   return (
     <article className={frame}>
@@ -131,7 +134,7 @@ export function AdvisorListingCard({
           <AppToast message={state?.message ?? null} tone={state?.ok ? "ok" : "error"} />
         </form>
       ) : (
-        <div className="flex flex-1 flex-col gap-2 p-5">
+        <div className={natural ? "flex flex-col gap-2 p-5" : "flex flex-1 flex-col gap-2 p-5"}>
           {advisor.services.map((service) => (
             <p key={service.title} className="flex items-baseline justify-between gap-3 text-sm">
               <span className="font-medium">{service.title}</span>

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { advisorIsListed } from "@/lib/advisor-directory";
 import { advisorInterestBody, advisoryServices } from "@/lib/advisory";
 import { advisorNdaAgreement, spanishDate } from "@/lib/deal-documents";
+import type { DealStep } from "@/lib/deal-pipeline";
 import { engagementCopy } from "@/lib/engagement-copy";
 import {
   advisorCompanyView,
@@ -10,6 +11,7 @@ import {
   advisorNdaOutcome,
   canOpenSellerGrant,
   claimEngagementOutcome,
+  declineEngagementOutcome,
   requestEngagementOutcome,
   type AdvisorHomeDesk,
   type AdvisorStep,
@@ -17,6 +19,7 @@ import {
 } from "@/lib/engagement";
 import {
   advisorProjectBoards,
+  splitAdvisorEngagements,
   type AdvisorEngagementSnapshot,
   type AdvisorProjectBoard,
 } from "@/lib/advisor-processes";
@@ -94,6 +97,7 @@ export type AdvisorEngagementPage = {
     ebitdaCents: number | null;
   };
   investorCard: PublicInvestorCard | null;
+  steps: DealStep[];
   preview: {
     description: string;
     facts: { label: string; value: string }[];
@@ -257,7 +261,7 @@ export async function engagementProject(input: {
 export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
   const paid = await inboxPaid(userId);
   const mine = await prisma.advisoryEngagement.findMany({
-    where: { advisorId: userId },
+    where: { advisorId: userId, declinedAt: null },
     select: {
       id: true,
       client: true,
@@ -295,7 +299,7 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
 export async function getAdvisorDesk(userId: string): Promise<AdvisorHomeDesk> {
   const [mine, inboxCount] = await Promise.all([
     prisma.advisoryEngagement.findMany({
-      where: { advisorId: userId },
+      where: { advisorId: userId, declinedAt: null },
       select: {
         id: true,
         client: true,
@@ -416,13 +420,93 @@ async function investorCardFor(
   return cards.get(requester.id) ?? null;
 }
 
+async function bannerStepsFor(row: {
+  id: string;
+  client: EngagementClientName;
+  requesterId: string;
+  services: string[];
+  depositPaidAt: Date | null;
+  advisorNdaAcceptedAt: Date | null;
+  processOpened: boolean;
+  closedAt: Date | null;
+  project: { id: string; slug: string; codename: string; region: string };
+}): Promise<DealStep[]> {
+  const project = await prisma.project.findUnique({
+    where: { id: row.project.id },
+    select: {
+      successFee: { select: { id: true } },
+      accesses: {
+        select: {
+          investorId: true,
+          requestedAt: true,
+          sellerAcceptedAt: true,
+          ndaAcceptedAt: true,
+          loiAcceptedAt: true,
+          diligencePassedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    return [];
+  }
+
+  const [messages, grants] = await Promise.all([
+    prisma.projectMessage.findMany({
+      where: { projectId: row.project.id },
+      select: { investorId: true, kind: true },
+    }),
+    prisma.dataRoomGrant.findMany({
+      where: { projectId: row.project.id },
+      select: { investorId: true },
+    }),
+  ]);
+  const grantKeys = new Set(grants.map((grant) => grant.investorId));
+  const [board] = advisorProjectBoards([
+    {
+      id: row.id,
+      client: row.client,
+      requesterId: row.requesterId,
+      services: serviceLabel(row.services),
+      depositPaid: row.depositPaidAt !== null,
+      advisorNda: row.advisorNdaAcceptedAt !== null,
+      processOpened: row.processOpened,
+      closed: row.closedAt !== null,
+      projectId: row.project.id,
+      slug: row.project.slug,
+      codename: row.project.codename,
+      region: row.project.region,
+      saleClosed: project.successFee !== null,
+      accesses: project.accesses.map((access) => {
+        const thread = messages.filter((message) => message.investorId === access.investorId);
+
+        return {
+          investorId: access.investorId,
+          requestedAt: access.requestedAt,
+          accepted: access.sellerAcceptedAt !== null,
+          nda: access.ndaAcceptedAt !== null,
+          questions: thread.some((message) => message.kind === "question"),
+          meeting: thread.some((message) => message.kind === "meeting"),
+          offer: thread.some((message) => message.kind === "offer"),
+          loiAccepted: access.loiAcceptedAt !== null,
+          roomShared: grantKeys.has(access.investorId),
+          passedDiligence: access.diligencePassedAt !== null,
+        };
+      }),
+    },
+  ]);
+
+  return board?.lanes[0]?.steps ?? [];
+}
+
 export async function getAdvisorEngagement(user: CurrentUser, id: string): Promise<AdvisorEngagementPage | null> {
   if (!user.onboarded || user.role !== "advisor") {
     return null;
   }
 
   const row = await prisma.advisoryEngagement.findFirst({
-    where: { id, advisorId: user.id },
+    where: { id, advisorId: user.id, declinedAt: null },
     select: {
       id: true,
       client: true,
@@ -462,6 +546,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
   const company = companyRow ? toInvestorProject(companyRow) : null;
   const namedClient = row.client === "investor" ? investorPartyName(row.requester) : engagementCopy.fromSeller;
   const investorCard = await investorCardFor(row.client, row.requester);
+  const steps = await bannerStepsFor(row);
 
   if (row.depositPaidAt === null) {
     return {
@@ -485,6 +570,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       description: row.project.description?.trim() ?? "",
       showcase: showcaseFor(row.project, true),
       investorCard,
+      steps,
       preview: null,
     };
   }
@@ -570,13 +656,52 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     description: row.project.description?.trim() ?? "",
     showcase: showcaseFor(row.project, !figuresOpen),
     investorCard,
+    steps,
     preview: null,
   };
 }
 
+export async function declineEngagement(user: CurrentUser, id: string): Promise<EngagementResult> {
+  const row = await prisma.advisoryEngagement.findFirst({
+    where: { id, advisorId: user.id, declinedAt: null },
+    select: {
+      id: true,
+      depositPaidAt: true,
+      requesterId: true,
+      client: true,
+      project: { select: { codename: true } },
+    },
+  });
+  const outcome = declineEngagementOutcome({
+    isAdvisor: user.onboarded && user.role === "advisor",
+    owns: row !== null,
+    depositPaid: row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
+  });
+
+  if (!outcome.ok || !row) {
+    return {
+      ok: false,
+      message: !outcome.ok && outcome.code === "paid" ? engagementCopy.declinePaid : engagementCopy.missing,
+    };
+  }
+
+  await prisma.advisoryEngagement.update({
+    where: { id: row.id },
+    data: { declinedAt: new Date() },
+  });
+  await recordNotification({
+    userId: row.requesterId,
+    title: engagementCopy.declinedTitle,
+    body: `${engagementCopy.declinedBody} ${row.project.codename}.`,
+    href: row.client === "seller" ? "/mi-empresa/servicios" : "/asesoramiento",
+  });
+
+  return { ok: true };
+}
+
 export async function acceptAdvisorNda(user: CurrentUser, id: string): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findFirst({
-    where: { id, advisorId: user.id },
+    where: { id, advisorId: user.id, declinedAt: null },
     select: { id: true, client: true, advisorNdaAcceptedAt: true, depositPaidAt: true },
   });
   const outcome = advisorNdaOutcome({
@@ -613,7 +738,7 @@ export async function closeEngagement(user: CurrentUser, id: string, chargedCent
   }
 
   const row = await prisma.advisoryEngagement.findFirst({
-    where: { id, advisorId: user.id },
+    where: { id, advisorId: user.id, declinedAt: null },
     select: { id: true, closedAt: true },
   });
 
@@ -643,11 +768,12 @@ async function sellerGrant(user: CurrentUser, id: string): Promise<{ id: string;
       id: true,
       client: true,
       advisorId: true,
+      declinedAt: true,
       project: { select: { id: true, ownerId: true } },
     },
   });
 
-  if (!row) {
+  if (!row || row.declinedAt) {
     return null;
   }
 
@@ -801,7 +927,7 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
   }
 
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { projectId, requesterId: userId, client: "seller" },
+    where: { projectId, requesterId: userId, client: "seller", declinedAt: null },
     select: {
       id: true,
       advisorId: true,
@@ -843,7 +969,7 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
   }
 
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { advisorId, projectId: file.projectId },
+    where: { advisorId, projectId: file.projectId, declinedAt: null },
     select: {
       client: true,
       requesterId: true,
@@ -894,7 +1020,7 @@ export type AdvisorPlatformClose = {
 
 export async function listAdvisorPlatformCloses(advisorId: string): Promise<AdvisorPlatformClose[]> {
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { advisorId, closedAt: { not: null } },
+    where: { advisorId, closedAt: { not: null }, declinedAt: null },
     orderBy: { closedAt: "desc" },
     select: {
       id: true,
@@ -922,9 +1048,12 @@ export async function listAdvisorPlatformCloses(advisorId: string): Promise<Advi
   });
 }
 
-export async function listAdvisorProjectBoards(advisorId: string): Promise<AdvisorProjectBoard[]> {
+export async function listAdvisorProjectBoards(
+  advisorId: string,
+  scope: "awaiting" | "active",
+): Promise<AdvisorProjectBoard[]> {
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { advisorId },
+    where: { advisorId, declinedAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -1007,7 +1136,8 @@ export async function listAdvisorProjectBoards(advisorId: string): Promise<Advis
     }),
   }));
 
-  return advisorProjectBoards(snapshots);
+  const split = splitAdvisorEngagements(snapshots);
+  return advisorProjectBoards(scope === "awaiting" ? split.awaiting : split.active);
 }
 
 export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<string, number>> {
@@ -1017,7 +1147,7 @@ export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<str
 
   const rows = await prisma.advisoryEngagement.groupBy({
     by: ["advisorId"],
-    where: { advisorId: { in: advisorIds }, closedAt: { not: null } },
+    where: { advisorId: { in: advisorIds }, closedAt: { not: null }, declinedAt: null },
     _count: { _all: true },
   });
 

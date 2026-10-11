@@ -40,7 +40,7 @@ export default async function AdvisorEngagementPage({
   const notice = query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
 
   return (
-    <SignedInPage title={engagement.codename}>
+    <SignedInPage title={engagement.codename} showTitle={false}>
       <AdvisorEngagementView engagement={engagement} thread={thread} today={madridToday(new Date())} notice={notice} />
     </SignedInPage>
   );

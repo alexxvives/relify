@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { eurosToCents } from "@/lib/company-draft";
-import { acceptAdvisorNda, claimEngagement, closeEngagement, setAdvisorFolder, setAdvisorProcess } from "@/server/advisoryEngagement";
+import {
+  acceptAdvisorNda,
+  claimEngagement,
+  closeEngagement,
+  declineEngagement,
+  setAdvisorFolder,
+  setAdvisorProcess,
+} from "@/server/advisoryEngagement";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/server/startCheckout";
 
@@ -73,6 +80,26 @@ export async function startAdvisorDepositAction(
   }
 
   redirect(result.url);
+}
+
+export async function declineEngagementAction(
+  state: EngagementActionState,
+  formData: FormData,
+): Promise<EngagementActionState> {
+  void state;
+  const user = await signedIn();
+  const result = await declineEngagement(user, readText(formData, "engagementId"));
+
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidatePath("/mandatos");
+  revalidatePath("/mandatos/encargos");
+  revalidatePath("/mandatos/venta");
+  revalidatePath("/asesoramiento");
+  revalidatePath("/mi-empresa/servicios");
+  redirect("/mandatos/encargos");
 }
 
 export async function acceptAdvisorNdaAction(

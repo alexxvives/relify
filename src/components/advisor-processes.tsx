@@ -28,9 +28,9 @@ function laneCue(steps: DealStep[]) {
   return stepCue(current.id, "advisor", current.pendingLoi === true);
 }
 
-export function AdvisorProcesses({ boards }: { boards: AdvisorProjectBoard[] }) {
+export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }: { boards: AdvisorProjectBoard[]; empty?: string }) {
   if (boards.length === 0) {
-    return <p className="text-sm text-[#64748b]">{advisorCopy.processesEmpty}</p>;
+    return <p className="text-sm text-[#64748b]">{empty}</p>;
   }
 
   return (

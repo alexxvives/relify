@@ -486,8 +486,10 @@ export function AdvisorServices({
       <aside className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
         {publicListing ? (
-          <div className="mt-4 flex min-h-0 flex-1">
-            <AdvisorListingCard advisor={publicListing} />
+          <div className="mt-4 flex flex-1 items-center justify-center">
+            <div className="w-full max-w-xl">
+              <AdvisorListingCard advisor={publicListing} natural />
+            </div>
           </div>
         ) : (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>

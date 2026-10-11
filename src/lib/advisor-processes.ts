@@ -127,13 +127,15 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
       seen.add(row.requesterId);
     }
 
-    const depositPending = group.some((row) => !row.depositPaid);
+    const depositPending = group.some((row) => !row.depositPaid && !row.closed);
     let note: string | null = null;
 
     if (lanes.length === 0 && seller?.closed && !seller.processOpened) {
       note = advisorCopy.processesClosed;
     } else if (lanes.length === 0 && seller && !seller.processOpened) {
       note = advisorCopy.processesWait;
+    } else if (lanes.length === 0 && group.every((row) => row.closed)) {
+      note = advisorCopy.processesFinished;
     } else if (lanes.length === 0 && depositPending) {
       note = advisorCopy.processesDeposit;
     } else if (lanes.length === 0) {
@@ -160,4 +162,14 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
   }
 
   return boards.sort((left, right) => left.codename.localeCompare(right.codename, "es"));
+}
+
+export function splitAdvisorEngagements(rows: readonly AdvisorEngagementSnapshot[]): {
+  awaiting: AdvisorEngagementSnapshot[];
+  active: AdvisorEngagementSnapshot[];
+} {
+  return {
+    awaiting: rows.filter((row) => !row.depositPaid && !row.closed),
+    active: rows.filter((row) => row.depositPaid || row.closed),
+  };
 }

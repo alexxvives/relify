@@ -203,7 +203,7 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
   const ending = last4 ?? "••••";
 
   return (
-    <div className="relative aspect-[1.586/1] w-full max-w-[26rem] overflow-hidden rounded-[22px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-6 text-white shadow-[0_28px_50px_-28px_rgba(28,39,64,0.9)]">
+    <div className="relative aspect-[1.586/1] w-[20rem] max-w-full overflow-hidden rounded-[18px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-5 text-white shadow-[0_18px_36px_-24px_rgba(28,39,64,0.9)]">
       <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-white/10" />
       <div className="pointer-events-none absolute -bottom-24 -left-10 size-48 rounded-full bg-[#8ea2ff]/20" />
       <div className="relative flex items-start justify-between">
@@ -214,8 +214,8 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
         </span>
         <span className="text-lg tracking-wide italic">Releva</span>
       </div>
-      <p className="relative mt-8 font-mono text-[1.35rem] tracking-[0.22em]">{`••••  ••••  ••••  ${ending}`}</p>
-      <div className="relative mt-6 flex items-end justify-between gap-4">
+      <p className="relative mt-6 font-mono text-lg tracking-[0.18em]">{`••••  ••••  ••••  ${ending}`}</p>
+      <div className="relative mt-5 flex items-end justify-between gap-4">
         <div>
           <p className="text-[10px] tracking-[0.16em] text-white/60 uppercase">{billingCopy.cardExpires}</p>
           <p className="mt-1 text-sm tabular-nums">{expires ?? "—"}</p>

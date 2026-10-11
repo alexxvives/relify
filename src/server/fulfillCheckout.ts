@@ -176,13 +176,14 @@ async function applyAdvisorDeposit(userId: string, engagementId: string, session
     select: {
       id: true,
       depositPaidAt: true,
+      declinedAt: true,
       requesterId: true,
       client: true,
       project: { select: { codename: true, askingPriceCents: true } },
     },
   });
 
-  if (!row || session.amount_total !== advisorDepositCents(row.project.askingPriceCents)) {
+  if (!row || row.declinedAt || session.amount_total !== advisorDepositCents(row.project.askingPriceCents)) {
     return false;
   }
 

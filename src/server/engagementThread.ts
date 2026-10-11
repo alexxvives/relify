@@ -116,12 +116,13 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
       client: true,
       services: true,
       depositPaidAt: true,
+      declinedAt: true,
       projectId: true,
       project: { select: { codename: true, region: true } },
     },
   });
 
-  if (!row?.advisorId) {
+  if (!row?.advisorId || row.declinedAt) {
     return null;
   }
 
@@ -209,7 +210,7 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
   }
 
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { requesterId: user.id, advisorId: { not: null } },
+    where: { requesterId: user.id, advisorId: { not: null }, declinedAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

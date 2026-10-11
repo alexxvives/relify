@@ -49,6 +49,26 @@ export function advisorNdaOutcome(input: {
   return { ok: true, stamp: !input.alreadySigned };
 }
 
+export function declineEngagementOutcome(input: {
+  isAdvisor: boolean;
+  owns: boolean;
+  depositPaid: boolean;
+}): { ok: true } | { ok: false; code: "forbidden" | "missing" | "paid" } {
+  if (!input.isAdvisor) {
+    return { ok: false, code: "forbidden" };
+  }
+
+  if (!input.owns) {
+    return { ok: false, code: "missing" };
+  }
+
+  if (input.depositPaid) {
+    return { ok: false, code: "paid" };
+  }
+
+  return { ok: true };
+}
+
 export function advisorCompanyView(input: {
   hiredByInvestor: boolean;
   advisorSigned: boolean;
@@ -90,6 +110,7 @@ export const advisorDeskAnchor = {
 } as const;
 
 const encargosPath = "/mandatos/encargos";
+const processesPath = "/mandatos/venta";
 
 export function advisorEngagementStep(input: {
   owned: boolean;
@@ -136,18 +157,14 @@ function sectionHref(anchor: string): string {
   return `${encargosPath}#${anchor}`;
 }
 
-function countedHref(ids: string[], anchor: string, emptyAnchor: string): string {
+function countedHref(ids: string[], list: "encargos" | "procesos"): string {
   const only = ids[0];
 
   if (ids.length === 1 && only !== undefined) {
     return `${encargosPath}/${only}`;
   }
 
-  if (ids.length === 0) {
-    return sectionHref(emptyAnchor);
-  }
-
-  return sectionHref(anchor);
+  return list === "encargos" ? encargosPath : processesPath;
 }
 
 export function advisorHomeDesk(input: { mine: AdvisorDeskItem[]; inboxCount: number }): AdvisorHomeDesk {
@@ -156,7 +173,7 @@ export function advisorHomeDesk(input: { mine: AdvisorDeskItem[]; inboxCount: nu
   const active = input.mine.filter((row) => row.step === "active");
   const closed = input.mine.filter((row) => row.step === "closed");
   const open = input.mine.filter((row) => row.step === "deposit" || row.step === "nda" || row.step === "active");
-  const empty = advisorDeskAnchor.open;
+  const onlyOpen = open.length === 1 ? open[0] : undefined;
 
   return {
     pending: [...deposits, ...ndas].map((row) => ({
@@ -165,19 +182,59 @@ export function advisorHomeDesk(input: { mine: AdvisorDeskItem[]; inboxCount: nu
       codename: row.codename,
       href: `${encargosPath}/${row.id}`,
     })),
-    open: { count: open.length, href: countedHref(open.map((row) => row.id), advisorDeskAnchor.open, empty) },
+    open: {
+      count: open.length,
+      href: onlyOpen ? `${encargosPath}/${onlyOpen.id}` : deposits.length > 0 ? encargosPath : processesPath,
+    },
     inbox: { count: input.inboxCount, href: sectionHref(advisorDeskAnchor.inbox) },
     deposits: {
       count: deposits.length,
-      href: countedHref(deposits.map((row) => row.id), advisorDeskAnchor.deposit, empty),
+      href: countedHref(
+        deposits.map((row) => row.id),
+        "encargos",
+      ),
     },
-    ndas: { count: ndas.length, href: countedHref(ndas.map((row) => row.id), advisorDeskAnchor.nda, empty) },
+    ndas: {
+      count: ndas.length,
+      href: countedHref(
+        ndas.map((row) => row.id),
+        "procesos",
+      ),
+    },
     steps: [
       { step: "request", count: input.inboxCount, href: sectionHref(advisorDeskAnchor.inbox) },
-      { step: "deposit", count: deposits.length, href: countedHref(deposits.map((row) => row.id), advisorDeskAnchor.deposit, empty) },
-      { step: "nda", count: ndas.length, href: countedHref(ndas.map((row) => row.id), advisorDeskAnchor.nda, empty) },
-      { step: "active", count: active.length, href: countedHref(active.map((row) => row.id), advisorDeskAnchor.active, empty) },
-      { step: "closed", count: closed.length, href: countedHref(closed.map((row) => row.id), advisorDeskAnchor.closed, empty) },
+      {
+        step: "deposit",
+        count: deposits.length,
+        href: countedHref(
+          deposits.map((row) => row.id),
+          "encargos",
+        ),
+      },
+      {
+        step: "nda",
+        count: ndas.length,
+        href: countedHref(
+          ndas.map((row) => row.id),
+          "procesos",
+        ),
+      },
+      {
+        step: "active",
+        count: active.length,
+        href: countedHref(
+          active.map((row) => row.id),
+          "procesos",
+        ),
+      },
+      {
+        step: "closed",
+        count: closed.length,
+        href: countedHref(
+          closed.map((row) => row.id),
+          "procesos",
+        ),
+      },
     ],
   };
 }

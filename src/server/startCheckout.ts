@@ -222,11 +222,12 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
     select: {
       id: true,
       depositPaidAt: true,
+      declinedAt: true,
       project: { select: { codename: true, askingPriceCents: true } },
     },
   });
 
-  if (!row) {
+  if (!row || row.declinedAt) {
     return { ok: false, message: engagementCopy.missing };
   }
 

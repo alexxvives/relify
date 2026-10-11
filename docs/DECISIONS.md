@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-10-11 — Encargos are the request, and Mis procesos start after the deposit
+
+An encargo is a hire the advisor has not accepted yet. It stays on `/mandatos/encargos` until the deposit is paid. Mis procesos, at `/mandatos/venta`, lists a company only after that deposit, or when the job is already closed. Opening the encargo shows the same company banner the investor sees. The investor card stays on the side. The deposit floats there, and the advisor can reject the request from that card. A rejection stores `declinedAt`, tells the person who asked, and takes the row off both lists. It does not refund anything, because nothing has been paid.
+
 ## 2026-10-11 — The advisor deposit is 50 € plus 0.5% and the inbox leaves the desk
 
 The hold is 50 € plus 0.5% of the asking price, in euro cents, with no IVA, because it is a deposit and not a fee. It replaces the earlier hold of half the asking price. Stripe Checkout still takes it in test mode. Paying it still opens the NDA and the figures. The money is returned later; this pass does not call a refund.

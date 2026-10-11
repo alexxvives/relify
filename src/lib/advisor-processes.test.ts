@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { advisorProjectBoards, type AdvisorAccessSnapshot, type AdvisorEngagementSnapshot } from "./advisor-processes";
+import {
+  advisorProjectBoards,
+  splitAdvisorEngagements,
+  type AdvisorAccessSnapshot,
+  type AdvisorEngagementSnapshot,
+} from "./advisor-processes";
 
 function access(investorId: string, requestedAt: string, accepted = true, nda = false): AdvisorAccessSnapshot {
   return {
@@ -107,5 +112,25 @@ describe("advisorProjectBoards", () => {
     expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("current");
     expect(board?.note).toBeNull();
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");
+  });
+
+  it("does not mark a closed job as waiting for the deposit", () => {
+    const [board] = advisorProjectBoards([
+      engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, processOpened: true, accesses: [] }),
+    ]);
+
+    expect(board?.depositPending).toBe(false);
+    expect(board?.note).toBe("Este encargo ya está cerrado.");
+  });
+
+  it("keeps an unpaid request on encargos and a paid or closed job on procesos", () => {
+    const split = splitAdvisorEngagements([
+      engagement({ id: "waiting", client: "investor", depositPaid: false }),
+      engagement({ id: "live", client: "seller", projectId: "project-2", codename: "Proyecto Duna" }),
+      engagement({ id: "done", client: "seller", projectId: "project-3", codename: "Proyecto Olivo", depositPaid: false, closed: true }),
+    ]);
+
+    expect(split.awaiting.map((row) => row.id)).toEqual(["waiting"]);
+    expect(split.active.map((row) => row.id)).toEqual(["live", "done"]);
   });
 });

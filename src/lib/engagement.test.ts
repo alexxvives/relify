@@ -4,6 +4,7 @@ import {
   advisorEngagementStep,
   advisorHomeDesk,
   advisorNdaOutcome,
+  declineEngagementOutcome,
   claimEngagementOutcome,
   requestEngagementOutcome,
 } from "./engagement";
@@ -106,7 +107,7 @@ describe("advisorHomeDesk", () => {
       { id: "deposit-1", kind: "deposit", codename: "Proyecto Duna", href: "/mandatos/encargos/deposit-1" },
       { id: "nda-1", kind: "nda", codename: "Proyecto Cala", href: "/mandatos/encargos/nda-1" },
     ]);
-    expect(desk.open).toEqual({ count: 3, href: "/mandatos/encargos#abiertos" });
+    expect(desk.open).toEqual({ count: 3, href: "/mandatos/encargos" });
     expect(desk.inbox).toEqual({ count: 2, href: "/mandatos/encargos#bandeja" });
     expect(desk.deposits).toEqual({ count: 1, href: "/mandatos/encargos/deposit-1" });
     expect(desk.ndas).toEqual({ count: 1, href: "/mandatos/encargos/nda-1" });
@@ -121,8 +122,25 @@ describe("advisorHomeDesk", () => {
 
     expect(desk.pending).toEqual([]);
     expect(desk.open.href).toBe("/mandatos/encargos/only");
-    expect(desk.deposits.href).toBe("/mandatos/encargos#abiertos");
+    expect(desk.deposits.href).toBe("/mandatos/encargos");
+    expect(desk.steps.find((step) => step.step === "active")?.href).toBe("/mandatos/encargos/only");
+    expect(desk.steps.find((step) => step.step === "nda")?.href).toBe("/mandatos/venta");
     expect(desk.inbox.href).toBe("/mandatos/encargos#bandeja");
+  });
+});
+
+describe("declineEngagementOutcome", () => {
+  it("lets the advisor refuse a request only before the deposit is paid", () => {
+    expect(declineEngagementOutcome({ isAdvisor: true, owns: true, depositPaid: false })).toEqual({ ok: true });
+    expect(declineEngagementOutcome({ isAdvisor: true, owns: true, depositPaid: true })).toEqual({ ok: false, code: "paid" });
+    expect(declineEngagementOutcome({ isAdvisor: true, owns: false, depositPaid: false })).toEqual({
+      ok: false,
+      code: "missing",
+    });
+    expect(declineEngagementOutcome({ isAdvisor: false, owns: true, depositPaid: false })).toEqual({
+      ok: false,
+      code: "forbidden",
+    });
   });
 });
 

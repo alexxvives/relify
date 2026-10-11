@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function AdvisorMandatesPage() {
   const user = await requireRole("advisor");
-  const boards = await listAdvisorProjectBoards(user.id);
+  const boards = await listAdvisorProjectBoards(user.id, "active");
 
   return (
     <SignedInPage title={advisorCopy.mandatesTitle}>

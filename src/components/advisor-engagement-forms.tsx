@@ -1,23 +1,66 @@
 "use client";
 
-import { useActionState, type ChangeEvent } from "react";
-import { acceptAdvisorNdaAction, closeEngagementAction, startAdvisorDepositAction } from "@/app/mandatos/encargos/actions";
+import { useActionState, useState, type ChangeEvent } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  acceptAdvisorNdaAction,
+  closeEngagementAction,
+  declineEngagementAction,
+  startAdvisorDepositAction,
+} from "@/app/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 
 export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId: string; amountLabel: string }) {
   const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
+  const [declineState, declineAction, declining] = useActionState(declineEngagementAction, null);
+  const [open, setOpen] = useState(true);
+  const [confirmDecline, setConfirmDecline] = useState(false);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+        }}
+        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#e7eaee] bg-white px-4 py-3 text-left shadow-[0_18px_40px_-24px_rgba(28,39,64,0.55)]"
+        aria-label="Mostrar depósito"
+      >
+        <span className="min-w-0">
+          <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#667085] uppercase">
+            {engagementCopy.depositTitle}
+          </span>
+          <span className="mt-1 block truncate text-base font-semibold text-[#1c2740]">{amountLabel}</span>
+        </span>
+        <ChevronUp className="size-4 shrink-0 text-[#465ab4]" aria-hidden />
+      </button>
+    );
+  }
 
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-      <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.depositTitle}</h2>
+    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5 shadow-[0_18px_40px_-24px_rgba(28,39,64,0.55)]">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-xl font-semibold text-[#2b3b4a]">{engagementCopy.depositTitle}</h2>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            setConfirmDecline(false);
+          }}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f4f6f8] text-[#1c2740]"
+          aria-label="Ocultar depósito"
+        >
+          <ChevronDown className="size-4" aria-hidden />
+        </button>
+      </div>
       <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
       <p className="mt-4 text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
       <form action={action} className="mt-4 flex flex-col items-start gap-2">
         <input type="hidden" name="engagementId" value={engagementId} />
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || declining}
           className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
         >
           {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
@@ -25,6 +68,33 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
         {state && !state.ok ? (
           <p role="alert" className="text-sm text-red-700">
             {state.message}
+          </p>
+        ) : null}
+      </form>
+      <form action={declineAction} className="mt-3 flex flex-col items-start gap-2">
+        <input type="hidden" name="engagementId" value={engagementId} />
+        {confirmDecline ? (
+          <button
+            type="submit"
+            disabled={declining || pending}
+            className="inline-flex h-11 items-center rounded-full border border-[#f3c4c4] bg-[#fff5f5] px-4 text-sm font-medium text-[#b42318] disabled:opacity-60"
+          >
+            {declining ? engagementCopy.depositDeclining : engagementCopy.depositDeclineConfirm}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmDecline(true);
+            }}
+            className="inline-flex h-11 items-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740]"
+          >
+            {engagementCopy.depositDecline}
+          </button>
+        )}
+        {declineState && !declineState.ok ? (
+          <p role="alert" className="text-sm text-red-700">
+            {declineState.message}
           </p>
         ) : null}
       </form>
