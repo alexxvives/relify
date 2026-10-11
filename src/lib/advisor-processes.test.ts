@@ -85,14 +85,27 @@ describe("advisorProjectBoards", () => {
     expect(board?.note).toBeNull();
   });
 
-  it("asks for the deposit before showing a sale", () => {
+  it("shows the bar when the buyer has not opened a sale yet", () => {
+    const [board] = advisorProjectBoards([
+      engagement({ id: "buyer-job", client: "investor", depositPaid: false, accesses: [] }),
+    ]);
+
+    expect(board?.lanes).toHaveLength(1);
+    expect(board?.lanes[0]?.steps.find((step) => step.id === "conexion")?.state).toBe("current");
+    expect(board?.note).toBeNull();
+    expect(JSON.stringify(board)).not.toContain("buyer-1");
+  });
+
+  it("shows the buyer's progress before the deposit is paid", () => {
     const [board] = advisorProjectBoards([
       engagement({ id: "buyer-job", client: "investor", depositPaid: false }),
     ]);
 
-    expect(board?.lanes).toEqual([]);
     expect(board?.depositPending).toBe(true);
-    expect(board?.note).toContain("depósito");
+    expect(board?.lanes).toHaveLength(1);
+    expect(board?.lanes[0]?.label).toBe("El comprador que te contrata");
+    expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("current");
+    expect(board?.note).toBeNull();
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");
   });
 });

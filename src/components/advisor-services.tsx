@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
+import { AppToast } from "@/components/app-toast";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { toPublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
-  formatAdvisorEuros,
   type AdvisorProfileView,
   type AdvisorServiceId,
   type StoredService,
@@ -22,7 +22,7 @@ type PanelId = "corporate" | "services" | "documents";
 const fieldClass =
   "h-11 w-full rounded-[14px] border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
 
-function EuroInput({
+function PriceField({
   label,
   value,
   disabled,
@@ -34,19 +34,20 @@ function EuroInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className={`flex flex-col gap-1 text-sm ${disabled ? "text-[#8b95a7]" : "text-[#2b3b4a]"}`}>
+    <label className={`flex items-center gap-2 text-xs ${disabled ? "text-[#8b95a7]" : "text-[#64748b]"}`}>
       {label}
       <span className="relative">
         <input
           inputMode="numeric"
           value={value}
           disabled={disabled}
+          aria-label={label}
           onChange={(event) => {
             onChange(event.target.value.replace(/\D/g, ""));
           }}
-          className={`${fieldClass} pr-8 disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]`}
+          className="h-10 w-28 rounded-xl border border-[#e7eaee] pr-7 pl-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]"
         />
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#64748b]" aria-hidden>
+        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-sm" aria-hidden>
           €
         </span>
       </span>
@@ -181,6 +182,8 @@ export function AdvisorServices({
   const [profile, setProfile] = useState(initial);
   const [editing, setEditing] = useState<PanelId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [savedPulse, setSavedPulse] = useState(0);
   const [pending, setPending] = useState(false);
   const [businessName, setBusinessName] = useState(initial.businessName);
   const [nif, setNif] = useState(initial.nif);
@@ -193,14 +196,11 @@ export function AdvisorServices({
   const [prices, setPrices] = useState(pricesFrom(initial.services));
 
   const nifMessage = nif.trim().length > 0 && !isValidSpanishCif(nif) ? advisorCopy.nifInvalid : null;
-  const draftServices =
-    editing === "services"
-      ? selectedServices.map((serviceType) => ({
-          serviceType,
-          priceFromCents: Number(prices[serviceType].from || "0") * 100,
-          priceToCents: Number(prices[serviceType].to || "0") * 100,
-        }))
-      : profile.services;
+  const draftServices = selectedServices.map((serviceType) => ({
+    serviceType,
+    priceFromCents: Number(prices[serviceType].from || "0") * 100,
+    priceToCents: Number(prices[serviceType].to || "0") * 100,
+  }));
   const draftListing = toPublicAdvisorCard({
     userId: "preview",
     businessName: profile.businessName,
@@ -284,11 +284,14 @@ export function AdvisorServices({
         priceToCents: Number(prices[serviceType].to) * 100,
       })),
     }));
-    close();
+    setMessage(null);
+    setSavedNote(advisorCopy.servicesSaved);
+    setSavedPulse((current) => current + 1);
   }
 
   return (
     <div className="flex flex-col gap-4">
+      <AppToast message={savedNote} pulse={savedPulse} />
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
@@ -418,92 +421,73 @@ export function AdvisorServices({
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
-        <PanelHeading
-          title={advisorCopy.servicesPanelTitle}
-          body={advisorCopy.servicesPanelBody}
-          done={profile.services.length > 0}
-          editing={editing === "services"}
-          disabled={!profile.corporateComplete}
-          onEdit={() => open("services")}
-        />
-        {editing === "services" ? (
-          <div className="mt-6 flex flex-col gap-4">
-            <ul className="grid gap-3">
-              {advisorServiceIds.map((id) => {
-                const checked = selectedServices.includes(id);
-                return (
-                  <li key={id} className="rounded-2xl border border-[#e7eaee] p-4">
-                    <label className="flex items-center gap-3 text-sm font-medium text-[#2b3b4a]">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => {
-                          setSelectedServices((current) =>
-                            checked ? current.filter((service) => service !== id) : [...current, id],
-                          );
-                        }}
-                        className="accent-[#5c4de0]"
-                      />
-                      {advisorCopy.serviceTypes[id]}
-                    </label>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <EuroInput
-                        label={advisorCopy.priceFrom}
-                        value={prices[id].from}
-                        disabled={!checked}
-                        onChange={(from) => {
-                          setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
-                        }}
-                      />
-                      <EuroInput
-                        label={advisorCopy.priceTo}
-                        value={prices[id].to}
-                        disabled={!checked}
-                        onChange={(to) => {
-                          setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
-                        }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            {message && editing === "services" ? <p className="text-sm text-red-700">{message}</p> : null}
-            <SaveRow pending={pending} onCancel={close} onSave={() => void saveServices()} />
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
+            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
           </div>
-        ) : profile.services.length > 0 ? (
-          <ul className="mt-4 grid gap-3 md:grid-cols-2">
-            {profile.services.map((service) => (
-              <li key={service.serviceType} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
-                <p className="text-sm text-[#64748b]">{advisorCopy.serviceTypes[service.serviceType]}</p>
-                <p className="font-semibold">
-                  {formatAdvisorEuros(service.priceFromCents)} - {formatAdvisorEuros(service.priceToCents)}
-                </p>
+          <Chip done={profile.services.length > 0} editing={false} />
+        </div>
+        <ul className="mt-2 divide-y divide-[#eef0f3]">
+          {advisorServiceIds.map((id) => {
+            const checked = selectedServices.includes(id);
+            return (
+              <li key={id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className={`flex items-center gap-3 text-sm font-medium ${checked ? "text-[#2b3b4a]" : "text-[#8b95a7]"}`}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!profile.corporateComplete}
+                    onChange={() => {
+                      setSelectedServices((current) =>
+                        checked ? current.filter((service) => service !== id) : [...current, id],
+                      );
+                    }}
+                    className="size-4 accent-[#465ab4]"
+                  />
+                  {advisorCopy.serviceTypes[id]}
+                </label>
+                <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                  <PriceField
+                    label={advisorCopy.priceFrom}
+                    value={prices[id].from}
+                    disabled={!checked || !profile.corporateComplete}
+                    onChange={(from) => {
+                      setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
+                    }}
+                  />
+                  <PriceField
+                    label={advisorCopy.priceTo}
+                    value={prices[id].to}
+                    disabled={!checked || !profile.corporateComplete}
+                    onChange={(to) => {
+                      setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
+                    }}
+                  />
+                </div>
               </li>
-            ))}
-          </ul>
-        ) : null}
+            );
+          })}
+        </ul>
+        {message && editing !== "corporate" ? <p className="mt-3 text-sm text-red-700">{message}</p> : null}
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            disabled={pending || !profile.corporateComplete}
+            onClick={() => {
+              void saveServices();
+            }}
+            className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white disabled:opacity-50"
+          >
+            {advisorCopy.save}
+          </button>
+        </div>
       </section>
       <aside className="rounded-2xl border border-[#e7eaee] bg-white p-5 xl:sticky xl:top-6">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
         {publicListing ? (
           <div className="mt-4">
             <AdvisorListingCard advisor={publicListing} />
-            {closes.length > 0 ? (
-              <ul className="mt-4 grid gap-2">
-                {closes.map((close) => (
-                  <li key={close.id} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
-                    <p className="text-sm font-medium text-[#2b3b4a]">{close.codename}</p>
-                    <p className="text-sm text-[#64748b]">
-                      {close.clientLabel}
-                      {close.services.length > 0 ? ` · ${close.services}` : ""}
-                    </p>
-                    <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
           </div>
         ) : (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
@@ -596,24 +580,6 @@ function PanelHeading({
           </button>
         )}
       </div>
-    </div>
-  );
-}
-
-function SaveRow({ pending, onCancel, onSave }: { pending: boolean; onCancel: () => void; onSave: () => void }) {
-  return (
-    <div className="flex justify-end gap-2">
-      <button type="button" onClick={onCancel} className="h-10 rounded-full border border-[#e7eaee] px-4 text-sm">
-        {advisorCopy.cancel}
-      </button>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={onSave}
-        className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white disabled:opacity-50"
-      >
-        {advisorCopy.save}
-      </button>
     </div>
   );
 }

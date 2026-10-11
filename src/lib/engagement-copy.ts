@@ -82,6 +82,7 @@ export const engagementCopy = {
   ndaPending: "Firmando…",
   ndaSigned: "NDA firmado. Ahora ves esta empresa como el inversor que te contrató.",
   ndaInvestorNote: "La firma del inversor no abre esta ficha. Firmas el tuyo.",
+  figuresLocked: "Las cifras se abren al pagar el depósito.",
   publicOnly: "Ficha pública. La razón social, el NIF y el correo no están aquí.",
   hiredByInvestor: "Te contrata un inversor",
   hiredBySeller: "Te contrata el vendedor",

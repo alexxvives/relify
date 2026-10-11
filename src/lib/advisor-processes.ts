@@ -94,7 +94,7 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
     const lanes: AdvisorProcessLane[] = [];
     const seen = new Set<string>();
 
-    if (seller?.processOpened && (seller.depositPaid || seller.closed)) {
+    if (seller?.processOpened) {
       for (const access of labeled) {
         lanes.push({ key: `${access.label}-${lanes.length}`, label: access.label, steps: laneSteps(access, first.saleClosed) });
         seen.add(access.investorId);
@@ -102,22 +102,29 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
     }
 
     for (const row of investorRows) {
-      if (!(row.depositPaid || row.advisorNda) || seen.has(row.requesterId)) {
+      if (seen.has(row.requesterId)) {
         continue;
       }
 
-      const access = labeled.find((item) => item.investorId === row.requesterId);
-
-      if (!access) {
-        continue;
-      }
+      const access = labeled.find((item) => item.investorId === row.requesterId) ?? {
+        investorId: row.requesterId,
+        requestedAt: new Date(0),
+        accepted: false,
+        nda: false,
+        questions: false,
+        meeting: false,
+        offer: false,
+        loiAccepted: false,
+        roomShared: false,
+        passedDiligence: false,
+      };
 
       lanes.push({
         key: `comprador-${lanes.length}`,
         label: advisorCopy.buyerLane,
         steps: laneSteps(access, first.saleClosed),
       });
-      seen.add(access.investorId);
+      seen.add(row.requesterId);
     }
 
     const depositPending = group.some((row) => !row.depositPaid);
@@ -125,10 +132,10 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
 
     if (lanes.length === 0 && seller?.closed && !seller.processOpened) {
       note = advisorCopy.processesClosed;
-    } else if (lanes.length === 0 && depositPending) {
-      note = advisorCopy.processesDeposit;
     } else if (lanes.length === 0 && seller && !seller.processOpened) {
       note = advisorCopy.processesWait;
+    } else if (lanes.length === 0 && depositPending) {
+      note = advisorCopy.processesDeposit;
     } else if (lanes.length === 0) {
       note = advisorCopy.processesNone;
     }

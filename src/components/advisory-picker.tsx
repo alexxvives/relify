@@ -2,7 +2,7 @@
 
 import { useMemo, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users } from "lucide-react";
+import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users, X } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
@@ -278,10 +278,22 @@ function ServiceAskDialog({
         onMouseDown={(event) => {
           event.stopPropagation();
         }}
-        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl"
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl"
       >
-        <h2 className="text-center text-xl font-semibold">{engagementCopy.missingAsk}</h2>
-        <p className="mt-2 text-center text-sm leading-6 text-[#5c6b78]">{engagementCopy.missingAskBody}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 pr-2">
+            <h2 className="text-xl font-semibold">{engagementCopy.missingAsk}</h2>
+            <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{engagementCopy.missingAskBody}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={engagementCopy.closeAdvisor}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[#e7eaee] text-[#3d4a63] hover:bg-[#f4f7ff]"
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        </div>
         {company ? <input type="hidden" name="projectSlug" value={company} /> : null}
         {selected.map((id) => (
           <input key={id} type="hidden" name="services" value={id} />

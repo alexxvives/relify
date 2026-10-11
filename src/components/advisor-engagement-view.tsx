@@ -2,6 +2,9 @@ import { AdvisorCloseForm, AdvisorDepositForm, AdvisorNdaForm } from "@/componen
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
 import { CompanyProfile } from "@/components/company-profile-view";
+import { InvestorPublicCard } from "@/components/investor-public-card";
+import { MarketCardFigures } from "@/components/market-card-figures";
+import { ProjectPhoto } from "@/components/project-photo";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorEngagementPage } from "@/server/advisoryEngagement";
@@ -25,46 +28,17 @@ export function AdvisorEngagementView({
         <h2 className="mt-1 text-3xl font-semibold text-[#1c2740]">{engagement.codename}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{engagement.region}</p>
         <p className="mt-2 text-sm text-[#3d4a63]">{engagement.services}</p>
-        {engagement.preview?.description ? <p className="mt-3 max-w-3xl text-sm leading-6 text-[#3d4a63]">{engagement.preview.description}</p> : null}
-        {engagement.preview && engagement.preview.facts.length > 0 ? (
-          <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-            {engagement.preview.facts.map((fact) => (
-              <div key={fact.label}>
-                <dt className="text-xs text-[#64748b]">{fact.label}</dt>
-                <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-        {engagement.preview?.showInvestor ? (
-          <div className="mt-5">
-            <h3 className="text-sm font-semibold text-[#1c2740]">{engagementCopy.depositInvestor}</h3>
-            {engagement.preview.investor.length === 0 ? (
-              <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.depositInvestorEmpty}</p>
-            ) : (
-              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-                {engagement.preview.investor.map((fact) => (
-                  <div key={fact.label}>
-                    <dt className="text-xs text-[#64748b]">{fact.label}</dt>
-                    <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-          </div>
-        ) : null}
-        {engagement.figures.length > 0 ? (
-          <dl className="mt-4 grid grid-cols-2 gap-4">
-            {engagement.figures.map((figure) => (
-              <div key={figure.label}>
-                <dt className="text-xs text-[#64748b]">{figure.label}</dt>
-                <dd className="mt-1 text-sm font-medium">{figure.value}</dd>
-              </div>
-            ))}
-          </dl>
+        {engagement.description.length > 0 ? (
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-[#3d4a63]">{engagement.description}</p>
         ) : null}
         {engagement.deposit.paid && engagement.view === "public" ? <p className="mt-4 text-sm text-[#614d05]">{engagementCopy.publicOnly}</p> : null}
       </section>
+      <div className={engagement.investorCard ? "grid items-start gap-4 xl:grid-cols-2" : "max-w-xl"}>
+        <EngagementProjectCard engagement={engagement} />
+        {engagement.investorCard ? (
+          <InvestorPublicCard label={engagementCopy.depositInvestor} profile={engagement.investorCard} />
+        ) : null}
+      </div>
       {engagement.deposit.paid ? null : <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />}
       {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
       {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} /> : null}
@@ -127,5 +101,43 @@ export function AdvisorEngagementView({
       ) : null}
       {engagement.deposit.paid ? <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} /> : null}
     </div>
+  );
+}
+
+function EngagementProjectCard({ engagement }: { engagement: AdvisorEngagementPage }) {
+  const card = engagement.showcase;
+  const figures = (
+    <MarketCardFigures
+      revenue={card.revenue}
+      ebitda={card.ebitda}
+      adjustedEbitda={card.adjustedEbitda}
+      askingPrice={card.askingPrice}
+      askingPriceCents={card.askingPriceCents}
+      ebitdaCents={card.ebitdaCents}
+    />
+  );
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+      <ProjectPhoto
+        slug={card.slug}
+        src={card.coverSrc}
+        alt=""
+        title={engagement.codename}
+        place={engagement.region}
+      />
+      <div className="p-5">
+        {card.locked ? (
+          <>
+            <div className="pointer-events-none select-none blur-md" aria-hidden>
+              {figures}
+            </div>
+            <p className="mt-3 text-center text-sm text-[#64748b]">{engagementCopy.figuresLocked}</p>
+          </>
+        ) : (
+          figures
+        )}
+      </div>
+    </article>
   );
 }

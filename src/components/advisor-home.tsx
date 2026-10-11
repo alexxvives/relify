@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, Briefcase, Check, FileText, Layers, User } from "lucide-react";
-import { CountBars } from "@/components/admin-charts";
 import { CompletionMeter } from "@/components/completion-meter";
 import { NoticeList } from "@/components/notice-list";
 import { OpenNoticeList } from "@/components/notification-bell";
@@ -18,6 +17,37 @@ const stepLabel: Record<AdvisorStep, { label: string; color: string }> = {
   active: { label: advisorCopy.stepActive, color: "#7c8ec4" },
   closed: { label: advisorCopy.stepClosed, color: "#17663a" },
 };
+
+function StepChart({
+  rows,
+}: {
+  rows: { label: string; value: number; href: string; color: string }[];
+}) {
+  const max = Math.max(...rows.map((row) => row.value), 1);
+
+  return (
+    <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {rows.map((row) => {
+        const height = row.value === 0 ? 10 : Math.max(28, Math.round((row.value / max) * 96));
+
+        return (
+          <li key={row.label}>
+            <Link
+              href={row.href}
+              className="flex h-full flex-col rounded-2xl border border-[#eef0f3] bg-[#f7f8fb] px-3 pt-3 pb-3 hover:border-[#465ab4]"
+            >
+              <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</span>
+              <span className="mt-1 text-sm text-[#3d4a63]">{row.label}</span>
+              <span className="mt-4 flex h-24 items-end">
+                <span className="block w-full rounded-lg" style={{ height, backgroundColor: row.color }} />
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 const checklist = [
   { key: "identity", label: advisorCopy.profileIdentity, href: "/mis-servicios", icon: User },
@@ -53,7 +83,7 @@ export function AdvisorHome({
   return (
     <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
-        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
+        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} columns={2} />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {stats.map((item) => (
             <li key={item.label}>
@@ -66,14 +96,15 @@ export function AdvisorHome({
         </ul>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
-          <CountBars
-            stacked
-            rows={desk.steps.filter((step) => step.step !== "request").map((step) => ({
-              label: stepLabel[step.step].label,
-              value: step.count,
-              href: step.href,
-              color: stepLabel[step.step].color,
-            }))}
+          <StepChart
+            rows={desk.steps
+              .filter((step) => step.step !== "request")
+              .map((step) => ({
+                label: stepLabel[step.step].label,
+                value: step.count,
+                href: step.href,
+                color: stepLabel[step.step].color,
+              }))}
           />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">

@@ -25,11 +25,15 @@ import { cnaeSection } from "@/lib/cnae-section";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { folderNameSchema, visibleFolderNames } from "@/lib/data-room";
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
-import { formatEur } from "@/lib/money";
+import type { PublicInvestorCard } from "@/lib/demo-profile";
+import { figureVeilCents } from "@/lib/figure-veil";
+import { formatEur, formatWholeEur } from "@/lib/money";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { publicCardsByInvestor } from "@/server/investorProfile";
 import { investorVisibleFiles, type VisibleFile } from "@/server/investorVisibleFiles";
+import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
 import { recordNotification } from "@/server/recordNotification";
 
 export type EngagementResult = { ok: true; message?: string } | { ok: false; message: string };
@@ -76,6 +80,19 @@ export type AdvisorEngagementPage = {
   closed: boolean;
   feeLabel: string | null;
   deposit: { paid: boolean; amountLabel: string };
+  description: string;
+  showcase: {
+    slug: string;
+    coverSrc: string | null;
+    locked: boolean;
+    revenue: string;
+    ebitda: string;
+    adjustedEbitda: string;
+    askingPrice: string;
+    askingPriceCents: number | null;
+    ebitdaCents: number | null;
+  };
+  investorCard: PublicInvestorCard | null;
   preview: {
     description: string;
     facts: { label: string; value: string }[];
@@ -334,6 +351,61 @@ export async function claimEngagement(user: CurrentUser, id: string): Promise<En
   return { ok: true, message: engagementCopy.claimed };
 }
 
+function showcaseFor(
+  project: {
+    id: string;
+    slug: string;
+    revenueCents: number;
+    ebitdaCents: number;
+    adjustedEbitdaCents: number;
+    askingPriceCents: number;
+  },
+  locked: boolean,
+): AdvisorEngagementPage["showcase"] {
+  const version = projectCoverIsStored(project.id) ? projectCoverVersion(project.id) : null;
+  const coverSrc = version ? projectCoverHref(project.slug, version) : null;
+
+  if (locked) {
+    const veil = formatWholeEur(figureVeilCents);
+
+    return {
+      slug: project.slug,
+      coverSrc,
+      locked: true,
+      revenue: veil,
+      ebitda: veil,
+      adjustedEbitda: veil,
+      askingPrice: veil,
+      askingPriceCents: null,
+      ebitdaCents: null,
+    };
+  }
+
+  return {
+    slug: project.slug,
+    coverSrc,
+    locked: false,
+    revenue: formatWholeEur(project.revenueCents),
+    ebitda: formatWholeEur(project.ebitdaCents),
+    adjustedEbitda: formatWholeEur(project.adjustedEbitdaCents),
+    askingPrice: formatWholeEur(project.askingPriceCents),
+    askingPriceCents: project.askingPriceCents,
+    ebitdaCents: project.ebitdaCents,
+  };
+}
+
+async function investorCardFor(
+  client: EngagementClientName,
+  requester: { id: string; email: string },
+): Promise<PublicInvestorCard | null> {
+  if (client !== "investor") {
+    return null;
+  }
+
+  const cards = await publicCardsByInvestor([requester]);
+  return cards.get(requester.id) ?? null;
+}
+
 export async function getAdvisorEngagement(user: CurrentUser, id: string): Promise<AdvisorEngagementPage | null> {
   if (!user.onboarded || user.role !== "advisor") {
     return null;
@@ -352,6 +424,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       platformVatCents: true,
       depositPaidAt: true,
       requesterId: true,
+      requester: { select: { id: true, email: true } },
       project: {
         select: {
           id: true,
@@ -390,6 +463,9 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       closed: false,
       feeLabel: null,
       deposit: { paid: false, amountLabel: depositAmount },
+      description: row.project.description?.trim() ?? "",
+      showcase: showcaseFor(row.project, true),
+      investorCard: await investorCardFor(row.client, row.requester),
       preview: {
         ...(await blindPreview(row.client, row.requesterId, row.project)),
         showInvestor: row.client === "investor",
@@ -444,16 +520,20 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     files: visibleFiles.filter((file) => file.folder === name),
   }));
 
+  const figuresOpen = row.client === "seller" || view === "investor";
+
   return {
     id: row.id,
     codename: row.project.codename,
     region: row.project.region,
-    figures: [
-      { label: "Facturación", value: formatEur(row.project.revenueCents) },
-      { label: "EBITDA", value: formatEur(row.project.ebitdaCents) },
-      { label: "EBITDA ajustado", value: formatEur(row.project.adjustedEbitdaCents) },
-      { label: "Precio", value: formatEur(row.project.askingPriceCents) },
-    ],
+    figures: figuresOpen
+      ? [
+          { label: "Facturación", value: formatEur(row.project.revenueCents) },
+          { label: "EBITDA", value: formatEur(row.project.ebitdaCents) },
+          { label: "EBITDA ajustado", value: formatEur(row.project.adjustedEbitdaCents) },
+          { label: "Precio", value: formatEur(row.project.askingPriceCents) },
+        ]
+      : [],
     clientLabel: clientLabel(row.client),
     services: serviceLabel(row.services),
     view,
@@ -476,6 +556,9 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
     deposit: { paid: true, amountLabel: depositAmount },
+    description: row.project.description?.trim() ?? "",
+    showcase: showcaseFor(row.project, !figuresOpen),
+    investorCard: await investorCardFor(row.client, row.requester),
     preview: null,
   };
 }

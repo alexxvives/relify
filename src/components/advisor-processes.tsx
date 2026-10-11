@@ -43,11 +43,11 @@ export function AdvisorProcesses({ boards }: { boards: AdvisorProjectBoard[] }) 
             {board.ndaPending ? <Chip tone="bg-[#eef2ff] text-[#3d34b8]">{advisorCopy.ndaPendingChip}</Chip> : null}
           </div>
           {board.note ? <p className="mt-4 text-sm text-[#64748b]">{board.note}</p> : null}
-          <div className="mt-2 flex flex-col gap-4">
+          <div className="mt-2 flex flex-col gap-2">
             {board.lanes.map((lane) => (
-              <div key={lane.key} className="rounded-2xl bg-[#f7f8fb] px-3 py-3">
+              <div key={lane.key} className="border-t border-[#eef0f3] pt-3">
                 <p className="px-1 text-sm font-semibold text-[#1c2740]">{lane.label}</p>
-                <DealPipeline steps={lane.steps} role="advisor" hideWaitingCue />
+                <DealPipeline steps={lane.steps} role="advisor" />
               </div>
             ))}
           </div>
