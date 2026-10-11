@@ -13,8 +13,8 @@ export function FinancialTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[40rem] border-collapse text-sm">
+    <div className="layout-table">
+      <table className="border-collapse text-sm">
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
             <th className="py-3 pr-4 text-left font-medium">{companyCopy.evolutionLabel}</th>

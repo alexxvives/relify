@@ -43,7 +43,7 @@ export function MarketCardFigures({
           )}
         </div>
       </div>
-      <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
+      <dl className="layout-metrics">
         {row.map((item) => (
           <div key={item.label} className="min-w-0 px-2 py-4 text-center">
             <dt className="text-[16.5px] leading-5 font-medium text-[#5c6b78]">{item.label}</dt>

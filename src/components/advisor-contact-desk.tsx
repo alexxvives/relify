@@ -95,7 +95,7 @@ function ContactPanels({
     <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
       <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} />
       {tab === "chat" ? (
-        <div className={showDocuments ? "grid items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid"}>
+        <div className={showDocuments ? "layout-page" : "grid min-w-0"}>
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
             <div className="flex flex-1 flex-col">
               <ProjectThread

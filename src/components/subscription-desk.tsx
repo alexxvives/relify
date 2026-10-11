@@ -75,7 +75,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </span>
               </div>
             </div>
-            <div className="grid gap-6 p-6 sm:grid-cols-3 sm:p-8">
+            <div className="layout-cards p-6 sm:p-8">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{billingCopy.renewsOn}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.whenLabel}</p>
@@ -151,8 +151,8 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
             <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.invoicesTitle}</h3>
             {desk.invoices.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{billingCopy.invoicesEmpty}</p> : null}
             {desk.invoices.length > 0 ? (
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[36rem] text-left text-sm">
+              <div className="layout-table mt-4">
+                <table className="text-left text-sm">
                   <thead>
                     <tr className="border-b border-[#eef0f3] text-xs font-semibold tracking-wide text-[#667085] uppercase">
                       <th className="py-2 pr-3 font-semibold">Número</th>

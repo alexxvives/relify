@@ -27,7 +27,7 @@ export function AdvisorEngagementView({
         <p className="mt-2 text-sm text-[#3d4a63]">{engagement.services}</p>
         {engagement.preview?.description ? <p className="mt-3 max-w-3xl text-sm leading-6 text-[#3d4a63]">{engagement.preview.description}</p> : null}
         {engagement.preview && engagement.preview.facts.length > 0 ? (
-          <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+          <dl className="layout-cards mt-4">
             {engagement.preview.facts.map((fact) => (
               <div key={fact.label}>
                 <dt className="text-xs text-[#64748b]">{fact.label}</dt>

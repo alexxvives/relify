@@ -30,7 +30,7 @@ export function BlogIndex({ posts }: { posts: BlogPost[] }) {
       </div>
       {featured ? <Featured post={featured} /> : <p className="text-sm text-public-muted">{blogCopy.description}</p>}
       {rest.length > 0 ? (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="layout-cards">
           {rest.map((post) => (
             <li key={post.slug}>
               <PostCard post={post} />

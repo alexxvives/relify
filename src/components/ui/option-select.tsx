@@ -82,7 +82,7 @@ export function OptionSelect({
           setOpen((current) => !current);
           setQuery("");
         }}
-        className="flex h-11 w-full items-center justify-between gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+        className="flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
       >
         <span className="truncate">{selected?.label ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />

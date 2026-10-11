@@ -45,7 +45,7 @@ export function FilterSelect({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -54,7 +54,7 @@ export function FilterSelect({
         onClick={() => {
           setOpen((current) => !current);
         }}
-        className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#e1e6ee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25"
+        className="flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e1e6ee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25"
       >
         <span className="truncate">{selected?.label ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />

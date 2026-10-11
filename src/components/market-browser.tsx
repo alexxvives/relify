@@ -158,7 +158,7 @@ export function MarketBrowser({
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="layout-cards">
           {visible.map((project) => {
             return (
               <article key={project.slug} className="relative overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">

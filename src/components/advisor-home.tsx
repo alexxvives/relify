@@ -36,10 +36,10 @@ export function AdvisorHome({
   }));
 
   return (
-    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="flex flex-col gap-4">
+    <div className="layout-page">
+      <div className="flex min-w-0 flex-col gap-4">
         <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <ul className="layout-cards">
           {stats.map((item) => (
             <li key={item.label}>
               <Link href={item.href} className="block rounded-2xl border border-[#e7eaee] bg-white px-4 py-4 hover:border-[#465ab4]">

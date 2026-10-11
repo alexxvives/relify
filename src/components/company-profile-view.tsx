@@ -93,7 +93,7 @@ export function CompanyProfile({
         <SectionTitle id="descripcion-general" icon={Building2} hint={companyCopy.generalHint}>
           {companyCopy.generalHeading}
         </SectionTitle>
-        <div className="mt-6 grid gap-6 sm:grid-cols-3">
+        <div className="layout-cards mt-6">
           <PublicFact icon={Map} label={companyCopy.regionLabel} value={project.region} />
           <PublicFact
             icon={CalendarDays}
@@ -148,7 +148,7 @@ export function CompanyProfile({
         <SectionTitle id="metricas" icon={Receipt} hint={companyCopy.metricsHint}>
           {companyCopy.metricsHeading}
         </SectionTitle>
-        <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="layout-cards mt-6">
           {metrics.map((metric) => (
             <div key={metric.label} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs text-[#8b95a7]">{metric.label}</dt>
@@ -163,7 +163,7 @@ export function CompanyProfile({
           {companyCopy.structureHeading}
         </SectionTitle>
         <LockedFigures open={figuresOpen} kind="structure" note={lockedNote} action={lockAction}>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="layout-cards">
             <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
             <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
             {project.customerBase === "consumer" ? (
@@ -183,9 +183,7 @@ export function CompanyProfile({
           {companyCopy.incomeHeading}
         </SectionTitle>
         <LockedFigures open={figuresOpen} kind="income" note={lockedNote} action={lockAction}>
-          <div className="overflow-x-auto">
-            <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
-          </div>
+          <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
           <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
         </LockedFigures>
       </section>
@@ -195,9 +193,7 @@ export function CompanyProfile({
           {companyCopy.balanceHeading}
         </SectionTitle>
         <LockedFigures open={figuresOpen} kind="balance" note={lockedNote} action={lockAction}>
-          <div className="overflow-x-auto">
-            <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
-          </div>
+          <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
           <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
         </LockedFigures>
       </section>
@@ -241,7 +237,7 @@ function LockedFigures({
 function FigureVeil({ kind }: { kind: "structure" | "income" | "balance" }) {
   if (kind === "structure") {
     return (
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="layout-cards">
         <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />
         <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
         <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />

@@ -82,12 +82,12 @@ function SideLink({
       aria-current={selected ? "page" : undefined}
       className={
         selected
-          ? "group flex h-11 items-center gap-3 rounded-2xl bg-public-sand px-4 text-base font-medium text-public-ink"
-          : "group flex h-11 items-center gap-3 rounded-2xl px-4 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
+          ? "group flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-public-sand px-4 py-2 text-base font-medium text-public-ink"
+          : "group flex min-h-11 min-w-0 items-center gap-3 rounded-2xl px-4 py-2 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
       }
     >
       <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
-      {label}
+      <span className="min-w-0">{label}</span>
     </Link>
   );
 }
@@ -125,24 +125,12 @@ export function AppFrame({
   }
 
   return (
-    <div className="min-h-screen bg-public-paper font-public text-public-ink">
+    <div className="shell min-h-screen bg-public-paper font-public text-public-ink">
       {open ? (
-        <button
-          type="button"
-          aria-label={shellCopy.menuClose}
-          className="fixed inset-0 z-30 bg-public-ink/30 xl:hidden"
-          onClick={closeMenu}
-        />
+        <button type="button" aria-label={shellCopy.menuClose} className="shell-backdrop" onClick={closeMenu} />
       ) : null}
-      <aside
-        id="app-sidebar"
-        className={
-          open
-            ? "fixed inset-y-0 left-0 z-40 flex w-[min(30rem,calc(100%-1rem))] flex-col border-r border-public-line bg-public-card xl:w-[30rem]"
-            : "fixed inset-y-0 left-0 z-40 hidden w-[30rem] flex-col border-r border-public-line bg-public-card xl:flex"
-        }
-      >
-        <div className="relative z-20 flex items-center justify-between gap-3 px-6 pt-6 pb-2">
+      <aside id="app-sidebar" data-open={open ? "true" : "false"} className="shell-sidebar">
+        <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-6 pt-6 pb-2">
           <div className="flex min-w-0 items-center gap-3">
             <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Releva">
               <Logo size="lg" />
@@ -166,7 +154,7 @@ export function AppFrame({
             <button
               type="button"
               onClick={closeMenu}
-              className="inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand xl:hidden"
+              className="shell-close inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
             >
               <XIcon size={16} aria-hidden />
               <span className="sr-only">{shellCopy.menuClose}</span>
@@ -241,8 +229,8 @@ export function AppFrame({
           </form>
         </div>
       </aside>
-      <main className="min-h-screen xl:pl-[30rem]">
-        <div className="w-full px-6 py-6 md:px-8 md:py-8">
+      <main className="shell-main">
+        <div className="shell-content">
           <button
             type="button"
             aria-expanded={open}
@@ -250,7 +238,7 @@ export function AppFrame({
             onClick={() => {
               setOpen(true);
             }}
-            className="mb-4 inline-flex size-10 items-center justify-center rounded-full bg-public-card text-public-ink shadow-public xl:hidden"
+            className="shell-menu mb-4 inline-flex size-10 items-center justify-center rounded-full bg-public-card text-public-ink shadow-public"
           >
             <PanelLeftIcon size={16} aria-hidden />
             <span className="sr-only">{shellCopy.menuOpen}</span>

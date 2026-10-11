@@ -182,8 +182,8 @@ function Panel({
 }) {
   return (
     <section id={id} className="scroll-mt-6 rounded-2xl border border-[#e7eaee] bg-white p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             {title}
             {hint ? <FieldHint text={hint} /> : null}
@@ -1242,7 +1242,7 @@ export function CompanyDraftForm({
           : clientPercents.map((value, index) => (
               <input key={`kept-client-${index}`} type="hidden" name="clientPercent" value={value} />
             ))}
-        <div className="grid items-start gap-6 lg:grid-cols-3">
+        <div className="layout-cards">
           <PercentRows
             legend={companyCopy.shareholdersLegend}
             name="capitalPercent"
@@ -1299,8 +1299,8 @@ export function CompanyDraftForm({
             {companyCopy.forecastMark}
           </span>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-[#e7eaee]">
-          <table className="w-full min-w-[52rem] border-separate border-spacing-0 text-sm">
+        <div className="layout-table rounded-xl border border-[#e7eaee]">
+          <table className="border-separate border-spacing-0 text-sm">
             <thead>
               <tr>
                 <th className="sticky left-0 z-10 bg-[#f6f7f9]" />
@@ -1397,8 +1397,8 @@ export function CompanyDraftForm({
             {companyCopy.calculatedMark}
           </span>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-[#e7eaee]">
-          <table className="w-full min-w-[40rem] border-separate border-spacing-0 text-sm">
+        <div className="layout-table rounded-xl border border-[#e7eaee]">
+          <table className="border-separate border-spacing-0 text-sm">
             <thead>
               <tr>
                 <th className="sticky left-0 z-10 bg-[#f6f7f9] px-3 py-3 text-left font-medium text-[#2b3b4a]">
@@ -1694,7 +1694,7 @@ function PublicFicha({
             </p>
           ) : null}
           {photos.length > 0 ? (
-            <ul className="grid grid-cols-4 gap-2">
+            <ul className="layout-cards">
               {photos.map((photo, index) => (
                 <li key={`${index}-${photo.slice(-24)}`} className="relative">
                   <button
@@ -1779,7 +1779,7 @@ function MarketPreview({
         <FieldHint text={companyCopy.cardPreviewBody} />
       </span>
       <div className="rounded-2xl border border-[#e7eaee] bg-[#f7f8fb] p-4">
-        <div className="grid gap-3 lg:grid-cols-5">
+        <div className="layout-cards">
           {filters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-[#5c6b78]">{filter.label}</span>
@@ -1790,7 +1790,7 @@ function MarketPreview({
             </div>
           ))}
         </div>
-        <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
+        <div className="layout-cards mt-4">
           <SampleListing />
           <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div className={projectPhotoFrame}>

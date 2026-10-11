@@ -153,7 +153,7 @@ export function AdvisorMandateBoard({
           <p className="mt-2 text-sm text-[#64748b]">{advisorCopy.mandatesEmptyBody}</p>
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
+        <ul className="layout-cards mt-6">
           {mandates.map((project) => (
             <MandateCard key={project.slug} project={project} />
           ))}

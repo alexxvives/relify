@@ -1533,3 +1533,167 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
+
+/*
+  Signed-in layout. This is the only place the four widths are defined.
+  Phone: up to 639px. Tablet: 640–1023. Laptop: 1024–1279. Desktop: 1280 and up.
+  New signed-in pages use layout-page, layout-cards, and layout-table.
+  Do not add a fixed width, or a four-column grid that stays four columns on a phone or a tablet.
+*/
+:root {
+  --layout-pad: 1.5rem;
+  --layout-sidebar: 18rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --layout-pad: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --layout-sidebar: 30rem;
+  }
+}
+
+.shell {
+  min-width: 0;
+}
+
+.shell-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: 0;
+  background: rgb(18 52 58 / 0.3);
+}
+
+.shell-sidebar {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: 40;
+  display: none;
+  width: min(22rem, calc(100% - 1rem));
+  flex-direction: column;
+  border-right: 1px solid var(--public-line);
+  background: var(--public-card);
+}
+
+.shell-sidebar[data-open="true"] {
+  display: flex;
+}
+
+.shell-main {
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.shell-content {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--layout-pad);
+  overflow-wrap: break-word;
+}
+
+.shell-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shell-content .grid > * {
+  min-width: 0;
+}
+
+.shell-content .w-full {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .shell-sidebar,
+  .shell-sidebar[data-open="false"] {
+    display: flex;
+    width: var(--layout-sidebar);
+  }
+
+  .shell-main {
+    padding-left: var(--layout-sidebar);
+  }
+
+  .shell-backdrop,
+  .shell-menu,
+  .shell-close {
+    display: none;
+  }
+}
+
+.layout-page {
+  display: grid;
+  align-items: stretch;
+  gap: 1.5rem;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .layout-page {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.layout-cards {
+  display: grid;
+  align-items: stretch;
+  gap: 1.25rem;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.layout-cards > * {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.layout-table {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.layout-table > table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.layout-track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+}
+
+.layout-track > li {
+  display: flex;
+  flex: 1 0 4.75rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 4.75rem;
+}
+
+.layout-metrics {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container (min-width: 22rem) {
+  .layout-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+}

@@ -71,8 +71,8 @@ export function DealPipeline({
 
   return (
     <div>
-      <div className="overflow-x-auto px-1 pt-6 pb-2">
-        <ol className="relative mx-auto flex min-w-[40rem] items-start" aria-label="Recorrido del proceso">
+      <div className="layout-table px-1 pt-6 pb-2">
+        <ol className="layout-track relative mx-auto items-start" aria-label="Recorrido del proceso">
           <span
             className={onDark ? "absolute top-3 h-1 rounded-full bg-white/20" : "absolute top-3 h-1 rounded-full bg-[#e6eaf2]"}
             style={{ left: edge, right: edge }}
@@ -101,7 +101,7 @@ export function DealPipeline({
               <li
                 key={step.id}
                 aria-current={step.state === "current" ? "step" : undefined}
-                className="flex min-w-0 flex-1 flex-col items-center gap-2"
+                className="min-w-0"
               >
                 <span className="relative z-10 flex h-7 items-center justify-center">
                   <StepDot state={step.state} onDark={onDark} />
@@ -517,7 +517,7 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
     <>
       <button
         type="button"
-        className={`cursor-help border-0 bg-transparent p-0 ${className}`}
+        className={`w-full cursor-help border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
         onMouseEnter={(event) => {
           place(event.currentTarget);
         }}

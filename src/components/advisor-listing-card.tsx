@@ -40,7 +40,7 @@ function SectorTags({ sectors }: { sectors: string[] }) {
   return (
     <span className="mt-3 flex flex-wrap gap-1.5 pr-36">
       {sectors.map((sector) => (
-        <span key={sector} className="rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 whitespace-nowrap text-white">
+        <span key={sector} className="rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 text-white">
           {sector}
         </span>
       ))}

@@ -214,8 +214,8 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
   return (
     <div className="flex flex-col gap-4">
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.corporateTitle}</h2>
             <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.confidential}</p>
           </div>
@@ -231,7 +231,7 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
         </div>
         {editing === "corporate" ? (
           <div className="mt-6 flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="layout-cards">
               <label className="flex flex-col gap-2 text-sm font-medium">
                 {advisorCopy.businessName}
                 <input value={businessName} onChange={(event) => setBusinessName(event.target.value)} className={fieldClass} />
@@ -332,7 +332,7 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
             </div>
           </div>
         ) : (
-          <dl className="mt-6 grid gap-4 md:grid-cols-3">
+          <dl className="layout-cards mt-6">
             <div className="flex items-center gap-3">
               <User className="size-5 text-[#8aa0d8]" aria-hidden />
               <div>
@@ -640,8 +640,8 @@ function PanelHeading({
   onEdit: () => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div>
+    <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="min-w-0">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{title}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{body}</p>
       </div>

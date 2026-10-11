@@ -49,7 +49,7 @@ export function FinanceCharts({
 
   return (
     <div className="mt-4 flex flex-col gap-6">
-      <div className={split ? "grid items-start gap-6 lg:grid-cols-2" : undefined}>
+      <div className={split ? "layout-page" : undefined}>
         <SalesBars points={points} progress={progress} />
         {split ? <CostBars years={costYears} /> : null}
       </div>
@@ -65,15 +65,11 @@ export function FinanceCharts({
 }
 
 function mixRowClass(count: number): string {
-  if (count >= 3) {
-    return "grid items-stretch gap-3 md:grid-cols-3";
+  if (count >= 2) {
+    return "layout-cards";
   }
 
-  if (count === 2) {
-    return "grid items-stretch gap-3 md:grid-cols-2";
-  }
-
-  return "grid items-stretch gap-3";
+  return "grid min-w-0";
 }
 
 function useGrow(): number {

@@ -514,7 +514,7 @@ export function MeetingDesk({
   }
 
   return (
-    <section className="grid items-stretch gap-4 xl:grid-cols-2">
+    <section className="layout-page">
       <div className="h-full rounded-2xl border border-[#e6e9f0] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsCalendar}</h3>
