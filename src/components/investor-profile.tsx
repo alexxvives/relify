@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User } from "lucide-react";
+import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User, X } from "lucide-react";
 import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/inversor/perfil/actions";
 import { AppToast } from "@/components/app-toast";
 import { FieldHint } from "@/components/field-hint";
@@ -350,7 +350,18 @@ export function InvestorPhotoDrop({
   const [over, setOver] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const shown = investorDisplayPhoto(photo, fallback);
+  const uploaded = uploadedInvestorPhoto(photo).length > 0;
   const note = message ?? saveMessage;
+
+  function clearPhoto() {
+    setSaveMessage(null);
+    onReady("");
+    void saveInvestorPhotoAction("").then((result) => {
+      if (!result.ok) {
+        setSaveMessage(investorCopy.photoFailed);
+      }
+    });
+  }
 
   function take(file: File | undefined) {
     if (!file) {
@@ -374,6 +385,7 @@ export function InvestorPhotoDrop({
 
   return (
     <div className="flex flex-col items-start gap-2">
+      <div className="relative size-32">
       <label
         onDragOver={(event) => {
           event.preventDefault();
@@ -389,8 +401,8 @@ export function InvestorPhotoDrop({
         }}
         className={
           over
-            ? "relative flex size-32 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff]"
-            : "relative flex size-32 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff]"
+            ? "absolute inset-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#465ab4] bg-[#eef2ff]"
+            : "absolute inset-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#c5d0f5] bg-[#f7f8ff]"
         }
       >
         {shown.length > 0 ? (
@@ -414,6 +426,17 @@ export function InvestorPhotoDrop({
           }}
         />
       </label>
+      {uploaded ? (
+        <button
+          type="button"
+          aria-label={investorCopy.photoRemove}
+          onClick={clearPhoto}
+          className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-full border border-white/80 bg-white text-[#1c2740] shadow-sm hover:text-[#c0362c]"
+        >
+          <X className="size-3.5" aria-hidden />
+        </button>
+      ) : null}
+      </div>
       <p className="text-xs text-[#667085]">{investorCopy.photoDropHint}</p>
       {note ? <p className="text-sm text-[#c0362c]">{note}</p> : null}
     </div>

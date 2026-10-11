@@ -20,7 +20,7 @@ export default async function AdminAdvisorsPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.advisorsTitle}>
+    <SignedInPage title={adminCopy.advisorsTitle} showTitle={false}>
       <AdminAdvisors advisors={advisors} />
     </SignedInPage>
   );

@@ -20,7 +20,7 @@ export default async function AdminConnectionsPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.connectionsTitle}>
+    <SignedInPage title={adminCopy.connectionsTitle} showTitle={false}>
       <AdminConnections connections={connections} />
     </SignedInPage>
   );

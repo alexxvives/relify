@@ -7,6 +7,9 @@ export type AdminCompanyRow = {
   region: string;
   status: "draft" | "pending" | "published";
   askingPriceCents: number;
+  revenueCents: number;
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
   ownerEmail: string | null;
   legalName: string;
   cif: string;
@@ -28,6 +31,9 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
       region: true,
       status: true,
       askingPriceCents: true,
+      revenueCents: true,
+      ebitdaCents: true,
+      adjustedEbitdaCents: true,
       legalName: true,
       cif: true,
       address: true,
@@ -43,6 +49,9 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     region: project.region,
     status: project.status,
     askingPriceCents: project.askingPriceCents,
+    revenueCents: project.revenueCents,
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
     ownerEmail: project.owner?.email ?? null,
     legalName: project.legalName,
     cif: project.cif,

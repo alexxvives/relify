@@ -20,7 +20,7 @@ export default async function AdminCompaniesPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.companiesTitle}>
+    <SignedInPage title={adminCopy.companiesTitle} showTitle={false}>
       <AdminCompanies projects={projects} />
     </SignedInPage>
   );

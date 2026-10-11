@@ -8,11 +8,13 @@ export function FilterSelect({
   value,
   options,
   onValueChange,
+  compact = false,
 }: {
   label: string;
   value: string;
   options: readonly { value: string; label: string }[];
   onValueChange: (value: string) => void;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -54,7 +56,11 @@ export function FilterSelect({
         onClick={() => {
           setOpen((current) => !current);
         }}
-        className="flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e1e6ee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25"
+        className={
+          compact
+            ? "flex h-9 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-full border border-[#e7eaee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+            : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e1e6ee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25"
+        }
       >
         <span className="truncate">{selected?.label ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />

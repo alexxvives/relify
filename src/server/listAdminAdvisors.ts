@@ -17,6 +17,7 @@ export type AdminAdvisorRow = {
   name: string;
   email: string;
   businessName: string;
+  sectors: string[];
   listed: boolean;
   place: number | null;
   total: number;
@@ -112,6 +113,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
         name: personName(advisor.name, advisor.lastName),
         email: advisor.email,
         businessName: advisor.advisorProfile?.businessName.trim() ?? "",
+        sectors: advisor.advisorProfile?.sectors ?? [],
         listed: card !== null,
         place,
         total,

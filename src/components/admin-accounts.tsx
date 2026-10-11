@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { AccountToastHost, PlanForm, RoleForm, SuspensionButton } from "@/components/admin-controls";
+import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
+import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminAccountRow } from "@/server/listAdminAccounts";
 
-const fieldClass =
-  "h-11 w-full rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base text-[#1c2740] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
+type RoleFilter = "all" | "seller" | "investor" | "advisor" | "admin" | "none";
+type StateFilter = "all" | "active" | "suspended" | "pending";
+
+function isRoleFilter(value: string): value is RoleFilter {
+  return value === "all" || value === "seller" || value === "investor" || value === "advisor" || value === "admin" || value === "none";
+}
+
+function isStateFilter(value: string): value is StateFilter {
+  return value === "all" || value === "active" || value === "suspended" || value === "pending";
+}
 
 function accountRoleLabel(role: string | null): string {
   if (role === "seller" || role === "investor" || role === "advisor" || role === "admin") {
@@ -16,10 +26,37 @@ function accountRoleLabel(role: string | null): string {
   return adminCopy.roles.none;
 }
 
+function initialOf(name: string): string {
+  const letter = name.trim().charAt(0);
+  return letter.length > 0 ? letter.toLocaleUpperCase("es-ES") : "?";
+}
+
 export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRow[]; viewerId: string }) {
   const [query, setQuery] = useState("");
+  const [role, setRole] = useState<RoleFilter>("all");
+  const [state, setState] = useState<StateFilter>("all");
   const needle = query.trim().toLocaleLowerCase("es");
   const visible = accounts.filter((account) => {
+    if (role === "none" && account.role !== null) {
+      return false;
+    }
+
+    if (role !== "all" && role !== "none" && account.role !== role) {
+      return false;
+    }
+
+    if (state === "suspended" && !account.suspended) {
+      return false;
+    }
+
+    if (state === "pending" && account.onboarded) {
+      return false;
+    }
+
+    if (state === "active" && (account.suspended || !account.onboarded)) {
+      return false;
+    }
+
     if (needle.length === 0) {
       return true;
     }
@@ -28,55 +65,107 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div>
       <AccountToastHost />
-      <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <label htmlFor="admin-account-search" className="flex flex-col gap-1.5 text-xs font-medium text-[#667085]">
-          {adminCopy.searchLabel}
-          <input
-            id="admin-account-search"
-            type="search"
-            value={query}
-            placeholder={adminCopy.searchAccounts}
-            onChange={(event) => {
-              setQuery(event.target.value);
+      <AdminPageHeader title={adminCopy.accountsTitle}>
+        <AdminSearchField
+          id="admin-account-search"
+          label={adminCopy.searchLabel}
+          value={query}
+          placeholder={adminCopy.searchAccounts}
+          onChange={setQuery}
+        />
+        <div className="w-40">
+          <FilterSelect
+            compact
+            label={adminCopy.roleLabel}
+            value={role}
+            options={[
+              { value: "all", label: adminCopy.roleAll },
+              { value: "seller", label: adminCopy.accountRoles.seller },
+              { value: "investor", label: adminCopy.accountRoles.investor },
+              { value: "advisor", label: adminCopy.accountRoles.advisor },
+              { value: "admin", label: adminCopy.accountRoles.admin },
+              { value: "none", label: adminCopy.roles.none },
+            ]}
+            onValueChange={(next) => {
+              if (isRoleFilter(next)) {
+                setRole(next);
+              }
             }}
-            className={fieldClass}
           />
-        </label>
-      </div>
+        </div>
+        <div className="w-40">
+          <FilterSelect
+            compact
+            label={adminCopy.accountStateLabel}
+            value={state}
+            options={[
+              { value: "all", label: adminCopy.accountStateAll },
+              { value: "active", label: adminCopy.accountStateActive },
+              { value: "suspended", label: adminCopy.accountStateSuspended },
+              { value: "pending", label: adminCopy.accountStatePending },
+            ]}
+            onValueChange={(next) => {
+              if (isStateFilter(next)) {
+                setState(next);
+              }
+            }}
+          />
+        </div>
+      </AdminPageHeader>
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {visible.map((account) => {
-            const self = account.id === viewerId;
-
-            return (
-              <li key={account.id} className="rounded-2xl border border-[#e7eaee] bg-white px-4 py-4">
-                <p className="text-base font-semibold text-[#1c2740]">{account.name}</p>
-                <p className="mt-1 text-sm text-[#667085]">
-                  {account.email} · {accountRoleLabel(account.role)}
-                </p>
-                <p className="mt-1 text-xs text-[#8b95a7]">
-                  {account.onboarded ? adminCopy.onboarded : adminCopy.pendingOnboarding}
-                  {account.suspended ? ` · ${adminCopy.suspendedBadge}` : ""}
-                  {account.role === "investor" ? ` · ${adminCopy.planCurrent}: ${adminCopy.plans[account.plan]}` : ""}
-                </p>
-                <div className="mt-3 flex flex-col gap-3">
-                  {self ? (
-                    <p className="text-sm text-[#667085]">{adminCopy.ownSuspend}</p>
-                  ) : (
-                    <SuspensionButton userId={account.id} suspended={account.suspended} />
-                  )}
-                  {self ? <p className="text-sm text-[#667085]">{adminCopy.ownRole}</p> : <RoleForm userId={account.id} role={account.role} />}
-                  {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
-                </div>
-              </li>
-            );
-          })}
+        <ul className="grid gap-4 xl:grid-cols-2">
+          {visible.map((account) => (
+            <li key={account.id}>
+              <AccountCard account={account} self={account.id === viewerId} />
+            </li>
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
+  return (
+    <article className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
+          {initialOf(account.name)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-base font-semibold text-[#1c2740]">{account.name}</p>
+          <p className="mt-0.5 truncate text-sm text-[#667085]">{account.email}</p>
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            <li className="rounded-full bg-[#eef2ff] px-2.5 py-1 text-xs font-medium text-[#163a8a]">{accountRoleLabel(account.role)}</li>
+            <li
+              className={
+                account.onboarded
+                  ? "rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-medium text-[#17663a]"
+                  : "rounded-full bg-[#fff4d6] px-2.5 py-1 text-xs font-medium text-[#8a6112]"
+              }
+            >
+              {account.onboarded ? adminCopy.onboarded : adminCopy.pendingOnboarding}
+            </li>
+            {account.suspended ? (
+              <li className="rounded-full bg-[#fdeeee] px-2.5 py-1 text-xs font-medium text-[#8d2424]">{adminCopy.suspendedBadge}</li>
+            ) : null}
+            {account.role === "investor" ? (
+              <li className="rounded-full bg-[#fff4e8] px-2.5 py-1 text-xs font-medium text-[#9a4a08]">
+                {adminCopy.plans[account.plan]}
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-1 flex-col gap-3 border-t border-[#eef0f3] pt-4">
+        {self ? <p className="text-sm text-[#667085]">{adminCopy.ownSuspend}</p> : <SuspensionButton userId={account.id} suspended={account.suspended} />}
+        {self ? <p className="text-sm text-[#667085]">{adminCopy.ownRole}</p> : <RoleForm userId={account.id} role={account.role} />}
+        {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
+      </div>
+    </article>
   );
 }
