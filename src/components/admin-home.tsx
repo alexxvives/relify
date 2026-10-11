@@ -58,7 +58,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <ul className="layout-cards">
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((item) => (
           <li key={item.label}>
             <Link href={item.href} className="block rounded-2xl border border-[#e7eaee] bg-white px-4 py-4 hover:border-[#465ab4]">
@@ -68,7 +68,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           </li>
         ))}
       </ul>
-      <div className="layout-page">
+      <div className="grid gap-6 xl:grid-cols-2">
         <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} total={accounts}>
           <CountDonut rows={roles} />
         </ChartLink>
@@ -82,7 +82,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           <CountDonut rows={plans} />
         </ChartLink>
       </div>
-      <div className="layout-cards">
+      <div className="grid gap-6 xl:grid-cols-3">
         <ChartLink href="/admin/conexiones" title={adminCopy.funnelTitle} total={overview.accesses + overview.ndas + overview.messages}>
           <CountBars rows={funnel} funnel />
         </ChartLink>

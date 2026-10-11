@@ -45,7 +45,7 @@ function ProcessConversation({ item, today }: { item: InvestorProcessCard; today
         </p>
       )}
       {tab === "chat" && item.nda ? (
-        <div className="layout-page">
+        <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
             <ProjectThread
               viewer="investor"

@@ -97,7 +97,7 @@ export function SellerOverview({
           </Link>
         </section>
       )}
-      <div className="layout-page">
+      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex min-w-0 flex-col gap-6">
           <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -122,7 +122,7 @@ export function SellerOverview({
               <FieldHint text={sellerCopy.activityIntro} />
             </h2>
             {listing === "published" ? (
-              <ul className="layout-cards mt-4">
+              <ul className="mt-4 grid grid-cols-3 gap-3">
                 {activity.map((item) => (
                   <li key={item.label} className="rounded-xl bg-[#f3f5f8] px-3 py-4">
                     <p className="text-2xl font-semibold text-[#1c2740]">{item.value}</p>

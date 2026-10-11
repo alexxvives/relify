@@ -151,7 +151,7 @@ function AdvisorMarket({
         <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
       </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="layout-cards">
+        <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {engagementCopy.pickCompany}
             {companies.length > 0 ? (
@@ -204,7 +204,7 @@ function AdvisorMarket({
         </div>
       </div>
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="layout-cards">
+      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,32rem),36rem))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
             <AdvisorListingCard advisor={advisor} connect projectSlug={company.length > 0 ? company : undefined} />
@@ -286,7 +286,7 @@ function ServiceAskDialog({
         {selected.map((id) => (
           <input key={id} type="hidden" name="services" value={id} />
         ))}
-        <ul className={cards ? "layout-cards mt-5" : "mt-5 grid min-w-0 gap-3"}>
+        <ul className={cards ? "mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2" : "mt-5 grid min-w-0 gap-3"}>
           {advisoryServices.map((service) => {
             const style = serviceStyle[service.id];
             const Icon = style.icon;

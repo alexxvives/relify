@@ -145,7 +145,7 @@ export function InvestorProject({
           ) : locked ? (
             <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />} />
           ) : (
-            <section className="layout-page">
+            <section className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
                 <ProjectThread
                   viewer="investor"
@@ -240,7 +240,7 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
       <h2 id="recomendadas" className="mt-2 text-2xl font-semibold text-[#1c2740]">
         {companyCopy.recommendationsHeading}
       </h2>
-      <ul className="layout-cards mt-4">
+      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {items.slice(0, 3).map((item) => (
           <li key={item.slug}>
             <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">

@@ -49,13 +49,13 @@ export function InvestorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="layout-page">
+    <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
         <PendingActions items={pending} empty={investorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
-          <ul className="layout-cards mt-4">
+          <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {stats.map((item) => (
               <li key={item.label} className="rounded-2xl border border-[#e7eaee] px-3 py-4">
                 <p className="text-2xl font-semibold">{item.value}</p>
@@ -76,7 +76,7 @@ export function InvestorHome({
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
-          <ul className="layout-cards mt-4">
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {news.map((item) => (
               <li key={item.slug} className="overflow-hidden rounded-2xl border border-[#e7eaee]">
                 <Link href={`/blog/${item.slug}`} className="block p-3 hover:bg-[#f7f8fb]">

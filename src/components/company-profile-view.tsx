@@ -93,7 +93,7 @@ export function CompanyProfile({
         <SectionTitle id="descripcion-general" icon={Building2} hint={companyCopy.generalHint}>
           {companyCopy.generalHeading}
         </SectionTitle>
-        <div className="layout-cards mt-6">
+        <div className="mt-6 grid gap-6 sm:grid-cols-3">
           <PublicFact icon={Map} label={companyCopy.regionLabel} value={project.region} />
           <PublicFact
             icon={CalendarDays}
@@ -148,7 +148,7 @@ export function CompanyProfile({
         <SectionTitle id="metricas" icon={Receipt} hint={companyCopy.metricsHint}>
           {companyCopy.metricsHeading}
         </SectionTitle>
-        <dl className="layout-cards mt-6">
+        <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {metrics.map((metric) => (
             <div key={metric.label} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs text-[#8b95a7]">{metric.label}</dt>
@@ -163,7 +163,7 @@ export function CompanyProfile({
           {companyCopy.structureHeading}
         </SectionTitle>
         <LockedFigures open={figuresOpen} kind="structure" note={lockedNote} action={lockAction}>
-          <div className="layout-cards">
+          <div className="grid gap-4 lg:grid-cols-3">
             <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
             <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
             {project.customerBase === "consumer" ? (
@@ -237,7 +237,7 @@ function LockedFigures({
 function FigureVeil({ kind }: { kind: "structure" | "income" | "balance" }) {
   if (kind === "structure") {
     return (
-      <div className="layout-cards">
+      <div className="grid gap-4 lg:grid-cols-3">
         <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />
         <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
         <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />

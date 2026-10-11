@@ -234,8 +234,8 @@ export function InvestorProfile({
           </div>
           <Chip done={publicDone} />
         </div>
-        <div className="layout-page mt-5">
-        <div className="min-w-0">
+        <div className="mt-5 grid min-w-0 items-start gap-6 lg:grid-cols-4">
+        <div className="min-w-0 lg:col-span-3">
         <div id="lugar" className="grid scroll-mt-8 gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm">
             {investorCopy.cityLabel}
@@ -302,7 +302,7 @@ export function InvestorProfile({
           <textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
         </label>
         </div>
-        <div id="foto" className="min-w-0 scroll-mt-24">
+        <div id="foto" className="min-w-0 scroll-mt-24 lg:col-span-1">
           {hidePhotoControl ? null : (
             <InvestorPhotoDrop
               photo={photo}

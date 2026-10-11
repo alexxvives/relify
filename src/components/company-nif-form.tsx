@@ -28,7 +28,7 @@ export function CompanyNifForm() {
       <h2 className="text-2xl font-semibold tracking-tight">{companyCopy.nifTitle}</h2>
       <p className="mt-1 text-xs font-medium tracking-wide text-[#5c6b78] uppercase">{companyCopy.setupNifStep}</p>
       <p className="mt-2 text-sm text-[#5c6b78]">{companyCopy.nifIntro}</p>
-      <ul className="layout-cards mt-6">
+      <ul className="mt-6 grid gap-3 md:grid-cols-3">
         {notes.map((note) => (
           <li key={note.title} className="rounded-2xl bg-[#f7f8fb] p-4">
             <note.icon className="size-5 text-[#3d34b8]" aria-hidden />

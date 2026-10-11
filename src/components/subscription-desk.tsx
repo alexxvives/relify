@@ -75,7 +75,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </span>
               </div>
             </div>
-            <div className="layout-cards p-6 sm:p-8">
+            <div className="grid gap-6 p-6 sm:grid-cols-3 sm:p-8">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{billingCopy.renewsOn}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.whenLabel}</p>
