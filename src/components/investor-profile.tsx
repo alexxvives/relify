@@ -11,7 +11,13 @@ import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraf
 import { cnaeSectionLabels } from "@/lib/cnae-section";
 import { investorDisplayPhoto, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
-import { investorProfileSchema, investorStakes, investorTicketBands } from "@/lib/investor-profile";
+import {
+  investorPhotoMaxBytes,
+  investorPhotoMaxChars,
+  investorProfileSchema,
+  investorStakes,
+  investorTicketBands,
+} from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
 
 function Chip({ done }: { done: boolean }) {
@@ -415,7 +421,7 @@ export function InvestorPhotoDrop({
 }
 
 function readInvestorPhoto(file: File, onReady: (value: string) => void, onHeavy: () => void) {
-  if (!file.type.startsWith("image/") || file.size > 100_000) {
+  if (!file.type.startsWith("image/") || file.size > investorPhotoMaxBytes) {
     onHeavy();
     return;
   }
@@ -424,7 +430,7 @@ function readInvestorPhoto(file: File, onReady: (value: string) => void, onHeavy
   reader.onload = () => {
     const value = typeof reader.result === "string" ? reader.result : "";
 
-    if (value.length === 0 || value.length > 180_000) {
+    if (value.length === 0 || value.length > investorPhotoMaxChars) {
       onHeavy();
       return;
     }

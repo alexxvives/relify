@@ -42,7 +42,7 @@ export type AdvisorProjectBoard = {
   projectId: string;
   codename: string;
   region: string;
-  services: string;
+  services: string[];
   href: string;
   hiredBySeller: boolean;
   hiredByInvestor: boolean;
@@ -142,8 +142,23 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
       note = advisorCopy.processesNone;
     }
 
-    const focus = group.find((row) => !row.depositPaid) ?? seller ?? investorRows[0] ?? first;
-    const services = [...new Set(group.map((row) => row.services).filter((service) => service.length > 0))].join(" · ");
+    const focus =
+      group.find((row) => row.depositPaid && !row.closed) ??
+      group.find((row) => row.depositPaid) ??
+      group.find((row) => !row.depositPaid && !row.closed) ??
+      seller ??
+      investorRows[0] ??
+      first;
+    const services = [
+      ...new Set(
+        group.flatMap((row) =>
+          row.services
+            .split(/[·,]/)
+            .map((service) => service.trim())
+            .filter((service) => service.length > 0),
+        ),
+      ),
+    ];
 
     boards.push({
       projectId: first.projectId,

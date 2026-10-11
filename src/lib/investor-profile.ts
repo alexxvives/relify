@@ -10,9 +10,13 @@ export const investorTicketBands = [
   "Más de 3 millones",
 ] as const;
 
+/** A normal profile photo. The data URL is larger than the file because of base64. */
+export const investorPhotoMaxBytes = 5 * 1024 * 1024;
+export const investorPhotoMaxChars = 8 * 1024 * 1024;
+
 export const investorPhotoSchema = z
   .string()
-  .max(180_000)
+  .max(investorPhotoMaxChars)
   .refine((value) => value.length === 0 || value.startsWith("/") || value.startsWith("data:image/"), {
     message: "La foto tiene que ser una imagen.",
   });

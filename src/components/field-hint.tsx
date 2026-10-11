@@ -14,13 +14,13 @@ export function FieldHint({
 
   return (
     <span className="group relative inline-flex">
-      <button
-        type="button"
+      <span
+        tabIndex={0}
         aria-label={text}
         className={`inline-flex size-5 items-center justify-center rounded-full ${icon}`}
       >
         <CircleHelp className="size-4" aria-hidden />
-      </button>
+      </span>
       <span
         role="tooltip"
         className={`pointer-events-none absolute bottom-full z-30 mb-2 hidden w-64 rounded-xl bg-[#1c2740] px-3 py-2 text-left text-xs leading-5 font-normal whitespace-pre-line text-white shadow-lg group-focus-within:block group-hover:block ${place}`}

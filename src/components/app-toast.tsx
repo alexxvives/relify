@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
+
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 export function AppToast({
   message,
@@ -16,6 +24,7 @@ export function AppToast({
   const token = `${message ?? ""}\0${pulse}`;
   const [seen, setSeen] = useState(token);
   const [hidden, setHidden] = useState(false);
+  const mounted = useIsClient();
 
   if (token !== seen) {
     setSeen(token);
@@ -36,7 +45,7 @@ export function AppToast({
     };
   }, [message, pulse]);
 
-  if (!message || hidden || typeof document === "undefined") {
+  if (!message || hidden || !mounted) {
     return null;
   }
 

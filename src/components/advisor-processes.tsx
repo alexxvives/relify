@@ -41,12 +41,16 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <h2 className="text-2xl font-semibold text-[#1c2740]">{board.codename}</h2>
+                {board.services.map((service) => (
+                  <span key={service} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]">
+                    {service}
+                  </span>
+                ))}
                 {board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
                 {board.ndaPending ? <PendingMark>{advisorCopy.ndaToSign}</PendingMark> : null}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
               <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{hireLabel(board)}</p>
-              {board.services.length > 0 ? <p className="mt-1 text-sm text-[#3d4a63]">{board.services}</p> : null}
             </div>
             <Link href={board.href} className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
               {advisorCopy.processesOpen}

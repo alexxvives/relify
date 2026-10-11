@@ -84,15 +84,17 @@ function ContactPanels({
   contact,
   today,
   showDocuments,
+  bare = false,
 }: {
   contact: AdvisorContactView;
   today: string;
   showDocuments: boolean;
+  bare?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
 
   return (
-    <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
+    <div className={bare ? "flex flex-col gap-4 px-5 py-5" : "flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5"}>
       <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} />
       {tab === "chat" ? (
         <div className={showDocuments ? "grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid min-w-0"}>
@@ -146,11 +148,13 @@ export function AdvisorContactDesk({
   today,
   showDocuments = true,
   allowRemove = false,
+  pinned = false,
 }: {
   contacts: AdvisorContactView[];
   today: string;
   showDocuments?: boolean;
   allowRemove?: boolean;
+  pinned?: boolean;
 }) {
   const [openId, setOpenId] = useSessionString("releva:advisor-contact-open", contacts[0]?.id ?? "");
 
@@ -167,7 +171,16 @@ export function AdvisorContactDesk({
     <div className="flex flex-col gap-4">
       <LiveRefresh />
       {contacts.map((contact) => {
-        const open = contact.id === openId;
+        const open = pinned || contact.id === openId;
+
+        if (pinned) {
+          return (
+            <section key={contact.id} className="rounded-2xl border border-[#e6e9f0] bg-white">
+              <ContactPanels contact={contact} today={today} showDocuments={showDocuments} bare />
+            </section>
+          );
+        }
+
         return (
           <section key={contact.id} className="rounded-2xl border border-[#e6e9f0] bg-white">
             <div className="flex items-start gap-3 px-5 py-4">

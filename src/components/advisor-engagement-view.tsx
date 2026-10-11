@@ -11,7 +11,7 @@ import type { AdvisorEngagementPage } from "@/server/advisoryEngagement";
 
 function lockNote(engagement: AdvisorEngagementPage): string {
   if (!engagement.deposit.paid) {
-    return engagementCopy.figuresNeedDeposit;
+    return engagement.closed ? engagementCopy.figuresClosed : engagementCopy.figuresNeedDeposit;
   }
 
   if (engagement.ndaText) {
@@ -32,10 +32,11 @@ export function AdvisorEngagementView({
   today: string;
   notice: string | null;
 }) {
-  const rail = engagement.hiredByInvestor || !engagement.deposit.paid;
+  const showDeposit = !engagement.deposit.paid && !engagement.closed;
+  const rail = engagement.hiredByInvestor || showDeposit;
 
   return (
-    <div className={`flex flex-col gap-6 ${engagement.deposit.paid ? "" : "max-xl:pb-44"}`}>
+    <div className={`flex flex-col gap-6 ${showDeposit ? "max-xl:pb-44" : ""}`}>
       <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
       <div className={rail ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
         <div className="flex min-w-0 flex-col gap-6">
@@ -111,7 +112,7 @@ export function AdvisorEngagementView({
               )}
             </section>
           ) : null}
-          {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} /> : null}
+          {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned /> : null}
           {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
@@ -128,11 +129,11 @@ export function AdvisorEngagementView({
             ) : (
               <div className="hidden xl:block xl:min-h-0 xl:flex-1" />
             )}
-            {engagement.deposit.paid ? null : (
+            {showDeposit ? (
               <div className="max-xl:fixed max-xl:right-4 max-xl:bottom-4 max-xl:z-30 max-xl:w-[min(22rem,calc(100vw-2rem))] xl:w-full xl:shrink-0 xl:pt-4">
                 <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />
               </div>
-            )}
+            ) : null}
           </aside>
         ) : null}
       </div>

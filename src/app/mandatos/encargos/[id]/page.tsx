@@ -36,7 +36,7 @@ export default async function AdvisorEngagementPage({
     notFound();
   }
 
-  const thread = engagement.deposit.paid ? await getEngagementThread(user, id) : null;
+  const thread = engagement.deposit.paid || engagement.closed ? await getEngagementThread(user, id) : null;
   const notice = query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
 
   return (

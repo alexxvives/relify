@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, type ChangeEvent } from "react";
+import { useActionState, useRef, useState, type ChangeEvent } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   acceptAdvisorNdaAction,
@@ -15,7 +15,7 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
   const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
   const [declineState, declineAction, declining] = useActionState(declineEngagementAction, null);
   const [open, setOpen] = useState(true);
-  const [confirmDecline, setConfirmDecline] = useState(false);
+  const declineDialog = useRef<HTMLDialogElement>(null);
 
   if (!open) {
     return (
@@ -46,7 +46,6 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
           type="button"
           onClick={() => {
             setOpen(false);
-            setConfirmDecline(false);
           }}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f4f6f8] text-[#1c2740]"
           aria-label="Ocultar depósito"
@@ -55,49 +54,65 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
         </button>
       </div>
       <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
-      <p className="mt-4 text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
-      <form action={action} className="mt-4 flex flex-col items-start gap-2">
-        <input type="hidden" name="engagementId" value={engagementId} />
-        <button
-          type="submit"
-          disabled={pending || declining}
-          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-        >
-          {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
-        </button>
-        {state && !state.ok ? (
-          <p role="alert" className="text-sm text-red-700">
-            {state.message}
-          </p>
-        ) : null}
-      </form>
-      <form action={declineAction} className="mt-3 flex flex-col items-start gap-2">
-        <input type="hidden" name="engagementId" value={engagementId} />
-        {confirmDecline ? (
+      <p className="mt-4 text-center text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <form action={action}>
+          <input type="hidden" name="engagementId" value={engagementId} />
           <button
             type="submit"
-            disabled={declining || pending}
-            className="inline-flex h-11 items-center rounded-full border border-[#f3c4c4] bg-[#fff5f5] px-4 text-sm font-medium text-[#b42318] disabled:opacity-60"
+            disabled={pending || declining}
+            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
           >
-            {declining ? engagementCopy.depositDeclining : engagementCopy.depositDeclineConfirm}
+            {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
           </button>
-        ) : (
+        </form>
+        <button
+          type="button"
+          disabled={pending || declining}
+          onClick={() => {
+            declineDialog.current?.showModal();
+          }}
+          className="inline-flex h-11 items-center rounded-full bg-[#b42318] px-4 text-sm font-medium text-white disabled:opacity-60"
+        >
+          {engagementCopy.depositDecline}
+        </button>
+      </div>
+      {state && !state.ok ? (
+        <p role="alert" className="mt-3 text-center text-sm text-red-700">
+          {state.message}
+        </p>
+      ) : null}
+      {declineState && !declineState.ok ? (
+        <p role="alert" className="mt-3 text-center text-sm text-red-700">
+          {declineState.message}
+        </p>
+      ) : null}
+      <dialog
+        ref={declineDialog}
+        className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40"
+      >
+        <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.depositDeclineAsk}</h3>
+        <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositDeclineAskBody}</p>
+        <form action={declineAction} className="mt-5 flex items-center justify-end gap-2">
+          <input type="hidden" name="engagementId" value={engagementId} />
           <button
             type="button"
             onClick={() => {
-              setConfirmDecline(true);
+              declineDialog.current?.close();
             }}
-            className="inline-flex h-11 items-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740]"
+            className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]"
           >
-            {engagementCopy.depositDecline}
+            {engagementCopy.depositDeclineCancel}
           </button>
-        )}
-        {declineState && !declineState.ok ? (
-          <p role="alert" className="text-sm text-red-700">
-            {declineState.message}
-          </p>
-        ) : null}
-      </form>
+          <button
+            type="submit"
+            disabled={declining || pending}
+            className="inline-flex h-11 items-center rounded-full bg-[#b42318] px-4 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {declining ? engagementCopy.depositDeclining : engagementCopy.depositDecline}
+          </button>
+        </form>
+      </dialog>
     </section>
   );
 }

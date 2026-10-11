@@ -52,7 +52,7 @@ export const investorCopy = {
   photoLabel: "Foto",
   photoDrop: "Arrastra tu foto",
   photoDropHint: "o haz clic para elegirla",
-  photoHeavy: "Usa una foto de menos de 180 KB.",
+  photoHeavy: "Usa una foto de menos de 5 MB.",
   photoFailed: "No se ha podido guardar la foto.",
   locationLabel: "Ubicación",
   cityLabel: "Ciudad",

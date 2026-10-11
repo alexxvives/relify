@@ -114,6 +114,16 @@ describe("advisorProjectBoards", () => {
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");
   });
 
+  it("opens the paid job when the same company also has a closed unpaid encargo", () => {
+    const [board] = advisorProjectBoards([
+      engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, services: "Consultoría Fiscal" }),
+      engagement({ id: "buyer-job", client: "investor", depositPaid: true, services: "Due Diligence" }),
+    ]);
+
+    expect(board?.href).toBe("/mandatos/encargos/buyer-job");
+    expect(board?.services).toEqual(["Consultoría Fiscal", "Due Diligence"]);
+  });
+
   it("does not mark a closed job as waiting for the deposit", () => {
     const [board] = advisorProjectBoards([
       engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, processOpened: true, accesses: [] }),

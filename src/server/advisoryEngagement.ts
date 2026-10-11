@@ -562,7 +562,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       folders: [],
       processOpened: false,
       ndaText: null,
-      closed: false,
+      closed: row.closedAt !== null,
       feeLabel: null,
       deposit: { paid: false, amountLabel: depositAmount },
       hiredByInvestor: row.client === "investor",

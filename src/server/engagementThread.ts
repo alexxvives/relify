@@ -116,6 +116,7 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
       client: true,
       services: true,
       depositPaidAt: true,
+      closedAt: true,
       declinedAt: true,
       projectId: true,
       project: { select: { codename: true, region: true } },
@@ -136,7 +137,7 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
     return null;
   }
 
-  if (side === "advisor" && (user.role !== "advisor" || row.depositPaidAt === null)) {
+  if (side === "advisor" && (user.role !== "advisor" || (row.depositPaidAt === null && row.closedAt === null))) {
     return null;
   }
 

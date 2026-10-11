@@ -49,7 +49,6 @@ export function AdvisoryPicker({
   const [askOpen, setAskOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const cards = layout === "cards";
-  const hint = tab === "contacts" ? engagementCopy.contactsHint : null;
 
   return (
     <div className="mt-6 flex flex-col gap-4">
@@ -78,7 +77,6 @@ export function AdvisoryPicker({
           </button>
         ))}
       </div>
-      {hint ? <p className="text-sm text-[#5c6b78]">{hint}</p> : null}
       {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} allowRemove /> : (
         <AdvisorMarket
           advisors={advisors}

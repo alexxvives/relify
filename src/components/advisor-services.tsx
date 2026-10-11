@@ -506,14 +506,16 @@ export function AdvisorServices({
           <ul className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {closes.map((close) => (
               <li key={close.id} className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
-                <div className="bg-[#1c2740] px-5 pt-5 pb-6">
-                  <p className="text-[11px] font-semibold tracking-[0.16em] text-white/55 uppercase">Cerrada</p>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-white">{close.codename}</h3>
+                <div className="flex items-start justify-between gap-4 bg-[#1c2740] px-5 pt-5 pb-6">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold tracking-[0.16em] text-white/55 uppercase">Cerrada</p>
+                    <h3 className="mt-2 text-3xl font-semibold tracking-tight text-white">{close.codename}</h3>
+                  </div>
+                  <p className="shrink-0 pt-0.5 text-sm text-white/80">{close.closedLabel}</p>
                 </div>
                 <div className="flex flex-col gap-2 px-5 py-4">
                   <p className="text-sm font-medium text-[#1c2740]">{close.clientLabel}</p>
                   {close.services.length > 0 ? <p className="text-sm text-[#3d4a63]">{close.services}</p> : null}
-                  <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
                 </div>
               </li>
             ))}
