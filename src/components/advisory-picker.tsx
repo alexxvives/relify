@@ -286,14 +286,15 @@ function ServiceAskDialog({
         {selected.map((id) => (
           <input key={id} type="hidden" name="services" value={id} />
         ))}
-        <ul className={cards ? "mt-5 grid gap-4 md:grid-cols-2" : "mt-5 grid gap-3"}>
+        <ul className={cards ? "mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2" : "mt-5 grid gap-3"}>
           {advisoryServices.map((service) => {
             const style = serviceStyle[service.id];
             const Icon = style.icon;
             const active = selected.includes(service.id);
+            const cardSize = cards ? " h-full min-h-44 w-full items-start" : "";
             return (
-              <li key={service.id}>
-                <label className={active ? `flex cursor-pointer gap-4 rounded-2xl border border-transparent p-4 ${style.fill}` : "flex cursor-pointer gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4"}>
+              <li key={service.id} className={cards ? "flex" : undefined}>
+                <label className={(active ? `flex cursor-pointer gap-4 rounded-2xl border border-transparent p-4 ${style.fill}` : "flex cursor-pointer gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4") + cardSize}>
                   <input
                     type="checkbox"
                     className="sr-only"
@@ -305,7 +306,7 @@ function ServiceAskDialog({
                   <span className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl ${style.wash}`}>
                     <Icon className="size-5" aria-hidden />
                   </span>
-                  <span>
+                  <span className="min-w-0 flex-1">
                     <span className="block text-base font-semibold">{service.title}</span>
                     <span className="mt-1 block text-sm leading-6 text-[#5c6b78]">{service.body}</span>
                   </span>

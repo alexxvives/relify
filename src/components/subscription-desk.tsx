@@ -37,15 +37,9 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
   return (
     <div className="flex w-full flex-col gap-6">
       <AppToast message={notice} tone={noticeTone} />
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <Link href="/premium" className="text-sm font-medium text-[#465ab4]">
-            {billingCopy.backToPlans}
-          </Link>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#1c2740]">{billingCopy.manageTitle}</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#5c6b78]">{billingCopy.manageIntro}</p>
-        </div>
-      </div>
+      <Link href="/premium" className="text-sm font-medium text-[#465ab4]">
+        {billingCopy.backToPlans}
+      </Link>
       {desk.kind === "none" ? (
         <section className="rounded-3xl border border-[#e7eaee] bg-white px-6 py-10 text-center">
           <p className="text-sm text-[#5c6b78]">{billingCopy.noSubscription}</p>
@@ -115,18 +109,19 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.cardLabel}</h3>
-              <PaymentCard brand={desk.cardBrand} last4={desk.cardLast4} expires={desk.cardExpires} />
-              <p className="mt-3 text-sm leading-6 text-[#5c6b78]">{billingCopy.cardNote}</p>
-              <form action={cardAction} className="mt-4 flex flex-col items-start gap-2">
-                <button
-                  type="submit"
-                  disabled={cardPending}
-                  className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-                >
-                  {cardPending ? billingCopy.changingCard : billingCopy.changeCard}
-                </button>
-                <Note state={cardState} />
-              </form>
+              <div className="mt-5 flex flex-col items-center">
+                <PaymentCard brand={desk.cardBrand} last4={desk.cardLast4} expires={desk.cardExpires} />
+                <form action={cardAction} className="mt-5 flex flex-col items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={cardPending}
+                    className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+                  >
+                    {cardPending ? billingCopy.changingCard : billingCopy.changeCard}
+                  </button>
+                  <Note state={cardState} />
+                </form>
+              </div>
             </section>
             <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.billingEmail}</h3>
@@ -208,7 +203,7 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
   const ending = last4 ?? "••••";
 
   return (
-    <div className="relative mt-4 aspect-[1.586/1] w-full max-w-[26rem] overflow-hidden rounded-[22px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-6 text-white shadow-[0_28px_50px_-28px_rgba(28,39,64,0.9)]">
+    <div className="relative aspect-[1.586/1] w-full max-w-[26rem] overflow-hidden rounded-[22px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-6 text-white shadow-[0_28px_50px_-28px_rgba(28,39,64,0.9)]">
       <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-white/10" />
       <div className="pointer-events-none absolute -bottom-24 -left-10 size-48 rounded-full bg-[#8ea2ff]/20" />
       <div className="relative flex items-start justify-between">
