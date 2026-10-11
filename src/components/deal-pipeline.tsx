@@ -517,7 +517,7 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
     <>
       <button
         type="button"
-        className={`w-full cursor-help border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
+        className={`w-fit max-w-full cursor-help border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
         onMouseEnter={(event) => {
           place(event.currentTarget);
         }}

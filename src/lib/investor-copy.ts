@@ -54,6 +54,7 @@ export const investorCopy = {
   photoDropHint: "o haz clic para elegirla",
   photoHeavy: "Usa una foto de menos de 180 KB.",
   photoFailed: "No se ha podido guardar la foto.",
+  locationLabel: "Ubicación",
   cityLabel: "Ciudad",
   provinceLabel: "Provincia",
   ticketLabel: "Ticket",

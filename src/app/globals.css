@@ -1683,17 +1683,3 @@
   gap: 0.5rem;
   min-width: 4.75rem;
 }
-
-.layout-metrics {
-  display: grid;
-  gap: 0.5rem;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@container (min-width: 22rem) {
-  .layout-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0;
-  }
-}

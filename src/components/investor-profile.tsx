@@ -236,17 +236,20 @@ export function InvestorProfile({
         </div>
         <div className="mt-5 grid min-w-0 items-start gap-6 lg:grid-cols-4">
         <div className="min-w-0 lg:col-span-3">
-        <div id="lugar" className="grid scroll-mt-8 gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm">
-            {investorCopy.cityLabel}
-            <input value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            {investorCopy.provinceLabel}
-            <input value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
-          </label>
-        </div>
-        <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2">
+        <fieldset id="lugar" className="scroll-mt-8 border-0 p-0">
+          <legend className="text-sm">{investorCopy.locationLabel}</legend>
+          <div className="mt-2 grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm">
+              {investorCopy.cityLabel}
+              <input value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              {investorCopy.provinceLabel}
+              <input value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
+            </label>
+          </div>
+        </fieldset>
+        <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-3">
           <div className="flex flex-col gap-2 text-sm">
             {investorCopy.investorType}
             <OptionSelect
@@ -267,12 +270,6 @@ export function InvestorProfile({
               onValueChange={setTicket}
             />
           </div>
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div id="busqueda" className="flex scroll-mt-8 flex-col gap-2 text-sm">
-            {investorCopy.sectorsLabel}
-            <SectorField value={sectors} onChange={setSectors} />
-          </div>
           <div className="flex flex-col gap-2 text-sm">
             {investorCopy.stakeLabel}
             <OptionSelect
@@ -283,6 +280,10 @@ export function InvestorProfile({
               onValueChange={setStake}
             />
           </div>
+        </div>
+        <div id="busqueda" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
+          {investorCopy.sectorsLabel}
+          <SectorField value={sectors} onChange={setSectors} />
         </div>
         <div id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
           <span className="flex items-center gap-2">
