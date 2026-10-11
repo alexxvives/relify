@@ -21,13 +21,12 @@ import {
   type AdvisorProjectBoard,
 } from "@/lib/advisor-processes";
 import { advisorDepositCents, advisorPlatformFee } from "@/lib/billing";
-import { cnaeSection } from "@/lib/cnae-section";
-import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { folderNameSchema, visibleFolderNames } from "@/lib/data-room";
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
 import { figureVeilCents } from "@/lib/figure-veil";
 import { formatEur, formatWholeEur } from "@/lib/money";
+import { personName } from "@/lib/project-message";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -80,6 +79,8 @@ export type AdvisorEngagementPage = {
   closed: boolean;
   feeLabel: string | null;
   deposit: { paid: boolean; amountLabel: string };
+  hiredByInvestor: boolean;
+  figuresOpen: boolean;
   description: string;
   showcase: {
     slug: string;
@@ -111,6 +112,11 @@ function clientLabel(client: EngagementClientName): string {
   return client === "investor" ? engagementCopy.fromInvestor : engagementCopy.fromSeller;
 }
 
+function investorPartyName(person: { name: string; lastName: string | null }): string {
+  const named = personName(person.name, person.lastName);
+  return named.length > 0 ? named : engagementCopy.fromInvestor;
+}
+
 function toCard(
   row: {
     id: string;
@@ -122,12 +128,13 @@ function toCard(
     advisorNdaAcceptedAt?: Date | null;
   },
   owned: boolean,
+  partyName?: string,
 ): EngagementCard {
   return {
     id: row.id,
     codename: row.project.codename,
     region: row.project.region,
-    clientLabel: clientLabel(row.client),
+    clientLabel: partyName && partyName.length > 0 ? partyName : clientLabel(row.client),
     services: serviceLabel(row.services),
     step: advisorEngagementStep({
       owned,
@@ -258,6 +265,7 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
       closedAt: true,
       depositPaidAt: true,
       advisorNdaAcceptedAt: true,
+      requester: { select: { name: true, lastName: true } },
       project: { select: { codename: true, region: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -277,7 +285,9 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
 
   return {
     paid,
-    mine: mine.map((row) => toCard(row, true)),
+    mine: mine.map((row) =>
+      toCard(row, true, row.client === "investor" ? investorPartyName(row.requester) : engagementCopy.fromSeller),
+    ),
     inbox: inbox.map((row) => toCard(row, false)),
   };
 }
@@ -424,7 +434,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       platformVatCents: true,
       depositPaidAt: true,
       requesterId: true,
-      requester: { select: { id: true, email: true } },
+      requester: { select: { id: true, email: true, name: true, lastName: true } },
       project: {
         select: {
           id: true,
@@ -445,6 +455,13 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
   }
 
   const depositAmount = formatEur(advisorDepositCents(row.project.askingPriceCents));
+  const companyRow = await prisma.project.findUnique({
+    where: { id: row.project.id },
+    select: investorProjectSelect,
+  });
+  const company = companyRow ? toInvestorProject(companyRow) : null;
+  const namedClient = row.client === "investor" ? investorPartyName(row.requester) : engagementCopy.fromSeller;
+  const investorCard = await investorCardFor(row.client, row.requester);
 
   if (row.depositPaidAt === null) {
     return {
@@ -452,10 +469,10 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       codename: row.project.codename,
       region: row.project.region,
       figures: [],
-      clientLabel: clientLabel(row.client),
+      clientLabel: namedClient,
       services: serviceLabel(row.services),
       view: "public",
-      profile: null,
+      profile: company,
       documents: [],
       folders: [],
       processOpened: false,
@@ -463,13 +480,12 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       closed: false,
       feeLabel: null,
       deposit: { paid: false, amountLabel: depositAmount },
+      hiredByInvestor: row.client === "investor",
+      figuresOpen: false,
       description: row.project.description?.trim() ?? "",
       showcase: showcaseFor(row.project, true),
-      investorCard: await investorCardFor(row.client, row.requester),
-      preview: {
-        ...(await blindPreview(row.client, row.requesterId, row.project)),
-        showInvestor: row.client === "investor",
-      },
+      investorCard,
+      preview: null,
     };
   }
 
@@ -485,13 +501,6 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     advisorSigned: row.advisorNdaAcceptedAt !== null,
     investorSigned: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
   });
-  const profile =
-    view === "investor"
-      ? await prisma.project.findUnique({
-          where: { id: row.project.id },
-          select: investorProjectSelect,
-        })
-      : null;
   const documents = view === "investor" ? await investorVisibleFiles(row.requesterId, row.project.id) : [];
   const opened = row.folders.map((folder) => folder.folder);
   const sharedFiles = view === "seller" ? row.fileShares.map((share) => share.file) : [];
@@ -520,7 +529,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     files: visibleFiles.filter((file) => file.folder === name),
   }));
 
-  const figuresOpen = row.client === "seller" || view === "investor";
+  const figuresOpen = view === "investor";
 
   return {
     id: row.id,
@@ -534,10 +543,10 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
           { label: "Precio", value: formatEur(row.project.askingPriceCents) },
         ]
       : [],
-    clientLabel: clientLabel(row.client),
+    clientLabel: namedClient,
     services: serviceLabel(row.services),
     view,
-    profile: profile ? toInvestorProject(profile) : null,
+    profile: company,
     documents,
     folders,
     processOpened: view === "seller" && row.processOpened,
@@ -556,60 +565,12 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
     deposit: { paid: true, amountLabel: depositAmount },
+    hiredByInvestor: row.client === "investor",
+    figuresOpen,
     description: row.project.description?.trim() ?? "",
     showcase: showcaseFor(row.project, !figuresOpen),
-    investorCard: await investorCardFor(row.client, row.requester),
+    investorCard,
     preview: null,
-  };
-}
-
-async function blindPreview(
-  client: EngagementClientName,
-  requesterId: string,
-  project: {
-    description: string | null;
-    foundedYear: number | null;
-    headcountRange: string | null;
-    cnaes: { code: string }[];
-  },
-): Promise<{ description: string; facts: { label: string; value: string }[]; investor: { label: string; value: string }[] }> {
-  const sectorCode = project.cnaes[0]?.code ?? "";
-  const sector = sectorCode.length > 0 ? cnaeSection(sectorCode)?.label : undefined;
-  const workers = project.headcountRange && isHeadcountRange(project.headcountRange) ? headcountLabels[project.headcountRange] : "";
-  const facts: { label: string; value: string }[] = [];
-
-  if (sector) {
-    facts.push({ label: engagementCopy.depositSector, value: sector });
-  }
-
-  if (workers.length > 0) {
-    facts.push({ label: engagementCopy.depositWorkers, value: workers });
-  }
-
-  if (project.foundedYear) {
-    facts.push({ label: engagementCopy.depositYear, value: String(project.foundedYear) });
-  }
-  const profile =
-    client === "investor"
-      ? await prisma.investorProfile.findUnique({
-          where: { userId: requesterId },
-          select: { city: true, investorType: true, ticket: true, stake: true, sectors: true },
-        })
-      : null;
-  const investor = profile
-    ? [
-        { label: "Tipo", value: profile.investorType },
-        { label: "Ciudad", value: profile.city },
-        { label: "Ticket", value: profile.ticket },
-        { label: "Participación", value: profile.stake },
-        { label: "Sectores", value: profile.sectors },
-      ].filter((item) => item.value.trim().length > 0)
-    : [];
-
-  return {
-    description: project.description?.trim() ?? "",
-    facts,
-    investor,
   };
 }
 

@@ -81,9 +81,10 @@ export function AdvisorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+    <div className="flex min-w-0 flex-col gap-6">
+      <PendingActions items={pending} empty={advisorCopy.pendingEmpty} columns={4} />
+      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
-        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} columns={2} />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {stats.map((item) => (
             <li key={item.label}>
@@ -176,6 +177,7 @@ export function AdvisorHome({
             <NoticeList items={notifications} limit={3} />
           )}
         </section>
+      </div>
       </div>
     </div>
   );

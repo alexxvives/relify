@@ -66,7 +66,10 @@ export const engagementCopy = {
   missing: "Ese encargo no está en tu lista.",
   depositTitle: "Depósito para aceptar",
   depositBody:
-    "Antes del depósito ves la empresa en general y un apunte del inversor, sin su nombre y sin los números. El depósito es 50 € más el 0,5 % del precio de venta. Se devuelve. Al pagarlo aceptas la solicitud.",
+    "El depósito es 50 € más el 0,5 % del precio de venta. Se devuelve. Al pagarlo aceptas la solicitud y puedes firmar tu NDA.",
+  figuresNeedDeposit: "El depósito está al final de la ficha.",
+  figuresNeedNda: "Firma tu NDA para ver estas cifras.",
+  figuresNeedInvestor: "El inversor todavía no ha firmado el NDA.",
   depositPay: "Pagar depósito",
   depositPaying: "Abriendo el pago…",
   depositPaidNote: "Depósito registrado. Ya puedes firmar el NDA.",

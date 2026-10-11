@@ -11,7 +11,7 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
   return (
     <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
       <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.depositTitle}</h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
+      <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
       <p className="mt-4 text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
       <form action={action} className="mt-4 flex flex-col items-start gap-2">
         <input type="hidden" name="engagementId" value={engagementId} />

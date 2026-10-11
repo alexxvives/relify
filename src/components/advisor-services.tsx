@@ -419,7 +419,7 @@ export function AdvisorServices({
         )}
       </section>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
@@ -483,10 +483,10 @@ export function AdvisorServices({
           </button>
         </div>
       </section>
-      <aside className="rounded-2xl border border-[#e7eaee] bg-white p-5 xl:sticky xl:top-6">
+      <aside className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
         {publicListing ? (
-          <div className="mt-4">
+          <div className="mt-4 flex min-h-0 flex-1">
             <AdvisorListingCard advisor={publicListing} />
           </div>
         ) : (
@@ -501,15 +501,18 @@ export function AdvisorServices({
         {closes.length === 0 ? (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.dealsEmpty}</p>
         ) : (
-          <ul className="mt-4 grid gap-3 md:grid-cols-2">
+          <ul className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {closes.map((close) => (
-              <li key={close.id} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
-                <p className="text-sm font-medium text-[#2b3b4a]">{close.codename}</p>
-                <p className="mt-1 text-sm text-[#3d4a63]">
-                  {close.clientLabel}
-                  {close.services.length > 0 ? ` · ${close.services}` : ""}
-                </p>
-                <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
+              <li key={close.id} className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
+                <div className="bg-[#1c2740] px-5 pt-5 pb-6">
+                  <p className="text-[11px] font-semibold tracking-[0.16em] text-white/55 uppercase">Cerrada</p>
+                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-white">{close.codename}</h3>
+                </div>
+                <div className="flex flex-col gap-2 px-5 py-4">
+                  <p className="text-sm font-medium text-[#1c2740]">{close.clientLabel}</p>
+                  {close.services.length > 0 ? <p className="text-sm text-[#3d4a63]">{close.services}</p> : null}
+                  <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
+                </div>
               </li>
             ))}
           </ul>

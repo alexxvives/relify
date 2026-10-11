@@ -45,13 +45,13 @@ export function AdvisorWork({ mine }: { mine: EngagementCard[] }) {
   return (
     <section className="rounded-3xl border border-[#e7eaee] bg-white p-5">
       <h2 className="text-2xl font-semibold text-[#1c2740]">{engagementCopy.mineTitle}</h2>
-      <p className="mt-1 max-w-2xl text-sm leading-6 text-[#64748b]">{engagementCopy.mineIntro}</p>
+      <p className="mt-1 text-sm leading-6 text-[#64748b]">{engagementCopy.mineIntro}</p>
       {groups.length === 0 ? <p className="mt-6 text-sm text-[#64748b]">{engagementCopy.mineEmpty}</p> : null}
       <div className="mt-6 flex flex-col gap-6">
         {groups.map((group) => (
           <div key={group.step} id={group.step === "request" ? advisorDeskAnchor.inbox : advisorDeskAnchor[group.step]} className="scroll-mt-6">
             <h3 className="text-sm font-semibold tracking-wide text-[#64748b] uppercase">{stepLabel[group.step]}</h3>
-            <ul className="mt-3 grid gap-3">
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {group.items.map((item) => (
                 <WorkCard key={item.id} item={item} />
               ))}

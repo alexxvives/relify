@@ -10,8 +10,15 @@ export function PendingActions({
 }: {
   items: HomePendingAction[];
   empty: string;
-  columns?: 1 | 2;
+  columns?: 1 | 2 | 4;
 }) {
+  const listClass =
+    columns === 4
+      ? "mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
+      : columns === 2
+        ? "mt-4 grid gap-2 sm:grid-cols-2"
+        : "mt-4 flex flex-col gap-2";
+
   return (
     <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
       <h2 className="text-2xl font-semibold text-[#2b3b4a]">Acciones pendientes</h2>
@@ -20,7 +27,7 @@ export function PendingActions({
       ) : (
         <>
           <p className="mt-1 text-sm text-[#64748b]">{pendingHeading(items.length)}</p>
-          <ul className={columns === 2 ? "mt-4 grid gap-2 sm:grid-cols-2" : "mt-4 flex flex-col gap-2"}>
+          <ul className={listClass}>
             {items.map((item) => (
               <li key={item.id}>
                 <Link href={item.href} className="flex items-center justify-between gap-3 rounded-xl bg-[#f4f7ff] px-3 py-3 hover:bg-[#e8eefc]">
