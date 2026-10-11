@@ -825,3 +825,48 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
 
   return false;
 }
+
+function madridDate(date: Date): string {
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Madrid",
+  }).format(date);
+}
+
+export type AdvisorPlatformClose = {
+  id: string;
+  codename: string;
+  closedLabel: string;
+};
+
+export async function listAdvisorPlatformCloses(advisorId: string): Promise<AdvisorPlatformClose[]> {
+  const rows = await prisma.advisoryEngagement.findMany({
+    where: { advisorId, closedAt: { not: null } },
+    orderBy: { closedAt: "desc" },
+    select: { id: true, closedAt: true, project: { select: { codename: true } } },
+  });
+
+  return rows.flatMap((row) => {
+    if (!row.closedAt) {
+      return [];
+    }
+
+    return [{ id: row.id, codename: row.project.codename, closedLabel: madridDate(row.closedAt) }];
+  });
+}
+
+export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<string, number>> {
+  if (advisorIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await prisma.advisoryEngagement.groupBy({
+    by: ["advisorId"],
+    where: { advisorId: { in: advisorIds }, closedAt: { not: null } },
+    _count: { _all: true },
+  });
+
+  return new Map(rows.flatMap((row) => (row.advisorId ? [[row.advisorId, row._count._all] as const] : [])));
+}

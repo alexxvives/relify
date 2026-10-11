@@ -150,6 +150,32 @@ export function readStoredOperations(value: unknown): StoredOperation[] {
   return parsed.success ? parsed.data : [];
 }
 
+export type AdvisorProfileChecks = {
+  identity: boolean;
+  description: boolean;
+  sectors: boolean;
+  services: boolean;
+};
+
+export function advisorProfileChecks(profile: {
+  businessName: string;
+  nif: string;
+  postalCode: string;
+  description: string;
+  sectors: string[];
+  services: readonly unknown[];
+}): AdvisorProfileChecks {
+  const parsed = corporateInputSchema.safeParse(profile);
+  const failed = new Set(parsed.success ? [] : parsed.error.issues.map((issue) => String(issue.path[0])));
+
+  return {
+    identity: !failed.has("businessName") && !failed.has("nif") && !failed.has("postalCode"),
+    description: !failed.has("description"),
+    sectors: !failed.has("sectors"),
+    services: profile.services.length > 0,
+  };
+}
+
 export function corporateIsComplete(profile: {
   businessName: string;
   nif: string;

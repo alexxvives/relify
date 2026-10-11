@@ -2,11 +2,13 @@ import { adminCopy } from "@/lib/admin-copy";
 import {
   advisorRankJustification,
   advisorScoreBreakdown,
+  casesForVerifiedCloses,
   sortPublicAdvisors,
   toPublicAdvisorCard,
   type AdvisorScoreBreakdown,
   type PublicAdvisorCard,
 } from "@/lib/advisor-directory";
+import { verifiedCloseCounts } from "@/server/advisoryEngagement";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
@@ -53,13 +55,15 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
     },
   });
   const ids = advisors.map((advisor) => advisor.id);
-  const messages =
+  const [messages, closes] = await Promise.all([
     ids.length === 0
-      ? []
-      : await prisma.engagementMessage.findMany({
+      ? Promise.resolve([])
+      : prisma.engagementMessage.findMany({
           where: { author: "advisor", engagement: { advisorId: { in: ids } } },
           select: { body: true, engagement: { select: { advisorId: true } } },
-        });
+        }),
+    verifiedCloseCounts(ids),
+  ]);
   const bodies = new Map<string, string[]>();
 
   for (const message of messages) {
@@ -88,6 +92,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
       continue;
     }
 
+    card.cases = casesForVerifiedCloses(closes.get(card.id) ?? 0);
     cards.push(card);
     breakdownById.set(card.id, advisorScoreBreakdown(card, bodies.get(card.id) ?? []));
   }
@@ -98,7 +103,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
 
   return advisors
     .map((advisor) => {
-      const card = advisor.advisorProfile ? toPublicAdvisorCard(advisor.advisorProfile) : null;
+      const card = cards.find((item) => item.id === advisor.id) ?? null;
       const breakdown = card ? (breakdownById.get(card.id) ?? null) : null;
       const place = card ? (placeById.get(card.id) ?? null) : null;
 

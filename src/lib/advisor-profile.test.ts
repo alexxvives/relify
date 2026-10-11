@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advisorGreeting } from "./advisor-copy";
-import { corporateInputSchema, servicesInputSchema } from "./advisor-profile";
+import { advisorProfileChecks, blankAdvisorProfile, corporateInputSchema, servicesInputSchema } from "./advisor-profile";
 
 describe("corporateInputSchema", () => {
   it("accepts a well-formed CIF and rejects a bad control digit", () => {
@@ -30,6 +30,34 @@ describe("servicesInputSchema", () => {
       ]).success,
     ).toBe(false);
     expect(servicesInputSchema.safeParse([]).success).toBe(false);
+  });
+});
+
+describe("advisorProfileChecks", () => {
+  it("stays empty until the corporate fields and one service are saved", () => {
+    expect(advisorProfileChecks(blankAdvisorProfile())).toEqual({
+      identity: false,
+      description: false,
+      sectors: false,
+      services: false,
+    });
+
+    expect(
+      advisorProfileChecks({
+        ...blankAdvisorProfile(),
+        businessName: "Asesoría Norte",
+        nif: "B12345674",
+        postalCode: "08022",
+        description: "Asesoría fiscal y de compraventa con más de veinte años de experiencia en pymes.",
+        sectors: ["N"],
+        services: [{ serviceType: "DUE_DILIGENCE", priceFromCents: 100_000, priceToCents: 200_000 }],
+      }),
+    ).toEqual({
+      identity: true,
+      description: true,
+      sectors: true,
+      services: true,
+    });
   });
 });
 

@@ -2,38 +2,53 @@
 
 import { useState } from "react";
 import { CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
-import { saveCorporateAction, saveDealsAction, saveServicesAction } from "@/app/mis-servicios/actions";
+import { saveCorporateAction, saveServicesAction } from "@/app/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { toPublicAdvisorCard } from "@/lib/advisor-directory";
+import { casesForVerifiedCloses, toPublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
   formatAdvisorEuros,
   type AdvisorProfileView,
   type AdvisorServiceId,
-  type StoredOperation,
   type StoredService,
 } from "@/lib/advisor-profile";
 import { advisorSectorName, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 
-type PanelId = "corporate" | "services" | "deals" | "documents";
-
-type DealDraft = {
-  name: string;
-  closingDate: string;
-  sectorId: string;
-  revenue: string;
-  ebitda: string;
-  enterpriseValue: string;
-};
+type PanelId = "corporate" | "services" | "documents";
 
 const fieldClass =
   "h-11 w-full rounded-[14px] border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
 
-function emptyDeal(): DealDraft {
-  return { name: "", closingDate: "", sectorId: "", revenue: "", ebitda: "", enterpriseValue: "" };
+function EuroInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-sm text-[#2b3b4a]">
+      {label}
+      <span className="relative">
+        <input
+          inputMode="numeric"
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value.replace(/\D/g, ""));
+          }}
+          className={`${fieldClass} pr-8`}
+        />
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#64748b]" aria-hidden>
+          €
+        </span>
+      </span>
+    </label>
+  );
 }
 
 function Chip({ done, editing }: { done: boolean; editing: boolean }) {
@@ -68,22 +83,13 @@ function pricesFrom(services: StoredService[]): Record<AdvisorServiceId, { from:
   return blank;
 }
 
-function dealsFrom(operations: StoredOperation[]): DealDraft[] {
-  if (operations.length === 0) {
-    return [emptyDeal()];
-  }
-
-  return operations.map((operation) => ({
-    name: operation.name,
-    closingDate: operation.closingDate,
-    sectorId: operation.sectorId,
-    revenue: centsToEuroInput(operation.revenueCents),
-    ebitda: centsToEuroInput(operation.ebitdaCents),
-    enterpriseValue: centsToEuroInput(operation.enterpriseValueCents),
-  }));
-}
-
-export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
+export function AdvisorServices({
+  initial,
+  closes = [],
+}: {
+  initial: AdvisorProfileView;
+  closes?: { id: string; codename: string; closedLabel: string }[];
+}) {
   const [profile, setProfile] = useState(initial);
   const [editing, setEditing] = useState<PanelId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -98,8 +104,6 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
     initial.services.map((service) => service.serviceType),
   );
   const [prices, setPrices] = useState(pricesFrom(initial.services));
-  const [hasDeals, setHasDeals] = useState(initial.dealsAnswered ? initial.operations.length > 0 : false);
-  const [deals, setDeals] = useState<DealDraft[]>(dealsFrom(initial.operations));
 
   const nifMessage = nif.trim().length > 0 && !isValidSpanishCif(nif) ? advisorCopy.nifInvalid : null;
   const listing = toPublicAdvisorCard({
@@ -110,8 +114,9 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
     description: profile.description,
     sectors: profile.sectors,
     services: profile.services,
-    closedOperations: profile.operations,
+    closedOperations: [],
   });
+  const publicListing = listing ? { ...listing, cases: casesForVerifiedCloses(closes.length) } : null;
   const visibleSectors = advisorSectors.filter((sector) =>
     sector.name.toLocaleLowerCase("es-ES").includes(sectorQuery.trim().toLocaleLowerCase("es-ES")),
   );
@@ -181,36 +186,6 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
     close();
   }
 
-  async function saveDeals() {
-    setPending(true);
-    const result = await saveDealsAction({
-      hasClosedOperations: hasDeals,
-      operations: hasDeals ? deals : [],
-    });
-    setPending(false);
-
-    if (!result.ok) {
-      setMessage(result.message);
-      return;
-    }
-
-    setProfile((current) => ({
-      ...current,
-      dealsAnswered: true,
-      operations: hasDeals
-        ? deals.map((deal) => ({
-            name: deal.name.trim(),
-            closingDate: deal.closingDate.trim(),
-            sectorId: deal.sectorId as AdvisorSectorId,
-            revenueCents: Number(deal.revenue) * 100,
-            ebitdaCents: Number(deal.ebitda) * 100,
-            enterpriseValueCents: Number(deal.enterpriseValue) * 100,
-          }))
-        : [],
-    }));
-    close();
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -231,12 +206,12 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
         </div>
         {editing === "corporate" ? (
           <div className="mt-6 flex flex-col gap-5">
-            <div className="layout-cards">
-              <label className="flex flex-col gap-2 text-sm font-medium">
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.businessName}
                 <input value={businessName} onChange={(event) => setBusinessName(event.target.value)} className={fieldClass} />
               </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.nif}
                 <input
                   value={nif}
@@ -246,7 +221,7 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
                 />
                 {nifMessage ? <span className="text-sm font-normal text-red-700">{nifMessage}</span> : null}
               </label>
-              <label className="flex flex-col gap-2 text-sm font-medium">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.postalCode}
                 <input
                   inputMode="numeric"
@@ -257,18 +232,20 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
                 />
               </label>
             </div>
-            <label className="flex flex-col gap-2 text-sm font-medium text-[#3d34b8]">
+            <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
               {advisorCopy.description}
               <textarea
                 value={description}
                 maxLength={1000}
                 placeholder={advisorCopy.descriptionPlaceholder}
                 onChange={(event) => setDescription(event.target.value)}
-                className="min-h-28 rounded-[14px] border border-[#e7eaee] px-3 py-3 text-sm font-normal text-[#2b3b4a] outline-none focus-visible:border-[#5c4de0]"
+                className="min-h-28 rounded-[14px] border border-[#e7eaee] px-3 py-3 pr-16 pb-7 text-sm font-normal text-[#2b3b4a] outline-none focus-visible:border-[#5c4de0]"
               />
-              <span className="text-right text-xs font-normal text-[#64748b]">{description.length} / 1000</span>
+              <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
+                {description.length} / 1000
+              </span>
             </label>
-            <div className="flex flex-col gap-2 text-sm font-medium text-[#3d34b8]">
+            <div className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
               {advisorCopy.sectors}
               <input
                 value={sectorQuery}
@@ -332,7 +309,7 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
             </div>
           </div>
         ) : (
-          <dl className="layout-cards mt-6">
+          <dl className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="flex items-center gap-3">
               <User className="size-5 text-[#8aa0d8]" aria-hidden />
               <div>
@@ -395,40 +372,31 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
             </ul>
             {selectedServices.length > 0 ? (
               <div className="flex flex-col gap-3">
-                <h3 className="text-base font-semibold">{advisorCopy.priceTitle}</h3>
+                <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.priceTitle}</h3>
                 <p className="text-sm text-[#64748b]">{advisorCopy.priceSubtitle}</p>
-                {selectedServices.map((id) => (
-                  <div key={id} className="rounded-2xl border border-[#e7eaee] p-4">
-                    <p className="text-sm font-medium">{advisorCopy.serviceTypes[id]}</p>
-                    <p className="text-xs text-[#64748b]">{advisorCopy.inEuros}</p>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.priceFrom}
-                        <input
-                          inputMode="numeric"
+                <div className="grid gap-3 md:grid-cols-2">
+                  {selectedServices.map((id) => (
+                    <div key={id} className="rounded-2xl border border-[#e7eaee] p-4">
+                      <p className="text-sm font-medium text-[#2b3b4a]">{advisorCopy.serviceTypes[id]}</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <EuroInput
+                          label={advisorCopy.priceFrom}
                           value={prices[id].from}
-                          onChange={(event) => {
-                            const from = event.target.value.replace(/\D/g, "");
+                          onChange={(from) => {
                             setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
                           }}
-                          className={fieldClass}
                         />
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.priceTo}
-                        <input
-                          inputMode="numeric"
+                        <EuroInput
+                          label={advisorCopy.priceTo}
                           value={prices[id].to}
-                          onChange={(event) => {
-                            const to = event.target.value.replace(/\D/g, "");
+                          onChange={(to) => {
                             setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
                           }}
-                          className={fieldClass}
                         />
-                      </label>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : null}
             {message && editing === "services" ? <p className="text-sm text-red-700">{message}</p> : null}
@@ -448,140 +416,21 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
         ) : null}
       </section>
 
-      <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
-        <PanelHeading
-          title={advisorCopy.dealsTitle}
-          body={advisorCopy.dealsBody}
-          done={profile.dealsAnswered}
-          editing={editing === "deals"}
-          disabled={!profile.corporateComplete}
-          onEdit={() => open("deals")}
-        />
-        {editing === "deals" ? (
-          <div className="mt-6 flex flex-col gap-4">
-            <fieldset>
-              <legend className="text-sm font-medium">{advisorCopy.dealsQuestion}</legend>
-              <div className="mt-3 flex gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" name="has-deals" checked={hasDeals} onChange={() => setHasDeals(true)} />
-                  {advisorCopy.dealsYes}
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="has-deals"
-                    checked={!hasDeals}
-                    onChange={() => {
-                      setHasDeals(false);
-                      setDeals([emptyDeal()]);
-                    }}
-                  />
-                  {advisorCopy.dealsNo}
-                </label>
-              </div>
-            </fieldset>
-            {hasDeals ? (
-              <div className="flex flex-col gap-3">
-                <h3 className="text-base font-semibold">{advisorCopy.dealsListTitle}</h3>
-                <p className="text-sm text-[#64748b]">{advisorCopy.dealsListBody}</p>
-                {deals.map((deal, index) => (
-                  <div key={index} className="rounded-2xl border border-[#e7eaee] p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">
-                        {advisorCopy.dealTitle} {index + 1}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setDeals((current) => current.filter((_, item) => item !== index))}
-                        className="text-sm text-[#64748b]"
-                      >
-                        {advisorCopy.remove}
-                      </button>
-                    </div>
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealName}
-                        <input
-                          value={deal.name}
-                          placeholder={advisorCopy.dealNamePlaceholder}
-                          onChange={(event) => updateDeal(setDeals, index, { name: event.target.value })}
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealSector}
-                        <select
-                          value={deal.sectorId}
-                          onChange={(event) => updateDeal(setDeals, index, { sectorId: event.target.value })}
-                          className={fieldClass}
-                        >
-                          <option value="">{advisorCopy.dealSectorPlaceholder}</option>
-                          {advisorSectors.map((sector) => (
-                            <option key={sector.id} value={sector.id}>
-                              {sector.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealDate}
-                        <input
-                          value={deal.closingDate}
-                          placeholder={advisorCopy.dealDatePlaceholder}
-                          onChange={(event) => updateDeal(setDeals, index, { closingDate: event.target.value })}
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealRevenue}
-                        <input
-                          inputMode="numeric"
-                          value={deal.revenue}
-                          onChange={(event) => updateDeal(setDeals, index, { revenue: event.target.value.replace(/\D/g, "") })}
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealEbitda}
-                        <input
-                          inputMode="numeric"
-                          value={deal.ebitda}
-                          onChange={(event) => updateDeal(setDeals, index, { ebitda: event.target.value.replace(/\D/g, "") })}
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1 text-sm">
-                        {advisorCopy.dealValue}
-                        <input
-                          inputMode="numeric"
-                          value={deal.enterpriseValue}
-                          onChange={(event) =>
-                            updateDeal(setDeals, index, { enterpriseValue: event.target.value.replace(/\D/g, "") })
-                          }
-                          className={fieldClass}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ))}
-                <button type="button" onClick={() => setDeals((current) => [...current, emptyDeal()])} className="text-sm font-medium text-[#3d34b8]">
-                  {advisorCopy.addDeal}
-                </button>
-              </div>
-            ) : null}
-            {message && editing === "deals" ? <p className="text-sm text-red-700">{message}</p> : null}
-            <SaveRow pending={pending} onCancel={close} onSave={() => void saveDeals()} />
-          </div>
-        ) : profile.operations.length > 0 ? (
-          <ul className="mt-4 flex flex-col gap-2">
-            {profile.operations.map((operation) => (
-              <li key={`${operation.name}-${operation.closingDate}`} className="text-sm">
-                <span className="font-medium">{operation.name}</span>
-                <span className="text-[#64748b]"> · {operation.closingDate}</span>
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.dealsTitle}</h2>
+        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.dealsBody}</p>
+        {closes.length === 0 ? (
+          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.dealsEmpty}</p>
+        ) : (
+          <ul className="mt-4 grid gap-3 md:grid-cols-2">
+            {closes.map((close) => (
+              <li key={close.id} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
+                <p className="text-sm font-medium text-[#2b3b4a]">{close.codename}</p>
+                <p className="text-sm text-[#64748b]">{close.closedLabel}</p>
               </li>
             ))}
           </ul>
-        ) : null}
+        )}
       </section>
 
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
@@ -612,9 +461,9 @@ export function AdvisorServices({ initial }: { initial: AdvisorProfileView }) {
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingBody}</p>
-        {listing ? (
+        {publicListing ? (
           <div className="mt-4 max-w-[36rem]">
-            <AdvisorListingCard advisor={listing} />
+            <AdvisorListingCard advisor={publicListing} />
           </div>
         ) : (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
@@ -679,12 +528,4 @@ function SaveRow({ pending, onCancel, onSave }: { pending: boolean; onCancel: ()
       </button>
     </div>
   );
-}
-
-function updateDeal(
-  setDeals: (updater: (current: DealDraft[]) => DealDraft[]) => void,
-  index: number,
-  patch: Partial<DealDraft>,
-) {
-  setDeals((current) => current.map((deal, item) => (item === index ? { ...deal, ...patch } : deal)));
 }

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { AdvisorHome } from "@/components/advisor-home";
 import { SignedInPage } from "@/components/signed-in-page";
 import { advisorCopy, advisorGreeting } from "@/lib/advisor-copy";
+import { advisorProfileChecks } from "@/lib/advisor-profile";
 import { getAdvisorDesk } from "@/server/advisoryEngagement";
+import { getAdvisorProfile } from "@/server/getAdvisorProfile";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { listNotifications } from "@/server/listNotifications";
 import { requireRole } from "@/server/requireRole";
@@ -24,12 +26,16 @@ export default async function MandatesPage({
     await fulfillCheckout(query.session_id, user.id);
   }
 
-  const [notifications, desk] = await Promise.all([listNotifications(user.id), getAdvisorDesk(user.id)]);
+  const [notifications, desk, profile] = await Promise.all([
+    listNotifications(user.id),
+    getAdvisorDesk(user.id),
+    getAdvisorProfile(user.id),
+  ]);
   const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
 
   return (
     <SignedInPage title={advisorGreeting(firstName)} showTitle>
-      <AdvisorHome notifications={notifications} desk={desk} />
+      <AdvisorHome notifications={notifications} desk={desk} profileChecks={advisorProfileChecks(profile)} />
     </SignedInPage>
   );
 }

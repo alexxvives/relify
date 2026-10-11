@@ -10,6 +10,14 @@ export type PublicAdvisorCase = {
   value: string;
 };
 
+export function casesForVerifiedCloses(count: number): PublicAdvisorCase[] {
+  return Array.from({ length: count }, () => ({
+    sector: "Releva",
+    closedOn: "—",
+    value: "—",
+  }));
+}
+
 export type PublicAdvisorCard = {
   id: string;
   description: string;
