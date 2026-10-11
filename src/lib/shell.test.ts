@@ -18,6 +18,8 @@ describe("destinationsForRole", () => {
     ]);
     expect(destinationsForRole("advisor")).toEqual([
       { href: "/mandatos", label: "Inicio" },
+      { href: "/mandatos/encargos", label: "Encargos" },
+      { href: "/mandatos/venta", label: "Mandatos" },
       { href: "/mis-servicios", label: "Mis servicios" },
     ]);
     expect(destinationsForRole("admin")).toEqual([
@@ -44,5 +46,9 @@ describe("destinationIsCurrent", () => {
     expect(destinationIsCurrent("/admin", "/admin/empresas")).toBe(false);
     expect(destinationIsCurrent("/admin/conexiones", "/admin/chat/acceso")).toBe(true);
     expect(destinationIsCurrent("/admin/empresas", "/admin/chat/acceso")).toBe(false);
+    expect(destinationIsCurrent("/mandatos/encargos", "/mandatos/encargos/abc")).toBe(true);
+    expect(destinationIsCurrent("/mandatos", "/mandatos/encargos")).toBe(false);
+    expect(destinationIsCurrent("/mandatos", "/mandatos/venta")).toBe(false);
+    expect(destinationIsCurrent("/mandatos/venta", "/mandatos/venta")).toBe(true);
   });
 });

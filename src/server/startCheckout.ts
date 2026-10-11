@@ -195,8 +195,8 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
       ],
       metadata: { kind: "advisor_inbox", userId: user.id },
       subscription_data: { metadata: { kind: "advisor_inbox", userId: user.id } },
-      success_url: `${origin}/mandatos?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/mandatos`,
+      success_url: `${origin}/mandatos/encargos?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/mandatos/encargos`,
       integration_identifier: integrationLabel("releva_inbox"),
     });
 

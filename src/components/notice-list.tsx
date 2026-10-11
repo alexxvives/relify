@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { NotificationView } from "@/lib/notifications";
 
-export function NoticeList({ items }: { items: NotificationView[] }) {
+export function NoticeList({ items, limit = 4 }: { items: NotificationView[]; limit?: number }) {
   return (
     <ul className="mt-4 flex flex-col gap-3">
-      {items.slice(0, 4).map((item) => {
+      {items.slice(0, limit).map((item) => {
         const body = (
           <>
             <div className="flex items-baseline justify-between gap-3">

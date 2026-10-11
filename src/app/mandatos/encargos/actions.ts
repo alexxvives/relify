@@ -38,6 +38,7 @@ export async function claimEngagementAction(
 
   if (result.ok) {
     revalidatePath("/mandatos");
+    revalidatePath("/mandatos/encargos");
   }
 
   return { ok: result.ok, message: result.message ?? engagementCopy.claimed };

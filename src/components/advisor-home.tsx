@@ -1,136 +1,80 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { AdvisorMandateBoard, type MandateDisplay } from "@/components/advisor-mandates";
-import { AdvisorWork } from "@/components/advisor-work";
+import { CountBars } from "@/components/admin-charts";
 import { NoticeList } from "@/components/notice-list";
+import { OpenNoticeList } from "@/components/notification-bell";
+import { PendingActions } from "@/components/pending-actions";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { catalogCopy } from "@/lib/catalog-copy";
-import { formatEur } from "@/lib/money";
+import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
 import type { NotificationView } from "@/lib/notifications";
-import type { PendingMatch } from "@/lib/billing";
-import type { PublicAdvisorCard } from "@/lib/advisor-directory";
-import type { AdvisorWork as AdvisorWorkData } from "@/server/advisoryEngagement";
-import type { MandateCard } from "@/server/listSaleMandates";
-import { blogPosts, formatBlogDate } from "@/lib/blog";
 
-function toMandateDisplay(project: MandateCard): MandateDisplay {
-  return {
-    slug: project.slug,
-    codename: project.codename,
-    region: project.region,
-    status: project.status,
-    feeRecorded: project.feeRecorded,
-    owned: project.owned,
-    figures: catalogCopy.metrics.map((metric) => ({
-      label: metric.label,
-      value: formatEur(project[metric.key]),
-    })),
-  };
-}
-
-const counters = [
-  advisorCopy.pendingActions,
-  advisorCopy.activeProcesses,
-  advisorCopy.savedSearches,
-] as const;
-
-const metrics = [advisorCopy.interestsManaged, advisorCopy.questions, advisorCopy.meetings] as const;
+const stepLabel: Record<AdvisorStep, { label: string; color: string }> = {
+  request: { label: advisorCopy.stepRequest, color: "#c5cce0" },
+  deposit: { label: advisorCopy.stepDeposit, color: "#465ab4" },
+  nda: { label: advisorCopy.stepNda, color: "#1c2740" },
+  active: { label: advisorCopy.stepActive, color: "#7c8ec4" },
+  closed: { label: advisorCopy.stepClosed, color: "#17663a" },
+};
 
 export function AdvisorHome({
   notifications,
-  profileReady,
-  mandates,
-  pending,
-  work,
-  advisors,
+  desk,
 }: {
   notifications: NotificationView[];
-  profileReady: boolean;
-  mandates: MandateCard[];
-  pending: PendingMatch[];
-  work: AdvisorWorkData;
-  advisors: PublicAdvisorCard[];
+  desk: AdvisorHomeDesk;
 }) {
-  const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
+  const stats = [
+    { label: advisorCopy.openEngagements, value: desk.open.count, href: desk.open.href },
+    { label: advisorCopy.inboxStat, value: desk.inbox.count, href: desk.inbox.href },
+    { label: advisorCopy.pendingDeposits, value: desk.deposits.count, href: desk.deposits.href },
+    { label: advisorCopy.pendingNdas, value: desk.ndas.count, href: desk.ndas.href },
+  ];
+  const pending = desk.pending.map((item) => ({
+    id: item.id,
+    title: item.kind === "deposit" ? advisorCopy.payDeposit : advisorCopy.signNda,
+    detail: item.codename,
+    href: item.href,
+  }));
 
   return (
-    <div className="flex flex-col gap-6">
-      <AdvisorWork paid={work.paid} mine={work.mine} inbox={work.inbox} advisors={advisors} />
-      <section className="rounded-2xl border border-[#e7eaee] bg-white px-5 py-10">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.mandatesTitle}</h2>
-        <AdvisorMandateBoard mandates={mandates.map(toMandateDisplay)} pending={pending} />
-      </section>
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.investorProfile}</h2>
-          </div>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-3">
-            {counters.map((label) => (
-              <li key={label} className="rounded-2xl bg-[#f7f8fb] px-4 py-5">
-                <p className="text-2xl font-semibold">0</p>
-                <p className="mt-1 text-sm text-[#64748b]">{label}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.notificationsTitle}</h2>
-          {notifications.length === 0 ? (
-            <div className="mt-8 text-center">
-              <h3 className="text-sm font-semibold text-[#2b3b4a]">{advisorCopy.notificationsEmpty}</h3>
-              <p className="mt-2 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
-            </div>
-          ) : (
-            <NoticeList items={notifications} />
-          )}
-        </section>
-      </div>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.trendsTitle}</h2>
-          <Link href="/tendencias" className="inline-flex items-center gap-1 text-sm text-[#64748b]">
-            {advisorCopy.seeAll}
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
-        </div>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {news.map((item) => (
-            <li key={item.slug} className="rounded-2xl border border-[#e7eaee]">
-              <Link href={`/blog/${item.slug}`} className="block p-4 hover:bg-[#f7f8fb]">
-                <p className="text-xs text-[#64748b]">
-                  {item.category} · {formatBlogDate(item.date)}
-                </p>
-                <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.excerpt}</p>
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex flex-col gap-4">
+        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
+        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {stats.map((item) => (
+            <li key={item.label}>
+              <Link href={item.href} className="block rounded-2xl border border-[#e7eaee] bg-white px-4 py-4 hover:border-[#465ab4]">
+                <p className="text-xs text-[#667085]">{item.label}</p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
               </Link>
             </li>
           ))}
         </ul>
-      </section>
+        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <h2 className="text-2xl font-semibold text-[#1c2740]">{advisorCopy.stepsTitle}</h2>
+          <CountBars
+            stacked
+            rows={desk.steps.map((step) => ({
+              label: stepLabel[step.step].label,
+              value: step.count,
+              href: step.href,
+              color: stepLabel[step.step].color,
+            }))}
+          />
+        </section>
+      </div>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.metricsTitle}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.metricsIntro}</p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-3">
-          {metrics.map((label) => (
-            <li key={label} className="rounded-2xl border border-[#e7eaee] px-4 py-5">
-              <p className="text-2xl font-semibold">0</p>
-              <p className="mt-2 text-sm text-[#64748b]">{label}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesTeaserTitle}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesTeaserBody}</p>
-        <Link href="/mis-servicios" className="mt-4 block rounded-2xl bg-[#f7f8fb] p-4">
-          <span className="block text-base font-semibold text-[#2b3b4a]">
-            {profileReady ? advisorCopy.goServices : advisorCopy.activateProfile}
-          </span>
-          {profileReady ? null : (
-            <span className="mt-1 block text-sm text-[#64748b]">{advisorCopy.activateProfileBody}</span>
-          )}
-        </Link>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold text-[#1c2740]">{advisorCopy.notificationsTitle}</h2>
+          <OpenNoticeList label={advisorCopy.seeAll} />
+        </div>
+        {notifications.length === 0 ? (
+          <div className="mt-6 text-center">
+            <p className="text-sm font-semibold text-[#1c2740]">{advisorCopy.notificationsEmpty}</p>
+            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
+          </div>
+        ) : (
+          <NoticeList items={notifications} limit={3} />
+        )}
       </section>
     </div>
   );

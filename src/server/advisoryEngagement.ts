@@ -5,10 +5,14 @@ import { advisorNdaAgreement, spanishDate } from "@/lib/deal-documents";
 import { engagementCopy } from "@/lib/engagement-copy";
 import {
   advisorCompanyView,
+  advisorEngagementStep,
+  advisorHomeDesk,
   advisorNdaOutcome,
   canOpenSellerGrant,
   claimEngagementOutcome,
   requestEngagementOutcome,
+  type AdvisorHomeDesk,
+  type AdvisorStep,
   type EngagementClientName,
 } from "@/lib/engagement";
 import { advisorDepositCents, advisorPlatformFee } from "@/lib/billing";
@@ -31,6 +35,7 @@ export type EngagementCard = {
   region: string;
   clientLabel: string;
   services: string;
+  step: AdvisorStep;
 };
 
 export type AdvisorWork = {
@@ -84,18 +89,31 @@ function clientLabel(client: EngagementClientName): string {
   return client === "investor" ? engagementCopy.fromInvestor : engagementCopy.fromSeller;
 }
 
-function toCard(row: {
-  id: string;
-  client: EngagementClientName;
-  services: string[];
-  project: { codename: string; region: string };
-}): EngagementCard {
+function toCard(
+  row: {
+    id: string;
+    client: EngagementClientName;
+    services: string[];
+    project: { codename: string; region: string };
+    closedAt?: Date | null;
+    depositPaidAt?: Date | null;
+    advisorNdaAcceptedAt?: Date | null;
+  },
+  owned: boolean,
+): EngagementCard {
   return {
     id: row.id,
     codename: row.project.codename,
     region: row.project.region,
     clientLabel: clientLabel(row.client),
     services: serviceLabel(row.services),
+    step: advisorEngagementStep({
+      owned,
+      closed: row.closedAt !== null && row.closedAt !== undefined,
+      depositPaid: row.depositPaidAt !== null && row.depositPaidAt !== undefined,
+      hiredByInvestor: row.client === "investor",
+      ndaSigned: row.advisorNdaAcceptedAt !== null && row.advisorNdaAcceptedAt !== undefined,
+    }),
   };
 }
 
@@ -215,6 +233,9 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
       id: true,
       client: true,
       services: true,
+      closedAt: true,
+      depositPaidAt: true,
+      advisorNdaAcceptedAt: true,
       project: { select: { codename: true, region: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -234,9 +255,42 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
 
   return {
     paid,
-    mine: mine.map(toCard),
-    inbox: inbox.map(toCard),
+    mine: mine.map((row) => toCard(row, true)),
+    inbox: inbox.map((row) => toCard(row, false)),
   };
+}
+
+export async function getAdvisorDesk(userId: string): Promise<AdvisorHomeDesk> {
+  const [mine, inboxCount] = await Promise.all([
+    prisma.advisoryEngagement.findMany({
+      where: { advisorId: userId },
+      select: {
+        id: true,
+        client: true,
+        closedAt: true,
+        depositPaidAt: true,
+        advisorNdaAcceptedAt: true,
+        project: { select: { codename: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.advisoryEngagement.count({ where: { advisorId: null } }),
+  ]);
+
+  return advisorHomeDesk({
+    inboxCount,
+    mine: mine.map((row) => ({
+      id: row.id,
+      codename: row.project.codename,
+      step: advisorEngagementStep({
+        owned: true,
+        closed: row.closedAt !== null,
+        depositPaid: row.depositPaidAt !== null,
+        hiredByInvestor: row.client === "investor",
+        ndaSigned: row.advisorNdaAcceptedAt !== null,
+      }),
+    })),
+  });
 }
 
 export async function claimEngagement(user: CurrentUser, id: string): Promise<EngagementResult> {

@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import { AdvisorHome } from "@/components/advisor-home";
 import { SignedInPage } from "@/components/signed-in-page";
 import { advisorCopy, advisorGreeting } from "@/lib/advisor-copy";
-import { getAdvisorProfile } from "@/server/getAdvisorProfile";
-import { listNotifications } from "@/server/listNotifications";
-import { listPendingMatches } from "@/server/listPendingMatches";
-import { listAdvisorWork } from "@/server/advisoryEngagement";
-import { listPublicAdvisors } from "@/server/listPublicAdvisors";
-import { listSaleMandates } from "@/server/listSaleMandates";
+import { getAdvisorDesk } from "@/server/advisoryEngagement";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
+import { listNotifications } from "@/server/listNotifications";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -28,26 +24,12 @@ export default async function MandatesPage({
     await fulfillCheckout(query.session_id, user.id);
   }
 
-  const [profile, notifications, mandates, pending, work, advisors] = await Promise.all([
-    getAdvisorProfile(user.id),
-    listNotifications(user.id),
-    listSaleMandates(user.id),
-    listPendingMatches(user.id),
-    listAdvisorWork(user.id),
-    listPublicAdvisors(),
-  ]);
+  const [notifications, desk] = await Promise.all([listNotifications(user.id), getAdvisorDesk(user.id)]);
   const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
 
   return (
     <SignedInPage title={advisorGreeting(firstName)} showTitle>
-      <AdvisorHome
-        notifications={notifications}
-        profileReady={profile.corporateComplete}
-        mandates={mandates}
-        pending={pending}
-        work={work}
-        advisors={advisors}
-      />
+      <AdvisorHome notifications={notifications} desk={desk} />
     </SignedInPage>
   );
 }

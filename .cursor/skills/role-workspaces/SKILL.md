@@ -14,7 +14,7 @@ Roles are `seller`, `investor`, `advisor`, and `admin`. Homes live in `homeForRo
 | --- | --- | --- |
 | seller | `/mi-empresa` | Inicio, Detalles, Documentos, Procesos, Mi asesor |
 | investor | `/inversor` | Inicio, Empresas en venta (`/mercado`, con el filtro Solo favoritas), Procesos, Mi asesor |
-| advisor | `/mandatos` | Inicio, Mis servicios. No Ser premium. The inbox lives on Inicio and needs the 39 € plan |
+| advisor | `/mandatos` | Inicio, Encargos (`/mandatos/encargos`), Mandatos (`/mandatos/venta`), Mis servicios. No Ser premium. The bandeja lives on Encargos and needs the 39 € plan |
 | admin | `/admin` | Inicio, Empresas, Cuentas, Conexiones, Asesores, Facturación. Legal name, CIF, address, shareholders, and file names stay on `/admin/empresas`. Suspend, role, and plan grants stay on `/admin/cuentas`. Chat from Conexiones stays read-only |
 
 `destinationForUser` sends an unfinished account to `/onboarding`. `requireRole` in `src/server/requireRole.ts` sends a signed-out user to `/entrar`, an unfinished user to `/onboarding`, and the wrong role to `homeForRole`.

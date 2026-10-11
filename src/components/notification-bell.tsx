@@ -3,9 +3,26 @@
 import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { markNotificationReadAction, markNotificationsReadAction } from "@/app/cuenta/actions";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
+
+const openNoticesEvent = "releva-open-notices";
+
+export function OpenNoticeList({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        window.dispatchEvent(new Event(openNoticesEvent));
+      }}
+      className="inline-flex items-center gap-1 text-sm text-[#64748b]"
+    >
+      {label}
+      <ArrowRight className="size-4" aria-hidden />
+    </button>
+  );
+}
 
 function iconFor(title: string) {
   if (title.includes("NDA")) {
@@ -48,6 +65,15 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const rows = items.map((item) => ({ ...item, unread: item.unread && !seen.includes(item.id) }));
   const unread = rows.filter((item) => item.unread).length;
+
+  useEffect(() => {
+    function onOpen() {
+      setOpen(true);
+    }
+
+    window.addEventListener(openNoticesEvent, onOpen);
+    return () => window.removeEventListener(openNoticesEvent, onOpen);
+  }, []);
 
   useEffect(() => {
     if (!open) {

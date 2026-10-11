@@ -38,6 +38,8 @@ const destinations = {
   ],
   advisor: [
     { href: "/mandatos", label: "Inicio" },
+    { href: "/mandatos/encargos", label: "Encargos" },
+    { href: "/mandatos/venta", label: "Mandatos" },
     { href: "/mis-servicios", label: "Mis servicios" },
   ],
   admin: [
@@ -64,6 +66,10 @@ export function destinationIsCurrent(href: string, pathname: string): boolean {
   }
 
   if (href === "/mercado" && pathname.startsWith("/proyectos/")) {
+    return true;
+  }
+
+  if (href === "/mandatos/encargos" && pathname.startsWith("/mandatos/encargos/")) {
     return true;
   }
 
