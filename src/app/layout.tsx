@@ -11,6 +11,7 @@ const geistSans = Geist({
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-dm",
   display: "swap",
