@@ -126,7 +126,6 @@ export const adminCopy = {
   chatTitle: "Conversación",
   chatBack: "Volver a conexiones",
   chatEmpty: "Este proceso todavía no tiene mensajes.",
-  chatReadOnly: "Solo lectura. Este hilo no se responde desde aquí.",
   sellerParty: "Vendedor",
   investorParty: "Inversor",
   forbidden: "No puedes hacer eso.",

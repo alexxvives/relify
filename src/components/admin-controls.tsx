@@ -33,7 +33,7 @@ function ErrorNote({ state }: { state: AdminActionState }) {
   }
 
   return (
-    <p className="text-sm text-red-700" role="alert">
+    <p className="basis-full text-sm text-red-700" role="alert">
       {state.message}
     </p>
   );
@@ -146,11 +146,11 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
   const [nextRole, setNextRole] = useState<string>(current);
 
   return (
-    <form action={formAction} className="flex w-full flex-col items-stretch gap-2 sm:w-44 sm:items-end">
+    <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="role" value={nextRole} />
-      <p className="text-xs text-[#667085]">{adminCopy.roleLabel}</p>
-      <div className="w-full">
+      <p className="w-28 shrink-0 text-sm text-[#667085]">{adminCopy.roleLabel}</p>
+      <div className="min-w-40 flex-1">
         <FilterSelect
           compact
           label={adminCopy.roleLabel}
@@ -172,11 +172,11 @@ export function PlanForm({ userId }: { userId: string }) {
   const [plan, setPlan] = useState("limited");
 
   return (
-    <form action={formAction} className="flex w-full flex-col items-stretch gap-2 sm:w-44 sm:items-end">
+    <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="plan" value={plan} />
-      <p className="text-xs text-[#667085]">{adminCopy.grantPlan}</p>
-      <div className="w-full">
+      <p className="w-28 shrink-0 text-sm text-[#667085]">{adminCopy.grantPlan}</p>
+      <div className="min-w-40 flex-1">
         <FilterSelect
           compact
           label={adminCopy.grantPlan}

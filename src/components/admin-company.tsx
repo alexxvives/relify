@@ -34,13 +34,11 @@ export function AdminCompany({
   view,
   backHref,
   backLabel,
-  links,
   today,
 }: {
   view: AdminCompanyView;
   backHref: string;
   backLabel: string;
-  links: { id: string; label: string; href: string }[];
   today: string;
 }) {
   const selected = view.accesses.find((access) => access.id === view.selectedId) ?? null;
@@ -64,29 +62,7 @@ export function AdminCompany({
           ) : null
         }
       />
-      <p className="text-sm text-[#667085]">{adminCopy.chatReadOnly}</p>
-      {links.length > 1 ? (
-        <ul className="flex flex-wrap gap-2" aria-label={adminCopy.investorParty}>
-          {links.map((access) => {
-            const current = access.id === selected?.id;
-            return (
-              <li key={access.id}>
-                <Link
-                  href={access.href}
-                  aria-current={current ? "page" : undefined}
-                  className={
-                    current
-                      ? "inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white"
-                      : "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740]"
-                  }
-                >
-                  {access.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : selected ? (
+      {selected ? (
         <p className="text-sm text-[#3d4a63]">
           {adminCopy.investorParty} · {selected.investorLabel}
         </p>

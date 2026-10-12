@@ -75,7 +75,7 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
       ) : (
         <ul className="flex flex-col gap-3">
           {visible.map((advisor) => (
-            <li key={advisor.id} className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5 lg:flex-row lg:items-start lg:justify-between">
+            <li key={advisor.id} className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-lg font-semibold text-[#1c2740]">{advisor.name}</p>
@@ -123,11 +123,11 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   ];
 
   return (
-    <dl className="grid w-full shrink-0 gap-2 sm:grid-cols-2 lg:w-64 lg:grid-cols-1">
+    <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {rows.map((row) => (
-        <div key={row.label} className="flex items-baseline justify-between gap-3 rounded-xl bg-[#f4f7ff] px-3 py-2">
+        <div key={row.label} className="rounded-xl bg-[#f4f7ff] px-4 py-3">
           <dt className="text-sm text-[#3d4a63]">{row.label}</dt>
-          <dd className="text-sm font-semibold text-[#1c2740] tabular-nums">{row.value}</dd>
+          <dd className="mt-1 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</dd>
         </div>
       ))}
     </dl>

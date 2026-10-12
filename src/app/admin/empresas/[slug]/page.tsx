@@ -36,11 +36,6 @@ export default async function AdminCompanyPage({
         view={view}
         backHref={accessId ? "/admin/conexiones" : "/admin/empresas"}
         backLabel={accessId ? adminCopy.chatBack : adminCopy.companyBack}
-        links={view.accesses.map((access) => ({
-          id: access.id,
-          label: access.investorLabel,
-          href: `/admin/empresas/${view.profile.slug}?acceso=${encodeURIComponent(access.id)}`,
-        }))}
         today={madridToday(new Date())}
       />
     </SignedInPage>

@@ -136,8 +136,8 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
           {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
         </div>
       </div>
-      <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <dl className="grid min-w-0 flex-1 gap-y-2 text-sm text-[#1c2740]">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <dl className="grid content-start gap-y-3 text-sm text-[#1c2740]">
           {identity.map((item) => (
             <div key={item.label} className="grid gap-x-4 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
               <dt className="text-[#667085]">{item.label}</dt>
@@ -145,11 +145,11 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
             </div>
           ))}
         </dl>
-        <dl className="grid grid-cols-2 gap-2 lg:w-80 lg:shrink-0">
+        <dl className="grid grid-cols-2 content-start gap-3">
           {figures.map((figure) => (
-            <div key={figure.label} className="rounded-xl bg-[#f7f8fb] px-3 py-2">
+            <div key={figure.label} className="rounded-xl bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs text-[#667085]">{figure.label}</dt>
-              <dd className="mt-0.5 text-sm font-semibold text-[#1c2740] tabular-nums">{figure.value}</dd>
+              <dd className="mt-1 text-sm font-semibold text-[#1c2740] tabular-nums">{figure.value}</dd>
             </div>
           ))}
         </dl>

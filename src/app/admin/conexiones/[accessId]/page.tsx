@@ -27,11 +27,6 @@ export default async function AdminConnectionPage({ params }: { params: Promise<
         view={view}
         backHref="/admin/conexiones"
         backLabel={adminCopy.chatBack}
-        links={view.accesses.map((access) => ({
-          id: access.id,
-          label: access.investorLabel,
-          href: `/admin/conexiones/${encodeURIComponent(access.id)}`,
-        }))}
         today={madridToday(new Date())}
       />
     </SignedInPage>

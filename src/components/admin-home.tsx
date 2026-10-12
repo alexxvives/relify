@@ -38,6 +38,16 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
+        <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {activity.map((item) => (
+            <li key={item.label}>
+              <ActivityTile item={item} />
+            </li>
+          ))}
+        </ul>
+      </section>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} total={accounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
@@ -57,16 +67,6 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           rows={plans}
         />
       </div>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
-        <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {activity.map((item) => (
-            <li key={item.label}>
-              <ActivityTile item={item} />
-            </li>
-          ))}
-        </ul>
-      </section>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#1c2740]">
           <Link href="/admin/empresas" className="hover:text-[#465ab4]">
