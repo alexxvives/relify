@@ -305,13 +305,21 @@ export function ProcessHeaderCue({
   );
 }
 
-export function DealWaitingCue({ cue, className = "" }: { cue: { action: string }; className?: string }) {
+export function DealWaitingCue({
+  cue,
+  className = "",
+  onDark = false,
+}: {
+  cue: { action: string };
+  className?: string;
+  onDark?: boolean;
+}) {
   return (
     <div className={`flex items-start gap-3 ${className}`}>
       <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
         Qué sigue
       </span>
-      <p className="pt-0.5 text-sm leading-5 text-[#3d4a63]">{cue.action}</p>
+      <p className={onDark ? "pt-0.5 text-sm leading-5 text-white" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
     </div>
   );
 }

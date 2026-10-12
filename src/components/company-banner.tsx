@@ -7,6 +7,7 @@ export function CompanyBanner({
   status,
   progress,
   children,
+  besideTitle,
   heading = "h1",
 }: {
   title: string;
@@ -14,6 +15,7 @@ export function CompanyBanner({
   status?: { label: string; live: boolean };
   progress?: ReactNode;
   children?: ReactNode;
+  besideTitle?: ReactNode;
   heading?: "h1" | "p";
 }) {
   const Title = heading;
@@ -36,9 +38,12 @@ export function CompanyBanner({
       />
       {children ? <div className="absolute top-6 right-6 z-10 flex items-center gap-2">{children}</div> : null}
       <div className="relative z-10 mx-auto max-w-3xl pt-2 text-center">
-        <Title className="text-6xl leading-none tracking-tight text-white italic [font-family:var(--public-display)] sm:text-7xl">
-          {title}
-        </Title>
+        <div className={besideTitle ? "flex flex-wrap items-center justify-center gap-x-4 gap-y-3" : undefined}>
+          <Title className="text-6xl leading-none tracking-tight text-white italic [font-family:var(--public-display)] sm:text-7xl">
+            {title}
+          </Title>
+          {besideTitle ? <div className="max-w-sm text-left">{besideTitle}</div> : null}
+        </div>
         {subtitle || status ? (
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#e7ecff]">
           {subtitle ? (

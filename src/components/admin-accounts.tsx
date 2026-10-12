@@ -117,7 +117,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <ul className="grid gap-4 xl:grid-cols-2">
+        <ul className="grid gap-3">
           {visible.map((account) => (
             <li key={account.id}>
               <AccountCard account={account} self={account.id === viewerId} />
@@ -131,12 +131,12 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
 
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   return (
-    <article className="flex h-full flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
-      <div className="flex items-start gap-3">
+    <article className="grid items-start gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5 sm:grid-cols-2">
+      <div className="flex min-w-0 items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
           <p className="text-base font-semibold text-[#1c2740]">{account.name}</p>
           <p className="mt-0.5 break-all text-sm text-[#667085]">{account.email}</p>
           <ul className="mt-2 flex flex-wrap gap-1.5">
@@ -161,19 +161,17 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
           </ul>
         </div>
       </div>
-      <div className="mt-auto flex flex-col gap-3 border-t border-[#eef1f4] pt-4">
-        {self ? (
-          <p className="text-sm text-[#667085]">
-            {adminCopy.ownSuspend} {adminCopy.ownRole}
-          </p>
-        ) : (
-          <>
-            <SuspensionButton userId={account.id} suspended={account.suspended} />
-            <RoleForm userId={account.id} role={account.role} />
-            {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
-          </>
-        )}
-      </div>
+      {self ? (
+        <p className="text-sm text-[#667085] sm:text-right">
+          {adminCopy.ownSuspend} {adminCopy.ownRole}
+        </p>
+      ) : (
+        <div className="flex flex-col items-end gap-2">
+          <SuspensionButton userId={account.id} suspended={account.suspended} />
+          <RoleForm userId={account.id} role={account.role} />
+          {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
+        </div>
+      )}
     </article>
   );
 }

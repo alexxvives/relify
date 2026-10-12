@@ -75,10 +75,17 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
       ) : (
         <ul className="flex flex-col gap-3">
           {visible.map((advisor) => (
-            <li key={advisor.id} className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
+            <li
+              key={advisor.id}
+              className={
+                advisor.breakdown
+                  ? "flex flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4 lg:flex-row lg:items-center lg:justify-between"
+                  : "rounded-2xl border border-[#e7eaee] bg-white p-4"
+              }
+            >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-[#1c2740]">{advisor.name}</p>
+                  <p className="text-lg font-semibold text-[#1c2740]">{advisorHeading(advisor)}</p>
                   <p className="rounded-full bg-[#e8f6ee] px-3 py-1 text-sm font-semibold text-[#17663a]">
                     {advisor.place === null
                       ? adminCopy.advisorUnranked
@@ -91,9 +98,6 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
                   />
                 </div>
                 <p className="mt-1 text-sm text-[#667085]">{advisor.email}</p>
-                <p className="mt-1 text-sm text-[#3d4a63]">
-                  {adminCopy.advisorBusiness}: {advisor.businessName.length > 0 ? advisor.businessName : adminCopy.identityEmpty}
-                </p>
                 {advisor.sectors.length > 0 ? (
                   <ul className="mt-3 flex flex-wrap gap-2">
                     {advisor.sectors.map((sector) => (
@@ -114,6 +118,17 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
   );
 }
 
+function advisorHeading(advisor: AdminAdvisorRow): string {
+  const business = advisor.businessName.trim();
+  const person = advisor.name.trim();
+
+  if (business.length > 0 && person.length > 0) {
+    return `${business} (${person})`;
+  }
+
+  return business.length > 0 ? business : person;
+}
+
 function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   const rows = [
     { label: adminCopy.advisorCases, value: String(breakdown.caseCount) },
@@ -123,11 +138,11 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <dl className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[28rem]">
       {rows.map((row) => (
-        <div key={row.label} className="rounded-xl bg-[#f4f7ff] px-4 py-3">
-          <dt className="text-sm text-[#3d4a63]">{row.label}</dt>
-          <dd className="mt-1 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</dd>
+        <div key={row.label} className="rounded-xl bg-[#f4f7ff] px-3 py-2">
+          <dt className="text-xs text-[#3d4a63]">{row.label}</dt>
+          <dd className="text-lg font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</dd>
         </div>
       ))}
     </dl>

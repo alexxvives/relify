@@ -124,7 +124,7 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
   const { state, formAction, pending } = useAccountAction(suspended ? reactivateAccountAction : suspendAccountAction);
 
   return (
-    <form action={formAction} className="flex flex-col items-start gap-2">
+    <form action={formAction} className="flex flex-col items-end gap-2">
       <input type="hidden" name="userId" value={userId} />
       <button type="submit" disabled={pending} className={quietButtonClass}>
         {pending
@@ -146,20 +146,17 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
   const [nextRole, setNextRole] = useState<string>(current);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="flex w-full flex-col items-stretch gap-2">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="role" value={nextRole} />
-      <p className="w-28 shrink-0 text-sm text-[#667085]">{adminCopy.roleLabel}</p>
-      <div className="min-w-40 flex-1">
-        <FilterSelect
-          compact
-          label={adminCopy.roleLabel}
-          value={nextRole}
-          options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
-          onValueChange={setNextRole}
-        />
-      </div>
-      <button type="submit" disabled={pending} className={buttonClass}>
+      <FilterSelect
+        compact
+        label={adminCopy.roleLabel}
+        value={nextRole}
+        options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
+        onValueChange={setNextRole}
+      />
+      <button type="submit" disabled={pending} className={`${buttonClass} self-end`}>
         {pending ? adminCopy.changingRole : adminCopy.changeRole}
       </button>
       <ErrorNote state={state} />
@@ -172,23 +169,20 @@ export function PlanForm({ userId }: { userId: string }) {
   const [plan, setPlan] = useState("limited");
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="flex w-full flex-col items-stretch gap-2">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="plan" value={plan} />
-      <p className="w-28 shrink-0 text-sm text-[#667085]">{adminCopy.grantPlan}</p>
-      <div className="min-w-40 flex-1">
-        <FilterSelect
-          compact
-          label={adminCopy.grantPlan}
-          value={plan}
-          options={[
-            { value: "limited", label: adminCopy.plans.limited },
-            { value: "unlimited", label: adminCopy.plans.unlimited },
-          ]}
-          onValueChange={setPlan}
-        />
-      </div>
-      <button type="submit" disabled={pending} className={buttonClass}>
+      <FilterSelect
+        compact
+        label={adminCopy.grantPlan}
+        value={plan}
+        options={[
+          { value: "limited", label: adminCopy.plans.limited },
+          { value: "unlimited", label: adminCopy.plans.unlimited },
+        ]}
+        onValueChange={setPlan}
+      />
+      <button type="submit" disabled={pending} className={`${buttonClass} self-end`}>
         {pending ? adminCopy.grantingPlan : adminCopy.grantPlan}
       </button>
       <ErrorNote state={state} />

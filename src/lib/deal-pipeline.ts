@@ -207,6 +207,20 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
   return { yours: false, action: "Falta completar el pago" };
 }
 
+export function watchingCue(steps: readonly DealStep[]): string {
+  if (steps.length === 0) {
+    return stepCue("conexion", "investor").action;
+  }
+
+  const current = steps.find((step) => step.state === "current");
+
+  if (!current) {
+    return "La compraventa está hecha.";
+  }
+
+  return stepCue(current.id, "advisor", current.pendingLoi === true).action;
+}
+
 export type HomePendingAction = {
   id: string;
   title: string;

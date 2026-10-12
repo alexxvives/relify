@@ -1220,6 +1220,17 @@
   }
 }
 
+.releva-bar {
+  transform-origin: bottom;
+  animation: releva-bar-rise 0.55s ease;
+}
+
+@keyframes releva-bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
 @keyframes deal-pulse {
   0% {
     transform: scale(1);
@@ -1413,6 +1424,7 @@
   .releva-toast,
   .releva-app-toast,
   .releva-app-toast-bar,
+  .releva-bar,
   .landing-metric,
   .releva-hv-card,
   .releva-hv-enter,

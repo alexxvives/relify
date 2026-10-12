@@ -136,18 +136,18 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
           {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
         </div>
       </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <dl className="grid content-start gap-y-3 text-sm text-[#1c2740]">
+      <div className="mt-4 grid items-stretch gap-4 lg:grid-cols-2 lg:gap-0">
+        <dl className="flex h-full flex-col justify-between gap-3 text-sm text-[#1c2740] lg:border-r lg:border-[#eef1f4] lg:pr-6">
           {identity.map((item) => (
-            <div key={item.label} className="grid gap-x-4 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
-              <dt className="text-[#667085]">{item.label}</dt>
-              <dd className="break-words">{item.value.trim().length > 0 ? item.value : adminCopy.identityEmpty}</dd>
+            <div key={item.label} className="flex items-baseline justify-between gap-4">
+              <dt className="shrink-0 text-[#667085]">{item.label}</dt>
+              <dd className="min-w-0 text-right break-words">{item.value.trim().length > 0 ? item.value : adminCopy.identityEmpty}</dd>
             </div>
           ))}
         </dl>
-        <dl className="grid grid-cols-2 content-start gap-3">
+        <dl className="grid h-full grid-cols-2 content-stretch gap-3 lg:pl-6">
           {figures.map((figure) => (
-            <div key={figure.label} className="rounded-xl bg-[#f7f8fb] px-4 py-3">
+            <div key={figure.label} className="flex h-full flex-col justify-center rounded-xl bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs text-[#667085]">{figure.label}</dt>
               <dd className="mt-1 text-sm font-semibold text-[#1c2740] tabular-nums">{figure.value}</dd>
             </div>

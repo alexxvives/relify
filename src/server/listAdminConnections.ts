@@ -2,17 +2,13 @@ import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
-const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" });
-
 export type AdminConnectionRow = {
   id: string;
   slug: string;
   codename: string;
   region: string;
-  investorEmail: string;
   accepted: boolean;
   closed: boolean;
-  when: string;
   steps: DealStep[];
 };
 
@@ -26,12 +22,10 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
     select: {
       id: true,
       investorId: true,
-      requestedAt: true,
       sellerAcceptedAt: true,
       ndaAcceptedAt: true,
       loiAcceptedAt: true,
       diligencePassedAt: true,
-      investor: { select: { email: true } },
       project: {
         select: {
           slug: true,
@@ -70,10 +64,8 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
       slug: connection.project.slug,
       codename: connection.project.codename,
       region: connection.project.region,
-      investorEmail: connection.investor.email,
       accepted,
       closed: connection.project.successFee !== null,
-      when: when.format(connection.sellerAcceptedAt ?? connection.requestedAt),
       steps,
     };
   });
