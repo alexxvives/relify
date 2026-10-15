@@ -161,12 +161,13 @@ export const landingCopy = {
     ],
   },
   home: {
-    title: "Releva tu negocio a la persona que ya lo está buscando",
+    title: "La empresa que sigue, sin decir quién es",
     description:
-      "Cuéntanos tu empresa y la ponemos delante de compradores que ya buscan un negocio para continuar, sin publicar la sociedad en la ficha.",
+      "Unas pymes están en venta y se leen por facturación, EBITDA y precio. Otras pueden publicarse igual, sin la razón social en la ficha.",
     intro:
-      "Cuéntanos tu empresa y la ponemos delante de compradores que ya buscan un negocio para continuar, sin publicar la sociedad en la ficha.",
-    cta: "Crear cuenta",
+      "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
+    cta: "Ver empresas",
+    sellCta: "Vender la tuya",
     step: "Ficha pública",
     buyersKicker: "Empresarios que buscan",
     buyers: [
