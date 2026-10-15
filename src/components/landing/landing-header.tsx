@@ -19,7 +19,7 @@ export async function LandingHeader() {
 
   return (
     <header className="sticky top-0 z-40 px-5 py-4 sm:px-8">
-      <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full bg-public-card px-2 py-2 shadow-public sm:px-4">
+      <div className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full px-2 py-2 sm:px-4">
         <Link href="/" className="pl-2" aria-label="Releva">
           <Logo />
         </Link>

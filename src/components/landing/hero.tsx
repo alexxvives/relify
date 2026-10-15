@@ -51,8 +51,16 @@ export function Hero() {
   return (
     <section aria-labelledby="inicio" className="releva-hero releva-hero-sky" onPointerLeave={() => setOpen(false)}>
       <div className="releva-city-frame" aria-hidden="true">
-        <Image src="/hero/city.png" alt="" width={1536} height={1024} priority className="h-full w-full object-fill" />
-        <Image src="/hero/city-teal.png" alt="" width={1536} height={1024} className={`releva-city-teal h-full w-full object-fill ${open ? "releva-city-teal-on" : ""}`} />
+        <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
+        <Image
+          src="/hero/city-lit.png"
+          alt=""
+          width={1536}
+          height={1024}
+          unoptimized
+          className="h-full w-full object-cover transition-opacity duration-300"
+          style={{ opacity: open ? 1 : 0 }}
+        />
         <button
         type="button"
         className="releva-city-spot"

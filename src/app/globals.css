@@ -460,20 +460,29 @@
 }
 
 .releva-hero-sky {
-  min-height: 46rem;
-  padding-top: 3.25rem;
-  padding-bottom: 2rem;
+  width: 100%;
+  min-height: calc(100svh + 6.5rem);
+  margin: -6.25rem 0 0;
+  padding: 8rem 1.25rem 2rem;
+  border: 0;
+  border-radius: 0;
   background: #e7eeef;
+  box-shadow: none;
+}
+
+.releva-menu {
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: rgb(255 255 255 / 0.22);
+  box-shadow: 0 10px 40px rgb(18 52 58 / 0.08);
+  backdrop-filter: blur(22px) saturate(1.7);
 }
 
 .releva-city-frame {
   position: absolute;
   z-index: 0;
-  top: 42%;
-  left: 50%;
-  width: 168%;
-  aspect-ratio: 1536 / 1024;
-  transform: translate(-50%, -42%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -497,10 +506,10 @@
 .releva-city-spot {
   position: absolute;
   z-index: 2;
-  top: 41.3%;
-  left: 34.8%;
-  width: 12.4%;
-  height: 20%;
+  top: 46%;
+  left: 36%;
+  width: 16%;
+  height: 24%;
   pointer-events: auto;
   background: transparent;
 }
@@ -516,10 +525,11 @@
 }
 
 .releva-slab {
-  position: absolute;
-  z-index: 6;
-  right: 1.25rem;
-  bottom: 1.25rem;
+  position: fixed;
+  z-index: 30;
+  top: 7.5rem;
+  right: 1.5rem;
+  bottom: auto;
   width: min(100% - 2rem, 18rem);
   min-height: 28rem;
   transform: perspective(900px) rotateY(-12deg) rotateX(5deg);
@@ -1541,6 +1551,13 @@
     margin-inline: 1.25rem;
     padding: 4.5rem 2.5rem 5rem;
   }
+
+  .releva-hero-sky {
+    margin: -6.5rem 0 0;
+    padding: 8.5rem 2.5rem 2rem;
+    border: 0;
+    border-radius: 0;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -1549,7 +1566,10 @@
   }
 
   .releva-hero-sky {
-    padding-top: 4.25rem;
+    margin-top: -6.5rem;
+    padding: 8.5rem 2.5rem 2rem;
+    border: 0;
+    border-radius: 0;
   }
 
   .releva-city-row {
