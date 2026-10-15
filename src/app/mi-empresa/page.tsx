@@ -46,15 +46,15 @@ export default async function CompanyPage({
 
   const projectId = await activeSellerProjectId(user.id);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [listing, interests, questions, meetings, notifications, overview, messages] = await Promise.all([
-    getSellerListing(user.id),
-    prisma.projectAccess.count({ where: { project: projectScope } }),
-    prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
-    prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
-    listNotifications(user.id),
-    getSellerOverview(user.id),
-    listProjectMessages(user, null),
-  ]);
+  const listing = await getSellerListing(user.id);
+  const interests = await prisma.projectAccess.count({ where: { project: projectScope } });
+  const questions = await prisma.projectMessage.count({
+    where: { project: projectScope, author: "investor", kind: "question" },
+  });
+  const meetings = await prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } });
+  const notifications = await listNotifications(user.id);
+  const overview = await getSellerOverview(user.id);
+  const messages = await listProjectMessages(user, null);
 
   return (
     <SignedInPage title={sellerGreeting(user.displayName)}>
