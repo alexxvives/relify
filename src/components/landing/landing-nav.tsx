@@ -35,6 +35,12 @@ export function LandingNav() {
             </div>
           </div>
         ))}
+        <Link
+          href={landingCopy.waitlistNav.href}
+          className="rounded-full px-3 py-2 text-[15px] text-public-ink hover:bg-public-sand"
+        >
+          {landingCopy.waitlistNav.label}
+        </Link>
       </nav>
       <button
         type="button"
@@ -62,6 +68,13 @@ export function LandingNav() {
               ))}
             </div>
           ))}
+          <Link
+            href={landingCopy.waitlistNav.href}
+            className="block rounded-2xl px-2 py-3 text-sm font-medium hover:bg-public-sand"
+            onClick={() => setMobile(false)}
+          >
+            {landingCopy.waitlistNav.label}
+          </Link>
           <Link
             href="/proyectos"
             className="block rounded-2xl px-2 py-3 text-sm hover:bg-public-sand"

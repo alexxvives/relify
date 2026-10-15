@@ -28,21 +28,8 @@ export const landingCopy = {
       label: "Asesores",
       links: [{ label: "Publicar un mandato", href: "/asesores/mandatos" }],
     },
-    {
-      label: "Recursos",
-      links: [
-        { label: "Casos", href: "/recursos/casos" },
-        { label: "Actividad", href: "/recursos/actividad" },
-      ],
-    },
-    {
-      label: "Sobre Releva",
-      links: [
-        { label: "Misión", href: "/sobre" },
-        { label: "El mapa", href: "/sobre/mapa" },
-      ],
-    },
   ],
+  waitlistNav: { label: "Lista de espera", href: "/lista-de-espera" },
   stats: [
     { value: 25000, label: "Usuarios en busca de oportunidades de compraventa" },
     { value: 3000, label: "Empresas verificadas en venta" },
@@ -149,17 +136,12 @@ export const landingCopy = {
         links: [
           { label: "Entrar en la plataforma", href: "/entrar" },
           { label: "Crear cuenta", href: "/registro" },
-          { label: "Sobre Releva", href: "/sobre" },
+          { label: "Lista de espera", href: "/lista-de-espera" },
         ],
       },
       {
         title: "Recursos",
-        links: [
-          { label: "Diario", href: "/blog" },
-          { label: "Casos", href: "/recursos/casos" },
-          { label: "Actividad", href: "/recursos/actividad" },
-          { label: "Mapa", href: "/sobre/mapa" },
-        ],
+        links: [{ label: "Diario", href: "/blog" }],
       },
       {
         title: "Soporte",

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { BuyerMark } from "@/components/landing/buyer-mark";
+import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { landingCopy } from "@/lib/landing-copy";
 
 type BuyerId = (typeof landingCopy.home.buyers)[number]["id"];
@@ -52,7 +52,7 @@ function Network() {
     id: person.id,
     d: arc(hub, place[person.id], index % 2 === 0 ? 28 : -28),
     delay: `${index * 0.38}s`,
-    dur: `${3.1 + (index % 3) * 0.45}s`,
+    dur: `${6.4 + (index % 3) * 0.7}s`,
   }));
   const rim = ring.map(([fromId, toId]) => ({
     id: `${fromId}-${toId}`,
@@ -83,7 +83,7 @@ function Network() {
           ))}
           {spokes.map((link) => (
             <circle key={`${link.id}-pulse`} r="4.2" fill="#e7fffc" filter="url(#releva-net-glow)">
-              <animateMotion dur={link.dur} begin={link.delay} repeatCount="indefinite">
+              <animateMotion dur={link.dur} begin={link.delay} repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.42 0 0.2 1">
                 <mpath href={`#releva-spoke-${link.id}`} />
               </animateMotion>
             </circle>
@@ -95,12 +95,12 @@ function Network() {
           </span>
           <span className="releva-node-label">Tu empresa</span>
         </div>
-        {people.map((person, index) => {
+        {people.map((person) => {
           const spot = place[person.id];
           return (
             <div key={person.id} className="releva-node" style={{ left: `${(spot.x / board.w) * 100}%`, top: `${(spot.y / board.h) * 100}%` }}>
               <span className="releva-node-photo">
-                <BuyerMark tone={index} />
+                <img src={gazeAvatarUrl(person.id)} alt="" width={64} height={64} className="size-full object-cover" />
               </span>
               <span className="releva-node-label">{person.city}</span>
               <span className="releva-node-seek">{person.seek}</span>
@@ -126,10 +126,10 @@ function NetworkList() {
           <span className="block text-sm text-white/70">La que pones a la venta</span>
         </span>
       </li>
-      {people.map((person, index) => (
+      {people.map((person) => (
         <li key={person.id} className="flex items-center gap-3 rounded-2xl bg-public-card p-3 shadow-public">
           <span className="grid size-11 shrink-0 overflow-hidden rounded-full">
-            <BuyerMark tone={index} />
+            <img src={gazeAvatarUrl(person.id)} alt="" width={44} height={44} className="size-full object-cover" />
           </span>
           <span className="min-w-0">
             <span className="block font-medium">{person.city}</span>

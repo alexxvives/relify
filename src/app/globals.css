@@ -480,11 +480,20 @@
   overflow: hidden;
   border-radius: 1.85rem;
   background:
-    radial-gradient(520px 340px at 50% 48%, rgb(15 110 115 / 0.55), transparent 68%),
-    radial-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1px),
-    linear-gradient(165deg, #18464d 0%, #102e33 58%, #0c3a3c 100%);
-  background-size: auto, 22px 22px, auto;
+    radial-gradient(ellipse 70% 55% at 50% 46%, rgb(150 230 220 / 0.28), transparent 62%),
+    radial-gradient(ellipse 42% 36% at 12% 88%, rgb(12 70 78 / 0.85), transparent 70%),
+    radial-gradient(ellipse 36% 30% at 92% 8%, rgb(255 255 255 / 0.12), transparent 68%),
+    linear-gradient(168deg, #123f48 0%, #0b242b 46%, #07181d 100%);
   box-shadow: var(--public-shadow);
+}
+
+.releva-net::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 50% 50%, rgb(126 208 203 / 0.16), transparent 46%);
+  animation: releva-net-glow 9s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .releva-net-field {
@@ -581,7 +590,7 @@
   stroke: rgb(214 255 250 / 0.95);
   stroke-width: 1.6;
   stroke-dasharray: 8 22;
-  animation: releva-net-flow 7s linear infinite;
+  animation: releva-net-flow 9.5s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
 }
 
 .releva-net-pin {
@@ -1263,7 +1272,34 @@
 
 @keyframes releva-net-flow {
   to {
-    stroke-dashoffset: -48;
+    stroke-dashoffset: -60;
+  }
+}
+
+@keyframes releva-net-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.releva-seat {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid rgb(255 255 255 / 0.75);
+  border-radius: 999px;
+  animation: releva-seat-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes releva-seat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.92);
   }
 }
 
