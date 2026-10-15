@@ -6,6 +6,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
+- Below "Vende tu negocio / en 120 días" sits the same call with a raised map: an island, isometric buildings, trees, city pins, and a dot traveling the road.
 - The home hero is an original skyline. Hovering a teal building lights that block and fills the tall card on the right: facturación chart, EBITDA, and precio. The heading speaks to buying and selling, with Ver empresas and Vender la tuya. `npm run typecheck` and `npm run lint` exited 0.
 - The public menu explains each role: Empresas links to vender, qué se ve, and confidencialidad; Inversores links to the catalog, cómo comprar, and qué cuesta; Asesores links to trae un mandato, servicios, and cómo cobras. Each page is a short Costa explanation. "Vende tu negocio / en 120 días" draws solid lines and a traveling dot. The center is a circle that says Tu empresa. The cities are dots, without portraits or a company photo.
 - `/lista-de-espera` is a public Costa page in the header as its own link, and in the footer. It asks for empresa, inversor, or asesor, plus name, email, and an optional city, and stores the row in `waitlist_entry`. The header no longer lists Sobre Releva or Recursos. Those routes stay on disk. "Vende tu negocio / en 120 días" uses a softer field and a Gaze portrait per city.
@@ -49,6 +50,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Verified
 
+- After the relief map under the 120-day call, `npm run typecheck` exited 0 and `npm run lint` exited 0. `/` shows two "Vende tu negocio en 120 días" sections. The second draws the island, four buildings, Madrid, Barcelona, Valencia, and Sevilla.
 - After the role pages and the solid 120-day network, `npm run typecheck` exited 0 and `npm run lint` exited 0. `/empresas/vender`, `/empresas/que-se-ve`, `/empresas/confidencialidad`, `/inversores/como-comprar`, `/inversores/planes`, `/asesores/mandatos`, `/asesores/servicios`, and `/asesores/cobros` returned 200. `/empresas/que-se-ve` shows the three steps and Cómo vender. On `/` the 120-day board has 10 traveling dots, no dashed stroke, no images, and the center reads Tu empresa.
 - After the waitlist page, the menu trim, and the 120-day portraits, `npm run typecheck` exited 0 and `npm run lint` exited 0. `npm run test -- src/lib/waitlist.test.ts` exited 0 (2 tests). On `/lista-de-espera` the header shows Lista de espera beside Empresas, Inversores, and Asesores, and does not show Sobre Releva or Recursos. Submitting a company seat while Postgres was stopped showed the save failure. On `/` the 120-day network loads a different Gaze portrait per city. The waitlist migration was not applied: Docker was not running.
 - After loading DM Sans at 400, 500, 600, and 700, `npm run typecheck` exited 0 and `npm run lint` exited 0. On `/admin/facturacion`, the body is DM Sans and Suscripciones plus 71,39 € are DM Sans SemiBold.
