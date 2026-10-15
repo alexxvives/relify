@@ -61,4 +61,7 @@ export const auth: Auth = new Proxy({} as Auth, {
     }
     return value;
   },
+  has(_target, property) {
+    return property in getAuth();
+  },
 });
