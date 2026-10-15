@@ -510,24 +510,34 @@
 }
 
 .releva-node-hub {
-  width: 11.4%;
+  width: 6.5rem;
 }
 
-.releva-node-photo {
-  position: relative;
-  display: grid;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border: 2px solid rgb(255 255 255 / 0.88);
+.releva-node-orb {
+  display: block;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-inline: auto;
+  border: 2px solid #fff;
   border-radius: 999px;
-  box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.7);
+  background: #e7fffc;
+  box-shadow: 0 0 0 6px rgb(126 208 203 / 0.22);
 }
 
-.releva-node-hub .releva-node-photo {
-  border-width: 3px;
+.releva-node-orb-hub {
+  display: grid;
+  width: 5.6rem;
+  height: 5.6rem;
+  place-items: center;
+  background: var(--public-clay);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-align: center;
   box-shadow:
-    0 0 0 6px rgb(126 208 203 / 0.28),
-    0 16px 30px -16px rgb(0 0 0 / 0.65);
+    0 0 0 8px rgb(126 208 203 / 0.22),
+    0 16px 30px -16px rgb(0 0 0 / 0.55);
 }
 
 .releva-node-label,
@@ -557,8 +567,7 @@
 }
 
 .releva-node-hub .releva-node-label {
-  top: calc(100% + 0.95rem);
-  font-size: clamp(12px, 1.2vw, 16px);
+  display: none;
 }
 
 .releva-net-lines {
@@ -586,11 +595,9 @@
   stroke-width: 1.1;
 }
 
-.releva-net-dash {
-  stroke: rgb(214 255 250 / 0.95);
-  stroke-width: 1.6;
-  stroke-dasharray: 8 22;
-  animation: releva-net-flow 9.5s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
+.releva-net-line {
+  stroke: rgb(214 255 250 / 0.72);
+  stroke-width: 1.5;
 }
 
 .releva-net-pin {

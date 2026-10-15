@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
-import { MarketingPlaceholder } from "@/components/marketing-placeholder";
+import { AudiencePage } from "@/components/landing/audience-page";
 
-export const metadata: Metadata = {
-  title: "Vender una empresa",
-  robots: { index: false, follow: false },
-};
+const title = "Vender una empresa";
+const description = "Publicas la pyme con un nombre de proyecto. Quien compra ve las cifras, no la sociedad.";
+
+export const metadata: Metadata = { title, description, robots: { index: false, follow: false } };
 
 export default function VenderEmpresaPage() {
   return (
-    <MarketingPlaceholder
-      title="Vender una empresa"
-      description="Esta página está en preparación. Desde aquí se explicará cómo publicar una compañía sin mostrar la razón social."
+    <AudiencePage
+      eyebrow="Empresas"
+      title={title}
+      lead={description}
+      cta={{ href: "/lista-de-espera", label: "Apuntar mi empresa" }}
+      note="La primera empresa publicada no tiene cuota de anuncio. Cada empresa siguiente son 149 € más IVA, una sola vez, y queda pendiente hasta que se revise."
+      steps={[
+        { title: "Cuatro datos para empezar", body: "Región, facturación, EBITDA y precio. El nombre de la sociedad y el CIF se quedan en el borrador." },
+        { title: "Sale un nombre de proyecto", body: "En el catálogo aparece Proyecto Alba, no la razón social. La ficha muestra las cifras y la región." },
+        { title: "El interés entra en la operación", body: "Cuando aceptas a un comprador, el acuerdo se firma antes de abrir el detalle." },
+      ]}
     />
   );
 }

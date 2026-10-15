@@ -14,6 +14,7 @@ export const landingCopy = {
       label: "Empresas",
       links: [
         { label: "Vender una empresa", href: "/empresas/vender" },
+        { label: "Qué se ve", href: "/empresas/que-se-ve" },
         { label: "Confidencialidad", href: "/empresas/confidencialidad" },
       ],
     },
@@ -22,11 +23,16 @@ export const landingCopy = {
       links: [
         { label: "Empresas en venta", href: "/proyectos" },
         { label: "Cómo comprar", href: "/inversores/como-comprar" },
+        { label: "Qué cuesta", href: "/inversores/planes" },
       ],
     },
     {
       label: "Asesores",
-      links: [{ label: "Publicar un mandato", href: "/asesores/mandatos" }],
+      links: [
+        { label: "Trae un mandato", href: "/asesores/mandatos" },
+        { label: "Servicios", href: "/asesores/servicios" },
+        { label: "Cómo cobras", href: "/asesores/cobros" },
+      ],
     },
   ],
   waitlistNav: { label: "Lista de espera", href: "/lista-de-espera" },
@@ -128,7 +134,7 @@ export const landingCopy = {
         links: [
           { label: "Vender una empresa", href: "/empresas/vender" },
           { label: "Empresas en venta", href: "/proyectos" },
-          { label: "Asesores", href: "/asesores/mandatos" },
+          { label: "Trae un mandato", href: "/asesores/mandatos" },
         ],
       },
       {

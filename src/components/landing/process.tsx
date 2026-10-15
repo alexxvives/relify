@@ -1,7 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { landingCopy } from "@/lib/landing-copy";
 
 type BuyerId = (typeof landingCopy.home.buyers)[number]["id"];
@@ -76,10 +74,7 @@ function Network() {
             <path key={link.id} d={link.d} className="releva-net-rim" />
           ))}
           {spokes.map((link) => (
-            <path key={`${link.id}-base`} d={link.d} className="releva-net-line" />
-          ))}
-          {spokes.map((link) => (
-            <path key={`${link.id}-dash`} id={`releva-spoke-${link.id}`} d={link.d} className="releva-net-dash" style={{ animationDelay: link.delay }} />
+            <path key={`${link.id}-base`} id={`releva-spoke-${link.id}`} d={link.d} className="releva-net-line" />
           ))}
           {spokes.map((link) => (
             <circle key={`${link.id}-pulse`} r="4.2" fill="#e7fffc" filter="url(#releva-net-glow)">
@@ -90,18 +85,13 @@ function Network() {
           ))}
         </svg>
         <div className="releva-node releva-node-hub" style={{ left: `${(hub.x / board.w) * 100}%`, top: `${(hub.y / board.h) * 100}%` }}>
-          <span className="releva-node-photo relative">
-            <Image src="/pymes/pyme-obrador.jpg" alt="" fill className="object-cover" sizes="120px" />
-          </span>
-          <span className="releva-node-label">Tu empresa</span>
+          <span className="releva-node-orb releva-node-orb-hub">Tu empresa</span>
         </div>
         {people.map((person) => {
           const spot = place[person.id];
           return (
             <div key={person.id} className="releva-node" style={{ left: `${(spot.x / board.w) * 100}%`, top: `${(spot.y / board.h) * 100}%` }}>
-              <span className="releva-node-photo">
-                <img src={gazeAvatarUrl(person.id)} alt="" width={64} height={64} className="size-full object-cover" />
-              </span>
+              <span className="releva-node-orb" />
               <span className="releva-node-label">{person.city}</span>
               <span className="releva-node-seek">{person.seek}</span>
             </div>
@@ -118,9 +108,7 @@ function NetworkList() {
   return (
     <ul className="mt-8 grid grid-cols-2 gap-3 sm:hidden">
       <li className="col-span-2 flex items-center gap-3 rounded-2xl bg-public-ink p-3 text-white">
-        <span className="relative size-14 shrink-0 overflow-hidden rounded-full">
-          <Image src="/pymes/pyme-obrador.jpg" alt="" fill className="object-cover" sizes="56px" />
-        </span>
+        <span className="grid size-14 shrink-0 place-items-center rounded-full bg-public-clay text-center text-xs leading-4 text-white">Tu empresa</span>
         <span>
           <span className="block font-medium">Tu empresa</span>
           <span className="block text-sm text-white/70">La que pones a la venta</span>
@@ -128,9 +116,7 @@ function NetworkList() {
       </li>
       {people.map((person) => (
         <li key={person.id} className="flex items-center gap-3 rounded-2xl bg-public-card p-3 shadow-public">
-          <span className="grid size-11 shrink-0 overflow-hidden rounded-full">
-            <img src={gazeAvatarUrl(person.id)} alt="" width={44} height={44} className="size-full object-cover" />
-          </span>
+          <span className="size-3 shrink-0 rounded-full bg-public-clay" />
           <span className="min-w-0">
             <span className="block font-medium">{person.city}</span>
             <span className="block text-sm text-public-clay">{person.seek}</span>
