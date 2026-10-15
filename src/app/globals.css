@@ -467,10 +467,49 @@
     linear-gradient(180deg, #f7fbfb 0%, #e7f3f2 55%, #d5ebe8 100%);
 }
 
+.releva-city-row {
+  display: grid;
+  align-items: end;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
 .releva-city {
   position: relative;
-  margin-top: 0.5rem;
-  width: 100%;
+  min-width: 0;
+}
+
+.releva-tower-shine {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.releva-tower-lit .releva-tower-shine {
+  opacity: 1;
+}
+
+.releva-slab {
+  width: min(100%, 18rem);
+  min-height: 28rem;
+  justify-self: center;
+  transform: perspective(900px) rotateY(-12deg) rotateX(5deg);
+  transform-origin: right center;
+  border-radius: 1.5rem;
+  background: linear-gradient(165deg, #14918c 0%, #0c3f42 46%, #e07a3d 140%);
+  padding: 1.15rem 1rem 1rem;
+  color: white;
+  box-shadow:
+    18px 28px 40px -18px rgb(12 40 44 / 0.45),
+    10px 14px 0 rgb(15 110 115 / 0.16);
+}
+
+.releva-slab-body {
+  margin-top: 1.1rem;
+  border-radius: 1.1rem;
+  background: #fff;
+  padding: 0.95rem 0.9rem 0.8rem;
+  color: var(--public-ink);
 }
 
 .releva-city-pin {
@@ -524,6 +563,33 @@
 
 .completion-grow {
   animation: completion-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.releva-relief {
+  overflow: hidden;
+  border-radius: 1.85rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 42%, rgb(255 255 255 / 0.16), transparent 70%),
+    linear-gradient(165deg, #14959a 0%, #0c5c62 55%, #083f44 100%);
+  box-shadow: var(--public-shadow);
+}
+
+.releva-relief-pin {
+  animation: releva-relief-bob 3.4s ease-in-out infinite;
+}
+
+.releva-relief-pin:nth-child(odd) {
+  animation-delay: -1.2s;
+}
+
+@keyframes releva-relief-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .releva-net {
@@ -1455,6 +1521,11 @@
 
   .releva-hero-city {
     padding-top: 4.25rem;
+  }
+
+  .releva-city-row {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    margin-right: 1rem;
   }
 }
 
