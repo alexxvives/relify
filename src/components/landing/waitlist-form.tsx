@@ -18,8 +18,61 @@ const seats = ["alba", "nube", "cala", "duna", "bruma", "olivo", "roble", "faro"
 
 const initial: WaitlistState = { status: "idle" };
 
-export function WaitlistForm() {
+export function WaitlistBoard() {
   const [role, setRole] = useState<Role>("company");
+  return (
+    <>
+      <div className="mx-auto grid w-full max-w-[1440px] items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
+        <div>
+          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{waitlistCopy.kicker}</p>
+          <h1 className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">{waitlistCopy.heading}</h1>
+          <p className="mt-5 max-w-xl text-[16px] leading-7 text-public-muted">{waitlistCopy.body}</p>
+        </div>
+        <WaitlistForm role={role} onRole={setRole} />
+      </div>
+      <div className="mx-auto mt-14 grid w-full max-w-[1440px] gap-6">
+        <section className="rounded-[2rem] bg-public-card p-5 shadow-public sm:p-8" aria-label="Tres puertas">
+          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">Tres puertas</p>
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            {waitlistCopy.roles.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setRole(item.id)}
+                className={`rounded-[1.4rem] px-5 py-8 text-left ${role === item.id ? "bg-public-ink text-white" : "bg-[#f4f1ea]"}`}
+              >
+                <p className="text-2xl tracking-tight">{item.label}</p>
+                <p className={`mt-2 text-sm ${role === item.id ? "text-white/70" : "text-public-muted"}`}>{item.line}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="rounded-[2rem] bg-public-card p-5 shadow-public sm:p-8" aria-label="Qué pasa al apuntarte">
+          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">Qué pasa al apuntarte</p>
+          <ol className="mt-6 grid gap-3 md:grid-cols-3">
+            {[
+              { title: "Empresa", body: "Te avisamos para publicar.", live: role === "company" },
+              { title: "Inversor", body: "Te avisamos para leer el catálogo.", live: role === "investor" },
+              { title: "Asesor", body: "Te avisamos para traer un mandato.", live: role === "advisor" },
+            ].map((item, index) => (
+              <li key={item.title} className={`rounded-[1.4rem] px-5 py-6 ${item.live ? "bg-public-ink text-white" : "bg-[#f4f1ea]"}`}>
+                <p className={`text-xs tracking-[0.14em] uppercase ${item.live ? "text-white/50" : "text-public-muted"}`}>{String(index + 1).padStart(2, "0")}</p>
+                <p className="mt-3 text-xl tracking-tight">{item.title}</p>
+                <p className={`mt-2 text-sm leading-6 ${item.live ? "text-white/70" : "text-public-muted"}`}>{item.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="rounded-[2rem] bg-public-card p-5 shadow-public sm:p-8" aria-label="Qué no pedimos">
+          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">Qué no pedimos</p>
+          <p className="mt-6 rounded-[1.2rem] bg-public-ink px-6 py-6 text-lg text-white">Ni razón social, ni CIF, ni documentos.</p>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export function WaitlistForm({ role, onRole }: { role: Role; onRole: (role: Role) => void }) {
   const [state, action, pending] = useActionState(joinWaitlistAction, initial);
 
   if (state.status === "ok") {
@@ -59,7 +112,7 @@ export function WaitlistForm() {
                   value={item.id}
                   checked={selected}
                   className="mt-1"
-                  onChange={() => setRole(item.id)}
+                  onChange={() => onRole(item.id)}
                 />
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-public-ink text-white">
                   <Icon className="size-4" aria-hidden="true" />

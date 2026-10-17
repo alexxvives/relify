@@ -16,8 +16,8 @@ export const waitlistCopy = {
   description:
     "Apúntate a la lista de espera de Releva. Empresas, inversores y asesores entran juntos para que el primer día ya haya con quién hablar.",
   kicker: "Lista de espera",
-  heading: "El mercado arranca cuando ya hay gente dentro",
-  body: "Una compraventa vacía no sirve. Deja tu sitio y te avisamos cuando toque entrar: empresas que quieren vender, inversores que buscan, y asesores con mandato.",
+  heading: "Entra antes de que el mercado esté lleno",
+  body: "Elige una puerta. Te avisamos para publicar, para leer el catálogo o para traer un mandato.",
   roles: [
     {
       id: "company" as const,
