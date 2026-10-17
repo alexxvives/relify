@@ -10,41 +10,32 @@ import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
 import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
 
-const stepLabel: Record<AdvisorStep, { label: string; color: string }> = {
-  request: { label: advisorCopy.stepRequest, color: "#c5cce0" },
-  deposit: { label: advisorCopy.stepDeposit, color: "#465ab4" },
-  nda: { label: advisorCopy.stepNda, color: "#1c2740" },
-  active: { label: advisorCopy.stepActive, color: "#7c8ec4" },
-  closed: { label: advisorCopy.stepClosed, color: "#17663a" },
+const stepLabel: Record<AdvisorStep, string> = {
+  request: advisorCopy.stepRequest,
+  deposit: advisorCopy.stepDeposit,
+  nda: advisorCopy.stepNda,
+  active: advisorCopy.stepActive,
+  closed: advisorCopy.stepClosed,
 };
 
-function StepChart({
+function StepCards({
   rows,
 }: {
-  rows: { label: string; value: number; href: string; color: string }[];
+  rows: { label: string; value: number; href: string }[];
 }) {
-  const max = Math.max(...rows.map((row) => row.value), 1);
-
   return (
     <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {rows.map((row) => {
-        const height = row.value === 0 ? 10 : Math.max(28, Math.round((row.value / max) * 96));
-
-        return (
-          <li key={row.label}>
-            <Link
-              href={row.href}
-              className="flex h-full flex-col rounded-2xl border border-[#eef0f3] bg-[#f7f8fb] px-3 pt-3 pb-3 hover:border-[#465ab4]"
-            >
-              <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</span>
-              <span className="mt-1 text-sm text-[#3d4a63]">{row.label}</span>
-              <span className="mt-4 flex h-24 items-end">
-                <span className="block w-full rounded-lg" style={{ height, backgroundColor: row.color }} />
-              </span>
-            </Link>
-          </li>
-        );
-      })}
+      {rows.map((row) => (
+        <li key={row.label}>
+          <Link
+            href={row.href}
+            className="flex h-full flex-col rounded-2xl border border-[#eef0f3] bg-[#f7f8fb] px-4 py-4 hover:border-[#465ab4]"
+          >
+            <span className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</span>
+            <span className="mt-2 text-sm text-[#3d4a63]">{row.label}</span>
+          </Link>
+        </li>
+      ))}
     </ul>
   );
 }
@@ -81,10 +72,9 @@ export function AdvisorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <PendingActions items={pending} empty={advisorCopy.pendingEmpty} columns={4} />
-      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
+        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {stats.map((item) => (
             <li key={item.label}>
@@ -97,14 +87,13 @@ export function AdvisorHome({
         </ul>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
-          <StepChart
+          <StepCards
             rows={desk.steps
               .filter((step) => step.step !== "request")
               .map((step) => ({
-                label: stepLabel[step.step].label,
+                label: stepLabel[step.step],
                 value: step.count,
                 href: step.href,
-                color: stepLabel[step.step].color,
               }))}
           />
         </section>
@@ -131,7 +120,7 @@ export function AdvisorHome({
           </ul>
         </section>
       </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex h-full flex-col gap-6">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
             {advisorCopy.profileTitle}
@@ -163,7 +152,7 @@ export function AdvisorHome({
             })}
           </ul>
         </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.notificationsTitle}</h2>
             <OpenNoticeList label={advisorCopy.seeAll} />
@@ -174,10 +163,9 @@ export function AdvisorHome({
               <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
             </div>
           ) : (
-            <NoticeList items={notifications} limit={3} />
+            <NoticeList items={notifications} scroll />
           )}
         </section>
-      </div>
       </div>
     </div>
   );

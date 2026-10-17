@@ -206,26 +206,24 @@ export function AccountSettings({
       <section className="rounded-2xl border border-[#f0c2c2] bg-white p-5">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
-        <form action={deleteAccount} className="mt-4 flex flex-col gap-4">
+        <form action={deleteAccount} className="mt-4 grid min-w-0 items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
           <label className="flex flex-col gap-2 text-sm font-medium">
             {authCopy.deleteConfirmLabel}
             <input name="confirm" autoComplete="off" required className={fieldClassName} />
           </label>
+          <button
+            type="submit"
+            disabled={deletePending}
+            className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#c0362c] px-4 text-base font-medium text-white disabled:opacity-60"
+          >
+            {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
+          </button>
           {deleteState ? (
-            <p role="alert" className="text-sm text-[#c0362c]">
+            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-3">
               {deleteState.message}
             </p>
           ) : null}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={deletePending}
-              className="inline-flex h-11 items-center rounded-[14px] bg-[#c0362c] px-4 text-base font-medium text-white disabled:opacity-60"
-            >
-              {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
-            </button>
-          </div>
         </form>
       </section>
     </div>

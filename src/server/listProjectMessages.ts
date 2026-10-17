@@ -2,7 +2,7 @@ import { filesWithBytes, sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
-import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
+import { investorFromPlace, labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -51,7 +51,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
       return { viewer: "seller", threads: [], counts: emptyCounts };
     }
 
-    const [accesses, messages, files, grants, shares, fees] = await Promise.all([
+    const [accesses, messages, files, grants, shares, fees, hired] = await Promise.all([
       prisma.projectAccess.findMany({
         where: { projectId: { in: ids } },
         select: {
@@ -88,12 +88,17 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         where: { projectId: { in: ids } },
         select: { projectId: true },
       }),
+      prisma.advisoryEngagement.findMany({
+        where: { projectId: { in: ids }, advisorId: { not: null }, depositPaidAt: { not: null }, declinedAt: null },
+        select: { projectId: true },
+      }),
     ]);
     const labeled = labelAccesses(accesses);
     const open = labeled.filter((access) => access.sellerAcceptedAt !== null && access.ndaAcceptedAt !== null);
     const openKey = new Set(open.map((access) => `${access.projectId}:${access.investorId}`));
     const visibleMessages = messages.filter((message) => openKey.has(`${message.projectId}:${message.investorId}`));
     const closedProjects = new Set(fees.map((fee) => fee.projectId));
+    const hiredProjects = new Set(hired.map((row) => row.projectId));
     const investorIds = [...new Set(labeled.map((access) => access.investorId))];
     const people =
       investorIds.length === 0
@@ -111,13 +116,15 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           ? visibleMessages.filter((message) => message.projectId === access.projectId && message.investorId === access.investorId)
           : [];
 
+      const profile = profileById.get(access.investorId) ?? null;
+
       return {
         accessId: access.id,
         slug: slugById.get(access.projectId) ?? "",
         codename: codenameById.get(access.projectId) ?? "",
-        label: access.label,
+        label: investorFromPlace(profile?.place ?? ""),
         stage,
-        profile: profileById.get(access.investorId) ?? null,
+        profile,
         partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
         messages: threadMessages.map((message) =>
           toThreadMessage({
@@ -162,6 +169,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
                   })),
               )
             : [],
+        advisorHired: hiredProjects.has(access.projectId),
       };
     });
 
@@ -278,6 +286,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           }),
         ),
         documents,
+        advisorHired: false,
       },
     ],
     counts: countsFor(messages, access?.ndaAcceptedAt ? 1 : 0),

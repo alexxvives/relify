@@ -15,6 +15,7 @@ const investorKeys = [
   "opexCents",
   "region",
   "revenueCents",
+  "saleReason",
   "slug",
   "years",
 ] as const;
@@ -51,6 +52,7 @@ describe("toInvestorProject", () => {
       region: "Comunitat Valenciana",
       foundedYear: 1998,
       description: "Mayorista de bebidas.",
+      saleReason: "jubilacion",
       revenueCents: 125_000_000,
       ebitdaCents: 31_000_000,
       adjustedEbitdaCents: 34_000_000,

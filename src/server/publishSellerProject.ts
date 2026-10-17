@@ -44,7 +44,7 @@ export async function publishSellerProject(user: CurrentUser): Promise<SellerPub
   const project = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: user.id },
-        select: { id: true, status: true, listingPayment: { select: { id: true } } },
+        select: { id: true, status: true, ebitdaCents: true, listingPayment: { select: { id: true } } },
       })
     : null;
   const liveCompanyCount = await prisma.project.count({
@@ -57,6 +57,14 @@ export async function publishSellerProject(user: CurrentUser): Promise<SellerPub
     liveCompanyCount,
     paid: project?.listingPayment !== null && project?.listingPayment !== undefined,
   });
+
+  if (project && project.ebitdaCents <= 0) {
+    return {
+      ok: false,
+      message:
+        "El EBITDA tiene que ser positivo para publicar. Un resultado de explotación negativo no entra en el catálogo: la ficha se ordena por lo que el negocio gana, y un EBITDA cero o negativo no deja calcular ese plazo.",
+    };
+  }
 
   if (!outcome.ok || !project) {
     if (!outcome.ok && outcome.code === "payment" && project) {

@@ -18,6 +18,32 @@ import {
 } from "./company-profile";
 import { isCnaeCode } from "./cnae-2009";
 
+export const saleReasons = [
+  "jubilacion",
+  "relevo",
+  "nuevo-proyecto",
+  "salud",
+  "separacion-socios",
+  "concentracion",
+  "liquidez",
+  "mercado",
+  "otro",
+] as const;
+
+export type SaleReason = (typeof saleReasons)[number];
+
+export const saleReasonLabels: Record<SaleReason, string> = {
+  jubilacion: "Jubilación",
+  relevo: "Falta de relevo",
+  "nuevo-proyecto": "Cambio de proyecto",
+  salud: "Salud",
+  "separacion-socios": "Socios que se separan",
+  concentracion: "Concentración en otro negocio",
+  liquidez: "Necesidad de liquidez",
+  mercado: "Oportunidad de mercado",
+  otro: "Otro",
+};
+
 const unsignedEuroPattern = /^\d{1,12}(,\d{1,2})?$/;
 const signedEuroPattern = /^-?\d{1,12}(,\d{1,2})?$/;
 
@@ -83,6 +109,7 @@ export const companyDraftSchema = z
       return /^\d{4}$/.test(value) && isFoundedYear(Number(value));
     }, "founded-year"),
     description: z.string().trim().max(descriptionMaxLength, "description"),
+    saleReason: z.union([z.literal(""), z.enum(saleReasons)]),
     principalCnae: z.string().trim(),
     secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count"),
     revenue: euroText,
@@ -254,6 +281,7 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     region: "",
     foundedYear: "",
     description: "",
+    saleReason: "",
     principalCnae: "",
     secondaryCnaes: [],
     revenue: "",

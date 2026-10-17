@@ -4,12 +4,15 @@ import { advisorCopy } from "@/lib/advisor-copy";
 import type { AdvisorProjectBoard } from "@/lib/advisor-processes";
 import { stepCue, type DealStep } from "@/lib/deal-pipeline";
 
-function hireLabel(board: AdvisorProjectBoard): string {
-  if (board.hiredBySeller && board.hiredByInvestor) {
-    return advisorCopy.processesBoth;
+function hireTags(board: AdvisorProjectBoard): string[] {
+  const tags: string[] = [];
+  if (board.hiredBySeller) {
+    tags.push(advisorCopy.hiredBySeller);
   }
-
-  return board.hiredBySeller ? advisorCopy.processesSeller : advisorCopy.processesInvestor;
+  if (board.hiredByInvestor) {
+    tags.push(advisorCopy.hiredByInvestor);
+  }
+  return tags;
 }
 
 function PendingMark({ children }: { children: string }) {
@@ -46,11 +49,15 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
                     {service}
                   </span>
                 ))}
+                {hireTags(board).map((tag) => (
+                  <span key={tag} className="rounded-full bg-[#f4f6f8] px-3 py-1 text-xs font-medium text-[#3d4a63]">
+                    {tag}
+                  </span>
+                ))}
                 {board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
                 {board.ndaPending ? <PendingMark>{advisorCopy.ndaToSign}</PendingMark> : null}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
-              <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{hireLabel(board)}</p>
             </div>
             <Link href={board.href} className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
               {advisorCopy.processesOpen}

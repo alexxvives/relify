@@ -75,7 +75,7 @@ export const engagementCopy = {
   depositDeclining: "Rechazando…",
   declinePaid: "El depósito ya está pagado.",
   declinedTitle: "Solicitud rechazada",
-  declinedBody: "El asesor ha rechazado el encargo de",
+  declinedBody: "Un asesor ha rechazado el encargo de",
   figuresNeedNda: "Firma tu NDA para ver estas cifras.",
   figuresNeedInvestor: "El inversor todavía no ha firmado el NDA.",
   depositPay: "Pagar depósito",

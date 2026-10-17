@@ -85,18 +85,21 @@ function ContactPanels({
   today,
   showDocuments,
   bare = false,
+  meetings = true,
 }: {
   contact: AdvisorContactView;
   today: string;
   showDocuments: boolean;
   bare?: boolean;
+  meetings?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
+  const open = meetings ? tab : "chat";
 
   return (
     <div className={bare ? "flex flex-col gap-4 px-5 py-5" : "flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5"}>
-      <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} />
-      {tab === "chat" ? (
+      {meetings ? <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} /> : null}
+      {open === "chat" ? (
         <div className={showDocuments ? "grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid min-w-0"}>
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
             <div className="flex flex-1 flex-col">
@@ -149,12 +152,14 @@ export function AdvisorContactDesk({
   showDocuments = true,
   allowRemove = false,
   pinned = false,
+  meetings = true,
 }: {
   contacts: AdvisorContactView[];
   today: string;
   showDocuments?: boolean;
   allowRemove?: boolean;
   pinned?: boolean;
+  meetings?: boolean;
 }) {
   const [openId, setOpenId] = useSessionString("releva:advisor-contact-open", contacts[0]?.id ?? "");
 
@@ -176,7 +181,7 @@ export function AdvisorContactDesk({
         if (pinned) {
           return (
             <section key={contact.id} className="rounded-2xl border border-[#e6e9f0] bg-white">
-              <ContactPanels contact={contact} today={today} showDocuments={showDocuments} bare />
+              <ContactPanels contact={contact} today={today} showDocuments={showDocuments} bare meetings={meetings} />
             </section>
           );
         }
@@ -201,7 +206,7 @@ export function AdvisorContactDesk({
               </button>
               {allowRemove ? <ContactDelete id={contact.id} /> : null}
             </div>
-            {open ? <ContactPanels contact={contact} today={today} showDocuments={showDocuments} /> : null}
+            {open ? <ContactPanels contact={contact} today={today} showDocuments={showDocuments} meetings={meetings} /> : null}
           </section>
         );
       })}

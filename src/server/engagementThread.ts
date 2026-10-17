@@ -101,6 +101,7 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
   projectId: string;
   codename: string;
   region: string;
+  slug: string;
   side: Side;
 } | null> {
   if (!user.onboarded) {
@@ -119,7 +120,7 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
       closedAt: true,
       declinedAt: true,
       projectId: true,
-      project: { select: { codename: true, region: true } },
+      project: { select: { codename: true, region: true, slug: true } },
     },
   });
 
@@ -150,6 +151,7 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
     projectId: row.projectId,
     codename: row.project.codename,
     region: row.project.region,
+    slug: row.project.slug,
     side,
   };
 }
@@ -161,6 +163,7 @@ function viewOf(
     services: string[];
     codename: string;
     region: string;
+    slug: string;
     side: Side;
   },
   messages: ThreadMessageView[],
@@ -170,6 +173,7 @@ function viewOf(
 
   return {
     id: row.id,
+    slug: row.slug,
     heading: row.side === "client" ? engagementCopy.advisorFallback : row.codename,
     detail: row.side === "client" ? `${row.codename} · ${row.region}` : row.region,
     services: serviceLabel(row.services),
@@ -219,7 +223,7 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
       services: true,
       projectId: true,
       requesterId: true,
-      project: { select: { codename: true, region: true } },
+      project: { select: { codename: true, region: true, slug: true } },
       messages: {
         orderBy: { createdAt: "asc" },
         select: { id: true, kind: true, body: true, author: true, createdAt: true },
@@ -238,6 +242,7 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
           services: row.services,
           codename: row.project.codename,
           region: row.project.region,
+          slug: row.project.slug,
           side: "client",
         },
         row.messages.map((message) =>
@@ -283,7 +288,7 @@ async function notifyOther(row: {
     userId: toAdvisor ? row.advisorId : row.requesterId,
     title: toAdvisor ? engagementCopy.threadNoticeAdvisor : engagementCopy.threadNoticeClient,
     body: row.codename,
-    href: toAdvisor ? `/mandatos/encargos/${row.id}` : row.client === "seller" ? "/mi-empresa/servicios" : "/asesoramiento",
+    href: toAdvisor ? `/mandatos/encargos/${row.id}` : row.client === "seller" ? "/mi-empresa/procesos" : "/procesos",
   });
 }
 

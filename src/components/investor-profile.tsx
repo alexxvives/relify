@@ -538,7 +538,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
         className={fieldClass}
       />
       {open ? (
-        <ul className="absolute top-full z-30 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
+        <ul className="absolute top-full z-30 mt-1 max-h-96 w-full overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
           <li className="border-b border-[#e7eaee] px-2 py-2">
             <input
               value={custom}

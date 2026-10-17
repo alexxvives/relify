@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { landingCopy } from "@/lib/landing-copy";
 
-export function LandingNav() {
+export function LandingNav({ onDark = false }: { onDark?: boolean }) {
   const [open, setOpen] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
 
@@ -16,7 +16,7 @@ export function LandingNav() {
           <div key={group.label} className="relative" onMouseEnter={() => setOpen(group.label)}>
             <button
               type="button"
-              className="flex items-center gap-1 rounded-full px-3 py-2 text-[15px] text-public-muted hover:text-public-ink"
+              className={`flex items-center gap-1 rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
               aria-expanded={open === group.label}
             >
               {group.label}
@@ -37,14 +37,14 @@ export function LandingNav() {
         ))}
         <Link
           href={landingCopy.waitlistNav.href}
-          className="rounded-full px-3 py-2 text-[15px] text-public-ink hover:bg-public-sand"
+          className={`rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:bg-white/15" : "text-public-ink hover:bg-public-sand"}`}
         >
           {landingCopy.waitlistNav.label}
         </Link>
       </nav>
       <button
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-full text-public-ink lg:hidden"
+        className={`inline-flex size-11 items-center justify-center rounded-full lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
         aria-expanded={mobile}
         aria-label={mobile ? "Cerrar menú" : "Abrir menú"}
         onClick={() => setMobile((current) => !current)}

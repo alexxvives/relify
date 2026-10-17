@@ -112,6 +112,7 @@ model User {
   role            UserRole? @map("role")
   referralSource  String?   @map("referral_source")
   onboardedAt     DateTime? @map("onboarded_at")
+  termsAcceptedAt DateTime? @map("terms_accepted_at")
   suspendedAt     DateTime? @map("suspended_at")
   lastName        String?   @map("last_name")
   phone           String?
@@ -205,6 +206,7 @@ model Project {
   address             String
   foundedYear         Int?             @map("founded_year")
   description         String?          @db.Text
+  saleReason          String?          @map("sale_reason")
   opexCents           Int?             @map("opex_cents")
   headcountRange      HeadcountRange?  @map("headcount_range")
   customerBase        CustomerBase?    @map("customer_base")

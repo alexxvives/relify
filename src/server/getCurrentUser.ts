@@ -13,6 +13,8 @@ export type CurrentUser = {
   email: string;
   role: UserRoleName | null;
   onboarded: boolean;
+  termsAccepted: boolean;
+  termsAcceptedAt: Date | null;
 };
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
@@ -32,7 +34,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const stored = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, lastName: true, phone: true, email: true, role: true, onboardedAt: true, suspendedAt: true },
+    select: { name: true, lastName: true, phone: true, email: true, role: true, onboardedAt: true, termsAcceptedAt: true, suspendedAt: true },
   });
 
   if (!stored || stored.suspendedAt !== null) {
@@ -48,5 +50,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     email: stored.email,
     role: readUserRole(stored.role),
     onboarded: stored.onboardedAt !== null,
+    termsAccepted: stored.termsAcceptedAt !== null,
+    termsAcceptedAt: stored.termsAcceptedAt,
   };
 });

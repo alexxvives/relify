@@ -6,6 +6,9 @@ export const companyCopy = {
   codenameHint: "Es el apodo público de la empresa. Los inversores ven este nombre, no la razón social.",
   regionLabel: "Provincia o región",
   foundedYearLabel: "Año de fundación",
+  saleReasonLabel: "Por qué se vende",
+  saleReasonHint: "Solo lo ve el equipo de Releva. No sale en la ficha pública.",
+  saleReasonEmpty: "Elige un motivo",
   descriptionLabel: "Descripción de la empresa",
   descriptionHint:
     "Escríbela para inversores. No incluyas la razón social, el CIF ni la dirección.",

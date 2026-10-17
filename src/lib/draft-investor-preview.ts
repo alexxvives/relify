@@ -124,6 +124,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     region: input.region.trim(),
     foundedYear: founded !== null && isFoundedYear(founded) ? founded : null,
     description: description.length > 0 ? description : null,
+    saleReason: input.saleReason === "" ? null : input.saleReason,
     revenueCents,
     ebitdaCents,
     adjustedEbitdaCents: unsignedCents(input.adjustedEbitda),

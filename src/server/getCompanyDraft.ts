@@ -2,6 +2,7 @@ import { draftFromRegistry, type RegistryCompany } from "@/lib/company-registry"
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
   centsToEuroInput,
+  saleReasons,
   placeStatementsOnWindow,
   type ClosedYearInput,
   type CompanyDraftInput,
@@ -156,6 +157,7 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       region: true,
       foundedYear: true,
       description: true,
+      saleReason: true,
       revenueCents: true,
       ebitdaCents: true,
       adjustedEbitdaCents: true,
@@ -203,6 +205,9 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     region: draft.region,
     foundedYear: draft.foundedYear === null ? "" : String(draft.foundedYear),
     description: draft.description ?? "",
+    saleReason: draft.saleReason && saleReasons.includes(draft.saleReason as (typeof saleReasons)[number])
+      ? (draft.saleReason as (typeof saleReasons)[number])
+      : "",
     principalCnae: principal?.code ?? "",
     secondaryCnaes: secondary,
     revenue: centsToEuroInput(draft.revenueCents),

@@ -162,6 +162,7 @@ export async function saveCompanyDraft(
     askingPriceCents: eurosToCents(input.askingPrice),
     foundedYear: input.foundedYear === "" ? null : Number(input.foundedYear),
     description: input.description === "" ? null : input.description,
+    saleReason: input.saleReason === "" ? null : input.saleReason,
     opexCents: optionalEurosToCents(input.opex),
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,

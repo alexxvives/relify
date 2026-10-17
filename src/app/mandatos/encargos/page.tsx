@@ -29,10 +29,7 @@ export default async function AdvisorEngagementsPage({
   return (
     <SignedInPage title={advisorCopy.encargosTitle}>
       <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-[#1c2740]">{engagementCopy.mineTitle}</h2>
-          <p className="mt-1 text-sm leading-6 text-[#64748b]">{engagementCopy.mineIntro}</p>
-        </div>
+        <p className="text-sm leading-6 text-[#64748b]">{engagementCopy.mineIntro}</p>
         <AdvisorProcesses boards={boards} empty={engagementCopy.mineEmpty} />
       </section>
     </SignedInPage>

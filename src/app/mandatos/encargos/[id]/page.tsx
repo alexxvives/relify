@@ -10,7 +10,7 @@ import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
-  title: engagementCopy.mineTitle,
+  title: "Encargos",
   robots: { index: false, follow: false },
 };
 

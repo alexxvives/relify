@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Heart, ImagePlus, Map, MapPin, Pencil, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
-import { saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
+import { deleteProjectCoverAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
 import { AccountsUpload } from "@/components/accounts-upload";
 import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
@@ -32,6 +32,8 @@ import {
   forecastFieldName,
   optionalEurosToCents,
   projectSlug,
+  saleReasonLabels,
+  saleReasons,
   type ClosedYearInput,
   type CompanyDraftInput,
   type ForecastYearInput,
@@ -273,24 +275,37 @@ function FigureField({
   locked?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const shown = editing ? value : groupedEuro(value);
   const amount = shown.length > 0 ? shown : "—";
+  const editable = !locked && onChange !== undefined;
 
   return (
-    <label className="flex min-w-0 flex-col gap-2">
-      <span className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{label}</span>
+    <label className="flex min-w-0 flex-col items-center gap-2 text-center">
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">
+        {label}
+        {editable ? (
+          <button
+            type="button"
+            aria-label={`Editar ${label}`}
+            onClick={() => {
+              inputRef.current?.focus();
+            }}
+            className="inline-flex size-6 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff]"
+          >
+            <Pencil className="size-3.5" aria-hidden />
+          </button>
+        ) : null}
+      </span>
       <input type="hidden" name={name} value={value} />
-      {locked || !onChange ? (
-        <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
-          {amount}
-          <span className="ml-1 text-sm font-medium text-[#667085]">€</span>
-        </span>
-      ) : (
-        <span className="inline-flex max-w-full items-baseline gap-1.5">
+      {editable ? (
+        <span className="inline-flex max-w-full items-baseline justify-center gap-1.5">
           <input
+            ref={inputRef}
             inputMode="decimal"
             value={shown}
             placeholder="0"
+            className="field-sizing-content max-w-full min-w-[6rem] rounded-lg border border-[#c5cdd8] bg-white px-2 py-1 text-center text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none focus:border-[#465ab4]"
             onFocus={() => {
               setEditing(true);
             }}
@@ -300,9 +315,13 @@ function FigureField({
             onChange={(event) => {
               onChange(keepUnsignedEuro(event.target.value));
             }}
-            className="field-sizing-content max-w-full min-w-[1ch] bg-transparent text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none"
           />
           <span className="text-sm font-medium text-[#667085]">€</span>
+        </span>
+      ) : (
+        <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+          {amount}
+          <span className="ml-1 text-sm font-medium text-[#667085]">€</span>
         </span>
       )}
     </label>
@@ -344,7 +363,7 @@ function FichaMetrics({
       id: "margin",
       frame: metricCellFrame(1),
       node: (
-        <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 flex-col items-center gap-2 text-center">
           <span className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{companyCopy.ebitdaMarginLabel}</span>
           <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
         </div>
@@ -679,11 +698,12 @@ export function CompanyDraftForm({
   const initial = draft ?? emptyCompanyDraft();
   const [state, action, pending] = useActionState<CompanyDraftState, FormData>(saveCompanyDraftAction, null);
   const [legalName, setLegalName] = useState(initial.legalName);
-  const [address, setAddress] = useState(initial.address);
+  const [address, setAddress] = useState(() => addressWithRegion(initial.address, initial.region));
   const [codename, setCodename] = useState(initial.codename);
-  const [region, setRegion] = useState(initial.region);
+  const region = initial.region;
   const [foundedYear, setFoundedYear] = useState(initial.foundedYear);
   const [description, setDescription] = useState(initial.description);
+  const [saleReason, setSaleReason] = useState(initial.saleReason);
   const [principalCnae, setPrincipalCnae] = useState(initial.principalCnae);
   const [secondaryCnaes, setSecondaryCnaes] = useState(initial.secondaryCnaes);
   const [revenue, setRevenue] = useState(initial.revenue);
@@ -753,11 +773,12 @@ export function CompanyDraftForm({
   }, [saveClosed]);
   const [baseline, setBaseline] = useState(() => ({
     legalName: initial.legalName,
-    address: initial.address,
+    address: addressWithRegion(initial.address, initial.region),
     codename: initial.codename,
     region: initial.region,
     foundedYear: initial.foundedYear,
     description: initial.description,
+    saleReason: initial.saleReason,
     principalCnae: initial.principalCnae,
     secondaryCnaes: initial.secondaryCnaes,
     nif: cif,
@@ -782,6 +803,7 @@ export function CompanyDraftForm({
     region,
     foundedYear,
     description,
+    saleReason,
     principalCnae,
     secondaryCnaes,
     nif,
@@ -810,6 +832,7 @@ export function CompanyDraftForm({
     region !== baseline.region ||
     foundedYear !== baseline.foundedYear ||
     description !== baseline.description ||
+    saleReason !== baseline.saleReason ||
     principalCnae !== baseline.principalCnae ||
     nif !== baseline.nif ||
     headcount !== baseline.headcount ||
@@ -1036,6 +1059,7 @@ export function CompanyDraftForm({
     region,
     foundedYear,
     description,
+    saleReason,
     principalCnae,
     secondaryCnaes,
     revenue: salesFromAccounts ?? revenue,
@@ -1131,6 +1155,7 @@ export function CompanyDraftForm({
               className={fieldClassName}
             />
           </Fact>
+          <input type="hidden" name="region" value={region} />
           <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel}>
             <input
               name="foundedYear"
@@ -1140,13 +1165,20 @@ export function CompanyDraftForm({
               className={fieldClassName}
             />
           </Fact>
-          <Fact icon={Map} label={companyCopy.regionLabel}>
-            <input
-              name="region"
-              required
-              value={region}
-              onChange={(event) => setRegion(event.target.value)}
-              className={fieldClassName}
+          <Fact icon={Map} label={companyCopy.saleReasonLabel}>
+            <OptionSelect
+              name="saleReason"
+              label={companyCopy.saleReasonLabel}
+              value={saleReason}
+              options={[
+                { value: "", label: companyCopy.saleReasonEmpty },
+                ...saleReasons.map((reason) => ({ value: reason, label: saleReasonLabels[reason] })),
+              ]}
+              onValueChange={(value) => {
+                if (value === "" || saleReasons.includes(value as (typeof saleReasons)[number])) {
+                  setSaleReason(value as typeof saleReason);
+                }
+              }}
             />
           </Fact>
           <Fact icon={Users} label={companyCopy.workersLabel}>
@@ -1532,6 +1564,18 @@ export function CompanyDraftForm({
   );
 }
 
+function addressWithRegion(address: string, region: string): string {
+  const place = region.trim();
+  const street = address.trim();
+  if (place.length === 0) {
+    return street;
+  }
+  if (street.toLocaleLowerCase("es-ES").includes(place.toLocaleLowerCase("es-ES"))) {
+    return street;
+  }
+  return street.length === 0 ? place : `${street}, ${place}`;
+}
+
 const cardPhotoLimit = 4;
 const cardPhotoBytes = 8 * 1024 * 1024;
 
@@ -1562,15 +1606,23 @@ function PublicFicha({
   const fileRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [active, setActive] = useState(0);
+  const [coverHidden, setCoverHidden] = useState(false);
+  const [focus, setFocus] = useState("50% 50%");
+  const [focusOpen, setFocusOpen] = useState(false);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const imageSrc = projectImageSrc(projectSlug(codename));
-  const shown = photos[active] ?? coverSrc ?? imageSrc;
+  const storedCover = coverHidden ? null : coverSrc;
+  const shown = photos[active] ?? storedCover ?? imageSrc;
   const recommended = photos.length === 0 && !coverSrc && !imageSrc;
 
   function storePhotos(next: string[]) {
     setPhotos(next);
     setActive((current) => Math.min(current, Math.max(next.length - 1, 0)));
-    onListed(next.length > 0 || Boolean(coverSrc) || Boolean(imageSrc));
+    onListed(next.length > 0 || Boolean(storedCover) || Boolean(imageSrc));
+    if (next.length === 0 && storedCover) {
+      setCoverHidden(true);
+      void deleteProjectCoverAction();
+    }
   }
 
   async function uploadCover(file: File) {
@@ -1661,20 +1713,31 @@ function PublicFicha({
               </span>
             ) : null}
           </span>
-          <button
-            type="button"
-            onClick={() => {
-              fileRef.current?.click();
-            }}
-            className={
-              recommended
-                ? "inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-[#e8b931] bg-[#fff8db] px-3 text-sm font-medium text-[#1c2740]"
-                : "inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
-            }
-          >
-            <ImagePlus className="size-4" aria-hidden />
-            {companyCopy.cardPhotos}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                fileRef.current?.click();
+              }}
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
+            >
+              <ImagePlus className="size-4" aria-hidden />
+              {companyCopy.cardPhotos}
+            </button>
+            {shown ? (
+              <button
+                type="button"
+                aria-label={companyCopy.cardPhotos}
+                onClick={() => {
+                  setFocusOpen(true);
+                }}
+                className="relative size-11 shrink-0 overflow-hidden rounded-[14px] border border-[#e7eaee]"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={shown} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
+              </button>
+            ) : null}
+          </div>
           <input
             ref={fileRef}
             type="file"
@@ -1693,9 +1756,9 @@ function PublicFicha({
               {photoMessage}
             </p>
           ) : null}
-          {photos.length > 0 ? (
+          {(photos.length > 0 ? photos : storedCover ? [storedCover] : []).length > 0 ? (
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {photos.map((photo, index) => (
+              {(photos.length > 0 ? photos : storedCover ? [storedCover] : []).map((photo, index) => (
                 <li key={`${index}-${photo.slice(-24)}`} className="relative">
                   <button
                     type="button"
@@ -1708,12 +1771,18 @@ function PublicFicha({
                     }
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photo} alt="" className="size-full object-cover" />
+                    <img src={photo} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
                   </button>
                   <button
                     type="button"
                     aria-label={companyCopy.cardPhotosRemove}
                     onClick={() => {
+                      if (photos.length === 0) {
+                        setCoverHidden(true);
+                        void deleteProjectCoverAction();
+                        onListed(Boolean(imageSrc));
+                        return;
+                      }
                       storePhotos(photos.filter((_, itemIndex) => itemIndex !== index));
                     }}
                     className="absolute -top-1.5 -right-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#c0362c] text-white"
@@ -1723,6 +1792,22 @@ function PublicFicha({
                 </li>
               ))}
             </ul>
+          ) : null}
+          {focusOpen && shown ? (
+            <button
+              type="button"
+              className="relative h-64 overflow-hidden rounded-xl border border-[#e7eaee]"
+              onClick={(event) => {
+                const bounds = event.currentTarget.getBoundingClientRect();
+                const x = Math.round(((event.clientX - bounds.left) / bounds.width) * 100);
+                const y = Math.round(((event.clientY - bounds.top) / bounds.height) * 100);
+                setFocus(`${x}% ${y}%`);
+                setFocusOpen(false);
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={shown} alt="" className="size-full object-contain" />
+            </button>
           ) : null}
         </div>
       </div>
@@ -1735,6 +1820,7 @@ function PublicFicha({
         adjustedEbitda={adjustedEbitda}
         askingPrice={askingPrice}
         shown={shown}
+        focus={focus}
       />
     </>
   );
@@ -1748,6 +1834,7 @@ function MarketPreview({
   adjustedEbitda,
   askingPrice,
   shown,
+  focus,
 }: {
   codename: string;
   region: string;
@@ -1756,6 +1843,7 @@ function MarketPreview({
   adjustedEbitda: string;
   askingPrice: string;
   shown: string | null;
+  focus: string;
 }) {
   const figures = [
     { label: companyCopy.revenueLabel, value: previewAmount(revenue) },
@@ -1797,9 +1885,9 @@ function MarketPreview({
               {shown && (shown.startsWith("data:") || shown.includes("/portadas/")) ? (
                 // User-chosen bytes stay in this preview. next/image does not accept a data URL.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={shown} alt="" className="absolute inset-0 size-full object-cover" />
+                <img src={shown} alt="" className="absolute inset-0 size-full object-cover" style={{ objectPosition: focus }} />
               ) : shown ? (
-                <Image src={shown} alt="" fill sizes="320px" className="object-cover" />
+                <Image src={shown} alt="" fill sizes="320px" className="object-cover" style={{ objectPosition: focus }} />
               ) : (
                 <ProjectPhotoMark />
               )}

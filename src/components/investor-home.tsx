@@ -49,7 +49,7 @@ export function InvestorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
         <PendingActions items={pending} empty={investorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -91,7 +91,7 @@ export function InvestorHome({
           </ul>
         </section>
       </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex h-full flex-col gap-6">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
             {investorCopy.completeProfile}
@@ -123,7 +123,7 @@ export function InvestorHome({
             })}
           </ul>
         </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.notificationsTitle}</h2>
           {notifications.length === 0 ? (
             <div className="mt-6 text-center">
@@ -131,7 +131,7 @@ export function InvestorHome({
               <p className="mt-1 text-sm text-[#64748b]">{investorCopy.notificationsEmptyBody}</p>
             </div>
           ) : (
-            <NoticeList items={notifications} />
+            <NoticeList items={notifications} scroll />
           )}
         </section>
       </div>

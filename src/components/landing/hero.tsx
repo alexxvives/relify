@@ -3,14 +3,109 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { heroDeals, landingCopy } from "@/lib/landing-copy";
+import { landingCopy, offerDeals } from "@/lib/landing-copy";
 
 const verbs = ["vender", "comprar"] as const;
 const spots = [
-  { id: "alba", deal: heroDeals[0], lit: "/hero/city-lit.png", spotClass: "releva-city-spot", sales: [3.1, 3.6, 4.2, 4.8], ebitda: [0.7, 0.82, 0.96, 1.1], margin: [18, 21, 23, 26] },
-  { id: "norte", deal: heroDeals[1], lit: "/hero/city-2.png", spotClass: "releva-city-spot releva-city-spot-b", sales: [8.4, 9.2, 10.4, 11.4], ebitda: [1.6, 1.9, 2.1, 2.4], margin: [16, 18, 20, 22] },
-  { id: "mar", deal: heroDeals[2], lit: "/hero/city-3.png", spotClass: "releva-city-spot releva-city-spot-c", sales: [4.2, 4.8, 5.4, 6.1], ebitda: [0.62, 0.74, 0.86, 0.98], margin: [12, 14, 15, 16] },
+  {
+    id: "alba",
+    deal: offerDeals[0],
+    lit: "/hero/city-lit.png",
+    spotClass: "releva-city-spot",
+    sales: [96, 214, 138, 240],
+    ebitda: [12, 46, 18, 52],
+    costs: [
+      [72, 18, 28, 14],
+      [22, 64, 16, 36],
+      [48, 30, 58, 12],
+      [18, 44, 20, 62],
+    ],
+    clients: [
+      { label: "Cliente 1", share: 48 },
+      { label: "Cliente 2", share: 31 },
+      { label: "Cliente 3", share: 21 },
+    ],
+    products: [
+      { label: "Producto 1", share: 44 },
+      { label: "Producto 2", share: 27 },
+      { label: "Servicio 1", share: 29 },
+    ],
+    channels: [
+      { label: "Tienda", share: 52 },
+      { label: "Web", share: 33 },
+      { label: "Encargos", share: 15 },
+    ],
+    holders: [
+      { label: "Accionista 1", share: 68 },
+      { label: "Accionista 2", share: 32 },
+    ],
+  },
+  {
+    id: "norte",
+    deal: offerDeals[1],
+    lit: "/hero/city-2.png",
+    spotClass: "releva-city-spot releva-city-spot-b",
+    sales: [168, 74, 196, 112],
+    ebitda: [41, 9, 38, 16],
+    costs: [
+      [24, 58, 14, 40],
+      [66, 12, 48, 18],
+      [16, 36, 70, 28],
+      [42, 22, 18, 64],
+    ],
+    clients: [
+      { label: "Cliente 1", share: 54 },
+      { label: "Cliente 2", share: 28 },
+      { label: "Cliente 3", share: 18 },
+    ],
+    products: [
+      { label: "Producto 1", share: 36 },
+      { label: "Producto 2", share: 22 },
+      { label: "Servicio 1", share: 42 },
+    ],
+    channels: [
+      { label: "Local", share: 61 },
+      { label: "Cita online", share: 24 },
+      { label: "A domicilio", share: 15 },
+    ],
+    holders: [
+      { label: "Accionista 1", share: 74 },
+      { label: "Accionista 2", share: 26 },
+    ],
+  },
+  {
+    id: "mar",
+    deal: offerDeals[2],
+    lit: "/hero/city-3.png",
+    spotClass: "releva-city-spot releva-city-spot-c",
+    sales: [248, 126, 302, 178],
+    ebitda: [58, 14, 66, 22],
+    costs: [
+      [30, 70, 22, 16],
+      [54, 18, 62, 34],
+      [14, 46, 28, 58],
+      [38, 24, 16, 72],
+    ],
+    clients: [
+      { label: "Cliente 1", share: 41 },
+      { label: "Cliente 2", share: 37 },
+      { label: "Cliente 3", share: 22 },
+    ],
+    products: [
+      { label: "Producto 1", share: 51 },
+      { label: "Producto 2", share: 19 },
+      { label: "Servicio 1", share: 30 },
+    ],
+    channels: [
+      { label: "Taller", share: 46 },
+      { label: "Recambios", share: 34 },
+      { label: "Flotas", share: 20 },
+    ],
+    holders: [
+      { label: "Accionista 1", share: 58 },
+      { label: "Accionista 2", share: 42 },
+    ],
+  },
 ] as const;
 
 function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonly number[] }) {
@@ -24,12 +119,12 @@ function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonl
           <span className="inline-flex items-center gap-1"><span className="size-2 rounded-sm bg-[#e07a3d]" /> EBITDA</span>
         </p>
       </div>
-      <div className="mt-2 flex h-24 items-end gap-3 rounded-xl bg-[#f4f7fb] px-3 pt-3">
+      <div className="mt-1.5 flex h-14 items-end gap-2 rounded-lg bg-[#f4f7fb] px-2 pt-2">
         {sales.map((sale, index) => (
-          <div key={2022 + index} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-            <div className="flex h-16 w-full items-end justify-center gap-1">
-              <div className="w-2.5 rounded-t-sm bg-[#1aa6a0]" style={{ height: `${Math.round((sale / max) * 64)}px` }} />
-              <div className="w-2.5 rounded-t-sm bg-[#e07a3d]" style={{ height: `${Math.round(((ebitda[index] ?? 0) / max) * 64)}px` }} />
+          <div key={2022 + index} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+            <div className="flex h-9 w-full items-end justify-center gap-0.5">
+              <div className="w-2 rounded-t-sm bg-[#1aa6a0]" style={{ height: `${Math.round((sale / max) * 36)}px` }} />
+              <div className="w-2 rounded-t-sm bg-[#e07a3d]" style={{ height: `${Math.round(((ebitda[index] ?? 0) / max) * 36)}px` }} />
             </div>
             <span className="text-[10px] text-[#8b95a7]">{2022 + index}</span>
           </div>
@@ -39,60 +134,86 @@ function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonl
   );
 }
 
-function MixDonut() {
+const costSeries = [
+  { label: "Personal", color: "#465ab4" },
+  { label: "Compras", color: "#e07a3d" },
+  { label: "Otros", color: "#7c5cbf" },
+  { label: "Amortización", color: "#0e8a78" },
+] as const;
+
+function CostBars({ years }: { years: readonly (readonly number[])[] }) {
+  const labels = [2022, 2023, 2024, 2025];
+  const max = Math.max(...years.flat(), 1);
   return (
     <div role="img" aria-label="Composición del gasto">
-      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Gasto</p>
-      <div className="mt-2 flex items-center gap-2">
-        <svg viewBox="0 0 42 42" className="size-14 shrink-0" aria-hidden="true">
-          <circle cx="21" cy="21" r="14" fill="none" stroke="#e7eaee" strokeWidth="7" />
-          <circle cx="21" cy="21" r="14" fill="none" stroke="#1aa6a0" strokeWidth="7" strokeDasharray="40 88" strokeDashoffset="0" transform="rotate(-90 21 21)" />
-          <circle cx="21" cy="21" r="14" fill="none" stroke="#e07a3d" strokeWidth="7" strokeDasharray="26 88" strokeDashoffset="-40" transform="rotate(-90 21 21)" />
-          <circle cx="21" cy="21" r="14" fill="none" stroke="#3d5a80" strokeWidth="7" strokeDasharray="22 88" strokeDashoffset="-66" transform="rotate(-90 21 21)" />
-        </svg>
-        <ul className="grid gap-1 text-[11px] text-[#3d4a63]">
-          <li className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#1aa6a0]" /> Personal 46%</li>
-          <li className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#e07a3d]" /> Compras 29%</li>
-          <li className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#3d5a80]" /> Otros 25%</li>
-        </ul>
+      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Composición del gasto</p>
+      <div className="mt-1.5 flex h-16 items-end gap-2 rounded-lg bg-[#f4f7fb] px-2 pt-2">
+        {labels.map((year, yearIndex) => (
+          <div key={year} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+            <div className="flex h-10 w-full items-end justify-center gap-0.5">
+              {costSeries.map((series, seriesIndex) => (
+                <div
+                  key={series.label}
+                  className="w-1.5 rounded-t-sm"
+                  style={{
+                    height: `${Math.round((((years[yearIndex]?.[seriesIndex] ?? 0) / max) * 40))}px`,
+                    background: series.color,
+                  }}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-[#8b95a7]">{year}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function MarginLine({ values }: { values: readonly number[] }) {
-  const width = 220;
-  const height = 72;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const span = Math.max(max - min, 1);
-  const step = width / (values.length - 1);
-  const points = values.map((value, index) => {
-    const x = index * step;
-    const y = height - 12 - ((value - min) / span) * (height - 24);
-    return { x, y };
-  });
-  const line = points.map((point) => `${point.x},${point.y}`).join(" ");
-  const area = `0,${height} ${line} ${width},${height}`;
+function MiniDonut({
+  title,
+  slices,
+  colors,
+}: {
+  title: string;
+  slices: { label: string; share: number }[];
+  colors: readonly string[];
+}) {
+  const rings = slices.map((slice, index) => ({
+    ...slice,
+    offset: slices.slice(0, index).reduce((sum, item) => sum + item.share, 0),
+    color: colors[index] ?? "#465ab4",
+  }));
   return (
-    <div className="mt-3" role="img" aria-label="Margen EBITDA">
-      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Margen EBITDA</p>
-      <svg viewBox={`0 0 ${width} ${height + 16}`} className="mt-1 h-20 w-full">
-        <defs>
-          <linearGradient id="margin-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#e07a3d" stopOpacity="0.45" />
-            <stop offset="1" stopColor="#1aa6a0" stopOpacity="0.05" />
-          </linearGradient>
-        </defs>
-        <polygon points={area} fill="url(#margin-fill)" />
-        <polyline points={line} fill="none" stroke="#0f6e73" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((point, index) => (
-          <g key={point.x}>
-            <circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#e07a3d" strokeWidth="2" />
-            <text x={point.x} y={height + 12} textAnchor="middle" fill="#8b95a7" fontSize="10">{2022 + index}</text>
-          </g>
-        ))}
-      </svg>
+    <div role="img" aria-label={title}>
+      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">{title}</p>
+      <div className="mt-1.5 flex items-center gap-2">
+        <svg viewBox="0 0 42 42" className="size-11 shrink-0" aria-hidden="true">
+          <circle cx="21" cy="21" r="14" fill="none" stroke="#e7eaee" strokeWidth="7" />
+          {rings.map((ring) => (
+            <circle
+              key={ring.label}
+              cx="21"
+              cy="21"
+              r="14"
+              fill="none"
+              stroke={ring.color}
+              strokeWidth="7"
+              strokeDasharray={`${ring.share} ${100 - ring.share}`}
+              strokeDashoffset={-ring.offset}
+              transform="rotate(-90 21 21)"
+            />
+          ))}
+        </svg>
+        <ul className="grid gap-0.5 text-[11px] text-[#3d4a63]">
+          {rings.map((ring) => (
+            <li key={ring.label} className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full" style={{ background: ring.color }} />
+              {ring.label} {ring.share}%
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -169,7 +290,7 @@ export function Hero() {
           </button>
         ))}
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise text-[clamp(2.4rem,4.6vw,4rem)] leading-[1.02] font-medium tracking-tight text-public-ink">
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(3.1rem,6vw,5.2rem)] leading-[0.96] text-public-ink">
             <span className="block">Un mercado para</span>
             <span className="block">
               <SwapVerb /> empresas
@@ -178,14 +299,13 @@ export function Hero() {
           <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/proyectos"
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+              className="inline-flex h-12 items-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
             >
               {copy.cta}
-              <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
             <Link
               href="/empresas/vender"
-              className="inline-flex h-12 items-center rounded-full border border-white/70 bg-white/75 px-6 text-public-ink backdrop-blur-md transition hover:border-public-clay focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+              className="inline-flex h-12 items-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
             >
               {copy.sellCta}
             </Link>
@@ -193,36 +313,39 @@ export function Hero() {
         </div>
         {open ? (
           <article className="releva-market-float" aria-live="polite">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-[#1c2740]">
+            <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">
               <Image src={open.deal.image} alt="" fill sizes="320px" className="object-cover" unoptimized />
               <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#0c1224]/70 via-[#0c1224]/20 to-transparent px-3 pt-3 pb-10 text-center">
                 <p className="text-sm font-semibold text-white">{open.deal.codename}</p>
                 <p className="text-xs text-white/85">{open.deal.region}</p>
               </div>
             </div>
-            <div className="mt-3 overflow-hidden rounded-xl border border-[#e7eaee]">
-              <div className="bg-[#f4f6fb] px-3 py-2.5 text-center">
-                <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Precio</p>
-                <p className="mt-0.5 text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{open.deal.price}</p>
-              </div>
-              <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
-                {[
-                  ["Facturación", open.deal.revenue],
-                  ["EBITDA", open.deal.ebitda],
-                  ["EBITDA ajustado", open.deal.adjusted],
-                ].map(([label, value]) => (
-                  <div key={label} className="min-w-0 px-1.5 py-2.5 text-center">
-                    <dt className="text-[11px] leading-4 font-medium text-[#5c6b78]">{label}</dt>
-                    <dd className="mt-0.5 text-[13px] font-semibold tracking-tight text-[#1c2740] tabular-nums">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <div className="mt-3 grid grid-cols-[1.15fr_0.85fr] items-end gap-3">
+            <div className="mt-3 flex flex-col gap-3">
               <PairBars sales={open.sales} ebitda={open.ebitda} />
-              <MixDonut />
+              <CostBars years={open.costs} />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                <MiniDonut
+                  title="Clientes"
+                  slices={[...open.clients]}
+                  colors={["#1b7a45", "#8fd0a8", "#0f4d2c"]}
+                />
+                <MiniDonut
+                  title="Productos y servicios"
+                  slices={[...open.products]}
+                  colors={["#e07a3d", "#f6c7a4", "#8a4b22"]}
+                />
+                <MiniDonut
+                  title="Canales de venta"
+                  slices={[...open.channels]}
+                  colors={["#1d4e89", "#3d7cc9", "#9ec3ef"]}
+                />
+                <MiniDonut
+                  title="Accionistas"
+                  slices={[...open.holders]}
+                  colors={["#b42318", "#f0a3a0"]}
+                />
+              </div>
             </div>
-            <MarginLine values={open.margin} />
           </article>
         ) : null}
       </div>

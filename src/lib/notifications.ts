@@ -20,6 +20,38 @@ export type NotificationView = {
   unread: boolean;
 };
 
+export type NoticeSegment = {
+  text: string;
+  tone: "plain" | "accept" | "decline";
+};
+
+export function noticePhrase(text: string): string {
+  return text
+    .replaceAll("El inversor", "Un inversor")
+    .replaceAll("el inversor", "un inversor")
+    .replaceAll("El asesor", "Un asesor")
+    .replaceAll("el asesor", "un asesor");
+}
+
+export function noticeSegments(text: string): NoticeSegment[] {
+  return noticePhrase(text)
+    .split(/(\b(?:acept|rechaz)[a-záéíóúüñ]*)/gi)
+    .filter((part) => part.length > 0)
+    .map((part) => {
+      const lower = part.toLocaleLowerCase("es");
+
+      if (lower.startsWith("acept")) {
+        return { text: part, tone: "accept" };
+      }
+
+      if (lower.startsWith("rechaz")) {
+        return { text: part, tone: "decline" };
+      }
+
+      return { text: part, tone: "plain" };
+    });
+}
+
 export function noticesForCompany(
   codename: string,
   items: readonly { title: string; body: string; unread?: boolean }[],

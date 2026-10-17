@@ -104,7 +104,7 @@ function SectorMenu({ selected, onToggle }: { selected: string[]; onToggle: (id:
           role="listbox"
           aria-label={advisorCopy.sectors}
           aria-multiselectable="true"
-          className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-[#e6e9f0] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
+          className="absolute z-30 mt-1 max-h-[32rem] w-full overflow-auto rounded-xl border border-[#e6e9f0] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
         >
           {options.map((sector) => {
             const checked = selected.includes(sector.id);

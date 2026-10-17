@@ -124,7 +124,7 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
   const { state, formAction, pending } = useAccountAction(suspended ? reactivateAccountAction : suspendAccountAction);
 
   return (
-    <form action={formAction} className="flex flex-col items-end gap-2">
+    <form action={formAction}>
       <input type="hidden" name="userId" value={userId} />
       <button type="submit" disabled={pending} className={quietButtonClass}>
         {pending
@@ -146,17 +146,19 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
   const [nextRole, setNextRole] = useState<string>(current);
 
   return (
-    <form action={formAction} className="flex w-full flex-col items-stretch gap-2">
+    <form action={formAction} className="flex flex-wrap items-center justify-end gap-2">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="role" value={nextRole} />
-      <FilterSelect
-        compact
-        label={adminCopy.roleLabel}
-        value={nextRole}
-        options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
-        onValueChange={setNextRole}
-      />
-      <button type="submit" disabled={pending} className={`${buttonClass} self-end`}>
+      <div className="w-40">
+        <FilterSelect
+          compact
+          label={adminCopy.roleLabel}
+          value={nextRole}
+          options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
+          onValueChange={setNextRole}
+        />
+      </div>
+      <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? adminCopy.changingRole : adminCopy.changeRole}
       </button>
       <ErrorNote state={state} />

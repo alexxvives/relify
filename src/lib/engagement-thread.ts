@@ -18,6 +18,7 @@ export const engagementMeetingSchema = z.object({
 
 export type AdvisorContactView = {
   id: string;
+  slug: string;
   heading: string;
   detail: string;
   services: string;

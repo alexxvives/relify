@@ -89,22 +89,6 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.statusLabel}</p>
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eef0f3] px-6 py-4 sm:px-8">
-              <Link href="/premium" className="text-sm font-medium text-[#465ab4]">
-                {billingCopy.changePlan}
-              </Link>
-              <form action={cancelAction} className="flex flex-col items-end gap-2">
-                <input type="hidden" name="cancel" value={desk.canceling ? "0" : "1"} />
-                <button
-                  type="submit"
-                  disabled={cancelPending}
-                  className="inline-flex h-10 items-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-60"
-                >
-                  {cancelPending ? billingCopy.canceling : desk.canceling ? billingCopy.keepPlan : billingCopy.cancelPlan}
-                </button>
-                <Note state={cancelState} />
-              </form>
-            </div>
           </section>
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
@@ -192,6 +176,26 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
               </div>
             ) : null}
           </section>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Link href="/premium" className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white">
+              {billingCopy.changePlan}
+            </Link>
+            <form action={cancelAction} className="flex flex-col items-end gap-2">
+              <input type="hidden" name="cancel" value={desk.canceling ? "0" : "1"} />
+              <button
+                type="submit"
+                disabled={cancelPending}
+                className={
+                  desk.canceling
+                    ? "inline-flex h-11 items-center rounded-full border border-[#d0d5dd] bg-white px-5 text-sm font-medium text-[#1c2740] disabled:opacity-60"
+                    : "inline-flex h-11 items-center rounded-full bg-[#c0362c] px-5 text-sm font-medium text-white disabled:opacity-60"
+                }
+              >
+                {cancelPending ? billingCopy.canceling : desk.canceling ? billingCopy.keepPlan : billingCopy.cancelPlan}
+              </button>
+              <Note state={cancelState} />
+            </form>
+          </div>
         </>
       ) : null}
     </div>

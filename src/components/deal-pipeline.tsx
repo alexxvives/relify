@@ -16,6 +16,29 @@ import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { stepCue, type DealStep, type DealViewer, type ProcessFile } from "@/lib/deal-pipeline";
 
+const loiReadyEvent = "releva-loi-ready";
+
+function useLoiReady(slug: string | undefined): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    function onReady(event: Event) {
+      if (event instanceof CustomEvent && event.detail === slug) {
+        setReady(true);
+      }
+    }
+
+    window.addEventListener(loiReadyEvent, onReady);
+    return () => window.removeEventListener(loiReadyEvent, onReady);
+  }, [slug]);
+
+  return ready;
+}
+
+function proceedToLoi(slug: string) {
+  window.dispatchEvent(new CustomEvent(loiReadyEvent, { detail: slug }));
+}
+
 function signTarget(id: DealStep["id"] | undefined, yours: boolean, role: DealViewer): "nda" | "loi" | null {
   if (id === "nda" && yours) {
     return "nda";
@@ -26,7 +49,7 @@ function signTarget(id: DealStep["id"] | undefined, yours: boolean, role: DealVi
   }
 
   if (id === "qa" && role === "investor") {
-    return "loi";
+    return null;
   }
 
   return null;
@@ -55,16 +78,23 @@ export function DealPipeline({
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const [acceptOpen, setAcceptOpen] = useState(false);
-  const current = steps.find((step) => step.state === "current");
+  const loiReady = useLoiReady(sign?.slug);
+  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current");
+  const shownSteps = previewLoi
+    ? steps.map((step) =>
+        step.id === "qa" ? { ...step, state: "done" as const } : step.id === "loi" ? { ...step, state: "current" as const } : step,
+      )
+    : steps;
+  const current = shownSteps.find((step) => step.state === "current");
   const cue = current ? stepCue(current.id, role, current.pendingLoi === true) : { yours: false, action: "La compraventa está hecha." };
   const signKindFor = current?.pendingLoi ? null : signTarget(current?.id, cue.yours, role);
   const canSign = Boolean(sign) && signKindFor !== null;
   const canAccept = role === "seller" && current?.pendingLoi === true && acceptLoi !== undefined && acceptLoi.body.length > 0;
-  const currentIndex = steps.findIndex((step) => step.state === "current");
-  const count = Math.max(steps.length, 1);
+  const currentIndex = shownSteps.findIndex((step) => step.state === "current");
+  const count = Math.max(shownSteps.length, 1);
   const edge = `calc(100% / ${count * 2})`;
   const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
-  const showDiligence = current?.id === "diligence" && diligence !== undefined;
+  const showDiligence = current?.id === "diligence" && diligence !== undefined && !hideAsideCue;
   const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
   const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
@@ -83,7 +113,7 @@ export function DealPipeline({
             style={{ left: edge, width: `calc(100% * ${fillSteps} / ${count})` }}
             aria-hidden
           />
-          {steps.map((step) => {
+          {shownSteps.map((step) => {
             const labelClass =
               step.state === "current"
                 ? onDark
@@ -187,7 +217,7 @@ function TurnCue({
           <span className="relative size-3 rounded-full bg-[#d92d20]" />
         </span>
         <span className={center ? "min-w-0" : "min-w-0 flex-1"}>
-          <span className="block text-xs font-semibold tracking-[0.14em] text-[#b42318] uppercase">Tu turno</span>
+          <span className="block text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">Tu turno</span>
           <span className="mt-0.5 block text-sm text-[#1c2740]">{cue.action}</span>
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
@@ -199,7 +229,7 @@ function TurnCue({
   if (center) {
     return (
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-center">
-        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
           Qué sigue
         </span>
         <p className={onDark ? "text-sm leading-5 text-white" : "text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
@@ -213,7 +243,7 @@ function TurnCue({
     <div className="mt-4 flex items-start justify-between gap-3">
       {onDark ? (
         <div className="flex min-w-0 items-start gap-3">
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
             Qué sigue
           </span>
           <p className="pt-0.5 text-sm leading-5 text-white">{cue.action}</p>
@@ -246,7 +276,7 @@ function SignNow({ onSign }: { onSign: () => void }) {
       onClick={onSign}
       className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
     >
-      Firmar ahora
+      Firmar
     </button>
   );
 }
@@ -255,18 +285,25 @@ export function ProcessHeaderCue({
   steps,
   role,
   sign,
+  diligence,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   sign?: { slug: string; nda: string; loi: string };
+  diligence?: { accessId: string; advisorHref: string };
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
-  const current = steps.find((step) => step.state === "current");
-  const cue = current && current.id !== "diligence" ? stepCue(current.id, role, current.pendingLoi === true) : null;
+  const loiReady = useLoiReady(sign?.slug);
+  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current");
+  const current = previewLoi
+    ? steps.find((step) => step.id === "loi")
+    : steps.find((step) => step.state === "current");
+  const cue = current ? stepCue(current.id, role, current.pendingLoi === true) : null;
   const signKindFor = current && !current.pendingLoi ? signTarget(current.id, cue?.yours === true, role) : null;
+  const canProceed = role === "investor" && !previewLoi && steps.some((step) => step.id === "qa" && step.state === "current") && Boolean(sign);
   const canSign = Boolean(sign) && signKindFor !== null;
 
-  if (!cue || (cue.yours && role === "seller")) {
+  if (!cue || (cue.yours && role === "seller" && current?.id !== "diligence")) {
     return null;
   }
 
@@ -283,6 +320,18 @@ export function ProcessHeaderCue({
         ) : (
           <DealWaitingCue cue={cue} />
         )}
+        {canProceed && sign ? (
+          <button
+            type="button"
+            onClick={() => proceedToLoi(sign.slug)}
+            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
+          >
+            Proceder al LOI
+          </button>
+        ) : null}
+        {current?.id === "diligence" && diligence ? (
+          <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={false} hideWaitingCue inline />
+        ) : null}
         {canSign && signKindFor ? (
           <SignNow
             onSign={() => {
@@ -316,7 +365,7 @@ export function DealWaitingCue({
 }) {
   return (
     <div className={`flex items-start gap-3 ${className}`}>
-      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
         Qué sigue
       </span>
       <p className={onDark ? "pt-0.5 text-sm leading-5 text-white" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
@@ -329,27 +378,31 @@ function DiligenceChoice({
   advisorHref,
   onDark,
   hideWaitingCue,
+  inline = false,
 }: {
   accessId: string;
   advisorHref: string;
   onDark: boolean;
   hideWaitingCue: boolean;
+  inline?: boolean;
 }) {
   const [state, action, pending] = useActionState(passDiligenceAction, null);
 
   return (
-    <div className={onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
-      <div className="flex items-start gap-3">
-        {hideWaitingCue ? null : (
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+    <div className={inline ? "flex min-w-0 flex-wrap items-center gap-3" : onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
+      <div className="flex min-w-0 items-start gap-3">
+        {hideWaitingCue || inline ? null : (
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
             Qué sigue
           </span>
         )}
-        <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
-          Revisa con un asesor de Releva, o sigue a la documentación. El contrato lo sube el vendedor.
-        </p>
+        {inline ? null : (
+          <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
+            Revisa con un asesor de Releva, o sigue a la documentación. El contrato lo sube el vendedor.
+          </p>
+        )}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className={inline ? "flex flex-wrap items-center gap-2" : "mt-3 flex flex-wrap items-center gap-2"}>
         <Link
           href={advisorHref}
           className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"

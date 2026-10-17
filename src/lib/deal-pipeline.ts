@@ -76,8 +76,7 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
   },
   qa: {
     label: "Q&A",
-    investor:
-      "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor. Cuando estés convencido, firma la carta de intenciones (LOI).",
+    investor: "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor.",
     seller:
       "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones (LOI).",
   },

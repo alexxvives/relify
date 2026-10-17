@@ -43,7 +43,7 @@ export async function acceptLoi(user: CurrentUser, accessId: string): Promise<Ac
     await recordNotification({
       userId: access.investorId,
       title: "Carta aceptada",
-      body: `${access.project.codename} ha aceptado la carta de intenciones.`,
+      body: `La empresa ha aceptado la carta de intenciones de ${access.project.codename}.`,
       href: `/proyectos/${access.project.slug}`,
     });
   }

@@ -4,6 +4,7 @@ import { SellerProcesses } from "@/components/seller-processes";
 import { SignedInPage } from "@/components/signed-in-page";
 import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
+import { listClientContacts } from "@/server/engagementThread";
 import { listPendingMatches } from "@/server/listPendingMatches";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { requireRole } from "@/server/requireRole";
@@ -24,14 +25,15 @@ export default async function ProcessesPage() {
   }
 
   const projectId = await activeSellerProjectId(user.id);
-  const [messages, pendingMatches] = await Promise.all([
+  const [messages, pendingMatches, advisors] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
+    listClientContacts(user),
   ]);
 
   return (
     <SignedInPage title={sellerCopy.processesTitle}>
-      <SellerProcesses threads={messages.threads} counts={messages.counts} pendingMatches={pendingMatches} today={madridToday(new Date())} />
+      <SellerProcesses threads={messages.threads} counts={messages.counts} pendingMatches={pendingMatches} today={madridToday(new Date())} advisors={advisors} />
     </SignedInPage>
   );
 }

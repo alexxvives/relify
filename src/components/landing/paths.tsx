@@ -102,7 +102,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                 </button>
                 <Link
                   href={column.href}
-                  className={`mx-6 mb-6 inline-flex h-12 w-fit items-center gap-2 rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
+                  className={`mx-auto mb-6 inline-flex h-12 w-fit items-center gap-2 self-center rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
                 >
                   {column.cta}
                   <ArrowRight className="size-4" aria-hidden="true" />

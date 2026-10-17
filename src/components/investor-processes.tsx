@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useSessionChoice } from "@/components/session-flag";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
+import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
@@ -15,11 +17,18 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import { investorCopy } from "@/lib/investor-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 
 const processTabs = [
   { id: "chat", label: sellerCopy.questionsPanel },
   { id: "meetings", label: sellerCopy.meetingsHeading },
+  { id: "advisor", label: "Asesor" },
+] as const;
+
+const pageTabs = [
+  { id: "summary", label: sellerCopy.summary },
+  { id: "active", label: sellerCopy.active },
 ] as const;
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
@@ -27,7 +36,15 @@ function wantsAdvisor(steps: readonly DealStep[]): boolean {
   return current?.id === "qa" || current?.id === "diligence";
 }
 
-function ProcessConversation({ item, today }: { item: InvestorProcessCard; today: string }) {
+function ProcessConversation({
+  item,
+  today,
+  advisors,
+}: {
+  item: InvestorProcessCard;
+  today: string;
+  advisors: AdvisorContactView[];
+}) {
   const [tab, setTab] = useState<(typeof processTabs)[number]["id"]>("chat");
   const chat = item.messages.filter((message) => message.kind === "question");
 
@@ -38,6 +55,7 @@ function ProcessConversation({ item, today }: { item: InvestorProcessCard; today
         tabs={processTabs}
         value={tab}
         onChange={setTab}
+        disabled={item.advisorHired ? [] : ["advisor"]}
       />
       {item.nda ? null : (
         <p className="text-sm leading-6 text-[#5c6b78]">
@@ -66,6 +84,15 @@ function ProcessConversation({ item, today }: { item: InvestorProcessCard; today
           <ProcessRoom files={item.documents} bodies={chat.map((message) => message.body)} nda empty={sellerCopy.documentsEmpty} />
         </div>
       ) : null}
+      {tab === "advisor" && item.advisorHired ? (
+        advisors.length > 0 ? (
+          <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
+        ) : (
+          <Link href={`/asesoramiento?empresa=${item.slug}`} className="text-sm font-medium text-[#465ab4]">
+            {engagementCopy.contactAdvisor}
+          </Link>
+        )
+      ) : null}
       {tab === "meetings" && item.nda ? (
         <MeetingDesk
           messages={item.messages}
@@ -89,25 +116,61 @@ export function InvestorProcesses({
   buyerName,
   dateLabel,
   today,
+  advisors = [],
 }: {
   items: InvestorProcessCard[];
   buyerName: string;
   dateLabel: string;
   today: string;
+  advisors?: AdvisorContactView[];
 }) {
+  const [page, setPage] = useSessionChoice(
+    "releva:investor-process-tab",
+    "active",
+    pageTabs.map((item) => item.id),
+  );
+  const questions = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "question").length, 0);
+  const meetings = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "meeting").length, 0);
+
   return (
     <div>
       <LiveRefresh />
-      <ul className="flex flex-col gap-3">
+      <SellerTabs label={investorCopy.processesTitle} tabs={pageTabs} value={page} onChange={setPage} />
+      {page === "summary" ? (
+        <section className="mt-4 rounded-2xl border border-[#e6e9f0] bg-white p-5">
+          <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
+          <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
+              <p className="text-2xl font-semibold text-[#2b3b4a]">{items.length}</p>
+              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.active}</p>
+            </li>
+            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
+              <p className="text-2xl font-semibold text-[#2b3b4a]">{items.filter((item) => item.nda).length}</p>
+              <p className="mt-3 text-xs text-[#64748b]">NDA</p>
+            </li>
+            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
+              <p className="text-2xl font-semibold text-[#2b3b4a]">{questions}</p>
+              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.questionsIn}</p>
+            </li>
+            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
+              <p className="text-2xl font-semibold text-[#2b3b4a]">{meetings}</p>
+              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.meetingsDone}</p>
+            </li>
+          </ul>
+        </section>
+      ) : null}
+      {page === "active" ? (
+      <ul className="mt-4 flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
           <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
-            <div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                 <h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>
                 <ProcessHeaderCue
                   steps={item.steps}
                   role="investor"
+                  diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
                   sign={{
                     slug: item.slug,
                     nda: ndaAgreement({
@@ -133,14 +196,8 @@ export function InvestorProcesses({
                     {engagementCopy.contactAdvisor}
                   </Link>
                 ) : null}
-                <Link
-                  href={`/proyectos/${item.slug}`}
-                  className="ml-auto inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white"
-                >
-                  {investorCopy.openCompany}
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
               </div>
+              <ProcessFichaLink href={`/proyectos/${item.slug}`} />
             </div>
             <DealPipeline
               steps={item.steps}
@@ -164,11 +221,12 @@ export function InvestorProcesses({
               }}
               diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
-            <ProcessConversation item={item} today={today} />
+            <ProcessConversation item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
           </section>
         </li>
       ))}
       </ul>
+      ) : null}
     </div>
   );
 }

@@ -120,20 +120,14 @@ export function AdvisorEngagementView({
         </div>
         {rail ? (
           <aside className="xl:sticky xl:top-6 xl:flex xl:h-[calc(100dvh-3rem)] xl:flex-col">
-            {engagement.hiredByInvestor ? (
-              <div className="xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-y-auto">
-                <div className="w-full xl:my-auto">
-                  <FloatingInvestorCard name={engagement.clientLabel} profile={engagement.investorCard} />
-                </div>
-              </div>
-            ) : (
-              <div className="hidden xl:block xl:min-h-0 xl:flex-1" />
-            )}
-            {showDeposit ? (
-              <div className="max-xl:fixed max-xl:right-4 max-xl:bottom-4 max-xl:z-30 max-xl:w-[min(22rem,calc(100vw-2rem))] xl:w-full xl:shrink-0 xl:pt-4">
+            <div className="flex flex-col gap-4">
+              {engagement.hiredByInvestor ? (
+                <FloatingInvestorCard name={engagement.clientLabel} profile={engagement.investorCard} />
+              ) : null}
+              {showDeposit ? (
                 <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </aside>
         ) : null}
       </div>

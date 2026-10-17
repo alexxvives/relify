@@ -126,6 +126,7 @@ export type SellerThread = {
   messages: ThreadMessageView[];
   steps: DealStep[];
   documents: ProcessFile[];
+  advisorHired: boolean;
 };
 
 export type MessageCounts = {
@@ -158,6 +159,11 @@ export function toThreadMessage(input: {
 
 export function anonymousInvestorLabel(order: number): string {
   return `Inversor ${order}`;
+}
+
+export function investorFromPlace(place: string): string {
+  const city = place.split("·")[0]?.trim() ?? "";
+  return city.length > 0 ? `Inversor de ${city}` : "Inversor";
 }
 
 export function labelAccesses<T extends { projectId: string; requestedAt: Date }>(rows: readonly T[]): (T & { label: string })[] {

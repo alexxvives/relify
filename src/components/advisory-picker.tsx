@@ -4,10 +4,8 @@ import { useMemo, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users, X } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
-import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
-import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { useModalScrollLock } from "@/components/file-preview-dialog";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { advisoryCopy, advisoryServices, type AdvisoryServiceId } from "@/lib/advisory";
@@ -34,17 +32,12 @@ export function AdvisoryPicker({
   advisors = [],
   companies = [],
   initialCompany = "",
-  contacts = [],
-  today,
 }: {
   layout?: "list" | "cards";
   advisors?: PublicAdvisorCard[];
   companies?: { slug: string; codename: string; region: string }[];
   initialCompany?: string;
-  contacts?: AdvisorContactView[];
-  today: string;
 }) {
-  const [tab, setTab] = useState<"market" | "contacts">("market");
   const [company, setCompany] = useState(initialCompany);
   const [askOpen, setAskOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -52,42 +45,15 @@ export function AdvisoryPicker({
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="flex gap-1 border-b border-[#e7eaee]" role="tablist" aria-label={advisoryCopy.heading}>
-        {(
-          [
-            ["market", engagementCopy.marketTab],
-            ["contacts", engagementCopy.contactsTab],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => {
-              setTab(id);
-            }}
-            className={
-              tab === id
-                ? "-mb-px border-b-2 border-[#465ab4] px-3 py-2 text-base text-[#465ab4]"
-                : "-mb-px border-b-2 border-transparent px-3 py-2 text-base text-[#64748b]"
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      {tab === "contacts" ? <AdvisorContactDesk contacts={contacts} today={today} allowRemove /> : (
-        <AdvisorMarket
-          advisors={advisors}
-          companies={companies}
-          company={company}
-          onCompany={setCompany}
-          onAsk={() => {
-            setAskOpen(true);
-          }}
-        />
-      )}
+      <AdvisorMarket
+        advisors={advisors}
+        companies={companies}
+        company={company}
+        onCompany={setCompany}
+        onAsk={() => {
+          setAskOpen(true);
+        }}
+      />
       <AppToast message={toast} />
       {askOpen ? (
         <ServiceAskDialog

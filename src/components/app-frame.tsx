@@ -102,6 +102,7 @@ export function AppFrame({
   companies = [],
   activeCompanyId = null,
   canManageCompanies = false,
+  showHelp = true,
   children,
 }: {
   name: string;
@@ -113,6 +114,7 @@ export function AppFrame({
   companies?: { id: string; legalName: string; codename: string }[];
   activeCompanyId?: string | null;
   canManageCompanies?: boolean;
+  showHelp?: boolean;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -184,26 +186,28 @@ export function AppFrame({
           })}
         </nav>
         <div className="border-t border-public-line p-4">
-          <section className="rounded-2xl bg-public-sand px-4 py-4">
-            <h2 className="text-base font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
-            <p className="mt-1 text-sm leading-6 text-public-muted">{shellCopy.helpBody}</p>
-            <div className="mt-3 grid gap-2">
-              <a
-                href={shellCopy.helpPhoneHref}
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-base font-medium text-white hover:bg-public-clay-deep"
-              >
-                <PhoneIcon size={16} aria-hidden />
-                {shellCopy.helpCall} {shellCopy.helpPhone}
-              </a>
-              <a
-                href={shellCopy.helpEmailHref}
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-base font-medium text-public-ink hover:bg-white"
-              >
-                <MailIcon size={16} aria-hidden />
-                {shellCopy.helpEmail}
-              </a>
-            </div>
-          </section>
+          {showHelp ? (
+            <section className="mb-3 rounded-2xl bg-public-sand px-4 py-4">
+              <h2 className="text-base font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-public-muted">{shellCopy.helpBody}</p>
+              <div className="mt-3 grid gap-2">
+                <a
+                  href={shellCopy.helpPhoneHref}
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-base font-medium text-white hover:bg-public-clay-deep"
+                >
+                  <PhoneIcon size={16} aria-hidden />
+                  {shellCopy.helpCall} {shellCopy.helpPhone}
+                </a>
+                <a
+                  href={shellCopy.helpEmailHref}
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-base font-medium text-public-ink hover:bg-white"
+                >
+                  <MailIcon size={16} aria-hidden />
+                  {shellCopy.helpEmail}
+                </a>
+              </div>
+            </section>
+          ) : null}
           <Link
             href="/cuenta"
             onClick={closeMenu}

@@ -1,0 +1,21 @@
+export const platformTermsCopy = {
+  title: "Acuerdo con Releva",
+  intro: "Antes de entrar, acepta este acuerdo. Queda guardada la fecha y la cuenta que lo firmó.",
+  body: [
+    "Releva es un mercado para poner en contacto a quien vende una empresa, quien quiere comprarla y quien asesora esa operación. Este texto es el acuerdo de uso de la plataforma. No es el contrato de compraventa ni una escritura.",
+    "Durante los dos años siguientes a cada conexión que se abra en Releva, si esa empresa se vende entre las personas que se conectaron aquí, la comisión de Releva se debe igual aunque el cierre se haga fuera de la plataforma.",
+    "La comisión de cierre es el 1% del precio para quien compra y el 2,5% para quien vende, más el IVA. Un asesor paga el 15% de lo que cobre por el encargo, más el IVA de ese 15%.",
+    "Lo que ves de una empresa antes del acuerdo de confidencialidad es el nombre de proyecto, la región y las cifras públicas. La razón social, el CIF, la dirección y los nombres de los socios no se publican.",
+    "No uses el chat para pasar un teléfono, un correo o una vía para cerrar fuera de Releva. Releva puede suspender la cuenta si lo hace.",
+    "Aceptar aquí deja constancia de tu nombre, tu correo y la fecha. No es una firma electrónica cualificada ni sustituye al notario.",
+  ],
+  signLabel: "Firma con el ratón",
+  signHint: "Dibuja tu firma en el recuadro. No es un certificado digital.",
+  signRequired: "Firma en el recuadro antes de aceptar.",
+  accept: "Acepto el acuerdo",
+  signedTitle: "Tu acuerdo con Releva",
+  signedOn: "Firmado",
+  signedMissing: "La firma no está guardada en este equipo.",
+  pending: "Guardando…",
+  required: "Marca la casilla para continuar.",
+} as const;

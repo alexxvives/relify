@@ -4,9 +4,7 @@ import { AdvisoryPicker } from "@/components/advisory-picker";
 import { SignedInPage } from "@/components/signed-in-page";
 import { selectedEngagementCompany } from "@/lib/advisor-directory";
 import { advisoryCopy } from "@/lib/advisory";
-import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
-import { listClientContacts } from "@/server/engagementThread";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
 import { listSellerAdvisoryCompanies } from "@/server/sellerCompany";
@@ -30,10 +28,9 @@ export default async function SellerServicesPage({
   }
 
   const query = await searchParams;
-  const [advisors, companies, contacts] = await Promise.all([
+  const [advisors, companies] = await Promise.all([
     listPublicAdvisors(),
     listSellerAdvisoryCompanies(user.id),
-    listClientContacts(user),
   ]);
 
   return (
@@ -47,8 +44,6 @@ export default async function SellerServicesPage({
           advisors={advisors}
           companies={companies}
           initialCompany={selectedEngagementCompany(companies, query.empresa)}
-          contacts={contacts}
-          today={madridToday(new Date())}
         />
       </section>
     </SignedInPage>

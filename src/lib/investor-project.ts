@@ -24,6 +24,7 @@ export const investorProjectSelect = {
   region: true,
   foundedYear: true,
   description: true,
+  saleReason: true,
   revenueCents: true,
   ebitdaCents: true,
   adjustedEbitdaCents: true,
@@ -103,6 +104,7 @@ export type InvestorProjectProfile = {
   region: string;
   foundedYear: number | null;
   description: string | null;
+  saleReason: string | null;
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
@@ -128,6 +130,7 @@ type InvestorProjectRecord = {
   region: string;
   foundedYear: number | null;
   description: string | null;
+  saleReason: string | null;
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
@@ -243,6 +246,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     region: record.region,
     foundedYear: record.foundedYear,
     description: record.description,
+    saleReason: record.saleReason,
     revenueCents: record.revenueCents,
     ebitdaCents: record.ebitdaCents,
     adjustedEbitdaCents: record.adjustedEbitdaCents,

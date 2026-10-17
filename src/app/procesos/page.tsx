@@ -5,6 +5,7 @@ import { WorkspaceNote } from "@/components/workspace-note";
 import { spanishDate } from "@/lib/deal-documents";
 import { madridToday } from "@/lib/meeting";
 import { investorCopy } from "@/lib/investor-copy";
+import { listClientContacts } from "@/server/engagementThread";
 import { loadInvestorDesk } from "@/server/investorDesk";
 import { requireRole } from "@/server/requireRole";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function InvestorProcessesPage() {
   const user = await requireRole("investor");
-  const desk = await loadInvestorDesk(user.id, user.email);
+  const [desk, advisors] = await Promise.all([loadInvestorDesk(user.id, user.email), listClientContacts(user)]);
 
   return (
     <SignedInPage title={investorCopy.processesTitle}>
@@ -26,7 +27,7 @@ export default async function InvestorProcessesPage() {
           action={{ href: "/mercado", label: investorCopy.processesCta }}
         />
       ) : (
-        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} />
+        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} advisors={advisors} />
       )}
     </SignedInPage>
   );

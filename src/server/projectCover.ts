@@ -95,6 +95,25 @@ export async function writeProjectCover(id: string, type: string, bytes: Uint8Ar
   return true;
 }
 
+export async function deleteProjectCover(id: string): Promise<void> {
+  if (!idPattern.test(id)) {
+    return;
+  }
+
+  for (const extension of Object.values(extensions)) {
+    const target = coverPath(id, extension);
+    if (!target) {
+      continue;
+    }
+
+    try {
+      await unlink(target);
+    } catch {
+      // Already gone.
+    }
+  }
+}
+
 export async function readProjectCover(id: string): Promise<{ bytes: Buffer; type: CoverType } | null> {
   const found = findProjectCover(id);
 

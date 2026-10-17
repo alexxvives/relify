@@ -17,7 +17,7 @@ import {
 } from "@/lib/company-draft";
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { writeProjectCover } from "@/server/projectCover";
+import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
@@ -68,6 +68,7 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     region: readText(formData, "region"),
     foundedYear: readText(formData, "foundedYear"),
     description: readText(formData, "description"),
+    saleReason: readText(formData, "saleReason"),
     principalCnae: readText(formData, "principalCnae"),
     secondaryCnaes: readList(formData, "secondaryCnae").filter((code) => code.trim() !== ""),
     revenue: readText(formData, "revenue"),
@@ -237,6 +238,21 @@ export async function saveProjectCoverAction(
     return { ok: false, message: file.size > 8 * 1024 * 1024 ? companyCopy.cardPhotosLarge : companyCopy.cardPhotosType };
   }
 
+  refreshSellerPages();
+  revalidatePath("/mercado");
+  revalidatePath("/proyectos");
+  return { ok: true };
+}
+
+export async function deleteProjectCoverAction(): Promise<{ ok: true } | { ok: false; message: string }> {
+  const user = await sellerUser();
+  const projectId = await activeSellerProjectId(user.id);
+
+  if (!projectId) {
+    return { ok: false, message: companyCopy.cardPhotosType };
+  }
+
+  await deleteProjectCover(projectId);
   refreshSellerPages();
   revalidatePath("/mercado");
   revalidatePath("/proyectos");

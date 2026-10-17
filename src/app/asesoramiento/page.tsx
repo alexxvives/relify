@@ -3,8 +3,6 @@ import { AdvisoryPicker } from "@/components/advisory-picker";
 import { SignedInPage } from "@/components/signed-in-page";
 import { selectedEngagementCompany } from "@/lib/advisor-directory";
 import { advisoryCopy } from "@/lib/advisory";
-import { madridToday } from "@/lib/meeting";
-import { listClientContacts } from "@/server/engagementThread";
 import { listInvestorNdaCompanies } from "@/server/listInvestorNdaCompanies";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
@@ -21,10 +19,9 @@ export default async function AdvisoryPage({
 }) {
   const user = await requireRole("investor");
   const query = await searchParams;
-  const [advisors, companies, contacts] = await Promise.all([
+  const [advisors, companies] = await Promise.all([
     listPublicAdvisors(),
     listInvestorNdaCompanies(user.id),
-    listClientContacts(user),
   ]);
 
   return (
@@ -38,8 +35,6 @@ export default async function AdvisoryPage({
           advisors={advisors}
           companies={companies}
           initialCompany={selectedEngagementCompany(companies, query.empresa)}
-          contacts={contacts}
-          today={madridToday(new Date())}
         />
       </section>
     </SignedInPage>

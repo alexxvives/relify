@@ -41,7 +41,7 @@ export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<
     await recordNotification({
       userId: access.investorId,
       title: "Solicitud aceptada",
-      body: `${access.project.codename} ha aceptado tu solicitud.`,
+      body: `La empresa ha aceptado tu solicitud en ${access.project.codename}.`,
       href: `/proyectos/${access.project.slug}`,
     });
   }

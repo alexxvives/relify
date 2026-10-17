@@ -201,8 +201,8 @@ async function applyAdvisorDeposit(userId: string, engagementId: string, session
   });
   await recordNotification({
     userId: row.requesterId,
-    title: "El asesor ha aceptado",
-    body: `El asesor ha aceptado tu solicitud para ${row.project.codename}.`,
+    title: "Solicitud aceptada",
+    body: `Un asesor ha aceptado tu solicitud para ${row.project.codename}.`,
     href: row.client === "seller" ? "/mi-empresa/servicios" : "/asesoramiento",
   });
 

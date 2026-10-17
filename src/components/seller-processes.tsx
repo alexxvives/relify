@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { useSessionChoice, useSessionFlag } from "@/components/session-flag";
-import { Calendar, ChevronDown, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
+import { useSessionChoice } from "@/components/session-flag";
+import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
+import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
+import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
@@ -16,6 +18,7 @@ import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/p
 import type { PendingMatch } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy } from "@/lib/seller-copy";
 
 const tabs = [
@@ -91,11 +94,13 @@ function ThreadList({
   emptyTitle,
   emptyBody,
   today,
+  advisors,
 }: {
   threads: SellerThread[];
   emptyTitle: string;
   emptyBody: string;
   today: string;
+  advisors: AdvisorContactView[];
 }) {
   if (threads.length === 0) {
     return (
@@ -107,11 +112,13 @@ function ThreadList({
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-3">
+    <ul className="mt-4 flex flex-col gap-3">
       {threads.map((thread) => (
-        <ThreadCard key={thread.accessId} thread={thread} today={today} />
+        <li key={thread.accessId}>
+          <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -182,50 +189,56 @@ function InvestorProfileDialog({
   );
 }
 
-function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) {
-  const [open, setOpen] = useSessionFlag(`releva:seller-thread:${thread.accessId}`, true);
+function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: string; advisors: AdvisorContactView[] }) {
+  const [desk, setDesk] = useState<"chat" | "meetings" | "advisor">("chat");
   const chat = thread.messages.filter((message) => message.kind === "question");
   const expandable = thread.stage === "open";
 
-  return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white">
-      <div className={thread.stage === "pending" ? "flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4" : "flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pt-4"}>
-        {expandable ? (
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={() => {
-              setOpen(!open);
-            }}
-            className="inline-flex items-center gap-2 text-left"
-          >
-            <ChevronDown className={open ? "size-4 shrink-0 text-[#465ab4]" : "size-4 shrink-0 -rotate-90 text-[#667085]"} aria-hidden />
-            <span className="text-base font-semibold text-[#1c2740]">{thread.label}</span>
-          </button>
-        ) : (
-          <p className="text-base font-semibold text-[#1c2740]">{thread.label}</p>
-        )}
-        {thread.stage === "pending" ? null : <ProcessHeaderCue steps={thread.steps} role="seller" />}
-        {wantsAdvisor(thread.steps) ? (
-          <Link
-            href={`/mi-empresa/servicios?empresa=${thread.slug}`}
-            className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-          >
-            {engagementCopy.contactAdvisor}
-          </Link>
-        ) : null}
-        {thread.stage === "pending" ? (
-          <div className="ml-auto">
+  if (thread.stage === "pending") {
+    return (
+      <InvestorPublicCard
+        label={thread.label}
+        profile={thread.profile}
+        footer={
+          <div className="mt-4 flex flex-col gap-3">
+            <p className="text-sm text-[#3d4a63]">
+              Interesado en <span className="font-semibold text-[#1c2740]">{thread.codename}</span>
+            </p>
             <SellerPending
               named={false}
               item={{ accessId: thread.accessId, codename: thread.codename, label: thread.label }}
               profile={thread.profile}
             />
           </div>
+        }
+      />
+    );
+  }
+
+  return (
+    <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
+      <div>
+        <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+          <h2 className="text-lg font-semibold text-[#2b3b4a]">{thread.label}</h2>
+          <ProcessHeaderCue
+            steps={thread.steps}
+            role="seller"
+            diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
+          />
+        </div>
+        <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
+        </div>
+        {wantsAdvisor(thread.steps) ? (
+          <Link
+            href={`/mi-empresa/servicios?empresa=${thread.slug}`}
+            className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
+          >
+            {engagementCopy.contactAdvisor}
+          </Link>
         ) : null}
       </div>
-      {thread.stage === "pending" ? null : (
-        <div className="px-5 pb-4">
+      <div>
           <DealPipeline
             steps={thread.steps}
             role="seller"
@@ -241,48 +254,69 @@ function ThreadCard({ thread, today }: { thread: SellerThread; today: string }) 
             }
           />
         </div>
-      )}
-      {expandable && open ? (
-        <div className="flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5">
-          <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
-              <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.questionsPanel}</h3>
-              <div className="mt-4 flex flex-1 flex-col">
-                <ProjectThread
-                  viewer="seller"
-                  partyName={thread.partyName}
-                  messages={chat}
-                  action={postSellerMessageAction}
-                  hidden={[
-                    { name: "accessId", value: thread.accessId },
-                    { name: "kind", value: "question" },
-                  ]}
-                  placeholder={sellerCopy.replyField}
-                  submitLabel={sellerCopy.chatSend}
-                  pendingLabel={sellerCopy.replying}
-                  savedLabel={sellerCopy.replySaved}
-                  invalidFallback={sellerCopy.replyInvalid}
-                />
-              </div>
-            </section>
-            <ProcessRoom
-              files={thread.documents}
-              bodies={chat.map((message) => message.body)}
-              nda
-              empty={sellerCopy.documentsEmpty}
-            />
-          </div>
-          <MeetingDesk
-            messages={thread.messages}
-            action={postSellerMessageAction}
-            approveAction={approveSellerMeetingAction}
-            rescheduleAction={rescheduleSellerMeetingAction}
-            today={today}
-            hidden={[
-              { name: "accessId", value: thread.accessId },
-              { name: "kind", value: "meeting" },
+      {expandable ? (
+        <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
+          <SellerTabs
+            label={thread.codename}
+            tabs={[
+              { id: "chat", label: sellerCopy.questionsPanel },
+              { id: "meetings", label: sellerCopy.meetingsHeading },
+              { id: "advisor", label: "Asesor" },
             ]}
+            value={desk}
+            onChange={setDesk}
+            disabled={thread.advisorHired ? [] : ["advisor"]}
           />
+          {desk === "chat" ? (
+            <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
+                <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.questionsPanel}</h3>
+                <div className="mt-4 flex flex-1 flex-col">
+                  <ProjectThread
+                    viewer="seller"
+                    partyName={thread.partyName}
+                    messages={chat}
+                    action={postSellerMessageAction}
+                    hidden={[
+                      { name: "accessId", value: thread.accessId },
+                      { name: "kind", value: "question" },
+                    ]}
+                    placeholder={sellerCopy.replyField}
+                    submitLabel={sellerCopy.chatSend}
+                    pendingLabel={sellerCopy.replying}
+                    savedLabel={sellerCopy.replySaved}
+                    invalidFallback={sellerCopy.replyInvalid}
+                  />
+                </div>
+              </section>
+              <ProcessRoom
+                files={thread.documents}
+                bodies={chat.map((message) => message.body)}
+                nda
+                empty={sellerCopy.documentsEmpty}
+              />
+            </div>
+          ) : desk === "advisor" && thread.advisorHired ? (
+            advisors.length > 0 ? (
+              <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
+            ) : (
+              <Link href={`/mi-empresa/servicios?empresa=${thread.slug}`} className="text-sm font-medium text-[#465ab4]">
+                {engagementCopy.contactAdvisor}
+              </Link>
+            )
+          ) : (
+            <MeetingDesk
+              messages={thread.messages}
+              action={postSellerMessageAction}
+              approveAction={approveSellerMeetingAction}
+              rescheduleAction={rescheduleSellerMeetingAction}
+              today={today}
+              hidden={[
+                { name: "accessId", value: thread.accessId },
+                { name: "kind", value: "meeting" },
+              ]}
+            />
+          )}
         </div>
       ) : null}
     </section>
@@ -294,11 +328,13 @@ export function SellerProcesses({
   counts,
   pendingMatches,
   today,
+  advisors = [],
 }: {
   threads: SellerThread[];
   counts: MessageCounts;
   pendingMatches: PendingMatch[];
   today: string;
+  advisors?: AdvisorContactView[];
 }) {
   const [tab, setTab] = useSessionChoice(
     "releva:seller-process-tab",
@@ -359,7 +395,7 @@ export function SellerProcesses({
         </div>
       ) : null}
       {tab === "active" ? (
-        <ThreadList threads={threads} emptyTitle={sellerCopy.activeEmpty} emptyBody={sellerCopy.activeEmptyBody} today={today} />
+        <ThreadList threads={threads} emptyTitle={sellerCopy.activeEmpty} emptyBody={sellerCopy.activeEmptyBody} today={today} advisors={advisors} />
       ) : null}
     </div>
   );

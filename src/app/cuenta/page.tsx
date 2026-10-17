@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/account-settings";
+import { SignedPlatformTerms } from "@/components/signed-platform-terms";
 import { AppShell } from "@/components/app-shell";
 import { InvestorAccount } from "@/components/investor-account";
 import { authCopy } from "@/lib/auth-copy";
@@ -30,6 +31,8 @@ export default async function AccountPage() {
 
   return (
     <AppShell title={authCopy.accountTitle}>
+      <div className="flex flex-col gap-6">
+      {user.termsAcceptedAt ? <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} /> : null}
       {investorDraft ? (
         <InvestorAccount
           name={user.name}
@@ -51,6 +54,7 @@ export default async function AccountPage() {
           nationalId={nationalId}
         />
       )}
+      </div>
     </AppShell>
   );
 }

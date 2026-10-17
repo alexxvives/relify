@@ -23,6 +23,7 @@ export type InvestorProcessCard = {
   documents: ProcessFile[];
   documentsNote: string;
   partyName: string;
+  advisorHired: boolean;
 };
 
 export type InvestorProfileChecks = {
@@ -60,7 +61,7 @@ function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date |
 }
 
 export async function loadInvestorDesk(userId: string, email: string): Promise<InvestorDesk> {
-  const [accesses, favorites, questions, meetings] = await Promise.all([
+  const [accesses, favorites, questions, meetings, hired] = await Promise.all([
     prisma.projectAccess.findMany({
       where: { investorId: userId, project: { status: "published" } },
       select: {
@@ -95,7 +96,12 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
     prisma.projectFavorite.count({ where: { investorId: userId } }),
     prisma.projectMessage.count({ where: { investorId: userId, author: "investor", kind: "question" } }),
     prisma.projectMessage.count({ where: { investorId: userId, kind: "meeting" } }),
+    prisma.advisoryEngagement.findMany({
+      where: { requesterId: userId, advisorId: { not: null }, depositPaidAt: { not: null }, declinedAt: null },
+      select: { projectId: true },
+    }),
   ]);
+  const hiredProjects = new Set(hired.map((row) => row.projectId));
   const sharedIds = accesses
     .filter((access) => access.ndaAcceptedAt !== null && access.project.dataRoomGrants.length > 0)
     .map((access) => access.project.id);
@@ -168,6 +174,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       documents,
       documentsNote,
       partyName: access.project.owner ? personName(access.project.owner.name, access.project.owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
+      advisorHired: hiredProjects.has(access.project.id),
     };
   });
   const draft = await loadInvestorDraft(userId, email);

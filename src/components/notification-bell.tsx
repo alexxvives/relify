@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
-import { markNotificationReadAction, markNotificationsReadAction } from "@/app/cuenta/actions";
+import { markNotificationsReadAction } from "@/app/cuenta/actions";
+import { NoticeText } from "@/components/notice-list";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
 
 const openNoticesEvent = "releva-open-notices";
@@ -66,14 +67,23 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
   const rows = items.map((item) => ({ ...item, unread: item.unread && !seen.includes(item.id) }));
   const unread = rows.filter((item) => item.unread).length;
 
+  const markAllRead = useCallback(() => {
+    const ids = items.filter((item) => item.unread).map((item) => item.id);
+    setSeen((current) => [...current, ...ids.filter((id) => !current.includes(id))]);
+    startTransition(() => {
+      void markNotificationsReadAction();
+    });
+  }, [items]);
+
   useEffect(() => {
     function onOpen() {
       setOpen(true);
+      markAllRead();
     }
 
     window.addEventListener(openNoticesEvent, onOpen);
     return () => window.removeEventListener(openNoticesEvent, onOpen);
-  }, []);
+  }, [markAllRead]);
 
   useEffect(() => {
     if (!open) {
@@ -154,24 +164,6 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
     };
   }, [open]);
 
-  function markSeen(id: string, close: boolean) {
-    setSeen((current) => (current.includes(id) ? current : [...current, id]));
-    if (close) {
-      setOpen(false);
-    }
-    startTransition(async () => {
-      await markNotificationReadAction(id);
-    });
-  }
-
-  function markAllRead() {
-    const ids = rows.filter((item) => item.unread).map((item) => item.id);
-    setSeen((current) => [...current, ...ids.filter((id) => !current.includes(id))]);
-    startTransition(async () => {
-      await markNotificationsReadAction();
-    });
-  }
-
   return (
     <div className="relative" ref={rootRef}>
       <button
@@ -180,7 +172,12 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         aria-expanded={open}
         aria-label={unread > 0 ? `${notificationCopy.open}. ${unread}` : notificationCopy.open}
         onClick={() => {
-          setOpen((current) => !current);
+          setOpen((current) => {
+            if (!current) {
+              markAllRead();
+            }
+            return !current;
+          });
         }}
         className="group relative inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
       >
@@ -223,32 +220,24 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
                       <Icon className="size-4" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={item.unread ? "block text-sm font-semibold text-public-ink" : "block text-sm font-normal text-public-muted"}>{item.title}</span>
-                      <span className={item.unread ? "mt-1 block text-sm leading-5 font-semibold text-public-ink" : "mt-1 block text-sm leading-5 text-public-muted"}>{item.body}</span>
+                      <span className="block text-base font-semibold text-public-ink">
+                        {item.unread ? <span className="mr-2 inline-block size-2 translate-y-[-1px] rounded-full bg-[#465ab4]" aria-hidden /> : null}
+                        <NoticeText text={item.title} />
+                      </span>
+                      <span className="mt-1 block text-sm leading-5 text-public-muted">{item.body}</span>
                     </span>
                     {item.href ? <ChevronRight className="mt-1 size-4 shrink-0 text-public-muted" aria-hidden /> : null}
                   </span>
                 );
                 return (
-                  <li key={item.id} className="flex items-stretch gap-1 rounded-xl hover:bg-public-sand">
+                  <li key={item.id} className="rounded-xl hover:bg-public-sand">
                     {item.href ? (
-                      <Link href={item.href} onClick={() => markSeen(item.id, true)} className="block min-w-0 flex-1 rounded-xl px-3 py-3">
+                      <Link href={item.href} onClick={() => setOpen(false)} className="block min-w-0 rounded-xl px-3 py-3">
                         {content}
                       </Link>
                     ) : (
-                      <button type="button" onClick={() => markSeen(item.id, true)} className="block min-w-0 flex-1 rounded-xl px-3 py-3 text-left">
-                        {content}
-                      </button>
+                      <div className="block min-w-0 rounded-xl px-3 py-3 text-left">{content}</div>
                     )}
-                    {item.unread ? (
-                      <button
-                        type="button"
-                        onClick={() => markSeen(item.id, false)}
-                        className="my-3 mr-2 inline-flex h-8 shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 text-xs font-medium text-[#1c2740] hover:bg-white"
-                      >
-                        {notificationCopy.markSeen}
-                      </button>
-                    ) : null}
                   </li>
                 );
               })}

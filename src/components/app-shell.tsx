@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
+import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { destinationsForRole } from "@/lib/shell";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
@@ -42,8 +43,10 @@ export async function AppShell({
       companies={companies}
       activeCompanyId={activeCompanyId}
       canManageCompanies={user.role === "seller"}
+      showHelp={user.role !== "admin"}
     >
       {children}
+      {user.termsAccepted ? null : <PlatformTermsDialog />}
     </AppFrame>
   );
 }

@@ -166,9 +166,11 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
           {adminCopy.ownSuspend} {adminCopy.ownRole}
         </p>
       ) : (
-        <div className="flex flex-col items-end gap-2">
-          <SuspensionButton userId={account.id} suspended={account.suspended} />
-          <RoleForm userId={account.id} role={account.role} />
+        <div className="flex flex-col items-stretch gap-3 sm:items-end">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <SuspensionButton userId={account.id} suspended={account.suspended} />
+            <RoleForm userId={account.id} role={account.role} />
+          </div>
           {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
         </div>
       )}

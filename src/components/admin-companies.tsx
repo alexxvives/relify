@@ -137,11 +137,13 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
         </div>
       </div>
       <div className="mt-4 grid items-stretch gap-4 lg:grid-cols-2 lg:gap-0">
-        <dl className="flex h-full flex-col justify-between gap-3 text-sm text-[#1c2740] lg:border-r lg:border-[#eef1f4] lg:pr-6">
+        <dl className="group flex h-full flex-col justify-between gap-3 text-sm text-[#1c2740] lg:border-r lg:border-[#eef1f4] lg:pr-6">
           {identity.map((item) => (
             <div key={item.label} className="flex items-baseline justify-between gap-4">
               <dt className="shrink-0 text-[#667085]">{item.label}</dt>
-              <dd className="min-w-0 text-right break-words">{item.value.trim().length > 0 ? item.value : adminCopy.identityEmpty}</dd>
+              <dd className="min-w-0 text-right break-words blur-sm transition select-none group-hover:blur-none group-hover:select-text">
+                {item.value.trim().length > 0 ? item.value : adminCopy.identityEmpty}
+              </dd>
             </div>
           ))}
         </dl>

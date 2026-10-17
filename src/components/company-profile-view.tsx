@@ -15,6 +15,7 @@ import { FinancialTable } from "@/components/financial-table";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
+import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import {
   figureVeilBalance,
   figureVeilCapital,
@@ -93,8 +94,13 @@ export function CompanyProfile({
         <SectionTitle id="descripcion-general" icon={Building2} hint={companyCopy.generalHint}>
           {companyCopy.generalHeading}
         </SectionTitle>
-        <div className="mt-6 grid gap-6 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-4">
           <PublicFact icon={Map} label={companyCopy.regionLabel} value={project.region} />
+          <PublicFact
+            icon={Tags}
+            label={companyCopy.saleReasonLabel}
+            value={project.saleReason && saleReasons.includes(project.saleReason as (typeof saleReasons)[number]) ? saleReasonLabels[project.saleReason as (typeof saleReasons)[number]] : companyCopy.unavailable}
+          />
           <PublicFact
             icon={CalendarDays}
             label={companyCopy.foundedYearLabel}
