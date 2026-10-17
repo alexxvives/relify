@@ -63,7 +63,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
         <h2 id={`${copy.id}-titulo`} className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
           {copy.heading}
         </h2>
-        <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted">{copy.intro}</p>
+        <p className="mt-4 text-[16px] leading-7 text-public-muted">{copy.intro}</p>
         <div className="releva-path-grid relative mt-10">
           {hint ? <PathPointer /> : null}
           <div className="grid gap-4 lg:grid-cols-3">
@@ -89,7 +89,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                   <h3 className="text-4xl font-medium tracking-tight">{column.role}</h3>
                   <p className={`mt-3 text-[16px] leading-7 ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
                   <ul className="mt-6 flex flex-wrap gap-2">
-                    {column.points.map((point) => (
+                    {column.points.slice(0, 2).map((point) => (
                       <li
                         key={point}
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${selected ? "bg-white/15 text-white" : "bg-public-sand text-public-ink"}`}

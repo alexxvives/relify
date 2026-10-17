@@ -8,14 +8,15 @@ import { heroDeals, landingCopy } from "@/lib/landing-copy";
 
 const verbs = ["vender", "comprar"] as const;
 const spots = [
-  { id: "alba", deal: heroDeals[0], lit: "/hero/city-lit.png", spotClass: "releva-city-spot", sales: [3.1, 3.6, 4.2, 4.8], ebitda: [0.7, 0.82, 0.96, 1.1] },
-  { id: "norte", deal: heroDeals[1], lit: "/hero/city-2.png", spotClass: "releva-city-spot releva-city-spot-b", sales: [8.4, 9.2, 10.4, 11.4], ebitda: [1.6, 1.9, 2.1, 2.4] },
+  { id: "alba", deal: heroDeals[0], lit: "/hero/city-lit.png", spotClass: "releva-city-spot", sales: [3.1, 3.6, 4.2, 4.8], ebitda: [0.7, 0.82, 0.96, 1.1], margin: [18, 21, 23, 26] },
+  { id: "norte", deal: heroDeals[1], lit: "/hero/city-2.png", spotClass: "releva-city-spot releva-city-spot-b", sales: [8.4, 9.2, 10.4, 11.4], ebitda: [1.6, 1.9, 2.1, 2.4], margin: [16, 18, 20, 22] },
+  { id: "mar", deal: heroDeals[2], lit: "/hero/city-3.png", spotClass: "releva-city-spot releva-city-spot-c", sales: [4.2, 4.8, 5.4, 6.1], ebitda: [0.62, 0.74, 0.86, 0.98], margin: [12, 14, 15, 16] },
 ] as const;
 
 function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonly number[] }) {
   const max = Math.max(...sales, ...ebitda);
   return (
-    <div className="mt-3" role="img" aria-label="Facturación y EBITDA de los últimos cuatro años">
+    <div role="img" aria-label="Facturación y EBITDA de los últimos cuatro años">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Facturación y EBITDA</p>
         <p className="flex gap-2 text-[10px] text-[#5c6b78]">
@@ -40,10 +41,10 @@ function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonl
 
 function MixDonut() {
   return (
-    <div className="mt-3" role="img" aria-label="Composición del gasto">
-      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Composición del gasto</p>
-      <div className="mt-2 flex items-center gap-3">
-        <svg viewBox="0 0 42 42" className="size-16 shrink-0" aria-hidden="true">
+    <div role="img" aria-label="Composición del gasto">
+      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Gasto</p>
+      <div className="mt-2 flex items-center gap-2">
+        <svg viewBox="0 0 42 42" className="size-14 shrink-0" aria-hidden="true">
           <circle cx="21" cy="21" r="14" fill="none" stroke="#e7eaee" strokeWidth="7" />
           <circle cx="21" cy="21" r="14" fill="none" stroke="#1aa6a0" strokeWidth="7" strokeDasharray="40 88" strokeDashoffset="0" transform="rotate(-90 21 21)" />
           <circle cx="21" cy="21" r="14" fill="none" stroke="#e07a3d" strokeWidth="7" strokeDasharray="26 88" strokeDashoffset="-40" transform="rotate(-90 21 21)" />
@@ -55,6 +56,43 @@ function MixDonut() {
           <li className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#3d5a80]" /> Otros 25%</li>
         </ul>
       </div>
+    </div>
+  );
+}
+
+function MarginLine({ values }: { values: readonly number[] }) {
+  const width = 220;
+  const height = 72;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const span = Math.max(max - min, 1);
+  const step = width / (values.length - 1);
+  const points = values.map((value, index) => {
+    const x = index * step;
+    const y = height - 12 - ((value - min) / span) * (height - 24);
+    return { x, y };
+  });
+  const line = points.map((point) => `${point.x},${point.y}`).join(" ");
+  const area = `0,${height} ${line} ${width},${height}`;
+  return (
+    <div className="mt-3" role="img" aria-label="Margen EBITDA">
+      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Margen EBITDA</p>
+      <svg viewBox={`0 0 ${width} ${height + 16}`} className="mt-1 h-20 w-full">
+        <defs>
+          <linearGradient id="margin-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#e07a3d" stopOpacity="0.45" />
+            <stop offset="1" stopColor="#1aa6a0" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+        <polygon points={area} fill="url(#margin-fill)" />
+        <polyline points={line} fill="none" stroke="#0f6e73" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((point, index) => (
+          <g key={point.x}>
+            <circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#e07a3d" strokeWidth="2" />
+            <text x={point.x} y={height + 12} textAnchor="middle" fill="#8b95a7" fontSize="10">{2022 + index}</text>
+          </g>
+        ))}
+      </svg>
     </div>
   );
 }
@@ -137,7 +175,7 @@ export function Hero() {
               <SwapVerb /> empresas
             </span>
           </h1>
-          <div className="releva-hero-rise releva-hero-rise-later pointer-events-auto mt-5 flex flex-wrap items-center justify-center gap-3">
+          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/proyectos"
               className="inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
@@ -180,8 +218,11 @@ export function Hero() {
                 ))}
               </dl>
             </div>
-            <PairBars sales={open.sales} ebitda={open.ebitda} />
-            <MixDonut />
+            <div className="mt-3 grid grid-cols-[1.15fr_0.85fr] items-end gap-3">
+              <PairBars sales={open.sales} ebitda={open.ebitda} />
+              <MixDonut />
+            </div>
+            <MarginLine values={open.margin} />
           </article>
         ) : null}
       </div>

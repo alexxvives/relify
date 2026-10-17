@@ -134,8 +134,7 @@ export function Process() {
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto grid w-full max-w-[1440px] items-center gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
         <div>
-          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} className="mt-3 text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
+          <h2 id={`${copy.id}-titulo`} className="text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
             {copy.heading}
             <span className="mt-2 block text-public-clay">{copy.accent}</span>
           </h2>

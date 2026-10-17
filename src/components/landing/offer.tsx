@@ -12,14 +12,15 @@ export function Offer() {
   const selected = offerDeals.find((deal) => deal.codename === active) ?? offerDeals[0];
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 pt-6 pb-12 sm:px-8 sm:pt-8 sm:pb-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 pt-16 pb-12 sm:px-8 sm:pt-20 sm:pb-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="max-w-3xl">
-            <h2 id={`${copy.id}-titulo`} className="text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
+          <div>
+            <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
+            <h2 id={`${copy.id}-titulo`} className="mt-3 text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
               {copy.heading}
             </h2>
-            <p className="mt-4 max-w-2xl text-[16px] leading-7 text-public-muted">{copy.intro}</p>
+            <p className="mt-4 text-[16px] leading-7 text-public-muted">{copy.intro}</p>
           </div>
           <Link href="/proyectos" className="inline-flex items-center gap-2 text-sm text-public-clay hover:text-public-clay-deep">
             {copy.catalog}

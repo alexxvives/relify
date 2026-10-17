@@ -186,7 +186,7 @@ export const landingCopy = {
       id: "caminos",
       kicker: "Elige tu camino",
       heading: "Tres formas de entrar",
-      intro: "Elige si entras para vender tu empresa, para comprar una o para asesorar un mandato, y el recorrido de abajo sigue ese camino.",
+      intro: "Elige si entras para vender, comprar o asesorar. El recorrido de abajo sigue ese camino.",
       columns: [
         {
           id: "vender",
@@ -217,12 +217,13 @@ export const landingCopy = {
     offer: {
       id: "oferta",
       heading: "Empresas en venta",
-      intro: "Recorre comercios, talleres y servicios de distintas ciudades y mira en cada ficha la región, la facturación, el EBITDA y el precio, sin la razón social.",
+      kicker: "Inversores",
+      intro: "Región, facturación, EBITDA y precio en cada ficha. La razón social se queda fuera.",
       catalog: "Ver el catálogo",
     },
     process: {
       id: "vender",
-      kicker: "Empresas",
+      kicker: "",
       heading: "Vende tu negocio",
       accent: "en 120 días",
       body: "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
