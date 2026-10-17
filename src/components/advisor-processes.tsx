@@ -44,14 +44,14 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <h2 className="text-2xl font-semibold text-[#1c2740]">{board.codename}</h2>
-                {board.services.map((service) => (
-                  <span key={service} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]">
-                    {service}
-                  </span>
-                ))}
                 {hireTags(board).map((tag) => (
                   <span key={tag} className="rounded-full bg-[#f4f6f8] px-3 py-1 text-xs font-medium text-[#3d4a63]">
                     {tag}
+                  </span>
+                ))}
+                {board.services.map((service) => (
+                  <span key={service} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]">
+                    {service}
                   </span>
                 ))}
                 {board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}

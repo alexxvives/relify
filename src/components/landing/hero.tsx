@@ -234,6 +234,9 @@ function SwapVerb() {
 
   return (
     <span className="releva-swap">
+      <span className="releva-swap-sizer" aria-hidden="true">
+        comprar
+      </span>
       <span key={verbs[index]} className="releva-swap-word">
         {verbs[index]}
       </span>

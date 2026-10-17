@@ -56,11 +56,6 @@ export function AdvisorHome({
   desk: AdvisorHomeDesk;
   profileChecks: AdvisorProfileChecks;
 }) {
-  const stats = [
-    { label: advisorCopy.openEngagements, value: desk.open.count, href: desk.open.href },
-    { label: advisorCopy.pendingDeposits, value: desk.deposits.count, href: desk.deposits.href },
-    { label: advisorCopy.pendingNdas, value: desk.ndas.count, href: desk.ndas.href },
-  ];
   const pending = desk.pending.map((item) => ({
     id: item.id,
     title: item.kind === "deposit" ? advisorCopy.payDeposit : advisorCopy.signNda,
@@ -75,16 +70,6 @@ export function AdvisorHome({
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex min-w-0 flex-col gap-6">
         <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {stats.map((item) => (
-            <li key={item.label}>
-              <Link href={item.href} className="block h-full rounded-2xl border border-[#e7eaee] bg-white px-4 py-4 hover:border-[#465ab4]">
-                <p className="text-xs text-[#667085]">{item.label}</p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <StepCards
