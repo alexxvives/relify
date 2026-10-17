@@ -161,7 +161,7 @@ export const landingCopy = {
     ],
   },
   home: {
-    title: "Plataforma digital para comprar y vender empresas",
+    title: "Un mercado para comprar y vender empresas",
     description:
       "Unas pymes están en venta y se leen por facturación, EBITDA y precio. Otras pueden publicarse igual, sin la razón social en la ficha.",
     intro:

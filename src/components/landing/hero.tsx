@@ -8,6 +8,24 @@ import { heroDeals, landingCopy } from "@/lib/landing-copy";
 
 const deal = heroDeals[0];
 const verbs = ["vender", "comprar"] as const;
+const years = [3.1, 3.6, 4.2, 4.8] as const;
+
+function YearBars({ values }: { values: readonly number[] }) {
+  const max = Math.max(...values);
+  return (
+    <div className="mt-3 border-t border-[#e7eaee] pt-3" role="img" aria-label="Facturación de los últimos cuatro años">
+      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Facturación</p>
+      <div className="mt-2 flex h-16 items-end gap-2">
+        {values.map((value, index) => (
+          <div key={2022 + index} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+            <div className="w-full rounded-sm bg-[#1c2740]" style={{ height: `${Math.round((value / max) * 40)}px` }} />
+            <span className="text-[10px] text-[#8b95a7]">{2022 + index}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function SwapVerb() {
   const [index, setIndex] = useState(0);
@@ -25,7 +43,7 @@ function SwapVerb() {
 
   return (
     <span className="releva-swap">
-      <span key={verbs[index]} className="releva-swap-word releva-word">
+      <span key={verbs[index]} className="releva-swap-word">
         {verbs[index]}
       </span>
     </span>
@@ -67,12 +85,12 @@ export function Hero() {
         >
           <span className={`releva-city-pin ${open ? "releva-city-pin-on" : ""}`} aria-hidden="true" />
         </button>
-        <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-6 pt-16 text-center pointer-events-none sm:pt-24">
+        <div className="releva-hero-copy pointer-events-none">
           <p className="releva-hero-rise text-sm tracking-[0.16em] text-public-muted uppercase">Comprar o vender</p>
           <h1 id="inicio" className="releva-hero-rise releva-hero-rise-late mt-3 text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.98] font-medium tracking-tight text-public-ink">
-            <span className="block">Plataforma digital</span>
+            <span className="block">Un mercado para</span>
             <span className="block">
-              para <SwapVerb />
+              <SwapVerb />
             </span>
             <span className="block">empresas</span>
           </h1>
@@ -95,14 +113,17 @@ export function Hero() {
         </div>
         {open ? (
           <article className="releva-market-float" aria-live="polite">
-            <p className="text-center text-sm font-medium text-public-ink">{deal.codename}</p>
-            <p className="mt-0.5 text-center text-xs text-public-muted">
-              {deal.region} · {deal.sector}
-            </p>
-            <div className="mt-3 overflow-hidden rounded-xl border border-public-line bg-white">
-              <div className="bg-[#f4f6fb] px-3 py-3 text-center">
-                <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">Precio</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{deal.price}</p>
+            <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-[#1c2740]">
+              <Image src={deal.image} alt="" fill sizes="280px" className="object-cover" unoptimized />
+              <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#0c1224]/70 via-[#0c1224]/20 to-transparent px-3 pt-3 pb-10 text-center">
+                <p className="text-sm font-semibold text-white">{deal.codename}</p>
+                <p className="text-xs text-white/85">{deal.region}</p>
+              </div>
+            </div>
+            <div className="mt-3 overflow-hidden rounded-xl border border-[#e7eaee]">
+              <div className="bg-[#f4f6fb] px-3 py-2.5 text-center">
+                <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Precio</p>
+                <p className="mt-0.5 text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{deal.price}</p>
               </div>
               <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
                 {[
@@ -110,13 +131,14 @@ export function Hero() {
                   ["EBITDA", deal.ebitda],
                   ["EBITDA ajustado", deal.adjusted],
                 ].map(([label, value]) => (
-                  <div key={label} className="min-w-0 px-2 py-3 text-center">
-                    <dt className="text-[13px] leading-4 font-medium text-[#5c6b78]">{label}</dt>
-                    <dd className="mt-1 text-sm font-semibold tracking-tight text-[#1c2740] tabular-nums">{value}</dd>
+                  <div key={label} className="min-w-0 px-1.5 py-2.5 text-center">
+                    <dt className="text-[11px] leading-4 font-medium text-[#5c6b78]">{label}</dt>
+                    <dd className="mt-0.5 text-[13px] font-semibold tracking-tight text-[#1c2740] tabular-nums">{value}</dd>
                   </div>
                 ))}
               </dl>
             </div>
+            <YearBars values={years} />
           </article>
         ) : null}
       </div>
