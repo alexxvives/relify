@@ -12,7 +12,7 @@ export function Offer() {
   const selected = offerDeals.find((deal) => deal.codename === active) ?? offerDeals[0];
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 pt-6 pb-12 sm:px-8 sm:pt-8 sm:pb-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-3xl">

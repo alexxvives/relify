@@ -461,9 +461,9 @@
 
 .releva-hero-sky {
   width: 100%;
-  min-height: calc(100svh + 6.5rem);
+  min-height: 0;
   margin: -6.25rem 0 0;
-  padding: 7.25rem 1rem 1.25rem;
+  padding: 7.25rem 1rem 0.5rem;
   border: 0;
   border-radius: 0;
   background: #e7eeef;
@@ -488,17 +488,18 @@
 
 .releva-swap {
   display: inline-block;
-  min-width: 7.6ch;
+  min-width: 7.4ch;
   height: 1em;
   overflow: hidden;
-  vertical-align: -0.08em;
+  vertical-align: -0.06em;
+  color: var(--public-clay);
   text-align: left;
   line-height: 1;
 }
 
 .releva-swap-word {
   display: block;
-  animation: releva-swap-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: releva-swap-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .releva-hero-copy {
@@ -508,11 +509,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: auto;
   margin: 0;
-  padding: 1.5rem;
+  padding: 1.35rem 1.5rem 0;
   text-align: center;
+  text-shadow: 0 0 16px #fff, 0 0 28px #fff;
 }
 
 .releva-price-bubble {
@@ -542,13 +544,22 @@
   background: #fff;
 }
 
+.releva-city-spot-b {
+  top: 68%;
+  left: 58%;
+  width: 7%;
+  height: 11%;
+}
+
 .releva-market-float {
   position: absolute;
   z-index: 12;
   top: 1.25rem;
   right: 1.25rem;
   left: auto;
-  width: min(18.5rem, 32%);
+  max-height: calc(100% - 2.5rem);
+  overflow: auto;
+  width: min(20rem, 34%);
   border: 1px solid #e7eaee;
   border-radius: 1.15rem;
   background: #fff;
@@ -1469,12 +1480,17 @@
 }
 
 @keyframes releva-swap-in {
-  from {
-    transform: translateY(80%);
+  0% {
+    transform: translateY(120%) skewX(-8deg);
+    filter: blur(8px);
     opacity: 0;
   }
-  to {
-    transform: translateY(0);
+  55% {
+    filter: blur(0);
+  }
+  100% {
+    transform: translateY(0) skewX(0);
+    filter: blur(0);
     opacity: 1;
   }
 }
@@ -1639,7 +1655,7 @@
   }
 
   .releva-hero-copy {
-    padding: 1rem;
+    padding: 1rem 1rem 0;
   }
 
   .releva-market-float {
@@ -1658,7 +1674,7 @@
 
   .releva-hero-sky {
     margin: -6.5rem 0 0;
-    padding: 8.5rem 2.5rem 2rem;
+    padding: 8.5rem 2.5rem 0.5rem;
     border: 0;
     border-radius: 0;
   }
@@ -1671,7 +1687,7 @@
 
   .releva-hero-sky {
     margin-top: -6.5rem;
-    padding: 8.5rem 2.5rem 2rem;
+    padding: 8.5rem 2.5rem 0.5rem;
     border: 0;
     border-radius: 0;
   }
