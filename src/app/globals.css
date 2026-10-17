@@ -463,11 +463,56 @@
   width: 100%;
   min-height: calc(100svh + 6.5rem);
   margin: -6.25rem 0 0;
-  padding: 8rem 1.25rem 2rem;
+  padding: 7.25rem 1rem 1.25rem;
   border: 0;
   border-radius: 0;
   background: #e7eeef;
   box-shadow: none;
+}
+
+.releva-hero-glass {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: calc(100svh - 1.5rem);
+  border: 1px solid rgb(255 255 255 / 0.62);
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 0.18);
+  box-shadow:
+    0 28px 70px -32px rgb(18 52 58 / 0.4),
+    inset 0 1px 0 rgb(255 255 255 / 0.75);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.releva-swap {
+  display: inline-block;
+  min-width: 7.6ch;
+  height: 1em;
+  overflow: hidden;
+  vertical-align: -0.08em;
+  text-align: left;
+  line-height: 1;
+}
+
+.releva-swap-word {
+  display: block;
+  color: var(--public-clay);
+  animation: releva-swap-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.releva-market-float {
+  position: absolute;
+  z-index: 6;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: min(22rem, calc(100% - 2rem));
+  border: 1px solid #e7eaee;
+  border-radius: 1.15rem;
+  background: #fff;
+  padding: 0.85rem;
+  text-align: left;
+  box-shadow: 0 22px 40px -24px rgb(18 52 58 / 0.45);
+  backdrop-filter: blur(16px);
 }
 
 .releva-menu {
@@ -506,12 +551,27 @@
 .releva-city-spot {
   position: absolute;
   z-index: 2;
-  top: 46%;
-  left: 36%;
+  top: 58%;
+  left: 14%;
   width: 16%;
-  height: 24%;
+  height: 20%;
   pointer-events: auto;
   background: transparent;
+  cursor: pointer;
+}
+
+.releva-city-spot .releva-city-pin {
+  left: 62%;
+  top: 34%;
+}
+
+.releva-city-spot .releva-city-pin::after {
+  content: "";
+  position: absolute;
+  inset: -0.45rem;
+  border-radius: inherit;
+  border: 2px solid var(--public-clay);
+  animation: releva-hero-live 1.8s ease-out infinite;
 }
 
 .releva-tower-shine {
@@ -604,32 +664,6 @@
   animation: completion-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.releva-relief {
-  overflow: hidden;
-  border-radius: 1.85rem;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 42%, rgb(255 255 255 / 0.16), transparent 70%),
-    linear-gradient(165deg, #14959a 0%, #0c5c62 55%, #083f44 100%);
-  box-shadow: var(--public-shadow);
-}
-
-.releva-relief-pin {
-  animation: releva-relief-bob 3.4s ease-in-out infinite;
-}
-
-.releva-relief-pin:nth-child(odd) {
-  animation-delay: -1.2s;
-}
-
-@keyframes releva-relief-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
 
 .releva-net {
   position: relative;
@@ -1392,6 +1426,17 @@
   }
 }
 
+@keyframes releva-swap-in {
+  from {
+    transform: translateY(80%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .releva-bar {
   transform-origin: bottom;
   animation: releva-bar-rise 0.55s ease;
@@ -1660,6 +1705,8 @@
   .releva-hero-rise-later,
   .releva-hero-photo,
   .releva-city-pin,
+  .releva-city-spot .releva-city-pin::after,
+  .releva-swap-word,
   .releva-path-wait,
   .releva-path-wait .releva-path-mark {
     animation: none;

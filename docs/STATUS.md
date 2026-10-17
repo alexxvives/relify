@@ -6,8 +6,8 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
-- Below "Vende tu negocio / en 120 días" sits the same call with a raised map: an island, isometric buildings, trees, city pins, and a dot traveling the road.
-- The home hero is the city render, edge to edge. Hovering the marked block swaps in the teal city and opens the side card. The public menu is a frosted bar. The heading speaks to buying and selling, with Ver empresas and Vender la tuya. `npm run typecheck` and `npm run lint` exited 0.
+- The home hero sits in a frosted glass frame. The heading reads "Plataforma digital para vender empresas" and the verb swaps with comprar. A pulsing pin marks the hoverable block. The card shows precio, facturación, EBITDA, and EBITDA ajustado. The isometric 120-day map is gone.
+- The home hero is the city render. Hovering the marked block swaps in the teal city and opens the card. The public menu is a frosted bar. The heading speaks to buying and selling, with Ver empresas and Vender la tuya. `npm run typecheck` and `npm run lint` exited 0.
 - The public menu explains each role: Empresas links to vender, qué se ve, and confidencialidad; Inversores links to the catalog, cómo comprar, and qué cuesta; Asesores links to trae un mandato, servicios, and cómo cobras. Each page is a short Costa explanation. "Vende tu negocio / en 120 días" draws solid lines and a traveling dot. The center is a circle that says Tu empresa. The cities are dots, without portraits or a company photo.
 - `/lista-de-espera` is a public Costa page in the header as its own link, and in the footer. It asks for empresa, inversor, or asesor, plus name, email, and an optional city, and stores the row in `waitlist_entry`. The header no longer lists Sobre Releva or Recursos. Those routes stay on disk. "Vende tu negocio / en 120 días" uses a softer field and a Gaze portrait per city.
 - DM Sans is loaded at 400, 500, 600, and 700, so semibold labels stay in the same family as the body.
