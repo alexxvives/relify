@@ -166,8 +166,8 @@ export const landingCopy = {
       "Unas pymes están en venta y se leen por facturación, EBITDA y precio. Otras pueden publicarse igual, sin la razón social en la ficha.",
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
-    cta: "Ver empresas",
-    sellCta: "Vender la tuya",
+    cta: "Comprar una empresa",
+    sellCta: "Vender tu empresa",
     step: "Ficha pública",
     buyersKicker: "Empresarios que buscan",
     buyers: [

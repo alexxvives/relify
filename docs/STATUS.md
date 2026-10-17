@@ -6,6 +6,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
+- The home hero heading sits in the center of the city glass. The buttons are Comprar una empresa and Vender tu empresa. The building marker is a price bubble, and the card closes when the pointer leaves that building. `/proyectos` failed with Prisma `ECONNREFUSED` while Docker was stopped; Postgres is the local compose service.
 - The home hero glass is 80% of the viewport frame. The heading is "Un mercado para / vender / empresas" and the verb swaps with comprar in the same typeface. The pin sits on the teal building. The card opens to the right of the title, with a cover, price, three figures, and a small revenue bar chart. Page copy for the public audience routes is drafted in `docs/LANDING.md`.
 - The home hero is the city render. Hovering the marked block swaps in the teal city and opens the card. The public menu is a frosted bar. The heading speaks to buying and selling, with Ver empresas and Vender la tuya. `npm run typecheck` and `npm run lint` exited 0.
 - The public menu explains each role: Empresas links to vender, qué se ve, and confidencialidad; Inversores links to the catalog, cómo comprar, and qué cuesta; Asesores links to trae un mandato, servicios, and cómo cobras. Each page is a short Costa explanation. "Vende tu negocio / en 120 días" draws solid lines and a traveling dot. The center is a circle that says Tu empresa. The cities are dots, without portraits or a company photo.

@@ -55,7 +55,7 @@ export function Hero() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section aria-labelledby="inicio" className="releva-hero releva-hero-sky" onPointerLeave={() => setOpen(false)}>
+    <section aria-labelledby="inicio" className="releva-hero releva-hero-sky">
       <div className="releva-hero-glass">
         <div className="releva-city-frame" aria-hidden="true">
           <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
@@ -79,11 +79,17 @@ export function Hero() {
               setOpen(true);
             }
           }}
+          onPointerLeave={(event) => {
+            if (event.pointerType === "mouse") {
+              setOpen(false);
+            }
+          }}
           onFocus={() => setOpen(true)}
           onBlur={() => setOpen(false)}
-          onClick={() => setOpen(true)}
         >
-          <span className={`releva-city-pin ${open ? "releva-city-pin-on" : ""}`} aria-hidden="true" />
+          <span className="releva-price-bubble" aria-hidden="true">
+            {deal.price}
+          </span>
         </button>
         <div className="releva-hero-copy pointer-events-none">
           <p className="releva-hero-rise text-sm tracking-[0.16em] text-public-muted uppercase">Comprar o vender</p>
@@ -94,7 +100,6 @@ export function Hero() {
             </span>
             <span className="block">empresas</span>
           </h1>
-          <p className="releva-hero-rise releva-hero-rise-later mt-5 max-w-xl text-lg leading-8 text-public-muted">{copy.intro}</p>
           <div className="releva-hero-rise releva-hero-rise-later pointer-events-auto mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/proyectos"
