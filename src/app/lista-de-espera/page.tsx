@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function WaitlistPage() {
   return (
-    <PublicSite>
+    <PublicSite footer={false}>
       <main>
         <WaitlistBoard />
       </main>

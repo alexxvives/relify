@@ -47,11 +47,12 @@ function WaitlistClock() {
       <ol>
         {parts.map((part) => (
           <li key={part.label}>
-            <strong>{now === null ? "—" : String(part.value).padStart(2, "0")}</strong>
+            <strong key={now === null ? "wait" : part.value}>{now === null ? "—" : String(part.value).padStart(2, "0")}</strong>
             <span>{part.label}</span>
           </li>
         ))}
       </ol>
+      <i className="releva-wait-clock-run" />
     </div>
   );
 }
@@ -61,6 +62,8 @@ export function WaitlistBoard() {
   return (
     <div className="releva-wait" data-role={role}>
       <div className="releva-wait-sky" aria-hidden="true">
+        <span className="releva-wait-wash" />
+        <span className="releva-wait-arc" />
         <span className="releva-wait-orb releva-wait-orb-a" />
         <span className="releva-wait-orb releva-wait-orb-b" />
         <span className="releva-wait-orb releva-wait-orb-c" />
@@ -72,13 +75,13 @@ export function WaitlistBoard() {
           ))}
         </p>
       </div>
+      <WaitlistClock />
       <div className="releva-wait-layout">
         <div>
-          <WaitlistClock />
           <p className="releva-wait-kicker">{waitlistCopy.kicker}</p>
           <h1 className="releva-wait-title">
-            Entra antes de que
-            <span> el mercado esté lleno</span>
+            Apúntate para entrar
+            <span>en el marketplace</span>
           </h1>
           <p className="releva-wait-body">{waitlistCopy.body}</p>
           <div className="releva-wait-orbit" aria-hidden="true">

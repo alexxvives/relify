@@ -14,11 +14,11 @@ export const waitlistSchema = z.object({
 export type WaitlistInput = z.infer<typeof waitlistSchema>;
 
 export const waitlistCopy = {
-  title: "Entra antes de que abra el mercado",
+  title: "Apúntate para entrar en el marketplace",
   description:
     "Apúntate a la lista de espera de Releva. Empresas, inversores y asesores entran juntos para que el primer día ya haya con quién hablar.",
   kicker: "Lista de espera",
-  heading: "Entra antes de que el mercado esté lleno",
+  heading: "Apúntate para entrar en el marketplace",
   body: "Deja tu correo. Cuando abramos, te escribimos a todos a la vez para publicar, leer el catálogo o traer un mandato.",
   roles: [
     {
