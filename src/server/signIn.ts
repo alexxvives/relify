@@ -10,16 +10,16 @@ export type SignInResult =
   | { ok: false; message: string };
 
 export async function signIn(input: SignInInput): Promise<SignInResult> {
-  const blocked = await prisma.user.findUnique({
-    where: { email: input.email },
-    select: { suspendedAt: true },
-  });
-
-  if (blocked?.suspendedAt) {
-    return { ok: false, message: authCopy.suspended };
-  }
-
   try {
+    const blocked = await prisma.user.findUnique({
+      where: { email: input.email },
+      select: { suspendedAt: true },
+    });
+
+    if (blocked?.suspendedAt) {
+      return { ok: false, message: authCopy.suspended };
+    }
+
     const signedIn = await auth.api.signInEmail({
       body: {
         email: input.email,
