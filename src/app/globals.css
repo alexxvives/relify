@@ -2217,14 +2217,14 @@
 
 .releva-wait-clock {
   position: relative;
-  padding: 2.2rem 1rem 2.6rem;
+  padding: 3.5rem 1rem 4rem;
 }
 
 .releva-wait-clock ol {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.1rem 1.4rem;
+  gap: 1.6rem 2rem;
 }
 
 .releva-wait-clock li {
@@ -2234,22 +2234,23 @@
 }
 
 .releva-flip {
+  --flip-h: clamp(8rem, 16vw, 16rem);
   position: relative;
-  width: 4.6rem;
-  height: 4.2rem;
-  border-radius: 0.7rem;
-  perspective: 240px;
+  width: clamp(9rem, 18vw, 18.5rem);
+  height: var(--flip-h);
+  border-radius: 1.5rem;
+  perspective: 900px;
   background: #161b2e;
   color: white;
-  box-shadow: 0 16px 28px rgb(20 24 42 / 22%);
+  box-shadow: 0 28px 50px rgb(20 24 42 / 24%);
 }
 
 .releva-flip b,
 .releva-flip-leaf span {
   display: grid;
   place-items: center;
-  height: 4.2rem;
-  font-size: 2rem;
+  height: var(--flip-h);
+  font-size: clamp(4rem, 8vw, 8.2rem);
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -2259,19 +2260,19 @@
   content: "";
   position: absolute;
   z-index: 4;
-  top: calc(50% - 0.28rem);
-  width: 0.35rem;
-  height: 0.35rem;
+  top: calc(50% - 0.55rem);
+  width: 0.9rem;
+  height: 0.9rem;
   border-radius: 999px;
   background: #c5c8d4;
 }
 
 .releva-flip::before {
-  left: -0.16rem;
+  left: -0.4rem;
 }
 
 .releva-flip::after {
-  right: -0.16rem;
+  right: -0.4rem;
 }
 
 .releva-flip-leaf {
@@ -2296,8 +2297,8 @@
 
 .releva-wait-clock li > span {
   color: #8b909c;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -2467,16 +2468,6 @@
     padding-top: 8rem;
   }
 
-  .releva-flip {
-    width: 5.4rem;
-    height: 4.8rem;
-  }
-
-  .releva-flip b,
-  .releva-flip-leaf span {
-    height: 4.8rem;
-    font-size: 2.35rem;
-  }
 }
 
 @media (min-width: 900px) {
