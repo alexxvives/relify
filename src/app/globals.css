@@ -2091,7 +2091,9 @@
   --wait-c: #0f6e73;
   position: relative;
   overflow: hidden;
-  min-height: calc(100svh - 5.5rem);
+  margin-top: -5.5rem;
+  padding-top: 6.5rem;
+  min-height: calc(100svh - 1rem);
   color: var(--public-ink);
   background:
     radial-gradient(circle at 12% 18%, var(--wait-b), transparent 36%),
@@ -2186,9 +2188,10 @@
 }
 
 .releva-wait-marquee {
+  position: relative;
   overflow: hidden;
-  border-block: 1px solid var(--public-line);
-  color: var(--public-muted);
+  background: #14182a;
+  color: rgb(255 255 255 / 78%);
   font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -2214,82 +2217,102 @@
 
 .releva-wait-clock {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 1rem;
-  margin: 0.8rem 1.25rem 0;
-  padding: 0.85rem 1rem 1.1rem;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--wait-c) 28%, white);
-  border-radius: 1.4rem;
-  background: color-mix(in srgb, white 78%, var(--wait-b));
-  box-shadow: var(--public-shadow);
-}
-
-.releva-wait-clock > p {
-  color: var(--wait-c);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  padding: 2.2rem 1rem 2.6rem;
 }
 
 .releva-wait-clock ol {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem 1.4rem;
 }
 
 .releva-wait-clock li {
   display: grid;
   justify-items: center;
-  padding: 0.65rem 0.2rem 0.5rem;
-  border-radius: 1rem;
-  background: var(--public-ink);
+  gap: 0.55rem;
+}
+
+.releva-flip {
+  position: relative;
+  width: 4.6rem;
+  height: 4.2rem;
+  border-radius: 0.7rem;
+  perspective: 240px;
+  background: #161b2e;
   color: white;
-  perspective: 200px;
+  box-shadow: 0 16px 28px rgb(20 24 42 / 22%);
 }
 
-.releva-wait-clock strong {
-  display: block;
-  font-family: var(--public-display);
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1;
-  animation: releva-wait-flip 0.55s ease;
+.releva-flip b,
+.releva-flip-leaf span {
+  display: grid;
+  place-items: center;
+  height: 4.2rem;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
-.releva-wait-clock-run {
-  position: absolute;
-  right: 1rem;
-  bottom: 0.35rem;
-  left: 1rem;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--wait-c) 18%, white);
-}
-
-.releva-wait-clock-run::after {
+.releva-flip::before,
+.releva-flip::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 28%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--wait-c);
-  animation: releva-wait-run 1s linear infinite;
+  z-index: 4;
+  top: calc(50% - 0.28rem);
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: #c5c8d4;
 }
 
-.releva-wait-clock span {
-  margin-top: 0.25rem;
-  color: rgb(255 255 255 / 62%);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+.releva-flip::before {
+  left: -0.16rem;
+}
+
+.releva-flip::after {
+  right: -0.16rem;
+}
+
+.releva-flip-leaf {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 50%;
+  overflow: hidden;
+  background: #1c2238;
+  transform-origin: center bottom;
+  animation: releva-wait-flap 0.55s ease-in forwards;
+}
+
+.releva-flip-leaf span {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.releva-wait-clock li > span {
+  color: #8b909c;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.releva-flip b {
+  position: relative;
+}
+
+.releva-flip b::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 50%;
+  height: 1px;
+  background: rgb(0 0 0 / 55%);
 }
 
 .releva-wait-kicker {
@@ -2438,19 +2461,25 @@
   opacity: 0.6;
 }
 
-@media (max-width: 639px) {
-  .releva-wait-clock {
-    grid-template-columns: 1fr;
-    margin-inline: 1rem;
+@media (min-width: 640px) {
+  .releva-wait {
+    margin-top: -6.5rem;
+    padding-top: 8rem;
+  }
+
+  .releva-flip {
+    width: 5.4rem;
+    height: 4.8rem;
+  }
+
+  .releva-flip b,
+  .releva-flip-leaf span {
+    height: 4.8rem;
+    font-size: 2.35rem;
   }
 }
 
 @media (min-width: 900px) {
-  .releva-wait-clock {
-    margin-inline: 2rem;
-    padding-inline: 1.4rem;
-  }
-
   .releva-wait-layout {
     grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 0.85fr);
     gap: 3rem;
@@ -2479,20 +2508,13 @@
   }
 }
 
-@keyframes releva-wait-flip {
+@keyframes releva-wait-flap {
   from {
-    transform: rotateX(-70deg);
-    opacity: 0.15;
-  }
-}
-
-@keyframes releva-wait-run {
-  from {
-    transform: translateX(-120%);
+    transform: rotateX(0deg);
   }
 
   to {
-    transform: translateX(360%);
+    transform: rotateX(-90deg);
   }
 }
 

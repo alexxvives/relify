@@ -26,33 +26,54 @@ function partsLeft(now: number) {
   return [
     { label: "días", value: Math.floor(left / day) },
     { label: "horas", value: Math.floor((left % day) / hour) },
-    { label: "min", value: Math.floor((left % hour) / minute) },
-    { label: "seg", value: Math.floor((left % minute) / 1000) },
+    { label: "minutos", value: Math.floor((left % hour) / minute) },
+    { label: "segundos", value: Math.floor((left % minute) / 1000) },
   ];
 }
 
+function FlipUnit({ value, previous, label }: { value: string; previous: string; label: string }) {
+  const play = value !== previous;
+  return (
+    <li>
+      <div className="releva-flip">
+        <b>{value}</b>
+        {play ? (
+          <span className="releva-flip-leaf" key={value}>
+            <span>{previous}</span>
+          </span>
+        ) : null}
+      </div>
+      <span>{label}</span>
+    </li>
+  );
+}
+
 function WaitlistClock() {
-  const [now, setNow] = useState<number | null>(null);
+  const [clock, setClock] = useState<{ now: number | null; previous: number | null }>({ now: null, previous: null });
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    const id = window.setInterval(() => {
+      setClock((current) => ({ now: Date.now(), previous: current.now }));
+    }, 1000);
     return () => window.clearInterval(id);
   }, []);
 
+  const now = clock.now;
   const parts = partsLeft(now ?? opensAt);
+  const before = partsLeft(clock.previous ?? now ?? opensAt);
 
   return (
     <div className="releva-wait-clock" aria-label="Quedan dos semanas para abrir">
-      <p>Abrimos en</p>
       <ol>
-        {parts.map((part) => (
-          <li key={part.label}>
-            <strong key={now === null ? "wait" : part.value}>{now === null ? "—" : String(part.value).padStart(2, "0")}</strong>
-            <span>{part.label}</span>
-          </li>
+        {parts.map((part, index) => (
+          <FlipUnit
+            key={part.label}
+            value={now === null ? "00" : String(part.value).padStart(2, "0")}
+            previous={now === null ? "00" : String(before[index]?.value ?? part.value).padStart(2, "0")}
+            label={part.label}
+          />
         ))}
       </ol>
-      <i className="releva-wait-clock-run" />
     </div>
   );
 }
@@ -68,14 +89,6 @@ export function WaitlistBoard() {
         <span className="releva-wait-orb releva-wait-orb-b" />
         <span className="releva-wait-orb releva-wait-orb-c" />
       </div>
-      <div className="releva-wait-marquee" aria-hidden="true">
-        <p>
-          {Array.from({ length: 8 }, (_, index) => (
-            <span key={index}>Te escribimos al abrir · Empresa · Inversor · Asesor · </span>
-          ))}
-        </p>
-      </div>
-      <WaitlistClock />
       <div className="releva-wait-layout">
         <div>
           <p className="releva-wait-kicker">{waitlistCopy.kicker}</p>
@@ -94,6 +107,14 @@ export function WaitlistBoard() {
         </div>
         <WaitlistForm role={role} onRole={setRole} />
       </div>
+      <div className="releva-wait-marquee" aria-hidden="true">
+        <p>
+          {Array.from({ length: 8 }, (_, index) => (
+            <span key={index}>Te escribimos al abrir · Empresa · Inversor · Asesor · </span>
+          ))}
+        </p>
+      </div>
+      <WaitlistClock />
     </div>
   );
 }
