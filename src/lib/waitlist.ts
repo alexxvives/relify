@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+export const waitlistOpensAt = "2026-11-01T10:00:00+02:00";
+
 export const waitlistRoles = ["company", "investor", "advisor"] as const;
 
 export const waitlistSchema = z.object({
@@ -17,7 +19,7 @@ export const waitlistCopy = {
     "Apúntate a la lista de espera de Releva. Empresas, inversores y asesores entran juntos para que el primer día ya haya con quién hablar.",
   kicker: "Lista de espera",
   heading: "Entra antes de que el mercado esté lleno",
-  body: "Elige una puerta. Te avisamos para publicar, para leer el catálogo o para traer un mandato.",
+  body: "Deja tu correo. Cuando abramos, te escribimos a todos a la vez para publicar, leer el catálogo o traer un mandato.",
   roles: [
     {
       id: "company" as const,
@@ -48,7 +50,7 @@ export const waitlistCopy = {
   submit: "Apuntarme",
   pending: "Guardando…",
   doneTitle: "Estás dentro",
-  doneBody: "Te avisaremos cuando abramos el acceso. No hay cargo ni compromiso.",
+  doneBody: "Cuando abramos, te llega un correo a esta dirección. No hay cargo ni compromiso.",
   again: "Apuntar a otra persona",
   invalid: "Revisa el nombre, el correo y el perfil.",
   taken: "Ese correo ya está en la lista con ese perfil.",
