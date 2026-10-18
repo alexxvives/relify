@@ -172,12 +172,10 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         aria-expanded={open}
         aria-label={unread > 0 ? `${notificationCopy.open}. ${unread}` : notificationCopy.open}
         onClick={() => {
-          setOpen((current) => {
-            if (!current) {
-              markAllRead();
-            }
-            return !current;
-          });
+          if (!open) {
+            markAllRead();
+          }
+          setOpen((current) => !current);
         }}
         className="group relative inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
       >

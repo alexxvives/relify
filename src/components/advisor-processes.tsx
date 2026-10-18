@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { AdvisorNdaTurn } from "@/components/advisor-engagement-forms";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { advisorCopy } from "@/lib/advisor-copy";
-import type { AdvisorProjectBoard } from "@/lib/advisor-processes";
-import { stepCue, type DealStep } from "@/lib/deal-pipeline";
+import { advisorLaneCue, type AdvisorProjectBoard } from "@/lib/advisor-processes";
 
 function hireTags(board: AdvisorProjectBoard): string[] {
   const tags: string[] = [];
@@ -19,16 +19,6 @@ function PendingMark({ children }: { children: string }) {
   return (
     <span className="inline-flex rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">{children}</span>
   );
-}
-
-function laneCue(steps: DealStep[]) {
-  const current = steps.find((step) => step.state === "current");
-
-  if (!current) {
-    return null;
-  }
-
-  return stepCue(current.id, "advisor", current.pendingLoi === true);
 }
 
 export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }: { boards: AdvisorProjectBoard[]; empty?: string }) {
@@ -66,13 +56,21 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
           {board.note ? <p className="mt-4 text-sm text-[#64748b]">{board.note}</p> : null}
           <div className="mt-2 flex flex-col gap-2">
             {board.lanes.map((lane) => {
-              const cue = laneCue(lane.steps);
+              const cue = advisorLaneCue(lane.steps, lane.signNdaId !== null);
 
               return (
                 <div key={lane.key} className="border-t border-[#eef0f3] pt-3">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                    <p className="text-sm font-semibold text-[#1c2740]">{lane.label}</p>
-                    {cue ? <DealWaitingCue cue={cue} /> : null}
+                    {lane.label === advisorCopy.buyerLane ? (
+                      <p>{lane.label}</p>
+                    ) : (
+                      <p className="text-sm font-semibold text-[#1c2740]">{lane.label}</p>
+                    )}
+                    {cue?.yours && lane.signNdaId && lane.ndaText ? (
+                      <AdvisorNdaTurn engagementId={lane.signNdaId} text={lane.ndaText} />
+                    ) : cue ? (
+                      <DealWaitingCue cue={cue} />
+                    ) : null}
                   </div>
                   <DealPipeline steps={lane.steps} role="advisor" hideAsideCue />
                 </div>

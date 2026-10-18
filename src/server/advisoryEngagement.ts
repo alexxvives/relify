@@ -1137,7 +1137,36 @@ export async function listAdvisorProjectBoards(
   }));
 
   const split = splitAdvisorEngagements(snapshots);
-  return advisorProjectBoards(scope === "awaiting" ? split.awaiting : split.active);
+  const boards = advisorProjectBoards(scope === "awaiting" ? split.awaiting : split.active);
+  const needsNda = boards.some((board) => board.lanes.some((lane) => lane.signNdaId !== null));
+
+  if (!needsNda) {
+    return boards;
+  }
+
+  const advisor = await prisma.user.findUnique({
+    where: { id: advisorId },
+    select: { name: true, lastName: true },
+  });
+  const advisorName = personName(advisor?.name ?? "", advisor?.lastName);
+  const dateLabel = spanishDate(new Date());
+
+  return boards.map((board) => ({
+    ...board,
+    lanes: board.lanes.map((lane) =>
+      lane.signNdaId === null
+        ? lane
+        : {
+            ...lane,
+            ndaText: advisorNdaAgreement({
+              advisorName,
+              codename: board.codename,
+              region: board.region,
+              dateLabel,
+            }),
+          },
+    ),
+  }));
 }
 
 export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<string, number>> {

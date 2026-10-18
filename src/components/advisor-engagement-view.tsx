@@ -53,6 +53,7 @@ export function AdvisorEngagementView({
             {engagement.clientLabel}
             {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
           </p>
+          {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.profile ? (
             <CompanyProfile project={engagement.profile} figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
           ) : null}
@@ -113,7 +114,6 @@ export function AdvisorEngagementView({
             </section>
           ) : null}
           {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned /> : null}
-          {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}

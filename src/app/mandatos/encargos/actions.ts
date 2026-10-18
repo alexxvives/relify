@@ -112,6 +112,8 @@ export async function acceptAdvisorNdaAction(
 
   if (result.ok) {
     revalidatePath(`/mandatos/encargos/${id}`);
+    revalidatePath("/mandatos/venta");
+    revalidatePath("/mandatos");
   }
 
   return { ok: result.ok, message: result.message ?? engagementCopy.ndaSigned };

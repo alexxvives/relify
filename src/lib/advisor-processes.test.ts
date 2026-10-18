@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  advisorLaneCue,
   advisorProjectBoards,
   splitAdvisorEngagements,
   type AdvisorAccessSnapshot,
@@ -99,6 +100,25 @@ describe("advisorProjectBoards", () => {
     expect(board?.lanes[0]?.steps.find((step) => step.id === "conexion")?.state).toBe("current");
     expect(board?.note).toBeNull();
     expect(JSON.stringify(board)).not.toContain("buyer-1");
+  });
+
+  it("asks the advisor to sign the NDA while the seller has not accepted", () => {
+    const [board] = advisorProjectBoards([
+      engagement({
+        id: "buyer-job",
+        client: "investor",
+        depositPaid: true,
+        advisorNda: false,
+        accesses: [access("buyer-1", "2026-10-01", false, false)],
+      }),
+    ]);
+    const lane = board?.lanes[0];
+
+    expect(lane?.label).toBe("El comprador que te contrata");
+    expect(lane?.signNdaId).toBe("buyer-job");
+    expect(advisorLaneCue(lane?.steps ?? [], true)).toEqual({ yours: true, action: "Firma el NDA" });
+    expect(advisorLaneCue(lane?.steps ?? [], false)?.action).toBe("El vendedor todavía no ha aceptado.");
+    expect(board?.ndaPending).toBe(true);
   });
 
   it("shows the buyer's progress before the deposit is paid", () => {
