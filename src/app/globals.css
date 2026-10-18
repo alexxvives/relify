@@ -2339,9 +2339,9 @@
 
 .releva-wait-title span {
   display: block;
-  font-family: var(--public-display);
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--public-font);
+  font-style: normal;
+  font-weight: 500;
   color: var(--public-clay);
 }
 
@@ -2386,10 +2386,11 @@
 }
 
 .releva-wait-card h2 {
-  font-family: var(--public-display);
-  font-size: clamp(2rem, 5vw, 2.6rem);
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--public-font);
+  font-size: clamp(1.7rem, 4vw, 2.1rem);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .releva-wait-roles {

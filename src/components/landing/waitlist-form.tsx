@@ -91,7 +91,6 @@ export function WaitlistBoard() {
       </div>
       <div className="releva-wait-layout">
         <div>
-          <p className="releva-wait-kicker">{waitlistCopy.kicker}</p>
           <h1 className="releva-wait-title">
             Apúntate para entrar
             <span>en el marketplace</span>
@@ -110,7 +109,7 @@ export function WaitlistBoard() {
       <div className="releva-wait-marquee" aria-hidden="true">
         <p>
           {Array.from({ length: 8 }, (_, index) => (
-            <span key={index}>Te escribimos al abrir · Empresa · Inversor · Asesor · </span>
+            <span key={index}>Empresa · Inversor · Asesor · </span>
           ))}
         </p>
       </div>

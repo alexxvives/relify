@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { MiniFicha, Scene, ScenePage, Trio } from "@/components/landing/scenes";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { MiniFicha } from "@/components/landing/scenes";
+import { PublicSite } from "@/components/public-site";
 
 const title = "Publica la empresa sin decir cómo se llama";
 const description = "Región, facturación, EBITDA y precio. La razón social se queda en el borrador.";
@@ -8,58 +11,68 @@ export const metadata: Metadata = { title: "Vender una empresa", description, ro
 
 export default function VenderEmpresaPage() {
   return (
-    <ScenePage
-      eyebrow="Empresas"
-      title={title}
-      lead={description}
-      cta={{ href: "/lista-de-espera", label: "Apuntar mi empresa" }}
-      close="El detalle se abre cuando el vendedor acepta y se firma el acuerdo."
-    >
-      <Scene label="La ficha">
-        <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
-          <MiniFicha />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              ["Región", "Valencia"],
-              ["Facturación", "1,8 M€"],
-              ["EBITDA", "420 k€"],
-              ["Precio", "2,4 M€"],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-[1.2rem] bg-[#f4f1ea] px-4 py-4">
-                <p className="text-xs tracking-wide text-public-muted uppercase">{label}</p>
-                <p className="mt-1 text-xl">{value}</p>
-              </div>
-            ))}
-            <div className="rounded-[1.2rem] bg-public-ink/6 px-4 py-4 text-public-muted sm:col-span-2">
-              <p className="text-xs tracking-wide uppercase">Fuera de la ficha</p>
-              <p className="mt-1 text-lg line-through decoration-public-clay">Razón social · CIF</p>
-            </div>
+    <PublicSite>
+      <main>
+        <section className="grid items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,22rem)_1fr] lg:py-20">
+          <div className="mx-auto w-full max-w-sm lg:mx-0">
+            <MiniFicha />
           </div>
-        </div>
-      </Scene>
-      <Scene label="El nombre de proyecto">
-        <Trio
-          items={[
-            { title: "Borrador", body: "Alba Industrial, S.L. solo la ves tú." },
-            { title: "Revisión", body: "Releva mira las cifras antes de publicar." },
-            { title: "Publicada", body: "El catálogo dice Proyecto Alba.", live: true },
-          ]}
-        />
-      </Scene>
-      <Scene label="Quién llama">
-        <ul className="grid gap-3 md:grid-cols-3">
-          {[
-            ["Madrid", "Busca industria familiar"],
-            ["Barcelona", "Quiere continuidad del equipo"],
-            ["Bilbao", "Mira EBITDA por encima de 300 k€"],
-          ].map(([city, want]) => (
-            <li key={city} className="rounded-[1.2rem] border border-public-line px-4 py-4">
-              <p className="text-lg">{city}</p>
-              <p className="mt-1 text-sm text-public-muted">{want}</p>
+          <div className="max-w-xl">
+            <h1 className="text-4xl leading-[1.02] tracking-tight sm:text-6xl">{title}</h1>
+            <p className="mt-5 text-[16px] leading-7 text-public-muted">{description}</p>
+            <dl className="mt-8 grid grid-cols-2 gap-3">
+              {[
+                ["Región", "Valencia"],
+                ["Facturación", "1,8 M€"],
+                ["EBITDA", "420 k€"],
+                ["Precio", "2,4 M€"],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-xs tracking-wide text-public-muted uppercase">{label}</dt>
+                  <dd className="mt-1 text-2xl tracking-tight">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-6 text-sm text-public-muted line-through decoration-public-clay">Razón social · CIF</p>
+            <Link href="/lista-de-espera" className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white">
+              Apuntar mi empresa
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+        <section className="border-y border-public-line bg-public-card px-5 py-8 sm:px-8" aria-label="El nombre de proyecto">
+          <ol className="mx-auto flex max-w-[1440px] flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <li>
+              <p className="text-sm text-public-muted">Borrador</p>
+              <p className="mt-1 text-2xl">Alba Industrial, S.L.</p>
+              <p className="text-sm text-public-muted">Solo la ves tú.</p>
             </li>
-          ))}
-        </ul>
-      </Scene>
-    </ScenePage>
+            <li>
+              <p className="text-sm text-public-muted">Revisión</p>
+              <p className="mt-1 text-2xl">Releva mira las cifras</p>
+            </li>
+            <li>
+              <p className="text-sm text-public-clay">Publicada</p>
+              <p className="mt-1 font-serif text-4xl italic">Proyecto Alba</p>
+            </li>
+          </ol>
+        </section>
+        <section className="px-5 py-12 sm:px-8" aria-label="Quién llama">
+          <ul className="mx-auto flex max-w-[1440px] flex-wrap gap-x-10 gap-y-4">
+            {[
+              ["Madrid", "industria familiar"],
+              ["Barcelona", "continuidad del equipo"],
+              ["Bilbao", "EBITDA por encima de 300 k€"],
+            ].map(([city, want]) => (
+              <li key={city}>
+                <p className="text-lg">{city}</p>
+                <p className="text-sm text-public-muted">{want}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mx-auto mt-8 max-w-[1440px] text-sm text-public-muted">El detalle se abre cuando el vendedor acepta y se firma el acuerdo.</p>
+        </section>
+      </main>
+    </PublicSite>
   );
 }

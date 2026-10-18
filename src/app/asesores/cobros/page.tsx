@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Scene, ScenePage } from "@/components/landing/scenes";
+import Link from "next/link";
+import { PublicSite } from "@/components/public-site";
 
 const title = "Cobras cuando el trabajo ya está encargado";
 const description = "El depósito es 50 € más el 0,5 % del precio de venta, y es reembolsable.";
@@ -8,38 +9,35 @@ export const metadata: Metadata = { title: "Cómo cobras", description, robots: 
 
 export default function CobrosPage() {
   return (
-    <ScenePage
-      eyebrow="Asesores"
-      title={title}
-      lead={description}
-      cta={{ href: "/asesores/servicios", label: "Ver un encargo" }}
-      close="Releva no cobra al pedir el presupuesto."
-    >
-      <Scene label="El depósito">
-        <div className="grid items-center gap-6 md:grid-cols-2">
-          <p className="text-center text-6xl tracking-tight sm:text-7xl">50 € + 0,5 %</p>
-          <p className="text-xl leading-8 text-public-muted">Sobre el precio de venta. Reembolsable. Esta página no abre una pasarela.</p>
-        </div>
-      </Scene>
-      <Scene label="El encargo">
-        <article className="max-w-lg rounded-[1.4rem] border border-public-line p-6">
-          <p className="text-2xl tracking-tight">Proyecto Alba</p>
-          <p className="mt-1 text-public-muted">Due diligence</p>
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <p className="rounded-2xl bg-[#f4f1ea] px-4 py-4 text-sm">Pendiente de depósito</p>
-            <p className="rounded-2xl bg-public-ink px-4 py-4 text-sm text-white">En curso</p>
-          </div>
-        </article>
-      </Scene>
-      <Scene label="Lo que no es una cuota">
-        <ul className="grid gap-3">
-          {["No hay suscripción de asesor.", "No hay comisión en esta página.", "El cierre de la operación se acuerda fuera."].map((line) => (
-            <li key={line} className="rounded-[1.2rem] bg-[#f4f1ea] px-5 py-4 text-lg">
-              {line}
-            </li>
-          ))}
-        </ul>
-      </Scene>
-    </ScenePage>
+    <PublicSite>
+      <main>
+        <section className="px-5 py-16 text-center sm:px-8 sm:py-24">
+          <p className="text-sm tracking-[0.16em] text-public-muted uppercase">{title}</p>
+          <p className="mt-6 text-[clamp(3.5rem,10vw,8rem)] leading-none tracking-tight">50 € + 0,5 %</p>
+          <p className="mx-auto mt-6 max-w-md text-lg text-public-muted">{description} Esta página no abre una pasarela.</p>
+        </section>
+        <section className="mx-auto grid max-w-3xl gap-6 px-5 pb-16 sm:px-8 md:grid-cols-[1.1fr_0.9fr]" aria-label="El encargo">
+          <article className="rounded-[1.6rem] bg-public-ink p-8 text-white">
+            <p className="text-3xl">Proyecto Alba</p>
+            <p className="mt-2 text-white/60">Due diligence</p>
+            <div className="mt-10 flex gap-3 text-sm">
+              <span className="rounded-full bg-white/10 px-4 py-2">Pendiente de depósito</span>
+              <span className="rounded-full bg-white px-4 py-2 text-public-ink">En curso</span>
+            </div>
+          </article>
+          <ul className="flex flex-col justify-center gap-4 text-lg">
+            <li>No hay suscripción de asesor.</li>
+            <li>No hay comisión en esta página.</li>
+            <li>El cierre de la operación se acuerda fuera.</li>
+          </ul>
+        </section>
+        <p className="pb-12 text-center text-sm text-public-muted">
+          Releva no cobra al pedir el presupuesto.{" "}
+          <Link href="/asesores/servicios" className="text-public-clay">
+            Ver un encargo
+          </Link>
+        </p>
+      </main>
+    </PublicSite>
   );
 }
