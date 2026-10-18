@@ -2084,3 +2084,287 @@
   gap: 0.5rem;
   min-width: 4.75rem;
 }
+
+.releva-wait {
+  position: relative;
+  overflow: hidden;
+  color: white;
+  background: #071416;
+}
+
+.releva-wait-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.releva-wait-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(18px);
+  animation: releva-wait-drift 14s ease-in-out infinite;
+}
+
+.releva-wait-orb-a {
+  top: -8rem;
+  left: -6rem;
+  width: 28rem;
+  height: 28rem;
+  background: #1aa3a8;
+}
+
+.releva-wait-orb-b {
+  right: -8rem;
+  bottom: 10%;
+  width: 24rem;
+  height: 24rem;
+  background: #c46a3a;
+  animation-delay: -5s;
+}
+
+.releva-wait-orb-c {
+  top: 30%;
+  left: 40%;
+  width: 18rem;
+  height: 18rem;
+  background: #f2d7a2;
+  opacity: 0.55;
+  animation-delay: -9s;
+}
+
+.releva-wait[data-role="investor"] .releva-wait-orb-a {
+  background: #e7c27a;
+}
+
+.releva-wait[data-role="advisor"] .releva-wait-orb-a {
+  background: #d36b4f;
+}
+
+.releva-wait-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgb(255 255 255 / 5%) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 5%) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 50% 30%, black, transparent 75%);
+  animation: releva-wait-grid 22s linear infinite;
+}
+
+.releva-wait-marquee {
+  overflow: hidden;
+  border-block: 1px solid rgb(255 255 255 / 12%);
+  color: rgb(255 255 255 / 55%);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.releva-wait-marquee p {
+  display: flex;
+  width: max-content;
+  gap: 0;
+  padding: 0.7rem 0;
+  animation: releva-wait-marquee 28s linear infinite;
+}
+
+.releva-wait-kicker {
+  display: inline-flex;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 999px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.releva-wait-title {
+  position: relative;
+  max-width: 16ch;
+  margin-top: 1.25rem;
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.releva-wait-title span {
+  display: block;
+  font-family: var(--public-display);
+  font-style: italic;
+  font-weight: 400;
+  background: linear-gradient(100deg, #fff 20%, #9ee7e4 45%, #fff 70%);
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: releva-wait-sheen 6s linear infinite;
+}
+
+.releva-wait-orbit {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 2.5rem;
+}
+
+.releva-wait-face {
+  width: 3.4rem;
+  height: 3.4rem;
+  overflow: hidden;
+  border: 2px solid rgb(255 255 255 / 70%);
+  border-radius: 999px;
+  animation: releva-wait-bob 3.6s ease-in-out infinite;
+}
+
+.releva-wait-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.releva-wait-card,
+.releva-wait-door,
+.releva-wait-strip,
+.releva-wait-note {
+  position: relative;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 1.8rem;
+  background: rgb(8 18 20 / 62%);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(16px);
+}
+
+.releva-wait-card {
+  padding: 1.6rem;
+  animation: releva-wait-rise 0.8s ease both;
+}
+
+.releva-wait-card h2 {
+  font-family: var(--public-display);
+}
+
+.releva-wait-role {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  cursor: pointer;
+}
+
+.releva-wait-role.is-on {
+  border-color: rgb(158 231 228 / 70%);
+  background: rgb(255 255 255 / 8%);
+}
+
+.releva-wait-role input {
+  accent-color: #9ee7e4;
+}
+
+.releva-wait-field {
+  height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 8%);
+  color: white;
+}
+
+.releva-wait-field::placeholder {
+  color: rgb(255 255 255 / 40%);
+}
+
+.releva-wait-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 3.1rem;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  background: #f4efe6;
+  color: #12343a;
+  font-weight: 600;
+  animation: releva-wait-pulse 2.4s ease-in-out infinite;
+}
+
+.releva-wait-submit:disabled {
+  opacity: 0.6;
+}
+
+.releva-wait-door {
+  min-height: 16rem;
+  padding: 1.4rem;
+  text-align: left;
+  animation: releva-wait-rise 0.9s ease both;
+  transition: transform 0.35s ease, border-color 0.35s ease;
+}
+
+.releva-wait-door:hover,
+.releva-wait-door.is-live {
+  transform: translateY(-10px) rotate(-0.6deg);
+  border-color: rgb(158 231 228 / 80%);
+}
+
+.releva-wait-door-index {
+  display: block;
+  margin-bottom: 2rem;
+  color: rgb(255 255 255 / 40%);
+  font-family: var(--public-display);
+  font-size: 2rem;
+  font-style: italic;
+}
+
+.releva-wait-strip {
+  padding: 1.4rem 1.6rem;
+}
+
+.releva-wait-strip .is-live p:nth-child(2) {
+  color: #9ee7e4;
+}
+
+.releva-wait-note {
+  padding: 1.2rem 1.4rem;
+  font-family: var(--public-display);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-style: italic;
+}
+
+@keyframes releva-wait-drift {
+  50% {
+    transform: translate3d(40px, 28px, 0) scale(1.08);
+  }
+}
+
+@keyframes releva-wait-grid {
+  to {
+    background-position: 72px 72px;
+  }
+}
+
+@keyframes releva-wait-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes releva-wait-sheen {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes releva-wait-bob {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes releva-wait-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes releva-wait-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgb(244 239 230 / 16%);
+  }
+}

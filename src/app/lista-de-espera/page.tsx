@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function WaitlistPage() {
   return (
     <PublicSite>
-      <main className="px-5 py-10 sm:px-8 sm:py-16">
+      <main>
         <WaitlistBoard />
       </main>
     </PublicSite>
