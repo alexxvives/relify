@@ -22,9 +22,9 @@ export default function ComoComprarPage() {
           <p className="mx-auto mt-3 max-w-[1440px] text-public-muted">{description}</p>
         </section>
         <section className="grid gap-4 px-5 sm:px-8 md:grid-cols-3" aria-label="El catálogo">
-          <MiniFicha name="Proyecto Alba" region="Valencia" />
-          <MiniFicha name="Proyecto Nube" region="Madrid" price="1,1 M€" />
-          <MiniFicha name="Proyecto Cala" region="Málaga" price="3,6 M€" />
+          <MiniFicha name="Proyecto Alba" region="Valencia" price="2,4 M€" cover="/hero/city-2.png" />
+          <MiniFicha name="Proyecto Nube" region="Madrid" price="1,1 M€" cover="/hero/city.png" />
+          <MiniFicha name="Proyecto Cala" region="Málaga" price="3,6 M€" cover="/hero/city-3.png" />
         </section>
         <section className="mx-5 mt-10 overflow-hidden rounded-[1.6rem] border border-public-line sm:mx-8" aria-label="Pedir acceso">
           <div className="grid md:grid-cols-3">

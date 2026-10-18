@@ -17,7 +17,7 @@ export default function ConfidencialidadPage() {
         <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-2" aria-label="Dos capas">
           <div>
             <p className="mb-3 text-sm text-public-muted">Ficha pública</p>
-            <MiniFicha />
+            <MiniFicha cover="/hero/city-3.png" />
           </div>
           <div className="flex flex-col justify-between rounded-[1.6rem] bg-[#12343a] p-8 text-white">
             <p className="text-sm text-white/60">Borrador del vendedor</p>

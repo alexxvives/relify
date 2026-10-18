@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PublicSite } from "@/components/public-site";
 
 const title = "Cobras cuando el trabajo ya está encargado";
-const description = "El depósito es 50 € más el 0,5 % del precio de venta, y es reembolsable.";
+const description = "Hay un depósito reembolsable cuando el encargo ya está aceptado. La cantidad se ve al entrar.";
 
 export const metadata: Metadata = { title: "Cómo cobras", description, robots: { index: false, follow: false } };
 
@@ -13,8 +13,8 @@ export default function CobrosPage() {
       <main>
         <section className="px-5 py-16 text-center sm:px-8 sm:py-24">
           <p className="text-sm tracking-[0.16em] text-public-muted uppercase">{title}</p>
-          <p className="mt-6 text-[clamp(3.5rem,10vw,8rem)] leading-none tracking-tight">50 € + 0,5 %</p>
-          <p className="mx-auto mt-6 max-w-md text-lg text-public-muted">{description} Esta página no abre una pasarela.</p>
+          <p className="mx-auto mt-6 max-w-lg text-2xl leading-9 text-public-ink">{description}</p>
+          <p className="mx-auto mt-4 max-w-md text-public-muted">Esta página no abre una pasarela.</p>
         </section>
         <section className="mx-auto grid max-w-3xl gap-6 px-5 pb-16 sm:px-8 md:grid-cols-[1.1fr_0.9fr]" aria-label="El encargo">
           <article className="rounded-[1.6rem] bg-public-ink p-8 text-white">

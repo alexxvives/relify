@@ -60,17 +60,19 @@ export function MiniFicha({
   name = "Proyecto Alba",
   region = "Valencia",
   price = "2,4 M€",
+  cover = "/hero/city-lit.png",
   open = false,
 }: {
   name?: string;
   region?: string;
   price?: string;
+  cover?: string;
   open?: boolean;
 }) {
   return (
     <article className="overflow-hidden rounded-[1.4rem] border border-public-line bg-white">
-      <div className="relative h-36">
-        <Image src="/hero/city-lit.png" alt="" fill className="object-cover object-[center_42%]" sizes="360px" />
+      <div className="relative h-44">
+        <Image src={cover} alt="" fill className="object-cover object-[center_42%]" sizes="360px" />
         {open ? <span className="absolute top-3 left-3 rounded-full bg-public-clay px-3 py-1 text-xs text-white">Abierto</span> : null}
       </div>
       <div className="border-b border-public-line px-4 py-3">

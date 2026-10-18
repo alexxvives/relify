@@ -15,7 +15,7 @@ export default function VenderEmpresaPage() {
       <main>
         <section className="grid items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,22rem)_1fr] lg:py-20">
           <div className="mx-auto w-full max-w-sm lg:mx-0">
-            <MiniFicha />
+            <MiniFicha cover="/hero/city-2.png" />
           </div>
           <div className="max-w-xl">
             <h1 className="text-4xl leading-[1.02] tracking-tight sm:text-6xl">{title}</h1>

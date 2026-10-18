@@ -13,7 +13,7 @@ export default function MandatosPublicPage() {
     <PublicSite>
       <main className="px-5 py-14 sm:px-8">
         <div className="mx-auto grid max-w-[1100px] items-start gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
-          <MiniFicha name="Mandato Alba" region="Valencia" />
+          <MiniFicha name="Mandato Alba" region="Valencia" price="2,4 M€" cover="/hero/city.png" />
           <div className="lg:pt-6">
             <h1 className="text-4xl leading-[1.05] tracking-tight sm:text-5xl">{title}</h1>
             <p className="mt-4 text-public-muted">{description}</p>

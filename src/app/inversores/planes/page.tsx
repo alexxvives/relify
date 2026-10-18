@@ -16,7 +16,7 @@ export default function PlanesPage() {
         <div className="mt-12 grid gap-4 lg:grid-cols-2">
           <section className="rounded-[1.8rem] border border-public-line bg-public-card p-8" aria-label="Gratis">
             <p className="text-sm tracking-[0.16em] text-public-muted uppercase">Gratis</p>
-            <p className="mt-6 text-6xl tracking-tight">0 €</p>
+            <p className="mt-6 text-4xl tracking-tight">Mirar el catálogo</p>
             <ul className="mt-8 grid gap-3 text-xl">
               {["Buscar", "Guardar", "Leer la ficha pública"].map((item) => (
                 <li key={item} className="border-t border-public-line pt-3">
@@ -27,10 +27,7 @@ export default function PlanesPage() {
           </section>
           <section className="rounded-[1.8rem] bg-public-ink p-8 text-white" aria-label="De pago">
             <p className="text-sm tracking-[0.16em] text-white/50 uppercase">De pago</p>
-            <p className="mt-6 text-5xl tracking-tight">
-              20 € <span className="text-white/40">/</span> 99 €
-              <span className="ml-2 text-lg text-white/60">al mes</span>
-            </p>
+            <p className="mt-6 text-4xl tracking-tight">Contactar y seguir la operación</p>
             <ul className="mt-8 grid gap-3 text-xl">
               {["Contacto con la operación", "Seguimiento del proceso"].map((item) => (
                 <li key={item} className="border-t border-white/15 pt-3">
