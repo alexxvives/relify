@@ -307,7 +307,7 @@ export function Hero() {
               {copy.cta}
             </Link>
             <Link
-              href="/empresas/vender"
+              href="/empresas"
               className="inline-flex h-12 items-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
             >
               {copy.sellCta}

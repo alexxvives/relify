@@ -13,7 +13,15 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
     <>
       <nav className="hidden items-center gap-1 lg:flex" aria-label="Secciones" onMouseLeave={() => setOpen(null)}>
         {landingCopy.nav.map((group) => (
-          <div key={group.label} className="relative" onMouseEnter={() => setOpen(group.label)}>
+          <div key={group.label} className="relative" onMouseEnter={() => setOpen(group.links.length > 1 ? group.label : null)}>
+            {group.links.length === 1 && group.links[0] ? (
+              <Link
+                href={group.links[0].href}
+                className={`flex items-center rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+              >
+                {group.label}
+              </Link>
+            ) : (
             <button
               type="button"
               className={`flex items-center gap-1 rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
@@ -22,6 +30,8 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
               {group.label}
               <ChevronDown className={`size-4 transition ${open === group.label ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
+            )}
+            {group.links.length > 1 ? (
             <div
               className={`absolute top-full left-0 z-50 min-w-56 pt-3 transition ${open === group.label ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
             >
@@ -33,6 +43,7 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
                 ))}
               </div>
             </div>
+            ) : null}
           </div>
         ))}
         <Link
@@ -55,6 +66,16 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
         <div className="absolute inset-x-0 top-full z-50 mt-3 rounded-[1.5rem] bg-public-card p-3 text-public-ink shadow-public lg:hidden">
           {landingCopy.nav.map((group) => (
             <div key={group.label} className="px-2 py-2">
+              {group.links.length === 1 && group.links[0] ? (
+                <Link
+                  href={group.links[0].href}
+                  className="block rounded-2xl py-2 text-sm font-medium hover:bg-public-sand"
+                  onClick={() => setMobile(false)}
+                >
+                  {group.label}
+                </Link>
+              ) : (
+                <>
               <p className="text-xs tracking-[0.16em] text-public-muted uppercase">{group.label}</p>
               {group.links.map((link) => (
                 <Link
@@ -66,6 +87,8 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
                   {link.label}
                 </Link>
               ))}
+                </>
+              )}
             </div>
           ))}
           <Link

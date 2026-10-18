@@ -140,7 +140,7 @@ export function Process() {
           </h2>
           <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted">{copy.body}</p>
           <Link
-            href="/empresas/vender"
+            href="/empresas"
             className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
           >
             {copy.cta}

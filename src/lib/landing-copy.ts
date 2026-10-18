@@ -12,27 +12,15 @@ export const landingCopy = {
   nav: [
     {
       label: "Empresas",
-      links: [
-        { label: "Vender una empresa", href: "/empresas/vender" },
-        { label: "Qué se ve", href: "/empresas/que-se-ve" },
-        { label: "Confidencialidad", href: "/empresas/confidencialidad" },
-      ],
+      links: [{ label: "Cómo funciona", href: "/empresas" }],
     },
     {
       label: "Inversores",
-      links: [
-        { label: "Empresas en venta", href: "/proyectos" },
-        { label: "Cómo comprar", href: "/inversores/como-comprar" },
-        { label: "Qué cuesta", href: "/inversores/planes" },
-      ],
+      links: [{ label: "Cómo funciona", href: "/inversores" }],
     },
     {
       label: "Asesores",
-      links: [
-        { label: "Trae un mandato", href: "/asesores/mandatos" },
-        { label: "Servicios", href: "/asesores/servicios" },
-        { label: "Cómo cobras", href: "/asesores/cobros" },
-      ],
+      links: [{ label: "Cómo funciona", href: "/asesores" }],
     },
   ],
   waitlistNav: { label: "Lista de espera", href: "/lista-de-espera" },
@@ -132,9 +120,9 @@ export const landingCopy = {
       {
         title: "Usuarios",
         links: [
-          { label: "Vender una empresa", href: "/empresas/vender" },
+          { label: "Empresas", href: "/empresas" },
           { label: "Empresas en venta", href: "/proyectos" },
-          { label: "Trae un mandato", href: "/asesores/mandatos" },
+          { label: "Asesores", href: "/asesores" },
         ],
       },
       {
@@ -152,9 +140,8 @@ export const landingCopy = {
       {
         title: "Soporte",
         links: [
-          { label: "Confidencialidad", href: "/empresas/confidencialidad" },
-          { label: "Cómo comprar", href: "/inversores/como-comprar" },
-          { label: "Cómo vender", href: "/empresas/vender" },
+          { label: "Inversores", href: "/inversores" },
+          { label: "Empresas", href: "/empresas" },
           { label: "Archivo", href: "/archivo" },
         ],
       },
@@ -193,7 +180,7 @@ export const landingCopy = {
           role: "Vender",
           body: "Publicas la pyme con un nombre de proyecto. Quien compra ve las cifras, no la sociedad.",
           points: ["Nombre de proyecto", "Cifras a la vista", "La sociedad no se publica"],
-          href: "/empresas/vender",
+          href: "/empresas",
           cta: "Cómo vender",
         },
         {
@@ -209,7 +196,7 @@ export const landingCopy = {
           role: "Asesorar",
           body: "Presentas el mandato del cliente con las mismas reglas. La sociedad no sale en la ficha.",
           points: ["Mandato anónimo", "El mismo recorrido", "Sin publicar la sociedad"],
-          href: "/asesores/mandatos",
+          href: "/asesores",
           cta: "Publicar un mandato",
         },
       ],
@@ -697,9 +684,9 @@ export const caseStudies = [
 ] as const;
 
 export const storyCards = [
-  { title: "Cómo se presenta una pyme sin decir quién es", href: "/empresas/vender", kicker: "Vender" },
-  { title: "Qué mira un comprador antes de pedir acceso", href: "/inversores/como-comprar", kicker: "Comprar" },
-  { title: "Dónde entra el asesor en la ficha", href: "/asesores/mandatos", kicker: "Asesorar" },
+  { title: "Cómo se presenta una pyme sin decir quién es", href: "/empresas", kicker: "Vender" },
+  { title: "Qué mira un comprador antes de pedir acceso", href: "/inversores", kicker: "Comprar" },
+  { title: "Dónde entra el asesor en la ficha", href: "/asesores", kicker: "Asesorar" },
 ] as const;
 
 export const logoMarks = [
