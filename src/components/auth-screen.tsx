@@ -14,8 +14,8 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
   const signingUp = mode === "sign-up";
 
   return (
-    <div className="min-h-dvh bg-[#e7eef6] p-3 font-public text-[#16324f] sm:p-4 lg:p-5">
-      <div className="relative flex min-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-2rem)] lg:min-h-[calc(100dvh-2.5rem)]">
+    <div className="min-h-dvh bg-[#e7eef6] px-6 py-10 font-public text-[#16324f] sm:px-12 sm:py-14 lg:px-20 lg:py-16 xl:px-28 xl:py-20">
+      <div className="relative flex min-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-7rem)] lg:min-h-[calc(100dvh-8rem)] xl:min-h-[calc(100dvh-10rem)]">
         <Image
           src="/auth/login-background.jpg"
           alt=""
