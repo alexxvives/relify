@@ -1,70 +1,86 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Handshake, Shield, TrendingUp } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { PublicSite } from "@/components/public-site";
 import { SignInForm } from "@/components/sign-in-form";
 import { SignUpForm } from "@/components/sign-up-form";
 import { authCopy } from "@/lib/auth-copy";
 
 type AuthMode = "sign-in" | "sign-up";
 
-function AuthTab({ href, selected, label }: { href: string; selected: boolean; label: string }) {
-  return (
-    <Link
-      href={href}
-      aria-current={selected ? "page" : undefined}
-      className={
-        selected
-          ? "rounded-full bg-public-ink px-4 py-2 text-center text-sm text-public-paper"
-          : "rounded-full px-4 py-2 text-center text-sm text-public-muted hover:text-public-ink"
-      }
-    >
-      {label}
-    </Link>
-  );
-}
+const stageIcons = [Shield, Handshake, TrendingUp] as const;
 
 export function AuthScreen({ mode }: { mode: AuthMode }) {
+  const signingUp = mode === "sign-up";
+
   return (
-    <PublicSite>
-      <main className="mx-auto grid w-full max-w-[1100px] items-stretch gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:py-14">
-        <section className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-public-ink text-public-paper shadow-public">
-          <Image
-            src="/cities/city-madrid.jpg"
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 560px, 100vw"
-            className="object-cover opacity-45"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-public-ink via-public-ink/75 to-public-ink/25" />
-          <div className="relative flex h-full min-h-[420px] flex-col justify-between p-8 sm:p-12">
-            <Logo tone="paper" size="lg" />
-            <div>
-              <p className="text-xs tracking-[0.22em] text-[#9fd4d1] uppercase">{authCopy.panelKicker}</p>
-              <h1 className="mt-4 max-w-md text-[2.6rem] leading-[1.05] tracking-tight sm:text-5xl">
-                <span className="block">{authCopy.headlineLead}</span>
-                <span className="block">{authCopy.headlineMiddle}</span>
-                <span className="releva-word block text-[1.15em] text-[#9fd4d1]">{authCopy.headlineAccent}</span>
-                <span className="block">{authCopy.headlineTail}</span>
+    <div className="min-h-dvh bg-[#e7eef6] p-3 font-public text-[#16324f] sm:p-4 lg:p-5">
+      <div className="relative flex min-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-2rem)] lg:min-h-[calc(100dvh-2.5rem)]">
+        <Image
+          src="/auth/login-background.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_42%]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
+        />
+        <div className="relative z-10 flex min-h-[inherit] flex-col px-5 py-5 sm:px-8 sm:py-7 lg:px-12 lg:py-8">
+          <header className="flex items-center justify-between gap-4">
+            <Link href="/" aria-label="Releva">
+              <Logo />
+            </Link>
+            <p className="text-right text-[13px] leading-5 text-[#7d8fa1] sm:text-sm">
+              {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
+              <Link
+                href={signingUp ? "/entrar" : "/registro"}
+                className="whitespace-nowrap font-medium text-[#14998a] hover:text-[#0f8578]"
+              >
+                {signingUp ? authCopy.signIn : authCopy.signUp} →
+              </Link>
+            </p>
+          </header>
+          <div className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,36rem)_minmax(1.25rem,1fr)_23.5rem] lg:gap-6 lg:py-4">
+            <section>
+              <p className="text-[11px] font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
+              <h1 className="mt-4 max-w-[16ch] text-[2.35rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:max-w-none sm:text-[2.85rem]">
+                <span className="block">{authCopy.stageHeadlineLead}</span>
+                <span className="block">{authCopy.stageHeadlineTail}</span>
               </h1>
-              <p className="mt-5 max-w-sm text-sm leading-6 text-[#d5e6e6]">{authCopy.panelNote}</p>
-            </div>
+              <p className="mt-5 max-w-sm text-[15px] leading-6 text-[#7d8fa1]">{authCopy.stageBody}</p>
+              <ul className="mt-8 space-y-4">
+                {authCopy.stagePoints.map((point, index) => {
+                  const Icon = stageIcons[index] ?? Shield;
+                  return (
+                    <li key={point.title} className="flex items-center gap-3">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
+                        <Icon className="size-[18px]" aria-hidden />
+                      </span>
+                      <span>
+                        <span className="block text-sm font-semibold text-[#16324f]">{point.title}</span>
+                        <span className="block text-[13px] leading-5 text-[#7d8fa1]">{point.body}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+            <div className="hidden lg:block" aria-hidden />
+            <section className="rounded-[1.6rem] border border-white/80 bg-white/95 px-6 py-7 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-8 sm:py-9">
+              <h2 className="text-[1.65rem] font-semibold tracking-tight text-[#16324f]">
+                {signingUp ? authCopy.signUpCardTitle : authCopy.signInCardTitle}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#7d8fa1]">
+                {signingUp ? authCopy.signUpIntro : authCopy.signInIntro}
+              </p>
+              <div className="mt-6">{signingUp ? <SignUpForm /> : <SignInForm />}</div>
+            </section>
           </div>
-        </section>
-        <section className="flex flex-col justify-center rounded-[2rem] bg-public-card px-6 py-8 shadow-public sm:px-10 sm:py-12">
-          <nav aria-label={authCopy.signInTitle} className="flex w-fit gap-1 rounded-full bg-public-sand p-1">
-            <AuthTab href="/entrar" selected={mode === "sign-in"} label={authCopy.signInTitle} />
-            <AuthTab href="/registro" selected={mode === "sign-up"} label={authCopy.signUpTitle} />
-          </nav>
-          <p className="mt-8 text-sm leading-6 text-public-muted">
-            {mode === "sign-in" ? authCopy.signInIntro : authCopy.signUpIntro}
-          </p>
-          <div className="mt-6">{mode === "sign-in" ? <SignInForm /> : <SignUpForm />}</div>
-          <Link href="/" className="mt-8 text-sm text-public-muted hover:text-public-ink">
-            {authCopy.backHome}
-          </Link>
-        </section>
-      </main>
-    </PublicSite>
+        </div>
+      </div>
+    </div>
   );
 }

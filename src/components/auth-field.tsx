@@ -1,24 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { authCopy } from "@/lib/auth-copy";
 
 export const authFieldClassName =
-  "h-12 w-full rounded-public border border-public-line bg-public-paper px-4 text-[15px] text-public-ink outline-none placeholder:text-public-muted focus-visible:border-public-clay focus-visible:ring-3 focus-visible:ring-public-clay/25";
+  "h-12 w-full rounded-full border border-[#e4edf2] bg-[#f7fafb] pr-12 pl-11 text-[15px] text-[#16324f] outline-none placeholder:text-[#8aa0b2] focus-visible:border-[#14998a] focus-visible:ring-3 focus-visible:ring-[#14998a]/20";
 
-export const authLabelClassName = "flex flex-col gap-2 text-sm text-public-ink";
+export const authLabelClassName = "flex flex-col gap-1.5 text-[13px] font-medium text-[#5d7082]";
+
+export const authSubmitClassName =
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#14998a] text-[15px] font-medium text-white transition hover:bg-[#0f8578] disabled:opacity-50";
+
+export function EmailField() {
+  return (
+    <label className={authLabelClassName}>
+      {authCopy.emailFieldLabel}
+      <span className="relative">
+        <Mail className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#8aa0b2]" aria-hidden />
+        <input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder={authCopy.emailPlaceholder}
+          className={authFieldClassName}
+        />
+      </span>
+    </label>
+  );
+}
 
 export function PasswordField({
   autoComplete,
   minLength,
   maxLength,
-  hint,
+  placeholder,
 }: {
   autoComplete: "current-password" | "new-password";
   minLength?: number;
   maxLength: number;
-  hint?: string;
+  placeholder: string;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -26,6 +48,7 @@ export function PasswordField({
     <label className={authLabelClassName}>
       {authCopy.passwordLabel}
       <span className="relative">
+        <Lock className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#8aa0b2]" aria-hidden />
         <input
           name="password"
           type={visible ? "text" : "password"}
@@ -33,8 +56,8 @@ export function PasswordField({
           required
           minLength={minLength}
           maxLength={maxLength}
-          placeholder={authCopy.passwordPlaceholder}
-          className={`${authFieldClassName} pr-12`}
+          placeholder={placeholder}
+          className={authFieldClassName}
         />
         <button
           type="button"
@@ -42,12 +65,11 @@ export function PasswordField({
           onClick={() => {
             setVisible((current) => !current);
           }}
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-public-muted hover:text-public-ink"
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-[#8aa0b2] hover:text-[#16324f]"
         >
           {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
         </button>
       </span>
-      {hint ? <span className="text-xs font-normal text-public-muted">{hint}</span> : null}
     </label>
   );
 }
