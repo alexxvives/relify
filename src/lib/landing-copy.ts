@@ -207,8 +207,25 @@ export const landingCopy = {
       accent: "en 120 días",
       intro:
         "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
-      body:
-        "Publicas la ficha y el mapa se llena de compradores que ya buscan por ciudad y sector. Tú eliges con quién hablar; la razón social sigue fuera hasta que lo digas.",
+      bodyParagraphs: [
+        [
+          { text: "Publicas la ficha", emphasis: true },
+          { text: " y el mapa se llena de compradores que ya buscan por ciudad y sector. Tú marcas qué encaja y " },
+          { text: "tú eliges con quién hablar", emphasis: true },
+          { text: ", sin que la operación se convierta en un anuncio público." },
+        ],
+        [
+          { text: "En la ficha solo salen " },
+          { text: "región, cifras y precio", emphasis: true },
+          { text: ". La razón social, el CIF y los socios " },
+          { text: "siguen fuera", emphasis: true },
+          { text: " hasta que aceptas una conexión y firmas el acuerdo de confidencialidad." },
+        ],
+        [
+          { text: "Releva te avisa cuando llega interés, cuando hay reunión o cuando toca tu turno", emphasis: true },
+          { text: ". Así avanzas el proceso sin perder el control ni la confidencialidad del negocio." },
+        ],
+      ],
       cta: "Publicar mi empresa",
     },
     flow: {

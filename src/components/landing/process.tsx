@@ -102,6 +102,24 @@ function Network() {
   );
 }
 
+type EmphasisSegment = { text: string; emphasis?: boolean };
+
+function ProcessParagraph({ segments }: { segments: readonly EmphasisSegment[] }) {
+  return (
+    <p className="text-[16px] leading-7 text-public-muted">
+      {segments.map((segment, index) =>
+        segment.emphasis ? (
+          <strong key={index} className="font-semibold text-public-ink">
+            {segment.text}
+          </strong>
+        ) : (
+          <span key={index}>{segment.text}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
 function NetworkList() {
   const people = landingCopy.home.buyers;
 
@@ -134,14 +152,19 @@ export function Process() {
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-        <h2 id={`${copy.id}-titulo`} className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
-          {copy.heading}
-          <span className="mt-2 block text-public-clay">{copy.accent}</span>
+        <h2
+          id={`${copy.id}-titulo`}
+          className="mt-3 text-4xl leading-[1.02] font-medium tracking-tight whitespace-nowrap sm:text-6xl"
+        >
+          {copy.heading}{" "}
+          <span className="text-public-clay">{copy.accent}</span>
         </h2>
-        <p className="mt-4 max-w-2xl text-[16px] leading-7 text-public-muted">{copy.intro}</p>
+        <p className="mt-4 max-w-none text-[16px] leading-7 text-public-muted lg:whitespace-nowrap">{copy.intro}</p>
         <div className="mt-10 grid items-center gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
-          <div>
-            <p className="max-w-xl text-[16px] leading-7 text-public-muted">{copy.body}</p>
+          <div className="flex max-w-xl flex-col gap-4">
+            {copy.bodyParagraphs.map((segments, index) => (
+              <ProcessParagraph key={index} segments={segments} />
+            ))}
             <Link
               href="/empresas"
               className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"

@@ -6,7 +6,8 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
-- Home Process opens with Empresas / Vende tu negocio en 120 días / intro like the other sections, then left copy + Publicar mi empresa beside the network. Activity heading is about live connections, not confidentiality. `npm run typecheck` exited 0 and `npm run lint` exited 0.
+- Home Process keeps Vende tu negocio en 120 días and the intro on one line at desktop, with three emphasized left paragraphs before Publicar mi empresa. `npm run typecheck` exited 0 and `npm run lint` exited 0.
+- Home Process opens with Empresas / Vende tu negocio en 120 días / intro like the other sections, then left copy + Publicar mi empresa beside the network. Activity heading is about live connections, not confidentiality.
 - `/entrar` and `/registro` put Volver above the city panel, outside the rounded card. Home Confidencialidad uses the same kicker/title/intro rhythm as Offer and Paths. The activity feed uses the landing moss/clay green instead of purple.
 - `/registro` offers Empresa, Inversor, and Asesor; `?rol=asesor` preselects the advisor pill and the entry cookie carries it into onboarding. The home landing adds Confidencialidad en Releva and the activity feed under PathAndFlow.
 - Advisor hires before Q&A are deleted on load and cannot be created: Mis procesos and Encargos only keep engagements that already reached NDA. Por qué se vende sits on the public ficha, drops the private-only hint, marks required with a red asterisk, and shakes red if Guardar runs empty. Sin guardar and Pendiente chips share the same size. Añadir empresa charges 149 € + IVA on Stripe Checkout for every company after the first; the first stays free. `npm run typecheck` exited 0 and `npm run lint` exited 0. `npm run test -- src/lib/advisor-processes.test.ts` exited 0.
