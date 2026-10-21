@@ -14,8 +14,8 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
   const signingUp = mode === "sign-up";
 
   return (
-    <div className="min-h-dvh bg-[#e7eef6] px-6 py-10 font-public text-[#16324f] sm:px-12 sm:py-14 lg:px-20 lg:py-16 xl:px-28 xl:py-20">
-      <div className="relative flex min-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-7rem)] lg:min-h-[calc(100dvh-8rem)] xl:min-h-[calc(100dvh-10rem)]">
+    <div className="min-h-dvh bg-[#e7eef6] px-12 py-20 font-public text-[#16324f] sm:px-24 sm:py-28 lg:px-40 lg:py-32 xl:px-56 xl:py-40">
+      <div className="relative flex min-h-[calc(100dvh-10rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-14rem)] lg:min-h-[calc(100dvh-16rem)] xl:min-h-[calc(100dvh-20rem)]">
         <Image
           src="/auth/login-background.jpg"
           alt=""
@@ -28,7 +28,7 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
         />
-        <div className="relative z-10 flex min-h-[inherit] flex-col px-5 py-5 sm:px-8 sm:py-7 lg:px-12 lg:py-8">
+        <div className="relative z-10 flex min-h-[inherit] flex-col px-5 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
           <header className="flex items-center justify-between gap-4">
             <Link href="/" aria-label="Releva">
               <Logo />
@@ -43,8 +43,8 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
               </Link>
             </p>
           </header>
-          <div className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,36rem)_minmax(1.25rem,1fr)_23.5rem] lg:gap-6 lg:py-4">
-            <section>
+          <div className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8 lg:py-2">
+            <section className="min-w-0">
               <p className="text-[11px] font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
               <h1 className="mt-4 max-w-[16ch] text-[2.35rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:max-w-none sm:text-[2.85rem]">
                 <span className="block">{authCopy.stageHeadlineLead}</span>
@@ -68,7 +68,6 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
                 })}
               </ul>
             </section>
-            <div className="hidden lg:block" aria-hidden />
             <section className="rounded-[1.6rem] border border-white/80 bg-white/95 px-6 py-7 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-8 sm:py-9">
               <h2 className="text-[1.65rem] font-semibold tracking-tight text-[#16324f]">
                 {signingUp ? authCopy.signUpCardTitle : authCopy.signInCardTitle}
