@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   advisorLaneCue,
   advisorProjectBoards,
+  engagementReachedQa,
   splitAdvisorEngagements,
   type AdvisorAccessSnapshot,
   type AdvisorEngagementSnapshot,
@@ -40,9 +41,67 @@ function engagement(patch: Partial<AdvisorEngagementSnapshot> & Pick<AdvisorEnga
   };
 }
 
+describe("engagementReachedQa", () => {
+  it("requires the hiring buyer to have signed the NDA", () => {
+    expect(
+      engagementReachedQa(
+        engagement({
+          id: "buyer-job",
+          client: "investor",
+          requesterId: "buyer-2",
+          accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, false)],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      engagementReachedQa(
+        engagement({
+          id: "buyer-job",
+          client: "investor",
+          requesterId: "buyer-2",
+          accesses: [access("buyer-1", "2026-10-01", true, false), access("buyer-2", "2026-10-02", true, true)],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("requires any buyer in Q&A for a seller hire", () => {
+    expect(engagementReachedQa(engagement({ id: "seller-job", client: "seller" }))).toBe(false);
+    expect(
+      engagementReachedQa(
+        engagement({
+          id: "seller-job",
+          client: "seller",
+          accesses: [access("buyer-1", "2026-10-01", true, true)],
+        }),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("advisorProjectBoards", () => {
-  it("keeps other buyers hidden until the seller opens the process", () => {
-    const [board] = advisorProjectBoards([engagement({ id: "seller-job", client: "seller" })]);
+  it("drops hires that never reached Q&A instead of showing a waiting card", () => {
+    expect(advisorProjectBoards([engagement({ id: "seller-job", client: "seller" })])).toEqual([]);
+    expect(
+      advisorProjectBoards([
+        engagement({
+          id: "buyer-job",
+          client: "investor",
+          depositPaid: true,
+          accesses: [access("buyer-1", "2026-10-01", false, false)],
+        }),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("keeps other buyers off the board until the seller opens the process", () => {
+    const [board] = advisorProjectBoards([
+      engagement({
+        id: "seller-job",
+        client: "seller",
+        accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, true)],
+      }),
+    ]);
 
     expect(board?.lanes).toEqual([]);
     expect(board?.note).toContain("no ha abierto el proceso");
@@ -66,15 +125,6 @@ describe("advisorProjectBoards", () => {
     expect(JSON.stringify(board)).not.toContain("@");
   });
 
-  it("waits for Q&A when the open process has no buyer past the NDA", () => {
-    const [board] = advisorProjectBoards([
-      engagement({ id: "seller-job", client: "seller", processOpened: true }),
-    ]);
-
-    expect(board?.lanes).toEqual([]);
-    expect(board?.note).toContain("Q&A");
-  });
-
   it("shows only the buyer who hired the advisor once that buyer is in Q&A", () => {
     const [board] = advisorProjectBoards([
       engagement({
@@ -94,21 +144,6 @@ describe("advisorProjectBoards", () => {
     expect(JSON.stringify(board)).not.toContain("buyer-1");
   });
 
-  it("hides a buyer hire that has not reached Q&A", () => {
-    const [board] = advisorProjectBoards([
-      engagement({
-        id: "buyer-job",
-        client: "investor",
-        depositPaid: true,
-        advisorNda: false,
-        accesses: [access("buyer-1", "2026-10-01", false, false)],
-      }),
-    ]);
-
-    expect(board?.lanes).toEqual([]);
-    expect(board?.note).toContain("Q&A");
-  });
-
   it("keeps the seller lanes when another hire still owes the deposit", () => {
     const [board] = advisorProjectBoards([
       engagement({
@@ -118,7 +153,13 @@ describe("advisorProjectBoards", () => {
         closed: true,
         accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, true)],
       }),
-      engagement({ id: "buyer-job", client: "investor", depositPaid: false, requesterId: "buyer-1" }),
+      engagement({
+        id: "buyer-job",
+        client: "investor",
+        depositPaid: false,
+        requesterId: "buyer-1",
+        accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, true)],
+      }),
     ]);
 
     expect(board?.depositPending).toBe(true);
@@ -164,7 +205,14 @@ describe("advisorProjectBoards", () => {
 
   it("opens the paid job when the same company also has a closed unpaid encargo", () => {
     const [board] = advisorProjectBoards([
-      engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, services: "Consultoría Fiscal" }),
+      engagement({
+        id: "seller-job",
+        client: "seller",
+        depositPaid: false,
+        closed: true,
+        services: "Consultoría Fiscal",
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
       engagement({
         id: "buyer-job",
         client: "investor",
@@ -180,18 +228,39 @@ describe("advisorProjectBoards", () => {
 
   it("does not mark a closed job as waiting for the deposit", () => {
     const [board] = advisorProjectBoards([
-      engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, processOpened: true, accesses: [] }),
+      engagement({
+        id: "seller-job",
+        client: "seller",
+        depositPaid: false,
+        closed: true,
+        processOpened: false,
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
     ]);
 
     expect(board?.depositPending).toBe(false);
-    expect(board?.note).toBe("Este encargo ya está cerrado.");
+    expect(board?.note).toContain("ya está cerrado");
   });
 
   it("keeps an unpaid request on encargos and a paid or closed job on procesos", () => {
     const split = splitAdvisorEngagements([
-      engagement({ id: "waiting", client: "investor", depositPaid: false }),
-      engagement({ id: "live", client: "seller", projectId: "project-2", codename: "Proyecto Duna" }),
-      engagement({ id: "done", client: "seller", projectId: "project-3", codename: "Proyecto Olivo", depositPaid: false, closed: true }),
+      engagement({ id: "waiting", client: "investor", depositPaid: false, accesses: [access("buyer-1", "2026-10-01", true, true)] }),
+      engagement({
+        id: "live",
+        client: "seller",
+        projectId: "project-2",
+        codename: "Proyecto Duna",
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
+      engagement({
+        id: "done",
+        client: "seller",
+        projectId: "project-3",
+        codename: "Proyecto Olivo",
+        depositPaid: false,
+        closed: true,
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
     ]);
 
     expect(split.awaiting.map((row) => row.id)).toEqual(["waiting"]);

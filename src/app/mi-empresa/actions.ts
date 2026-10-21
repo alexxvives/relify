@@ -21,6 +21,7 @@ import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
+import { startListingCheckout } from "@/server/startCheckout";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -218,6 +219,17 @@ export async function addSellerCompanyAction(
   }
 
   refreshSellerPages();
+
+  if (result.needsPayment) {
+    const checkout = await startListingCheckout(user, result.projectId, "add");
+
+    if (!checkout.ok) {
+      return checkout;
+    }
+
+    redirect(checkout.url);
+  }
+
   redirect("/mi-empresa/detalles");
 }
 

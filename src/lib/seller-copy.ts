@@ -182,9 +182,10 @@ export const sellerCopy = {
   meetingsSave: "Guardar notas",
   companiesCurrent: "Empresa en curso",
   addCompanyTitle: "Nueva empresa",
-  addCompanyBody: "La empresa entra en la lista cuando el CIF es válido.",
+  addCompanyBody:
+    "La primera empresa es gratis. Cada empresa adicional son 149 € más IVA (180,29 €). Tras un CIF válido te llevamos al pago en Stripe.",
   addCompanyCif: "CIF",
-  addCompanySubmit: "Crear empresa",
+  addCompanySubmit: "Continuar",
   addCompanyPending: "Creando…",
   deleteCompany: "Eliminar empresa",
   deletingCompany: "Eliminando…",

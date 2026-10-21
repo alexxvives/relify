@@ -259,6 +259,7 @@ export async function engagementProject(input: {
 }
 
 export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
+  await purgeAdvisorEngagementsBeforeQa(userId);
   const paid = await inboxPaid(userId);
   const mine = await prisma.advisoryEngagement.findMany({
     where: { advisorId: userId, declinedAt: null },
@@ -297,6 +298,7 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
 }
 
 export async function getAdvisorDesk(userId: string): Promise<AdvisorHomeDesk> {
+  await purgeAdvisorEngagementsBeforeQa(userId);
   const [mine, inboxCount] = await Promise.all([
     prisma.advisoryEngagement.findMany({
       where: { advisorId: userId, declinedAt: null },
@@ -1048,10 +1050,43 @@ export async function listAdvisorPlatformCloses(advisorId: string): Promise<Advi
   });
 }
 
+async function purgeAdvisorEngagementsBeforeQa(advisorId: string): Promise<void> {
+  const rows = await prisma.advisoryEngagement.findMany({
+    where: { advisorId, declinedAt: null },
+    select: {
+      id: true,
+      client: true,
+      requesterId: true,
+      project: {
+        select: {
+          accesses: { select: { investorId: true, ndaAcceptedAt: true } },
+        },
+      },
+    },
+  });
+  const drop = rows
+    .filter((row) => {
+      if (row.client === "investor") {
+        return !row.project.accesses.some(
+          (access) => access.investorId === row.requesterId && access.ndaAcceptedAt !== null,
+        );
+      }
+
+      return !row.project.accesses.some((access) => access.ndaAcceptedAt !== null);
+    })
+    .map((row) => row.id);
+
+  if (drop.length > 0) {
+    await prisma.advisoryEngagement.deleteMany({ where: { id: { in: drop } } });
+  }
+}
+
 export async function listAdvisorProjectBoards(
   advisorId: string,
   scope: "awaiting" | "active",
 ): Promise<AdvisorProjectBoard[]> {
+  await purgeAdvisorEngagementsBeforeQa(advisorId);
+
   const rows = await prisma.advisoryEngagement.findMany({
     where: { advisorId, declinedAt: null },
     orderBy: { createdAt: "desc" },

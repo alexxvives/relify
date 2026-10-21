@@ -10,7 +10,6 @@ export const advisorCopy = {
   hiredByBoth: "Comprador y vendedor",
   processesDeposit: "Paga el depósito para ver el progreso.",
   processesWait: "El vendedor todavía no ha abierto el proceso. Cuando lo abra verás aquí cada comprador.",
-  processesWaitQa: "El proceso aparece cuando un comprador llega a la fase Q&A (después del NDA).",
   processesNone: "Todavía no hay un proceso de compraventa en esta empresa.",
   processesClosed: "El encargo del vendedor ya está cerrado. No lista al resto de compradores hasta que el vendedor abra el proceso.",
   processesFinished: "Este encargo ya está cerrado.",

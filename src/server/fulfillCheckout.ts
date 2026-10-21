@@ -74,7 +74,12 @@ async function applySubscription(userId: string, customerId: string, subscriptio
   });
 }
 
-async function applyListing(ownerId: string, projectId: string, sessionId: string): Promise<void> {
+async function applyListing(
+  ownerId: string,
+  projectId: string,
+  sessionId: string,
+  intent: string,
+): Promise<void> {
   const project = await prisma.project.findFirst({
     where: { id: projectId, ownerId },
     select: { id: true, status: true },
@@ -95,7 +100,7 @@ async function applyListing(ownerId: string, projectId: string, sessionId: strin
     update: {},
   });
 
-  if (project.status === "draft") {
+  if (intent !== "add" && project.status === "draft") {
     await prisma.project.update({
       where: { id: project.id },
       data: { status: "pending" },
@@ -151,7 +156,7 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
       return { ok: false, message: billingCopy.unpaid };
     }
 
-    await applyListing(userId, projectId, session.id);
+    await applyListing(userId, projectId, session.id, session.metadata?.intent ?? "publish");
     return { ok: true };
   }
 

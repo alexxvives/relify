@@ -86,10 +86,20 @@ function laneSteps(access: AdvisorAccessSnapshot, saleClosed: boolean): DealStep
   );
 }
 
+/** An advisor hire is only valid once that deal is in Q&A (NDA signed). */
+export function engagementReachedQa(row: AdvisorEngagementSnapshot): boolean {
+  if (row.client === "investor") {
+    return row.accesses.some((access) => access.investorId === row.requesterId && access.nda);
+  }
+
+  return row.accesses.some((access) => access.nda);
+}
+
 export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[]): AdvisorProjectBoard[] {
+  const eligible = rows.filter(engagementReachedQa);
   const byProject = new Map<string, AdvisorEngagementSnapshot[]>();
 
-  for (const row of rows) {
+  for (const row of eligible) {
     const list = byProject.get(row.projectId) ?? [];
     list.push(row);
     byProject.set(row.projectId, list);
@@ -168,8 +178,6 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
       note = advisorCopy.processesFinished;
     } else if (lanes.length === 0 && seller && !seller.processOpened) {
       note = advisorCopy.processesWait;
-    } else if (lanes.length === 0 && (seller?.processOpened || investorRows.length > 0)) {
-      note = advisorCopy.processesWaitQa;
     } else if (lanes.length === 0 && depositPending) {
       note = advisorCopy.processesDeposit;
     } else if (lanes.length === 0) {

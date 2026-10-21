@@ -38,7 +38,7 @@ Releva does not draft the sale contract. At due diligence either party can ask a
 
 ## 2026-10-07 — The advisor is a profile and a hired service
 
-The advisor keeps a public profile and takes engagements for Due Diligence, Valoración, Consultoría Legal, Consultoría Fiscal, Business Plan, and Consultoría Laboral. In this pass the advisor does not publish the client's company. Existing drafts, including Proyecto Nube, stay. The 149 € plus IVA listing fee belongs to the seller: the first company is free, and each later one is paid before the publish request. An admin still approves before it is live.
+The advisor keeps a public profile and takes engagements for Due Diligence, Valoración, Consultoría Legal, Consultoría Fiscal, Business Plan, and Consultoría Laboral. In this pass the advisor does not publish the client's company. Existing drafts, including Proyecto Nube, stay. The 149 € plus IVA listing fee belongs to the seller: the first company is free, and each later one is paid once on Añadir empresa through Stripe Checkout. An unpaid leftover draft still asks for that fee before publish. An admin still approves before it is live. An advisor hire only exists once the deal is in Q&A (NDA firmado); earlier hires are deleted.
 
 A finished profile appears to investors and sellers with the commercial name, sectors, services, and price range. A half profile stays off that list. The NIF, the email, and documents stay off it. A request can name one advisor, or sit in a common inbox until the first advisor on the 39 €/mes plan claims it. The free plan edits the profile and sees the directory. It does not open the inbox or claim.
 

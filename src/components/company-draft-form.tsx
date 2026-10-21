@@ -194,8 +194,8 @@ function Panel({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {open && dirty ? (
-            <span className="inline-flex h-7 items-center gap-1 rounded-md bg-[#fff4d6] px-2 text-sm font-semibold text-[#8a6112]">
-              <Pencil className="size-4" aria-hidden />
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#fff4d6] px-2.5 py-1 text-xs font-medium text-[#8a6112]">
+              <Pencil className="size-3.5" aria-hidden />
               {companyCopy.unsaved}
             </span>
           ) : (
@@ -613,11 +613,13 @@ function Fact({
   id,
   icon: Icon,
   label,
+  required = false,
   children,
 }: {
   id?: string;
   icon: typeof Building2;
   label: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -626,7 +628,14 @@ function Fact({
         <Icon className="size-5" aria-hidden />
       </span>
       <span className="min-w-0">
-        <span className="mb-1 block text-sm text-[#64748b]">{label}</span>
+        <span className="mb-1 block text-sm text-[#64748b]">
+          {label}
+          {required ? (
+            <span className="ml-0.5 text-[#c0362c]" aria-hidden>
+              *
+            </span>
+          ) : null}
+        </span>
         <div className="text-base font-semibold text-[#2b3b4a]">{children}</div>
       </span>
     </div>
@@ -883,9 +892,12 @@ export function CompanyDraftForm({
     setSaveTarget(id);
     setAttempt((current) => current + 1);
 
-    const blocked = [capitalPercents, productPercents, clientPercents].some((values) => slicePercentIssue(values) !== "ok");
+    const slicesBlocked = [capitalPercents, productPercents, clientPercents].some(
+      (values) => slicePercentIssue(values) !== "ok",
+    );
+    const saleReasonBlocked = (id === "basic" || id === "") && saleReason === "";
 
-    if (!blocked) {
+    if (!slicesBlocked && !saleReasonBlocked) {
       setRejectedSave("");
       setSuppressStatus(false);
       return;
@@ -896,7 +908,14 @@ export function CompanyDraftForm({
     setRejectedSave(id);
     setSuppressStatus(true);
     setTab("company");
-    setOpenStructure(true);
+
+    if (saleReasonBlocked) {
+      setOpenBasic(true);
+    }
+
+    if (slicesBlocked) {
+      setOpenStructure(true);
+    }
   }
 
   useEffect(() => {
@@ -1165,11 +1184,13 @@ export function CompanyDraftForm({
               className={fieldClassName}
             />
           </Fact>
-          <Fact icon={Map} label={companyCopy.saleReasonLabel}>
+          <Fact icon={Map} label={companyCopy.saleReasonLabel} required>
             <OptionSelect
+              key={saleReason === "" && panelRejected("basic") ? `sale-reason-${attempt}` : "sale-reason"}
               name="saleReason"
               label={companyCopy.saleReasonLabel}
               value={saleReason}
+              invalid={saleReason === "" && panelRejected("basic")}
               options={[
                 { value: "", label: companyCopy.saleReasonEmpty },
                 ...saleReasons.map((reason) => ({ value: reason, label: saleReasonLabels[reason] })),
@@ -1180,7 +1201,6 @@ export function CompanyDraftForm({
                 }
               }}
             />
-            <p className="mt-2 text-xs font-normal text-[#667085]">{companyCopy.saleReasonHint}</p>
           </Fact>
           <Fact icon={Users} label={companyCopy.workersLabel}>
             <OptionSelect

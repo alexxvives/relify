@@ -6,6 +6,7 @@ import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
 import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
+import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -19,11 +20,16 @@ export const metadata: Metadata = {
 export default async function CompanyDetailsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seccion?: string; alta?: string }>;
+  searchParams: Promise<{ seccion?: string; alta?: string; session_id?: string }>;
 }) {
   const query = await searchParams;
   const focus = query.seccion && isSellerFocusPanel(query.seccion) ? query.seccion : null;
   const user = await requireRole("seller");
+
+  if (typeof query.session_id === "string" && query.session_id !== "") {
+    await fulfillCheckout(query.session_id, user.id);
+  }
+
   const nifVerified = await companyNifIsVerified(user);
 
   if (!nifVerified) {

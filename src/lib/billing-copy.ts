@@ -101,7 +101,7 @@ export const billingCopy = {
   listingPrice: "149 €",
   listingGross: "180,29 € con IVA",
   listingNote:
-    "La primera empresa es gratis. Cada empresa adicional son 149 € más IVA, un solo pago, antes de pedir la publicación. Hasta que se apruebe, no sale en el catálogo.",
+    "Esta empresa adicional aún no está pagada. Son 149 € más IVA (180,29 €), un solo pago. Hasta que se apruebe, no sale en el catálogo.",
   publishFree: "Pedir publicación",
   publishing: "Enviando…",
   publishPaid: "Pagar 149 € + IVA y pedir publicación",
@@ -113,7 +113,7 @@ export const billingCopy = {
   sellerPublish: "Pedir publicación",
   sellerPublished: "Tu empresa está publicada.",
   sellerDraft:
-    "La primera empresa es gratis. Cada empresa siguiente son 149 € más IVA, un solo pago, antes de pedir la publicación. Hasta que se apruebe, no sale en el catálogo.",
+    "La primera empresa es gratis. Cada empresa adicional se paga al crearla (149 € más IVA). Pedir publicación la deja en revisión hasta que un admin la apruebe.",
   advisorDoesNotPublish: "En este paso el asesor no publica la empresa del cliente. El borrador sigue en la lista.",
   recordSale: "Registrar venta",
   recordingSale: "Registrando…",

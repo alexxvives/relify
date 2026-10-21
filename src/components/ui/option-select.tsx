@@ -13,6 +13,7 @@ export function OptionSelect({
   searchPlaceholder = "",
   emptyLabel = "",
   menuClassName = "w-full",
+  invalid = false,
 }: {
   name?: string;
   label: string;
@@ -23,6 +24,7 @@ export function OptionSelect({
   searchPlaceholder?: string;
   emptyLabel?: string;
   menuClassName?: string;
+  invalid?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -82,7 +84,12 @@ export function OptionSelect({
           setOpen((current) => !current);
           setQuery("");
         }}
-        className="flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+        style={invalid ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
+        className={
+          invalid
+            ? "releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#c0362c] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none"
+            : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+        }
       >
         <span className="truncate">{selected?.label ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />

@@ -7,7 +7,6 @@ export const companyCopy = {
   regionLabel: "Provincia o región",
   foundedYearLabel: "Año de fundación",
   saleReasonLabel: "Por qué se vende",
-  saleReasonHint: "Obligatorio. Solo lo ve el equipo de Releva. No sale en la ficha pública.",
   saleReasonRequired: "Elige por qué se vende.",
   saleReasonEmpty: "Elige un motivo",
   descriptionLabel: "Descripción de la empresa",

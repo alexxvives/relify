@@ -105,7 +105,11 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
   }
 }
 
-export async function startListingCheckout(user: CurrentUser, projectId: string): Promise<CheckoutStart> {
+export async function startListingCheckout(
+  user: CurrentUser,
+  projectId: string,
+  intent: "add" | "publish" = "publish",
+): Promise<CheckoutStart> {
   const stripe = stripeClient();
 
   if (stripe === null || user.role !== "seller") {
@@ -119,6 +123,7 @@ export async function startListingCheckout(user: CurrentUser, projectId: string)
   }
 
   const origin = readSiteUrl().origin;
+  const successPath = intent === "add" ? "/mi-empresa/detalles" : "/mi-empresa";
 
   try {
   const session = await stripe.checkout.sessions.create({
@@ -136,9 +141,9 @@ export async function startListingCheckout(user: CurrentUser, projectId: string)
         },
       },
     ],
-    metadata: { kind: "seller_listing", userId: user.id, projectId },
-    success_url: `${origin}/mi-empresa?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/mi-empresa`,
+    metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
+    success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}${successPath}`,
     integration_identifier: integrationLabel("releva_listing"),
   });
 

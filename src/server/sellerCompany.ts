@@ -124,7 +124,7 @@ function prefillData(record: RegistryCompany) {
 export async function addSellerCompany(
   user: CurrentUser,
   rawNif: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true; projectId: string; needsPayment: boolean } | { ok: false; message: string }> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: companyCopy.nifNotSeller };
   }
@@ -166,8 +166,13 @@ export async function addSellerCompany(
   if (existing) {
     await rememberCompany(existing.id);
     await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
-    return { ok: true };
+    return { ok: true, projectId: existing.id, needsPayment: false };
   }
+
+  const priorCount = await prisma.project.count({
+    where: { ownerId: user.id, NOT: { cif: "" } },
+  });
+  const needsPayment = priorCount > 0;
 
   const blank = await prisma.project.findFirst({
     where: { ownerId: user.id, cif: "" },
@@ -175,8 +180,10 @@ export async function addSellerCompany(
     select: { id: true, legalName: true, codename: true },
   });
   const codename = record?.codename ?? anonymousCodename(cif);
+  let projectId: string;
 
   if (blank) {
+    projectId = blank.id;
     await prisma.project.update({
       where: { id: blank.id },
       data: {
@@ -186,10 +193,10 @@ export async function addSellerCompany(
     });
     await rememberCompany(blank.id);
   } else {
-    const id = randomUUID();
+    projectId = randomUUID();
     await prisma.project.create({
       data: {
-        id,
+        id: projectId,
         slug: await unusedSlug(codename),
         codename,
         region: "",
@@ -207,11 +214,11 @@ export async function addSellerCompany(
         ownerId: user.id,
       },
     });
-    await rememberCompany(id);
+    await rememberCompany(projectId);
   }
 
   await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
-  return { ok: true };
+  return { ok: true, projectId, needsPayment };
 }
 
 export async function deleteSellerCompany(
