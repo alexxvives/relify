@@ -60,6 +60,47 @@ export function destinationsForRole(role: UserRoleName | null): ShellDestination
   return [...destinations[role]];
 }
 
+export function processMenuTarget(href: string | null): string | null {
+  if (!href) {
+    return null;
+  }
+
+  const path = href.split("?")[0] ?? "";
+
+  if (path === "/procesos" || path.startsWith("/proyectos/")) {
+    return "/procesos";
+  }
+
+  if (path === "/mi-empresa/procesos") {
+    return "/mi-empresa/procesos";
+  }
+
+  if (path === "/mandatos/venta") {
+    return "/mandatos/venta";
+  }
+
+  if (path === "/mandatos/encargos" || path.startsWith("/mandatos/encargos/")) {
+    return "/mandatos/encargos";
+  }
+
+  return null;
+}
+
+export function noticeOpenOnPath(href: string | null, pathname: string): boolean {
+  const target = processMenuTarget(href);
+
+  if (target && (pathname === target || pathname.startsWith(`${target}/`))) {
+    return true;
+  }
+
+  if (!href) {
+    return false;
+  }
+
+  const path = href.split("?")[0] ?? "";
+  return path.length > 0 && (pathname === path || pathname.startsWith(`${path}/`));
+}
+
 export function destinationIsCurrent(href: string, pathname: string): boolean {
   if (pathname === href) {
     return true;

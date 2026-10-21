@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "r
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { AgreementSheet } from "@/components/agreement-sheet";
-import { useModalScrollLock } from "@/components/file-preview-dialog";
+import { documentDeskClass, useModalScrollLock } from "@/components/file-preview-dialog";
 import { advisorCopy } from "@/lib/advisor-copy";
 import {
   acceptAdvisorNdaAction,
@@ -138,7 +138,7 @@ export function AdvisorNdaTurn({ engagementId, text }: { engagementId: string; t
           }}
           className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
         >
-          {engagementCopy.ndaSign}
+          Firmar
         </button>
       </span>
       {open ? (
@@ -188,23 +188,21 @@ function AdvisorNdaDialog({
   }, [router, state]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#d5dbe3] bg-[#eef1f4] p-3 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/45"
-      onClose={onClose}
-    >
-      <div className="flex items-center justify-between gap-3 px-2 py-1">
-        <p className="truncate text-sm font-medium text-[#3d4a63]">Acuerdo-de-confidencialidad.pdf</p>
+    <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <p className="truncate text-sm font-medium">Acuerdo-de-confidencialidad.pdf</p>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
+          <button type="submit" className="text-sm font-medium text-white/80">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
-        <AgreementSheet text={text} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
+          <AgreementSheet text={text} />
+        </div>
       </div>
-      <form action={action} className="mt-3 flex flex-col items-center gap-2 px-1">
+      <form action={action} className="flex flex-col items-center gap-2 border-t border-white/10 px-4 py-3">
         <input type="hidden" name="engagementId" value={engagementId} />
         <button
           type="submit"

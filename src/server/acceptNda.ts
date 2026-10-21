@@ -44,7 +44,7 @@ export async function acceptNda(user: CurrentUser, input: ProjectAccessInput): P
 
     if (project.ownerId && project.ownerId !== user.id) {
       const sellerNotice = incomingNdaNotice(project.codename);
-      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa" });
+      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa/procesos" });
     }
   }
 

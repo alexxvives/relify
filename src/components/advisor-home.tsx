@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Briefcase, Check, FileText, Layers, User } from "lucide-react";
+import { Briefcase, Check, FileText, Layers, User } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { NoticeList } from "@/components/notice-list";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { OpenNoticeList } from "@/components/notification-bell";
 import { PendingActions } from "@/components/pending-actions";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { blogPosts, formatBlogDate } from "@/lib/blog";
 import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
 import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
@@ -73,7 +72,6 @@ export function AdvisorHome({
     detail: item.codename,
     href: item.href,
   }));
-  const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
   const profileComplete = filled === checklist.length;
 
@@ -96,28 +94,6 @@ export function AdvisorHome({
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.sectorsTitle}</h2>
           <SectorTreemap sectors={sectors} empty={advisorCopy.sectorsEmpty} />
-        </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.trendsTitle}</h2>
-            <Link href="/tendencias" className="inline-flex items-center gap-1 text-sm text-[#64748b]">
-              {advisorCopy.seeAll}
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {news.map((item) => (
-              <li key={item.slug} className="overflow-hidden rounded-2xl border border-[#e7eaee]">
-                <Link href={`/blog/${item.slug}`} className="block p-3 hover:bg-[#f7f8fb]">
-                  <p className="text-xs text-[#64748b]">
-                    {item.category} · {formatBlogDate(item.date)}
-                  </p>
-                  <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.excerpt}</p>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </section>
       </div>
       <div className="relative xl:min-h-full">

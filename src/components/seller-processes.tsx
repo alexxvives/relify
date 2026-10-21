@@ -112,9 +112,9 @@ function ThreadList({
   }
 
   return (
-    <ul className="mt-4 flex flex-col gap-3">
+    <ul className="mt-4 flex flex-wrap items-start gap-4">
       {threads.map((thread) => (
-        <li key={thread.accessId}>
+        <li key={thread.accessId} className={thread.stage === "pending" ? "w-full max-w-sm" : "w-full"}>
           <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
         </li>
       ))}
@@ -199,11 +199,9 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
       <InvestorPublicCard
         label={thread.label}
         profile={thread.profile}
+        interest={thread.codename}
         footer={
           <div className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-[#3d4a63]">
-              Interesado en <span className="font-semibold text-[#1c2740]">{thread.codename}</span>
-            </p>
             <SellerPending
               named={false}
               item={{ accessId: thread.accessId, codename: thread.codename, label: thread.label }}

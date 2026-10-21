@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Check, ShieldCheck } from "lucide-react";
-import { FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
+import { documentDeskClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
@@ -202,13 +202,28 @@ function TurnCue({
   onAccept: () => void;
 }) {
   if (cue.yours) {
+    if (onDark) {
+      return (
+        <div
+          className={
+            center
+              ? "mt-4 flex flex-wrap items-center justify-center gap-3 text-center"
+              : "mx-auto mt-4 flex max-w-xl flex-wrap items-center gap-3 text-left"
+          }
+        >
+          <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">
+            Tu turno
+          </span>
+          <span className="text-sm leading-5 text-white">{cue.action}</span>
+          {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
+          {canSign ? <SignNow onSign={onSign} /> : null}
+        </div>
+      );
+    }
+
     const frame = center
-      ? onDark
-        ? "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl bg-white px-4 py-3 text-center shadow-lg"
-        : "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-center"
-      : onDark
-        ? "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-lg"
-        : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-left";
+      ? "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-center"
+      : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-left";
 
     return (
       <div className={frame}>
@@ -460,23 +475,21 @@ function ProcessSignDialog({
   }, [state]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#d5dbe3] bg-[#eef1f4] p-3 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/45"
-      onClose={onClose}
-    >
-      <div className="flex items-center justify-between gap-3 px-2 py-1">
-        <p className="truncate text-sm font-medium text-[#3d4a63]">{fileName}</p>
+    <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <p className="truncate text-sm font-medium">{fileName}</p>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
+          <button type="submit" className="text-sm font-medium text-white/80">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
-        <AgreementSheet text={agreement} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
+          <AgreementSheet text={agreement} />
+        </div>
       </div>
-      <form action={formAction} className="mt-3 flex items-center justify-center gap-3 px-1">
+      <form action={formAction} className="flex items-center justify-center gap-3 border-t border-white/10 px-4 py-3">
         <input type="hidden" name="slug" value={slug} />
         {kind === "loi" ? (
           <>
@@ -519,23 +532,21 @@ function AcceptLoiDialog({ accessId, body, onClose }: { accessId: string; body: 
   }, [state]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#d5dbe3] bg-[#eef1f4] p-3 text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/45"
-      onClose={onClose}
-    >
-      <div className="flex items-center justify-between gap-3 px-2 py-1">
-        <p className="truncate text-sm font-medium text-[#3d4a63]">Carta-de-intenciones.pdf</p>
+    <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <p className="truncate text-sm font-medium">Carta-de-intenciones.pdf</p>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
+          <button type="submit" className="text-sm font-medium text-white/80">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="max-h-[60vh] overflow-y-auto rounded-xl bg-white shadow-[0_12px_40px_-24px_rgba(28,39,64,0.45)]">
-        <AgreementSheet text={body} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
+          <AgreementSheet text={body} />
+        </div>
       </div>
-      <form action={formAction} className="mt-3 flex items-center justify-center px-1">
+      <form action={formAction} className="flex items-center justify-center border-t border-white/10 px-4 py-3">
         <input type="hidden" name="accessId" value={accessId} />
         <button
           type="submit"

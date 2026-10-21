@@ -5,14 +5,16 @@ import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorLaneCue, type AdvisorProjectBoard } from "@/lib/advisor-processes";
 
 function hireTags(board: AdvisorProjectBoard): string[] {
-  const tags: string[] = [];
+  if (board.hiredBySeller && board.hiredByInvestor) {
+    return [advisorCopy.hiredByBoth];
+  }
   if (board.hiredBySeller) {
-    tags.push(advisorCopy.hiredBySeller);
+    return [advisorCopy.hiredBySeller];
   }
   if (board.hiredByInvestor) {
-    tags.push(advisorCopy.hiredByInvestor);
+    return [advisorCopy.hiredByInvestor];
   }
-  return tags;
+  return [];
 }
 
 function PendingMark({ children }: { children: string }) {
@@ -45,7 +47,6 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
                   </span>
                 ))}
                 {board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
-                {board.ndaPending ? <PendingMark>{advisorCopy.ndaToSign}</PendingMark> : null}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
             </div>

@@ -7,6 +7,7 @@ export const advisorCopy = {
   processesEmpty: "Cuando pagues el depósito, el proceso de esa empresa aparece aquí.",
   hiredBySeller: "Contratado por el vendedor",
   hiredByInvestor: "Contratado por el comprador",
+  hiredByBoth: "Comprador y vendedor",
   processesDeposit: "Paga el depósito para ver el progreso.",
   processesWait: "El vendedor todavía no ha abierto el proceso. Cuando lo abra verás aquí cada comprador.",
   processesNone: "Todavía no hay un proceso de compraventa en esta empresa.",

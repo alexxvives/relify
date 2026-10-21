@@ -57,7 +57,7 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
         select: { role: true },
       });
       const sellerNotice = incomingAccessNotice(project.codename);
-      const ownerHref = owner?.role === "advisor" ? "/mandatos" : "/mi-empresa/procesos";
+      const ownerHref = owner?.role === "advisor" ? "/mandatos/venta" : "/mi-empresa/procesos";
       await recordNotification({ userId: project.ownerId, ...sellerNotice, href: ownerHref });
     }
   }

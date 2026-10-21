@@ -6,15 +6,22 @@ export function InvestorPublicCard({
   label,
   profile,
   footer = null,
+  interest = null,
 }: {
   label: string;
   profile: PublicInvestorCard | null;
   footer?: ReactNode;
+  interest?: string | null;
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.35)]">
       <div className="bg-[#1c2740] px-6 pt-5 pb-14">
         <p className="text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase">Perfil del inversor</p>
+        {interest ? (
+          <p className="mt-2 text-sm text-white">
+            Interesado en <span className="font-semibold">{interest}</span>
+          </p>
+        ) : null}
       </div>
       <div className="-mt-10 px-6 pb-6">
         <ProfilePhoto photo={profile?.photo ?? ""} />

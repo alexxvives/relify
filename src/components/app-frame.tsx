@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
@@ -29,7 +29,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
 import type { NotificationView } from "@/lib/notifications";
 import { sellerCopy } from "@/lib/seller-copy";
-import { destinationIsCurrent, shellCopy, type ShellDestination } from "@/lib/shell";
+import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, shellCopy, type ShellDestination } from "@/lib/shell";
 
 const iconForHref = {
   "/mercado": Building2Icon,
@@ -54,18 +54,68 @@ const iconForHref = {
   "/mis-servicios": BriefcaseIcon,
 };
 
+const processSeenKey = "releva-process-seen";
+let processSeen = "";
+let processSeenLoaded = false;
+const processSeenListeners = new Set<() => void>();
+
+function subscribeProcessSeen(listener: () => void) {
+  processSeenListeners.add(listener);
+  return () => {
+    processSeenListeners.delete(listener);
+  };
+}
+
+function readProcessSeen(): string {
+  if (!processSeenLoaded && typeof window !== "undefined") {
+    processSeenLoaded = true;
+    processSeen = window.localStorage.getItem(processSeenKey) ?? "";
+  }
+
+  return processSeen;
+}
+
+function rememberProcessSeen(ids: readonly string[]) {
+  const current = new Set(processSeen.split(",").filter((id) => id.length > 0));
+  let changed = false;
+
+  for (const id of ids) {
+    if (!current.has(id)) {
+      current.add(id);
+      changed = true;
+    }
+  }
+
+  if (!changed || typeof window === "undefined") {
+    return;
+  }
+
+  processSeen = [...current].join(",");
+  window.localStorage.setItem(processSeenKey, processSeen);
+
+  for (const listener of processSeenListeners) {
+    listener();
+  }
+}
+
+function subscribeReady() {
+  return () => undefined;
+}
+
 function SideLink({
   href,
   label,
   selected,
   icon: Icon,
   onNavigate,
+  alert,
 }: {
   href: string;
   label: string;
   selected: boolean;
   icon: typeof HouseIcon;
   onNavigate: () => void;
+  alert: boolean;
 }) {
   const iconRef = useRef<HouseIconHandle>(null);
 
@@ -87,7 +137,8 @@ function SideLink({
       }
     >
       <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
-      <span className="min-w-0">{label}</span>
+      <span className="min-w-0 flex-1">{label}</span>
+      {alert ? <span className="inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null}
     </Link>
   );
 }
@@ -121,6 +172,15 @@ export function AppFrame({
   const [open, setOpen] = useState(false);
   const home = destinations[0]?.href ?? "/cuenta";
   const initials = accountInitials(name);
+  const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
+  const seen = useSyncExternalStore(subscribeProcessSeen, readProcessSeen, () => "");
+
+  useEffect(() => {
+    const ids = notifications
+      .filter((item) => item.unread && processMenuTarget(item.href) !== null && noticeOpenOnPath(item.href, pathname))
+      .map((item) => item.id);
+    rememberProcessSeen(ids);
+  }, [notifications, pathname]);
 
   function closeMenu() {
     setOpen(false);
@@ -168,6 +228,12 @@ export function AppFrame({
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = destinations[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
+            const seenIds = new Set(seen.split(",").filter((id) => id.length > 0));
+            const alert =
+              ready &&
+              notifications.some(
+                (notice) => notice.unread && processMenuTarget(notice.href) === item.href && !seenIds.has(notice.id),
+              );
 
             return (
               <div key={item.href}>
@@ -180,6 +246,7 @@ export function AppFrame({
                   selected={selected}
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
                   onNavigate={closeMenu}
+                  alert={alert}
                 />
               </div>
             );

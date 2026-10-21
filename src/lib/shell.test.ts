@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinationIsCurrent, destinationsForRole } from "./shell";
+import { destinationIsCurrent, destinationsForRole, noticeOpenOnPath, processMenuTarget } from "./shell";
 
 describe("destinationsForRole", () => {
   it("lists only that role's home", () => {
@@ -52,5 +52,20 @@ describe("destinationIsCurrent", () => {
     expect(destinationIsCurrent("/mandatos", "/mandatos/encargos")).toBe(false);
     expect(destinationIsCurrent("/mandatos", "/mandatos/venta")).toBe(false);
     expect(destinationIsCurrent("/mandatos/venta", "/mandatos/venta")).toBe(true);
+  });
+});
+
+describe("processMenuTarget", () => {
+  it("points a deal notice at that role's process item", () => {
+    expect(processMenuTarget("/procesos")).toBe("/procesos");
+    expect(processMenuTarget("/proyectos/proyecto-cala?tab=preguntas")).toBe("/procesos");
+    expect(processMenuTarget("/mi-empresa/procesos")).toBe("/mi-empresa/procesos");
+    expect(processMenuTarget("/mandatos/venta")).toBe("/mandatos/venta");
+    expect(processMenuTarget("/mandatos/encargos/abc")).toBe("/mandatos/encargos");
+    expect(processMenuTarget("/mi-empresa")).toBeNull();
+    expect(processMenuTarget(null)).toBeNull();
+    expect(noticeOpenOnPath("/proyectos/proyecto-cala", "/procesos")).toBe(true);
+    expect(noticeOpenOnPath("/proyectos/proyecto-cala", "/proyectos/proyecto-cala")).toBe(true);
+    expect(noticeOpenOnPath("/mi-empresa/procesos", "/inversor")).toBe(false);
   });
 });
