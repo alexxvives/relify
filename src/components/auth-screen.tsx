@@ -28,55 +28,57 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
         />
-        <div className="relative z-10 flex min-h-[inherit] flex-col px-5 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
-          <header className="flex items-center justify-between gap-4">
+        <div className="relative z-10 flex min-h-[inherit] flex-col px-6 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-6">
+          <header>
             <Link href="/" aria-label="Releva">
-              <Logo />
+              <Logo size="lg" />
             </Link>
-            <p className="text-right text-[13px] leading-5 text-[#7d8fa1] sm:text-sm">
-              {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
-              <Link
-                href={signingUp ? "/entrar" : "/registro"}
-                className="whitespace-nowrap font-medium text-[#14998a] hover:text-[#0f8578]"
-              >
-                {signingUp ? authCopy.signIn : authCopy.signUp} →
-              </Link>
-            </p>
           </header>
-          <div className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:gap-8 lg:py-2">
+          <div className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,26rem)] lg:py-2">
             <section className="min-w-0">
-              <p className="text-[11px] font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
-              <h1 className="mt-4 max-w-[16ch] text-[2.35rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:max-w-none sm:text-[2.85rem]">
+              <p className="text-sm font-medium tracking-[0.2em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
+              <h1 className="mt-4 text-[2.6rem] leading-[1.02] font-semibold tracking-tight text-[#16324f] sm:text-[3.35rem]">
                 <span className="block">{authCopy.stageHeadlineLead}</span>
                 <span className="block">{authCopy.stageHeadlineTail}</span>
               </h1>
-              <p className="mt-5 max-w-sm text-[15px] leading-6 text-[#7d8fa1]">{authCopy.stageBody}</p>
-              <ul className="mt-8 space-y-4">
+              <p className="mt-4 max-w-lg text-[17px] leading-7 text-[#7d8fa1]">{authCopy.stageBody}</p>
+              <ul className="mt-6 space-y-4">
                 {authCopy.stagePoints.map((point, index) => {
                   const Icon = stageIcons[index] ?? Shield;
                   return (
-                    <li key={point.title} className="flex items-center gap-3">
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
-                        <Icon className="size-[18px]" aria-hidden />
+                    <li key={point.title} className="flex items-center gap-4">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
+                        <Icon className="size-5" aria-hidden />
                       </span>
                       <span>
-                        <span className="block text-sm font-semibold text-[#16324f]">{point.title}</span>
-                        <span className="block text-[13px] leading-5 text-[#7d8fa1]">{point.body}</span>
+                        <span className="block text-base font-semibold text-[#16324f]">{point.title}</span>
+                        <span className="mt-0.5 block text-[15px] leading-6 text-[#7d8fa1]">{point.body}</span>
                       </span>
                     </li>
                   );
                 })}
               </ul>
             </section>
-            <section className="rounded-[1.6rem] border border-white/80 bg-white/95 px-6 py-7 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-8 sm:py-9">
-              <h2 className="text-[1.65rem] font-semibold tracking-tight text-[#16324f]">
-                {signingUp ? authCopy.signUpCardTitle : authCopy.signInCardTitle}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[#7d8fa1]">
-                {signingUp ? authCopy.signUpIntro : authCopy.signInIntro}
+            <div className="flex w-full flex-col items-center justify-center self-center">
+              <p className="mb-4 text-center text-[15px] text-[#7d8fa1]">
+                {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
+                <Link
+                  href={signingUp ? "/entrar" : "/registro"}
+                  className="whitespace-nowrap font-medium text-[#14998a] hover:text-[#0f8578]"
+                >
+                  {signingUp ? authCopy.signIn : authCopy.signUp} →
+                </Link>
               </p>
-              <div className="mt-6">{signingUp ? <SignUpForm /> : <SignInForm />}</div>
-            </section>
+              <section className="w-full rounded-[1.75rem] border border-white/80 bg-white/95 px-8 py-9 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-9 sm:py-10">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#16324f]">
+                  {signingUp ? authCopy.signUpCardTitle : authCopy.signInCardTitle}
+                </h2>
+                <p className="mt-3 text-center text-base leading-7 text-[#7d8fa1]">
+                  {signingUp ? authCopy.signUpIntro : authCopy.signInIntro}
+                </p>
+                <div className="mt-8">{signingUp ? <SignUpForm /> : <SignInForm />}</div>
+              </section>
+            </div>
           </div>
         </div>
       </div>
