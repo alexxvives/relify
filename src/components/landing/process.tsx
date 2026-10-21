@@ -132,24 +132,28 @@ export function Process() {
 
   return (
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto grid w-full max-w-[1440px] items-center gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
-        <div>
-          <h2 id={`${copy.id}-titulo`} className="text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
-            {copy.heading}
-            <span className="mt-2 block text-public-clay">{copy.accent}</span>
-          </h2>
-          <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted">{copy.body}</p>
-          <Link
-            href="/empresas"
-            className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
-          >
-            {copy.cta}
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
-        <div>
-          <Network />
-          <NetworkList />
+      <div className="mx-auto w-full max-w-[1440px]">
+        <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
+        <h2 id={`${copy.id}-titulo`} className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
+          {copy.heading}
+          <span className="mt-2 block text-public-clay">{copy.accent}</span>
+        </h2>
+        <p className="mt-4 max-w-2xl text-[16px] leading-7 text-public-muted">{copy.intro}</p>
+        <div className="mt-10 grid items-center gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
+          <div>
+            <p className="max-w-xl text-[16px] leading-7 text-public-muted">{copy.body}</p>
+            <Link
+              href="/empresas"
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+            >
+              {copy.cta}
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div>
+            <Network />
+            <NetworkList />
+          </div>
         </div>
       </div>
     </section>

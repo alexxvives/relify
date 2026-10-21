@@ -87,9 +87,9 @@ export const landingCopy = {
   },
   activity: {
     id: "actividad",
-    kicker: "La última actividad dentro de la plataforma",
+    kicker: "El mercado en marcha",
     heading:
-      "Descubre los últimos movimientos de inversores y empresas, y cómo se mantiene la confidencialidad en cada paso",
+      "Mira cómo se conectan compradores y empresas: interés, reuniones y operaciones que avanzan cada día",
   },
   cases: {
     id: "casos",
@@ -202,10 +202,13 @@ export const landingCopy = {
     },
     process: {
       id: "vender",
-      kicker: "",
+      kicker: "Empresas",
       heading: "Vende tu negocio",
       accent: "en 120 días",
-      body: "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
+      intro:
+        "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
+      body:
+        "Publicas la ficha y el mapa se llena de compradores que ya buscan por ciudad y sector. Tú eliges con quién hablar; la razón social sigue fuera hasta que lo digas.",
       cta: "Publicar mi empresa",
     },
     flow: {
