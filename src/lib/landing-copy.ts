@@ -68,6 +68,7 @@ export const landingCopy = {
   },
   confidentiality: {
     id: "confidencialidad",
+    kicker: "Privacidad",
     heading: "Confidencialidad en Releva",
     intro:
       "Preservamos la privacidad de la información mientras el proceso de compraventa sigue siendo claro para las tres partes.",
