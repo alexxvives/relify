@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlogProse } from "@/components/blog-prose";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { PublicSite } from "@/components/public-site";
 import { blogCopy, blogPost, blogPosts, formatBlogDate } from "@/lib/blog";
@@ -60,7 +61,7 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
   return (
     <PublicSite>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <article className="mx-auto flex w-full max-w-[46rem] flex-col gap-8 px-5 py-12 sm:px-8">
+      <article className="mx-auto flex w-full max-w-[88rem] flex-col gap-10 px-5 py-12 sm:px-8 lg:px-10">
         <Link href="/blog" className="text-sm font-medium text-public-clay hover:underline">
           {blogCopy.back}
         </Link>
@@ -68,35 +69,44 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
           <p className="text-xs tracking-[0.16em] text-public-clay uppercase">
             {post.category} · {formatBlogDate(post.date)} · {post.readTime} {blogCopy.minutes}
           </p>
-          <h1 className="releva-page-title mt-3 text-4xl leading-[0.98] sm:text-5xl">{post.title}</h1>
-          <p className="mt-4 text-lg leading-8 text-public-muted">{post.excerpt}</p>
+          <h1 className="releva-page-title mt-3 max-w-5xl text-4xl leading-[0.98] sm:text-6xl">{post.title}</h1>
+          <p className="mt-4 max-w-4xl text-xl leading-9 text-public-muted">
+            <BlogProse text={post.excerpt} />
+          </p>
         </header>
         <figure className="overflow-hidden rounded-[1.75rem] border border-public-line bg-public-card">
           <div className="relative aspect-[16/9]">
-            <Image src={post.cover.src} alt={post.cover.alt} fill priority className="object-cover" sizes="(min-width: 768px) 46rem, 100vw" />
+            <Image src={post.cover.src} alt={post.cover.alt} fill priority className="object-cover" sizes="(min-width: 1024px) 88rem, 100vw" />
           </div>
           <figcaption className="px-5 py-3 text-sm leading-6 text-public-muted">{post.cover.caption}</figcaption>
         </figure>
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-14">
           {post.sections.map((section) => (
-            <section key={section.heading} className="flex flex-col gap-4">
-              <h2 className="text-2xl leading-tight font-medium tracking-tight sm:text-3xl">{section.heading}</h2>
-              {section.paragraphs.map((paragraph) => (
-                <p key={paragraph} className="text-[1.0625rem] leading-8 text-public-ink">
-                  {paragraph}
-                </p>
-              ))}
-              {section.points ? (
-                <ul className="list-disc space-y-2 pl-5 text-[1.0625rem] leading-8">
-                  {section.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
-              ) : null}
+            <section
+              key={section.heading}
+              className={section.image ? "grid items-start gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]" : "flex flex-col gap-4"}
+            >
+              <div className="flex flex-col gap-4">
+                <h2 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">{section.heading}</h2>
+                {section.paragraphs.map((paragraph) => (
+                  <p key={paragraph} className="text-lg leading-9 text-public-ink">
+                    <BlogProse text={paragraph} />
+                  </p>
+                ))}
+                {section.points ? (
+                  <ul className="list-disc space-y-2 pl-5 text-lg leading-9">
+                    {section.points.map((point) => (
+                      <li key={point}>
+                        <BlogProse text={point} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
               {section.image ? (
-                <figure className="overflow-hidden rounded-[1.5rem] border border-public-line bg-white">
-                  <div className="relative aspect-[16/9]">
-                    <Image src={section.image.src} alt={section.image.alt} fill className="object-cover" sizes="(min-width: 768px) 46rem, 100vw" />
+                <figure className="overflow-hidden rounded-[1.5rem] border border-public-line bg-white lg:sticky lg:top-28">
+                  <div className="relative aspect-[16/10]">
+                    <Image src={section.image.src} alt={section.image.alt} fill className="object-cover" sizes="(min-width: 1024px) 28rem, 100vw" />
                   </div>
                   <figcaption className="px-5 py-3 text-sm leading-6 text-public-muted">{section.image.caption}</figcaption>
                 </figure>

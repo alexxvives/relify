@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Briefcase, Check, FileText, Layers, User } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { NoticeList } from "@/components/notice-list";
+import { SectorTreemap } from "@/components/sector-treemap";
 import { OpenNoticeList } from "@/components/notification-bell";
 import { PendingActions } from "@/components/pending-actions";
 import { advisorCopy } from "@/lib/advisor-copy";
@@ -9,6 +10,7 @@ import { blogPosts, formatBlogDate } from "@/lib/blog";
 import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
 import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
+import type { IndustrySector } from "@/lib/cnae-section";
 
 const stepLabel: Record<AdvisorStep, string> = {
   request: advisorCopy.stepRequest,
@@ -18,6 +20,13 @@ const stepLabel: Record<AdvisorStep, string> = {
   closed: advisorCopy.stepClosed,
 };
 
+const stepTones = [
+  "border-[#f0d7a8] bg-[#fff6e8] text-[#9a5b12]",
+  "border-[#c9d6f5] bg-[#eef3ff] text-[#465ab4]",
+  "border-[#b7e4dc] bg-[#e7f7f4] text-[#0e7c6b]",
+  "border-[#c6e6d0] bg-[#eef8f1] text-[#17663a]",
+] as const;
+
 function StepCards({
   rows,
 }: {
@@ -25,14 +34,14 @@ function StepCards({
 }) {
   return (
     <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {rows.map((row) => (
+      {rows.map((row, index) => (
         <li key={row.label}>
           <Link
             href={row.href}
-            className="flex h-full flex-col rounded-2xl border border-[#eef0f3] bg-[#f7f8fb] px-4 py-4 hover:border-[#465ab4]"
+            className={`flex h-full flex-col rounded-2xl border px-4 py-5 transition duration-300 hover:-translate-y-0.5 ${stepTones[index] ?? stepTones[0]}`}
           >
-            <span className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</span>
-            <span className="mt-2 text-sm text-[#3d4a63]">{row.label}</span>
+            <span className="text-4xl font-semibold tracking-tight tabular-nums">{row.value}</span>
+            <span className="mt-2 text-sm font-medium">{row.label}</span>
           </Link>
         </li>
       ))}
@@ -51,10 +60,12 @@ export function AdvisorHome({
   notifications,
   desk,
   profileChecks,
+  sectors,
 }: {
   notifications: NotificationView[];
   desk: AdvisorHomeDesk;
   profileChecks: AdvisorProfileChecks;
+  sectors: IndustrySector[];
 }) {
   const pending = desk.pending.map((item) => ({
     id: item.id,
@@ -83,6 +94,10 @@ export function AdvisorHome({
           />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.sectorsTitle}</h2>
+          <SectorTreemap sectors={sectors} empty={advisorCopy.sectorsEmpty} />
+        </section>
+        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.trendsTitle}</h2>
             <Link href="/tendencias" className="inline-flex items-center gap-1 text-sm text-[#64748b]">
@@ -105,7 +120,8 @@ export function AdvisorHome({
           </ul>
         </section>
       </div>
-      <div className="flex h-full flex-col gap-6">
+      <div className="relative xl:min-h-full">
+        <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
             {advisorCopy.profileTitle}
@@ -148,9 +164,10 @@ export function AdvisorHome({
               <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
             </div>
           ) : (
-            <NoticeList items={notifications} scroll />
+            <NoticeList items={notifications} scroll icons />
           )}
         </section>
+        </div>
       </div>
     </div>
   );

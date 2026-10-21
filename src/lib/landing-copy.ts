@@ -128,7 +128,7 @@ export const landingCopy = {
       {
         title: "Mercado",
         links: [
-          { label: "Empresas en venta", href: "/proyectos" },
+          { label: "Valora tu empresa", href: "/valorar" },
           { label: "Diario", href: "/blog" },
         ],
       },

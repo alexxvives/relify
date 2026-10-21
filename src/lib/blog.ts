@@ -63,7 +63,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-10-18",
     readTime: 8,
     cover: {
-      src: "/pymes/pyme-cafe.jpg",
+      src: "/blog/blog-preparar-venta.jpg",
       alt: "Mostrador de un pequeño comercio, el tipo de pyme que se prepara para una venta confidencial",
       caption: "La venta se prepara con cifras y un nombre de proyecto, no con el rótulo del local.",
     },
@@ -89,7 +89,7 @@ export const blogPosts: BlogPost[] = [
           "Región, sin domicilio ni CIF",
         ],
         image: {
-          src: "/cities/city-valencia.jpg",
+          src: "/blog/blog-region-ciudad.jpg",
           alt: "Calle comercial en una ciudad española, el nivel de detalle geográfico de una ficha pública",
           caption: "La ficha sitúa la empresa en una comunidad, no en una calle.",
         },
@@ -120,7 +120,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-10-14",
     readTime: 8,
     cover: {
-      src: "/cities/city-madrid.jpg",
+      src: "/blog/blog-buscar-empresa.jpg",
       alt: "Ciudad española vista desde arriba, el mapa en el que se buscan empresas en venta por región",
       caption: "La búsqueda empieza por la región y las cifras, no por el nombre de la sociedad.",
     },
@@ -133,7 +133,7 @@ export const blogPosts: BlogPost[] = [
           "El orden útil no es el alfabético. Quien busca una pyme suele mirar primero el precio frente al EBITDA, luego la facturación y luego la región. Un taller de proximidad y un comercio con la misma facturación no son la misma operación, y la ficha tiene que dejar ver esa diferencia sin decir el rótulo.",
         ],
         image: {
-          src: "/pymes/pyme-taller.jpg",
+          src: "/blog/blog-taller-anonimo.jpg",
           alt: "Interior de un taller, ejemplo del tipo de pyme que aparece en un catálogo anónimo",
           caption: "El oficio se entiende por la ficha. El nombre del taller no hace falta para el primer filtro.",
         },
@@ -170,7 +170,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-09-12",
     readTime: 7,
     cover: {
-      src: "/pymes/pyme-tienda.jpg",
+      src: "/blog/blog-ficha-tienda.jpg",
       alt: "Tienda con mostrador, el tipo de negocio que un comprador ve solo como ficha anónima",
       caption: "Antes del NDA, el comprador ve la ficha. No ve la sociedad.",
     },
@@ -196,7 +196,7 @@ export const blogPosts: BlogPost[] = [
           "Sin nombres de ficheros",
         ],
         image: {
-          src: "/roles/inversor.jpg",
+          src: "/blog/blog-lectura-ficha.jpg",
           alt: "Mesa de trabajo de quien revisa fichas de empresas antes de pedir acceso",
           caption: "La primera lectura cabe en una ficha. El detalle espera al acuerdo.",
         },
@@ -220,7 +220,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-09-02",
     readTime: 8,
     cover: {
-      src: "/pymes/pyme-mesa.jpg",
+      src: "/blog/blog-ebitda-mesa.jpg",
       alt: "Mesa de un negocio de comercio, donde la facturación y el EBITDA se leen juntos",
       caption: "Facturación y EBITDA se leen en la misma ficha, en euros.",
     },
@@ -246,7 +246,7 @@ export const blogPosts: BlogPost[] = [
           "El fichero de cuentas no se almacena",
         ],
         image: {
-          src: "/product/empresa.jpg",
+          src: "/blog/blog-cuentas-papel.jpg",
           alt: "Pantalla de trabajo sobre las cifras de una empresa en venta",
           caption: "Las cuentas rellenan la ficha. No se publican como documento.",
         },
@@ -277,7 +277,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-08-20",
     readTime: 7,
     cover: {
-      src: "/hero/city.png",
+      src: "/blog/blog-recorrido-ciudad.jpg",
       alt: "Ciudad en miniatura con varios edificios, imagen del recorrido de una compraventa",
       caption: "Cada paso espera al anterior. Compartir un documento no adelanta la oferta.",
     },
@@ -303,7 +303,7 @@ export const blogPosts: BlogPost[] = [
           "Una reunión pasada se queda fija y se marca como hecha. Una propuesta futura es una propuesta. Una reunión aceptada es la próxima. No hay un formulario para anotar a posteriori un encuentro que ya ocurrió fuera de la plataforma: el calendario registra lo que las dos partes han acordado ahí.",
         ],
         image: {
-          src: "/cities/city-barcelona.jpg",
+          src: "/blog/blog-reunion-calle.jpg",
           alt: "Calle de una ciudad, el tipo de encuentro que en el proceso queda como reunión aceptada",
           caption: "La reunión entra en el recorrido cuando las dos partes la han aceptado.",
         },
@@ -327,7 +327,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-08-06",
     readTime: 6,
     cover: {
-      src: "/pymes/pyme-flor.jpg",
+      src: "/blog/blog-flor-sin-rotulo.jpg",
       alt: "Escaparate de una floristería, un negocio que puede estar en venta sin publicar el rótulo",
       caption: "El rótulo se queda en la calle. En el catálogo hay un nombre de proyecto.",
     },
@@ -347,7 +347,7 @@ export const blogPosts: BlogPost[] = [
           "Las fotos de una visita previa se quedan en el navegador de quien vende. El catálogo no las publica. La portada, si se sube, tiene que poder verse sin decir de qué local se trata. Si una imagen identifica el negocio, no debería ser la imagen de la ficha.",
         ],
         image: {
-          src: "/cities/city-sevilla.jpg",
+          src: "/blog/blog-ciudad-sur.jpg",
           alt: "Ciudad del sur de España, el nivel geográfico que sí aparece en una ficha",
           caption: "Se publica la comunidad. No se publica la calle.",
         },
@@ -377,7 +377,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-10-01",
     readTime: 6,
     cover: {
-      src: "/pymes/pyme-obrador.jpg",
+      src: "/blog/blog-obrador.jpg",
       alt: "Obrador con masas y bandejas, el tipo de negocio de una operación de sucesión",
       caption: "La nota cuenta el tipo de operación. No nombra los locales.",
     },
@@ -390,7 +390,7 @@ export const blogPosts: BlogPost[] = [
           "En el diario el caso sirve para ver la forma de la operación, no para localizarla. Si esa venta hubiera pasado por una ficha, el nombre público habría sido un apodo de proyecto. La razón social no habría estado en el catálogo ni antes ni después del cierre.",
         ],
         image: {
-          src: "/cities/city-bilbao.jpg",
+          src: "/blog/blog-norte-ciudad.jpg",
           alt: "Ciudad del norte de España, el tipo de territorio de la operación de los obradores",
           caption: "La comunidad basta para situar el caso. La calle no aporta nada al lector.",
         },
@@ -427,7 +427,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-09-22",
     readTime: 6,
     cover: {
-      src: "/pymes/pyme-taller.jpg",
+      src: "/blog/blog-taller-proximidad.jpg",
       alt: "Taller de proximidad con herramientas, el tipo de traspaso entre profesionales del oficio",
       caption: "El comprador ya tenía otro local. Buscaba uno más, por debajo del millón de facturación.",
     },
@@ -447,7 +447,7 @@ export const blogPosts: BlogPost[] = [
           "No hizo falta abrir el nombre del taller para esa lectura. Región, banda de facturación y margen bastaban para saber si encajaba con el otro local del comprador. El domicilio llegó más tarde, cuando las dos partes ya habían decidido seguir.",
         ],
         image: {
-          src: "/pymes/pyme-ceramica.jpg",
+          src: "/blog/blog-oficio-banco.jpg",
           alt: "Mesa de trabajo de un oficio manual, parecido al taller que cambia de dueño sin anuncio",
           caption: "El oficio se reconoce. El nombre del negocio no se publica.",
         },

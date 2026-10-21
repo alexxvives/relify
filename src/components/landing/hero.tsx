@@ -301,13 +301,13 @@ export function Hero() {
           </h1>
           <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/proyectos"
+              href="/registro?rol=inversor"
               className="inline-flex h-12 items-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
             >
               {copy.cta}
             </Link>
             <Link
-              href="/empresas"
+              href="/registro?rol=empresa"
               className="inline-flex h-12 items-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
             >
               {copy.sellCta}

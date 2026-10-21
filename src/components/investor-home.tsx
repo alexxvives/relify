@@ -91,7 +91,8 @@ export function InvestorHome({
           </ul>
         </section>
       </div>
-      <div className="flex h-full flex-col gap-6">
+      <div className="relative xl:min-h-full">
+        <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
             {investorCopy.completeProfile}
@@ -134,6 +135,7 @@ export function InvestorHome({
             <NoticeList items={notifications} scroll />
           )}
         </section>
+        </div>
       </div>
     </div>
   );

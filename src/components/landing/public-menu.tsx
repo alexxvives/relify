@@ -6,8 +6,6 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { Logo } from "@/components/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
-const quietLink =
-  "hidden h-11 items-center rounded-full px-4 text-sm transition md:inline-flex";
 const solidLink =
   "inline-flex h-11 items-center rounded-full bg-public-clay px-4 text-sm text-white transition hover:bg-public-clay-deep";
 
@@ -36,8 +34,6 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
     };
   }, []);
 
-  const quiet = onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink";
-
   return (
     <div
       data-releva-menu
@@ -48,9 +44,6 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       </Link>
       <LandingNav onDark={onDark} />
       <div className="flex items-center gap-1 sm:gap-2">
-        <Link href="/proyectos" className={`${quietLink} ${quiet}`}>
-          {landingCopy.catalogCta}
-        </Link>
         <Link href={signedIn ? "/cuenta" : "/entrar"} className={solidLink}>
           {signedIn ? landingCopy.accountCta : landingCopy.signInCta}
         </Link>

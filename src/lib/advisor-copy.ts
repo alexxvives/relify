@@ -43,6 +43,8 @@ export const advisorCopy = {
   completedLabel: "Completado",
   trendsTitle: "Tendencias",
   stepsTitle: "Encargos por paso",
+  sectorsTitle: "Sectores en venta",
+  sectorsEmpty: "Todavía no hay empresas publicadas con un CNAE principal.",
   stepRequest: "Solicitud",
   stepDeposit: "Por aceptar",
   stepNda: "NDA",

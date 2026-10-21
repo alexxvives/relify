@@ -22,6 +22,7 @@ export function AccountSettings({
   nationalId: initialNationalId,
   photo = null,
   middle = null,
+  agreement = null,
 }: {
   name: string;
   lastName: string | null;
@@ -30,6 +31,7 @@ export function AccountSettings({
   nationalId: string | null;
   photo?: ReactNode;
   middle?: ReactNode;
+  agreement?: ReactNode;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -105,6 +107,7 @@ export function AccountSettings({
   return (
     <div className="flex flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
+      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
           <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
@@ -177,6 +180,8 @@ export function AccountSettings({
           ) : null}
         </form>
       </section>
+      {agreement}
+      </div>
 
       {middle}
 

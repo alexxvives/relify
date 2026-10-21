@@ -98,13 +98,6 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
           >
             {landingCopy.waitlistNav.label}
           </Link>
-          <Link
-            href="/proyectos"
-            className="block rounded-2xl px-2 py-3 text-sm hover:bg-public-sand"
-            onClick={() => setMobile(false)}
-          >
-            {landingCopy.catalogCta}
-          </Link>
         </div>
       ) : null}
     </>

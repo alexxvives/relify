@@ -10,12 +10,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ rol?: string }>;
+}) {
   const user = await getCurrentUser();
 
   if (user) {
     redirect(destinationForUser(user));
   }
 
-  return <AuthScreen mode="sign-up" />;
+  const query = await searchParams;
+  const intent = query.rol === "empresa" ? "seller" : query.rol === "inversor" ? "investor" : null;
+
+  return <AuthScreen mode="sign-up" intent={intent} />;
 }

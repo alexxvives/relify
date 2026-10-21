@@ -15,7 +15,7 @@ export const platformTermsCopy = {
   accept: "Acepto el acuerdo",
   signedTitle: "Tu acuerdo con Releva",
   signedOn: "Firmado",
-  signedMissing: "La firma no está guardada en este equipo.",
+  signedMissing: "La firma todavía no está en tu cuenta.",
   pending: "Guardando…",
   required: "Marca la casilla para continuar.",
 } as const;

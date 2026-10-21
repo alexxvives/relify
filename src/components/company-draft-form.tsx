@@ -1180,6 +1180,7 @@ export function CompanyDraftForm({
                 }
               }}
             />
+            <p className="mt-2 text-xs font-normal text-[#667085]">{companyCopy.saleReasonHint}</p>
           </Fact>
           <Fact icon={Users} label={companyCopy.workersLabel}>
             <OptionSelect
@@ -1269,6 +1270,7 @@ export function CompanyDraftForm({
         onCollapse={() => setOpenStructure(false)}
       >
         <CustomerChoice customerBase={customerBase} onCustomerBase={setCustomerBase} />
+        <div className="mb-6 border-t border-[#d7dde6]" />
         {customerBase === "business" || customerBase === "mixed"
           ? null
           : clientPercents.map((value, index) => (

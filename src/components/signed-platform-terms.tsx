@@ -1,20 +1,12 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { SignedTermsButton } from "@/components/platform-terms-dialog";
+import { SignatureDocument } from "@/components/platform-terms-dialog";
+import { readPlatformSignature } from "@/server/platformSignature";
 
 export async function SignedPlatformTerms({ userId, acceptedAt }: { userId: string; acceptedAt: Date }) {
   const when = new Intl.DateTimeFormat("es-ES", {
     dateStyle: "long",
     timeZone: "Europe/Madrid",
   }).format(acceptedAt);
-  let signature: string | null = null;
+  const signature = await readPlatformSignature(userId);
 
-  try {
-    const bytes = await readFile(path.join(process.cwd(), "data", "platform-signatures", `${userId}.png`));
-    signature = `data:image/png;base64,${bytes.toString("base64")}`;
-  } catch {
-    signature = null;
-  }
-
-  return <SignedTermsButton when={when} signature={signature} />;
+  return <SignatureDocument when={when} signature={signature} />;
 }

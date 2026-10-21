@@ -16,6 +16,7 @@ export function InvestorAccount({
   initial,
   draft,
   avatarUrl,
+  agreement = null,
 }: {
   name: string;
   lastName: string | null;
@@ -26,6 +27,7 @@ export function InvestorAccount({
   initial: DemoInvestorProfile | null;
   draft: InvestorProfileDraft;
   avatarUrl: string;
+  agreement?: ReactNode;
 }) {
   const [photo, setPhoto] = useState(draft.photo);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
@@ -64,6 +66,7 @@ export function InvestorAccount({
           hidePhotoControl
         />
       }
+      agreement={agreement}
     />
   );
 }

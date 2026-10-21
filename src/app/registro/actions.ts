@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { signUpFieldMessage, signUpSchema, type SignUpInput } from "@/lib/auth-input";
 import { signUp } from "@/server/signUp";
@@ -30,6 +31,17 @@ export async function signUpAction(_state: SignUpState, formData: FormData): Pro
 
   if (!result.ok) {
     return { message: result.message };
+  }
+
+  const role = formData.get("signupRole");
+  if (role === "seller" || role === "investor") {
+    const jar = await cookies();
+    jar.set("releva-entry-role", role, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60,
+    });
   }
 
   redirect("/onboarding");

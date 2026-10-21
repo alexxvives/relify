@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { centsToEuroInput, companyDraftSchema, emptyClosedYear, emptyCompanyDraft, emptyForecastYear, eurosToCents, placeStatementsOnWindow, projectSlug } from "./company-draft";
 
 function draft(overrides: Record<string, unknown>) {
-  return { ...emptyCompanyDraft(), ...overrides };
+  return { ...emptyCompanyDraft(), saleReason: "jubilacion", ...overrides };
 }
 
 describe("company draft money and slug", () => {
@@ -28,6 +28,18 @@ describe("company draft money and slug", () => {
       ebitda: "100",
       adjustedEbitda: "120",
       askingPrice: "800",
+    })).success).toBe(false);
+  });
+
+  it("requires a sale reason", () => {
+    expect(companyDraftSchema.safeParse(draft({
+      codename: "Proyecto Norte",
+      region: "Galicia",
+      revenue: "1000",
+      ebitda: "100",
+      adjustedEbitda: "120",
+      askingPrice: "800",
+      saleReason: "",
     })).success).toBe(false);
   });
 

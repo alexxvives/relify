@@ -1800,6 +1800,22 @@
   }
 }
 
+@keyframes releva-seller-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.releva-seller-card {
+  animation: releva-seller-in 0.7s ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .releva-reel-a,
   .releva-reel-b,

@@ -37,7 +37,7 @@ export function PlatformTermsDialog() {
   );
 }
 
-export function SignedTermsButton({ when, signature }: { when: string; signature: string | null }) {
+export function SignatureDocument({ when, signature }: { when: string; signature: string | null }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -47,9 +47,24 @@ export function SignedTermsButton({ when, signature }: { when: string; signature
         onClick={() => {
           setOpen(true);
         }}
-        className="inline-flex h-11 items-center rounded-full border border-[#d0d5dd] bg-white px-4 text-sm font-medium text-[#1c2740]"
+        className="flex h-full min-h-64 w-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] text-left shadow-[0_12px_30px_-24px_rgba(28,39,64,0.45)]"
       >
-        {platformTermsCopy.signedTitle}
+        <span className="border-b border-[#e7eaee] bg-white px-4 py-3">
+          <span className="block text-[11px] font-medium tracking-[0.14em] text-[#8b95a7] uppercase">Documento</span>
+          <span className="mt-1 block text-sm font-semibold text-[#1c2740]">{platformTermsCopy.signedTitle}</span>
+          <span className="mt-1 block text-xs text-[#64748b]">
+            {platformTermsCopy.signedOn} {when}
+          </span>
+        </span>
+        <span className="flex flex-1 items-center justify-center px-4 py-5">
+          {signature ? (
+            // The signature is a drawing stored for this account, not a remote image.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={signature} alt="" className="max-h-36 w-full object-contain" />
+          ) : (
+            <span className="text-sm leading-6 text-[#64748b]">{platformTermsCopy.signedMissing}</span>
+          )}
+        </span>
       </button>
       {open ? (
         <SignedTermsDialog
@@ -115,7 +130,7 @@ function SignedTermsDialog({
       {signature ? (
         // The signature is a drawing stored for this account, not a remote image.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={signature} alt="" className="mt-4 h-24 w-full max-w-md rounded-xl border border-[#e7eaee] bg-[#fbfbfc] object-contain" />
+        <img src={signature} alt="" className="mt-4 h-48 w-full rounded-xl border border-[#e7eaee] bg-[#fbfbfc] object-contain" />
       ) : (
         <p className="mt-4 text-sm text-[#64748b]">{platformTermsCopy.signedMissing}</p>
       )}

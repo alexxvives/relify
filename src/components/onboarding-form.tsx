@@ -29,14 +29,14 @@ const stepNumber: Record<OnboardingStep, number> = {
 const fieldClass =
   "h-12 rounded-xl border border-[#d9e2f2] bg-[#eef3ff] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
 
-export function OnboardingForm() {
+export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole | "" }) {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(onboardingAction, null);
   const [step, setStep] = useState<OnboardingStep>("role");
   const [fullName, setFullName] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [phoneCountry, setPhoneCountry] = useState("ES");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<SignupRole | "">("");
+  const [role, setRole] = useState<SignupRole | "">(initialRole);
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
   const [localMessage, setLocalMessage] = useState<string | null>(null);
 

@@ -113,6 +113,7 @@ model User {
   referralSource  String?   @map("referral_source")
   onboardedAt     DateTime? @map("onboarded_at")
   termsAcceptedAt DateTime? @map("terms_accepted_at")
+  signaturePng    Bytes?    @map("signature_png")
   suspendedAt     DateTime? @map("suspended_at")
   lastName        String?   @map("last_name")
   phone           String?

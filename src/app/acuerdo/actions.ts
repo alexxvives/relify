@@ -33,7 +33,7 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { termsAcceptedAt: new Date() },
+    data: { termsAcceptedAt: new Date(), signaturePng: bytes },
   });
 
   redirect(homeForRole(user.role));

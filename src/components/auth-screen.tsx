@@ -7,10 +7,11 @@ import { SignUpForm } from "@/components/sign-up-form";
 import { authCopy } from "@/lib/auth-copy";
 
 type AuthMode = "sign-in" | "sign-up";
+type SignupIntent = "seller" | "investor" | null;
 
 const stageIcons = [Shield, Handshake, TrendingUp] as const;
 
-export function AuthScreen({ mode }: { mode: AuthMode }) {
+export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: SignupIntent }) {
   const signingUp = mode === "sign-up";
 
   return (
@@ -36,24 +37,24 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
             </Link>
           </header>
           <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
-            <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(34rem,calc(54%-1.5rem))] lg:-translate-y-1/2">
-              <p className="text-sm font-medium tracking-[0.2em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
-              <h1 className="mt-3 text-[2.15rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:text-[2.45rem]">
+            <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2">
+              <p className="text-base font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
+              <h1 className="mt-4 text-[clamp(3rem,4.6vw,4.5rem)] leading-[0.98] font-semibold tracking-tight text-[#16324f]">
                 <span className="block">{authCopy.stageHeadlineLead}</span>
                 <span className="block">{authCopy.stageHeadlineTail}</span>
               </h1>
-              <p className="mt-4 max-w-[19rem] text-[17px] leading-7 text-[#7d8fa1]">{authCopy.stageBody}</p>
-              <ul className="mt-5 space-y-3">
+              <p className="mt-5 max-w-[24rem] text-xl leading-8 text-[#7d8fa1]">{authCopy.stageBody}</p>
+              <ul className="mt-8 space-y-5">
                 {authCopy.stagePoints.map((point, index) => {
                   const Icon = stageIcons[index] ?? Shield;
                   return (
                     <li key={point.title} className="flex items-center gap-4">
-                              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
-                                <Icon className="size-4" aria-hidden />
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
+                        <Icon className="size-5" aria-hidden />
                       </span>
                       <span>
-                        <span className="block text-base font-semibold text-[#16324f]">{point.title}</span>
-                        <span className="mt-0.5 block text-[15px] leading-6 text-[#7d8fa1]">{point.body}</span>
+                        <span className="block text-lg font-semibold text-[#16324f]">{point.title}</span>
+                        <span className="mt-0.5 block text-base leading-6 text-[#7d8fa1]">{point.body}</span>
                       </span>
                     </li>
                   );
@@ -77,7 +78,7 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
                 <p className="mt-3 text-center text-base leading-7 text-[#7d8fa1]">
                   {signingUp ? authCopy.signUpIntro : authCopy.signInIntro}
                 </p>
-                <div className="mt-8">{signingUp ? <SignUpForm /> : <SignInForm />}</div>
+                <div className="mt-8">{signingUp ? <SignUpForm intent={intent} /> : <SignInForm />}</div>
               </section>
             </div>
           </div>

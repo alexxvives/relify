@@ -36,6 +36,7 @@ export default function EmpresasPage() {
         { title: "Publicas cuando está lista", body: "Precio, región y cifras. La primera empresa publicada no pide el alta de anuncio en esta página." },
         { title: "Gestionas el interés", body: "Aceptas o dejas en espera. El detalle confidencial sigue al acuerdo." },
       ]}
+      showcase
     />
   );
 }

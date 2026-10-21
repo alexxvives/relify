@@ -29,10 +29,12 @@ export default async function AccountPage() {
   const nationalId = await getAccountNationalId(user.id);
   const investorDraft = user.role === "investor" ? await loadInvestorDraft(user.id, user.email) : null;
 
+  const agreement = user.termsAcceptedAt ? (
+    <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} />
+  ) : null;
+
   return (
     <AppShell title={authCopy.accountTitle}>
-      <div className="flex flex-col gap-6">
-      {user.termsAcceptedAt ? <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} /> : null}
       {investorDraft ? (
         <InvestorAccount
           name={user.name}
@@ -44,6 +46,7 @@ export default async function AccountPage() {
           initial={demoInvestorProfile(user.email)}
           draft={investorDraft}
           avatarUrl={investorGazeAvatar(user.id)}
+          agreement={agreement}
         />
       ) : (
         <AccountSettings
@@ -52,9 +55,9 @@ export default async function AccountPage() {
           email={user.email}
           phone={user.phone}
           nationalId={nationalId}
+          agreement={agreement}
         />
       )}
-      </div>
     </AppShell>
   );
 }
