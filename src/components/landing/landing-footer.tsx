@@ -19,7 +19,7 @@ export function LandingFooter() {
               {landingCopy.signInCta}
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             {landingCopy.footer.columns.map((column) => (
               <div key={column.title}>
                 <p className="text-sm font-medium">{column.title}</p>

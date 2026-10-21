@@ -39,7 +39,7 @@ export function CompanyBanner({
       {children ? <div className="absolute top-6 right-6 z-10 flex items-center gap-2">{children}</div> : null}
       <div className="relative z-10 mx-auto max-w-3xl pt-2 text-center">
         <div className={besideTitle ? "flex flex-wrap items-center justify-center gap-x-4 gap-y-3" : undefined}>
-          <Title className="text-6xl leading-none tracking-tight text-white italic [font-family:var(--public-display)] sm:text-7xl">
+          <Title className="releva-page-title text-6xl leading-[0.96] text-white sm:text-7xl">
             {title}
           </Title>
           {besideTitle ? <div className="max-w-sm text-left">{besideTitle}</div> : null}

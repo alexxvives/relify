@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { PublicSite } from "@/components/public-site";
 import { blogCopy, blogPost, blogPosts, formatBlogDate } from "@/lib/blog";
+import { readSiteUrl } from "@/lib/env";
 
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
@@ -21,6 +23,14 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
     title: post.title,
     description: post.excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `/blog/${post.slug}`,
+      type: "article",
+      locale: "es_ES",
+      images: [{ url: post.cover.src, alt: post.cover.alt }],
+    },
   };
 }
 
@@ -32,9 +42,25 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
     notFound();
   }
 
+  const siteUrl = readSiteUrl();
+  const pageUrl = new URL(`/blog/${post.slug}`, siteUrl).href;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    inLanguage: "es",
+    image: new URL(post.cover.src, siteUrl).href,
+    mainEntityOfPage: pageUrl,
+    author: { "@type": "Organization", name: "Releva" },
+    publisher: { "@type": "Organization", name: "Releva", url: new URL("/", siteUrl).href },
+  };
+
   return (
     <PublicSite>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-12 sm:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <article className="mx-auto flex w-full max-w-[46rem] flex-col gap-8 px-5 py-12 sm:px-8">
         <Link href="/blog" className="text-sm font-medium text-public-clay hover:underline">
           {blogCopy.back}
         </Link>
@@ -42,16 +68,56 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
           <p className="text-xs tracking-[0.16em] text-public-clay uppercase">
             {post.category} · {formatBlogDate(post.date)} · {post.readTime} {blogCopy.minutes}
           </p>
-          <h1 className="mt-3 text-5xl leading-none tracking-tight italic [font-family:var(--public-display)]">{post.title}</h1>
-          <p className="mt-4 text-lg leading-7 text-public-muted">{post.excerpt}</p>
+          <h1 className="releva-page-title mt-3 text-4xl leading-[0.98] sm:text-5xl">{post.title}</h1>
+          <p className="mt-4 text-lg leading-8 text-public-muted">{post.excerpt}</p>
         </header>
-        <div className="flex flex-col gap-4 text-base leading-7">
-          {post.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+        <figure className="overflow-hidden rounded-[1.75rem] border border-public-line bg-public-card">
+          <div className="relative aspect-[16/9]">
+            <Image src={post.cover.src} alt={post.cover.alt} fill priority className="object-cover" sizes="(min-width: 768px) 46rem, 100vw" />
+          </div>
+          <figcaption className="px-5 py-3 text-sm leading-6 text-public-muted">{post.cover.caption}</figcaption>
+        </figure>
+        <div className="flex flex-col gap-10">
+          {post.sections.map((section) => (
+            <section key={section.heading} className="flex flex-col gap-4">
+              <h2 className="text-2xl leading-tight font-medium tracking-tight sm:text-3xl">{section.heading}</h2>
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph} className="text-[1.0625rem] leading-8 text-public-ink">
+                  {paragraph}
+                </p>
+              ))}
+              {section.points ? (
+                <ul className="list-disc space-y-2 pl-5 text-[1.0625rem] leading-8">
+                  {section.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {section.image ? (
+                <figure className="overflow-hidden rounded-[1.5rem] border border-public-line bg-white">
+                  <div className="relative aspect-[16/9]">
+                    <Image src={section.image.src} alt={section.image.alt} fill className="object-cover" sizes="(min-width: 768px) 46rem, 100vw" />
+                  </div>
+                  <figcaption className="px-5 py-3 text-sm leading-6 text-public-muted">{section.image.caption}</figcaption>
+                </figure>
+              ) : null}
+            </section>
           ))}
         </div>
+        <nav aria-label={blogCopy.related} className="rounded-[1.5rem] border border-public-line bg-white p-6">
+          <p className="text-sm font-medium">{blogCopy.related}</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {post.related.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="text-public-clay hover:underline">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <NewsletterSignup />
-      </main>
+      </article>
     </PublicSite>
   );
 }

@@ -89,7 +89,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
         }}
       >
         <p className="text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">Releva</p>
-        <h2 className="mt-3 text-4xl leading-tight tracking-tight italic [font-family:var(--public-display)] sm:text-5xl">
+        <h2 className="releva-page-title mt-3 text-4xl leading-[1.05] sm:text-5xl">
           Mira gratis. Conecta cuando toque.
         </h2>
         <p className="mt-4 text-sm leading-6 text-white/80">{billingCopy.intro}</p>
@@ -142,7 +142,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
                 ) : null}
               </div>
               <h2 className="mt-5 text-lg font-semibold text-[#1c2740]">{item.name}</h2>
-              <p className="mt-3 text-5xl leading-none tracking-tight text-[#1c2740] italic [font-family:var(--public-display)]">
+              <p className="releva-page-title mt-3 text-5xl leading-none text-[#1c2740]">
                 {yearly && item.id === "limited"
                   ? billingCopy.limitedYearly
                   : yearly && item.id === "unlimited"

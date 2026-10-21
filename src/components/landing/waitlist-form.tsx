@@ -63,7 +63,7 @@ function WaitlistClock() {
   const before = partsLeft(clock.previous ?? now ?? opensAt);
 
   return (
-    <div className="releva-wait-clock" aria-label="Quedan dos semanas para abrir">
+    <div className="releva-wait-clock" aria-label="Queda un mes para abrir">
       <ol>
         {parts.map((part, index) => (
           <FlipUnit

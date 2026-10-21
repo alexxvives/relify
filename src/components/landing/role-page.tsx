@@ -29,7 +29,7 @@ export function RolePage({
         <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 py-16 lg:grid-cols-[0.85fr_1.15fr] lg:py-24">
           <div>
             <p className="text-sm text-public-clay">{kicker}</p>
-            <h1 className="mt-3 text-4xl leading-[1.05] md:text-6xl" style={{ fontFamily: "var(--public-display)" }}>
+            <h1 className="releva-page-title mt-3 text-4xl leading-[1.05] md:text-6xl">
               {title}
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-public-muted">{lead}</p>
@@ -44,7 +44,7 @@ export function RolePage({
 
         <section className="border-y border-public-line bg-white">
           <div className="mx-auto max-w-[1180px] px-6 py-16">
-            <h2 className="max-w-xl text-3xl md:text-4xl" style={{ fontFamily: "var(--public-display)" }}>
+            <h2 className="max-w-xl text-3xl leading-[1.05] font-medium tracking-tight md:text-4xl">
               {featuresTitle}
             </h2>
             <div className="mt-10 grid gap-8 md:grid-cols-3">
@@ -59,13 +59,13 @@ export function RolePage({
         </section>
 
         <section className="mx-auto max-w-[1180px] px-6 py-16 md:py-24">
-          <h2 className="text-3xl md:text-4xl" style={{ fontFamily: "var(--public-display)" }}>
+          <h2 className="text-3xl leading-[1.05] font-medium tracking-tight md:text-4xl">
             {stepsTitle}
           </h2>
           <ol className="mt-10 grid gap-6 md:grid-cols-2">
             {steps.map((step, index) => (
               <li key={step.title} className="rounded-[1.5rem] border border-public-line bg-white p-6">
-                <p className="text-3xl text-public-clay" style={{ fontFamily: "var(--public-display)" }}>
+                <p className="text-3xl font-medium tracking-tight text-public-clay">
                   0{index + 1}
                 </p>
                 <h3 className="mt-3 text-xl">{step.title}</h3>

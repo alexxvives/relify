@@ -118,32 +118,23 @@ export const landingCopy = {
     blurb: "Plataforma de compraventa de empresas",
     columns: [
       {
-        title: "Usuarios",
+        title: "Plataforma",
         links: [
           { label: "Empresas", href: "/empresas" },
-          { label: "Empresas en venta", href: "/proyectos" },
+          { label: "Inversores", href: "/inversores" },
           { label: "Asesores", href: "/asesores" },
         ],
       },
       {
-        title: "Acceso rápido",
+        title: "Mercado",
         links: [
-          { label: "Entrar en la plataforma", href: "/entrar" },
-          { label: "Crear cuenta", href: "/registro" },
-          { label: "Lista de espera", href: "/lista-de-espera" },
+          { label: "Empresas en venta", href: "/proyectos" },
+          { label: "Diario", href: "/blog" },
         ],
       },
       {
-        title: "Recursos",
-        links: [{ label: "Diario", href: "/blog" }],
-      },
-      {
-        title: "Soporte",
-        links: [
-          { label: "Inversores", href: "/inversores" },
-          { label: "Empresas", href: "/empresas" },
-          { label: "Archivo", href: "/archivo" },
-        ],
+        title: "Releva",
+        links: [{ label: "Archivo", href: "/archivo" }],
       },
     ],
   },

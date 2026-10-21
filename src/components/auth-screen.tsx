@@ -23,7 +23,7 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
           priority
           unoptimized
           sizes="100vw"
-          className="object-cover object-[center_42%]"
+          className="object-cover object-[54%_24%]"
         />
         <div
           aria-hidden
@@ -36,13 +36,13 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
             </Link>
           </header>
           <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
-            <section className="min-w-0 lg:max-w-[calc(54%-1.5rem)]">
+            <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(34rem,calc(54%-1.5rem))] lg:-translate-y-1/2">
               <p className="text-sm font-medium tracking-[0.2em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
               <h1 className="mt-3 text-[2.15rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:text-[2.45rem]">
                 <span className="block">{authCopy.stageHeadlineLead}</span>
                 <span className="block">{authCopy.stageHeadlineTail}</span>
               </h1>
-              <p className="mt-4 max-w-lg text-[17px] leading-7 text-[#7d8fa1]">{authCopy.stageBody}</p>
+              <p className="mt-4 max-w-[19rem] text-[17px] leading-7 text-[#7d8fa1]">{authCopy.stageBody}</p>
               <ul className="mt-5 space-y-3">
                 {authCopy.stagePoints.map((point, index) => {
                   const Icon = stageIcons[index] ?? Shield;

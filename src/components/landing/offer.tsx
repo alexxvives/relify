@@ -8,7 +8,7 @@ import { landingCopy, offerDeals, specimenMetrics, type ShowcaseDeal } from "@/l
 
 export function Offer() {
   const copy = landingCopy.home.offer;
-  const [active, setActive] = useState("Proyecto Olivo");
+  const [active, setActive] = useState("Proyecto Sur");
   const selected = offerDeals.find((deal) => deal.codename === active) ?? offerDeals[0];
 
   return (

@@ -139,7 +139,7 @@ export default async function ProjectDetailPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-medium tracking-[0.28em] text-public-muted uppercase">{catalogCopy.detailKicker}</p>
-              <h1 className="mt-2 text-5xl leading-none tracking-tight text-public-ink italic [font-family:var(--public-display)] sm:text-6xl">
+              <h1 className="releva-page-title mt-2 text-5xl leading-[0.96] text-public-ink sm:text-6xl">
                 {project.codename}
               </h1>
               <p className="mt-3 flex items-center gap-2 text-public-muted">

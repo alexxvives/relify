@@ -523,7 +523,8 @@
   text-shadow: 0 0 16px #fff, 0 0 28px #fff;
 }
 
-.releva-hero-title {
+.releva-hero-title,
+.releva-page-title {
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   font-style: normal;
   font-weight: 600;
@@ -2332,16 +2333,19 @@
   position: relative;
   max-width: 14ch;
   margin-top: 1rem;
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   font-size: clamp(2.6rem, 8vw, 5.6rem);
+  font-style: normal;
+  font-weight: 600;
   line-height: 0.92;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
 }
 
 .releva-wait-title span {
   display: block;
-  font-family: var(--public-font);
+  font-family: inherit;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--public-clay);
 }
 

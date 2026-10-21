@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: blogCopy.title,
   description: blogCopy.description,
   alternates: { canonical: "/blog" },
+  openGraph: {
+    title: blogCopy.title,
+    description: blogCopy.description,
+    url: "/blog",
+    locale: "es_ES",
+    type: "website",
+  },
 };
 
 export default function BlogPage() {
@@ -18,7 +25,7 @@ export default function BlogPage() {
       <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 py-12 sm:px-8">
         <header>
           <p className="text-xs tracking-[0.2em] text-public-clay uppercase">{blogCopy.kicker}</p>
-          <h1 className="mt-3 max-w-3xl text-5xl leading-none tracking-tight italic [font-family:var(--public-display)] sm:text-6xl">{blogCopy.title}</h1>
+          <h1 className="releva-page-title mt-3 max-w-3xl text-5xl leading-[0.96] sm:text-6xl">{blogCopy.title}</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-public-muted">{blogCopy.description}</p>
         </header>
         <BlogIndex posts={posts} />

@@ -5,7 +5,7 @@ export function AgreementSheet({ text }: { text: string }) {
   return (
     <article className="overflow-hidden rounded-xl border border-[#e6e9f0] bg-white text-left">
       <header className="bg-[#1c2740] px-4 py-3 text-white">
-        <p className="text-lg text-white italic" style={{ fontFamily: "var(--public-display)" }}>
+        <p className="releva-word text-lg text-white">
           Releva
         </p>
         <p className="text-[11px] tracking-wide text-white/70">Documento confidencial</p>
