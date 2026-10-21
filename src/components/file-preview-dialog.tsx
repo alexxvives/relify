@@ -5,7 +5,7 @@ import { FileTextIcon } from "@/components/ui/file-text";
 import { sellerCopy } from "@/lib/seller-copy";
 
 export const documentDeskClass =
-  "fixed inset-0 z-50 m-0 flex h-dvh max-h-none w-dvw max-w-none translate-none flex-col overflow-hidden border-0 bg-[#3c4148] p-0 text-white shadow-none backdrop:bg-[#1c2740]/50";
+  "fixed inset-0 z-50 m-0 hidden h-dvh max-h-none w-dvw max-w-none translate-none flex-col overflow-hidden border-0 bg-[#3c4148] p-0 text-white shadow-none open:flex backdrop:bg-[#1c2740]/50";
 
 function previewKind(fileName: string): "image" | "pdf" | null {
   if (/\.(png|jpe?g|gif|webp)$/i.test(fileName)) {
@@ -74,10 +74,14 @@ export function FilePreviewDialog({
     dialog.showModal();
   }, [file]);
 
+  if (!file) {
+    return null;
+  }
+
   return (
     <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
       <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <p className="min-w-0 truncate text-sm font-medium">{file?.fileName}</p>
+        <p className="min-w-0 truncate text-sm font-medium">{file.fileName}</p>
         <button
           type="button"
           onClick={() => {
@@ -89,9 +93,9 @@ export function FilePreviewDialog({
         </button>
       </div>
       <div className="min-h-0 flex-1 px-4 pb-6">
-        {file?.href && kind === "pdf" ? (
+        {file.href && kind === "pdf" ? (
           <iframe title={file.fileName} src={file.href} className="h-full w-full bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]" />
-        ) : file?.href && kind === "image" ? (
+        ) : file.href && kind === "image" ? (
           <div className="flex h-full items-center justify-center">
             {/* Seller uploads are private bytes, not a remote image the optimizer can fetch. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -100,9 +104,9 @@ export function FilePreviewDialog({
         ) : (
           <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center bg-white px-8 text-center text-[#1c2740] shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
             <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
-            <h2 className="mt-4 text-lg font-semibold">{file?.fileName}</h2>
-            <p className="mt-1 text-sm text-[#667085]">{file?.folder}</p>
-            {file?.href && kind === null ? (
+            <h2 className="mt-4 text-lg font-semibold">{file.fileName}</h2>
+            <p className="mt-1 text-sm text-[#667085]">{file.folder}</p>
+            {file.href && kind === null ? (
               <a
                 href={file.href}
                 target="_blank"
@@ -112,7 +116,7 @@ export function FilePreviewDialog({
                 {sellerCopy.documentOpenFile}
               </a>
             ) : null}
-            {file && !file.href ? <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.documentViewerBody}</p> : null}
+            {!file.href ? <p className="mt-4 text-sm leading-6 text-[#667085]">{sellerCopy.documentViewerBody}</p> : null}
           </div>
         )}
       </div>

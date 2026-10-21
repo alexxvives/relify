@@ -112,6 +112,10 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
 
     if (seller?.processOpened) {
       for (const access of labeled) {
+        if (!access.nda) {
+          continue;
+        }
+
         lanes.push({
           key: `${access.label}-${lanes.length}`,
           label: access.label,
@@ -141,6 +145,10 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
         passedDiligence: false,
       };
 
+      if (!access.nda) {
+        continue;
+      }
+
       lanes.push({
         key: `comprador-${lanes.length}`,
         label: advisorCopy.buyerLane,
@@ -156,10 +164,12 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
 
     if (lanes.length === 0 && seller?.closed && !seller.processOpened) {
       note = advisorCopy.processesClosed;
-    } else if (lanes.length === 0 && seller && !seller.processOpened) {
-      note = advisorCopy.processesWait;
     } else if (lanes.length === 0 && group.every((row) => row.closed)) {
       note = advisorCopy.processesFinished;
+    } else if (lanes.length === 0 && seller && !seller.processOpened) {
+      note = advisorCopy.processesWait;
+    } else if (lanes.length === 0 && (seller?.processOpened || investorRows.length > 0)) {
+      note = advisorCopy.processesWaitQa;
     } else if (lanes.length === 0 && depositPending) {
       note = advisorCopy.processesDeposit;
     } else if (lanes.length === 0) {

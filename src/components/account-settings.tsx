@@ -180,7 +180,11 @@ export function AccountSettings({
           ) : null}
         </form>
       </section>
-      {agreement}
+      {agreement ? (
+        <div className="min-h-48 xl:relative xl:min-h-0">
+          <div className="h-full xl:absolute xl:inset-0">{agreement}</div>
+        </div>
+      ) : null}
       </div>
 
       {middle}

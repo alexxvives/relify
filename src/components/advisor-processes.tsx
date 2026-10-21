@@ -62,11 +62,7 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
               return (
                 <div key={lane.key} className="border-t border-[#eef0f3] pt-3">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                    {lane.label === advisorCopy.buyerLane ? (
-                      <p>{lane.label}</p>
-                    ) : (
-                      <p className="text-sm font-semibold text-[#1c2740]">{lane.label}</p>
-                    )}
+                    <p className="text-sm font-semibold text-[#1c2740]">{lane.label}</p>
                     {cue?.yours && lane.signNdaId && lane.ndaText ? (
                       <AdvisorNdaTurn engagementId={lane.signNdaId} text={lane.ndaText} />
                     ) : cue ? (

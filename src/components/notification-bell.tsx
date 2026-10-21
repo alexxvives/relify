@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { ArrowRight, Bell, CalendarClock, ChevronRight, FolderOpen, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, Bell, ChevronRight } from "lucide-react";
 import { markNotificationsReadAction } from "@/app/cuenta/actions";
 import { NoticeText } from "@/components/notice-list";
+import { noticeIconFor } from "@/lib/notice-icons";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
 
 const openNoticesEvent = "releva-open-notices";
@@ -23,38 +24,6 @@ export function OpenNoticeList({ label }: { label: string }) {
       <ArrowRight className="size-4" aria-hidden />
     </button>
   );
-}
-
-function iconFor(title: string) {
-  if (title.includes("NDA")) {
-    return ShieldCheck;
-  }
-
-  if (title.includes("Pregunta") || title.includes("pregunta")) {
-    return MessageCircle;
-  }
-
-  if (title.includes("Reunión") || title.includes("reunión")) {
-    return CalendarClock;
-  }
-
-  if (title.includes("Oferta")) {
-    return Sparkles;
-  }
-
-  if (title.includes("Respuesta")) {
-    return Reply;
-  }
-
-  if (title.includes("Dataroom") || title.includes("document")) {
-    return FolderOpen;
-  }
-
-  if (title.includes("interés") || title.includes("Solicitud") || title.includes("Presupuesto")) {
-    return UserRound;
-  }
-
-  return Bell;
 }
 
 export function NotificationBell({ items }: { items: NotificationView[] }) {
@@ -211,10 +180,10 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
           ) : (
             <ul className="flex min-h-0 flex-1 flex-col overflow-auto p-2">
               {rows.map((item) => {
-                const Icon = iconFor(item.title);
+                const { Icon, chip } = noticeIconFor(item.title);
                 const content = (
                   <span className="flex items-start gap-3">
-                    <span className={item.unread ? "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#eef2ff] text-[#465ab4]" : "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-public-sand text-public-muted"}>
+                    <span className={`mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full ${chip}`}>
                       <Icon className="size-4" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">

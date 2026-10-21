@@ -93,7 +93,7 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
       ) : null}
       <dialog
         ref={declineDialog}
-        className="fixed top-1/2 left-1/2 z-50 m-0 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] backdrop:bg-[#1c2740]/40"
+        className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40"
       >
         <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.depositDeclineAsk}</h3>
         <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositDeclineAskBody}</p>

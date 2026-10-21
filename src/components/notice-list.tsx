@@ -1,42 +1,6 @@
 import Link from "next/link";
-import { Bell, CalendarClock, FolderOpen, HandCoins, MessageCircle, Reply, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { noticeIconFor } from "@/lib/notice-icons";
 import { noticeSegments, type NotificationView } from "@/lib/notifications";
-
-function iconFor(title: string) {
-  if (title.includes("NDA")) {
-    return ShieldCheck;
-  }
-
-  if (title.includes("Pregunta") || title.includes("pregunta") || title.includes("Mensaje")) {
-    return MessageCircle;
-  }
-
-  if (title.includes("Reunión") || title.includes("reunión")) {
-    return CalendarClock;
-  }
-
-  if (title.includes("Oferta")) {
-    return Sparkles;
-  }
-
-  if (title.includes("Respuesta")) {
-    return Reply;
-  }
-
-  if (title.includes("Dataroom") || title.includes("document")) {
-    return FolderOpen;
-  }
-
-  if (title.includes("depósito") || title.includes("Depósito") || title.includes("Pago")) {
-    return HandCoins;
-  }
-
-  if (title.includes("interés") || title.includes("Solicitud") || title.includes("Presupuesto") || title.includes("Encargo")) {
-    return UserRound;
-  }
-
-  return Bell;
-}
 
 export function NoticeText({ text }: { text: string }) {
   return (
@@ -69,11 +33,11 @@ export function NoticeList({
   return (
     <ul className={scroll ? "mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1" : "mt-4 flex flex-col gap-3"}>
       {items.map((item) => {
-        const Icon = iconFor(item.title);
+        const { Icon, chip } = noticeIconFor(item.title);
         const body = (
           <div className={icons ? "flex gap-3" : ""}>
             {icons ? (
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#465ab4]">
+              <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${chip}`}>
                 <Icon className="size-4" aria-hidden />
               </span>
             ) : null}

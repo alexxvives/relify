@@ -41,6 +41,25 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
   });
 
   if (input.advisorId && project) {
+    if (project.client === "investor") {
+      const access = await prisma.projectAccess.findFirst({
+        where: { projectId: project.projectId, investorId: user.id, ndaAcceptedAt: { not: null } },
+        select: { id: true },
+      });
+
+      if (!access) {
+        return { ok: false, message: engagementCopy.connectNeedsCompany };
+      }
+    } else {
+      const ready = await prisma.projectAccess.count({
+        where: { projectId: project.projectId, ndaAcceptedAt: { not: null } },
+      });
+
+      if (ready === 0) {
+        return { ok: false, message: engagementCopy.connectNeedsQa };
+      }
+    }
+
     await createEngagement({
       projectId: project.projectId,
       requesterId: user.id,

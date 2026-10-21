@@ -49,19 +49,33 @@ describe("advisorProjectBoards", () => {
     expect(JSON.stringify(board)).not.toContain("buyer-1");
   });
 
-  it("lists each buyer under the seller's company once the process is open", () => {
+  it("lists only buyers already in Q&A once the seller opens the process", () => {
+    const [board] = advisorProjectBoards([
+      engagement({
+        id: "seller-job",
+        client: "seller",
+        processOpened: true,
+        accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, false)],
+      }),
+    ]);
+
+    expect(board?.hiredBySeller).toBe(true);
+    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1"]);
+    expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("done");
+    expect(board?.lanes[0]?.steps.find((step) => step.id === "qa")?.state).toBe("current");
+    expect(JSON.stringify(board)).not.toContain("@");
+  });
+
+  it("waits for Q&A when the open process has no buyer past the NDA", () => {
     const [board] = advisorProjectBoards([
       engagement({ id: "seller-job", client: "seller", processOpened: true }),
     ]);
 
-    expect(board?.hiredBySeller).toBe(true);
-    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1", "Inversor 2"]);
-    expect(board?.lanes[0]?.steps.find((step) => step.id === "conexion")?.state).toBe("done");
-    expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("current");
-    expect(JSON.stringify(board)).not.toContain("@");
+    expect(board?.lanes).toEqual([]);
+    expect(board?.note).toContain("Q&A");
   });
 
-  it("shows only the buyer who hired the advisor", () => {
+  it("shows only the buyer who hired the advisor once that buyer is in Q&A", () => {
     const [board] = advisorProjectBoards([
       engagement({
         id: "buyer-job",
@@ -73,36 +87,14 @@ describe("advisorProjectBoards", () => {
     ]);
 
     expect(board?.lanes).toHaveLength(1);
-    expect(board?.lanes[0]?.label).toBe("El comprador que te contrata");
+    expect(board?.lanes[0]?.label).toBe("Inversor");
     expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("done");
     expect(board?.advisorNda).toBe(true);
     expect(board?.ndaPending).toBe(false);
     expect(JSON.stringify(board)).not.toContain("buyer-1");
   });
 
-  it("keeps the seller lanes when another hire still owes the deposit", () => {
-    const [board] = advisorProjectBoards([
-      engagement({ id: "seller-job", client: "seller", processOpened: true, closed: true }),
-      engagement({ id: "buyer-job", client: "investor", depositPaid: false, requesterId: "buyer-1" }),
-    ]);
-
-    expect(board?.depositPending).toBe(true);
-    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1", "Inversor 2"]);
-    expect(board?.note).toBeNull();
-  });
-
-  it("shows the bar when the buyer has not opened a sale yet", () => {
-    const [board] = advisorProjectBoards([
-      engagement({ id: "buyer-job", client: "investor", depositPaid: false, accesses: [] }),
-    ]);
-
-    expect(board?.lanes).toHaveLength(1);
-    expect(board?.lanes[0]?.steps.find((step) => step.id === "conexion")?.state).toBe("current");
-    expect(board?.note).toBeNull();
-    expect(JSON.stringify(board)).not.toContain("buyer-1");
-  });
-
-  it("asks the advisor to sign the NDA while the seller has not accepted", () => {
+  it("hides a buyer hire that has not reached Q&A", () => {
     const [board] = advisorProjectBoards([
       engagement({
         id: "buyer-job",
@@ -112,24 +104,60 @@ describe("advisorProjectBoards", () => {
         accesses: [access("buyer-1", "2026-10-01", false, false)],
       }),
     ]);
+
+    expect(board?.lanes).toEqual([]);
+    expect(board?.note).toContain("Q&A");
+  });
+
+  it("keeps the seller lanes when another hire still owes the deposit", () => {
+    const [board] = advisorProjectBoards([
+      engagement({
+        id: "seller-job",
+        client: "seller",
+        processOpened: true,
+        closed: true,
+        accesses: [access("buyer-1", "2026-10-01", true, true), access("buyer-2", "2026-10-02", true, true)],
+      }),
+      engagement({ id: "buyer-job", client: "investor", depositPaid: false, requesterId: "buyer-1" }),
+    ]);
+
+    expect(board?.depositPending).toBe(true);
+    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1", "Inversor 2"]);
+    expect(board?.note).toBeNull();
+  });
+
+  it("asks the advisor to sign the NDA while the seller has not accepted", () => {
+    const [board] = advisorProjectBoards([
+      engagement({
+        id: "buyer-job",
+        client: "investor",
+        depositPaid: true,
+        advisorNda: false,
+        accesses: [access("buyer-1", "2026-10-01", false, true)],
+      }),
+    ]);
     const lane = board?.lanes[0];
 
-    expect(lane?.label).toBe("El comprador que te contrata");
+    expect(lane?.label).toBe("Inversor");
     expect(lane?.signNdaId).toBe("buyer-job");
     expect(advisorLaneCue(lane?.steps ?? [], true)).toEqual({ yours: true, action: "Firma el NDA" });
-    expect(advisorLaneCue(lane?.steps ?? [], false)?.action).toBe("El vendedor todavía no ha aceptado.");
     expect(board?.ndaPending).toBe(true);
   });
 
-  it("shows the buyer's progress before the deposit is paid", () => {
+  it("shows the buyer's progress before the deposit is paid when already in Q&A", () => {
     const [board] = advisorProjectBoards([
-      engagement({ id: "buyer-job", client: "investor", depositPaid: false }),
+      engagement({
+        id: "buyer-job",
+        client: "investor",
+        depositPaid: false,
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
     ]);
 
     expect(board?.depositPending).toBe(true);
     expect(board?.lanes).toHaveLength(1);
-    expect(board?.lanes[0]?.label).toBe("El comprador que te contrata");
-    expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("current");
+    expect(board?.lanes[0]?.label).toBe("Inversor");
+    expect(board?.lanes[0]?.steps.find((step) => step.id === "qa")?.state).toBe("current");
     expect(board?.note).toBeNull();
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");
   });
@@ -137,7 +165,13 @@ describe("advisorProjectBoards", () => {
   it("opens the paid job when the same company also has a closed unpaid encargo", () => {
     const [board] = advisorProjectBoards([
       engagement({ id: "seller-job", client: "seller", depositPaid: false, closed: true, services: "Consultoría Fiscal" }),
-      engagement({ id: "buyer-job", client: "investor", depositPaid: true, services: "Due Diligence" }),
+      engagement({
+        id: "buyer-job",
+        client: "investor",
+        depositPaid: true,
+        services: "Due Diligence",
+        accesses: [access("buyer-1", "2026-10-01", true, true)],
+      }),
     ]);
 
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");

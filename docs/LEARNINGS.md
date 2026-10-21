@@ -33,3 +33,4 @@ Append-only. One line per project-specific pitfall:
 - 2026-10-18: sign-in showed Invalid user.findUnique and the overlay cut the cause — Postgres was stopped (ECONNREFUSED) — start Docker before changing the query, and keep that lookup inside the sign-in try so a down database returns the Spanish failure.
 - 2026-10-18: Avisos threw "Cannot call startTransition while rendering" — `markAllRead` ran inside the `setOpen` updater — call `startTransition` from the click handler, not from a state updater.
 - 2026-10-15: the seller home was canceled as a hung Worker after sign-in — one `Promise.all` opened more Postgres sockets than Workers will finish — load that page one query after another.
+- 2026-10-21: `/mi-empresa/documentos` looked like an empty file — Tailwind `flex`/`fixed` on a closed `<dialog>` overrode `display: none` — use `hidden open:flex` (or only mount the dialog when open).
