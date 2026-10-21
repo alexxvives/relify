@@ -24,7 +24,8 @@ export default async function OnboardingPage() {
 
   const jar = await cookies();
   const stored = jar.get("releva-entry-role")?.value;
-  const initialRole: SignupRole | "" = stored === "seller" || stored === "investor" ? stored : "";
+  const initialRole: SignupRole | "" =
+    stored === "seller" || stored === "investor" || stored === "advisor" ? stored : "";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4 py-10">

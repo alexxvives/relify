@@ -1,17 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Handshake, Shield, TrendingUp } from "lucide-react";
+import { ArrowLeft, Handshake, Shield, TrendingUp } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { SignInForm } from "@/components/sign-in-form";
-import { SignUpForm } from "@/components/sign-up-form";
+import { SignUpForm, type SignupIntent } from "@/components/sign-up-form";
 import { authCopy } from "@/lib/auth-copy";
 
 type AuthMode = "sign-in" | "sign-up";
-type SignupIntent = "seller" | "investor" | null;
 
 const stageIcons = [Shield, Handshake, TrendingUp] as const;
 
-export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: SignupIntent }) {
+export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: SignupIntent | null }) {
   const signingUp = mode === "sign-up";
 
   return (
@@ -31,9 +30,16 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
         />
         <div className="relative z-10 flex min-h-[inherit] flex-col px-6 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-6">
-          <header>
+          <header className="relative z-20 flex items-center gap-5">
             <Link href="/" aria-label="Releva">
               <Logo size="lg" />
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5c6b78] transition-colors hover:text-[#16324f]"
+            >
+              <ArrowLeft className="size-4" aria-hidden />
+              {authCopy.backHome}
             </Link>
           </header>
           <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">

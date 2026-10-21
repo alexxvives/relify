@@ -1,3 +1,5 @@
+import { ActivityFeed } from "@/components/archivo/landing/activity-feed";
+import { Confidentiality } from "@/components/archivo/landing/confidentiality";
 import { Hero } from "@/components/landing/hero";
 import { Offer } from "@/components/landing/offer";
 import { PathAndFlow } from "@/components/landing/path-and-flow";
@@ -25,6 +27,8 @@ export async function LandingPage() {
         <Offer />
         <Process />
         <PathAndFlow />
+        <Confidentiality />
+        <ActivityFeed />
       </main>
     </PublicSite>
   );

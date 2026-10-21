@@ -9,15 +9,18 @@ import { authCopy } from "@/lib/auth-copy";
 const intents = [
   { id: "seller", label: "Empresa" },
   { id: "investor", label: "Inversor" },
+  { id: "advisor", label: "Asesor" },
 ] as const;
 
-export function SignUpForm({ intent = null }: { intent?: "seller" | "investor" | null }) {
+export type SignupIntent = (typeof intents)[number]["id"];
+
+export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) {
   const [state, action, pending] = useActionState<SignUpState, FormData>(signUpAction, null);
-  const [role, setRole] = useState<(typeof intents)[number]["id"] | "">(intent ?? "");
+  const [role, setRole] = useState<SignupIntent | "">(intent ?? "");
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Empresa o inversor">
+      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Empresa, inversor o asesor">
         {intents.map((item) => {
           const selected = role === item.id;
           return (

@@ -34,7 +34,7 @@ export async function signUpAction(_state: SignUpState, formData: FormData): Pro
   }
 
   const role = formData.get("signupRole");
-  if (role === "seller" || role === "investor") {
+  if (role === "seller" || role === "investor" || role === "advisor") {
     const jar = await cookies();
     jar.set("releva-entry-role", role, {
       httpOnly: true,

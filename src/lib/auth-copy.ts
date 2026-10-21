@@ -28,7 +28,7 @@ export const authCopy = {
   signInCardTitle: "Entra en tu cuenta",
   signUpCardTitle: "Crea tu cuenta",
   signInIntro: "Sigue con tus empresas, tus procesos y tus mensajes.",
-  signUpIntro: "Únete a quienes compran y venden empresas.",
+  signUpIntro: "Únete a quienes compran, venden o asesoran empresas.",
   emailPlaceholder: "Escribe tu correo electrónico",
   passwordPlaceholder: "Mínimo 8 caracteres",
   passwordHint: "Mínimo 8 caracteres",
