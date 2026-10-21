@@ -44,7 +44,7 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full px-2 py-2 sm:px-4"
     >
       <Link href="/" className="pl-2" aria-label="Releva">
-        <Logo tone={onDark ? "paper" : "ink"} />
+        <Logo />
       </Link>
       <LandingNav onDark={onDark} />
       <div className="flex items-center gap-1 sm:gap-2">

@@ -21,6 +21,7 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
           alt=""
           fill
           priority
+          unoptimized
           sizes="100vw"
           className="object-cover object-[center_42%]"
         />
@@ -34,21 +35,21 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
               <Logo size="lg" />
             </Link>
           </header>
-          <div className="grid flex-1 items-center gap-8 py-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,26rem)] lg:py-2">
-            <section className="min-w-0">
+          <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
+            <section className="min-w-0 lg:max-w-[calc(54%-1.5rem)]">
               <p className="text-sm font-medium tracking-[0.2em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
-              <h1 className="mt-4 text-[2.6rem] leading-[1.02] font-semibold tracking-tight text-[#16324f] sm:text-[3.35rem]">
+              <h1 className="mt-3 text-[2.15rem] leading-[1.05] font-semibold tracking-tight text-[#16324f] sm:text-[2.45rem]">
                 <span className="block">{authCopy.stageHeadlineLead}</span>
                 <span className="block">{authCopy.stageHeadlineTail}</span>
               </h1>
               <p className="mt-4 max-w-lg text-[17px] leading-7 text-[#7d8fa1]">{authCopy.stageBody}</p>
-              <ul className="mt-6 space-y-4">
+              <ul className="mt-5 space-y-3">
                 {authCopy.stagePoints.map((point, index) => {
                   const Icon = stageIcons[index] ?? Shield;
                   return (
                     <li key={point.title} className="flex items-center gap-4">
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
-                        <Icon className="size-5" aria-hidden />
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/75 text-[#14998a] shadow-[0_8px_20px_-12px_rgba(22,50,79,0.45)]">
+                                <Icon className="size-4" aria-hidden />
                       </span>
                       <span>
                         <span className="block text-base font-semibold text-[#16324f]">{point.title}</span>
@@ -59,7 +60,7 @@ export function AuthScreen({ mode }: { mode: AuthMode }) {
                 })}
               </ul>
             </section>
-            <div className="flex w-full flex-col items-center justify-center self-center">
+            <div className="flex w-full flex-col items-center justify-center lg:absolute lg:top-1/2 lg:left-[78%] lg:w-[min(30rem,46%)] lg:-translate-x-1/2 lg:-translate-y-1/2">
               <p className="mb-4 text-center text-[15px] text-[#7d8fa1]">
                 {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
                 <Link
