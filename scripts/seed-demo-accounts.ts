@@ -111,28 +111,6 @@ async function upsertAccount(spec: DemoAccount, passwordHash: string): Promise<s
   return id;
 }
 
-async function ensureBuyerPlan(userId: string, plan: "none" | "limited" | "unlimited", stripeCustomerId: string): Promise<void> {
-  const start = plan === "none" ? null : new Date();
-  const end = start === null ? null : new Date(start);
-  end?.setDate(end.getDate() + 30);
-  await prisma.billingCustomer.upsert({
-    where: { userId },
-    create: {
-      userId,
-      stripeCustomerId,
-      plan,
-      periodStart: start,
-      periodEnd: end,
-    },
-    update: {
-      stripeCustomerId,
-      plan,
-      periodStart: start,
-      periodEnd: end,
-    },
-  });
-}
-
 async function keepRicherRow(
   retiredId: string,
   buyerId: string,
@@ -336,7 +314,6 @@ async function main(): Promise<void> {
     }
   }
 
-  await ensureBuyerPlan(buyerId, "none", "demo_cus_comprador");
   await ensureAdvisorDesk(advisorId);
 
   await prisma.project.upsert({

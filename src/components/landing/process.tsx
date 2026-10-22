@@ -160,20 +160,20 @@ export function Process() {
           <span className="text-public-clay">{copy.accent}</span>
         </h2>
         <p className="mt-4 max-w-none text-[16px] leading-7 text-public-muted lg:whitespace-nowrap">{copy.intro}</p>
-        <div className="mt-10 grid items-center gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
+        <div className="mt-10 grid items-start gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="flex max-w-xl flex-col gap-4">
             {copy.bodyParagraphs.map((segments, index) => (
               <ProcessParagraph key={index} segments={segments} />
             ))}
             <Link
               href="/empresas"
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+              className="mt-4 inline-flex h-10 w-fit self-start items-center gap-2 rounded-full bg-public-clay px-5 text-[16px] text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
             >
               {copy.cta}
-              <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
             </Link>
           </div>
-          <div>
+          <div className="w-full max-w-xl lg:ml-auto">
             <Network />
             <NetworkList />
           </div>

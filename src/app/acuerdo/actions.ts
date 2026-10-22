@@ -1,7 +1,5 @@
 "use server";
 
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
@@ -26,10 +24,6 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
   if (bytes.byteLength < 80 || bytes.byteLength > 400_000) {
     return { ok: false, message: platformTermsCopy.signRequired };
   }
-
-  const folder = path.join(process.cwd(), "data", "platform-signatures");
-  await mkdir(folder, { recursive: true });
-  await writeFile(path.join(folder, `${user.id}.png`), bytes);
 
   await prisma.user.update({
     where: { id: user.id },

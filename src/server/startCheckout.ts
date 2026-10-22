@@ -8,6 +8,10 @@ import { integrationLabel, stripeClient } from "@/server/stripe";
 
 export type CheckoutStart = { ok: true; url: string } | { ok: false; message: string };
 
+function isStripeCustomerId(id: string): boolean {
+  return id.startsWith("cus_");
+}
+
 async function customerId(user: CurrentUser): Promise<string | null> {
   const stripe = stripeClient();
 
@@ -20,8 +24,16 @@ async function customerId(user: CurrentUser): Promise<string | null> {
     select: { stripeCustomerId: true },
   });
 
-  if (existing) {
-    return existing.stripeCustomerId;
+  if (existing && isStripeCustomerId(existing.stripeCustomerId)) {
+    try {
+      const customer = await stripe.customers.retrieve(existing.stripeCustomerId);
+
+      if (!customer.deleted) {
+        return existing.stripeCustomerId;
+      }
+    } catch {
+      // Seed rows and admin grants can store placeholder ids; replace them at checkout.
+    }
   }
 
   try {
@@ -31,13 +43,20 @@ async function customerId(user: CurrentUser): Promise<string | null> {
       metadata: { userId: user.id },
     });
 
-    await prisma.billingCustomer.create({
-      data: {
-        userId: user.id,
-        stripeCustomerId: customer.id,
-        plan: "none",
-      },
-    });
+    if (existing) {
+      await prisma.billingCustomer.update({
+        where: { userId: user.id },
+        data: { stripeCustomerId: customer.id },
+      });
+    } else {
+      await prisma.billingCustomer.create({
+        data: {
+          userId: user.id,
+          stripeCustomerId: customer.id,
+          plan: "none",
+        },
+      });
+    }
 
     return customer.id;
   } catch {
