@@ -19,10 +19,18 @@ export function PendingActions({
         ? "mt-4 grid gap-2 sm:grid-cols-2"
         : "mt-4 flex flex-col gap-2";
 
+  const emptySection = items.length === 0;
+
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <section
+      className={
+        emptySection
+          ? "w-full min-h-[8.5rem] rounded-2xl border border-[#e7eaee] bg-white p-5"
+          : "w-full rounded-2xl border border-[#e7eaee] bg-white p-5"
+      }
+    >
       <h2 className="text-2xl font-semibold text-[#2b3b4a]">Acciones pendientes</h2>
-      {items.length === 0 ? (
+      {emptySection ? (
         <p className="mt-4 text-sm text-[#64748b]">{empty}</p>
       ) : (
         <>

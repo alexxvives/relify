@@ -50,7 +50,7 @@ export function InvestorHome({
 
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex w-full min-w-0 flex-col gap-6 self-start">
         <PendingActions items={pending} empty={investorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
@@ -91,7 +91,7 @@ export function InvestorHome({
           </ul>
         </section>
       </div>
-      <div className="relative xl:min-h-full">
+      <div className="relative w-full xl:min-h-full">
         <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>

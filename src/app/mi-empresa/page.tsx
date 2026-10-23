@@ -47,7 +47,7 @@ export default async function CompanyPage({
   const messages = await listProjectMessages(user, null);
 
   return (
-    <SignedInPage title={sellerCopy.homeTitle}>
+    <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
       {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
         listing={listing?.status ?? "missing"}

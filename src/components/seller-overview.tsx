@@ -84,9 +84,9 @@ export function SellerOverview({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="flex w-full min-w-0 flex-col gap-6 self-start">
           <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
-          <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
                 {sellerCopy.financeTitle}
@@ -132,7 +132,8 @@ export function SellerOverview({
             )}
           </section>
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="relative w-full xl:min-h-full">
+          <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2
               className={
@@ -198,7 +199,7 @@ export function SellerOverview({
               </li>
             </ul>
           </section>
-          <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sellerCopy.notificationsTitle}</h2>
             {notifications.length === 0 ? (
               <div className="mt-6 text-center">
@@ -209,6 +210,7 @@ export function SellerOverview({
               <NoticeList items={notifications} scroll icons />
             )}
           </section>
+          </div>
         </div>
       </div>
     </div>

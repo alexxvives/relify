@@ -34,7 +34,7 @@ export default async function MandatesPage({
     listPublishedSectors(),
   ]);
   return (
-    <SignedInPage title={advisorCopy.homeTitle}>
+    <SignedInPage title={advisorCopy.homeTitle} showTitle={false}>
       <AdvisorHome notifications={notifications} desk={desk} profileChecks={advisorProfileChecks(profile)} sectors={sectors} />
     </SignedInPage>
   );

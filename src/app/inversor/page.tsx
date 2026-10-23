@@ -22,7 +22,7 @@ export default async function InvestorHomePage() {
   const desk = await loadInvestorDesk(user.id, user.email);
 
   return (
-    <SignedInPage title={investorCopy.homeTitle}>
+    <SignedInPage title={investorCopy.homeTitle} showTitle={false}>
       <InvestorHome
         notifications={notifications}
         favorites={desk.favorites}
