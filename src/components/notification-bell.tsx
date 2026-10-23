@@ -9,7 +9,7 @@ import { NoticeText } from "@/components/notice-list";
 import { noticeIconFor } from "@/lib/notice-icons";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";
 
-const openNoticesEvent = "releva-open-notices";
+const openNoticesEvent = "Relify-open-notices";
 
 export function OpenNoticeList({ label }: { label: string }) {
   return (

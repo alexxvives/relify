@@ -5,6 +5,7 @@ import { useSessionChoice } from "@/components/session-flag";
 import Link from "next/link";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -81,7 +82,13 @@ function ProcessConversation({
               invalidFallback={companyCopy.messageInvalid}
             />
           </section>
-          <ProcessRoom files={item.documents} bodies={chat.map((message) => message.body)} nda empty={sellerCopy.documentsEmpty} />
+          <ProcessRoom
+            files={item.documents}
+            bodies={chat.map((message) => message.body)}
+            nda
+            ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
+            empty={sellerCopy.documentsEmpty}
+          />
         </div>
       ) : null}
       {tab === "advisor" && item.advisorHired ? (
@@ -125,7 +132,7 @@ export function InvestorProcesses({
   advisors?: AdvisorContactView[];
 }) {
   const [page, setPage] = useSessionChoice(
-    "releva:investor-process-tab",
+    "Relify:investor-process-tab",
     "active",
     pageTabs.map((item) => item.id),
   );
@@ -197,7 +204,10 @@ export function InvestorProcesses({
                   </Link>
                 ) : null}
               </div>
-              <ProcessFichaLink href={`/proyectos/${item.slug}`} />
+              <div className="flex shrink-0 items-center gap-2">
+                <CancelProcessButton accessId={item.accessId} />
+                <ProcessFichaLink href={`/proyectos/${item.slug}`} />
+              </div>
             </div>
             <DealPipeline
               steps={item.steps}

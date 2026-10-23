@@ -18,9 +18,37 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
   const existing = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { id: true },
+        select: { id: true, cancelledAt: true },
       })
     : null;
+
+  if (existing?.cancelledAt && project) {
+    const slot = await buyerMatchSlot(user.id);
+    if (!slot.ok) {
+      return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
+    }
+    await prisma.projectAccess.update({
+      where: { id: existing.id },
+      data: {
+        cancelledAt: null,
+        cancelledBy: null,
+        sellerAcceptedAt: null,
+        ndaAcceptedAt: null,
+        loiAcceptedAt: null,
+        diligencePassedAt: null,
+        ndaSignature: null,
+        requestedAt: new Date(),
+      },
+    });
+    const href = `/proyectos/${project.slug}`;
+    const investorNotice = accessRequestedNotice(project.codename);
+    await recordNotification({ userId: user.id, ...investorNotice, href });
+    if (project.ownerId && project.ownerId !== user.id) {
+      const sellerNotice = incomingAccessNotice(project.codename);
+      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa/procesos" });
+    }
+    return { ok: true };
+  }
 
   const outcome = requestAccessOutcome({
     onboarded: user.onboarded,

@@ -20,7 +20,7 @@ export async function LandingHeader() {
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md">
       <div className="relative mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-4">
         <Link href="/" className="text-[26px] font-medium tracking-[-0.04em] text-[#243140]">
-          Releva
+          Relify
           <span className="ml-0.5 inline-block size-1.5 translate-y-[-10px] rounded-full bg-[#e2a33a]" aria-hidden="true" />
         </Link>
         <LandingNav />

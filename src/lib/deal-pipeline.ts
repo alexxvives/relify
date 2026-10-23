@@ -87,13 +87,13 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
   },
   diligence: {
     label: "Due diligence",
-    investor: "Puedes pedir un asesor de Releva o seguir a la documentación. El contrato lo sube el vendedor.",
+    investor: "Puedes pedir un asesor de Relify o seguir a la documentación. El contrato lo sube el vendedor.",
     seller: "El comprador revisa con un asesor o sigue adelante. El contrato de compraventa lo subes tú.",
   },
   documents: {
     label: "Documentación",
-    investor: "El vendedor sube el contrato de compraventa. Releva no lo redacta.",
-    seller: "Subes el contrato de compraventa. Releva no lo redacta.",
+    investor: "El vendedor sube el contrato de compraventa. Relify no lo redacta.",
+    seller: "Subes el contrato de compraventa. Relify no lo redacta.",
   },
   close: {
     label: "Compraventa",
@@ -196,7 +196,7 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
   }
 
   if (id === "diligence") {
-    return { yours: false, action: "Revisa con un asesor de Releva, o sigue a la documentación." };
+    return { yours: false, action: "Revisa con un asesor de Relify, o sigue a la documentación." };
   }
 
   if (id === "documents") {

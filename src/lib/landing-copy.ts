@@ -1,7 +1,7 @@
 export const landingCopy = {
   title: "Plataforma digital para comprar empresas",
   description:
-    "Releva es la plataforma para comprar y vender pymes con fichas claras, un proceso confidencial y acceso a perfiles que encajan. La ficha pública no muestra la razón social.",
+    "Relify es la plataforma para comprar y vender pymes con fichas claras, un proceso confidencial y acceso a perfiles que encajan. La ficha pública no muestra la razón social.",
   intro:
     "Facilitamos la compraventa con cifras a la vista, nombres de proyecto y un recorrido que mantiene la sociedad fuera de la ficha pública.",
   registerCta: "Regístrate gratis ahora",
@@ -33,7 +33,7 @@ export const landingCopy = {
   ],
   map: {
     id: "mapa",
-    heading: "Conoce el tipo de empresas que hay en Releva",
+    heading: "Conoce el tipo de empresas que hay en Relify",
     intro: "Explora por comunidades autónomas qué tipo de empresas podrás encontrar en la plataforma",
     more: "Ver más",
   },
@@ -60,7 +60,7 @@ export const landingCopy = {
       id: "asesores",
       eyebrow: "Asesores",
       heading: "Publica tus mandatos",
-      accent: "en Releva",
+      accent: "en Relify",
       body: "Presenta la operación de tus clientes con las mismas reglas de anonimato y habla con empresas e inversores que ya están en el proceso.",
       more: "Más información",
       register: "Regístrate ahora",
@@ -69,7 +69,7 @@ export const landingCopy = {
   confidentiality: {
     id: "confidencialidad",
     kicker: "Privacidad",
-    heading: "Confidencialidad en Releva",
+    heading: "Confidencialidad en Relify",
     intro:
       "Preservamos la privacidad de la información mientras el proceso de compraventa sigue siendo claro para las tres partes.",
     privacyTitle: "Política de privacidad",
@@ -112,7 +112,7 @@ export const landingCopy = {
     eyebrow: "Misión",
     heading:
       "Hacer más accesible la compraventa de empresas en el segmento de las pymes, con procesos más claros, confidenciales y comparables.",
-    more: "Saber más sobre Releva",
+    more: "Saber más sobre Relify",
   },
   logosHeading: "Confían en nosotros",
   footer: {
@@ -134,7 +134,7 @@ export const landingCopy = {
         ],
       },
       {
-        title: "Releva",
+        title: "Relify",
         links: [{ label: "Archivo", href: "/archivo" }],
       },
     ],
@@ -222,7 +222,7 @@ export const landingCopy = {
           { text: " hasta que aceptas una conexión y firmas el acuerdo de confidencialidad." },
         ],
         [
-          { text: "Releva te avisa cuando llega interés, cuando hay reunión o cuando toca tu turno", emphasis: true },
+          { text: "Relify te avisa cuando llega interés, cuando hay reunión o cuando toca tu turno", emphasis: true },
           { text: ". Así avanzas el proceso sin perder el control ni la confidencialidad del negocio." },
         ],
       ],
@@ -232,7 +232,7 @@ export const landingCopy = {
       id: "como-funciona",
       kicker: "Cómo funciona",
       heading: "Simple desde el primer paso",
-      intro: "Baja por los pasos y verás qué datos dejas, qué prepara Releva y en qué momento entra un comprador, con el nombre de la sociedad todavía fuera.",
+      intro: "Baja por los pasos y verás qué datos dejas, qué prepara Relify y en qué momento entra un comprador, con el nombre de la sociedad todavía fuera.",
       week: ["L", "M", "X", "J", "V", "S", "D"],
       tracks: {
         vender: {
@@ -258,7 +258,7 @@ export const landingCopy = {
               n: "02",
               title: "Sale la ficha, no el nombre",
               body: "Región, facturación, EBITDA y precio. La razón social se queda fuera.",
-              cardTitle: "Releva prepara",
+              cardTitle: "Relify prepara",
               chip: "Sin el nombre",
               panel: {
                 kind: "tasks",
@@ -382,7 +382,7 @@ export const landingCopy = {
               n: "02",
               title: "El mandato sale anónimo",
               body: "Mismas cifras que una ficha de empresa. El cliente no se nombra.",
-              cardTitle: "Releva prepara",
+              cardTitle: "Relify prepara",
               chip: "Sin el nombre",
               panel: {
                 kind: "tasks",

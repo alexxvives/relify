@@ -1,4 +1,4 @@
-export const sellerCompanyCookie = "releva-seller-project";
+export const sellerCompanyCookie = "Relify-seller-project";
 
 export function pickSellerProjectId(ids: string[], cookie: string | undefined): string | null {
   if (ids.length === 0) {

@@ -1,7 +1,7 @@
 import { loiAgreement, ndaAgreement } from "./deal-documents";
 import { letterPdf, type LetterPdfInput } from "./plain-pdf";
 
-export const relevaDraftFolder = "Releva";
+export const relevaDraftFolder = "Relify";
 
 export const relevaDrafts = [
   { id: "releva-nda", fileName: "Acuerdo-de-confidencialidad.pdf" },
@@ -9,7 +9,7 @@ export const relevaDrafts = [
 ] as const;
 
 const intro =
-  "Borrador de Releva. Al firmar se rellenan el nombre del comprador, el apodo del proyecto y la provincia. Este archivo no incluye la razón social, el CIF ni el domicilio.";
+  "Borrador de Relify. Al firmar se rellenan el nombre del comprador, el apodo del proyecto y la provincia. Este archivo no incluye la razón social, el CIF ni el domicilio.";
 
 export function relevaDraftText(id: string): string | null {
   if (id === "releva-nda") {

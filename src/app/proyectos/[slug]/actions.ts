@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { accessCopy } from "@/lib/access-copy";
 import { projectAccessInputSchema, type ProjectAccessInput } from "@/lib/project-access";
 import { acceptNda } from "@/server/acceptNda";
+import { cancelProjectAccess } from "@/server/cancelProjectAccess";
 import { getCurrentUser, type CurrentUser } from "@/server/getCurrentUser";
 import { requestProjectAccess } from "@/server/requestProjectAccess";
 import { companyCopy } from "@/lib/company-copy";
@@ -75,7 +76,7 @@ export async function acceptNdaAction(
     return { ok: false, message: input.message };
   }
 
-  const result = await acceptNda(user, input);
+  const result = await acceptNda(user, input, formData.get("signature"));
 
   if (result.ok) {
     revalidatePath(`/proyectos/${input.slug}`);
@@ -84,6 +85,24 @@ export async function acceptNdaAction(
   }
 
   return result;
+}
+
+export async function cancelProjectAccessAction(
+  _state: ProjectAccessActionState,
+  formData: FormData,
+): Promise<ProjectAccessActionState> {
+  const user = await currentUser();
+  const accessId = formData.get("accessId");
+  const result = await cancelProjectAccess(user, typeof accessId === "string" ? accessId : "");
+
+  if (result.ok) {
+    revalidatePath("/procesos");
+    revalidatePath("/mi-empresa/procesos");
+    revalidatePath("/inversor");
+    revalidatePath("/mi-empresa");
+  }
+
+  return result.ok ? { ok: true } : { ok: false, message: result.message };
 }
 
 export async function postInvestorMessageAction(
@@ -183,6 +202,8 @@ export async function toggleFavoriteAction(slug: string): Promise<FavoriteResult
 
   if (result.ok) {
     revalidatePath("/mercado");
+    revalidatePath("/favoritos");
+    revalidatePath("/inversor");
     revalidatePath(`/proyectos/${slug}`);
   }
 

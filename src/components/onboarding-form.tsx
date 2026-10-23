@@ -2,77 +2,87 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
-import { BadgeEuro, Briefcase, Building2 } from "lucide-react";
-import { signOutAction } from "@/app/cuenta/actions";
 import { onboardingAction, type OnboardingState } from "@/app/onboarding/actions";
 import { PhoneField } from "@/components/phone-field";
-import { Button } from "@/components/ui/button";
 import { authCopy } from "@/lib/auth-copy";
-import { referralSources, signupRoles, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
+import { referralSources, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
 import { isValidPhoneNational } from "@/lib/phone-countries";
-import { isValidSpanishCif } from "@/lib/spanish-cif";
+import { isValidSpanishPersonId } from "@/lib/spanish-cif";
 
-const roleIcons = {
-  seller: Building2,
-  investor: BadgeEuro,
-  advisor: Briefcase,
-} as const;
+type OnboardingStep = "identity" | "phone" | "referral";
+type IdentityField = "name" | "nationalId" | "phone";
 
-type OnboardingStep = "role" | "identity" | "referral";
+const stepOrder: OnboardingStep[] = ["identity", "phone", "referral"];
 
-const stepNumber: Record<OnboardingStep, number> = {
-  role: 1,
-  identity: 2,
-  referral: 3,
+const stepLabel: Record<OnboardingStep, string> = {
+  identity: authCopy.fullNameLabel,
+  phone: authCopy.phoneLabel,
+  referral: authCopy.referralQuestion,
 };
 
 const fieldClass =
   "h-12 rounded-xl border border-[#d9e2f2] bg-[#eef3ff] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
+const invalidFieldClass =
+  "releva-shake h-12 rounded-xl border-2 border-[#c0362c] bg-[#fff6f6] px-3 text-sm outline-none";
 
 export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole | "" }) {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(onboardingAction, null);
-  const [step, setStep] = useState<OnboardingStep>("role");
+  const [step, setStep] = useState<OnboardingStep>("identity");
   const [fullName, setFullName] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [phoneCountry, setPhoneCountry] = useState("ES");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<SignupRole | "">(initialRole);
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
   const [localMessage, setLocalMessage] = useState<string | null>(null);
+  const [invalidField, setInvalidField] = useState<IdentityField | null>(null);
+  const [referralMissing, setReferralMissing] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const stepIndex = stepOrder.indexOf(step);
+
+  function reject(field: IdentityField, message: string) {
+    setInvalidField(field);
+    setLocalMessage(message);
+    setAttempt((current) => current + 1);
+  }
 
   function goNext() {
-    if (step === "role") {
-      if (role === "") {
+    setReferralMissing(false);
+
+    if (step === "identity") {
+      if (initialRole === "") {
+        setInvalidField(null);
         setLocalMessage(authCopy.roleRequired);
         return;
       }
 
-      setLocalMessage(null);
-      setStep("identity");
-      return;
-    }
-
-    if (step === "identity") {
       if (!splitAccountName(fullName)) {
-        setLocalMessage(authCopy.fullNameRequired);
+        reject("name", authCopy.fullNameRequired);
         return;
       }
 
       if (nationalId.trim().length === 0) {
-        setLocalMessage(authCopy.nationalIdRequired);
+        reject("nationalId", authCopy.nationalIdRequired);
         return;
       }
 
-      if (!isValidSpanishCif(nationalId)) {
-        setLocalMessage(authCopy.nationalIdInvalid);
+      if (!isValidSpanishPersonId(nationalId)) {
+        reject("nationalId", authCopy.nationalIdInvalid);
         return;
       }
 
+      setInvalidField(null);
+      setLocalMessage(null);
+      setStep("phone");
+      return;
+    }
+
+    if (step === "phone") {
       if (!isValidPhoneNational(phoneCountry, phone)) {
-        setLocalMessage(phoneCountry === "ES" ? authCopy.phoneInvalid : authCopy.phoneInvalidInternational);
+        reject("phone", phoneCountry === "ES" ? authCopy.phoneInvalid : authCopy.phoneInvalidInternational);
         return;
       }
 
+      setInvalidField(null);
       setLocalMessage(null);
       setStep("referral");
     }
@@ -80,12 +90,12 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
 
   function goBack() {
     setLocalMessage(null);
-    if (step === "identity") {
-      setStep("role");
-      return;
+    setInvalidField(null);
+    setReferralMissing(false);
+    const previous = stepOrder[stepIndex - 1];
+    if (previous) {
+      setStep(previous);
     }
-
-    setStep("identity");
   }
 
   return (
@@ -93,12 +103,13 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       action={action}
       className="flex flex-col gap-6"
       onSubmit={(event) => {
-        const submitter = event.nativeEvent instanceof SubmitEvent ? event.nativeEvent.submitter : null;
-        if (submitter instanceof HTMLButtonElement && submitter.dataset.signOut === "true") {
-          return;
-        }
-        if (step !== "referral") {
+        if (step !== "referral" || referralSource === "") {
           event.preventDefault();
+          if (step === "referral") {
+            setReferralMissing(true);
+            setAttempt((current) => current + 1);
+            return;
+          }
           goNext();
         }
       }}
@@ -107,147 +118,187 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       <input type="hidden" name="nationalId" value={nationalId} />
       <input type="hidden" name="phone" value={phone} />
       <input type="hidden" name="phoneCountry" value={phoneCountry} />
-      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="role" value={initialRole} />
       <input type="hidden" name="referralSource" value={referralSource} />
-      <p className="text-sm text-[#5c6b78]">
-        {authCopy.stepOf} {stepNumber[step]} {authCopy.stepOfTotal}
+      <ol className="grid grid-cols-3 gap-2">
+        {stepOrder.map((item, index) => {
+          const current = index === stepIndex;
+          const done = index < stepIndex;
+          return (
+            <li key={item} className="flex items-center gap-2">
+              <span
+                className={
+                  current
+                    ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#465ab4] text-sm font-semibold text-white"
+                    : done
+                      ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#17663a] text-sm font-semibold text-white"
+                      : "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e7eef8] text-sm font-semibold text-[#5c6b78]"
+                }
+              >
+                {index + 1}
+              </span>
+              <span className="text-sm font-medium text-[#1c2740]">{stepLabel[item]}</span>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="sr-only">
+        {authCopy.stepOf} {stepIndex + 1} {authCopy.stepOfTotal}
       </p>
-      {step === "role" ? (
-        <fieldset>
-          <legend className="text-sm font-medium text-[#1c2740]">{authCopy.roleQuestion}</legend>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            {signupRoles.map((option) => {
-              const Icon = roleIcons[option];
-              const selected = role === option;
-              return (
-                <label
-                  key={option}
-                  className={
-                    selected
-                      ? "cursor-pointer rounded-2xl border border-[#3d34b8] bg-[#f7f6ff] p-4"
-                      : "cursor-pointer rounded-2xl border border-[#e1e6ee] bg-white p-4"
-                  }
-                >
-                  <span className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="role-choice"
-                      value={option}
-                      checked={selected}
-                      onChange={() => {
-                        setRole(option);
-                      }}
-                      className="mt-1 accent-[#5c4de0]"
-                    />
-                    <Icon className="size-5 text-[#243140]" aria-hidden />
-                    <span className="text-sm font-semibold">{authCopy.roleCards[option].title}</span>
-                  </span>
-                  <span className="mt-3 block text-sm leading-6 text-[#5c6b78]">{authCopy.roleCards[option].body}</span>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      ) : null}
       {step === "identity" ? (
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
             {authCopy.fullNameLabel}
             <input
+              key={invalidField === "name" ? `name-${attempt}` : "name"}
               type="text"
               autoComplete="name"
               required
               maxLength={161}
               placeholder={authCopy.fullNamePlaceholder}
               value={fullName}
+              aria-invalid={invalidField === "name"}
               onChange={(event) => {
                 setFullName(event.target.value);
+                if (invalidField === "name") {
+                  setInvalidField(null);
+                  setLocalMessage(null);
+                }
               }}
-              className={fieldClass}
+              className={invalidField === "name" ? invalidFieldClass : fieldClass}
             />
+            {invalidField === "name" && localMessage ? (
+              <span role="alert" className="text-sm font-normal text-[#c0362c]">
+                {localMessage}
+              </span>
+            ) : null}
           </label>
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-              {authCopy.nationalIdLabel}
-              <input
-                type="text"
-                autoComplete="off"
-                required
-                maxLength={12}
-                placeholder={authCopy.nationalIdPlaceholder}
-                value={nationalId}
-                aria-invalid={localMessage === authCopy.nationalIdInvalid}
-                onChange={(event) => {
-                  setNationalId(event.target.value.toUpperCase());
-                }}
-                className={fieldClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
-              {authCopy.phoneLabel}
-              <PhoneField country={phoneCountry} national={phone} onCountryChange={setPhoneCountry} onNationalChange={setPhone} />
-            </label>
-          </div>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
+            {authCopy.nationalIdLabel}
+            <input
+              key={invalidField === "nationalId" ? `id-${attempt}` : "id"}
+              type="text"
+              autoComplete="off"
+              required
+              maxLength={12}
+              placeholder={authCopy.nationalIdPlaceholder}
+              value={nationalId}
+              aria-invalid={invalidField === "nationalId"}
+              onChange={(event) => {
+                setNationalId(event.target.value.toUpperCase());
+                if (invalidField === "nationalId") {
+                  setInvalidField(null);
+                  setLocalMessage(null);
+                }
+              }}
+              className={invalidField === "nationalId" ? invalidFieldClass : fieldClass}
+            />
+            {invalidField === "nationalId" && localMessage ? (
+              <span role="alert" className="text-sm font-normal text-[#c0362c]">
+                {localMessage}
+              </span>
+            ) : null}
+          </label>
         </div>
       ) : null}
-      {step === "referral" ? (
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-medium text-[#1c2740]">{authCopy.referralQuestion}</legend>
-          {referralSources.map((option) => {
-            const source = authCopy.referralSources[option];
-            return (
-              <label key={option} className="flex items-start gap-3 rounded-2xl border border-[#e1e6ee] px-4 py-3 text-sm">
-                <input
-                  type="radio"
-                  name="referral-choice"
-                  value={option}
-                  checked={referralSource === option}
-                  onChange={() => {
-                    setReferralSource(option);
-                  }}
-                  className="mt-1 accent-[#5c4de0]"
-                />
-                <span>
-                  <span className="block font-medium">{source.label}</span>
-                  <span className="block text-[#5c6b78]">{source.description}</span>
-                </span>
-              </label>
-            );
-          })}
-        </fieldset>
+      {step === "phone" ? (
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
+          {authCopy.phoneLabel}
+          <span key={invalidField === "phone" ? `phone-${attempt}` : "phone"} className={invalidField === "phone" ? "releva-shake block" : "block"}>
+            <PhoneField
+              country={phoneCountry}
+              national={phone}
+              invalid={invalidField === "phone"}
+              onCountryChange={(value) => {
+                setPhoneCountry(value);
+                if (invalidField === "phone") {
+                  setInvalidField(null);
+                  setLocalMessage(null);
+                }
+              }}
+              onNationalChange={(value) => {
+                setPhone(value);
+                if (invalidField === "phone") {
+                  setInvalidField(null);
+                  setLocalMessage(null);
+                }
+              }}
+            />
+          </span>
+          {invalidField === "phone" && localMessage ? (
+            <span role="alert" className="text-sm font-normal text-[#c0362c]">
+              {localMessage}
+            </span>
+          ) : null}
+        </label>
       ) : null}
-      {localMessage || (step === "referral" && state?.message) ? (
-        <p role="alert" className="text-sm text-red-700">
-          {localMessage ?? state?.message}
+      {step === "referral" ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-[#1c2740]">{authCopy.referralQuestion}</p>
+          <div key={referralMissing ? `referral-${attempt}` : "referral"} className={referralMissing ? "releva-shake grid gap-3 sm:grid-cols-2" : "grid gap-3 sm:grid-cols-2"}>
+            {referralSources.map((option) => {
+              const source = authCopy.referralSources[option];
+              const selected = referralSource === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    setReferralSource(option);
+                    setReferralMissing(false);
+                  }}
+                  className={
+                    selected
+                      ? "rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-4 py-3 text-left text-sm"
+                      : referralMissing
+                        ? "rounded-2xl border-2 border-[#c0362c] bg-[#fff6f6] px-4 py-3 text-left text-sm"
+                        : "rounded-2xl border border-[#e1e6ee] bg-white px-4 py-3 text-left text-sm hover:border-[#465ab4]"
+                  }
+                >
+                  <span className="block font-medium text-[#1c2740]">{source.label}</span>
+                  <span className="mt-1 block text-[#5c6b78]">{source.description}</span>
+                </button>
+              );
+            })}
+          </div>
+          {referralMissing ? (
+            <p role="alert" className="text-sm text-[#c0362c]">
+              {authCopy.referralRequired}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      {invalidField === null && localMessage ? (
+        <p role="alert" className="text-sm text-[#c0362c]">
+          {localMessage}
+        </p>
+      ) : null}
+      {step === "referral" && state?.message && !referralMissing ? (
+        <p role="alert" className="text-sm text-[#c0362c]">
+          {state.message}
         </p>
       ) : null}
       <div className="flex items-center justify-between gap-3 border-t border-[#e6e9f0] pt-4">
-        {step === "role" ? (
-          <button
-            type="submit"
-            data-sign-out="true"
-            formAction={signOutAction}
-            className="text-sm text-[#3d4a63] hover:text-[#3d34b8]"
-          >
-            {authCopy.signOut}
-          </button>
+        {step === "identity" ? (
+          <span />
         ) : (
-          <Button type="button" variant="outline" onClick={goBack} className="h-11 rounded-xl">
+          <button type="button" onClick={goBack} className="inline-flex h-11 items-center rounded-xl border border-[#d5dee8] bg-white px-4 text-sm font-medium text-[#1c2740]">
             {authCopy.previousStep}
-          </Button>
+          </button>
         )}
         {step === "referral" ? (
-          <Button
+          <button
             type="submit"
             disabled={pending}
-            className="h-11 rounded-xl bg-[#3d4a8a] px-5 text-white hover:bg-[#32407a]"
+            className="inline-flex h-11 items-center rounded-xl bg-[#3d4a8a] px-5 text-sm font-medium text-white hover:bg-[#32407a] disabled:opacity-60"
           >
             {pending ? authCopy.onboardingPending : authCopy.finishOnboarding}
-          </Button>
+          </button>
         ) : (
-          <Button type="button" onClick={goNext} className="h-11 rounded-xl bg-[#3d4a8a] px-5 text-white hover:bg-[#32407a]">
+          <button type="button" onClick={goNext} className="inline-flex h-11 items-center rounded-xl bg-[#3d4a8a] px-5 text-sm font-medium text-white hover:bg-[#32407a]">
             {authCopy.nextStep}
-          </Button>
+          </button>
         )}
       </div>
     </form>

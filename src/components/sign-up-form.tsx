@@ -17,10 +17,30 @@ export type SignupIntent = (typeof intents)[number]["id"];
 export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) {
   const [state, action, pending] = useActionState<SignUpState, FormData>(signUpAction, null);
   const [role, setRole] = useState<SignupIntent | "">(intent ?? "");
+  const [localMessage, setLocalMessage] = useState<string | null>(null);
+  const [roleAlert, setRoleAlert] = useState(0);
+  const roleMissing = roleAlert > 0 && role === "";
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Empresa, inversor o asesor">
+    <form
+      action={action}
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        if (role === "") {
+          event.preventDefault();
+          setLocalMessage(null);
+          setRoleAlert((current) => current + 1);
+          return;
+        }
+        setLocalMessage(null);
+      }}
+    >
+      <div
+        key={roleAlert}
+        className={roleMissing ? "releva-shake grid grid-cols-3 gap-2" : "grid grid-cols-3 gap-2"}
+        role="group"
+        aria-label="Empresa, inversor o asesor"
+      >
         {intents.map((item) => {
           const selected = role === item.id;
           return (
@@ -30,11 +50,14 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
               aria-pressed={selected}
               onClick={() => {
                 setRole(item.id);
+                setLocalMessage(null);
               }}
               className={
                 selected
                   ? "h-11 rounded-full bg-[#16324f] text-sm font-medium text-white"
-                  : "h-11 rounded-full border border-[#d5dee8] bg-white text-sm font-medium text-[#5c6b78]"
+                  : roleMissing
+                    ? "h-11 rounded-full border-2 border-[#c0362c] bg-white text-sm font-medium text-[#c0362c]"
+                    : "h-11 rounded-full border border-[#d5dee8] bg-white text-sm font-medium text-[#5c6b78]"
               }
             >
               {item.label}
@@ -50,12 +73,23 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
         maxLength={128}
         placeholder={authCopy.passwordPlaceholder}
       />
-      {state?.message ? (
+      {localMessage || state?.message ? (
         <p role="alert" className="text-sm text-destructive">
-          {state.message}
+          {localMessage ?? state?.message}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className={authSubmitClassName}>
+      <button
+        type="submit"
+        disabled={pending}
+        className={authSubmitClassName}
+        onClick={(event) => {
+          if (role === "") {
+            event.preventDefault();
+            setLocalMessage(null);
+            setRoleAlert((current) => current + 1);
+          }
+        }}
+      >
         {pending ? authCopy.signUpPending : authCopy.signUpSubmit}
         {pending ? null : <ArrowRight className="size-4" aria-hidden />}
       </button>

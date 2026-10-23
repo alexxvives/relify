@@ -1,3 +1,5 @@
+import { jpegSize } from "./signature-image";
+
 function pdfText(value: string): string {
   const winAnsi: Record<string, string> = {
     "á": "\\341",
@@ -71,6 +73,7 @@ export type LetterPdfInput = {
   lead: string;
   paragraphs: string[];
   signNote: string;
+  signatureJpeg?: Buffer | null;
 };
 
 function literal(value: string): string {
@@ -87,7 +90,7 @@ export function letterPdf(input: LetterPdfInput): Buffer {
     "/F2 22 Tf",
     "1 1 1 rg",
     "1 0 0 1 48 808 Tm",
-    `${literal("Releva")} Tj`,
+    `${literal("Relify")} Tj`,
     "/F1 9 Tf",
     "0.816 0.847 0.910 rg",
     "1 0 0 1 48 788 Tm",
@@ -143,11 +146,19 @@ export function letterPdf(input: LetterPdfInput): Buffer {
   commands.push("48 96 499 62 re f");
   commands.push("0.275 0.353 0.706 rg");
   commands.push("48 96 3 62 re f");
+  const signature = input.signatureJpeg && jpegSize(input.signatureJpeg) ? input.signatureJpeg : null;
+  const size = signature ? jpegSize(signature) : null;
+  if (signature && size) {
+    commands.push("q");
+    commands.push("150 0 0 42 380 106 cm");
+    commands.push("/Im Do");
+    commands.push("Q");
+  }
   commands.push("BT");
   commands.push("/F2 11 Tf");
   commands.push("0.110 0.153 0.251 rg");
   commands.push("1 0 0 1 64 132 Tm");
-  commands.push(`${literal("Firma en Releva")} Tj`);
+  commands.push(`${literal("Firma en Relify")} Tj`);
   commands.push("/F1 9 Tf");
   commands.push("0.361 0.420 0.471 rg");
   commands.push("1 0 0 1 64 114 Tm");
@@ -160,18 +171,26 @@ export function letterPdf(input: LetterPdfInput): Buffer {
   commands.push("/F1 8 Tf");
   commands.push("0.545 0.580 0.627 rg");
   commands.push("1 0 0 1 48 62 Tm");
-  commands.push(`${literal("Releva  ·  Borrador del proceso  ·  No incluye razón social, CIF ni domicilio")} Tj`);
+  commands.push(`${literal("Relify  ·  Borrador del proceso  ·  No incluye razón social, CIF ni domicilio")} Tj`);
   commands.push("ET");
 
   const stream = commands.join("\n");
+  const hex = signature ? `${signature.toString("hex")}>` : "";
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
+    signature && size
+      ? "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> /XObject << /Im 7 0 R >> >> >>"
+      : "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
     `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>",
   ];
+  if (signature && size) {
+    objects.push(
+      `<< /Type /XObject /Subtype /Image /Width ${size.width} /Height ${size.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ${Buffer.byteLength(hex)} >>\nstream\n${hex}\nendstream`,
+    );
+  }
   let body = "%PDF-1.4\n";
   const offsets = [0];
 

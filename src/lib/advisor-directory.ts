@@ -12,7 +12,7 @@ export type PublicAdvisorCase = {
 
 export function casesForVerifiedCloses(count: number): PublicAdvisorCase[] {
   return Array.from({ length: count }, () => ({
-    sector: "Releva",
+    sector: "Relify",
     closedOn: "—",
     value: "—",
   }));

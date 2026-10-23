@@ -17,6 +17,8 @@ export const adminCopy = {
   searchLabel: "Buscar",
   searchCompanies: "Nombre, región o correo",
   searchAccounts: "Nombre o correo",
+  referralSourceLabel: "Cómo nos conoció",
+  referralSourceEmpty: "Sin respuesta",
   statusLabel: "Estado",
   statusAll: "Todos los estados",
   rolesTitle: "Cuentas por rol",

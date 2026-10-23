@@ -2,7 +2,7 @@ import { filesWithBytes, sharedFileIds } from "@/lib/data-room";
 import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
-import { investorFromPlace, labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
+import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -53,7 +53,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
 
     const [accesses, messages, files, grants, shares, fees, hired] = await Promise.all([
       prisma.projectAccess.findMany({
-        where: { projectId: { in: ids } },
+        where: { projectId: { in: ids }, cancelledAt: null },
         select: {
           id: true,
           investorId: true,
@@ -122,7 +122,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         accessId: access.id,
         slug: slugById.get(access.projectId) ?? "",
         codename: codenameById.get(access.projectId) ?? "",
-        label: investorFromPlace(profile?.place ?? ""),
+        label: nameById.get(access.investorId) || sellerCopy.investorParty,
         stage,
         profile,
         partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
@@ -184,12 +184,13 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
     where: { slug },
     select: { id: true, status: true, codename: true, ownerId: true },
   });
-  const access = project
+  const storedAccess = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true, id: true },
+        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true, cancelledAt: true, id: true },
       })
     : null;
+  const access = storedAccess && storedAccess.cancelledAt === null ? storedAccess : null;
   const gate = ndaAccessGate({
     onboarded: user.onboarded,
     role: user.role,

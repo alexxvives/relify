@@ -139,6 +139,14 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
         <div className="min-w-0">
           <p className="text-base font-semibold text-[#1c2740]">{account.name}</p>
           <p className="mt-0.5 break-all text-sm text-[#667085]">{account.email}</p>
+          {account.onboarded ? (
+            <p className="mt-1 text-sm text-[#667085]">
+              {adminCopy.referralSourceLabel}:{" "}
+              <span className="font-medium text-[#3d4a63]">
+                {account.referralSource ?? adminCopy.referralSourceEmpty}
+              </span>
+            </p>
+          ) : null}
           <ul className="mt-2 flex flex-wrap gap-1.5">
             <li className="rounded-full bg-[#eef2ff] px-2.5 py-1 text-xs font-medium text-[#163a8a]">{accountRoleLabel(account.role)}</li>
             <li

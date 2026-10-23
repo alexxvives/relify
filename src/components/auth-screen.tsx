@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Handshake, Shield, TrendingUp } from "lucide-react";
-import { Logo } from "@/components/logo";
+import { Handshake, Shield, TrendingUp } from "lucide-react";
+import { PublicMenu } from "@/components/landing/public-menu";
 import { SignInForm } from "@/components/sign-in-form";
 import { SignUpForm, type SignupIntent } from "@/components/sign-up-form";
 import { authCopy } from "@/lib/auth-copy";
@@ -14,16 +14,12 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
   const signingUp = mode === "sign-up";
 
   return (
-    <div className="min-h-dvh bg-[#e7eef6] px-12 py-16 font-public text-[#16324f] sm:px-24 sm:py-24 lg:px-40 lg:py-28 xl:px-56 xl:py-36">
-      <div className="mx-auto flex w-full flex-col gap-4">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#5c6b78] transition-colors hover:text-[#16324f]"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          {authCopy.backHome}
-        </Link>
-        <div className="relative flex min-h-[calc(100dvh-10rem)] flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)] sm:min-h-[calc(100dvh-12rem)] lg:min-h-[calc(100dvh-14rem)] xl:min-h-[calc(100dvh-18rem)]">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#e7eef6] font-public text-[#16324f]">
+      <div className="shrink-0 px-5 pt-4 sm:px-8">
+        <PublicMenu signedIn={false} />
+      </div>
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 pt-3 pb-4 sm:px-10 lg:px-16 xl:px-24">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
           <Image
             src="/auth/login-background.jpg"
             alt=""
@@ -37,12 +33,7 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
           />
-          <div className="relative z-10 flex min-h-[inherit] flex-col px-6 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-6">
-            <header>
-              <Link href="/" aria-label="Releva">
-                <Logo size="lg" />
-              </Link>
-            </header>
+          <div className="relative z-10 flex h-full min-h-0 flex-col px-6 py-5 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
             <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
               <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2">
                 <p className="text-base font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>

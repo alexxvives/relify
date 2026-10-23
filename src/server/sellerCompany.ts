@@ -59,6 +59,30 @@ export async function listSellerCompanies(ownerId: string): Promise<SellerCompan
   });
 }
 
+export async function sellerProcessScope(ownerId: string): Promise<{ codename: string; elsewhere: string | null }> {
+  const projectId = await activeSellerProjectId(ownerId);
+  const [current, others] = await Promise.all([
+    projectId
+      ? prisma.project.findFirst({ where: { id: projectId, ownerId }, select: { codename: true } })
+      : Promise.resolve(null),
+    prisma.project.findMany({
+      where: {
+        ownerId,
+        accesses: { some: { cancelledAt: null } },
+        ...(projectId ? { NOT: { id: projectId } } : {}),
+      },
+      select: { codename: true },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
+  const names = others.map((row) => row.codename);
+
+  return {
+    codename: current?.codename ?? "",
+    elsewhere: names.length > 0 ? names.join(" y ") : null,
+  };
+}
+
 export async function activeSellerProjectId(ownerId: string): Promise<string | null> {
   const companies = await prisma.project.findMany({
     where: { ownerId },

@@ -2,11 +2,11 @@ export const blogCopy = {
   title: "Diario",
   description:
     "Guías para comprar y vender una pyme en España: qué se ve antes del NDA, cómo leer el EBITDA y cómo avanza la compraventa sin publicar el nombre.",
-  kicker: "Releva",
+  kicker: "Relify",
   all: "Todo",
   back: "Volver al diario",
   minutes: "min de lectura",
-  related: "Sigue en Releva",
+  related: "Sigue en Relify",
   newsletterTitle: "Una nota al mes",
   newsletterBody: "Cuando el boletín esté conectado, avisaremos de una nota nueva. Hoy no guardamos el correo.",
   newsletterPlaceholder: "tu@empresa.com",
@@ -72,7 +72,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Qué hace falta antes de publicar",
         paragraphs: [
-          "Vender una pyme no empieza por un anuncio con el nombre del negocio. Empieza por saber qué se vende, de qué tamaño es y en qué zona trabaja. En Releva esos datos son el punto de partida: si se vende la empresa o una parte, cuántas personas la sostienen, dónde está y en qué banda se mueve la facturación.",
+          "Vender una pyme no empieza por un anuncio con el nombre del negocio. Empieza por saber qué se vende, de qué tamaño es y en qué zona trabaja. En Relify esos datos son el punto de partida: si se vende la empresa o una parte, cuántas personas la sostienen, dónde está y en qué banda se mueve la facturación.",
           "Con eso ya se puede leer la operación al lado de otras. Quien compra compara región, facturación, EBITDA y precio. No necesita la razón social para decidir si pide el siguiente paso. Quien vende comprueba, en su propio borrador, que la ficha pública dice exactamente eso y nada más.",
         ],
       },
@@ -336,7 +336,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Un apodo, no una razón social",
         paragraphs: [
-          "El nombre de proyecto es la etiqueta de la ficha. Puede ser un apodo. No es la razón social y no tiene que coincidir con el rótulo del local. Proyecto Sur, Proyecto Alba o cualquier otro nombre de ese estilo identifican la operación dentro de Releva. No identifican la sociedad en el registro.",
+          "El nombre de proyecto es la etiqueta de la ficha. Puede ser un apodo. No es la razón social y no tiene que coincidir con el rótulo del local. Proyecto Sur, Proyecto Alba o cualquier otro nombre de ese estilo identifican la operación dentro de Relify. No identifican la sociedad en el registro.",
           "Eso permite enseñar la empresa a varios compradores y seguir operando con clientes y empleados sin anunciar la venta. Una ficha con el nombre legal convierte la exploración en un rumor. Una ficha con apodo deja la exploración en cifras.",
         ],
       },

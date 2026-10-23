@@ -47,6 +47,7 @@ const plans = [
     name: billingCopy.freeName,
     price: billingCopy.freePrice,
     gross: null,
+    inherit: null,
     points: billingCopy.freePoints,
     icon: EyeIcon,
     wash: "bg-[#f4f6f8] text-[#5c6b78]",
@@ -57,6 +58,7 @@ const plans = [
     name: billingCopy.limitedName,
     price: billingCopy.limitedPrice,
     gross: billingCopy.limitedGross,
+    inherit: billingCopy.limitedInherit,
     points: billingCopy.limitedPoints,
     icon: HeartHandshakeIcon,
     wash: "bg-[#eef2ff] text-[#465ab4]",
@@ -67,6 +69,7 @@ const plans = [
     name: billingCopy.unlimitedName,
     price: billingCopy.unlimitedPrice,
     gross: billingCopy.unlimitedGross,
+    inherit: billingCopy.unlimitedInherit,
     points: billingCopy.unlimitedPoints,
     icon: HeartIcon,
     wash: "bg-[#f4f7ff] text-[#465ab4]",
@@ -88,7 +91,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
             "radial-gradient(90% 120% at 0% 0%, #8ea2ff 0%, #465ab4 32%, #1c2740 70%)",
         }}
       >
-        <p className="text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">Releva</p>
+        <p className="text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">Relify</p>
         <h2 className="releva-page-title mt-3 text-4xl leading-[1.05] sm:text-5xl">
           Mira gratis. Conecta cuando toque.
         </h2>
@@ -159,7 +162,8 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
                       : item.gross}
               </p>
               {item.gross ? <p className="mt-1 text-xs text-[#8b95a7]">{billingCopy.vatNote}</p> : null}
-              <ul className="mt-6 flex flex-1 flex-col gap-3">
+              {item.inherit ? <p className="mt-6 text-sm font-medium text-[#465ab4]">{item.inherit}</p> : null}
+              <ul className={item.inherit ? "mt-3 flex flex-1 flex-col gap-3" : "mt-6 flex flex-1 flex-col gap-3"}>
                 {item.points.map((point) => (
                   <li key={point} className="flex items-start gap-2 text-sm">
                     <CheckIcon size={16} className="mt-0.5 shrink-0 text-[#17663a]" aria-hidden />

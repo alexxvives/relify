@@ -39,10 +39,12 @@ export function MarketBrowser({
   projects,
   favoriteSlugs,
   heading,
+  onlyFavorites = false,
 }: {
   projects: PublicProjectCard[];
   favoriteSlugs: string[];
   heading?: string;
+  onlyFavorites?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<MarketSort>("recommended");
@@ -50,14 +52,25 @@ export function MarketBrowser({
   const [ebitdaBand, setEbitdaBand] = useState<EbitdaBandId>("any");
   const [regions, setRegions] = useState<string[]>([]);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [savedSlugs, setSavedSlugs] = useState(favoriteSlugs);
+
+  function rememberFavorite(slug: string, favorited: boolean) {
+    setSavedSlugs((current) => {
+      if (favorited) {
+        return current.includes(slug) ? current : [...current, slug];
+      }
+      return current.filter((item) => item !== slug);
+    });
+  }
 
   const regionOptions = useMemo(
     () => [...new Set(projects.map((project) => project.region))].sort((left, right) => left.localeCompare(right, "es")),
     [projects],
   );
 
-  const matched = filterMarketProjects(projects, { query, sort, revenueBand, ebitdaBand, regions });
-  const visible = favoritesOnly ? matched.filter((project) => favoriteSlugs.includes(project.slug)) : matched;
+  const source = onlyFavorites ? projects.filter((project) => savedSlugs.includes(project.slug)) : projects;
+  const matched = filterMarketProjects(source, { query, sort, revenueBand, ebitdaBand, regions });
+  const visible = favoritesOnly ? matched.filter((project) => savedSlugs.includes(project.slug)) : matched;
   const regionValue = regions[0] ?? "";
 
   return (
@@ -163,7 +176,13 @@ export function MarketBrowser({
             return (
               <article key={project.slug} className="relative overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
                 <div className="absolute top-3 right-3 z-10">
-                  <FavoriteButton slug={project.slug} favorited={favoriteSlugs.includes(project.slug)} />
+                  <FavoriteButton
+                    slug={project.slug}
+                    favorited={savedSlugs.includes(project.slug)}
+                    onChange={(favorited) => {
+                      rememberFavorite(project.slug, favorited);
+                    }}
+                  />
                 </div>
                 <Link href={`/proyectos/${project.slug}`} className="flex h-full flex-col">
                   <ProjectPhoto

@@ -246,7 +246,7 @@ export async function startCardSetup(user: CurrentUser): Promise<{ ok: true; url
       currency: "eur",
       success_url: `${origin}/premium/suscripcion?setup_session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/premium/suscripcion`,
-      integration_identifier: integrationLabel("releva_card"),
+      integration_identifier: integrationLabel("Relify_card"),
     });
 
     if (!session.url) {

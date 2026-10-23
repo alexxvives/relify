@@ -325,7 +325,7 @@ export function InvestorProfile({
             />
           )}
           <div className={hidePhotoControl ? "" : "mt-4"}>
-            <InvestorPublicCard label={investorCopy.cardPreviewName} profile={preview} />
+            <InvestorPublicCard label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName} profile={preview} />
           </div>
         </div>
         </div>

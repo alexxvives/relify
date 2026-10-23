@@ -19,10 +19,10 @@ export const getProjectAccess = cache(async (user: CurrentUser, slug: string): P
       investorId: user.id,
       project: { slug: parsed.data.slug, status: "published" },
     },
-    select: { ndaAcceptedAt: true, sellerAcceptedAt: true },
+    select: { ndaAcceptedAt: true, sellerAcceptedAt: true, cancelledAt: true },
   });
 
-  if (!row) {
+  if (!row || row.cancelledAt !== null) {
     return "none";
   }
 

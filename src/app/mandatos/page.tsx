@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AdvisorHome } from "@/components/advisor-home";
 import { SignedInPage } from "@/components/signed-in-page";
-import { advisorCopy, advisorGreeting } from "@/lib/advisor-copy";
+import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorProfileChecks } from "@/lib/advisor-profile";
 import { getAdvisorDesk } from "@/server/advisoryEngagement";
 import { getAdvisorProfile } from "@/server/getAdvisorProfile";
@@ -33,10 +33,8 @@ export default async function MandatesPage({
     getAdvisorProfile(user.id),
     listPublishedSectors(),
   ]);
-  const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
-
   return (
-    <SignedInPage title={advisorGreeting(firstName)} showTitle>
+    <SignedInPage title={advisorCopy.homeTitle}>
       <AdvisorHome notifications={notifications} desk={desk} profileChecks={advisorProfileChecks(profile)} sectors={sectors} />
     </SignedInPage>
   );

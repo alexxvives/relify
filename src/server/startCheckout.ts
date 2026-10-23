@@ -102,7 +102,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
           unit_amount: grossCents(planNetCents(plan)),
           recurring: { interval: "month" },
           product_data: {
-            name: plan === "limited" ? "Releva 3 matches" : "Releva matches ilimitados",
+            name: plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados",
           },
         },
       },
@@ -111,7 +111,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
     subscription_data: { metadata: { kind: "buyer_plan", plan, userId: user.id } },
     success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/premium`,
-    integration_identifier: integrationLabel("releva_buyer"),
+    integration_identifier: integrationLabel("Relify_buyer"),
   });
 
   if (!session.url) {
@@ -156,14 +156,14 @@ export async function startListingCheckout(
         price_data: {
           currency: "eur",
           unit_amount: grossCents(SELLER_LISTING_NET_CENTS),
-          product_data: { name: "Releva empresa adicional" },
+          product_data: { name: "Relify empresa adicional" },
         },
       },
     ],
     metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
     success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}${successPath}`,
-    integration_identifier: integrationLabel("releva_listing"),
+    integration_identifier: integrationLabel("Relify_listing"),
   });
 
   if (!session.url) {
@@ -213,7 +213,7 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
             currency: "eur",
             unit_amount: grossCents(ADVISOR_INBOX_NET_CENTS),
             recurring: { interval: "month" },
-            product_data: { name: "Releva bandeja de encargos" },
+            product_data: { name: "Relify bandeja de encargos" },
           },
         },
       ],
@@ -221,7 +221,7 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
       subscription_data: { metadata: { kind: "advisor_inbox", userId: user.id } },
       success_url: `${origin}/mandatos/encargos?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/mandatos/encargos`,
-      integration_identifier: integrationLabel("releva_inbox"),
+      integration_identifier: integrationLabel("Relify_inbox"),
     });
 
     if (!session.url) {
@@ -280,14 +280,14 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
           price_data: {
             currency: "eur",
             unit_amount: advisorDepositCents(row.project.askingPriceCents),
-            product_data: { name: `Depósito Releva · ${row.project.codename}` },
+            product_data: { name: `Depósito Relify · ${row.project.codename}` },
           },
         },
       ],
       metadata: { kind: "advisor_deposit", userId: user.id, engagementId: row.id },
       success_url: `${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: back,
-      integration_identifier: integrationLabel("releva_deposit"),
+      integration_identifier: integrationLabel("Relify_deposit"),
     });
 
     if (!session.url) {

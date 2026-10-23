@@ -7,7 +7,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
 export function investorGazeAvatar(userId: string): string {
-  const seed = createHash("sha256").update(`releva-investor:${userId}`).digest("hex").slice(0, 16);
+  const seed = createHash("sha256").update(`Relify-investor:${userId}`).digest("hex").slice(0, 16);
   return gazeAvatarUrl(seed);
 }
 

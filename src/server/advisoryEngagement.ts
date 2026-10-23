@@ -4,6 +4,8 @@ import { advisorInterestBody, advisoryServices } from "@/lib/advisory";
 import { advisorNdaAgreement, spanishDate } from "@/lib/deal-documents";
 import type { DealStep } from "@/lib/deal-pipeline";
 import { engagementCopy } from "@/lib/engagement-copy";
+import { platformTermsCopy } from "@/lib/platform-terms";
+import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
 import {
   advisorCompanyView,
   advisorEngagementStep,
@@ -701,7 +703,7 @@ export async function declineEngagement(user: CurrentUser, id: string): Promise<
   return { ok: true };
 }
 
-export async function acceptAdvisorNda(user: CurrentUser, id: string): Promise<EngagementResult> {
+export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureValue: unknown): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findFirst({
     where: { id, advisorId: user.id, declinedAt: null },
     select: { id: true, client: true, advisorNdaAcceptedAt: true, depositPaidAt: true },
@@ -718,10 +720,16 @@ export async function acceptAdvisorNda(user: CurrentUser, id: string): Promise<E
     return { ok: false, message: outcome.ok ? engagementCopy.missing : outcome.code === "deposit" ? engagementCopy.depositRequired : engagementCopy.missing };
   }
 
-  if (outcome.stamp) {
+  const signature = outcome.stamp ? signatureJpeg(signatureValue) : null;
+
+  if (outcome.stamp && !signature) {
+    return { ok: false, message: platformTermsCopy.signRequired };
+  }
+
+  if (outcome.stamp && signature) {
     await prisma.advisoryEngagement.update({
       where: { id: row.id },
-      data: { advisorNdaAcceptedAt: new Date() },
+      data: { advisorNdaAcceptedAt: new Date(), advisorNdaSignature: signatureBytes(signature) },
     });
   }
 

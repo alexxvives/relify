@@ -28,7 +28,7 @@ export const engagementCopy = {
   connectNeedsCompany: "Elige primero una empresa que ya esté en Q&A (NDA firmado).",
   connectNeedsQa: "El asesor entra cuando un comprador de esa empresa ya está en Q&A.",
   missingAsk: "¿No encuentras lo que buscas?",
-  missingAskBody: "Elige los servicios. La solicitud llega a Releva, sin elegir asesor.",
+  missingAskBody: "Elige los servicios. La solicitud llega a Relify, sin elegir asesor.",
   marketplaceTitle: "Asesores",
   marketplaceSector: "Sector",
   marketplaceSectorAll: "Todos los sectores",
@@ -111,7 +111,7 @@ export const engagementCopy = {
   noAdvisorYet: "Cuando un asesor coja el encargo podrás abrirle carpetas y el proceso.",
   closeJob: "Cerrar encargo",
   closeJobHint:
-    "Escribe lo que cobras por este trabajo. Releva guarda el 15 % de esa cifra, más el 21 % de IVA sobre ese 15 %. No se cobra en este paso y no es un porcentaje del precio de la empresa.",
+    "Escribe lo que cobras por este trabajo. Relify guarda el 15 % de esa cifra, más el 21 % de IVA sobre ese 15 %. No se cobra en este paso y no es un porcentaje del precio de la empresa.",
   chargedLabel: "Honorarios del encargo (€)",
   feeStored: "Encargo cerrado. La comisión queda registrada y no se ha cobrado.",
   feeInvalid: "Escribe los honorarios en euros.",

@@ -9,7 +9,7 @@ function titleCase(value: string): string {
     .join(" ");
 }
 
-export function agreementPdf(text: string): Buffer {
+export function agreementPdf(text: string, signatureJpeg?: Buffer | null): Buffer {
   const chunks = text
     .split("\n\n")
     .map((part) => part.trim())
@@ -22,9 +22,10 @@ export function agreementPdf(text: string): Buffer {
     kicker: "Documento confidencial",
     title: titleCase(heading),
     date,
-    lead: "Documento generado en Releva. La firma deja constancia en la cuenta.",
+    lead: "Documento generado en Relify. La firma deja constancia en la cuenta.",
     paragraphs,
-    signNote: "Firmar en Releva deja constancia. No es una firma electrónica cualificada.",
+    signNote: "Firmar en Relify deja constancia. No es una firma electrónica cualificada.",
+    signatureJpeg,
   });
 }
 
@@ -32,7 +33,7 @@ export function agreementPdfDataUrl(text: string): string {
   return `data:application/pdf;base64,${agreementPdf(text).toString("base64")}`;
 }
 
-export function platformTermsPdf(when: string): Buffer {
+export function platformTermsPdf(when: string, signatureJpeg?: Buffer | null): Buffer {
   return letterPdf({
     kicker: "Acuerdo de la plataforma",
     title: platformTermsCopy.signedTitle,
@@ -40,6 +41,7 @@ export function platformTermsPdf(when: string): Buffer {
     lead: platformTermsCopy.intro,
     paragraphs: [...platformTermsCopy.body],
     signNote: "La firma se guardó en la cuenta. No es una firma electrónica cualificada.",
+    signatureJpeg,
   });
 }
 

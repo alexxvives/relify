@@ -6,7 +6,10 @@ export type { PendingMatch };
 
 export async function listPendingMatches(ownerId: string, projectId?: string | null): Promise<PendingMatch[]> {
   const rows = await prisma.projectAccess.findMany({
-    where: { project: projectId ? { id: projectId, ownerId, status: "published" } : { ownerId, status: "published" } },
+    where: {
+      cancelledAt: null,
+      project: projectId ? { id: projectId, ownerId, status: "published" } : { ownerId, status: "published" },
+    },
     select: {
       id: true,
       projectId: true,

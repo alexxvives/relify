@@ -8,7 +8,7 @@ import { listClientContacts } from "@/server/engagementThread";
 import { listPendingMatches } from "@/server/listPendingMatches";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { requireRole } from "@/server/requireRole";
-import { activeSellerProjectId } from "@/server/sellerCompany";
+import { activeSellerProjectId, sellerProcessScope } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
 
 export const metadata: Metadata = {
@@ -25,15 +25,24 @@ export default async function ProcessesPage() {
   }
 
   const projectId = await activeSellerProjectId(user.id);
-  const [messages, pendingMatches, advisors] = await Promise.all([
+  const [messages, pendingMatches, advisors, scope] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
     listClientContacts(user),
+    sellerProcessScope(user.id),
   ]);
 
   return (
     <SignedInPage title={sellerCopy.processesTitle}>
-      <SellerProcesses threads={messages.threads} counts={messages.counts} pendingMatches={pendingMatches} today={madridToday(new Date())} advisors={advisors} />
+      <SellerProcesses
+        threads={messages.threads}
+        counts={messages.counts}
+        pendingMatches={pendingMatches}
+        today={madridToday(new Date())}
+        advisors={advisors}
+        companyName={scope.codename}
+        elsewhere={scope.elsewhere}
+      />
     </SignedInPage>
   );
 }

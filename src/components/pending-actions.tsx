@@ -27,10 +27,10 @@ export function PendingActions({
       ) : (
         <>
           <p className="mt-1 text-sm text-[#64748b]">{pendingHeading(items.length)}</p>
-          <ul className={listClass}>
+          <ul className={columns === 1 ? "mt-4 flex flex-wrap gap-3" : listClass}>
             {items.map((item) => (
-              <li key={item.id}>
-                <Link href={item.href} className="flex items-center justify-between gap-3 rounded-xl bg-[#f4f7ff] px-3 py-3 hover:bg-[#e8eefc]">
+              <li key={item.id} className={columns === 1 ? "w-72 max-w-full" : undefined}>
+                <Link href={item.href} className="flex h-full items-center justify-between gap-3 rounded-2xl border border-[#e6e9f0] bg-[#f4f7ff] px-3 py-3 hover:bg-[#e8eefc]">
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold text-[#1c2740]">{item.title}</span>
                     <span className="mt-1 block text-sm text-[#64748b]">{item.detail}</span>

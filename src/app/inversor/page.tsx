@@ -3,7 +3,6 @@ import { InvestorHome } from "@/components/investor-home";
 import { SignedInPage } from "@/components/signed-in-page";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
-import { sellerGreeting } from "@/lib/seller-copy";
 import { loadInvestorDesk } from "@/server/investorDesk";
 import { listNotifications } from "@/server/listNotifications";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
@@ -23,7 +22,7 @@ export default async function InvestorHomePage() {
   const desk = await loadInvestorDesk(user.id, user.email);
 
   return (
-    <SignedInPage title={sellerGreeting(user.displayName)}>
+    <SignedInPage title={investorCopy.homeTitle}>
       <InvestorHome
         notifications={notifications}
         favorites={desk.favorites}

@@ -8,7 +8,7 @@ export function LandingFooter() {
       <div className="mx-auto w-full max-w-[1440px] rounded-[2rem] bg-public-card px-8 py-12 shadow-public sm:px-10">
         <div className="grid gap-10 md:grid-cols-[1.1fr_2fr]">
           <div>
-            <Link href="/" aria-label="Releva">
+            <Link href="/" aria-label="Relify">
               <Logo />
             </Link>
             <p className="mt-3 max-w-xs text-sm text-public-muted">{landingCopy.footer.blurb}</p>
@@ -37,7 +37,7 @@ export function LandingFooter() {
           </div>
         </div>
         <p suppressHydrationWarning className="mt-12 border-t border-public-line pt-4 text-xs text-public-muted">
-          Releva {new Date().getFullYear()}
+          Relify {new Date().getFullYear()}
         </p>
       </div>
     </footer>

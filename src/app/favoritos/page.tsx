@@ -22,7 +22,7 @@ export default async function FavoritesPage() {
       {favorites.length === 0 ? (
         <WorkspaceNote title={investorCopy.favoritesEmpty} body={investorCopy.favoritesEmptyBody} />
       ) : (
-        <MarketBrowser projects={favorites} favoriteSlugs={favoriteSlugs} />
+        <MarketBrowser projects={favorites} favoriteSlugs={favoriteSlugs} onlyFavorites />
       )}
     </SignedInPage>
   );

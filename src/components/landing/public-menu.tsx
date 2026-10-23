@@ -39,7 +39,7 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       data-releva-menu
       className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full px-2 py-2 sm:px-4"
     >
-      <Link href="/" className="pl-2" aria-label="Releva">
+      <Link href="/" className="pl-2" aria-label="Relify">
         <Logo />
       </Link>
       <LandingNav onDark={onDark} />

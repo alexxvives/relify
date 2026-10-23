@@ -3,8 +3,9 @@
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { AgreementSheet } from "@/components/agreement-sheet";
-import { documentDeskClass, useModalScrollLock } from "@/components/file-preview-dialog";
+import { SignaturePad } from "@/components/signature-pad";
+import { useModalScrollLock } from "@/components/file-preview-dialog";
+import { platformTermsCopy } from "@/lib/platform-terms";
 import { advisorCopy } from "@/lib/advisor-copy";
 import {
   acceptAdvisorNdaAction,
@@ -166,6 +167,8 @@ function AdvisorNdaDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [state, action, pending] = useActionState(acceptAdvisorNdaAction, null);
+  const [signature, setSignature] = useState("");
+  const [needsSignature, setNeedsSignature] = useState(false);
   useModalScrollLock(true);
 
   useEffect(() => {
@@ -188,31 +191,64 @@ function AdvisorNdaDialog({
   }, [router, state]);
 
   return (
-    <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <p className="truncate text-sm font-medium">Acuerdo-de-confidencialidad.pdf</p>
+    <dialog
+      ref={dialogRef}
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(44rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
+      onClose={onClose}
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4">
+        <h2 className="text-lg font-semibold">Acuerdo de confidencialidad</h2>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-white/80">
+          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
-          <AgreementSheet text={text} />
+      <form
+        action={action}
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={(event) => {
+          if (signature.length === 0) {
+            event.preventDefault();
+            setNeedsSignature(false);
+            window.requestAnimationFrame(() => {
+              setNeedsSignature(true);
+            });
+          }
+        }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{text}</pre>
+          <div className="mt-5">
+            <input type="hidden" name="signature" value={signature} />
+            <SignaturePad
+              invalid={needsSignature}
+              onChange={(value) => {
+                setSignature(value);
+                if (value.length > 0) {
+                  setNeedsSignature(false);
+                }
+              }}
+            />
+            {needsSignature ? (
+              <p role="alert" className="mt-2 text-sm text-[#c0362c]">
+                {platformTermsCopy.signRequired}
+              </p>
+            ) : null}
+          </div>
         </div>
-      </div>
-      <form action={action} className="flex flex-col items-center gap-2 border-t border-white/10 px-4 py-3">
-        <input type="hidden" name="engagementId" value={engagementId} />
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-        >
-          {pending ? engagementCopy.ndaPending : engagementCopy.ndaSign}
-        </button>
+        <div className="flex justify-end border-t border-[#eef0f3] px-5 py-4">
+          <input type="hidden" name="engagementId" value={engagementId} />
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {pending ? engagementCopy.ndaPending : engagementCopy.ndaSign}
+          </button>
+        </div>
         {state && !state.ok ? (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="px-5 pb-4 text-sm text-red-700">
             {state.message}
           </p>
         ) : null}
@@ -223,6 +259,8 @@ function AdvisorNdaDialog({
 
 export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; text: string }) {
   const [state, action, pending] = useActionState(acceptAdvisorNdaAction, null);
+  const [signature, setSignature] = useState("");
+  const [needsSignature, setNeedsSignature] = useState(false);
 
   return (
     <section id="nda" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -230,8 +268,31 @@ export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; t
       <h2 className="mt-1 text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.ndaTitle}</h2>
       <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.ndaInvestorNote}</p>
       <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-[#f7f8fb] p-4 text-sm leading-6 text-[#1c2740]">{text}</pre>
-      <form action={action} className="mt-4 flex flex-col items-start gap-2">
+      <form
+        action={action}
+        className="mt-4 flex flex-col items-start gap-2"
+        onSubmit={(event) => {
+          if (signature.length === 0) {
+            event.preventDefault();
+            setNeedsSignature(false);
+            window.requestAnimationFrame(() => {
+              setNeedsSignature(true);
+            });
+          }
+        }}
+      >
         <input type="hidden" name="engagementId" value={engagementId} />
+        <input type="hidden" name="signature" value={signature} />
+        <SignaturePad
+          invalid={needsSignature}
+          onChange={(value) => {
+            setSignature(value);
+            if (value.length > 0) {
+              setNeedsSignature(false);
+            }
+          }}
+        />
+        {needsSignature ? <p className="text-sm text-[#c0362c]">{platformTermsCopy.signRequired}</p> : null}
         <button
           type="submit"
           disabled={pending}

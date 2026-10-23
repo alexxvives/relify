@@ -91,7 +91,7 @@ function RegionCard({ region }: { region: (typeof mapRegions)[number] }) {
           <dd className="text-sm font-medium">{region.ebitda}</dd>
         </div>
       </dl>
-      <p className="mt-3 text-[11px] text-[#7b8792]">Sectores más relevantes</p>
+      <p className="mt-3 text-[11px] text-[#7b8792]">Sectores más Relifyntes</p>
       <ul className="mt-1 flex flex-wrap gap-1.5">
         {region.sectors.map((sector) => (
           <li key={sector} className="rounded-full bg-[#f4f6f8] px-2 py-1 text-[12px] text-[#2b3b4a]">

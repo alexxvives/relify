@@ -13,7 +13,7 @@ export default function AsesoresPage() {
       title="Publica tus mandatos y tus servicios"
       lead="El inicio lista lo que te toca: encargos abiertos, depósitos y acuerdos. El cliente sigue con nombre de proyecto hasta que el encargo está aceptado."
       image="/product/asesor.jpg"
-      imageAlt="Inicio del asesor en Releva, con encargos y acciones pendientes"
+      imageAlt="Inicio del asesor en Relify, con encargos y acciones pendientes"
       featuresTitle="Servicios, encargos y el proceso del cliente"
       features={[
         {
@@ -34,7 +34,7 @@ export default function AsesoresPage() {
         { title: "Completas el perfil", body: "Nombre comercial, sectores y el rango de cada servicio." },
         { title: "Te eligen en un proceso", body: "Empresa o inversor pide el servicio. El encargo queda por aceptar." },
         { title: "Aceptas con el depósito", body: "El pago abre el recorrido. Rechazar deja el encargo fuera." },
-        { title: "Trabajas dentro de Releva", body: "Chat, documentos y reuniones. La sociedad no se publica en la ficha." },
+        { title: "Trabajas dentro de Relify", body: "Chat, documentos y reuniones. La sociedad no se publica en la ficha." },
       ]}
     />
   );

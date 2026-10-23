@@ -54,25 +54,34 @@ const iconForHref = {
   "/mis-servicios": BriefcaseIcon,
 };
 
-const processSeenKey = "releva-process-seen";
+const processSeenKey = "Relify-process-seen";
 let processSeen = "";
 let processSeenLoaded = false;
 const processSeenListeners = new Set<() => void>();
 
 function subscribeProcessSeen(listener: () => void) {
   processSeenListeners.add(listener);
+  loadProcessSeenFromStorage();
   return () => {
     processSeenListeners.delete(listener);
   };
 }
 
-function readProcessSeen(): string {
-  if (!processSeenLoaded && typeof window !== "undefined") {
-    processSeenLoaded = true;
-    processSeen = window.localStorage.getItem(processSeenKey) ?? "";
+function getProcessSeenSnapshot(): string {
+  return processSeen;
+}
+
+function loadProcessSeenFromStorage() {
+  if (processSeenLoaded || typeof window === "undefined") {
+    return;
   }
 
-  return processSeen;
+  processSeenLoaded = true;
+  processSeen = window.localStorage.getItem(processSeenKey) ?? "";
+
+  for (const listener of processSeenListeners) {
+    listener();
+  }
 }
 
 function rememberProcessSeen(ids: readonly string[]) {
@@ -102,6 +111,8 @@ function subscribeReady() {
   return () => undefined;
 }
 
+const processHrefs = new Set(["/procesos", "/mi-empresa/procesos", "/mandatos/venta"]);
+
 function SideLink({
   href,
   label,
@@ -109,6 +120,7 @@ function SideLink({
   icon: Icon,
   onNavigate,
   alert,
+  count,
 }: {
   href: string;
   label: string;
@@ -116,6 +128,7 @@ function SideLink({
   icon: typeof HouseIcon;
   onNavigate: () => void;
   alert: boolean;
+  count: number | null;
 }) {
   const iconRef = useRef<HouseIconHandle>(null);
 
@@ -138,7 +151,21 @@ function SideLink({
     >
       <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
       <span className="min-w-0 flex-1">{label}</span>
-      {alert ? <span className="inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null}
+      {count === null || count === 0 ? (
+        alert ? <span className="inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null
+      ) : (
+        <span className="relative inline-flex shrink-0">
+          <span
+            className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#465ab4] px-2 text-sm font-semibold text-white"
+            aria-label={`${count} procesos`}
+          >
+            {count > 99 ? "99+" : count}
+          </span>
+          {alert ? (
+            <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-[#d92d20] ring-2 ring-white" aria-label="Hay novedades sin ver" />
+          ) : null}
+        </span>
+      )}
     </Link>
   );
 }
@@ -154,6 +181,7 @@ export function AppFrame({
   activeCompanyId = null,
   canManageCompanies = false,
   showHelp = true,
+  processCount = 0,
   children,
 }: {
   name: string;
@@ -166,6 +194,7 @@ export function AppFrame({
   activeCompanyId?: string | null;
   canManageCompanies?: boolean;
   showHelp?: boolean;
+  processCount?: number;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -173,7 +202,7 @@ export function AppFrame({
   const home = destinations[0]?.href ?? "/cuenta";
   const initials = accountInitials(name);
   const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
-  const seen = useSyncExternalStore(subscribeProcessSeen, readProcessSeen, () => "");
+  const seen = useSyncExternalStore(subscribeProcessSeen, getProcessSeenSnapshot, () => "");
 
   useEffect(() => {
     const ids = notifications
@@ -194,7 +223,7 @@ export function AppFrame({
       <aside id="app-sidebar" data-open={open ? "true" : "false"} className="shell-sidebar">
         <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-6 pt-6 pb-2">
           <div className="flex min-w-0 items-center gap-3">
-            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Releva">
+            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
               <Logo size="lg" />
             </Link>
           </div>
@@ -247,6 +276,7 @@ export function AppFrame({
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
                   onNavigate={closeMenu}
                   alert={alert}
+                  count={processHrefs.has(item.href) ? processCount : null}
                 />
               </div>
             );

@@ -50,7 +50,7 @@ export function SignatureDocument({ when, signature }: { when: string; signature
         className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#d5dbe3] bg-[#e7eaee] p-3 text-left shadow-[0_12px_30px_-24px_rgba(28,39,64,0.45)]"
       >
         <span className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white px-3 py-3 shadow-[0_10px_24px_-18px_rgba(28,39,64,0.7)]">
-          <span className="releva-word text-sm leading-none text-[#1c2740]">Releva</span>
+          <span className="releva-word text-sm leading-none text-[#1c2740]">Relify</span>
           <span className="mt-2 text-[11px] font-semibold leading-4 text-[#1c2740]">{platformTermsCopy.signedTitle}</span>
           <span className="mt-2 line-clamp-4 text-[9px] leading-[1.35] text-[#5c6b78]">{platformTermsCopy.body.join(" ")}</span>
           <span className="mt-auto flex items-end justify-between gap-2 border-t border-[#eef0f3] pt-2">
@@ -71,7 +71,7 @@ export function SignatureDocument({ when, signature }: { when: string; signature
         file={
           open
             ? {
-                fileName: "Acuerdo-con-Releva.pdf",
+                fileName: "Acuerdo-con-Relify.pdf",
                 folder: platformTermsCopy.signedTitle,
                 href: "/cuenta/acuerdo",
               }

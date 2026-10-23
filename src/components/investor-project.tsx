@@ -167,6 +167,7 @@ export function InvestorProject({
                 files={documents}
                 bodies={chat.map((message) => message.body)}
                 nda
+                ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
                 empty={sellerCopy.documentsEmpty}
               />
             </section>

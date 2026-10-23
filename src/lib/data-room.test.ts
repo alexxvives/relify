@@ -142,7 +142,7 @@ describe("visibleFolderNames", () => {
       "Comercial",
       "Legal",
       "RRHH/Laboral",
-      "Releva",
+      "Relify",
       "Due diligence",
     ]);
   });

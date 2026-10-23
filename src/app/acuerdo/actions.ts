@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
+import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
@@ -15,19 +16,14 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
     redirect("/entrar");
   }
 
-  const signature = formData.get("signature");
-  if (typeof signature !== "string" || !signature.startsWith("data:image/png;base64,")) {
-    return { ok: false, message: platformTermsCopy.signRequired };
-  }
-
-  const bytes = Buffer.from(signature.slice("data:image/png;base64,".length), "base64");
-  if (bytes.byteLength < 80 || bytes.byteLength > 400_000) {
+  const bytes = signatureJpeg(formData.get("signature"));
+  if (!bytes) {
     return { ok: false, message: platformTermsCopy.signRequired };
   }
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { termsAcceptedAt: new Date(), signaturePng: bytes },
+    data: { termsAcceptedAt: new Date(), signaturePng: signatureBytes(bytes) },
   });
 
   redirect(homeForRole(user.role));

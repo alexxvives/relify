@@ -108,7 +108,7 @@ export async function acceptAdvisorNdaAction(
 ): Promise<EngagementActionState> {
   const user = await signedIn();
   const id = readText(formData, "engagementId");
-  const result = await acceptAdvisorNda(user, id);
+  const result = await acceptAdvisorNda(user, id, formData.get("signature"));
 
   if (result.ok) {
     revalidatePath(`/mandatos/encargos/${id}`);

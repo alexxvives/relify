@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Check, Circle, Info, TriangleAlert } from "lucide-react";
+import { Check, Circle, TriangleAlert } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
 import { NoticeList } from "@/components/notice-list";
 import { PublishSellerButton } from "@/components/publish-seller";
-import { FinanceCharts } from "@/components/seller-finance-charts";
+import { FinanceCharts, FinanceChartsPlaceholder } from "@/components/seller-finance-charts";
 import { billingCopy } from "@/lib/billing-copy";
 import { companyCopy } from "@/lib/company-copy";
 import { formatCompactEur } from "@/lib/money";
@@ -83,35 +83,26 @@ export function SellerOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      {listing === "published" || listing === "pending" ? null : (
-        <section className="flex flex-col gap-3 rounded-2xl bg-[#fff8db] px-4 py-3 text-[#614d05] sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-3">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[#b58105]" aria-hidden />
-            <div>
-              <p className="text-sm font-semibold text-[#2b3b4a]">{sellerCopy.incompleteTitle}</p>
-              <p className="text-sm text-[#614d05]">{sellerCopy.incompleteBody}</p>
-            </div>
-          </div>
-          <Link href="/mi-empresa/detalles" className="shrink-0 text-sm font-medium text-[#1c2740] underline">
-            {sellerCopy.completeNow}
-          </Link>
-        </section>
-      )}
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex min-w-0 flex-col gap-6">
           <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-              {sellerCopy.financeTitle}
-              <FieldHint text={sellerCopy.financeIntro} />
-            </h2>
-            {series.length === 0 ? (
-              <div className="mt-4 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
-                <p className="text-sm text-[#667085]">{sellerCopy.financeEmpty}</p>
-                <Link href="/mi-empresa/detalles" className="mt-3 inline-flex text-sm font-medium text-[#2454d6] underline">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+                {sellerCopy.financeTitle}
+                <FieldHint text={sellerCopy.financeIntro} />
+              </h2>
+              {series.length === 0 ? (
+                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
                   {sellerCopy.financeOpen}
                 </Link>
-              </div>
+              ) : null}
+            </div>
+            {series.length === 0 ? (
+              <>
+                <p className="mt-1 text-sm text-[#667085]">{sellerCopy.financeEmpty}</p>
+                <FinanceChartsPlaceholder />
+              </>
             ) : (
               <FinanceCharts points={chartPoints} mixes={mixes} costYears={chartCostYears} />
             )}
@@ -131,28 +122,30 @@ export function SellerOverview({
                 ))}
               </ul>
             ) : (
-              <div className="mt-4 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
+              <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
                 <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.activityEmpty}</p>
-                <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activityEmptyBody}</p>
-              </div>
-            )}
-            {listing === "published" ? null : (
-              <div className="mt-4 flex flex-col gap-3 rounded-xl bg-[#eef1f6] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="flex items-start gap-2 text-sm text-[#3d4a63]">
-                  <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-                  {sellerCopy.activityLocked}
-                </p>
-                <Link href="/mi-empresa/detalles" className="shrink-0 text-sm font-medium text-[#2454d6] underline">
+                <p className="max-w-md text-sm text-[#667085]">{sellerCopy.activityLocked}</p>
+                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
                   {sellerCopy.fillInfo}
                 </Link>
               </div>
             )}
           </section>
         </div>
-        <div className="relative xl:min-h-full">
-          <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
+        <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-            <h2 className={complete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
+            <h2
+              className={
+                listing === "published"
+                  ? "flex items-center gap-2 text-2xl font-semibold text-[#17663a]"
+                  : listing === "pending"
+                    ? "text-2xl font-semibold text-[#8a6112]"
+                    : "flex items-center gap-2 text-2xl font-semibold text-[#c0362c]"
+              }
+            >
+              {listing === "published" || listing === "pending" ? null : (
+                <TriangleAlert className="size-6 shrink-0" aria-hidden />
+              )}
               {listing === "published"
                 ? billingCopy.sellerPublished
                 : listing === "pending"
@@ -205,15 +198,17 @@ export function SellerOverview({
               </li>
             </ul>
           </section>
-          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sellerCopy.notificationsTitle}</h2>
             {notifications.length === 0 ? (
-              <p className="mt-8 text-sm text-[#667085]">{sellerCopy.notificationsEmpty}</p>
+              <div className="mt-6 text-center">
+                <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.notificationsEmpty}</p>
+                <p className="mt-1 text-sm text-[#667085]">{sellerCopy.notificationsEmptyBody}</p>
+              </div>
             ) : (
-              <NoticeList items={notifications} scroll />
+              <NoticeList items={notifications} scroll icons />
             )}
           </section>
-          </div>
         </div>
       </div>
     </div>

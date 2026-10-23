@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { authCopy } from "@/lib/auth-copy";
 import { signUpFieldMessage, signUpSchema, type SignUpInput } from "@/lib/auth-input";
 import { signUp } from "@/server/signUp";
 
@@ -27,16 +28,20 @@ export async function signUpAction(_state: SignUpState, formData: FormData): Pro
     return input;
   }
 
+  const role = formData.get("signupRole");
+  if (role !== "seller" && role !== "investor" && role !== "advisor") {
+    return { message: authCopy.signupRoleRequired };
+  }
+
   const result = await signUp(input);
 
   if (!result.ok) {
     return { message: result.message };
   }
 
-  const role = formData.get("signupRole");
   if (role === "seller" || role === "investor" || role === "advisor") {
     const jar = await cookies();
-    jar.set("releva-entry-role", role, {
+    jar.set("Relify-entry-role", role, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",

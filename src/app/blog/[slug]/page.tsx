@@ -54,8 +54,8 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
     inLanguage: "es",
     image: new URL(post.cover.src, siteUrl).href,
     mainEntityOfPage: pageUrl,
-    author: { "@type": "Organization", name: "Releva" },
-    publisher: { "@type": "Organization", name: "Releva", url: new URL("/", siteUrl).href },
+    author: { "@type": "Organization", name: "Relify" },
+    publisher: { "@type": "Organization", name: "Relify", url: new URL("/", siteUrl).href },
   };
 
   return (

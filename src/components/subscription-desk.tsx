@@ -216,7 +216,7 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
           <span className="absolute inset-x-1 top-4 h-px bg-[#8a7040]/50" />
           <span className="absolute inset-y-1 left-4 w-px bg-[#8a7040]/50" />
         </span>
-        <span className="text-lg tracking-wide italic">Releva</span>
+        <span className="text-lg tracking-wide italic">Relify</span>
       </div>
       <p className="relative mt-6 font-mono text-lg tracking-[0.18em]">{`••••  ••••  ••••  ${ending}`}</p>
       <div className="relative mt-5 flex items-end justify-between gap-4">

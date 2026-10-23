@@ -35,12 +35,12 @@ describe("signUpSchema", () => {
 });
 
 describe("onboardingSchema", () => {
-  it("keeps a name, a self-serve role, and how they found Releva", () => {
+  it("keeps a name, a self-serve role, and how they found Relify", () => {
     expect(
       onboardingSchema.parse({
         name: " Ana ",
         lastName: " Ruiz ",
-        nationalId: "B12345674",
+        nationalId: "12345678Z",
         phoneCountry: "ES",
         phone: "612345678",
         role: "investor",
@@ -49,7 +49,7 @@ describe("onboardingSchema", () => {
     ).toEqual({
       name: "Ana",
       lastName: "Ruiz",
-      nationalId: "B12345674",
+      nationalId: "12345678Z",
       phoneCountry: "ES",
       phone: "612345678",
       role: "investor",
@@ -57,12 +57,26 @@ describe("onboardingSchema", () => {
     });
   });
 
+  it("accepts a personal DNI", () => {
+    expect(
+      onboardingSchema.safeParse({
+        name: "Ana",
+        lastName: "Ruiz",
+        nationalId: "12345678Z",
+        phoneCountry: "ES",
+        phone: "612345678",
+        role: "seller",
+        referralSource: "search",
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects admin and an empty referral", () => {
     expect(
       onboardingSchema.safeParse({
         name: "Ana",
         lastName: "Ruiz",
-        nationalId: "B12345674",
+        nationalId: "12345678Z",
         phoneCountry: "ES",
         phone: "612345678",
         role: "admin",
@@ -73,7 +87,7 @@ describe("onboardingSchema", () => {
       onboardingSchema.safeParse({
         name: "Ana",
         lastName: "Ruiz",
-        nationalId: "B12345678",
+        nationalId: "12345678A",
         phoneCountry: "ES",
         phone: "112345678",
         role: "seller",
@@ -84,13 +98,24 @@ describe("onboardingSchema", () => {
       onboardingSchema.safeParse({
         name: "Ana",
         lastName: "Ruiz",
-        nationalId: "B12345674",
+        nationalId: "12345678Z",
         phoneCountry: "FR",
         phone: "612345678",
         role: "seller",
         referralSource: "search",
       }).success,
     ).toBe(true);
+    expect(
+      onboardingSchema.safeParse({
+        name: "Ana",
+        lastName: "Ruiz",
+        nationalId: "A00000000",
+        phoneCountry: "ES",
+        phone: "612345678",
+        role: "seller",
+        referralSource: "search",
+      }).success,
+    ).toBe(false);
   });
 });
 

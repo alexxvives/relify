@@ -35,5 +35,5 @@ export function readSiteUrl(): URL {
     return new URL(parsed.data.BETTER_AUTH_URL);
   }
 
-  return new URL("https://releva.alexxvives.workers.dev");
+  return new URL("https://Relify.alexxvives.workers.dev");
 }

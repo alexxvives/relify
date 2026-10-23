@@ -18,11 +18,13 @@ const phoneCountryOptions = [
 export function PhoneField({
   country,
   national,
+  invalid = false,
   onCountryChange,
   onNationalChange,
 }: {
   country: string;
   national: string;
+  invalid?: boolean;
   onCountryChange: (value: string) => void;
   onNationalChange: (value: string) => void;
 }) {
@@ -66,7 +68,12 @@ export function PhoneField({
             inputRef.current?.setSelectionRange(nextCaret, nextCaret);
           });
         }}
-        className="h-11 w-full rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base tracking-wide text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+        aria-invalid={invalid}
+        className={
+          invalid
+            ? "h-11 w-full rounded-[14px] border-2 border-[#c0362c] bg-[#fff6f6] px-3 text-base tracking-wide text-[#2b3b4a] outline-none"
+            : "h-11 w-full rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base tracking-wide text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+        }
       />
     </div>
   );

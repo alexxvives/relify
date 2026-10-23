@@ -64,6 +64,188 @@ export function FinanceCharts({
   );
 }
 
+const placeholderYears = [2022, 2023, 2024, 2025] as const;
+const placeholderSales = [0.35, 0.55, 0.48, 0.72] as const;
+const placeholderEbitda = [0.18, 0.28, 0.22, 0.34] as const;
+const placeholderCosts = [
+  [0.42, 0.28, 0.18, 0.12],
+  [0.38, 0.32, 0.2, 0.1],
+  [0.4, 0.3, 0.16, 0.14],
+  [0.36, 0.34, 0.18, 0.12],
+] as const;
+const placeholderCostColors = ["#d6dbe4", "#c5ccd8", "#b4bdc9", "#a3adb9"] as const;
+const placeholderMixes = [
+  { title: sellerCopy.mixClient, tones: ["#d6dbe4", "#c5ccd8", "#b4bdc9", "#e8ecf2"] },
+  { title: sellerCopy.mixProduct, tones: ["#d6dbe4", "#c5ccd8", "#b4bdc9", "#e8ecf2"] },
+  { title: sellerCopy.mixCapital, tones: ["#d6dbe4", "#c5ccd8", "#b4bdc9", "#e8ecf2"] },
+] as const;
+
+export function FinanceChartsPlaceholder() {
+  return (
+    <div className="mt-4 flex flex-col gap-6" aria-hidden>
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <PlaceholderBars
+          title={sellerCopy.financeBarsTitle}
+          series={[
+            { values: placeholderSales, color: "#c5ccd8" },
+            { values: placeholderEbitda, color: "#a8b2c0" },
+          ]}
+        />
+        <PlaceholderStackedBars title={sellerCopy.financeCostTitle} />
+      </div>
+      <div className="grid items-stretch gap-3 md:grid-cols-3">
+        {placeholderMixes.map((mix) => (
+          <section key={mix.title} className="flex min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
+            <h3 className="text-sm font-semibold text-[#b0b8c4]">{mix.title}</h3>
+            <div className="mt-4 flex flex-1 items-center justify-center">
+              <svg viewBox="0 0 42 42" className="h-auto w-full max-w-28" aria-hidden>
+                <circle cx="21" cy="21" r="15.5" fill="none" stroke="#e8ecf2" strokeWidth="6" />
+                <circle
+                  cx="21"
+                  cy="21"
+                  r="15.5"
+                  fill="none"
+                  stroke={mix.tones[0]}
+                  strokeWidth="6"
+                  strokeDasharray="40 60"
+                  strokeDashoffset="25"
+                  transform="rotate(-90 21 21)"
+                />
+                <circle
+                  cx="21"
+                  cy="21"
+                  r="15.5"
+                  fill="none"
+                  stroke={mix.tones[1]}
+                  strokeWidth="6"
+                  strokeDasharray="28 72"
+                  strokeDashoffset="-15"
+                  transform="rotate(-90 21 21)"
+                />
+              </svg>
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderBars({
+  title,
+  series,
+}: {
+  title: string;
+  series: { values: readonly number[]; color: string }[];
+}) {
+  const width = 720;
+  const height = 220;
+  const padLeft = 48;
+  const padRight = 16;
+  const padTop = 28;
+  const padBottom = 32;
+  const plotHeight = height - padTop - padBottom;
+  const groupWidth = (width - padLeft - padRight) / placeholderYears.length;
+  const barWidth = 28;
+  const gap = 8;
+
+  return (
+    <div>
+      <div className="flex h-11 items-center">
+        <h3 className="text-sm font-semibold text-[#b0b8c4]">{title}</h3>
+      </div>
+      <div className="relative mt-3">
+        <svg viewBox={`0 0 ${width} ${height}`} className="block h-auto w-full" style={{ aspectRatio: `${width} / ${height}` }} aria-hidden>
+          <rect x={padLeft} y={16} width={width - padLeft - padRight} height={padTop - 16 + plotHeight} rx="16" fill="#f3f5f8" />
+          {[0.25, 0.5, 0.75, 1].map((tick) => {
+            const y = padTop + (1 - tick) * plotHeight;
+            return <line key={tick} x1={padLeft} x2={width - padRight} y1={y} y2={y} stroke="#e6e9f0" strokeWidth={1} />;
+          })}
+          {placeholderYears.map((year, index) => {
+            const center = padLeft + groupWidth * index + groupWidth / 2;
+            const cluster = series.length * barWidth + (series.length - 1) * gap;
+            const origin = center - cluster / 2;
+            return (
+              <g key={year}>
+                {series.map((item, seriesIndex) => {
+                  const value = item.values[index] ?? 0.3;
+                  const barHeight = Math.max(8, value * plotHeight);
+                  return (
+                    <rect
+                      key={`${year}-${seriesIndex}`}
+                      x={origin + seriesIndex * (barWidth + gap)}
+                      y={padTop + plotHeight - barHeight}
+                      width={barWidth}
+                      height={barHeight}
+                      rx="8"
+                      fill={item.color}
+                    />
+                  );
+                })}
+                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="13" fontWeight="600">
+                  {year}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderStackedBars({ title }: { title: string }) {
+  const width = 720;
+  const height = 220;
+  const padLeft = 16;
+  const padRight = 48;
+  const padTop = 28;
+  const padBottom = 32;
+  const plotHeight = height - padTop - padBottom;
+  const groupWidth = (width - padLeft - padRight) / placeholderYears.length;
+  const barWidth = 36;
+
+  return (
+    <div>
+      <div className="flex h-11 items-center">
+        <h3 className="text-sm font-semibold text-[#b0b8c4]">{title}</h3>
+      </div>
+      <div className="relative mt-3">
+        <svg viewBox={`0 0 ${width} ${height}`} className="block h-auto w-full" style={{ aspectRatio: `${width} / ${height}` }} aria-hidden>
+          <rect x={padLeft} y={16} width={width - padLeft - padRight} height={padTop - 16 + plotHeight} rx="16" fill="#f3f5f8" />
+          {placeholderYears.map((year, index) => {
+            const center = padLeft + groupWidth * index + groupWidth / 2;
+            const x = center - barWidth / 2;
+            let from = padTop + plotHeight;
+            const slices = placeholderCosts[index] ?? placeholderCosts[0];
+            return (
+              <g key={year}>
+                {slices.map((share, sliceIndex) => {
+                  const barHeight = share * plotHeight * 0.85;
+                  from -= barHeight;
+                  return (
+                    <rect
+                      key={`${year}-${sliceIndex}`}
+                      x={x}
+                      y={from}
+                      width={barWidth}
+                      height={barHeight}
+                      fill={placeholderCostColors[sliceIndex] ?? "#c5ccd8"}
+                    />
+                  );
+                })}
+                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="13" fontWeight="600">
+                  {year}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 function mixRowClass(count: number): string {
   if (count >= 3) {
     return "grid items-stretch gap-3 md:grid-cols-3";

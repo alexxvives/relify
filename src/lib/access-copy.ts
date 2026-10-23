@@ -23,6 +23,12 @@ export const accessCopy = {
   planRequired: "Elige un plan para conectar con empresas.",
   matchLimit: "Has usado los 3 matches de este mes.",
   waitingForSeller: "Solicitud enviada.",
+  cancelProcess: "Cancelar proceso",
+  cancelTitle: "¿Seguro que quieres cancelar este proceso?",
+  cancelBody: "Se cierra para las dos partes. Puedes volver a conectar más adelante.",
+  cancelYes: "Sí, cancelar",
+  cancelNo: "No, seguir",
+  cancelFailed: "No se ha podido cancelar el proceso.",
 } as const;
 
 export function connectConfirm(left: number): string {

@@ -5,6 +5,7 @@ import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { destinationsForRole } from "@/lib/shell";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
+import { menuProcessCount } from "@/server/menuProcessCount";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
 export async function AppShell({
@@ -26,10 +27,11 @@ export async function AppShell({
     redirect("/onboarding");
   }
 
-  const [notifications, companies, activeCompanyId] = await Promise.all([
+  const [notifications, companies, activeCompanyId, processCount] = await Promise.all([
     listNotifications(user.id),
     user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
     user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
+    menuProcessCount(user),
   ]);
 
   return (
@@ -44,6 +46,7 @@ export async function AppShell({
       activeCompanyId={activeCompanyId}
       canManageCompanies={user.role === "seller"}
       showHelp={user.role !== "admin"}
+      processCount={processCount}
     >
       {children}
       {user.termsAccepted ? null : <PlatformTermsDialog />}

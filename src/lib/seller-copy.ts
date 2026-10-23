@@ -62,7 +62,8 @@ export const sellerCopy = {
   checklistExplore: "Explora la plataforma",
   seeAll: "Ver todas",
   notificationsTitle: "Notificaciones",
-  notificationsEmpty: "No tienes notificaciones.",
+  notificationsEmpty: "No hay notificaciones.",
+  notificationsEmptyBody: "Te avisaremos cuando haya novedades.",
   pendingEmpty: "No tienes acciones pendientes de completar",
   meetingsEmptyBody: "Recibirás una notificación cuando un inversor te envíe una solicitud",
   folderCount: "9 carpetas",
@@ -204,6 +205,9 @@ export const sellerCopy = {
   closeProfile: "Cerrar",
   activeEmpty: "No tienes procesos activos en este momento.",
   activeEmptyBody: "Cuando tengas procesos activos, podrás verlos aquí.",
+  activeEmptyFor: (codename: string) => `No hay procesos en ${codename}.`,
+  activeElsewhere: (codename: string) =>
+    `En ${codename} sí hay un proceso. Cámbialo en el selector de empresa, arriba.`,
   inactiveEmpty: "No tienes procesos inactivos en este momento.",
   inactiveEmptyBody: "Cuando tengas procesos caducados o desestimados, podrás verlos aquí.",
   trendsIntro: "Guías de compraventa y operaciones cerradas, escritas en el diario.",
@@ -220,7 +224,7 @@ export const dataRoomFolderNames = [
   "Fiscal",
   "Legal",
   "RRHH/Laboral",
-  "Releva",
+  "Relify",
 ] as const;
 
 export type DataRoomFolderName = (typeof dataRoomFolderNames)[number];

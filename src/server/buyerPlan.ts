@@ -23,12 +23,15 @@ export async function loadBuyerPlan(userId: string): Promise<BuyerPlanState> {
 async function usage(userId: string, plan: BuyerPlanState): Promise<{ acceptedInPeriod: number; pendingInPeriod: number }> {
   const rows = await prisma.projectAccess.findMany({
     where: { investorId: userId },
-    select: { requestedAt: true, sellerAcceptedAt: true },
+    select: { requestedAt: true, sellerAcceptedAt: true, cancelledAt: true },
   });
   let acceptedInPeriod = 0;
   let pendingInPeriod = 0;
 
   for (const row of rows) {
+    if (row.cancelledAt !== null) {
+      continue;
+    }
     if (row.sellerAcceptedAt !== null && isInPeriod(row.sellerAcceptedAt, plan.periodStart, plan.periodEnd)) {
       acceptedInPeriod += 1;
     } else if (row.sellerAcceptedAt === null && isInPeriod(row.requestedAt, plan.periodStart, plan.periodEnd)) {

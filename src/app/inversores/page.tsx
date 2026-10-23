@@ -13,7 +13,7 @@ export default function InversoresPage() {
       title="Encuentra empresas rentables antes de saber el nombre"
       lead="El catálogo enseña nickname, región, facturación, EBITDA y precio. Pides conexión cuando una operación encaja. La sociedad llega después del acuerdo."
       image="/product/inversor.jpg"
-      imageAlt="Empresas en venta en Releva, con filtros y fichas de proyecto"
+      imageAlt="Empresas en venta en Relify, con filtros y fichas de proyecto"
       featuresTitle="Busca, compara y sigue la operación en el mismo sitio"
       features={[
         {

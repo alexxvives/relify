@@ -43,3 +43,41 @@ export function isValidSpanishCif(value: string): boolean {
 
   return expected === String(control) || expected === letter;
 }
+
+const dniLetters = "TRWAGMYFPDXBNJZSQVHLCKE";
+
+function dniLetter(number: number): string {
+  return dniLetters[number % 23] ?? "";
+}
+
+export function isValidSpanishDni(value: string): boolean {
+  const id = normalizeCif(value);
+  const match = /^(\d{8})([A-Z])$/.exec(id);
+
+  if (!match?.[1] || !match[2]) {
+    return false;
+  }
+
+  return dniLetter(Number(match[1])) === match[2];
+}
+
+export function isValidSpanishNie(value: string): boolean {
+  const id = normalizeCif(value);
+  const match = /^([XYZ])(\d{7})([A-Z])$/.exec(id);
+
+  if (!match?.[1] || !match[2] || !match[3]) {
+    return false;
+  }
+
+  const prefixes: Record<string, string> = { X: "0", Y: "1", Z: "2" };
+  const prefix = prefixes[match[1]] ?? "";
+  return dniLetter(Number(`${prefix}${match[2]}`)) === match[3];
+}
+
+export function isValidSpanishPersonId(value: string): boolean {
+  return isValidSpanishDni(value) || isValidSpanishNie(value);
+}
+
+export function isValidSpanishTaxId(value: string): boolean {
+  return isValidSpanishPersonId(value) || isValidSpanishCif(value);
+}

@@ -6,6 +6,10 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-10-23: the home city glass vanished — class names were renamed Relify-* while CSS stayed .releva-* — keep the CSS prefix as releva- even when the visible brand says Relify.
+- 2026-10-23: onboarding accepted a company CIF as a personal id — the person step and the company NIF are different checks — keep DNI and NIE on the person step, and the CIF checksum on Verifica tu empresa.
+- 2026-10-23: a real DNI failed onboarding with the letter error — the field used the company CIF checksum — accept DNI, NIE, and CIF through isValidSpanishTaxId.
+- 2026-10-23: the favorite heart stayed an outline — animateicons HeartIcon puts className on a wrapper and the svg keeps fill none — use lucide Heart and set fill on the svg.
 - 2026-09-30: Shell commands failed with no exit status — the workspace directory did not exist yet, so the shell had no working directory — create the repo folder before any terminal call.
 - 2026-09-30: `docker compose up` could not reach the engine — Docker Desktop was installed but not running — start Docker Desktop before Compose.
 - 2026-09-30: `next dev` appended a Next.js block to `AGENTS.md` — `agentRules` defaults to true and writes that file — set `agentRules: false` in `next.config.ts` and keep the project instructions.

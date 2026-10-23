@@ -128,6 +128,18 @@ export function dataRoomSharedNotice(codename: string): { title: string; body: s
   };
 }
 
+export function processCancelledNotice(codename: string, who: "self" | "investor" | "seller"): { title: string; body: string } {
+  if (who === "investor") {
+    return { title: "Proceso cancelado", body: `Un inversor ha cancelado el proceso de ${codename}.` };
+  }
+
+  if (who === "seller") {
+    return { title: "Proceso cancelado", body: `La empresa ha cancelado el proceso de ${codename}.` };
+  }
+
+  return { title: "Proceso cancelado", body: `Has cancelado el proceso de ${codename}.` };
+}
+
 export function questionSentNotice(codename: string): { title: string; body: string } {
   return {
     title: "Pregunta enviada",

@@ -6,6 +6,7 @@ import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { CancelProcessButton } from "@/components/cancel-process-button";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -55,6 +56,7 @@ function SellerPending({
       >
         {sellerCopy.viewInvestor}
       </button>
+      <CancelProcessButton accessId={item.accessId} />
       <form action={action}>
         <input type="hidden" name="accessId" value={item.accessId} />
         <button
@@ -95,18 +97,25 @@ function ThreadList({
   emptyBody,
   today,
   advisors,
+  companyName = "",
+  elsewhere = null,
 }: {
   threads: SellerThread[];
   emptyTitle: string;
   emptyBody: string;
   today: string;
   advisors: AdvisorContactView[];
+  companyName?: string;
+  elsewhere?: string | null;
 }) {
   if (threads.length === 0) {
+    const title = companyName.length > 0 ? sellerCopy.activeEmptyFor(companyName) : emptyTitle;
+    const body = elsewhere ? sellerCopy.activeElsewhere(elsewhere) : emptyBody;
+
     return (
       <section className="mt-4 rounded-2xl border border-[#e6e9f0] bg-white p-6">
-        <h2 className="text-lg font-semibold">{emptyTitle}</h2>
-        <p className="mt-2 text-sm text-[#667085]">{emptyBody}</p>
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="mt-2 text-sm text-[#667085]">{body}</p>
       </section>
     );
   }
@@ -225,7 +234,10 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
           />
         </div>
-        <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
+        <div className="flex shrink-0 items-center gap-2">
+          <CancelProcessButton accessId={thread.accessId} />
+          <ProcessFichaLink href="/mi-empresa/detalles?seccion=price" />
+        </div>
         </div>
         {wantsAdvisor(thread.steps) ? (
           <Link
@@ -291,6 +303,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 files={thread.documents}
                 bodies={chat.map((message) => message.body)}
                 nda
+                ndaHref={`/acuerdos/nda/${thread.accessId}`}
                 empty={sellerCopy.documentsEmpty}
               />
             </div>
@@ -327,15 +340,19 @@ export function SellerProcesses({
   pendingMatches,
   today,
   advisors = [],
+  companyName = "",
+  elsewhere = null,
 }: {
   threads: SellerThread[];
   counts: MessageCounts;
   pendingMatches: PendingMatch[];
   today: string;
   advisors?: AdvisorContactView[];
+  companyName?: string;
+  elsewhere?: string | null;
 }) {
   const [tab, setTab] = useSessionChoice(
-    "releva:seller-process-tab",
+    "Relify:seller-process-tab",
     "active",
     tabs.map((item) => item.id),
   );
@@ -393,7 +410,15 @@ export function SellerProcesses({
         </div>
       ) : null}
       {tab === "active" ? (
-        <ThreadList threads={threads} emptyTitle={sellerCopy.activeEmpty} emptyBody={sellerCopy.activeEmptyBody} today={today} advisors={advisors} />
+        <ThreadList
+          threads={threads}
+          emptyTitle={sellerCopy.activeEmpty}
+          emptyBody={sellerCopy.activeEmptyBody}
+          today={today}
+          advisors={advisors}
+          companyName={companyName}
+          elsewhere={elsewhere}
+        />
       ) : null}
     </div>
   );

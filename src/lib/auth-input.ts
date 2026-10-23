@@ -3,7 +3,7 @@ import { authCopy } from "./auth-copy";
 import { isValidPhoneNational, phoneCountryByIso } from "./phone-countries";
 
 export { storedPhone } from "./phone-countries";
-import { isValidSpanishCif } from "./spanish-cif";
+import { isValidSpanishPersonId } from "./spanish-cif";
 
 export const signupRoles = ["seller", "investor", "advisor"] as const;
 
@@ -16,6 +16,18 @@ export type SignupRole = (typeof signupRoles)[number];
 export type UserRoleName = (typeof userRoles)[number];
 
 export type ReferralSource = (typeof referralSources)[number];
+
+export function referralSourceLabel(source: string | null | undefined): string | null {
+  if (source === undefined || source === null || source === "") {
+    return null;
+  }
+
+  if (!referralSources.some((item) => item === source)) {
+    return null;
+  }
+
+  return authCopy.referralSources[source as ReferralSource].label;
+}
 
 export type AuthResult = { ok: true } | { ok: false; message: string };
 
@@ -52,7 +64,7 @@ const nationalIdSchema = z.string().trim().superRefine((value, context) => {
     return;
   }
 
-  if (!isValidSpanishCif(value)) {
+  if (!isValidSpanishPersonId(value)) {
     context.addIssue({ code: "custom", message: "invalid" });
   }
 });

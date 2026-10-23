@@ -1,3 +1,4 @@
+import { referralSourceLabel } from "@/lib/auth-input";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
@@ -9,6 +10,7 @@ export type AdminAccountRow = {
   onboarded: boolean;
   suspended: boolean;
   plan: "none" | "limited" | "unlimited";
+  referralSource: string | null;
 };
 
 export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccountRow[] | null> {
@@ -26,6 +28,7 @@ export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccount
       role: true,
       onboardedAt: true,
       suspendedAt: true,
+      referralSource: true,
       billingCustomer: { select: { plan: true } },
     },
   });
@@ -38,5 +41,6 @@ export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccount
     onboarded: account.onboardedAt !== null,
     suspended: account.suspendedAt !== null,
     plan: account.billingCustomer?.plan ?? "none",
+    referralSource: referralSourceLabel(account.referralSource),
   }));
 }

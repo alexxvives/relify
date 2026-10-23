@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { CompanyNifForm } from "@/components/company-nif-form";
+import { CompanyNifDialog } from "@/components/company-nif-form";
 import { SellerOverview } from "@/components/seller-overview";
 import { SignedInPage } from "@/components/signed-in-page";
-import { companyCopy } from "@/lib/company-copy";
 import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
-import { sellerCopy, sellerGreeting } from "@/lib/seller-copy";
+import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
 import { getSellerOverview } from "@/server/getSellerOverview";
 import { listNotifications } from "@/server/listNotifications";
@@ -35,15 +34,6 @@ export default async function CompanyPage({
   }
 
   const nifVerified = await companyNifIsVerified(user);
-
-  if (!nifVerified) {
-    return (
-      <SignedInPage title={companyCopy.nifTitle}>
-        <CompanyNifForm />
-      </SignedInPage>
-    );
-  }
-
   const projectId = await activeSellerProjectId(user.id);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
   const listing = await getSellerListing(user.id);
@@ -57,7 +47,8 @@ export default async function CompanyPage({
   const messages = await listProjectMessages(user, null);
 
   return (
-    <SignedInPage title={sellerGreeting(user.displayName)}>
+    <SignedInPage title={sellerCopy.homeTitle}>
+      {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}

@@ -3,7 +3,7 @@ import { PublicSite } from "@/components/public-site";
 
 const copy = {
   kicker: "404",
-  title: "Esta página no está en Releva",
+  title: "Esta página no está en Relify",
   body: "El enlace no lleva a una ficha, a una cuenta ni a una nota del diario. Puedes volver al inicio, mirar empresas o entrar.",
   home: "Ir al inicio",
   catalog: "Empresas en venta",

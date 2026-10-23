@@ -8,6 +8,8 @@ import { documentDeskClass, FilePreviewDialog, fileHref, useModalScrollLock } fr
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { SignaturePad } from "@/components/signature-pad";
+import { platformTermsCopy } from "@/lib/platform-terms";
 import { acceptSellerLoiAction } from "@/app/mi-empresa/procesos/actions";
 import { passDiligenceAction } from "@/app/procesos/pass-action";
 import { AgreementSheet } from "@/components/agreement-sheet";
@@ -16,7 +18,7 @@ import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { stepCue, type DealStep, type DealViewer, type ProcessFile } from "@/lib/deal-pipeline";
 
-const loiReadyEvent = "releva-loi-ready";
+const loiReadyEvent = "Relify-loi-ready";
 
 function useLoiReady(slug: string | undefined): boolean {
   const [ready, setReady] = useState(false);
@@ -413,7 +415,7 @@ function DiligenceChoice({
         )}
         {inline ? null : (
           <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
-            Revisa con un asesor de Releva, o sigue a la documentación. El contrato lo sube el vendedor.
+            Revisa con un asesor de Relify, o sigue a la documentación. El contrato lo sube el vendedor.
           </p>
         )}
       </div>
@@ -455,7 +457,9 @@ function ProcessSignDialog({
   useModalScrollLock(true);
   const action = kind === "nda" ? acceptNdaAction : postInvestorMessageAction;
   const [state, formAction, pending] = useActionState(action, null);
-  const fileName = kind === "nda" ? "Acuerdo-de-confidencialidad.pdf" : "Carta-de-intenciones.pdf";
+  const [signature, setSignature] = useState("");
+  const [needsSignature, setNeedsSignature] = useState(false);
+  const fileName = kind === "nda" ? "Acuerdo de confidencialidad" : "Carta de intenciones";
   const submitLabel = kind === "nda" ? accessCopy.acceptAction : accessCopy.signLoi;
 
   useEffect(() => {
@@ -475,37 +479,72 @@ function ProcessSignDialog({
   }, [state]);
 
   return (
-    <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <p className="truncate text-sm font-medium">{fileName}</p>
+    <dialog
+      ref={dialogRef}
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(44rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
+      onClose={onClose}
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4">
+        <h2 className="text-lg font-semibold">{fileName}</h2>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-white/80">
+          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
-          <AgreementSheet text={agreement} />
+      <form
+        action={formAction}
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={(event) => {
+          if (kind === "nda" && signature.length === 0) {
+            event.preventDefault();
+            setNeedsSignature(false);
+            window.requestAnimationFrame(() => {
+              setNeedsSignature(true);
+            });
+          }
+        }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{agreement}</pre>
+          {kind === "nda" ? (
+            <div className="mt-5">
+              <input type="hidden" name="signature" value={signature} />
+              <SignaturePad
+                invalid={needsSignature}
+                onChange={(value) => {
+                  setSignature(value);
+                  if (value.length > 0) {
+                    setNeedsSignature(false);
+                  }
+                }}
+              />
+              {needsSignature ? (
+                <p role="alert" className="mt-2 text-sm text-[#c0362c]">
+                  {platformTermsCopy.signRequired}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
-      </div>
-      <form action={formAction} className="flex items-center justify-center gap-3 border-t border-white/10 px-4 py-3">
-        <input type="hidden" name="slug" value={slug} />
-        {kind === "loi" ? (
-          <>
-            <input type="hidden" name="kind" value="offer" />
-            <input type="hidden" name="body" value={agreement} />
-          </>
-        ) : null}
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
-        >
-          {pending ? "Firmando…" : submitLabel}
-        </button>
+        <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
+          <input type="hidden" name="slug" value={slug} />
+          {kind === "loi" ? (
+            <>
+              <input type="hidden" name="kind" value="offer" />
+              <input type="hidden" name="body" value={agreement} />
+            </>
+          ) : null}
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {pending ? "Firmando…" : submitLabel}
+          </button>
+        </div>
+        <SignError state={state} />
       </form>
-      <SignError state={state} />
     </dialog>
   );
 }
@@ -732,12 +771,14 @@ export function ProcessRoom({
   files,
   bodies,
   nda,
+  ndaHref = null,
   empty,
   prompt = null,
 }: {
   files: ProcessFile[];
   bodies: readonly string[];
   nda: boolean;
+  ndaHref?: string | null;
   empty: string;
   prompt?: ReactNode;
 }) {
@@ -766,10 +807,17 @@ export function ProcessRoom({
         <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
           <p className="text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{sellerCopy.documentsOther}</p>
           {nda ? (
-            <p className="mt-3 flex items-center gap-2 text-sm text-[#1c2740]">
-              <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-              {sellerCopy.ndaAcceptedRow}
-            </p>
+            ndaHref ? (
+              <a href={ndaHref} className="mt-3 flex items-center gap-2 text-sm font-medium text-[#465ab4] hover:underline">
+                <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+                {sellerCopy.ndaAcceptedRow}
+              </a>
+            ) : (
+              <p className="mt-3 flex items-center gap-2 text-sm text-[#1c2740]">
+                <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+                {sellerCopy.ndaAcceptedRow}
+              </p>
+            )
           ) : null}
           {hidden.length > 0 ? (
             <div className="mt-3">

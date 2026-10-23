@@ -63,7 +63,7 @@ function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date |
 export async function loadInvestorDesk(userId: string, email: string): Promise<InvestorDesk> {
   const [accesses, favorites, questions, meetings, hired] = await Promise.all([
     prisma.projectAccess.findMany({
-      where: { investorId: userId, project: { status: "published" } },
+      where: { investorId: userId, cancelledAt: null, project: { status: "published" } },
       select: {
         id: true,
         sellerAcceptedAt: true,

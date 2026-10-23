@@ -132,7 +132,7 @@ export function InvestorHome({
               <p className="mt-1 text-sm text-[#64748b]">{investorCopy.notificationsEmptyBody}</p>
             </div>
           ) : (
-            <NoticeList items={notifications} scroll />
+            <NoticeList items={notifications} scroll icons />
           )}
         </section>
         </div>

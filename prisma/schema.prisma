@@ -305,6 +305,9 @@ model ProjectAccess {
   ndaAcceptedAt      DateTime? @map("nda_accepted_at")
   loiAcceptedAt      DateTime? @map("loi_accepted_at")
   diligencePassedAt  DateTime? @map("diligence_passed_at")
+  cancelledAt        DateTime? @map("cancelled_at")
+  cancelledBy        String?   @map("cancelled_by")
+  ndaSignature       Bytes?    @map("nda_signature")
 
   @@unique([projectId, investorId])
   @@index([investorId])
@@ -551,6 +554,7 @@ model AdvisoryEngagement {
   depositSessionId     String?            @unique @map("deposit_session_id")
   declinedAt           DateTime?          @map("declined_at")
   advisorNdaAcceptedAt DateTime?          @map("advisor_nda_accepted_at")
+  advisorNdaSignature  Bytes?             @map("advisor_nda_signature")
   closedAt             DateTime?          @map("closed_at")
   chargedCents         Int?               @map("charged_cents")
   platformNetCents     Int?               @map("platform_net_cents")

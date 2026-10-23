@@ -13,7 +13,7 @@ export async function LandingPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Releva",
+    name: "Relify",
     url: new URL("/", siteUrl).href,
     description: landingCopy.home.description,
     inLanguage: "es",

@@ -658,19 +658,19 @@ function incomeSnapshot(year: ForecastYearInput): Record<string, string> {
 
 function panelStorageKey(id: string): string | null {
   if (id === "basic") {
-    return "releva:panel:basic";
+    return "Relify:panel:basic";
   }
   if (id === "income") {
-    return "releva:panel:income";
+    return "Relify:panel:income";
   }
   if (id === "balance") {
-    return "releva:panel:balance";
+    return "Relify:panel:balance";
   }
   if (id === "structure") {
-    return "releva:panel:structure";
+    return "Relify:panel:structure";
   }
   if (id === "deal") {
-    return "releva:panel:deal";
+    return "Relify:panel:deal";
   }
   return null;
 }
@@ -731,21 +731,21 @@ export function CompanyDraftForm({
   const [closedYears, setClosedYears] = useState(initial.closedYears);
   const [forecastYear, setForecastYear] = useState(initial.forecastYear);
   const [storedTab, setStoredTab] = useSessionChoice(
-    "releva:seller-tab",
+    "Relify:seller-tab",
     focus === "price" ? "deal" : "company",
     ["company", "deal"],
   );
   const [tabPin, setTabPin] = useState<"company" | "deal" | null>(focus === "price" ? "deal" : null);
   const tab = tabPin ?? storedTab;
   const [openBasic, setOpenBasic] = usePanelOpen(
-    "releva:panel:basic",
+    "Relify:panel:basic",
     focus === null || focus === "identity" || focus === "description" || focus === "cnae",
     focus === "identity" || focus === "description" || focus === "cnae",
   );
-  const [openIncome, setOpenIncome] = usePanelOpen("releva:panel:income", focus === "income", focus === "income");
-  const [openBalance, setOpenBalance] = usePanelOpen("releva:panel:balance", focus === "balance", focus === "balance");
+  const [openIncome, setOpenIncome] = usePanelOpen("Relify:panel:income", focus === "income", focus === "income");
+  const [openBalance, setOpenBalance] = usePanelOpen("Relify:panel:balance", focus === "balance", focus === "balance");
   const [openStructure, setOpenStructure] = usePanelOpen(
-    "releva:panel:structure",
+    "Relify:panel:structure",
     focus === "structure",
     focus === "structure",
   );
@@ -753,7 +753,7 @@ export function CompanyDraftForm({
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
   const [openDeal, setOpenDeal] = usePanelOpen(
-    "releva:panel:deal",
+    "Relify:panel:deal",
     focus === null || focus === "price",
     focus === "price",
   );

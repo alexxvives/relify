@@ -161,7 +161,7 @@ export function AdvisorContactDesk({
   pinned?: boolean;
   meetings?: boolean;
 }) {
-  const [openId, setOpenId] = useSessionString("releva:advisor-contact-open", contacts[0]?.id ?? "");
+  const [openId, setOpenId] = useSessionString("Relify:advisor-contact-open", contacts[0]?.id ?? "");
 
   if (contacts.length === 0) {
     return (

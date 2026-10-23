@@ -122,7 +122,7 @@ function SellerWorkspace() {
   return (
     <div className="overflow-hidden rounded-3xl border border-[#d7cfc3] bg-[#f6f1e8]" aria-label="Panel de empresa en venta">
       <div className="flex items-center justify-between bg-[#243140] px-5 py-3 text-white">
-        <span className="font-medium">Releva</span>
+        <span className="font-medium">Relify</span>
         <span className="text-xs text-white/70">Panel de empresa</span>
       </div>
       <div className="grid gap-4 p-4 sm:grid-cols-[1.15fr_0.85fr] sm:p-5">

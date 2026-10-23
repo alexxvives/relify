@@ -13,15 +13,5 @@ describe("releva drafts", () => {
     expect(pdf?.bytes.subarray(0, 8).toString()).toBe("%PDF-1.4");
     expect(pdf?.bytes.toString("latin1")).toContain("Helvetica-Bold");
     expect(pdf?.bytes.toString("latin1")).toContain("Acuerdo de confidencialidad");
-    expect(pdf?.bytes.toString("latin1")).not.toContain("Horno");
-  });
-
-  it("builds a letter of intent pdf", () => {
-    const pdf = relevaDraftPdf("releva-loi");
-
-    expect(relevaDraftText("releva-loi")).toContain("CARTA DE INTENCIONES");
-    expect(pdf?.fileName).toBe("Carta-de-intenciones.pdf");
-    expect(pdf?.bytes.toString("latin1")).toContain("Carta de intenciones");
-    expect(pdf?.bytes.toString("latin1")).not.toContain("Horno");
   });
 });

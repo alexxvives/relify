@@ -13,7 +13,7 @@ export default function EmpresasPage() {
       title="Vende tu empresa con la ficha bajo control"
       lead="Completas el perfil, publicas con un nombre de proyecto y sigues intereses, preguntas y reuniones desde el mismo sitio. La razón social no sale en la ficha."
       image="/product/empresa.jpg"
-      imageAlt="Inicio del vendedor en Releva, con facturación, gasto y el estado de la ficha"
+      imageAlt="Inicio del vendedor en Relify, con facturación, gasto y el estado de la ficha"
       featuresTitle="Preparación, visibilidad y el proceso en un solo panel"
       features={[
         {
@@ -22,7 +22,7 @@ export default function EmpresasPage() {
         },
         {
           title: "Cifras y actividad a la vista",
-          body: "Facturación, EBITDA, gasto, clientes y productos se leen en el inicio. El precio publicado es el de la operación, no una tarifa de Releva.",
+          body: "Facturación, EBITDA, gasto, clientes y productos se leen en el inicio. El precio publicado es el de la operación, no una tarifa de Relify.",
         },
         {
           title: "Interés sin nombres",
