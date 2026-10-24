@@ -9,6 +9,7 @@ import {
   Tags,
   Users,
   EyeOff,
+  Lock,
 } from "lucide-react";
 import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
@@ -164,6 +165,10 @@ export function CompanyProfile({
         </dl>
       </section>
 
+      {figuresOpen ? null : <LockedFiguresBanner note={lockedNote} action={lockAction} />}
+
+      {figuresOpen ? (
+      <>
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="estructura">
         <SectionTitle id="estructura" icon={PieChart} hint={companyCopy.structureHint}>
           {companyCopy.structureHeading}
@@ -203,7 +208,53 @@ export function CompanyProfile({
           <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
         </LockedFigures>
       </section>
+      </>
+      ) : null}
     </div>
+  );
+}
+
+/**
+ * One lock for all private figures (structure, P&L, balance): a single call to action and the three
+ * sections listed collapsed, instead of three identical blurred blocks.
+ */
+function LockedFiguresBanner({ note, action = null }: { note: string; action?: ReactNode }) {
+  const sections = [
+    { id: "estructura", icon: PieChart, title: companyCopy.structureHeading },
+    { id: "perdidas", icon: Receipt, title: companyCopy.incomeHeading },
+    { id: "balance", icon: Scale, title: companyCopy.balanceHeading },
+  ];
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white" aria-labelledby="cifras-bloqueadas">
+      <div className="relative max-h-56 overflow-hidden">
+        <div className="pointer-events-none select-none p-6 blur-md" aria-hidden>
+          <FigureVeil kind="income" />
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/55 px-6 text-center">
+          <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#eef1fb] text-[#465ab4]">
+            <Lock className="size-5" aria-hidden />
+          </span>
+          <h2 id="cifras-bloqueadas" className="text-xl font-semibold text-[#1c2740]">
+            Cifras detalladas bloqueadas
+          </h2>
+          <p className="max-w-md text-base text-[#3d4a63]">{note}</p>
+          {isValidElement(action) ? cloneElement(action) : action}
+        </div>
+      </div>
+      <ul className="divide-y divide-[#e7eaee] border-t border-[#e7eaee]">
+        {sections.map((item) => (
+          <li key={item.id} id={item.id} className="flex items-center gap-3 px-6 py-4">
+            <item.icon className="size-5 text-[#465ab4]" aria-hidden />
+            <span className="flex-1 text-base font-medium text-[#1c2740]">{item.title}</span>
+            <span className="inline-flex items-center gap-1.5 text-sm text-[#5c6b78]">
+              <Lock className="size-4" aria-hidden />
+              Bloqueado
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

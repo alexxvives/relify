@@ -193,7 +193,7 @@ export default async function ProjectDetailPage({
         <section className="border border-public-ink bg-public-card p-6 shadow-public sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-medium tracking-[0.28em] text-public-muted uppercase">{catalogCopy.detailKicker}</p>
+              <p className="text-xs font-medium text-public-muted">{catalogCopy.detailKicker}</p>
               <h1 className="releva-page-title mt-2 text-5xl leading-[0.96] text-public-ink sm:text-6xl">
                 {project.codename}
               </h1>
@@ -243,6 +243,15 @@ export default async function ProjectDetailPage({
               </div>
             ))}
           </dl>
+          {signedIn ? null : (
+            <Link
+              href="/entrar"
+              className="mt-6 inline-flex h-12 items-center gap-2 bg-public-clay px-6 text-base text-public-paper hover:bg-public-clay-deep"
+            >
+              <Lock className="size-4" aria-hidden />
+              Entra y conecta para ver las cifras
+            </Link>
+          )}
         </section>
       </main>
   );
