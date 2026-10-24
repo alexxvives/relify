@@ -20,6 +20,9 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
+import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
+import { formatEur } from "@/lib/money";
+import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
 import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
@@ -384,6 +387,57 @@ function FichaMetrics({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function euroCentsOrNull(value: string): number | null {
+  const trimmed = value.trim();
+  if (!unsignedEuroPattern.test(trimmed)) return null;
+  const cents = eurosToCents(trimmed);
+  return Number.isFinite(cents) ? cents : null;
+}
+
+function salesGrowth(years: ClosedYearInput[]): number | null {
+  const sales = years
+    .map((year) => ({ year: Number(year.year), cents: euroCentsOrNull(year.sales) }))
+    .filter((row): row is { year: number; cents: number } => Number.isInteger(row.year) && row.cents !== null && row.cents > 0)
+    .sort((a, b) => b.year - a.year);
+  if (sales.length < 2 || sales[0].year - sales[1].year !== 1) return null;
+  return sales[0].cents / sales[1].cents - 1;
+}
+
+function wholeEur(cents: number): string {
+  return formatEur(cents).replace(/,00 €$/, " €");
+}
+
+const standingCopy = {
+  below: { text: "Tu precio está por debajo del rango", className: "bg-[#eef1fb] text-[#465ab4]" },
+  within: { text: "Tu precio está dentro del rango", className: "bg-[#e8f6ee] text-[#17663a]" },
+  above: { text: "Tu precio está por encima del rango", className: "bg-[#fff4e0] text-[#8a5300]" },
+} as const;
+
+function PriceGuide({ estimate, askingCents, basis }: { estimate: PriceEstimate | null; askingCents: number | null; basis: string }) {
+  if (!estimate) {
+    return (
+      <p className="mt-4 rounded-2xl border border-dashed border-[#d9dee8] bg-[#f7f8fb] px-4 py-3 text-sm leading-6 text-[#3d4a63]">
+        Añade el EBITDA (o sube tus cuentas) y te mostraremos un rango de precio orientativo para tu sector.
+      </p>
+    );
+  }
+  const standing = askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
+  return (
+    <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3" aria-live="polite">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-base font-semibold text-[#1c2740]">
+          Rango estimado: <span className="tabular-nums">{wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}</span>
+        </p>
+        {standing ? <span className={`rounded-full px-3 py-1 text-sm font-semibold ${standing.className}`}>{standing.text}</span> : null}
+      </div>
+      <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
+        Orientativo: las empresas de {estimate.sectorLabel} suelen venderse por {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)} su {basis}
+        {estimate.adjustments.length > 0 ? `, ajustado por ${estimate.adjustments.join(" y ")}` : ""}. No es una valoración; el precio lo decides tú.
+      </p>
     </div>
   );
 }
@@ -1067,6 +1121,14 @@ export function CompanyDraftForm({
   const ebitdaCentsFromAccounts = accountYear ? incomeValue("ebitda", previewPnl(accountYear)) : null;
   const ebitdaFromAccounts =
     ebitdaCentsFromAccounts !== null && ebitdaCentsFromAccounts >= 0 ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
+  const adjustedEbitdaCents = euroCentsOrNull(adjustedEbitda);
+  const ebitdaBasisCents = adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? adjustedEbitdaCents : euroCentsOrNull(ebitdaFromAccounts ?? ebitda);
+  const priceEstimate = estimatePriceRange({
+    cnae: principalCnae,
+    ebitdaCents: ebitdaBasisCents,
+    headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
+    revenueGrowth: salesGrowth(closedYears),
+  });
   const dealNote =
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
@@ -1558,6 +1620,11 @@ export function CompanyDraftForm({
             adjustedEbitda={adjustedEbitda}
             onAdjustedEbitda={setAdjustedEbitda}
             margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+          />
+          <PriceGuide
+            estimate={priceEstimate}
+            askingCents={euroCentsOrNull(askingPrice)}
+            basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
           />
         </PublicFicha>
         <div className="mt-8 flex flex-col gap-4">
