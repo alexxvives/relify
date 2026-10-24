@@ -1,0 +1,24 @@
+import { prisma } from "@/server/db";
+import { getCurrentUser } from "@/server/getCurrentUser";
+import { pdfResponse, readSignedDocument } from "@/server/signedDocuments";
+
+export async function GET(request: Request, context: { params: Promise<{ accessId: string }> }): Promise<Response> {
+  const user = await getCurrentUser();
+  const { accessId } = await context.params;
+
+  if (!user?.onboarded) {
+    return new Response(null, { status: 404 });
+  }
+
+  const access = await prisma.projectAccess.findFirst({
+    where: { id: accessId, cancelledAt: null },
+    select: { investorId: true, project: { select: { ownerId: true } } },
+  });
+
+  if (!access || (access.investorId !== user.id && access.project.ownerId !== user.id)) {
+    return new Response(null, { status: 404 });
+  }
+
+  const document = await readSignedDocument("loi", accessId);
+  return document ? pdfResponse(document, new URL(request.url).searchParams.has("download")) : new Response(null, { status: 404 });
+}

@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Download, X } from "lucide-react";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { sellerCopy } from "@/lib/seller-copy";
 
+/** Centred document modal: a card over the page, never a full-screen takeover. */
 export const documentDeskClass =
-  "fixed inset-0 z-50 m-0 hidden h-dvh max-h-none w-dvw max-w-none translate-none flex-col overflow-hidden border-0 bg-[#3c4148] p-0 text-white shadow-none open:flex backdrop:bg-[#1c2740]/50";
+  "fixed top-1/2 left-1/2 z-50 m-0 hidden h-[min(88dvh,60rem)] max-h-none w-[min(60rem,calc(100vw-1.5rem))] max-w-none -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-[#f4f5f8] p-0 text-[#1c2740] shadow-[0_32px_80px_-24px_rgba(28,39,64,0.45)] open:flex backdrop:bg-[#1c2740]/45 backdrop:backdrop-blur-[2px]";
+
+export const documentDeskHeaderClass = "flex shrink-0 items-center justify-between gap-3 border-b border-[#e6e9f0] bg-white px-4 py-3 sm:px-5";
+
+/** Same file as an attachment download: our PDF routes honour ?download=1. */
+export function downloadHref(href: string): string {
+  return href.startsWith("/acuerdos/") || href.startsWith("/cuenta/acuerdo") ? `${href}${href.includes("?") ? "&" : "?"}download=1` : href;
+}
 
 function previewKind(fileName: string): "image" | "pdf" | null {
   if (/\.(png|jpe?g|gif|webp)$/i.test(fileName)) {
@@ -80,29 +89,50 @@ export function FilePreviewDialog({
 
   return (
     <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <p className="min-w-0 truncate text-sm font-medium">{file.fileName}</p>
-        <button
-          type="button"
-          onClick={() => {
-            dialogRef.current?.close();
-          }}
-          className="shrink-0 text-sm font-medium text-white/80"
-        >
-          {sellerCopy.closeDocument}
-        </button>
+      <div className={documentDeskHeaderClass}>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef0fb] text-[#465ab4]">
+            <FileTextIcon size={18} aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{file.fileName}</p>
+            <p className="truncate text-xs text-[#667085]">{file.folder}</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {file.href ? (
+            <a
+              href={downloadHref(file.href)}
+              download={file.fileName}
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#465ab4] px-3 text-sm font-medium text-white hover:bg-[#3b4da0] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+            >
+              <Download className="size-4" aria-hidden />
+              <span className="hidden sm:inline">Descargar</span>
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              dialogRef.current?.close();
+            }}
+            className="inline-flex size-9 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+            aria-label={sellerCopy.closeDocument}
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </div>
       </div>
-      <div className="min-h-0 flex-1 px-4 pb-6">
+      <div className="min-h-0 flex-1 p-3 sm:p-4">
         {file.href && kind === "pdf" ? (
-          <iframe title={file.fileName} src={file.href} className="h-full w-full bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]" />
+          <iframe title={file.fileName} src={file.href} className="h-full w-full rounded-lg border border-[#e6e9f0] bg-white" />
         ) : file.href && kind === "image" ? (
           <div className="flex h-full items-center justify-center">
             {/* Seller uploads are private bytes, not a remote image the optimizer can fetch. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={file.href} alt="" className="max-h-full max-w-3xl bg-white object-contain shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]" />
+            <img src={file.href} alt="" className="max-h-full max-w-full rounded-lg bg-white object-contain" />
           </div>
         ) : (
-          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center bg-white px-8 text-center text-[#1c2740] shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
+          <div className="flex h-full flex-col items-center justify-center rounded-lg border border-[#e6e9f0] bg-white px-8 text-center text-[#1c2740]">
             <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
             <h2 className="mt-4 text-lg font-semibold">{file.fileName}</h2>
             <p className="mt-1 text-sm text-[#667085]">{file.folder}</p>

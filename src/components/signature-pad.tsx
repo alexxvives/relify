@@ -3,6 +3,7 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { Eraser } from "lucide-react";
 import { platformTermsCopy } from "@/lib/platform-terms";
+import { useSigner } from "@/components/signer-context";
 
 function exportJpeg(canvas: HTMLCanvasElement): string {
   const copy = document.createElement("canvas");
@@ -30,6 +31,7 @@ export function SignaturePad({
   // Only a real stroke counts: a bare click must not produce a blank "signature".
   const moved = useRef(false);
   const [signed, setSigned] = useState(false);
+  const { nationalIdMissing } = useSigner();
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
@@ -56,6 +58,21 @@ export function SignaturePad({
 
   return (
     <div>
+      {nationalIdMissing ? (
+        <label className="mb-4 block">
+          <span className="text-sm font-medium text-[#1c2740]">DNI o NIE del firmante</span>
+          <span className="mt-0.5 block text-xs text-[#5c6b78]">Aparece en el documento firmado. Solo te lo pedimos una vez.</span>
+          <input
+            name="nationalId"
+            required
+            autoComplete="off"
+            inputMode="text"
+            maxLength={12}
+            placeholder="12345678Z"
+            className="mt-2 h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-sm text-[#1c2740] uppercase outline-none placeholder:text-[#98a2b3] placeholder:normal-case focus:border-[#465ab4] focus:ring-2 focus:ring-[#465ab4]/20"
+          />
+        </label>
+      ) : null}
       <p className="text-sm font-medium text-[#1c2740]">{platformTermsCopy.signLabel}</p>
       <div className="relative mt-2">
         <canvas

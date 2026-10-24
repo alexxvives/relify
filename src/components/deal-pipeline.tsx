@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Check, ShieldCheck } from "lucide-react";
-import { documentDeskClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
+import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
@@ -12,7 +12,6 @@ import { SignaturePad } from "@/components/signature-pad";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { acceptSellerLoiAction } from "@/app/mi-empresa/procesos/actions";
 import { passDiligenceAction } from "@/app/procesos/pass-action";
-import { AgreementSheet } from "@/components/agreement-sheet";
 import { attachmentNames } from "@/lib/meeting";
 import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -496,7 +495,7 @@ function ProcessSignDialog({
         action={formAction}
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={(event) => {
-          if (kind === "nda" && signature.length === 0) {
+          if (signature.length === 0) {
             event.preventDefault();
             setNeedsSignature(false);
             window.requestAnimationFrame(() => {
@@ -508,7 +507,7 @@ function ProcessSignDialog({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{agreement}</pre>
         </div>
-        {kind === "nda" ? (
+        {(
           <div className="shrink-0 border-t border-[#eef0f3] px-5 pt-3 pb-1">
             <input type="hidden" name="signature" value={signature} />
             <SignaturePad
@@ -526,7 +525,7 @@ function ProcessSignDialog({
               </p>
             ) : null}
           </div>
-        ) : null}
+        )}
         <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
           <input type="hidden" name="slug" value={slug} />
           {kind === "loi" ? (
@@ -549,7 +548,7 @@ function ProcessSignDialog({
   );
 }
 
-function AcceptLoiDialog({ accessId, body, onClose }: { accessId: string; body: string; onClose: () => void }) {
+function AcceptLoiDialog({ accessId, onClose }: { accessId: string; body: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useModalScrollLock(true);
   const [state, formAction, pending] = useActionState(acceptSellerLoiAction, null);
@@ -572,20 +571,18 @@ function AcceptLoiDialog({ accessId, body, onClose }: { accessId: string; body: 
 
   return (
     <dialog ref={dialogRef} className={documentDeskClass} onClose={onClose}>
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <p className="truncate text-sm font-medium">Carta-de-intenciones.pdf</p>
+      <div className={documentDeskHeaderClass}>
+        <p className="truncate text-sm font-semibold">Carta-de-intenciones.pdf</p>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-white/80">
+          <button type="submit" className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740]">
             Cerrar
           </button>
         </form>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="mx-auto max-w-3xl bg-white shadow-[0_18px_50px_-24px_rgba(0,0,0,0.65)]">
-          <AgreementSheet text={body} />
-        </div>
+      <div className="min-h-0 flex-1 p-3 sm:p-4">
+        <iframe title="Carta de intenciones" src={`/acuerdos/loi/${accessId}`} className="h-full w-full rounded-lg border border-[#e6e9f0] bg-white" />
       </div>
-      <form action={formAction} className="flex items-center justify-center border-t border-white/10 px-4 py-3">
+      <form action={formAction} className="flex shrink-0 items-center justify-end border-t border-[#e6e9f0] bg-white px-4 py-3">
         <input type="hidden" name="accessId" value={accessId} />
         <button
           type="submit"
@@ -767,11 +764,25 @@ export function SignBubble({
   );
 }
 
+function SignedDocumentRow({ label, onOpen }: { label: string; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="mt-3 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm font-medium text-[#465ab4] hover:bg-white"
+    >
+      <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+      <span className="min-w-0 truncate">{label}</span>
+    </button>
+  );
+}
+
 export function ProcessRoom({
   files,
   bodies,
   nda,
   ndaHref = null,
+  loiHref = null,
   empty,
   prompt = null,
 }: {
@@ -779,6 +790,7 @@ export function ProcessRoom({
   bodies: readonly string[];
   nda: boolean;
   ndaHref?: string | null;
+  loiHref?: string | null;
   empty: string;
   prompt?: ReactNode;
 }) {
@@ -788,7 +800,8 @@ export function ProcessRoom({
   const sent = attachmentNames(bodies);
   const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);
-  const other = nda || hidden.length > 0 || sent.length > 0;
+  const [openSigned, setOpenSigned] = useState<{ fileName: string; href: string } | null>(null);
+  const other = nda || loiHref !== null || hidden.length > 0 || sent.length > 0;
 
   return (
     <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -808,16 +821,26 @@ export function ProcessRoom({
           <p className="text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{sellerCopy.documentsOther}</p>
           {nda ? (
             ndaHref ? (
-              <a href={ndaHref} className="mt-3 flex items-center gap-2 text-sm font-medium text-[#465ab4] hover:underline">
-                <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-                {sellerCopy.ndaAcceptedRow}
-              </a>
+              <SignedDocumentRow
+                label={sellerCopy.ndaAcceptedRow}
+                onOpen={() => {
+                  setOpenSigned({ fileName: "Acuerdo-de-confidencialidad.pdf", href: ndaHref });
+                }}
+              />
             ) : (
               <p className="mt-3 flex items-center gap-2 text-sm text-[#1c2740]">
                 <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
                 {sellerCopy.ndaAcceptedRow}
               </p>
             )
+          ) : null}
+          {loiHref ? (
+            <SignedDocumentRow
+              label="Carta de intenciones firmada"
+              onOpen={() => {
+                setOpenSigned({ fileName: "Carta-de-intenciones.pdf", href: loiHref });
+              }}
+            />
           ) : null}
           {hidden.length > 0 ? (
             <div className="mt-3">
@@ -858,6 +881,12 @@ export function ProcessRoom({
         }
         onClose={() => {
           setOpenFile(null);
+        }}
+      />
+      <FilePreviewDialog
+        file={openSigned ? { fileName: openSigned.fileName, folder: "Firmado en Relify", href: openSigned.href } : null}
+        onClose={() => {
+          setOpenSigned(null);
         }}
       />
     </section>

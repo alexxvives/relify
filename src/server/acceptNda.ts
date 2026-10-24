@@ -1,3 +1,4 @@
+import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { incomingNdaNotice, ndaAcceptedNotice } from "@/lib/notifications";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
@@ -50,6 +51,7 @@ export async function acceptNda(
       where: { id: existing.id },
       data: { ndaAcceptedAt: acceptedAt, ndaSignature: signatureBytes(signature) },
     });
+    await storeSignedDocumentQuietly("nda", existing.id);
     const href = `/proyectos/${project.slug}`;
     const investorNotice = ndaAcceptedNotice(project.codename);
     await recordNotification({ userId: user.id, ...investorNotice, href });

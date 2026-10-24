@@ -6,6 +6,7 @@ import { accessCopy } from "@/lib/access-copy";
 import { projectAccessInputSchema, type ProjectAccessInput } from "@/lib/project-access";
 import { acceptNda } from "@/server/acceptNda";
 import { cancelProjectAccess } from "@/server/cancelProjectAccess";
+import { ensureNationalId } from "@/server/ensureNationalId";
 import { getCurrentUser, type CurrentUser } from "@/server/getCurrentUser";
 import { requestProjectAccess } from "@/server/requestProjectAccess";
 import { companyCopy } from "@/lib/company-copy";
@@ -76,6 +77,11 @@ export async function acceptNdaAction(
     return { ok: false, message: input.message };
   }
 
+  const idError = await ensureNationalId(user.id, formData.get("nationalId"));
+  if (idError) {
+    return { ok: false, message: idError };
+  }
+
   const result = await acceptNda(user, input, formData.get("signature"));
 
   if (result.ok) {
@@ -124,7 +130,14 @@ export async function postInvestorMessageAction(
     return { ok: false, message: written.length === 0 ? companyCopy.messageInvalid : companyCopy.messageFailed };
   }
 
-  const result = await postInvestorMessage(user, parsed.data);
+  if (parsed.data.kind === "offer") {
+    const idError = await ensureNationalId(user.id, formData.get("nationalId"));
+    if (idError) {
+      return { ok: false, message: idError };
+    }
+  }
+
+  const result = await postInvestorMessage(user, parsed.data, formData.get("signature"));
 
   if (result.ok) {
     revalidatePath(`/proyectos/${parsed.data.slug}`);

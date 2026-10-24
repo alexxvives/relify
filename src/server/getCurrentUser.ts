@@ -15,6 +15,8 @@ export type CurrentUser = {
   onboarded: boolean;
   termsAccepted: boolean;
   termsAcceptedAt: Date | null;
+  /** Signed documents show the DNI/NIE; older accounts may still need to add it. */
+  nationalIdMissing: boolean;
 };
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
@@ -34,7 +36,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const stored = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, lastName: true, phone: true, email: true, role: true, onboardedAt: true, termsAcceptedAt: true, suspendedAt: true },
+    select: { name: true, lastName: true, phone: true, email: true, role: true, onboardedAt: true, termsAcceptedAt: true, suspendedAt: true, nationalId: true },
   });
 
   if (!stored || stored.suspendedAt !== null) {
@@ -52,5 +54,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     onboarded: stored.onboardedAt !== null,
     termsAccepted: stored.termsAcceptedAt !== null,
     termsAcceptedAt: stored.termsAcceptedAt,
+    nationalIdMissing: !stored.nationalId,
   };
 });

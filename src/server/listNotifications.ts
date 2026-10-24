@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { NotificationView } from "@/lib/notifications";
 import { prisma } from "@/server/db";
 
@@ -10,7 +11,8 @@ function noticeDate(value: Date): string {
   }).format(value);
 }
 
-export async function listNotifications(userId: string): Promise<NotificationView[]> {
+// Cached per request: the shell and the page both ask for the same list.
+export const listNotifications = cache(async (userId: string): Promise<NotificationView[]> => {
   const rows = await prisma.notification.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -26,4 +28,4 @@ export async function listNotifications(userId: string): Promise<NotificationVie
     when: noticeDate(row.createdAt),
     unread: row.readAt === null,
   }));
-}
+});

@@ -308,6 +308,8 @@ model ProjectAccess {
   cancelledAt        DateTime? @map("cancelled_at")
   cancelledBy        String?   @map("cancelled_by")
   ndaSignature       Bytes?    @map("nda_signature")
+  loiSignature       Bytes?    @map("loi_signature")
+  loiSignedAt        DateTime? @map("loi_signed_at")
 
   @@unique([projectId, investorId])
   @@index([investorId])
@@ -634,4 +636,19 @@ model SuccessFee {
   recordedAt        DateTime @default(now()) @map("recorded_at")
 
   @@map("success_fee")
+}
+
+// PDF of a signed agreement, rendered once at signing time and served for download.
+// key = "<kind>:<ref id>" (nda:<accessId>, loi:<accessId>, advisor_nda:<engagementId>, terms:<userId>).
+model SignedDocument {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  kind      String
+  userId    String   @map("user_id")
+  fileName  String   @map("file_name")
+  pdf       Bytes
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("signed_document")
 }

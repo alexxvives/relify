@@ -12,12 +12,16 @@ import { sellerReplyNotice } from "@/lib/notifications";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
+import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
+import { platformTermsCopy } from "@/lib/platform-terms";
+import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
 
 export type MessageWriteResult = { ok: true } | { ok: false; message: string };
 
 export async function postInvestorMessage(
   user: CurrentUser,
   input: InvestorMessageInput,
+  signatureValue?: unknown,
 ): Promise<MessageWriteResult> {
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
@@ -26,7 +30,7 @@ export async function postInvestorMessage(
   const access = project
     ? await prisma.projectAccess.findUnique({
         where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { ndaAcceptedAt: true, sellerAcceptedAt: true },
+        select: { id: true, ndaAcceptedAt: true, sellerAcceptedAt: true },
       })
     : null;
   const gate = ndaAccessGate({
@@ -44,6 +48,12 @@ export async function postInvestorMessage(
     return { ok: false, message: accessMessage("waiting") };
   }
 
+  // A letter of intent is signed: the drawn signature is stored with it and the PDF is kept.
+  const loiSignature = input.kind === "offer" ? signatureJpeg(signatureValue) : null;
+  if (input.kind === "offer" && !loiSignature) {
+    return { ok: false, message: platformTermsCopy.signRequired };
+  }
+
   await prisma.projectMessage.create({
     data: {
       id: randomUUID(),
@@ -54,6 +64,13 @@ export async function postInvestorMessage(
       body: input.body,
     },
   });
+  if (loiSignature) {
+    await prisma.projectAccess.update({
+      where: { id: access.id },
+      data: { loiSignature: signatureBytes(loiSignature), loiSignedAt: new Date() },
+    });
+    await storeSignedDocumentQuietly("loi", access.id);
+  }
   if (project.ownerId && project.ownerId !== user.id) {
     await recordNotification({
       userId: project.ownerId,

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
+import { SignerProvider } from "@/components/signer-context";
 import { destinationsForRole } from "@/lib/shell";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
@@ -35,6 +36,7 @@ export async function AppShell({
   ]);
 
   return (
+    <SignerProvider nationalIdMissing={user.nationalIdMissing}>
     <AppFrame
       name={user.displayName}
       destinations={destinationsForRole(user.role)}
@@ -51,5 +53,6 @@ export async function AppShell({
       {children}
       {user.termsAccepted ? null : <PlatformTermsDialog />}
     </AppFrame>
+    </SignerProvider>
   );
 }

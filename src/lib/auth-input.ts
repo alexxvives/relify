@@ -58,7 +58,7 @@ export function splitAccountName(value: string): { name: string; lastName: strin
   return { name, lastName };
 }
 
-const nationalIdSchema = z.string().trim().superRefine((value, context) => {
+export const nationalIdSchema = z.string().trim().superRefine((value, context) => {
   if (value.length === 0) {
     context.addIssue({ code: "custom", message: "required" });
     return;

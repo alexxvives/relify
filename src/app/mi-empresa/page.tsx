@@ -35,19 +35,22 @@ export default async function CompanyPage({
     await fulfillCheckout(query.session_id, user.id);
   }
 
-  const nifVerified = await companyNifIsVerified(user);
-  const projectId = await activeSellerProjectId(user.id);
+  // One round trip per wave instead of eleven sequential queries.
+  const [nifVerified, projectId, listing, notifications, overview, messages, cancelled] = await Promise.all([
+    companyNifIsVerified(user),
+    activeSellerProjectId(user.id),
+    getSellerListing(user.id),
+    listNotifications(user.id),
+    getSellerOverview(user.id),
+    listProjectMessages(user, null),
+    listCancelledProcesses(user),
+  ]);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const listing = await getSellerListing(user.id);
-  const interests = await prisma.projectAccess.count({ where: { project: projectScope } });
-  const questions = await prisma.projectMessage.count({
-    where: { project: projectScope, author: "investor", kind: "question" },
-  });
-  const meetings = await prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } });
-  const notifications = await listNotifications(user.id);
-  const overview = await getSellerOverview(user.id);
-  const messages = await listProjectMessages(user, null);
-  const cancelled = await listCancelledProcesses(user);
+  const [interests, questions, meetings] = await Promise.all([
+    prisma.projectAccess.count({ where: { project: projectScope } }),
+    prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
+    prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
+  ]);
 
   return (
     <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>

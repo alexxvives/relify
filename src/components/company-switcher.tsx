@@ -21,7 +21,7 @@ function AddCompanyButton({ prominent, onOpen }: { prominent: boolean; onOpen: (
       onClick={onOpen}
       className={
         prominent
-          ? "inline-flex h-11 items-center gap-2 rounded-full border border-public-line bg-public-paper px-3 text-sm font-medium text-public-ink hover:bg-public-sand"
+          ? "flex h-12 w-full items-center gap-2 rounded-xl border border-dashed border-public-line bg-public-paper px-3 text-sm font-medium text-public-ink hover:bg-public-sand"
           : "inline-flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-public-clay hover:bg-public-sand"
       }
     >
@@ -157,7 +157,7 @@ export function CompanySwitcher({
   const currentLabel = sellerCompanyLabel(current.legalName, current.codename);
 
   return (
-    <div ref={rootRef} className="relative min-w-0">
+    <div ref={rootRef} className="relative w-full min-w-0">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -166,17 +166,23 @@ export function CompanySwitcher({
         onClick={() => {
           setOpen((value) => !value);
         }}
-        className="inline-flex h-11 max-w-72 items-center gap-2 rounded-full border border-public-line bg-public-paper px-3 text-sm font-medium text-public-ink hover:bg-public-sand"
+        className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-public-line bg-public-paper px-2.5 text-left text-public-ink transition-colors duration-150 hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
       >
-        <span className="truncate">{currentLabel}</span>
-        <ChevronDownIcon size={16} className={open ? "rotate-180 text-public-muted" : "text-public-muted"} aria-hidden />
+        <span aria-hidden className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#465ab4] text-sm font-semibold text-white">
+          {currentLabel.trim().charAt(0).toUpperCase() || "E"}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="text-[11px] font-medium tracking-wide text-public-muted uppercase">{sellerCopy.companiesCurrent}</span>
+          <span className="truncate text-sm font-medium">{currentLabel}</span>
+        </span>
+        <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-public-muted" : "shrink-0 text-public-muted"} aria-hidden />
       </button>
       {open ? (
         <div
           id={panelId}
           role="listbox"
           aria-label={sellerCopy.companiesLabel}
-          className="absolute top-12 left-0 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-public-line bg-white shadow-[0_18px_50px_-28px_rgba(28,39,64,0.45)]"
+          className="absolute top-14 left-0 z-50 w-[max(100%,min(20rem,calc(100vw-2rem)))] overflow-hidden rounded-2xl border border-public-line bg-white shadow-[0_18px_50px_-28px_rgba(28,39,64,0.45)]"
         >
           <p className="px-3 pt-3 pb-1 text-xs font-medium tracking-wide text-public-muted">{sellerCopy.companiesCurrent}</p>
           <div className="max-h-64 overflow-y-auto p-1">

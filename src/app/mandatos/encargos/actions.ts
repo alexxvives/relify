@@ -12,6 +12,7 @@ import {
   setAdvisorFolder,
   setAdvisorProcess,
 } from "@/server/advisoryEngagement";
+import { ensureNationalId } from "@/server/ensureNationalId";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/server/startCheckout";
 
@@ -108,6 +109,11 @@ export async function acceptAdvisorNdaAction(
 ): Promise<EngagementActionState> {
   const user = await signedIn();
   const id = readText(formData, "engagementId");
+  const idError = await ensureNationalId(user.id, formData.get("nationalId"));
+  if (idError) {
+    return { ok: false, message: idError };
+  }
+
   const result = await acceptAdvisorNda(user, id, formData.get("signature"));
 
   if (result.ok) {

@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useState } from "react";
 import { postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { AgreementSheet } from "@/components/agreement-sheet";
-import { SignBubble } from "@/components/deal-pipeline";
+import { FilePreviewDialog } from "@/components/file-preview-dialog";
+import { FileTextIcon } from "@/components/ui/file-text";
 import { accessCopy } from "@/lib/access-copy";
 
 const buttonClassName =
@@ -21,54 +22,55 @@ function SignError({ state }: { state: ProjectAccessActionState }) {
   );
 }
 
-export function LoiCard({ slug, agreement, signedBody }: { slug: string; agreement: string; signedBody: string | null }) {
+export function LoiCard({
+  slug,
+  agreement,
+  signedBody,
+  accessId,
+}: {
+  slug: string;
+  agreement: string;
+  signedBody: string | null;
+  accessId: string;
+}) {
   if (signedBody !== null) {
-    return (
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
-        <h2 id="carta-intenciones" className="text-xl font-semibold">
-          {accessCopy.loiHeading}
-        </h2>
-        <p className="mt-2 text-sm font-medium text-[#17663a]">{accessCopy.loiSigned}</p>
-        <div className="mt-4">
-          <AgreementSheet text={signedBody} />
-        </div>
-      </section>
-    );
+    return <SignedLoi accessId={accessId} />;
   }
 
   return <LoiSign slug={slug} agreement={agreement} />;
 }
 
-export function LoiSignBubble({ slug, agreement }: { slug: string; agreement: string }) {
-  const [state, action, pending] = useActionState(postInvestorMessageAction, null);
+function SignedLoi({ accessId }: { accessId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <SignBubble fileName="Carta-de-intenciones.pdf" body="Ábrela, léela y fírmala desde aquí. No hace falta salir del chat.">
+    <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
+      <h2 id="carta-intenciones" className="text-xl font-semibold">
+        {accessCopy.loiHeading}
+      </h2>
+      <p className="mt-2 text-sm font-medium text-[#17663a]">{accessCopy.loiSigned}</p>
       <button
         type="button"
-        className="text-sm font-semibold text-[#465ab4] hover:underline"
         onClick={() => {
-          setOpen((current) => !current);
+          setOpen(true);
         }}
+        className="mt-4 flex w-full max-w-md items-center gap-3 rounded-xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3 text-left hover:border-[#465ab4]/40 hover:bg-white"
       >
-        {open ? "Cerrar documento" : "Abrir documento"}
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#eef0fb] text-[#465ab4]">
+          <FileTextIcon size={20} aria-hidden />
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold text-[#1c2740]">Carta-de-intenciones.pdf</span>
+          <span className="block text-xs text-[#667085]">Firmada en Relify · Ver o descargar</span>
+        </span>
       </button>
-      {open ? (
-        <div className="mt-2 max-h-72 overflow-y-auto">
-          <AgreementSheet text={agreement} />
-        </div>
-      ) : null}
-      <form action={action} className="mt-3 flex flex-col items-start gap-2">
-        <input type="hidden" name="slug" value={slug} />
-        <input type="hidden" name="kind" value="offer" />
-        <input type="hidden" name="body" value={agreement} />
-        <button type="submit" className={buttonClassName} disabled={pending}>
-          {accessCopy.signLoi}
-        </button>
-        <SignError state={state} />
-      </form>
-    </SignBubble>
+      <FilePreviewDialog
+        file={open ? { fileName: "Carta-de-intenciones.pdf", folder: "Firmado en Relify", href: `/acuerdos/loi/${accessId}` } : null}
+        onClose={() => {
+          setOpen(false);
+        }}
+      />
+    </section>
   );
 }
 

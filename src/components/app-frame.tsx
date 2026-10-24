@@ -226,38 +226,38 @@ export function AppFrame({
         data-open={open ? "true" : "false"}
         className="shell-sidebar"
       >
-        <div className="shell-head relative z-20 flex flex-wrap items-center justify-between gap-2 px-4 pt-5 pb-2">
-          <div className="flex min-w-0 items-center gap-3">
-            <Link href={home} onClick={closeMenu} className="shell-full shrink-0" aria-label="Relify">
+        <div className="shell-head relative z-20 flex flex-col gap-3 px-4 pt-5 pb-2">
+          {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
               <Logo />
             </Link>
-          </div>
-          <div className="shell-tools flex shrink-0 items-center gap-1">
-            {showPremium ? (
-              <Link
-                href="/premium"
+            <div className="shell-tools flex shrink-0 items-center gap-1">
+              <NotificationBell items={notifications} />
+              <button
+                type="button"
                 onClick={closeMenu}
-                className="shell-full group inline-flex h-10 items-center gap-2 rounded-full bg-public-clay px-3 text-sm text-white hover:bg-public-clay-deep"
+                className="shell-close inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
               >
-                <CrownIcon size={16} aria-hidden />
-                {sellerCopy.premium}
-              </Link>
-            ) : null}
-            {canManageCompanies ? (
-              <span className="shell-full">
-                <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
-              </span>
-            ) : null}
-            <NotificationBell items={notifications} />
-            <button
-              type="button"
-              onClick={closeMenu}
-              className="shell-close inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
-            >
-              <XIcon size={16} aria-hidden />
-              <span className="sr-only">{shellCopy.menuClose}</span>
-            </button>
+                <XIcon size={16} aria-hidden />
+                <span className="sr-only">{shellCopy.menuClose}</span>
+              </button>
+            </div>
           </div>
+          {/* Row 2: the active company spans the full sidebar width. */}
+          {showPremium ? (
+            <Link
+              href="/premium"
+              onClick={closeMenu}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-public-clay-deep"
+            >
+              <CrownIcon size={16} aria-hidden />
+              {sellerCopy.premium}
+            </Link>
+          ) : null}
+          {canManageCompanies ? (
+            <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+          ) : null}
         </div>
         <nav aria-label={shellCopy.navLabel} className="shell-nav flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-3">
           {destinations.map((item, index) => {

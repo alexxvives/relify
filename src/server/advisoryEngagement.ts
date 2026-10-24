@@ -1,3 +1,4 @@
+import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { randomUUID } from "node:crypto";
 import { advisorIsListed } from "@/lib/advisor-directory";
 import { advisorInterestBody, advisoryServices } from "@/lib/advisory";
@@ -731,6 +732,7 @@ export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureV
       where: { id: row.id },
       data: { advisorNdaAcceptedAt: new Date(), advisorNdaSignature: signatureBytes(signature) },
     });
+    await storeSignedDocumentQuietly("advisor_nda", row.id);
   }
 
   return { ok: true, message: engagementCopy.ndaSigned };

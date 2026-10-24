@@ -305,6 +305,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 bodies={chat.map((message) => message.body)}
                 nda
                 ndaHref={`/acuerdos/nda/${thread.accessId}`}
+                loiHref={thread.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${thread.accessId}` : null}
                 empty={sellerCopy.documentsEmpty}
               />
             </div>

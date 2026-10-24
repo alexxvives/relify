@@ -121,7 +121,7 @@ export function InvestorProject({
       </CompanyBanner>
 
       {access === "accepted" && signedOffer ? (
-        <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} />
+        <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} accessId={accessId} />
       ) : null}
 
       <InvestorProjectTabs
@@ -168,6 +168,7 @@ export function InvestorProject({
                 bodies={chat.map((message) => message.body)}
                 nda
                 ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
+                loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
                 empty={sellerCopy.documentsEmpty}
               />
             </section>
