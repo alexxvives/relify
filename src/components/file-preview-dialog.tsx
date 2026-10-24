@@ -1,5 +1,7 @@
 "use client";
 
+import { PdfPages } from "@/components/pdf-pages";
+
 import { useEffect, useRef } from "react";
 import { Download, X } from "lucide-react";
 import { FileTextIcon } from "@/components/ui/file-text";
@@ -124,7 +126,7 @@ export function FilePreviewDialog({
       </div>
       <div className="min-h-0 flex-1 p-3 sm:p-4">
         {file.href && kind === "pdf" ? (
-          <iframe title={file.fileName} src={file.href} className="h-full w-full rounded-lg border border-[#e6e9f0] bg-white" />
+          <PdfPages title={file.fileName} src={file.href} />
         ) : file.href && kind === "image" ? (
           <div className="flex h-full items-center justify-center">
             {/* Seller uploads are private bytes, not a remote image the optimizer can fetch. */}

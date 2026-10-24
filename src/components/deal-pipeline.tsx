@@ -1,5 +1,7 @@
 "use client";
 
+import { PdfPages } from "@/components/pdf-pages";
+
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -580,7 +582,7 @@ function AcceptLoiDialog({ accessId, onClose }: { accessId: string; body: string
         </form>
       </div>
       <div className="min-h-0 flex-1 p-3 sm:p-4">
-        <iframe title="Carta de intenciones" src={`/acuerdos/loi/${accessId}`} className="h-full w-full rounded-lg border border-[#e6e9f0] bg-white" />
+        <PdfPages title="Carta de intenciones" src={`/acuerdos/loi/${accessId}`} />
       </div>
       <form action={formAction} className="flex shrink-0 items-center justify-end border-t border-[#e6e9f0] bg-white px-4 py-3">
         <input type="hidden" name="accessId" value={accessId} />
