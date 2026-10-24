@@ -41,8 +41,8 @@ export function CountDonut({
   });
 
   return (
-    <div className="mt-4 rounded-xl bg-[#f4f7ff] p-4">
-      <div className="grid items-center gap-4 sm:grid-cols-[9rem_minmax(0,1fr)]">
+    <div className="@container mt-4 rounded-xl bg-[#f4f7ff] p-4">
+      <div className="grid items-center gap-4 @md:grid-cols-[8rem_minmax(0,1fr)]">
         <svg viewBox="0 0 42 42" className="mx-auto h-auto w-full max-w-36" aria-hidden="true">
           <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e6e9f0" strokeWidth="6" />
           {rings.map((ring) => (
@@ -68,7 +68,7 @@ export function CountDonut({
             />
           ))}
         </svg>
-        <ul className="flex flex-col gap-1 text-sm text-[#3d4a63]">
+        <ul className="flex min-w-0 flex-col gap-1 text-sm text-[#3d4a63]">
           {rows.map((row, index) => {
             const share = total === 0 ? 0 : Math.round((row.value / total) * 100);
             const color = colors[index % colors.length] ?? "#465ab4";
@@ -90,9 +90,9 @@ export function CountDonut({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-                  <span className="truncate">{row.label}</span>
+                  <span className="min-w-0 break-words">{row.label}</span>
                 </span>
-                <span className="font-semibold text-[#1c2740] tabular-nums">
+                <span className="shrink-0 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
                   {row.value}
                   <span className="ml-2 font-medium text-[#667085]">{share} %</span>
                 </span>

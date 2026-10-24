@@ -1969,14 +1969,11 @@
   }
 }
 
-@media (min-width: 1280px) {
-  :root {
-    --layout-sidebar: 30rem;
-  }
-}
-
 .shell {
   min-width: 0;
+  --layout-rail: 4.5rem;
+  --layout-sidebar: 15.5rem;
+  --layout-max: 90rem;
 }
 
 .shell-backdrop {
@@ -1987,20 +1984,28 @@
   background: rgb(18 52 58 / 0.3);
 }
 
+/* Mobile and tablet: the sidebar is an off-canvas drawer. */
 .shell-sidebar {
   position: fixed;
   inset-block: 0;
   left: 0;
   z-index: 40;
   display: none;
-  width: min(22rem, calc(100% - 1rem));
+  width: min(18rem, calc(100% - 3rem));
+  height: 100dvh;
   flex-direction: column;
   border-right: 1px solid var(--public-line);
   background: var(--public-card);
+  box-shadow: 0 24px 48px rgb(18 52 58 / 0.18);
 }
 
 .shell-sidebar[data-open="true"] {
   display: flex;
+}
+
+.shell-mark,
+.shell-rail-toggle {
+  display: none;
 }
 
 .shell-main {
@@ -2011,7 +2016,8 @@
 .shell-content {
   width: 100%;
   min-width: 0;
-  max-width: 100%;
+  max-width: var(--layout-max);
+  margin-inline: auto;
   padding: var(--layout-pad);
   overflow-wrap: break-word;
 }
@@ -2035,16 +2041,93 @@
   .shell-sidebar[data-open="false"] {
     display: flex;
     width: var(--layout-sidebar);
+    box-shadow: none;
+    transition: width 200ms ease-out;
   }
 
   .shell-main {
     padding-left: var(--layout-sidebar);
   }
 
-  .shell-backdrop,
   .shell-menu,
   .shell-close {
     display: none;
+  }
+
+  .shell-backdrop:not(.shell-backdrop-rail) {
+    display: none;
+  }
+}
+
+/* Laptop widths: the sidebar collapses to an icon rail; the toggle expands it over the content. */
+@media (min-width: 1024px) and (max-width: 1439.98px) {
+  .shell-main {
+    padding-left: var(--layout-rail);
+  }
+
+  .shell-rail-toggle {
+    display: inline-flex;
+  }
+
+  .shell-backdrop-rail {
+    background: rgb(18 52 58 / 0.18);
+  }
+
+  .shell-sidebar[data-expanded="true"] {
+    box-shadow: 0 24px 48px rgb(18 52 58 / 0.18);
+  }
+
+  .shell-sidebar[data-expanded="false"] {
+    width: var(--layout-rail);
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-full,
+  .shell-sidebar[data-expanded="false"] .shell-label {
+    display: none;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-badge {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.125rem;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-badge > span:first-child {
+    height: 1.125rem;
+    min-width: 1.125rem;
+    padding-inline: 0.25rem;
+    font-size: 0.6875rem;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-mark {
+    display: inline-flex;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-head,
+  .shell-sidebar[data-expanded="false"] .shell-tools {
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-nav {
+    padding-inline: 0.75rem;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-link,
+  .shell-sidebar[data-expanded="false"] .shell-profile {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-foot {
+    padding-inline: 0.75rem;
+  }
+
+  .shell-sidebar[data-expanded="false"] .shell-dot {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
   }
 }
 

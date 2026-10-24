@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
@@ -143,18 +144,19 @@ function SideLink({
         iconRef.current?.stopAnimation();
       }}
       aria-current={selected ? "page" : undefined}
+      title={label}
       className={
         selected
-          ? "group flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-public-sand px-4 py-2 text-base font-medium text-public-ink"
-          : "group flex min-h-11 min-w-0 items-center gap-3 rounded-2xl px-4 py-2 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
+          ? "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-public-sand px-4 py-2 text-base font-medium text-public-ink"
+          : "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-2xl px-4 py-2 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
       }
     >
       <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
-      <span className="min-w-0 flex-1">{label}</span>
+      <span className="shell-label min-w-0 flex-1">{label}</span>
       {count === null || count === 0 ? (
-        alert ? <span className="inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null
+        alert ? <span className="shell-dot inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null
       ) : (
-        <span className="relative inline-flex shrink-0">
+        <span className="shell-badge relative inline-flex shrink-0">
           <span
             className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#465ab4] px-2 text-sm font-semibold text-white"
             aria-label={`${count} procesos`}
@@ -199,6 +201,7 @@ export function AppFrame({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const home = destinations[0]?.href ?? "/cuenta";
   const initials = accountInitials(name);
   const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
@@ -213,35 +216,58 @@ export function AppFrame({
 
   function closeMenu() {
     setOpen(false);
+    setExpanded(false);
   }
 
   return (
     <div className="shell min-h-screen bg-public-paper font-public text-public-ink">
-      {open ? (
-        <button type="button" aria-label={shellCopy.menuClose} className="shell-backdrop" onClick={closeMenu} />
+      {open || expanded ? (
+        <button type="button" aria-label={shellCopy.menuClose} className={open ? "shell-backdrop" : "shell-backdrop shell-backdrop-rail"} onClick={closeMenu} />
       ) : null}
-      <aside id="app-sidebar" data-open={open ? "true" : "false"} className="shell-sidebar">
-        <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-6 pt-6 pb-2">
+      <aside
+        id="app-sidebar"
+        data-open={open ? "true" : "false"}
+        data-expanded={expanded ? "true" : "false"}
+        className="shell-sidebar"
+      >
+        <div className="shell-head relative z-20 flex flex-wrap items-center justify-between gap-2 px-4 pt-5 pb-2">
           <div className="flex min-w-0 items-center gap-3">
-            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
-              <Logo size="lg" />
+            <Link href={home} onClick={closeMenu} className="shell-full shrink-0" aria-label="Relify">
+              <Logo />
+            </Link>
+            <Link href={home} onClick={closeMenu} className="shell-mark shrink-0" aria-label="Relify">
+              <Image src="/brand/mark.svg" alt="" width={32} height={32} unoptimized className="size-8" />
             </Link>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="shell-tools flex shrink-0 items-center gap-1">
             {showPremium ? (
               <Link
                 href="/premium"
                 onClick={closeMenu}
-                className="group inline-flex h-10 items-center gap-2 rounded-full bg-public-clay px-3 text-sm text-white hover:bg-public-clay-deep"
+                className="shell-full group inline-flex h-10 items-center gap-2 rounded-full bg-public-clay px-3 text-sm text-white hover:bg-public-clay-deep"
               >
                 <CrownIcon size={16} aria-hidden />
                 {sellerCopy.premium}
               </Link>
             ) : null}
             {canManageCompanies ? (
-              <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+              <span className="shell-full">
+                <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+              </span>
             ) : null}
             <NotificationBell items={notifications} />
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-controls="app-sidebar"
+              onClick={() => {
+                setExpanded((value) => !value);
+              }}
+              className="shell-rail-toggle inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
+            >
+              <PanelLeftIcon size={16} aria-hidden />
+              <span className="sr-only">{expanded ? shellCopy.railCollapse : shellCopy.railExpand}</span>
+            </button>
             <button
               type="button"
               onClick={closeMenu}
@@ -252,7 +278,7 @@ export function AppFrame({
             </button>
           </div>
         </div>
-        <nav aria-label={shellCopy.navLabel} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
+        <nav aria-label={shellCopy.navLabel} className="shell-nav flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-3">
           {destinations.map((item, index) => {
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = destinations[index - 1];
@@ -267,7 +293,7 @@ export function AppFrame({
             return (
               <div key={item.href}>
                 {showSection ? (
-                  <p className="px-4 pt-5 pb-1 text-xs font-medium tracking-wide text-public-muted">{item.section}</p>
+                  <p className="shell-label px-4 pt-5 pb-1 text-xs font-medium tracking-wide text-public-muted">{item.section}</p>
                 ) : null}
                 <SideLink
                   href={item.href}
@@ -282,25 +308,25 @@ export function AppFrame({
             );
           })}
         </nav>
-        <div className="border-t border-public-line p-4">
+        <div className="shell-foot border-t border-public-line p-3">
           {showHelp ? (
-            <section className="mb-3 rounded-2xl bg-public-sand px-4 py-4">
-              <h2 className="text-base font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
-              <p className="mt-1 text-sm leading-6 text-public-muted">{shellCopy.helpBody}</p>
+            <section className="shell-full mb-3 rounded-2xl bg-public-sand p-3">
+              <h2 className="text-sm font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
+              <p className="mt-1 text-xs leading-5 text-public-muted">{shellCopy.helpBody}</p>
               <div className="mt-3 grid gap-2">
                 <a
                   href={shellCopy.helpPhoneHref}
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-base font-medium text-white hover:bg-public-clay-deep"
+                  className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-sm font-medium text-white hover:bg-public-clay-deep"
                 >
                   <PhoneIcon size={16} aria-hidden />
                   {shellCopy.helpCall} {shellCopy.helpPhone}
                 </a>
                 <a
                   href={shellCopy.helpEmailHref}
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-base font-medium text-public-ink hover:bg-white"
+                  className="group inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-sm font-medium text-public-ink hover:bg-white"
                 >
                   <MailIcon size={16} aria-hidden />
-                  {shellCopy.helpEmail}
+                  <span className="truncate">{shellCopy.helpEmail}</span>
                 </a>
               </div>
             </section>
@@ -308,24 +334,26 @@ export function AppFrame({
           <Link
             href="/cuenta"
             onClick={closeMenu}
-            className="mt-3 flex items-center gap-3 rounded-2xl border border-public-line px-3 py-3 hover:bg-public-sand"
+            title={name}
+            className="shell-profile flex items-center gap-3 rounded-2xl border border-public-line px-3 py-2 hover:bg-public-sand"
           >
             <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-public-sand text-sm font-medium text-public-clay">
               {initials}
             </span>
-            <span className="min-w-0 flex-1">
+            <span className="shell-label min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">{name}</span>
               <span className="block text-sm font-medium text-public-clay">{shellCopy.viewProfile}</span>
             </span>
-            <ChevronRightIcon size={16} className="shrink-0 text-public-clay" aria-hidden />
+            <ChevronRightIcon size={16} className="shell-label shrink-0 text-public-clay" aria-hidden />
           </Link>
           <form action={signOutAction}>
             <button
               type="submit"
-              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-public-line text-base font-medium text-public-ink hover:bg-public-sand"
+              title={authCopy.signOut}
+              className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-public-line text-sm font-medium text-public-ink hover:bg-public-sand"
             >
               <LogOutIcon size={16} aria-hidden />
-              {authCopy.signOut}
+              <span className="shell-label">{authCopy.signOut}</span>
             </button>
           </form>
         </div>

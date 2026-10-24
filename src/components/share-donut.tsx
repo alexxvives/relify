@@ -30,14 +30,14 @@ export function ShareDonut({
   }));
 
   return (
-    <section className="flex h-full min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
+    <section className="@container flex h-full min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
       <h3 className="text-sm font-semibold text-[#1c2740]">{title}</h3>
       {slices.length === 0 ? (
         <p className="mt-3 text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-3 py-2">
+        <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-3 py-2 @[18rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="flex items-center justify-center">
-            <svg viewBox="0 0 42 42" className="h-auto w-full max-w-36" aria-hidden="true">
+            <svg viewBox="0 0 42 42" className="h-auto w-24 @[18rem]:w-36" aria-hidden="true">
               <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e6e9f0" strokeWidth="6" />
               {rings.map((ring, index) => (
                 <circle
@@ -80,7 +80,7 @@ export function ShareDonut({
                 }
               >
                 <span className="mt-1 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ring.color }} />
-                <span>
+                <span className="min-w-0 break-words">
                   {ring.label}
                   <span className="mt-0.5 block font-medium text-[#1c2740]">{ring.detail}</span>
                 </span>
