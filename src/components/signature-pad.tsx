@@ -27,6 +27,8 @@ export function SignaturePad({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
+  // Only a real stroke counts: a bare click must not produce a blank "signature".
+  const moved = useRef(false);
   const [signed, setSigned] = useState(false);
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
@@ -62,8 +64,8 @@ export function SignaturePad({
           height={160}
           className={
             invalid
-              ? "releva-shake h-28 w-full touch-none rounded-xl border-2 border-[#c0362c] bg-[#fff6f6]"
-              : "h-28 w-full touch-none rounded-xl border border-[#e7eaee] bg-[#fbfbfc]"
+              ? "releva-shake h-24 w-full sm:h-28 touch-none rounded-xl border-2 border-[#c0362c] bg-[#fff6f6]"
+              : "h-24 w-full sm:h-28 touch-none rounded-xl border border-[#e7eaee] bg-[#fbfbfc]"
           }
           onPointerDown={(event) => {
             const pen = point(event);
@@ -73,6 +75,7 @@ export function SignaturePad({
               return;
             }
             drawing.current = true;
+            moved.current = false;
             context.strokeStyle = "#1c2740";
             context.lineWidth = 2;
             context.lineCap = "round";
@@ -92,11 +95,16 @@ export function SignaturePad({
             }
             context.lineTo(pen.x, pen.y);
             context.stroke();
+            moved.current = true;
             if (!signed) {
               setSigned(true);
             }
           }}
           onPointerUp={() => {
+            if (!drawing.current || !moved.current) {
+              drawing.current = false;
+              return;
+            }
             drawing.current = false;
             const canvas = canvasRef.current;
             if (!canvas) {

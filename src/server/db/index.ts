@@ -3,6 +3,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 import { readServerEnv } from "@/lib/env";
+import { getRequestContext, isInsideUnifiedScope } from "vinext/shims/unified-request-context";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -10,10 +11,21 @@ function onWorkers(): boolean {
   return typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
 }
 
+function isLocalDatabase(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return false;
+  }
+}
+
 function createPrismaClient(): PrismaClient {
   const { DATABASE_URL } = readServerEnv();
 
-  if (onWorkers()) {
+  // Neon's WebSocket driver only talks to Neon. A local Postgres (vinext dev or
+  // preview against localhost) goes through node-postgres over TCP sockets.
+  if (onWorkers() && !isLocalDatabase(DATABASE_URL)) {
     const socket = globalThis.WebSocket;
 
     if (!socket) {
@@ -30,7 +42,21 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
+// Workers forbid reusing I/O objects (sockets, WebSockets) across requests: a
+// client cached on globalThis hangs or throws on the second request. On Workers
+// we keep one client per request context instead.
+const requestClients = new WeakMap<object, PrismaClient>();
+
 function getPrisma(): PrismaClient {
+  if (onWorkers() && isInsideUnifiedScope()) {
+    const context = getRequestContext();
+    let client = requestClients.get(context);
+    if (!client) {
+      client = createPrismaClient();
+      requestClients.set(context, client);
+    }
+    return client;
+  }
   globalForPrisma.prisma ??= createPrismaClient();
   return globalForPrisma.prisma;
 }

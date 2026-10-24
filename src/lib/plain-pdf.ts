@@ -73,14 +73,31 @@ export type LetterPdfInput = {
   lead: string;
   paragraphs: string[];
   signNote: string;
-  signatureJpeg?: Buffer | null;
+  signatureJpeg?: Uint8Array | null;
 };
 
 function literal(value: string): string {
   return `(${pdfText(value)})`;
 }
 
-export function letterPdf(input: LetterPdfInput): Buffer {
+// Runs in the browser too (the LOI and NDA previews build a data URL on the
+// client). Browsers and vinext's client bundle have no global Buffer, so stick
+// to TextEncoder and Uint8Array here.
+const encoder = new TextEncoder();
+
+function byteLength(value: string): number {
+  return encoder.encode(value).byteLength;
+}
+
+export function pdfBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+  return btoa(binary);
+}
+
+export function letterPdf(input: LetterPdfInput): Uint8Array<ArrayBuffer> {
   const commands = [
     "0.110 0.153 0.251 rg",
     "0 768 595 74 re f",
@@ -175,31 +192,31 @@ export function letterPdf(input: LetterPdfInput): Buffer {
   commands.push("ET");
 
   const stream = commands.join("\n");
-  const hex = signature ? `${signature.toString("hex")}>` : "";
+  const hex = signature ? `${Array.from(signature, (byte) => byte.toString(16).padStart(2, "0")).join("")}>` : "";
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
     signature && size
       ? "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> /XObject << /Im 7 0 R >> >> >>"
       : "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
-    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+    `<< /Length ${byteLength(stream)} >>\nstream\n${stream}\nendstream`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>",
   ];
   if (signature && size) {
     objects.push(
-      `<< /Type /XObject /Subtype /Image /Width ${size.width} /Height ${size.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ${Buffer.byteLength(hex)} >>\nstream\n${hex}\nendstream`,
+      `<< /Type /XObject /Subtype /Image /Width ${size.width} /Height ${size.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /ASCIIHexDecode /Length ${byteLength(hex)} >>\nstream\n${hex}\nendstream`,
     );
   }
   let body = "%PDF-1.4\n";
   const offsets = [0];
 
   objects.forEach((object, index) => {
-    offsets.push(Buffer.byteLength(body));
+    offsets.push(byteLength(body));
     body += `${index + 1} 0 obj ${object} endobj\n`;
   });
 
-  const xref = Buffer.byteLength(body);
+  const xref = byteLength(body);
   body += `xref\n0 ${objects.length + 1}\n`;
   body += "0000000000 65535 f \n";
 
@@ -208,5 +225,5 @@ export function letterPdf(input: LetterPdfInput): Buffer {
   }
 
   body += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return Buffer.from(body);
+  return encoder.encode(body);
 }

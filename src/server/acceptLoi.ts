@@ -18,7 +18,7 @@ export async function acceptLoi(user: CurrentUser, accessId: string): Promise<Ac
       sellerAcceptedAt: true,
       ndaAcceptedAt: true,
       loiAcceptedAt: true,
-      project: { select: { ownerId: true, codename: true, slug: true } },
+      project: { select: { ownerId: true, codename: true, slug: true, successFee: { select: { id: true } } } },
     },
   });
 
@@ -33,6 +33,28 @@ export async function acceptLoi(user: CurrentUser, accessId: string): Promise<Ac
 
   if (!offer) {
     return { ok: false, message: "Todavía no hay una carta de intenciones." };
+  }
+
+  if (access.loiAcceptedAt === null && access.project.successFee === null) {
+    // One accepted LOI per project: it locks the deal until that process is
+    // cancelled or the sale closes.
+    const locked = await prisma.projectAccess.findFirst({
+      where: {
+        projectId: access.projectId,
+        id: { not: access.id },
+        loiAcceptedAt: { not: null },
+        cancelledAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (locked) {
+      return {
+        ok: false,
+        message:
+          "Ya has aceptado una carta de intenciones de otro comprador para esta empresa. Para aceptar esta, primero cancela ese proceso o espera a que se cierre la compraventa.",
+      };
+    }
   }
 
   if (access.loiAcceptedAt === null) {

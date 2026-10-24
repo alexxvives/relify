@@ -10,8 +10,8 @@ describe("releva drafts", () => {
     expect(text).toContain("el proyecto");
     expect(text).not.toContain("Horno");
     expect(pdf?.fileName).toBe("Acuerdo-de-confidencialidad.pdf");
-    expect(pdf?.bytes.subarray(0, 8).toString()).toBe("%PDF-1.4");
-    expect(pdf?.bytes.toString("latin1")).toContain("Helvetica-Bold");
-    expect(pdf?.bytes.toString("latin1")).toContain("Acuerdo de confidencialidad");
+    expect(Buffer.from(pdf?.bytes ?? []).subarray(0, 8).toString()).toBe("%PDF-1.4");
+    expect(Buffer.from(pdf?.bytes ?? []).toString("latin1")).toContain("Helvetica-Bold");
+    expect(Buffer.from(pdf?.bytes ?? []).toString("latin1")).toContain("Acuerdo de confidencialidad");
   });
 });

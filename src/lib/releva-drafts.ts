@@ -76,7 +76,7 @@ function letterFor(id: string): LetterPdfInput | null {
   };
 }
 
-export function relevaDraftPdf(id: string): { fileName: string; bytes: Buffer } | null {
+export function relevaDraftPdf(id: string): { fileName: string; bytes: Uint8Array<ArrayBuffer> } | null {
   const draft = relevaDrafts.find((item) => item.id === id);
   const letter = letterFor(id);
 

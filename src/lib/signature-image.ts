@@ -16,7 +16,7 @@ export function signatureBytes(value: Buffer): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(value);
 }
 
-export function jpegSize(bytes: Buffer): { width: number; height: number } | null {
+export function jpegSize(bytes: Uint8Array): { width: number; height: number } | null {
   if (bytes[0] !== 0xff || bytes[1] !== 0xd8) {
     return null;
   }
@@ -35,15 +35,15 @@ export function jpegSize(bytes: Buffer): { width: number; height: number } | nul
       continue;
     }
 
-    const length = bytes.readUInt16BE(offset + 2);
+    const length = readUInt16BE(bytes, offset + 2);
 
     if (length < 2) {
       return null;
     }
 
     if (marker >= 0xc0 && marker <= 0xc3) {
-      const height = bytes.readUInt16BE(offset + 5);
-      const width = bytes.readUInt16BE(offset + 7);
+      const height = readUInt16BE(bytes, offset + 5);
+      const width = readUInt16BE(bytes, offset + 7);
       return width > 0 && height > 0 ? { width, height } : null;
     }
 
@@ -51,4 +51,8 @@ export function jpegSize(bytes: Buffer): { width: number; height: number } | nul
   }
 
   return null;
+}
+
+function readUInt16BE(bytes: Uint8Array, offset: number): number {
+  return ((bytes[offset] ?? 0) << 8) | (bytes[offset + 1] ?? 0);
 }

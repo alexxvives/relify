@@ -81,7 +81,7 @@ export function DealPipeline({
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const [acceptOpen, setAcceptOpen] = useState(false);
   const loiReady = useLoiReady(sign?.slug);
-  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current");
+  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current" && !step.pendingLoi);
   const shownSteps = previewLoi
     ? steps.map((step) =>
         step.id === "qa" ? { ...step, state: "done" as const } : step.id === "loi" ? { ...step, state: "current" as const } : step,
@@ -311,13 +311,13 @@ export function ProcessHeaderCue({
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const loiReady = useLoiReady(sign?.slug);
-  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current");
+  const previewLoi = loiReady && steps.some((step) => step.id === "qa" && step.state === "current" && !step.pendingLoi);
   const current = previewLoi
     ? steps.find((step) => step.id === "loi")
     : steps.find((step) => step.state === "current");
   const cue = current ? stepCue(current.id, role, current.pendingLoi === true) : null;
   const signKindFor = current && !current.pendingLoi ? signTarget(current.id, cue?.yours === true, role) : null;
-  const canProceed = role === "investor" && !previewLoi && steps.some((step) => step.id === "qa" && step.state === "current") && Boolean(sign);
+  const canProceed = role === "investor" && !previewLoi && steps.some((step) => step.id === "qa" && step.state === "current" && !step.pendingLoi) && Boolean(sign);
   const canSign = Boolean(sign) && signKindFor !== null;
 
   if (!cue || (cue.yours && role === "seller" && current?.id !== "diligence")) {
@@ -507,26 +507,26 @@ function ProcessSignDialog({
       >
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{agreement}</pre>
-          {kind === "nda" ? (
-            <div className="mt-5">
-              <input type="hidden" name="signature" value={signature} />
-              <SignaturePad
-                invalid={needsSignature}
-                onChange={(value) => {
-                  setSignature(value);
-                  if (value.length > 0) {
-                    setNeedsSignature(false);
-                  }
-                }}
-              />
-              {needsSignature ? (
-                <p role="alert" className="mt-2 text-sm text-[#c0362c]">
-                  {platformTermsCopy.signRequired}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
         </div>
+        {kind === "nda" ? (
+          <div className="shrink-0 border-t border-[#eef0f3] px-5 pt-3 pb-1">
+            <input type="hidden" name="signature" value={signature} />
+            <SignaturePad
+              invalid={needsSignature}
+              onChange={(value) => {
+                setSignature(value);
+                if (value.length > 0) {
+                  setNeedsSignature(false);
+                }
+              }}
+            />
+            {needsSignature ? (
+              <p role="alert" className="mt-2 text-sm text-[#c0362c]">
+                {platformTermsCopy.signRequired}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
           <input type="hidden" name="slug" value={slug} />
           {kind === "loi" ? (

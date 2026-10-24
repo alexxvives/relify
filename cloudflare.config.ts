@@ -10,6 +10,9 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
+      DATABASE_URL: bindings.secret(),
+      BETTER_AUTH_SECRET: bindings.secret(),
+      BETTER_AUTH_URL: bindings.secret(),
     },
   }),
 });

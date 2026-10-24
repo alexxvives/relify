@@ -27,7 +27,14 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
     if (!slot.ok) {
       return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
     }
-    await prisma.projectAccess.update({
+    // A reconnect after a cancel is a fresh process: drop the previous run's
+    // chat/LOI messages and data-room access so no stale state leaks back in.
+    const scope = { projectId: project.id, investorId: user.id };
+    await prisma.$transaction([
+      prisma.projectMessage.deleteMany({ where: scope }),
+      prisma.dataRoomGrant.deleteMany({ where: scope }),
+      prisma.dataRoomFileShare.deleteMany({ where: { investorId: user.id, file: { projectId: project.id } } }),
+      prisma.projectAccess.update({
       where: { id: existing.id },
       data: {
         cancelledAt: null,
@@ -39,7 +46,8 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
         ndaSignature: null,
         requestedAt: new Date(),
       },
-    });
+      }),
+    ]);
     const href = `/proyectos/${project.slug}`;
     const investorNotice = accessRequestedNotice(project.codename);
     await recordNotification({ userId: user.id, ...investorNotice, href });

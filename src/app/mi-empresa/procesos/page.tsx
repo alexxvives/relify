@@ -5,6 +5,8 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import { listClientContacts } from "@/server/engagementThread";
+import { CancelledProcesses } from "@/components/cancelled-processes";
+import { listCancelledProcesses } from "@/server/listCancelledProcesses";
 import { listPendingMatches } from "@/server/listPendingMatches";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { requireRole } from "@/server/requireRole";
@@ -25,11 +27,12 @@ export default async function ProcessesPage() {
   }
 
   const projectId = await activeSellerProjectId(user.id);
-  const [messages, pendingMatches, advisors, scope] = await Promise.all([
+  const [messages, pendingMatches, advisors, scope, cancelled] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
     listClientContacts(user),
     sellerProcessScope(user.id),
+    listCancelledProcesses(user),
   ]);
 
   return (
@@ -43,6 +46,7 @@ export default async function ProcessesPage() {
         companyName={scope.codename}
         elsewhere={scope.elsewhere}
       />
+      <CancelledProcesses items={cancelled} viewer="seller" />
     </SignedInPage>
   );
 }

@@ -133,7 +133,8 @@ function ThreadList({
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  return current?.id === "qa" || current?.id === "diligence";
+  // At diligence the header cue already carries "Contactar con un asesor".
+  return current?.id === "qa";
 }
 
 function InvestorProfileDialog({
@@ -236,7 +237,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <CancelProcessButton accessId={thread.accessId} />
-          <ProcessFichaLink href="/mi-empresa/detalles?seccion=price" />
+          <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
         </div>
         </div>
         {wantsAdvisor(thread.steps) ? (

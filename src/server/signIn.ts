@@ -1,3 +1,4 @@
+import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { authCopy } from "@/lib/auth-copy";
 import { readUserRole, type SignInInput, type UserRoleName } from "@/lib/auth-input";
@@ -43,6 +44,14 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
       onboarded: stored?.onboardedAt != null,
     };
   } catch (error) {
+    // Wrong credentials are expected; anything else (database, runtime) is a real
+    // server fault and must reach the Worker logs instead of a generic message.
+    const code = error instanceof APIError ? error.body?.code : undefined;
+    if (code === "INVALID_EMAIL_OR_PASSWORD") {
+      console.warn("[signIn] rejected credentials", { email: input.email });
+    } else {
+      console.error("[signIn] failed", { email: input.email, code }, error);
+    }
     return { ok: false, message: authFailureMessage(error, authCopy.signInFailed) };
   }
 }

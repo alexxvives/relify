@@ -132,9 +132,9 @@ export default async function ProjectDetailPage({
     );
   }
 
-  return (
-    <PublicSite>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-16 sm:px-8">
+  const signedIn = user !== null;
+  const listing = (
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-16 sm:px-8">
         <section className="border border-public-ink bg-public-card p-6 shadow-public sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -147,6 +147,7 @@ export default async function ProjectDetailPage({
                 {project.region}
               </p>
             </div>
+            {signedIn ? null : (
             <div className="flex items-center gap-2">
               <Link
                 href="/entrar"
@@ -163,11 +164,12 @@ export default async function ProjectDetailPage({
                 {catalogCopy.connect}
               </Link>
             </div>
+            )}
           </div>
           <div className="mt-6">
             <ProjectFigures project={project} tone="public" />
           </div>
-          <p className="mt-4 text-sm text-public-muted">{catalogCopy.signInToAct}</p>
+          {signedIn ? null : <p className="mt-4 text-sm text-public-muted">{catalogCopy.signInToAct}</p>}
         </section>
         <section aria-labelledby="cifras-bloqueadas">
           <h2 id="cifras-bloqueadas" className="flex items-center gap-2 text-2xl tracking-tight">
@@ -188,6 +190,15 @@ export default async function ProjectDetailPage({
           </dl>
         </section>
       </main>
-    </PublicSite>
   );
+
+  if (signedIn) {
+    return (
+      <AppShell title={project.codename} showTitle={false}>
+        <div className="text-public-ink">{listing}</div>
+      </AppShell>
+    );
+  }
+
+  return <PublicSite>{listing}</PublicSite>;
 }

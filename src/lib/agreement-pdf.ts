@@ -1,4 +1,4 @@
-import { letterPdf } from "./plain-pdf";
+import { letterPdf, pdfBase64 } from "./plain-pdf";
 import { platformTermsCopy } from "./platform-terms";
 
 function titleCase(value: string): string {
@@ -9,9 +9,11 @@ function titleCase(value: string): string {
     .join(" ");
 }
 
-export function agreementPdf(text: string, signatureJpeg?: Buffer | null): Buffer {
+export function agreementPdf(text: string, signatureJpeg?: Uint8Array | null): Uint8Array<ArrayBuffer> {
+  // Stored bodies can carry CRLF (form posts); normalise so paragraphs split.
   const chunks = text
-    .split("\n\n")
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
   const heading = chunks[0] ?? "Documento";
@@ -30,10 +32,10 @@ export function agreementPdf(text: string, signatureJpeg?: Buffer | null): Buffe
 }
 
 export function agreementPdfDataUrl(text: string): string {
-  return `data:application/pdf;base64,${agreementPdf(text).toString("base64")}`;
+  return `data:application/pdf;base64,${pdfBase64(agreementPdf(text))}`;
 }
 
-export function platformTermsPdf(when: string, signatureJpeg?: Buffer | null): Buffer {
+export function platformTermsPdf(when: string, signatureJpeg?: Uint8Array | null): Uint8Array<ArrayBuffer> {
   return letterPdf({
     kicker: "Acuerdo de la plataforma",
     title: platformTermsCopy.signedTitle,
@@ -46,5 +48,5 @@ export function platformTermsPdf(when: string, signatureJpeg?: Buffer | null): B
 }
 
 export function platformTermsPdfDataUrl(when: string): string {
-  return `data:application/pdf;base64,${platformTermsPdf(when).toString("base64")}`;
+  return `data:application/pdf;base64,${pdfBase64(platformTermsPdf(when))}`;
 }

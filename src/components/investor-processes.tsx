@@ -34,7 +34,8 @@ const pageTabs = [
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  return current?.id === "qa" || current?.id === "diligence";
+  // At diligence the header cue already carries "Contactar con un asesor".
+  return current?.id === "qa";
 }
 
 function ProcessConversation({

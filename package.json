@@ -13,7 +13,7 @@
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
     "postinstall": "prisma generate",
-    "deploy:vinext": "prisma generate && vinext-cloudflare deploy"
+    "deploy:vinext": "prisma generate && prisma db push && vinext-cloudflare deploy"
   },
   "dependencies": {
     "@animateicons/react": "^0.12.0",

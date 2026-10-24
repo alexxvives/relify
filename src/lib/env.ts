@@ -16,6 +16,7 @@ export function readServerEnv(): ServerEnv {
   });
 
   if (!parsed.success) {
+    console.error("[env] invalid server environment", parsed.error.issues.map((issue) => issue.path.join(".")));
     throw new Error("Invalid server environment");
   }
 

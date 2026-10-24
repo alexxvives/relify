@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { AdvisorEngagementView } from "@/components/advisor-engagement-view";
 import { SignedInPage } from "@/components/signed-in-page";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -33,7 +33,9 @@ export default async function AdvisorEngagementPage({
   const engagement = await getAdvisorEngagement(user, id);
 
   if (!engagement) {
-    notFound();
+    // Old "Avisos" links can point at an encargo that was declined, withdrawn
+    // or reassigned. Land on the encargos list instead of a 404.
+    redirect("/mandatos/encargos");
   }
 
   const thread = engagement.deposit.paid || engagement.closed ? await getEngagementThread(user, id) : null;
