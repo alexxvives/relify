@@ -51,7 +51,7 @@ export async function AppShell({
       processCount={processCount}
     >
       {children}
-      {user.termsAccepted ? null : <PlatformTermsDialog />}
+      {user.termsAccepted || user.role === "admin" ? null : <PlatformTermsDialog />}
     </AppFrame>
     </SignerProvider>
   );

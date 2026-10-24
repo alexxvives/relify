@@ -259,6 +259,7 @@ export async function signSaleContract(user: CurrentUser, contractId: string, si
   if (!signature) return fail("Dibuja tu firma para continuar.");
 
   const now = new Date();
+  await clearContractNotices([user.id], access.project.codename);
   const updated = await prisma.saleContract.update({
     where: { id: contract.id },
     data: party === "buyer" ? { buyerSignature: signatureBytes(signature), buyerSignedAt: now } : { sellerSignature: signatureBytes(signature), sellerSignedAt: now },
@@ -283,6 +284,7 @@ export async function signSaleContract(user: CurrentUser, contractId: string, si
     console.error("signed contract", error instanceof Error ? error.message : "unknown");
   });
   await closeDeal(access, contract.id);
+  await clearContractNotices([access.investorId, access.project.ownerId], access.project.codename);
 
   for (const [userId, href] of [
     [access.investorId, "/procesos"],
@@ -297,6 +299,26 @@ export async function signSaleContract(user: CurrentUser, contractId: string, si
   }
 
   return { ok: true, message: "Contrato firmado por las dos partes. ¡Compraventa cerrada!" };
+}
+
+const contractActionTitles = [
+  "Contrato de compraventa disponible",
+  "Nueva versión del contrato",
+  "El comprador pide cambios en el contrato",
+  "Contrato aceptado: falta firmar",
+  "Falta tu firma en el contrato",
+];
+
+/** Contract to-dos are done once the user signs (or the deal closes): mark them read. */
+async function clearContractNotices(userIds: Array<string | null>, codename: string): Promise<void> {
+  const ids = userIds.filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return;
+  await prisma.notification
+    .updateMany({
+      where: { userId: { in: ids }, readAt: null, title: { in: contractActionTitles }, body: { startsWith: `${codename}:` } },
+      data: { readAt: new Date() },
+    })
+    .catch(() => undefined);
 }
 
 async function closeDeal(access: AccessRow, contractId: string): Promise<void> {

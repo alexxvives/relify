@@ -4,7 +4,7 @@ import { activeSellerProjectId } from "@/server/sellerCompany";
 
 export async function menuProcessCount(user: Pick<CurrentUser, "id" | "role">): Promise<number> {
   if (user.role === "investor") {
-    return prisma.projectAccess.count({ where: { investorId: user.id, cancelledAt: null } });
+    return prisma.projectAccess.count({ where: { investorId: user.id, cancelledAt: null, project: { successFee: null } } });
   }
 
   if (user.role === "seller") {
@@ -12,7 +12,7 @@ export async function menuProcessCount(user: Pick<CurrentUser, "id" | "role">): 
     if (!projectId) {
       return 0;
     }
-    return prisma.projectAccess.count({ where: { projectId, cancelledAt: null } });
+    return prisma.projectAccess.count({ where: { projectId, cancelledAt: null, project: { successFee: null } } });
   }
 
   if (user.role === "advisor") {

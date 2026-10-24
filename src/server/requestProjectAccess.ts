@@ -12,8 +12,12 @@ export type ProjectAccessResult = { ok: true } | { ok: false; message: string };
 export async function requestProjectAccess(user: CurrentUser, input: ProjectAccessInput): Promise<ProjectAccessResult> {
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
-    select: { id: true, status: true, codename: true, ownerId: true, slug: true },
+    select: { id: true, status: true, codename: true, ownerId: true, slug: true, successFee: { select: { id: true } } },
   });
+
+  if (project?.successFee) {
+    return { ok: false, message: "Esta empresa ya se ha vendido." };
+  }
 
   const existing = project
     ? await prisma.projectAccess.findUnique({

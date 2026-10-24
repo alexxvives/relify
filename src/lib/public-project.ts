@@ -27,6 +27,7 @@ export type PublicProjectCard = {
   coverSrc?: string | null;
   sectorKey?: SectorImageKey;
   verified?: boolean;
+  sold?: boolean;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

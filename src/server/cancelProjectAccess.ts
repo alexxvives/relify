@@ -19,11 +19,11 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
       investorId: true,
       sellerAcceptedAt: true,
       investor: { select: { name: true, lastName: true } },
-      project: { select: { id: true, ownerId: true, codename: true, slug: true } },
+      project: { select: { id: true, ownerId: true, codename: true, slug: true, successFee: { select: { id: true } } } },
     },
   });
 
-  if (!access) {
+  if (!access || access.project.successFee) {
     return { ok: false, message: accessCopy.cancelFailed };
   }
 

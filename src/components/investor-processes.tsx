@@ -90,6 +90,7 @@ function ProcessConversation({
             nda
             ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
             loiHref={item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null}
+            contractHref={item.contract?.signedHref ?? null}
             empty={sellerCopy.documentsEmpty}
           />
         </div>
@@ -209,7 +210,7 @@ export function InvestorProcesses({
                 ) : null}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <CancelProcessButton accessId={item.accessId} />
+                {item.contract?.stage === "signed" ? null : <CancelProcessButton accessId={item.accessId} />}
                 <ProcessFichaLink href={`/proyectos/${item.slug}`} />
               </div>
             </div>

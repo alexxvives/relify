@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Heart, Link2, Lock, MapPin } from "lucide-react";
+import { BadgeCheck, Heart, Link2, Lock, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { InvestorProject } from "@/components/investor-project";
@@ -85,9 +85,11 @@ async function InvestorProjectContent({
   user,
   slug,
   tab,
+  sold,
 }: {
   user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   slug: string;
+  sold: boolean;
   tab: string | string[] | undefined;
 }) {
   const profile = await getInvestorProject(user, slug);
@@ -101,6 +103,9 @@ async function InvestorProjectContent({
     listProjectMessages(user, slug),
     buyerMatchBudget(user.id),
   ]);
+  if (sold && access === "none") {
+    return <SoldNotice codename={profile.codename} />;
+  }
   return (
     <InvestorProject
       project={profile}
@@ -119,6 +124,27 @@ async function InvestorProjectContent({
       initialTab={readTab(tab)}
       accessId={messages.threads[0]?.accessId ?? ""}
     />
+  );
+}
+
+function SoldNotice({ codename }: { codename: string }) {
+  return (
+    <main className="mx-auto flex w-full max-w-3xl flex-col items-start gap-4 px-5 py-16 sm:px-8">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e7f6ee] px-3 py-1 text-sm font-medium text-[#1b7a45]">
+        <BadgeCheck className="size-4" aria-hidden />
+        Vendida
+      </span>
+      <h1 className="text-3xl font-semibold tracking-tight text-[#1c2740]">{codename}</h1>
+      <p className="text-base text-[#5c6b78]">
+        Esta empresa ya se ha vendido y no acepta nuevas solicitudes. Hay otras empresas disponibles en el mercado.
+      </p>
+      <Link
+        href="/mercado"
+        className="inline-flex h-11 items-center rounded-full bg-[#0c7c78] px-5 text-base font-medium text-white hover:bg-[#0a6764] focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        Ver empresas en venta
+      </Link>
+    </main>
   );
 }
 
@@ -144,13 +170,24 @@ export default async function ProjectDetailPage({
     return (
       <AppShell title={project.codename} showTitle={false}>
         <Suspense fallback={<ProjectSkeleton />}>
-          <InvestorProjectContent user={user} slug={slug} tab={query.tab} />
+          <InvestorProjectContent user={user} slug={slug} tab={query.tab} sold={project.sold === true} />
         </Suspense>
       </AppShell>
     );
   }
 
   const signedIn = user !== null;
+  if (project.sold) {
+    return signedIn ? (
+      <AppShell title={project.codename} showTitle={false}>
+        <SoldNotice codename={project.codename} />
+      </AppShell>
+    ) : (
+      <PublicSite>
+        <SoldNotice codename={project.codename} />
+      </PublicSite>
+    );
+  }
   const listing = (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-16 sm:px-8">
         <section className="border border-public-ink bg-public-card p-6 shadow-public sm:p-8">

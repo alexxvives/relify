@@ -21,7 +21,7 @@ export default async function PlatformTermsPage() {
     redirect("/onboarding");
   }
 
-  if (user.termsAccepted) {
+  if (user.termsAccepted || user.role === "admin") {
     redirect(homeForRole(user.role));
   }
 

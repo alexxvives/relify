@@ -6,7 +6,7 @@ import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/s
 
 export async function listPublicProjects(): Promise<PublicProjectCard[]> {
   const rows = await prisma.project.findMany({
-    where: publicProjectWhere,
+    where: { ...publicProjectWhere, successFee: null },
     select: {
       id: true,
       ...publicProjectSelect,

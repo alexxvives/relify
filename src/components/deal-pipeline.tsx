@@ -798,6 +798,7 @@ export function ProcessRoom({
   nda,
   ndaHref = null,
   loiHref = null,
+  contractHref = null,
   empty,
   prompt = null,
 }: {
@@ -806,6 +807,7 @@ export function ProcessRoom({
   nda: boolean;
   ndaHref?: string | null;
   loiHref?: string | null;
+  contractHref?: string | null;
   empty: string;
   prompt?: ReactNode;
 }) {
@@ -813,10 +815,10 @@ export function ProcessRoom({
   const shared = held.filter((file) => file.visible !== false);
   const hidden = held.filter((file) => file.visible === false);
   const sent = attachmentNames(bodies);
-  const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda;
+  const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda && !contractHref;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);
   const [openSigned, setOpenSigned] = useState<{ fileName: string; href: string } | null>(null);
-  const other = nda || loiHref !== null || hidden.length > 0 || sent.length > 0;
+  const other = nda || loiHref !== null || contractHref !== null || hidden.length > 0 || sent.length > 0;
 
   return (
     <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -854,6 +856,14 @@ export function ProcessRoom({
               label="Carta de intenciones firmada"
               onOpen={() => {
                 setOpenSigned({ fileName: "Carta-de-intenciones.pdf", href: loiHref });
+              }}
+            />
+          ) : null}
+          {contractHref ? (
+            <SignedDocumentRow
+              label="Contrato de compraventa firmado"
+              onOpen={() => {
+                setOpenSigned({ fileName: "Contrato-de-compraventa.pdf", href: contractHref });
               }}
             />
           ) : null}

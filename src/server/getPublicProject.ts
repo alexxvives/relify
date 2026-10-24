@@ -14,12 +14,13 @@ export const getPublicProject = cache(async (slug: string): Promise<PublicProjec
 
   const project = await prisma.project.findFirst({
     where: { slug: parsed.data, ...publicProjectWhere },
-    select: publicProjectSelect,
+    select: { ...publicProjectSelect, successFee: { select: { id: true } } },
   });
 
   if (!project) {
     return null;
   }
 
-  return toPublicProjectDetail(project);
+  const { successFee, ...card } = project;
+  return { ...toPublicProjectDetail(card), sold: successFee !== null };
 });
