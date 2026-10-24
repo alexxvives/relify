@@ -133,5 +133,5 @@ export const engagementCopy = {
   fromInvestor: "Un inversor",
   fromSeller: "El vendedor",
   openFile: "Abrir archivo",
-  steps: ["Solicitud", "Conexión", "NDA", "Q&A", "LOI", "Due diligence", "Documentación", "Compraventa"],
+  steps: ["Solicitud", "Conexión", "Confidencialidad", "Preguntas", "Carta de intenciones", "Revisión", "Contrato", "Venta"],
 } as const;

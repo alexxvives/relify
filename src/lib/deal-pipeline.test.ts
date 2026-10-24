@@ -18,19 +18,19 @@ describe("dealPipeline", () => {
     expect(steps.map((step) => step.label)).toEqual([
       "Solicitud",
       "Conexión",
-      "NDA",
-      "Q&A",
-      "LOI",
-      "Due diligence",
-      "Documentación",
-      "Compraventa",
+      "Confidencialidad",
+      "Preguntas",
+      "Carta de intenciones",
+      "Revisión",
+      "Contrato",
+      "Venta",
     ]);
     expect(steps.find((step) => step.state === "current")?.id).toBe("conexion");
     expect(steps[0]?.detail).toBe("Tú envías la conexión. La empresa decide si la acepta.");
     expect(steps[steps.length - 1]?.id).toBe("close");
   });
 
-  it("keeps the contract current until the payment, then names the close Compraventa", () => {
+  it("keeps the contract current until the payment, then names the close Venta", () => {
     const seller = dealPipeline("seller", { ...openFlags, accepted: true, nda: true });
     const buyer = dealPipeline("investor", {
       accepted: true,
@@ -42,9 +42,9 @@ describe("dealPipeline", () => {
       closed: false,
     });
 
-    expect(seller[seller.length - 1]?.label).toBe("Compraventa");
-    expect(buyer.find((step) => step.state === "current")?.label).toBe("Documentación");
-    expect(pipelineStatus(buyer)).toBe("Documentación");
+    expect(seller[seller.length - 1]?.label).toBe("Venta");
+    expect(buyer.find((step) => step.state === "current")?.label).toBe("Contrato");
+    expect(pipelineStatus(buyer)).toBe("Contrato");
   });
 
   it("keeps a later step open while an earlier step is still current", () => {
@@ -73,7 +73,7 @@ describe("dealPipeline", () => {
     });
 
     expect(steps.every((step) => step.state === "done")).toBe(true);
-    expect(pipelineStatus(steps)).toBe("Compraventa");
+    expect(pipelineStatus(steps)).toBe("Venta");
   });
 
   it("marks a turn only for the person who has to act", () => {

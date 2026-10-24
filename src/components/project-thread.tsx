@@ -197,11 +197,11 @@ export function ProjectThread({
               <p className="text-sm text-[#667085]">{sellerCopy.threadEmpty}</p>
             </div>
           ) : (
-            <ol className="mt-auto flex flex-col gap-4">
+            <ol className="flex flex-col gap-4">
               {groups.map((group) => (
                 <li key={group.key} className="flex flex-col gap-4">
                   {group.day ? (
-                    <div className="flex items-center gap-3 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#98a2b3]">
                       <span className="h-px flex-1 bg-[#eceff5]" />
                       <span suppressHydrationWarning>{dayLabel(group.day)}</span>
                       <span className="h-px flex-1 bg-[#eceff5]" />
@@ -251,7 +251,7 @@ function MessageGroup({ group, author }: { group: Group; author: string }) {
       {mine ? null : (
         <span
           aria-hidden
-          className="mb-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e8ecfa] text-[11px] font-semibold text-[#465ab4]"
+          className="mb-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e8ecfa] text-xs font-semibold text-[#465ab4]"
         >
           {initials(author)}
         </span>
@@ -268,8 +268,8 @@ function MessageGroup({ group, author }: { group: Group; author: string }) {
             <span
               className={
                 kind === "offer"
-                  ? "rounded-full bg-[#fff4e5] px-2 py-0.5 text-[11px] font-medium text-[#9a5b00]"
-                  : "rounded-full bg-[#eef1fb] px-2 py-0.5 text-[11px] font-medium text-[#465ab4]"
+                  ? "rounded-full bg-[#fff4e5] px-2 py-0.5 text-xs font-medium text-[#9a5b00]"
+                  : "rounded-full bg-[#eef1fb] px-2 py-0.5 text-xs font-medium text-[#465ab4]"
               }
             >
               {messageKindLabel(kind)}
@@ -315,7 +315,7 @@ function Bubble({ message, mine, top, bottom }: { message: ChatMessage; mine: bo
         </ul>
       ) : null}
       {message.sending ? (
-        <span className="inline-flex items-center gap-1 self-end text-[11px] text-white/80">
+        <span className="inline-flex items-center gap-1 self-end text-xs text-white/80">
           <Loader2 className="size-3 animate-spin" aria-hidden />
           Enviando…
         </span>
@@ -475,15 +475,16 @@ function ChatComposer({
           disabled={!ready}
           className={
             ready
-              ? "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#465ab4] text-white shadow-sm transition hover:bg-[#3d4fa3]"
-              : "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e6e9f0] text-[#98a2b3] transition"
+              ? "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#465ab4] px-5 text-base font-medium text-white shadow-sm transition hover:bg-[#3d4fa3]"
+              : "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#e6e9f0] px-5 text-base font-medium text-[#5c6b78] transition"
           }
         >
           {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-4" aria-hidden />}
+          <span>Enviar</span>
           <span className="sr-only">{pending ? pendingLabel : submitLabel}</span>
         </button>
       </div>
-      <p className="px-2 text-[11px] text-[#98a2b3] max-sm:hidden">Intro para enviar · Mayús + Intro para nueva línea</p>
+      <p className="px-2 text-sm text-[#5c6b78] max-sm:hidden">Intro para enviar · Mayús + Intro para nueva línea</p>
       {state?.ok === true ? <p className="sr-only" role="status">{savedLabel}</p> : null}
       {state && !state.ok && !hideError ? (
         <p className="text-sm text-red-700" role="alert">

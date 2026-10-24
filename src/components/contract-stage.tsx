@@ -83,7 +83,7 @@ export function ContractStage({ contract }: { contract: ContractView }) {
       <div
         className={`mt-4 flex items-start gap-3 rounded-xl px-4 py-3 ${yours ? "bg-[#fff4e5] text-[#7a4100]" : contract.stage === "signed" ? "bg-[#e7f4ec] text-[#17663a]" : "bg-white text-[#3d4a63]"}`}
       >
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold tracking-[0.12em] uppercase ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#eef1f8] text-[#465ab4]"}`}>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#eef1f8] text-[#465ab4]"}`}>
           {yours ? "Tu turno" : contract.stage === "signed" ? "Hecho" : "Qué sigue"}
         </span>
         <p className="pt-0.5 text-base leading-6">{contract.next.text}</p>

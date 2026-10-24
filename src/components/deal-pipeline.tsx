@@ -5,7 +5,8 @@ import { PdfPages } from "@/components/pdf-pages";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, Phone, ShieldCheck } from "lucide-react";
+import { shellCopy } from "@/lib/shell";
 import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -120,15 +121,15 @@ export function DealPipeline({
             const labelClass =
               step.state === "current"
                 ? onDark
-                  ? "rounded-full bg-white/15 px-2 py-0.5 text-center text-[11px] font-semibold text-white"
-                  : "rounded-full bg-[#e8f6ee] px-2 py-0.5 text-center text-[11px] font-semibold text-[#17663a]"
+                  ? "rounded-full bg-white px-3 py-1 text-center text-sm font-semibold text-[#1c2740] shadow-sm"
+                  : "rounded-full bg-[#e8f6ee] px-3 py-1 text-center text-sm font-semibold text-[#17663a]"
                 : step.state === "done"
                   ? onDark
-                    ? "text-center text-[11px] font-medium text-[#b8ffd8]"
-                    : "text-center text-[11px] font-medium text-[#17663a]"
+                    ? "text-center text-xs font-medium text-[#b8ffd8]"
+                    : "text-center text-xs font-medium text-[#17663a]"
                   : onDark
-                    ? "text-center text-[11px] text-white/55"
-                    : "text-center text-[11px] text-[#8b95a7]";
+                    ? "text-center text-xs text-white/80"
+                    : "text-center text-xs text-[#5c6b78]";
 
             return (
               <li
@@ -187,6 +188,23 @@ export function DealPipeline({
   );
 }
 
+/** When it is the user's turn, offer a phone call right where they have to act. */
+function HelpCall({ onDark }: { onDark: boolean }) {
+  return (
+    <a
+      href={shellCopy.helpPhoneHref}
+      className={
+        onDark
+          ? "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-white/40 px-4 text-sm font-medium text-white hover:bg-white/10"
+          : "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-[#e7eaee] bg-white px-4 text-sm font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
+      }
+    >
+      <Phone className="size-4" aria-hidden />
+      {shellCopy.helpCall} {shellCopy.helpPhone}
+    </a>
+  );
+}
+
 function TurnCue({
   cue,
   onDark,
@@ -214,19 +232,20 @@ function TurnCue({
               : "mx-auto mt-4 flex max-w-xl flex-wrap items-center gap-3 text-left"
           }
         >
-          <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">
+          <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">
             Tu turno
           </span>
           <span className="text-sm leading-5 text-white">{cue.action}</span>
           {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
           {canSign ? <SignNow onSign={onSign} /> : null}
+          <HelpCall onDark />
         </div>
       );
     }
 
     const frame = center
-      ? "mx-auto mt-4 flex w-full max-w-xl items-center justify-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-center"
-      : "mx-auto mt-4 flex max-w-xl items-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-left";
+      ? "mx-auto mt-4 flex w-full max-w-xl flex-wrap items-center justify-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-center"
+      : "mx-auto mt-4 flex max-w-xl flex-wrap items-center gap-3 rounded-2xl border border-[#f3c4c4] bg-[#fff5f5] px-4 py-3 text-left";
 
     return (
       <div className={frame}>
@@ -235,11 +254,12 @@ function TurnCue({
           <span className="relative size-3 rounded-full bg-[#d92d20]" />
         </span>
         <span className={center ? "min-w-0" : "min-w-0 flex-1"}>
-          <span className="block text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">Tu turno</span>
+          <span className="block text-xs font-semibold text-[#b42318]">Tu turno</span>
           <span className="mt-0.5 block text-sm text-[#1c2740]">{cue.action}</span>
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
         {canSign ? <SignNow onSign={onSign} /> : null}
+        <HelpCall onDark={false} />
       </div>
     );
   }
@@ -247,7 +267,7 @@ function TurnCue({
   if (center) {
     return (
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-center">
-        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
           Qué sigue
         </span>
         <p className={onDark ? "text-sm leading-5 text-white" : "text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
@@ -261,7 +281,7 @@ function TurnCue({
     <div className="mt-4 flex items-start justify-between gap-3">
       {onDark ? (
         <div className="flex min-w-0 items-start gap-3">
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
             Qué sigue
           </span>
           <p className="pt-0.5 text-sm leading-5 text-white">{cue.action}</p>
@@ -326,7 +346,7 @@ export function ProcessHeaderCue({
   if (contractNext && (current?.id === "documents" || current?.id === "close")) {
     return contractNext.who === "you" ? (
       <span className="flex min-w-0 items-start gap-3">
-        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">Tu turno</span>
+        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">Tu turno</span>
         <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
       </span>
     ) : (
@@ -343,7 +363,7 @@ export function ProcessHeaderCue({
       <div className="flex min-w-0 flex-wrap items-center gap-3">
         {cue.yours ? (
           <span className="flex min-w-0 items-start gap-3">
-            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">
+            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">
               Tu turno
             </span>
             <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{cue.action}</p>
@@ -396,7 +416,7 @@ export function DealWaitingCue({
 }) {
   return (
     <div className={`flex items-start gap-3 ${className}`}>
-      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
         Qué sigue
       </span>
       <p className={onDark ? "pt-0.5 text-sm leading-5 text-white" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
@@ -423,7 +443,7 @@ function DiligenceChoice({
     <div className={inline ? "flex min-w-0 flex-wrap items-center gap-3" : onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
       <div className="flex min-w-0 items-start gap-3">
         {hideWaitingCue || inline ? null : (
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#17663a] uppercase">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
             Qué sigue
           </span>
         )}
@@ -743,7 +763,7 @@ export function ProcessDocuments({
     <ul className="flex flex-col gap-4">
       {folders.map((folder) => (
         <li key={folder}>
-          <p className="text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{folder}</p>
+          <p className="text-xs font-semibold text-[#5c6b78]">{folder}</p>
           <ul className="mt-2 flex flex-col gap-1">
             {files
               .filter((file) => file.folder === folder)
@@ -768,7 +788,7 @@ export function SignBubble({
 }) {
   return (
     <div className="rounded-2xl border border-[#465ab4]/35 bg-[#eef1ff] p-4 shadow-[0_10px_28px_rgba(70,90,180,0.14)]">
-      <p className="text-[11px] font-semibold tracking-[0.14em] text-[#465ab4] uppercase">Te toca firmar</p>
+      <p className="text-xs font-semibold text-[#465ab4]">Te toca firmar</p>
       <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#1c2740]">
         <FileTextIcon size={16} className="shrink-0 text-[#465ab4]" aria-hidden />
         <span className="min-w-0 truncate">{fileName}</span>
@@ -827,7 +847,7 @@ export function ProcessRoom({
       {bare && !prompt ? <p className="mt-3 text-sm leading-6 text-[#667085]">{empty}</p> : null}
       {bare ? null : (
       <div className="mt-4 flex-1 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
-        <p className="text-xs font-semibold tracking-wide text-[#1c2740] uppercase">{sellerCopy.documentsShared}</p>
+        <p className="text-xs font-semibold text-[#1c2740]">{sellerCopy.documentsShared}</p>
         <div className="mt-2">
           <ProcessDocuments files={shared} empty={sellerCopy.documentsEmpty} onOpen={setOpenFile} />
         </div>
@@ -835,7 +855,7 @@ export function ProcessRoom({
       )}
       {other ? (
         <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
-          <p className="text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{sellerCopy.documentsOther}</p>
+          <p className="text-xs font-semibold text-[#5c6b78]">{sellerCopy.documentsOther}</p>
           {nda ? (
             ndaHref ? (
               <SignedDocumentRow

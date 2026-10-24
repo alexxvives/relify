@@ -50,7 +50,7 @@ export function processFlags(input: {
   };
 }
 
-/** Contract accepted (signatures pending): "Documentación" is done and "Compraventa" becomes the current step. */
+/** Contract accepted (signatures pending): "Contrato" is done and "Venta" becomes the current step. */
 export function withContractAccepted(steps: DealStep[], accepted: boolean): DealStep[] {
   if (!accepted) return steps;
   const documents = steps.find((step) => step.id === "documents");
@@ -80,33 +80,33 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
     seller: "Aceptas al comprador si encaja. Después le toca firmar el acuerdo de confidencialidad.",
   },
   nda: {
-    label: "NDA",
+    label: "Confidencialidad",
     investor: "Firmas el acuerdo de confidencialidad. Sin esa firma no se abre el detalle ni el chat.",
-    seller: "El comprador debe firmar el NDA para seguir. Tú no firmas este paso.",
+    seller: "El comprador debe firmar el acuerdo de confidencialidad para seguir. Tú no firmas este paso.",
   },
   qa: {
-    label: "Q&A",
+    label: "Preguntas",
     investor: "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor.",
     seller:
-      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones (LOI).",
+      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
   },
   loi: {
-    label: "LOI",
+    label: "Carta de intenciones",
     investor: "Firmas la carta de intenciones. No obliga a cerrar la compra.",
     seller: "El comprador firma la carta de intenciones y te llega como oferta indicativa.",
   },
   diligence: {
-    label: "Due diligence",
+    label: "Revisión",
     investor: "Puedes pedir un asesor de Relify o seguir a la documentación. El contrato lo sube el vendedor.",
     seller: "El comprador revisa con un asesor o sigue adelante. El contrato de compraventa lo subes tú.",
   },
   documents: {
-    label: "Documentación",
+    label: "Contrato",
     investor: "El vendedor sube el contrato de compraventa. Relify no lo redacta.",
     seller: "Subes el contrato de compraventa. Relify no lo redacta.",
   },
   close: {
-    label: "Compraventa",
+    label: "Venta",
     investor: "El pago queda hecho y la compra se cierra.",
     seller: "El pago queda hecho y la venta se cierra.",
   },
@@ -117,10 +117,10 @@ export type DealViewer = "investor" | "seller" | "advisor";
 const advisorWatch: Record<DealStepId, string> = {
   solicitud: "El comprador envía la conexión.",
   conexion: "El vendedor todavía no ha aceptado.",
-  nda: "El comprador todavía no ha firmado el NDA.",
+  nda: "El comprador todavía no ha firmado el acuerdo de confidencialidad.",
   qa: "Preguntas y reuniones, hasta la carta de intenciones.",
   loi: "Falta la carta de intenciones.",
-  diligence: "Due diligence en curso.",
+  diligence: "Revisión (due diligence) en curso.",
   documents: "Falta el contrato de compraventa.",
   close: "La compraventa está cerrada.",
 };
