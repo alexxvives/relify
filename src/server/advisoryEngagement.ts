@@ -1,3 +1,5 @@
+import type { ContractView } from "@/lib/sale-contract";
+import { contractStageOpen, contractViews } from "@/server/saleContract";
 import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { randomUUID } from "node:crypto";
 import { advisorIsListed } from "@/lib/advisor-directory";
@@ -101,6 +103,7 @@ export type AdvisorEngagementPage = {
   };
   investorCard: PublicInvestorCard | null;
   steps: DealStep[];
+  contract?: ContractView | null;
   preview: {
     description: string;
     facts: { label: string; value: string }[];
@@ -669,8 +672,24 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     showcase: showcaseFor(row.project, !figuresOpen),
     investorCard,
     steps,
+    contract: row.client === "seller" ? await advisorContract(row.project.id) : null,
     preview: null,
   };
+}
+
+/** The seller's live process furthest along (LOI accepted), as the hired seller advisor sees its contract. */
+async function advisorContract(projectId: string): Promise<ContractView | null> {
+  const access = await prisma.projectAccess.findFirst({
+    where: { projectId, cancelledAt: null, loiAcceptedAt: { not: null } },
+    orderBy: [{ diligencePassedAt: { sort: "desc", nulls: "last" } }, { loiAcceptedAt: "desc" }],
+    select: { id: true, investorId: true, diligencePassedAt: true },
+  });
+  if (!access) return null;
+  const grant = await prisma.dataRoomGrant.findFirst({ where: { projectId, investorId: access.investorId }, select: { id: true } });
+  const views = await contractViews([
+    { accessId: access.id, party: "advisor", open: contractStageOpen({ loiAccepted: true, passedDiligence: access.diligencePassedAt !== null, roomShared: grant !== null }) },
+  ]);
+  return views.get(access.id) ?? null;
 }
 
 export async function declineEngagement(user: CurrentUser, id: string): Promise<EngagementResult> {

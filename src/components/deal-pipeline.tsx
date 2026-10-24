@@ -304,11 +304,13 @@ export function ProcessHeaderCue({
   role,
   sign,
   diligence,
+  contractNext,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   sign?: { slug: string; nda: string; loi: string };
   diligence?: { accessId: string; advisorHref: string };
+  contractNext?: { who: "you" | "other" | "none"; text: string } | null;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const loiReady = useLoiReady(sign?.slug);
@@ -320,6 +322,17 @@ export function ProcessHeaderCue({
   const signKindFor = current && !current.pendingLoi ? signTarget(current.id, cue?.yours === true, role) : null;
   const canProceed = role === "investor" && !previewLoi && steps.some((step) => step.id === "qa" && step.state === "current" && !step.pendingLoi) && Boolean(sign);
   const canSign = Boolean(sign) && signKindFor !== null;
+
+  if (contractNext && (current?.id === "documents" || current?.id === "close")) {
+    return contractNext.who === "you" ? (
+      <span className="flex min-w-0 items-start gap-3">
+        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">Tu turno</span>
+        <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
+      </span>
+    ) : (
+      <DealWaitingCue cue={{ action: contractNext.text }} />
+    );
+  }
 
   if (!cue || (cue.yours && role === "seller" && current?.id !== "diligence")) {
     return null;

@@ -3,6 +3,7 @@ import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
+import { ContractStage } from "@/components/contract-stage";
 import { DealPipeline } from "@/components/deal-pipeline";
 import { FloatingInvestorCard } from "@/components/floating-investor-card";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -53,6 +54,7 @@ export function AdvisorEngagementView({
             {engagement.clientLabel}
             {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
           </p>
+          {engagement.contract ? <ContractStage contract={engagement.contract} /> : null}
           {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.profile ? (
             <CompanyProfile project={engagement.profile} figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />

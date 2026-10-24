@@ -1,3 +1,4 @@
+import type { ContractView } from "@/lib/sale-contract";
 import * as z from "zod";
 import type { DealStep, ProcessFile } from "./deal-pipeline";
 import type { UserRoleName } from "./auth-input";
@@ -127,6 +128,7 @@ export type SellerThread = {
   steps: DealStep[];
   documents: ProcessFile[];
   advisorHired: boolean;
+  contract?: ContractView | null;
 };
 
 export type MessageCounts = {

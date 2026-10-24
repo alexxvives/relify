@@ -7,6 +7,7 @@ import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-re
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { CancelProcessButton } from "@/components/cancel-process-button";
+import { ContractStage } from "@/components/contract-stage";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -233,6 +234,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             steps={thread.steps}
             role="seller"
             diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
+            contractNext={thread.contract?.next ?? null}
           />
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -265,6 +267,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             }
           />
         </div>
+      {thread.contract ? <ContractStage contract={thread.contract} /> : null}
       {expandable ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
           <SellerTabs

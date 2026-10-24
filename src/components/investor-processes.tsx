@@ -7,6 +7,7 @@ import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInve
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
+import { ContractStage } from "@/components/contract-stage";
 import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
@@ -180,6 +181,7 @@ export function InvestorProcesses({
                   steps={item.steps}
                   role="investor"
                   diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
+                  contractNext={item.contract?.next ?? null}
                   sign={{
                     slug: item.slug,
                     nda: ndaAgreement({
@@ -233,6 +235,7 @@ export function InvestorProcesses({
               }}
               diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
+            {item.contract ? <ContractStage contract={item.contract} /> : null}
             <ProcessConversation item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
           </section>
         </li>

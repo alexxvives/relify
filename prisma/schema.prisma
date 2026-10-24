@@ -102,41 +102,41 @@ enum MessageAuthor {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false) @map("email_verified")
-  image         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  role            UserRole? @map("role")
-  referralSource  String?   @map("referral_source")
-  onboardedAt     DateTime? @map("onboarded_at")
-  termsAcceptedAt DateTime? @map("terms_accepted_at")
-  signaturePng    Bytes?    @map("signature_png")
-  suspendedAt     DateTime? @map("suspended_at")
-  lastName        String?   @map("last_name")
-  phone           String?
-  nationalId      String?   @map("national_id")
-  pendingCif      String?   @map("pending_cif")
-  advisorProfile  AdvisorProfile?
-  sessions        Session[]
-  accounts      Account[]
-  projects        Project[]
-  projectAccesses ProjectAccess[]
-  favorites       ProjectFavorite[]
-  notifications   Notification[]
-  advisoryQuotes  AdvisoryQuote[]
-  registryPrefill CompanyRegistryPrefill?
-  dataRoomGrants  DataRoomGrant[]
-  dataRoomFileShares DataRoomFileShare[]
-  projectMessages ProjectMessage[]
-  saleMandates    SaleMandate[]
-  billingCustomer BillingCustomer?
-  listingPayments ListingPayment[]
-  engagementsRequested AdvisoryEngagement[] @relation("EngagementRequester")
-  engagementsOwned     AdvisoryEngagement[] @relation("EngagementAdvisor")
-  investorProfile InvestorProfile?
+  id                   String                  @id
+  name                 String
+  email                String
+  emailVerified        Boolean                 @default(false) @map("email_verified")
+  image                String?
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
+  role                 UserRole?               @map("role")
+  referralSource       String?                 @map("referral_source")
+  onboardedAt          DateTime?               @map("onboarded_at")
+  termsAcceptedAt      DateTime?               @map("terms_accepted_at")
+  signaturePng         Bytes?                  @map("signature_png")
+  suspendedAt          DateTime?               @map("suspended_at")
+  lastName             String?                 @map("last_name")
+  phone                String?
+  nationalId           String?                 @map("national_id")
+  pendingCif           String?                 @map("pending_cif")
+  advisorProfile       AdvisorProfile?
+  sessions             Session[]
+  accounts             Account[]
+  projects             Project[]
+  projectAccesses      ProjectAccess[]
+  favorites            ProjectFavorite[]
+  notifications        Notification[]
+  advisoryQuotes       AdvisoryQuote[]
+  registryPrefill      CompanyRegistryPrefill?
+  dataRoomGrants       DataRoomGrant[]
+  dataRoomFileShares   DataRoomFileShare[]
+  projectMessages      ProjectMessage[]
+  saleMandates         SaleMandate[]
+  billingCustomer      BillingCustomer?
+  listingPayments      ListingPayment[]
+  engagementsRequested AdvisoryEngagement[]    @relation("EngagementRequester")
+  engagementsOwned     AdvisoryEngagement[]    @relation("EngagementAdvisor")
+  investorProfile      InvestorProfile?
 
   @@unique([email])
   @@map("user")
@@ -191,31 +191,31 @@ model Verification {
 }
 
 model Project {
-  id                  String         @id
-  slug                String         @unique
+  id                  String               @id
+  slug                String               @unique
   codename            String
   region              String
-  revenueCents        Int            @map("revenue_cents")
-  ebitdaCents         Int            @map("ebitda_cents")
-  adjustedEbitdaCents Int            @map("adjusted_ebitda_cents")
-  askingPriceCents    Int            @map("asking_price_cents")
-  verifiedAt          DateTime?      @map("verified_at")
-  netDebtCents        Int            @map("net_debt_cents")
-  workingCapitalCents Int            @map("working_capital_cents")
-  netIncomeCents      Int            @map("net_income_cents")
-  legalName           String           @map("legal_name")
+  revenueCents        Int                  @map("revenue_cents")
+  ebitdaCents         Int                  @map("ebitda_cents")
+  adjustedEbitdaCents Int                  @map("adjusted_ebitda_cents")
+  askingPriceCents    Int                  @map("asking_price_cents")
+  verifiedAt          DateTime?            @map("verified_at")
+  netDebtCents        Int                  @map("net_debt_cents")
+  workingCapitalCents Int                  @map("working_capital_cents")
+  netIncomeCents      Int                  @map("net_income_cents")
+  legalName           String               @map("legal_name")
   cif                 String
   address             String
-  foundedYear         Int?             @map("founded_year")
-  description         String?          @db.Text
-  saleReason          String?          @map("sale_reason")
-  opexCents           Int?             @map("opex_cents")
-  headcountRange      HeadcountRange?  @map("headcount_range")
-  customerBase        CustomerBase?    @map("customer_base")
-  status              ProjectStatus    @default(published) @map("status")
-  ownerId             String?          @map("owner_id")
-  owner               User?            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt           DateTime         @default(now()) @map("created_at")
+  foundedYear         Int?                 @map("founded_year")
+  description         String?              @db.Text
+  saleReason          String?              @map("sale_reason")
+  opexCents           Int?                 @map("opex_cents")
+  headcountRange      HeadcountRange?      @map("headcount_range")
+  customerBase        CustomerBase?        @map("customer_base")
+  status              ProjectStatus        @default(published) @map("status")
+  ownerId             String?              @map("owner_id")
+  owner               User?                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now()) @map("created_at")
   shareholders        Shareholder[]
   dataRoomFiles       DataRoomFile[]
   dataRoomFolders     DataRoomFolder[]
@@ -262,33 +262,33 @@ model ActivitySlice {
 }
 
 model ProjectYear {
-  id                          String            @id
-  projectId                   String            @map("project_id")
-  project                     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  year                        Int
-  kind                        FinancialYearKind
-  salesCents                  Int?              @map("sales_cents")
-  inventoryChangeCents        Int?              @map("inventory_change_cents")
-  ownUseCents                 Int?              @map("own_use_cents")
-  suppliesCents               Int?              @map("supplies_cents")
-  otherOperatingIncomeCents   Int?              @map("other_operating_income_cents")
-  staffCostsCents             Int?              @map("staff_costs_cents")
-  otherOperatingCostsCents    Int?              @map("other_operating_costs_cents")
-  grantIncomeCents            Int?              @map("grant_income_cents")
-  provisionSurplusCents       Int?              @map("provision_surplus_cents")
-  assetImpairmentCents        Int?              @map("asset_impairment_cents")
-  subsidiaryControlLossCents  Int?              @map("subsidiary_control_loss_cents")
-  negativeDifferenceCents     Int?              @map("negative_difference_cents")
-  otherResultsCents           Int?              @map("other_results_cents")
-  amortizationCents           Int?              @map("amortization_cents")
-  currentAssetsCents          Int?              @map("current_assets_cents")
-  cashCents                   Int?              @map("cash_cents")
-  nonCurrentAssetsCents       Int?              @map("non_current_assets_cents")
-  currentLiabilitiesCents     Int?              @map("current_liabilities_cents")
-  longTermDebtCents           Int?              @map("long_term_debt_cents")
-  nonCurrentLiabilitiesCents  Int?              @map("non_current_liabilities_cents")
-  shortTermDebtCents          Int?              @map("short_term_debt_cents")
-  equityCents                 Int?              @map("equity_cents")
+  id                         String            @id
+  projectId                  String            @map("project_id")
+  project                    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  year                       Int
+  kind                       FinancialYearKind
+  salesCents                 Int?              @map("sales_cents")
+  inventoryChangeCents       Int?              @map("inventory_change_cents")
+  ownUseCents                Int?              @map("own_use_cents")
+  suppliesCents              Int?              @map("supplies_cents")
+  otherOperatingIncomeCents  Int?              @map("other_operating_income_cents")
+  staffCostsCents            Int?              @map("staff_costs_cents")
+  otherOperatingCostsCents   Int?              @map("other_operating_costs_cents")
+  grantIncomeCents           Int?              @map("grant_income_cents")
+  provisionSurplusCents      Int?              @map("provision_surplus_cents")
+  assetImpairmentCents       Int?              @map("asset_impairment_cents")
+  subsidiaryControlLossCents Int?              @map("subsidiary_control_loss_cents")
+  negativeDifferenceCents    Int?              @map("negative_difference_cents")
+  otherResultsCents          Int?              @map("other_results_cents")
+  amortizationCents          Int?              @map("amortization_cents")
+  currentAssetsCents         Int?              @map("current_assets_cents")
+  cashCents                  Int?              @map("cash_cents")
+  nonCurrentAssetsCents      Int?              @map("non_current_assets_cents")
+  currentLiabilitiesCents    Int?              @map("current_liabilities_cents")
+  longTermDebtCents          Int?              @map("long_term_debt_cents")
+  nonCurrentLiabilitiesCents Int?              @map("non_current_liabilities_cents")
+  shortTermDebtCents         Int?              @map("short_term_debt_cents")
+  equityCents                Int?              @map("equity_cents")
 
   @@unique([projectId, year])
   @@index([projectId])
@@ -296,22 +296,23 @@ model ProjectYear {
 }
 
 model ProjectAccess {
-  id            String    @id
-  projectId     String    @map("project_id")
-  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  investorId    String    @map("investor_id")
-  investor      User      @relation(fields: [investorId], references: [id], onDelete: Cascade)
-  requestedAt      DateTime  @default(now()) @map("requested_at")
-  sellerAcceptedAt   DateTime? @map("seller_accepted_at")
-  ndaAcceptedAt      DateTime? @map("nda_accepted_at")
-  loiAcceptedAt      DateTime? @map("loi_accepted_at")
-  buyerPlanAtMatch   BuyerPlan? @map("buyer_plan_at_match")
-  diligencePassedAt  DateTime? @map("diligence_passed_at")
-  cancelledAt        DateTime? @map("cancelled_at")
-  cancelledBy        String?   @map("cancelled_by")
-  ndaSignature       Bytes?    @map("nda_signature")
-  loiSignature       Bytes?    @map("loi_signature")
-  loiSignedAt        DateTime? @map("loi_signed_at")
+  id                String         @id
+  projectId         String         @map("project_id")
+  project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  investorId        String         @map("investor_id")
+  investor          User           @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  requestedAt       DateTime       @default(now()) @map("requested_at")
+  sellerAcceptedAt  DateTime?      @map("seller_accepted_at")
+  ndaAcceptedAt     DateTime?      @map("nda_accepted_at")
+  loiAcceptedAt     DateTime?      @map("loi_accepted_at")
+  buyerPlanAtMatch  BuyerPlan?     @map("buyer_plan_at_match")
+  diligencePassedAt DateTime?      @map("diligence_passed_at")
+  cancelledAt       DateTime?      @map("cancelled_at")
+  cancelledBy       String?        @map("cancelled_by")
+  ndaSignature      Bytes?         @map("nda_signature")
+  loiSignature      Bytes?         @map("loi_signature")
+  loiSignedAt       DateTime?      @map("loi_signed_at")
+  saleContracts     SaleContract[]
 
   @@unique([projectId, investorId])
   @@index([investorId])
@@ -378,18 +379,18 @@ model CompanyRegistryPrefill {
 }
 
 model AdvisorProfile {
-  userId           String   @id @map("user_id")
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName     String   @default("") @map("business_name")
-  nif              String   @default("")
-  postalCode       String   @default("") @map("postal_code")
-  description      String   @default("") @db.Text
+  userId           String    @id @map("user_id")
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName     String    @default("") @map("business_name")
+  nif              String    @default("")
+  postalCode       String    @default("") @map("postal_code")
+  description      String    @default("") @db.Text
   verifiedAt       DateTime? @map("verified_at")
-  sectors          String[] @default([])
-  services         Json     @default("[]")
-  closedOperations Json     @default("[]") @map("closed_operations")
-  dealsAnswered    Boolean  @default(false) @map("deals_answered")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  sectors          String[]  @default([])
+  services         Json      @default("[]")
+  closedOperations Json      @default("[]") @map("closed_operations")
+  dealsAnswered    Boolean   @default(false) @map("deals_answered")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@map("advisor_profile")
 }
@@ -422,13 +423,13 @@ model Shareholder {
 }
 
 model DataRoomFile {
-  id        String   @id
-  projectId String   @map("project_id")
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  fileName  String   @map("file_name")
-  folder    String   @default("Otros")
-  createdAt DateTime @default(now()) @map("created_at")
-  shares    DataRoomFileShare[]
+  id            String              @id
+  projectId     String              @map("project_id")
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileName      String              @map("file_name")
+  folder        String              @default("Otros")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  shares        DataRoomFileShare[]
   advisorShares AdvisorFileShare[]
 
   @@index([projectId])
@@ -503,15 +504,15 @@ model SaleMandate {
 }
 
 model BillingCustomer {
-  userId               String    @id @map("user_id")
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeCustomerId     String    @unique @map("stripe_customer_id")
-  plan                 BuyerPlan @default(none)
-  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
-  periodStart          DateTime? @map("period_start")
-  periodEnd            DateTime? @map("period_end")
-  advisorInbox         Boolean   @default(false) @map("advisor_inbox")
-  advisorSubscriptionId String?  @unique @map("advisor_subscription_id")
+  userId                String    @id @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId      String    @unique @map("stripe_customer_id")
+  plan                  BuyerPlan @default(none)
+  stripeSubscriptionId  String?   @unique @map("stripe_subscription_id")
+  periodStart           DateTime? @map("period_start")
+  periodEnd             DateTime? @map("period_end")
+  advisorInbox          Boolean   @default(false) @map("advisor_inbox")
+  advisorSubscriptionId String?   @unique @map("advisor_subscription_id")
 
   @@map("billing_customer")
 }
@@ -544,28 +545,28 @@ enum EngagementAuthor {
 }
 
 model AdvisoryEngagement {
-  id                   String             @id
-  projectId            String             @map("project_id")
-  project              Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  requesterId          String             @map("requester_id")
-  requester            User               @relation("EngagementRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  id                   String              @id
+  projectId            String              @map("project_id")
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requesterId          String              @map("requester_id")
+  requester            User                @relation("EngagementRequester", fields: [requesterId], references: [id], onDelete: Cascade)
   client               EngagementClient
   services             String[]
-  advisorId            String?            @map("advisor_id")
-  advisor              User?              @relation("EngagementAdvisor", fields: [advisorId], references: [id], onDelete: SetNull)
-  claimedAt            DateTime?          @map("claimed_at")
-  depositCents         Int                @default(0) @map("deposit_cents")
-  depositPaidAt        DateTime?          @map("deposit_paid_at")
-  depositSessionId     String?            @unique @map("deposit_session_id")
-  declinedAt           DateTime?          @map("declined_at")
-  advisorNdaAcceptedAt DateTime?          @map("advisor_nda_accepted_at")
-  advisorNdaSignature  Bytes?             @map("advisor_nda_signature")
-  closedAt             DateTime?          @map("closed_at")
-  chargedCents         Int?               @map("charged_cents")
-  platformNetCents     Int?               @map("platform_net_cents")
-  platformVatCents     Int?               @map("platform_vat_cents")
-  processOpened        Boolean            @default(false) @map("process_opened")
-  createdAt            DateTime           @default(now()) @map("created_at")
+  advisorId            String?             @map("advisor_id")
+  advisor              User?               @relation("EngagementAdvisor", fields: [advisorId], references: [id], onDelete: SetNull)
+  claimedAt            DateTime?           @map("claimed_at")
+  depositCents         Int                 @default(0) @map("deposit_cents")
+  depositPaidAt        DateTime?           @map("deposit_paid_at")
+  depositSessionId     String?             @unique @map("deposit_session_id")
+  declinedAt           DateTime?           @map("declined_at")
+  advisorNdaAcceptedAt DateTime?           @map("advisor_nda_accepted_at")
+  advisorNdaSignature  Bytes?              @map("advisor_nda_signature")
+  closedAt             DateTime?           @map("closed_at")
+  chargedCents         Int?                @map("charged_cents")
+  platformNetCents     Int?                @map("platform_net_cents")
+  platformVatCents     Int?                @map("platform_vat_cents")
+  processOpened        Boolean             @default(false) @map("process_opened")
+  createdAt            DateTime            @default(now()) @map("created_at")
   folders              AdvisorFolderOpen[]
   fileShares           AdvisorFileShare[]
   messages             EngagementMessage[]
@@ -628,15 +629,15 @@ model WaitlistEntry {
 }
 
 model SuccessFee {
-  id                String   @id
-  projectId         String   @unique @map("project_id")
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  closedPriceCents  Int      @map("closed_price_cents")
-  buyerNetCents     Int      @map("buyer_net_cents")
-  buyerVatCents     Int      @map("buyer_vat_cents")
-  sellerNetCents    Int      @map("seller_net_cents")
-  sellerVatCents    Int      @map("seller_vat_cents")
-  recordedAt        DateTime @default(now()) @map("recorded_at")
+  id               String   @id
+  projectId        String   @unique @map("project_id")
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  closedPriceCents Int      @map("closed_price_cents")
+  buyerNetCents    Int      @map("buyer_net_cents")
+  buyerVatCents    Int      @map("buyer_vat_cents")
+  sellerNetCents   Int      @map("seller_net_cents")
+  sellerVatCents   Int      @map("seller_vat_cents")
+  recordedAt       DateTime @default(now()) @map("recorded_at")
 
   @@map("success_fee")
 }
@@ -654,4 +655,30 @@ model SignedDocument {
 
   @@index([userId])
   @@map("signed_document")
+}
+
+// Sale contract (compraventa) for one buyer process. The seller or their advisor
+// uploads versions; the buyer accepts or asks for changes; both sign in-platform.
+// status: review | changes | accepted | signed | superseded
+model SaleContract {
+  id              String        @id
+  accessId        String        @map("access_id")
+  access          ProjectAccess @relation(fields: [accessId], references: [id], onDelete: Cascade)
+  version         Int
+  fileName        String        @map("file_name")
+  pdf             Bytes
+  priceCents      Int           @map("price_cents")
+  uploadedById    String        @map("uploaded_by_id")
+  uploadedByRole  String        @map("uploaded_by_role")
+  status          String        @default("review")
+  reviewComment   String?       @map("review_comment")
+  reviewedAt      DateTime?     @map("reviewed_at")
+  buyerSignature  Bytes?        @map("buyer_signature")
+  buyerSignedAt   DateTime?     @map("buyer_signed_at")
+  sellerSignature Bytes?        @map("seller_signature")
+  sellerSignedAt  DateTime?     @map("seller_signed_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@unique([accessId, version])
+  @@map("sale_contract")
 }

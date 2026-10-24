@@ -1,10 +1,12 @@
 import { sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile } from "@/lib/deal-pipeline";
+import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile, withContractAccepted } from "@/lib/deal-pipeline";
 import { companyCopy } from "@/lib/company-copy";
 import { investorCopy } from "@/lib/investor-copy";
 import { investorProfileChecks } from "@/lib/demo-profile";
 import { toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
 import { formatWholeEur } from "@/lib/money";
+import type { ContractView } from "@/lib/sale-contract";
+import { contractStageOpen, contractViews } from "@/server/saleContract";
 import { prisma } from "@/server/db";
 import { loadInvestorDraft } from "@/server/investorProfile";
 
@@ -24,6 +26,7 @@ export type InvestorProcessCard = {
   documentsNote: string;
   partyName: string;
   advisorHired: boolean;
+  contract: ContractView | null;
 };
 
 export type InvestorProfileChecks = {
@@ -175,8 +178,24 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       documentsNote,
       partyName: access.project.owner ? personName(access.project.owner.name, access.project.owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
       advisorHired: hiredProjects.has(access.project.id),
+      contract: null as ContractView | null,
     };
   });
+  const contracts = await contractViews(
+    accesses.map((access) => ({
+      accessId: access.id,
+      party: "buyer" as const,
+      open: contractStageOpen({
+        loiAccepted: access.loiAcceptedAt !== null,
+        passedDiligence: access.diligencePassedAt !== null,
+        roomShared: access.project.dataRoomGrants.length > 0,
+      }),
+    })),
+  );
+  for (const card of processes) {
+    card.contract = contracts.get(card.accessId) ?? null;
+    card.steps = withContractAccepted(card.steps, card.contract?.stage === "signing");
+  }
   const draft = await loadInvestorDraft(userId, email);
 
   return {

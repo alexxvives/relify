@@ -1,10 +1,11 @@
 import { filesWithBytes, sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles, processFlags } from "@/lib/deal-pipeline";
+import { dealPipeline, investorProcessFiles, processFlags, withContractAccepted } from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
 import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
+import { contractStageOpen, contractViews } from "@/server/saleContract";
 import { prisma } from "@/server/db";
 import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { publicCardsByInvestor } from "@/server/investorProfile";
@@ -173,7 +174,26 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
       };
     });
 
-    return { viewer: "seller", threads, counts: countsFor(visibleMessages, open.length) };
+    const contracts = await contractViews(
+      labeled.map((access) => ({
+        accessId: access.id,
+        party: "seller" as const,
+        open: contractStageOpen({
+          loiAccepted: access.loiAcceptedAt !== null,
+          passedDiligence: access.diligencePassedAt !== null,
+          roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+        }),
+      })),
+    );
+
+    return {
+      viewer: "seller",
+      threads: threads.map((thread) => {
+        const contract = contracts.get(thread.accessId) ?? null;
+        return { ...thread, steps: withContractAccepted(thread.steps, contract?.stage === "signing"), contract };
+      }),
+      counts: countsFor(visibleMessages, open.length),
+    };
   }
 
   if (slug === null) {

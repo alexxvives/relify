@@ -50,6 +50,16 @@ export function processFlags(input: {
   };
 }
 
+/** Contract accepted (signatures pending): "Documentación" is done and "Compraventa" becomes the current step. */
+export function withContractAccepted(steps: DealStep[], accepted: boolean): DealStep[] {
+  if (!accepted) return steps;
+  const documents = steps.find((step) => step.id === "documents");
+  if (!documents || documents.state !== "current") return steps;
+  return steps.map((step) =>
+    step.id === "documents" ? { ...step, state: "done" } : step.id === "close" && step.state === "upcoming" ? { ...step, state: "current" } : step,
+  );
+}
+
 export type ProcessFile = {
   folder: string;
   fileName: string;
