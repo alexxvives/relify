@@ -13,6 +13,8 @@ export type AdvisorAccessSnapshot = {
   loiAccepted: boolean;
   roomShared: boolean;
   passedDiligence: boolean;
+  /** Buyer's real name once the seller has accepted them. */
+  connectedName?: string | null;
 };
 
 export type AdvisorEngagementSnapshot = {

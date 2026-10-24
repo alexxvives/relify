@@ -10,7 +10,7 @@ import {
   type DataRoomShareView,
   type OwnerFileView,
 } from "@/lib/data-room";
-import { labelAccesses } from "@/lib/project-message";
+import { labelAccesses, personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
@@ -64,7 +64,14 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       }),
       prisma.projectAccess.findMany({
         where: { projectId: { in: ids }, ndaAcceptedAt: { not: null } },
-        select: { id: true, investorId: true, projectId: true, requestedAt: true },
+        select: {
+          id: true,
+          investorId: true,
+          projectId: true,
+          requestedAt: true,
+          sellerAcceptedAt: true,
+          investor: { select: { name: true, lastName: true } },
+        },
         orderBy: { requestedAt: "asc" },
       }),
       prisma.dataRoomGrant.findMany({
@@ -81,7 +88,12 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       }),
     ]);
     const granted = new Set(grants.map((grant) => grant.investorId));
-    const investors = labelAccesses(accesses).map((access) => ({
+    const investors = labelAccesses(
+      accesses.map((access) => ({
+        ...access,
+        connectedName: access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
+      })),
+    ).map((access) => ({
       investorId: access.investorId,
       accessId: access.id,
       label: access.label,

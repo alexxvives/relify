@@ -161,12 +161,11 @@ export function anonymousInvestorLabel(order: number): string {
   return `Inversor ${order}`;
 }
 
-export function investorFromPlace(place: string): string {
-  const city = place.split("·")[0]?.trim() ?? "";
-  return city.length > 0 ? `Inversor de ${city}` : "Inversor";
-}
-
-export function labelAccesses<T extends { projectId: string; requestedAt: Date }>(rows: readonly T[]): (T & { label: string })[] {
+/**
+ * Numbers buyers per project ("Inversor 2") until the seller accepts them; from then
+ * on (`connectedName` set) the label is the buyer's real name.
+ */
+export function labelAccesses<T extends { projectId: string; requestedAt: Date; connectedName?: string | null }>(rows: readonly T[]): (T & { label: string })[] {
   const grouped = new Map<string, T[]>();
 
   for (const row of rows) {
@@ -180,7 +179,7 @@ export function labelAccesses<T extends { projectId: string; requestedAt: Date }
   for (const list of grouped.values()) {
     const ordered = [...list].sort((left, right) => left.requestedAt.getTime() - right.requestedAt.getTime());
     ordered.forEach((row, index) => {
-      labeled.push({ ...row, label: anonymousInvestorLabel(index + 1) });
+      labeled.push({ ...row, label: row.connectedName?.trim() || anonymousInvestorLabel(index + 1) });
     });
   }
 
@@ -203,14 +202,14 @@ export function messageKindLabel(kind: MessageKindName): string {
   return "Pregunta";
 }
 
-export function investorNoticeFor(kind: MessageKindName, codename: string): { title: string; body: string } {
+export function investorNoticeFor(kind: MessageKindName, codename: string, buyer?: string | null): { title: string; body: string } {
   if (kind === "meeting") {
-    return incomingMeetingNotice(codename);
+    return incomingMeetingNotice(codename, buyer);
   }
 
   if (kind === "offer") {
-    return incomingOfferNotice(codename);
+    return incomingOfferNotice(codename, buyer);
   }
 
-  return incomingQuestionNotice(codename);
+  return incomingQuestionNotice(codename, buyer);
 }

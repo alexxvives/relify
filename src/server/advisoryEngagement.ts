@@ -1135,6 +1135,7 @@ export async function listAdvisorProjectBoards(
               ndaAcceptedAt: true,
               loiAcceptedAt: true,
               diligencePassedAt: true,
+              investor: { select: { name: true, lastName: true } },
             },
           },
         },
@@ -1188,6 +1189,7 @@ export async function listAdvisorProjectBoards(
         loiAccepted: access.loiAcceptedAt !== null,
         roomShared: grantKeys.has(`${row.project.id}:${access.investorId}`),
         passedDiligence: access.diligencePassedAt !== null,
+        connectedName: access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
       };
     }),
   }));

@@ -1,5 +1,6 @@
 import { accessCopy } from "@/lib/access-copy";
 import { processCancelledNotice } from "@/lib/notifications";
+import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -16,6 +17,8 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
     select: {
       id: true,
       investorId: true,
+      sellerAcceptedAt: true,
+      investor: { select: { name: true, lastName: true } },
       project: { select: { id: true, ownerId: true, codename: true, slug: true } },
     },
   });
@@ -45,7 +48,11 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
 
   const otherId = seller ? access.investorId : access.project.ownerId;
   if (otherId && otherId !== user.id) {
-    const other = processCancelledNotice(access.project.codename, seller ? "seller" : "investor");
+    const other = processCancelledNotice(
+      access.project.codename,
+      seller ? "seller" : "investor",
+      access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
+    );
     await recordNotification({
       userId: otherId,
       ...other,

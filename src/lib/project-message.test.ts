@@ -56,6 +56,14 @@ describe("thread views", () => {
     expect(labeled.find((row) => row.id === "later")?.label).toBe("Inversor 2");
     expect(labeled.find((row) => row.id === "other")?.label).toBe("Inversor 1");
     expect(JSON.stringify(labeled)).not.toContain("@");
+    const connected = labelAccesses([
+      { projectId: "cala", requestedAt: new Date("2026-09-18T10:00:00.000Z"), id: "a", connectedName: "Martín Soler" },
+      { projectId: "cala", requestedAt: new Date("2026-09-20T10:00:00.000Z"), id: "b", connectedName: null },
+    ]);
+    expect(connected.map((row) => row.label)).toEqual(["Martín Soler", "Inversor 2"]);
+    expect(investorNoticeFor("offer", "Proyecto Cala", "Martín Soler").body).toBe(
+      "Martín Soler ha enviado una oferta indicativa sobre Proyecto Cala.",
+    );
     expect(personName("Laura", "Vidal")).toBe("Laura Vidal");
     expect(personName("Elena", null)).toBe("Elena");
   });

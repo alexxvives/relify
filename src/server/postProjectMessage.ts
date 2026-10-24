@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { accessMessage, ndaAccessGate } from "@/lib/project-access";
 import {
   investorNoticeFor,
+  personName,
   messageFailure,
   messageTab,
   sellerReplyGate,
@@ -74,7 +75,7 @@ export async function postInvestorMessage(
   if (project.ownerId && project.ownerId !== user.id) {
     await recordNotification({
       userId: project.ownerId,
-      ...investorNoticeFor(input.kind, project.codename),
+      ...investorNoticeFor(input.kind, project.codename, personName(user.name, user.lastName)),
       href: "/mi-empresa/procesos",
     });
   }

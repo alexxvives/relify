@@ -3,6 +3,7 @@ import { incomingNdaNotice, ndaAcceptedNotice } from "@/lib/notifications";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
 import { accessMessage, acceptNdaOutcome, ndaAccessGate, type ProjectAccessInput } from "@/lib/project-access";
+import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -57,7 +58,7 @@ export async function acceptNda(
     await recordNotification({ userId: user.id, ...investorNotice, href });
 
     if (project.ownerId && project.ownerId !== user.id) {
-      const sellerNotice = incomingNdaNotice(project.codename);
+      const sellerNotice = incomingNdaNotice(project.codename, personName(user.name, user.lastName));
       await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa/procesos" });
     }
   }

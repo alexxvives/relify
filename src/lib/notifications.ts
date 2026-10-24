@@ -65,6 +65,12 @@ export function noticesForCompany(
   return items.filter((item) => item.unread === true && (item.body.includes(name) || item.title.includes(name))).length;
 }
 
+/** Connected buyers are named; before the seller accepts they stay anonymous. */
+function buyerSubject(buyer: string | null | undefined): string {
+  const name = buyer?.trim() ?? "";
+  return name.length > 0 ? name : "Un inversor";
+}
+
 export function accessRequestedNotice(codename: string): { title: string; body: string } {
   return {
     title: "Solicitud enviada",
@@ -86,31 +92,31 @@ export function ndaAcceptedNotice(codename: string): { title: string; body: stri
   };
 }
 
-export function incomingNdaNotice(codename: string): { title: string; body: string } {
+export function incomingNdaNotice(codename: string, buyer?: string | null): { title: string; body: string } {
   return {
     title: "NDA aceptado",
-    body: `Un inversor ha aceptado el NDA de ${codename}.`,
+    body: `${buyerSubject(buyer)} ha aceptado el NDA de ${codename}.`,
   };
 }
 
-export function incomingQuestionNotice(codename: string): { title: string; body: string } {
+export function incomingQuestionNotice(codename: string, buyer?: string | null): { title: string; body: string } {
   return {
     title: "Nueva pregunta",
-    body: `Un inversor ha enviado una pregunta sobre ${codename}.`,
+    body: `${buyerSubject(buyer)} ha enviado una pregunta sobre ${codename}.`,
   };
 }
 
-export function incomingMeetingNotice(codename: string): { title: string; body: string } {
+export function incomingMeetingNotice(codename: string, buyer?: string | null): { title: string; body: string } {
   return {
     title: "Reunión pedida",
-    body: `Un inversor ha pedido una reunión sobre ${codename}.`,
+    body: `${buyerSubject(buyer)} ha pedido una reunión sobre ${codename}.`,
   };
 }
 
-export function incomingOfferNotice(codename: string): { title: string; body: string } {
+export function incomingOfferNotice(codename: string, buyer?: string | null): { title: string; body: string } {
   return {
     title: "Oferta indicativa",
-    body: `Un inversor ha enviado una oferta indicativa sobre ${codename}.`,
+    body: `${buyerSubject(buyer)} ha enviado una oferta indicativa sobre ${codename}.`,
   };
 }
 
@@ -128,9 +134,9 @@ export function dataRoomSharedNotice(codename: string): { title: string; body: s
   };
 }
 
-export function processCancelledNotice(codename: string, who: "self" | "investor" | "seller"): { title: string; body: string } {
+export function processCancelledNotice(codename: string, who: "self" | "investor" | "seller", buyer?: string | null): { title: string; body: string } {
   if (who === "investor") {
-    return { title: "Proceso cancelado", body: `Un inversor ha cancelado el proceso de ${codename}.` };
+    return { title: "Proceso cancelado", body: `${buyerSubject(buyer)} ha cancelado el proceso de ${codename}.` };
   }
 
   if (who === "seller") {

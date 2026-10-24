@@ -545,7 +545,7 @@ function FileCard({
                   title={viewer.label}
                   className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
                 >
-                  {viewer.label.replace("Inversor ", "")}
+                  {viewerInitials(viewer.label)}
                 </span>
               ))}
             </span>
@@ -725,4 +725,18 @@ export function SellerDocuments({
       />
     </div>
   );
+}
+
+/** "Inversor 2" → "2"; a connected buyer's name → initials ("MS"). */
+function viewerInitials(label: string): string {
+  if (label.startsWith("Inversor ")) {
+    return label.slice("Inversor ".length);
+  }
+
+  return label
+    .split(/\s+/)
+    .filter((part) => part.length > 0)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
