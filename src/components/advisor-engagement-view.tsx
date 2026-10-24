@@ -37,7 +37,7 @@ export function AdvisorEngagementView({
 
   return (
     <div className={`flex flex-col gap-6 ${showDeposit ? "max-xl:pb-44" : ""}`}>
-      <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
+      <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote || notice === engagementCopy.subscriptionPaidNote ? "ok" : "error"} />
       <div className={rail ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
         <div className="flex min-w-0 flex-col gap-6">
           <CompanyBanner
@@ -125,7 +125,11 @@ export function AdvisorEngagementView({
                 <FloatingInvestorCard name={engagement.clientLabel} profile={engagement.investorCard} />
               ) : null}
               {showDeposit ? (
-                <AdvisorDepositForm engagementId={engagement.id} amountLabel={engagement.deposit.amountLabel} />
+                <AdvisorDepositForm
+                  engagementId={engagement.id}
+                  amountLabel={engagement.deposit.amountLabel}
+                  subscriptionActive={engagement.deposit.subscriptionActive}
+                />
               ) : null}
             </div>
           </aside>

@@ -16,7 +16,17 @@ export async function recordSuccessFee(
     where: { slug, ownerId: user.id },
     select: { id: true, status: true, successFee: { select: { id: true } } },
   });
+  // The buyer rate depends on the plan the winning buyer had when the seller
+  // accepted the match. Take the most advanced live process for this company.
+  const winner = project
+    ? await prisma.projectAccess.findFirst({
+        where: { projectId: project.id, sellerAcceptedAt: { not: null }, cancelledAt: null },
+        orderBy: [{ loiAcceptedAt: { sort: "desc", nulls: "last" } }, { sellerAcceptedAt: "desc" }],
+        select: { buyerPlanAtMatch: true },
+      })
+    : null;
   const outcome = recordSaleOutcome({
+    buyerPlanAtMatch: winner?.buyerPlanAtMatch ?? null,
     isOwner: project !== null && user.onboarded,
     published: project?.status === "published",
     alreadyRecorded: project?.successFee !== null && project?.successFee !== undefined,

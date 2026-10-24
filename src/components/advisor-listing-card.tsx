@@ -1,5 +1,6 @@
 "use client";
 
+import { VerifiedBadge } from "@/components/project-photo";
 import { useActionState, useState } from "react";
 import { Check, Star } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
@@ -74,6 +75,7 @@ export function AdvisorListingCard({
       <div className="relative bg-[#1c2740] px-5 py-5">
         <ReviewMark cases={advisor.cases.length} />
         <p className="pr-36 text-lg font-semibold text-white">{engagementCopy.advisorFallback}</p>
+        {advisor.verified ? <VerifiedBadge className="mt-2" /> : null}
         <SectorTags sectors={advisor.sectors} />
       </div>
       {connect ? (

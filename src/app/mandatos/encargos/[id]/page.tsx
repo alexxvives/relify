@@ -19,7 +19,7 @@ export default async function AdvisorEngagementPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ session_id?: string; deposito?: string }>;
+  searchParams: Promise<{ session_id?: string; deposito?: string; suscripcion?: string }>;
 }) {
   const user = await requireRole("advisor");
   const { id } = await params;
@@ -27,7 +27,11 @@ export default async function AdvisorEngagementPage({
 
   if (typeof query.session_id === "string" && query.session_id !== "") {
     const applied = await fulfillCheckout(query.session_id, user.id);
-    redirect(applied.ok ? `/mandatos/encargos/${id}?deposito=1` : `/mandatos/encargos/${id}?deposito=0`);
+    redirect(
+      applied.ok
+        ? `/mandatos/encargos/${id}?${applied.kind === "advisor_inbox" ? "suscripcion=1" : "deposito=1"}`
+        : `/mandatos/encargos/${id}?deposito=0`,
+    );
   }
 
   const engagement = await getAdvisorEngagement(user, id);
@@ -39,7 +43,7 @@ export default async function AdvisorEngagementPage({
   }
 
   const thread = engagement.deposit.paid || engagement.closed ? await getEngagementThread(user, id) : null;
-  const notice = query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
+  const notice = query.suscripcion === "1" ? engagementCopy.subscriptionPaidNote : query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
 
   return (
     <SignedInPage title={engagement.codename} showTitle={false}>

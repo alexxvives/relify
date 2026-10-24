@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, onboardingFieldMessage, onboardingSchema, splitAccountName, type OnboardingInput } from "@/lib/auth-input";
 import { completeOnboarding } from "@/server/completeOnboarding";
+import { getCurrentUser } from "@/server/getCurrentUser";
+import { startBuyerCheckout } from "@/server/startCheckout";
 
 export type OnboardingState = { message: string } | null;
 
@@ -47,6 +49,14 @@ export async function onboardingAction(_state: OnboardingState, formData: FormDa
     }
 
     return { message: result.message };
+  }
+
+  const plan = formData.get("plan");
+
+  if (result.role === "investor" && (plan === "limited" || plan === "unlimited")) {
+    const user = await getCurrentUser();
+    const checkout = user ? await startBuyerCheckout(user, plan) : null;
+    redirect(checkout?.ok ? checkout.url : "/premium");
   }
 
   redirect(homeForRole(result.role));

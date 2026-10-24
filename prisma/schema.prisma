@@ -199,6 +199,7 @@ model Project {
   ebitdaCents         Int            @map("ebitda_cents")
   adjustedEbitdaCents Int            @map("adjusted_ebitda_cents")
   askingPriceCents    Int            @map("asking_price_cents")
+  verifiedAt          DateTime?      @map("verified_at")
   netDebtCents        Int            @map("net_debt_cents")
   workingCapitalCents Int            @map("working_capital_cents")
   netIncomeCents      Int            @map("net_income_cents")
@@ -304,6 +305,7 @@ model ProjectAccess {
   sellerAcceptedAt   DateTime? @map("seller_accepted_at")
   ndaAcceptedAt      DateTime? @map("nda_accepted_at")
   loiAcceptedAt      DateTime? @map("loi_accepted_at")
+  buyerPlanAtMatch   BuyerPlan? @map("buyer_plan_at_match")
   diligencePassedAt  DateTime? @map("diligence_passed_at")
   cancelledAt        DateTime? @map("cancelled_at")
   cancelledBy        String?   @map("cancelled_by")
@@ -382,6 +384,7 @@ model AdvisorProfile {
   nif              String   @default("")
   postalCode       String   @default("") @map("postal_code")
   description      String   @default("") @db.Text
+  verifiedAt       DateTime? @map("verified_at")
   sectors          String[] @default([])
   services         Json     @default("[]")
   closedOperations Json     @default("[]") @map("closed_operations")

@@ -6,6 +6,7 @@ import { changeAccountRole } from "@/server/changeAccountRole";
 import { grantInvestorPlan } from "@/server/grantInvestorPlan";
 import { requireRole } from "@/server/requireRole";
 import { setAccountSuspension } from "@/server/setAccountSuspension";
+import { setVerified } from "@/server/setVerified";
 import { unpublishProject } from "@/server/unpublishProject";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
@@ -39,6 +40,19 @@ export async function unpublishProjectAction(_state: AdminActionState, formData:
 
   if (result.ok) {
     refreshCatalog();
+  }
+
+  return result;
+}
+
+export async function toggleVerifiedAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  const user = await requireRole("admin");
+  const target = readText(formData, "target") === "advisor" ? "advisor" : "project";
+  const result = await setVerified(user, target, readText(formData, "id"), readText(formData, "verified") === "1");
+
+  if (result.ok) {
+    refreshCatalog();
+    revalidatePath("/asesores");
   }
 
   return result;

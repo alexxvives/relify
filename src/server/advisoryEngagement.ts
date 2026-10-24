@@ -84,7 +84,7 @@ export type AdvisorEngagementPage = {
   ndaText: string | null;
   closed: boolean;
   feeLabel: string | null;
-  deposit: { paid: boolean; amountLabel: string };
+  deposit: { paid: boolean; amountLabel: string; subscriptionActive: boolean };
   hiredByInvestor: boolean;
   figuresOpen: boolean;
   description: string;
@@ -151,6 +151,12 @@ function toCard(
       ndaSigned: row.advisorNdaAcceptedAt !== null && row.advisorNdaAcceptedAt !== undefined,
     }),
   };
+}
+
+// The advisor subscription (49 €/mes + IVA). Required to accept an encargo
+// (deposit, NDA) and to write to a client.
+export async function advisorSubscriptionActive(userId: string): Promise<boolean> {
+  return inboxPaid(userId);
 }
 
 async function inboxPaid(userId: string): Promise<boolean> {
@@ -544,6 +550,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
   }
 
   const depositAmount = formatEur(advisorDepositCents(row.project.askingPriceCents));
+  const subscriptionActive = await inboxPaid(user.id);
   const companyRow = await prisma.project.findUnique({
     where: { id: row.project.id },
     select: investorProjectSelect,
@@ -569,7 +576,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       ndaText: null,
       closed: row.closedAt !== null,
       feeLabel: null,
-      deposit: { paid: false, amountLabel: depositAmount },
+      deposit: { paid: false, amountLabel: depositAmount, subscriptionActive },
       hiredByInvestor: row.client === "investor",
       figuresOpen: false,
       description: row.project.description?.trim() ?? "",
@@ -655,7 +662,7 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       row.platformNetCents !== null && row.platformVatCents !== null
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
-    deposit: { paid: true, amountLabel: depositAmount },
+    deposit: { paid: true, amountLabel: depositAmount, subscriptionActive },
     hiredByInvestor: row.client === "investor",
     figuresOpen,
     description: row.project.description?.trim() ?? "",
@@ -719,6 +726,10 @@ export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureV
 
   if (!outcome.ok || !row) {
     return { ok: false, message: outcome.ok ? engagementCopy.missing : outcome.code === "deposit" ? engagementCopy.depositRequired : engagementCopy.missing };
+  }
+
+  if (outcome.stamp && !(await inboxPaid(user.id))) {
+    return { ok: false, message: engagementCopy.subscriptionRequired };
   }
 
   const signature = outcome.stamp ? signatureJpeg(signatureValue) : null;

@@ -1,6 +1,6 @@
 import { buyerAcceptOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
-import { buyerCanBeAccepted } from "@/server/buyerPlan";
+import { buyerCanBeAccepted, loadBuyerPlan } from "@/server/buyerPlan";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -34,9 +34,10 @@ export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<
   }
 
   if (outcome.stamp) {
+    const buyerPlan = await loadBuyerPlan(access.investorId);
     await prisma.projectAccess.update({
       where: { id: access.id },
-      data: { sellerAcceptedAt: new Date() },
+      data: { sellerAcceptedAt: new Date(), buyerPlanAtMatch: buyerPlan.plan },
     });
     await recordNotification({
       userId: access.investorId,

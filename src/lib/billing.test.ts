@@ -25,7 +25,7 @@ describe("prices", () => {
     expect(grossCents(LIMITED_NET_CENTS)).toBe(2_420);
     expect(grossCents(UNLIMITED_NET_CENTS)).toBe(11_979);
     expect(grossCents(SELLER_LISTING_NET_CENTS)).toBe(18_029);
-    expect(grossCents(ADVISOR_INBOX_NET_CENTS)).toBe(4_719);
+    expect(grossCents(ADVISOR_INBOX_NET_CENTS)).toBe(5_929);
   });
 
   it("holds 50 euros plus 0.5 percent of the asking price, with no IVA", () => {
@@ -33,13 +33,22 @@ describe("prices", () => {
     expect(advisorDepositCents(0)).toBe(ADVISOR_DEPOSIT_FLAT_CENTS);
   });
 
-  it("records 1 percent and 2.5 percent of the closed price, plus IVA", () => {
+  it("records 2.5 percent for the buyer and 5 percent for the seller, plus IVA", () => {
     expect(successFeeFromClose(1_000_000_00)).toEqual({
-      buyerNetCents: 10_000_00,
-      buyerVatCents: 2_100_00,
-      sellerNetCents: 25_000_00,
-      sellerVatCents: 5_250_00,
+      buyerNetCents: 25_000_00,
+      buyerVatCents: 5_250_00,
+      sellerNetCents: 50_000_00,
+      sellerVatCents: 10_500_00,
     });
+  });
+
+  it("drops the buyer to 2 percent when it was on the Empresa plan at match time", () => {
+    expect(successFeeFromClose(1_000_000_00, "unlimited").buyerNetCents).toBe(20_000_00);
+    expect(successFeeFromClose(1_000_000_00, "limited").buyerNetCents).toBe(25_000_00);
+  });
+
+  it("has no minimum fee", () => {
+    expect(successFeeFromClose(100_00).sellerNetCents).toBe(500);
   });
 });
 
@@ -193,8 +202,8 @@ describe("recordSaleOutcome", () => {
     expect(recorded.ok).toBe(true);
     if (recorded.ok) {
       expect(recorded.insert).toBe(true);
-      expect(recorded.fee.buyerNetCents).toBe(100);
-      expect(recorded.fee.sellerNetCents).toBe(250);
+      expect(recorded.fee.buyerNetCents).toBe(250);
+      expect(recorded.fee.sellerNetCents).toBe(500);
     }
     expect(
       recordSaleOutcome({ isOwner: true, published: false, alreadyRecorded: false, closedPriceCents: 100_00 }),

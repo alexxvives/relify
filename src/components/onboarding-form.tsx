@@ -3,21 +3,23 @@
 import { useState } from "react";
 import { useActionState } from "react";
 import { onboardingAction, type OnboardingState } from "@/app/onboarding/actions";
+import { AdvisorPlanStep, BuyerPlanStep, type OnboardingPlanChoice } from "@/components/onboarding-plan-step";
 import { PhoneField } from "@/components/phone-field";
+import { billingCopy } from "@/lib/billing-copy";
 import { authCopy } from "@/lib/auth-copy";
 import { referralSources, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
 import { isValidPhoneNational } from "@/lib/phone-countries";
 import { isValidSpanishPersonId } from "@/lib/spanish-cif";
 
-type OnboardingStep = "identity" | "phone" | "referral";
+type OnboardingStep = "identity" | "phone" | "referral" | "plan";
 type IdentityField = "name" | "nationalId" | "phone";
 
-const stepOrder: OnboardingStep[] = ["identity", "phone", "referral"];
 
 const stepLabel: Record<OnboardingStep, string> = {
   identity: authCopy.fullNameLabel,
   phone: authCopy.phoneLabel,
   referral: authCopy.referralQuestion,
+  plan: billingCopy.onboardingPlanStep,
 };
 
 const fieldClass =
@@ -37,6 +39,10 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
   const [invalidField, setInvalidField] = useState<IdentityField | null>(null);
   const [referralMissing, setReferralMissing] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [plan, setPlan] = useState<OnboardingPlanChoice>("none");
+  const withPlan = initialRole === "investor" || initialRole === "advisor";
+  const stepOrder: OnboardingStep[] = withPlan ? ["identity", "phone", "referral", "plan"] : ["identity", "phone", "referral"];
+  const lastStep = stepOrder[stepOrder.length - 1];
   const stepIndex = stepOrder.indexOf(step);
 
   function reject(field: IdentityField, message: string) {
@@ -85,6 +91,17 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       setInvalidField(null);
       setLocalMessage(null);
       setStep("referral");
+      return;
+    }
+
+    if (step === "referral" && withPlan) {
+      if (referralSource === "") {
+        setReferralMissing(true);
+        setAttempt((current) => current + 1);
+        return;
+      }
+
+      setStep("plan");
     }
   }
 
@@ -103,9 +120,9 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       action={action}
       className="flex flex-col gap-6"
       onSubmit={(event) => {
-        if (step !== "referral" || referralSource === "") {
+        if (step !== lastStep || referralSource === "") {
           event.preventDefault();
-          if (step === "referral") {
+          if (step === "referral" && lastStep === "referral") {
             setReferralMissing(true);
             setAttempt((current) => current + 1);
             return;
@@ -120,7 +137,8 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       <input type="hidden" name="phoneCountry" value={phoneCountry} />
       <input type="hidden" name="role" value={initialRole} />
       <input type="hidden" name="referralSource" value={referralSource} />
-      <ol className="grid grid-cols-3 gap-2">
+      <input type="hidden" name="plan" value={initialRole === "investor" ? plan : "none"} />
+      <ol className={withPlan ? "grid grid-cols-4 gap-2" : "grid grid-cols-3 gap-2"}>
         {stepOrder.map((item, index) => {
           const current = index === stepIndex;
           const done = index < stepIndex;
@@ -137,13 +155,13 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
               >
                 {index + 1}
               </span>
-              <span className="text-sm font-medium text-[#1c2740]">{stepLabel[item]}</span>
+              <span className="text-xs font-medium text-[#1c2740] sm:text-sm">{stepLabel[item]}</span>
             </li>
           );
         })}
       </ol>
       <p className="sr-only">
-        {authCopy.stepOf} {stepIndex + 1} {authCopy.stepOfTotal}
+        {authCopy.stepOf} {stepIndex + 1} de {stepOrder.length}
       </p>
       {step === "identity" ? (
         <div className="grid gap-4 md:grid-cols-2">
@@ -269,12 +287,14 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
           ) : null}
         </div>
       ) : null}
+      {step === "plan" && initialRole === "investor" ? <BuyerPlanStep value={plan} onChange={setPlan} /> : null}
+      {step === "plan" && initialRole === "advisor" ? <AdvisorPlanStep /> : null}
       {invalidField === null && localMessage ? (
         <p role="alert" className="text-sm text-[#c0362c]">
           {localMessage}
         </p>
       ) : null}
-      {step === "referral" && state?.message && !referralMissing ? (
+      {step === lastStep && state?.message && !referralMissing ? (
         <p role="alert" className="text-sm text-[#c0362c]">
           {state.message}
         </p>
@@ -287,16 +307,23 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
             {authCopy.previousStep}
           </button>
         )}
-        {step === "referral" ? (
+        {step === lastStep ? (
           <button
+            key="submit"
             type="submit"
             disabled={pending}
             className="inline-flex h-11 items-center rounded-xl bg-[#3d4a8a] px-5 text-sm font-medium text-white hover:bg-[#32407a] disabled:opacity-60"
           >
-            {pending ? authCopy.onboardingPending : authCopy.finishOnboarding}
+            {pending
+              ? authCopy.onboardingPending
+              : step === "plan" && initialRole === "investor"
+                ? plan === "none"
+                  ? billingCopy.onboardingPlanFinishFree
+                  : billingCopy.onboardingPlanFinishPaid
+                : authCopy.finishOnboarding}
           </button>
         ) : (
-          <button type="button" onClick={goNext} className="inline-flex h-11 items-center rounded-xl bg-[#3d4a8a] px-5 text-sm font-medium text-white hover:bg-[#32407a]">
+          <button key="next" type="button" onClick={goNext} className="inline-flex h-11 items-center rounded-xl bg-[#3d4a8a] px-5 text-sm font-medium text-white hover:bg-[#32407a]">
             {authCopy.nextStep}
           </button>
         )}

@@ -6,7 +6,7 @@ import { recordNotification } from "@/server/recordNotification";
 import { stripeClient } from "@/server/stripe";
 import type Stripe from "stripe";
 
-export type FulfillResult = { ok: true } | { ok: false; message: string };
+export type FulfillResult = { ok: true; kind?: "advisor_inbox" } | { ok: false; message: string };
 
 function planFromMetadata(metadata: Stripe.Metadata | null): "limited" | "unlimited" | null {
   const plan = metadata?.plan;
@@ -137,7 +137,7 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
 
     if (session.metadata?.kind === "advisor_inbox" || subscription.metadata.kind === "advisor_inbox") {
       await applyAdvisorInbox(userId, customerId, subscription);
-      return { ok: true };
+      return { ok: true, kind: "advisor_inbox" };
     }
 
     await applySubscription(userId, customerId, subscription);

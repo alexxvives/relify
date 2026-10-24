@@ -292,6 +292,11 @@ async function notifyOther(row: {
   });
 }
 
+async function advisorSubscribed(userId: string): Promise<boolean> {
+  const row = await prisma.billingCustomer.findUnique({ where: { userId }, select: { advisorInbox: true } });
+  return row?.advisorInbox === true;
+}
+
 export async function postEngagementMessage(
   user: CurrentUser,
   input: { engagementId: string; kind: "question" | "meeting"; body: string },
@@ -300,6 +305,10 @@ export async function postEngagementMessage(
 
   if (!row) {
     return { ok: false, message: engagementCopy.missing };
+  }
+
+  if (row.side === "advisor" && !(await advisorSubscribed(user.id))) {
+    return { ok: false, message: engagementCopy.subscriptionRequired };
   }
 
   if (advisorMessageLeavesPlatform(input.body)) {

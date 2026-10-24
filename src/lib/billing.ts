@@ -1,7 +1,7 @@
 export const LIMITED_NET_CENTS = 2_000;
 export const UNLIMITED_NET_CENTS = 9_900;
 export const SELLER_LISTING_NET_CENTS = 14_900;
-export const ADVISOR_INBOX_NET_CENTS = 3_900;
+export const ADVISOR_INBOX_NET_CENTS = 4_900;
 export const ADVISOR_DEPOSIT_FLAT_CENTS = 5_000;
 export const LIMITED_MATCHES = 3;
 
@@ -40,9 +40,16 @@ export type SuccessFeeAmounts = {
   sellerVatCents: number;
 };
 
-export function successFeeFromClose(closedPriceCents: number): SuccessFeeAmounts {
-  const buyerNetCents = Math.round(closedPriceCents / 100);
-  const sellerNetCents = Math.round((closedPriceCents * 25) / 1000);
+// Commissions per the Relify terms: seller 5% at closing; buyer 2.5%, or 2%
+// when the buyer was on the Empresa (unlimited) plan at match time. No minimums.
+export const SELLER_SUCCESS_BPS = 500;
+export const BUYER_SUCCESS_BPS = 250;
+export const BUYER_COMPANY_SUCCESS_BPS = 200;
+
+export function successFeeFromClose(closedPriceCents: number, buyerPlanAtMatch: BuyerPlanName | null = null): SuccessFeeAmounts {
+  const buyerBps = buyerPlanAtMatch === "unlimited" ? BUYER_COMPANY_SUCCESS_BPS : BUYER_SUCCESS_BPS;
+  const buyerNetCents = Math.round((closedPriceCents * buyerBps) / 10_000);
+  const sellerNetCents = Math.round((closedPriceCents * SELLER_SUCCESS_BPS) / 10_000);
 
   return {
     buyerNetCents,
@@ -214,6 +221,7 @@ export function recordSaleOutcome(input: {
   published: boolean;
   alreadyRecorded: boolean;
   closedPriceCents: number;
+  buyerPlanAtMatch?: BuyerPlanName | null;
 }): { ok: true; insert: boolean; fee: SuccessFeeAmounts } | { ok: false; code: "forbidden" | "missing" | "price" } {
   if (!input.isOwner) {
     return { ok: false, code: "forbidden" };
@@ -230,6 +238,6 @@ export function recordSaleOutcome(input: {
   return {
     ok: true,
     insert: !input.alreadyRecorded,
-    fee: successFeeFromClose(input.closedPriceCents),
+    fee: successFeeFromClose(input.closedPriceCents, input.buyerPlanAtMatch ?? null),
   };
 }

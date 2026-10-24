@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AiImageTag } from "@/components/project-photo";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
+import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
 const verbs = ["vender", "comprar"] as const;
 const spots = [
   {
     id: "alba",
     deal: offerDeals[0],
+    sectorKey: "hosteleria" as SectorImageKey,
     lit: "/hero/city-lit.png",
     spotClass: "releva-city-spot",
     sales: [96, 214, 138, 240],
@@ -43,6 +46,7 @@ const spots = [
   {
     id: "norte",
     deal: offerDeals[1],
+    sectorKey: "servicios" as SectorImageKey,
     lit: "/hero/city-2.png",
     spotClass: "releva-city-spot releva-city-spot-b",
     sales: [168, 74, 196, 112],
@@ -76,6 +80,7 @@ const spots = [
   {
     id: "mar",
     deal: offerDeals[2],
+    sectorKey: "industria" as SectorImageKey,
     lit: "/hero/city-3.png",
     spotClass: "releva-city-spot releva-city-spot-c",
     sales: [248, 126, 302, 178],
@@ -317,7 +322,8 @@ export function Hero() {
         {open ? (
           <article className="releva-market-float" aria-live="polite">
             <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">
-              <Image src={open.deal.image} alt="" fill sizes="320px" className="object-cover" unoptimized />
+              <Image src={sectorImageSrc(open.sectorKey)} alt="" fill sizes="320px" className="object-cover" unoptimized />
+              <AiImageTag />
               <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#0c1224]/70 via-[#0c1224]/20 to-transparent px-3 pt-3 pb-10 text-center">
                 <p className="text-sm font-semibold text-white">{open.deal.codename}</p>
                 <p className="text-xs text-white/85">{open.deal.region}</p>

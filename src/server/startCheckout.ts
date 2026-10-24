@@ -176,7 +176,8 @@ export async function startListingCheckout(
   }
 }
 
-export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<CheckoutStart> {
+export async function startAdvisorInboxCheckout(user: CurrentUser, returnPath = "/mandatos/encargos"): Promise<CheckoutStart> {
+  const back = /^\/mandatos\/encargos(\/[A-Za-z0-9_-]+)?$/.test(returnPath) ? returnPath : "/mandatos/encargos";
   const stripe = stripeClient();
 
   if (stripe === null || user.role !== "advisor") {
@@ -213,14 +214,14 @@ export async function startAdvisorInboxCheckout(user: CurrentUser): Promise<Chec
             currency: "eur",
             unit_amount: grossCents(ADVISOR_INBOX_NET_CENTS),
             recurring: { interval: "month" },
-            product_data: { name: "Relify bandeja de encargos" },
+            product_data: { name: "Relify suscripción de asesor" },
           },
         },
       ],
       metadata: { kind: "advisor_inbox", userId: user.id },
       subscription_data: { metadata: { kind: "advisor_inbox", userId: user.id } },
-      success_url: `${origin}/mandatos/encargos?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/mandatos/encargos`,
+      success_url: `${origin}${back}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}${back}`,
       integration_identifier: integrationLabel("Relify_inbox"),
     });
 
@@ -253,6 +254,12 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
 
   if (!row || row.declinedAt) {
     return { ok: false, message: engagementCopy.missing };
+  }
+
+  const subscription = await prisma.billingCustomer.findUnique({ where: { userId: user.id }, select: { advisorInbox: true } });
+
+  if (subscription?.advisorInbox !== true) {
+    return { ok: false, message: engagementCopy.subscriptionRequired };
   }
 
   const origin = readSiteUrl().origin;

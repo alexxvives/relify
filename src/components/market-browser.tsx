@@ -188,6 +188,8 @@ export function MarketBrowser({
                   <ProjectPhoto
                     slug={project.slug}
                     src={project.coverSrc}
+                    sectorKey={project.sectorKey}
+                    verified={project.verified}
                     alt={`Ilustración de ${project.codename}`}
                     title={project.codename}
                     place={project.region}

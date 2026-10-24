@@ -7,6 +7,7 @@ import {
   grantPlanAction,
   reactivateAccountAction,
   suspendAccountAction,
+  toggleVerifiedAction,
   unpublishProjectAction,
   type AdminActionState,
 } from "@/app/admin/actions";
@@ -100,6 +101,22 @@ export function UnpublishButton({ projectId }: { projectId: string }) {
       <input type="hidden" name="projectId" value={projectId} />
       <button type="submit" disabled={pending} className={quietButtonClass}>
         {pending ? adminCopy.unpublishing : adminCopy.unpublish}
+      </button>
+      <Note state={state} />
+    </form>
+  );
+}
+
+export function VerifiedToggle({ target, id, verified }: { target: "project" | "advisor"; id: string; verified: boolean }) {
+  const [state, action, pending] = useActionState(toggleVerifiedAction, null);
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-2">
+      <input type="hidden" name="target" value={target} />
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="verified" value={verified ? "0" : "1"} />
+      <button type="submit" disabled={pending} aria-pressed={verified} className={quietButtonClass}>
+        {pending ? adminCopy.verifying : verified ? adminCopy.unverify : adminCopy.verify}
       </button>
       <Note state={state} />
     </form>

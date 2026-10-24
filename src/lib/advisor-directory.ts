@@ -24,6 +24,7 @@ export type PublicAdvisorCard = {
   sectors: string[];
   services: { title: string; range: string; fromCents: number }[];
   cases: PublicAdvisorCase[];
+  verified?: boolean;
 };
 
 export const advisorMarketplaceSorts = ["recommended", "price-asc", "price-desc"] as const;
@@ -67,6 +68,7 @@ export function toPublicAdvisorCard(profile: {
   sectors: string[];
   services: unknown;
   closedOperations?: unknown;
+  verifiedAt?: Date | null;
 }): PublicAdvisorCard | null {
   if (!advisorIsListed(profile)) {
     return null;
@@ -85,6 +87,7 @@ export function toPublicAdvisorCard(profile: {
 
   return {
     id: profile.userId,
+    verified: profile.verifiedAt != null,
     description: profile.description.trim(),
     sectors: profile.sectors.map((sector) => advisorSectorName(sector)),
     services,

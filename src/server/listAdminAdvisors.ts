@@ -23,6 +23,7 @@ export type AdminAdvisorRow = {
   total: number;
   breakdown: AdvisorScoreBreakdown | null;
   justification: string;
+  verified: boolean;
 };
 
 function personName(name: string, lastName: string | null): string {
@@ -51,6 +52,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
           sectors: true,
           services: true,
           closedOperations: true,
+          verifiedAt: true,
         },
       },
     },
@@ -115,6 +117,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
         businessName: advisor.advisorProfile?.businessName.trim() ?? "",
         sectors: advisor.advisorProfile?.sectors ?? [],
         listed: card !== null,
+        verified: advisor.advisorProfile?.verifiedAt != null,
         place,
         total,
         breakdown,

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ApproveButton, UnpublishButton } from "@/components/admin-controls";
+import { ApproveButton, UnpublishButton, VerifiedToggle } from "@/components/admin-controls";
+import { VerifiedBadge } from "@/components/project-photo";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
@@ -123,6 +124,7 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
             <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[project.status]}`}>
               {projectStatus(project.status)}
             </span>
+            {project.verified ? <VerifiedBadge /> : null}
           </div>
           <p className="mt-1 text-sm text-[#667085]">
             {[project.region, project.ownerEmail ?? adminCopy.ownerMissing].filter((part) => part.trim().length > 0).join(" · ")}
@@ -134,6 +136,7 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
           </Link>
           {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
           {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
+          <VerifiedToggle target="project" id={project.id} verified={project.verified} />
         </div>
       </div>
       <div className="mt-4 grid items-stretch gap-4 lg:grid-cols-2 lg:gap-0">

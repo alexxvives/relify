@@ -57,9 +57,9 @@ export async function startInboxCheckoutAction(
   formData: FormData,
 ): Promise<EngagementActionState> {
   void state;
-  void formData;
   const user = await signedIn();
-  const result = await startAdvisorInboxCheckout(user);
+  const engagementId = readText(formData, "engagementId");
+  const result = await startAdvisorInboxCheckout(user, engagementId ? `/mandatos/encargos/${engagementId}` : "/mandatos/encargos");
 
   if (!result.ok) {
     return result;

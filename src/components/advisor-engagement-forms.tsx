@@ -12,11 +12,46 @@ import {
   closeEngagementAction,
   declineEngagementAction,
   startAdvisorDepositAction,
+  startInboxCheckoutAction,
 } from "@/app/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 
-export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId: string; amountLabel: string }) {
+function AdvisorSubscriptionStep({ engagementId, disabled }: { engagementId: string; disabled: boolean }) {
+  const [state, action, pending] = useActionState(startInboxCheckoutAction, null);
+
+  return (
+    <div className="mt-4 rounded-xl border border-[#d9e2f2] bg-[#f5f7ff] p-4">
+      <p className="text-sm font-semibold text-[#1c2740]">{engagementCopy.subscriptionTitle}</p>
+      <p className="mt-1 text-sm leading-6 text-[#475569]">{engagementCopy.subscriptionBody}</p>
+      <form action={action} className="mt-3 flex justify-center">
+        <input type="hidden" name="engagementId" value={engagementId} />
+        <button
+          type="submit"
+          disabled={pending || disabled}
+          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+        >
+          {pending ? engagementCopy.subscriptionStarting : engagementCopy.subscriptionStart}
+        </button>
+      </form>
+      {state && !state.ok ? (
+        <p role="alert" className="mt-2 text-center text-sm text-red-700">
+          {state.message}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function AdvisorDepositForm({
+  engagementId,
+  amountLabel,
+  subscriptionActive,
+}: {
+  engagementId: string;
+  amountLabel: string;
+  subscriptionActive: boolean;
+}) {
   const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
   const [declineState, declineAction, declining] = useActionState(declineEngagementAction, null);
   const [open, setOpen] = useState(true);
@@ -60,8 +95,9 @@ export function AdvisorDepositForm({ engagementId, amountLabel }: { engagementId
       </div>
       <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
       <p className="mt-4 text-center text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
+      {subscriptionActive ? null : <AdvisorSubscriptionStep engagementId={engagementId} disabled={declining} />}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-        <form action={action}>
+        <form action={action} className={subscriptionActive ? "" : "hidden"}>
           <input type="hidden" name="engagementId" value={engagementId} />
           <button
             type="submit"

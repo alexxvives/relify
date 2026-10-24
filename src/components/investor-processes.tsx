@@ -88,6 +88,7 @@ function ProcessConversation({
             bodies={chat.map((message) => message.body)}
             nda
             ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
+            loiHref={item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null}
             empty={sellerCopy.documentsEmpty}
           />
         </div>

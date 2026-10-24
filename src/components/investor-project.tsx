@@ -247,7 +247,7 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
           <li key={item.slug}>
             <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
               <Link href={`/proyectos/${item.slug}`} className="flex h-full flex-col">
-                <ProjectPhoto slug={item.slug} src={item.coverSrc} alt="" title={item.codename} place={item.region} />
+                <ProjectPhoto slug={item.slug} src={item.coverSrc} sectorKey={item.sectorKey} verified={item.verified} alt="" title={item.codename} place={item.region} />
                 <span className="flex flex-1 flex-col gap-4 p-5">
                   <MarketCardFigures
                     revenue={formatWholeEur(item.revenueCents)}

@@ -16,6 +16,7 @@ export type AdminCompanyRow = {
   cif: string;
   address: string;
   shareholders: string[];
+  verified: boolean;
 };
 
 export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompanyRow[] | null> {
@@ -27,6 +28,7 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      verifiedAt: true,
       slug: true,
       codename: true,
       region: true,
@@ -58,5 +60,6 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     cif: project.cif,
     address: project.address,
     shareholders: project.shareholders.map((holder) => holder.name),
+    verified: project.verifiedAt !== null,
   }));
 }

@@ -1,3 +1,4 @@
+import type { SectorImageKey } from "@/lib/sector-image";
 import type { Prisma } from "@/generated/prisma/client";
 import { catalogCopy } from "./catalog-copy";
 
@@ -24,6 +25,8 @@ export type PublicProjectCard = {
   adjustedEbitdaCents: number;
   askingPriceCents: number;
   coverSrc?: string | null;
+  sectorKey?: SectorImageKey;
+  verified?: boolean;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

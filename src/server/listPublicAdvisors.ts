@@ -13,6 +13,7 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
       sectors: true,
       services: true,
       closedOperations: true,
+      verifiedAt: true,
     },
   });
   const cards: PublicAdvisorCard[] = [];

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { VerifiedToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
+import { VerifiedBadge } from "@/components/project-photo";
 import { FieldHint } from "@/components/field-hint";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
@@ -98,6 +100,10 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
                   />
                 </div>
                 <p className="mt-1 text-sm text-[#667085]">{advisor.email}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {advisor.verified ? <VerifiedBadge /> : null}
+                  <VerifiedToggle target="advisor" id={advisor.id} verified={advisor.verified} />
+                </div>
                 {advisor.sectors.length > 0 ? (
                   <ul className="mt-3 flex flex-wrap gap-2">
                     {advisor.sectors.map((sector) => (
