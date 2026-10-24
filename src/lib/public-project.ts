@@ -28,6 +28,12 @@ export type PublicProjectCard = {
   sectorKey?: SectorImageKey;
   verified?: boolean;
   sold?: boolean;
+  /** Broad sector (valuation-multiples group) for chips and the Sector filter. */
+  sector?: string;
+  sectorLabel?: string;
+  headcount?: string | null;
+  /** Decade only ("los 90"), so the year alone cannot identify the company. */
+  foundedDecade?: string | null;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

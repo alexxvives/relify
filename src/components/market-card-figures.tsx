@@ -33,7 +33,7 @@ export function MarketCardFigures({
   return (
     <div className="overflow-hidden rounded-xl border border-[#e7eaee]">
       <div className="bg-[#f4f6fb] px-4 py-4 text-center">
-        <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">{marketCopy.metrics[3].label}</p>
+        <p className="text-xs font-medium text-[#8b95a7]">{marketCopy.metrics[3].label}</p>
         <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
           <p className="text-[26px] leading-8 font-semibold tracking-tight text-[#1c2740] tabular-nums">{askingPrice}</p>
           {years === null ? null : (

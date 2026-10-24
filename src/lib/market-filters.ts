@@ -19,7 +19,21 @@ export type MarketFilters = {
   revenueBand: RevenueBandId;
   ebitdaBand: EbitdaBandId;
   regions: string[];
+  /** valuation-multiples sector id; empty = any. */
+  sector?: string;
+  /** HeadcountRange id; empty = any. */
+  headcount?: string;
 };
+
+/** "1998" → "los 90", "2004" → "2000". Coarse on purpose (anonymity before the NDA). */
+export function foundedDecade(year: number | null | undefined): string | null {
+  if (!year || year < 1800) {
+    return null;
+  }
+
+  const decade = Math.floor(year / 10) * 10;
+  return decade >= 2000 ? String(decade) : `los ${String(decade).slice(2)}`;
+}
 
 const revenueBounds: Record<Exclude<RevenueBandId, "any">, { min: number; max: number }> = {
   "under-1m": { min: 0, max: 100_000_000 },
@@ -46,13 +60,21 @@ export function filterMarketProjects(
 
   const matched = projects.filter((project) => {
     if (query.length > 0) {
-      const haystack = `${project.codename} ${project.region}`.toLowerCase();
+      const haystack = `${project.codename} ${project.region} ${project.sectorLabel ?? ""}`.toLowerCase();
       if (!haystack.includes(query)) {
         return false;
       }
     }
 
     if (regions.size > 0 && !regions.has(project.region)) {
+      return false;
+    }
+
+    if (filters.sector && project.sector !== filters.sector) {
+      return false;
+    }
+
+    if (filters.headcount && project.headcount !== filters.headcount) {
       return false;
     }
 

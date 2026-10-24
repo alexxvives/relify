@@ -2,6 +2,8 @@ import { prisma } from "@/server/db";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { publicProjectSelect, publicProjectWhere } from "@/lib/public-project";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
+import { sectorMultiples, valuationSectorFromCnae } from "@/lib/valuation-multiples";
+import { foundedDecade } from "@/lib/market-filters";
 import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
 
 export async function listPublicProjects(): Promise<PublicProjectCard[]> {
@@ -11,12 +13,15 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       id: true,
       ...publicProjectSelect,
       verifiedAt: true,
+      headcountRange: true,
+      foundedYear: true,
       cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
     },
     orderBy: { codename: "asc" },
   });
 
   return rows.map((row) => {
+    const sector = valuationSectorFromCnae(row.cnaes[0]?.code);
     const version = projectCoverIsStored(row.id) ? projectCoverVersion(row.id) : null;
 
     return {
@@ -29,6 +34,10 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       askingPriceCents: row.askingPriceCents,
       sectorKey: sectorKeyFromCnae(row.cnaes[0]?.code),
       verified: row.verifiedAt !== null,
+      sector,
+      sectorLabel: sectorMultiples[sector].label,
+      headcount: row.headcountRange,
+      foundedDecade: foundedDecade(row.foundedYear),
       coverSrc: version ? projectCoverHref(row.slug, version) : null,
     };
   });

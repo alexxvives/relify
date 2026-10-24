@@ -30,8 +30,8 @@ export function PhotoScrim({ title, place }: { title: string; place: string }) {
 
 export function AiImageTag() {
   return (
-    <span className="pointer-events-none absolute right-2 bottom-2 z-[2] inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-[11px] font-medium text-white/90 backdrop-blur-sm">
-      <Sparkles className="size-3" aria-hidden />
+    <span className="pointer-events-none absolute right-3 bottom-3 z-[2] inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm">
+      <Sparkles className="size-3.5" aria-hidden />
       {aiImageLabel}
     </span>
   );

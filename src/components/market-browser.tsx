@@ -7,6 +7,7 @@ import { MarketCardFigures } from "@/components/market-card-figures";
 import { ProjectPhoto } from "@/components/project-photo";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { HeartIcon } from "@/components/ui/heart";
+import { headcountLabels, headcountRanges, isHeadcountRange } from "@/lib/company-profile";
 import { marketCopy } from "@/lib/market-copy";
 import {
   ebitdaBandIds,
@@ -51,6 +52,8 @@ export function MarketBrowser({
   const [revenueBand, setRevenueBand] = useState<RevenueBandId>("any");
   const [ebitdaBand, setEbitdaBand] = useState<EbitdaBandId>("any");
   const [regions, setRegions] = useState<string[]>([]);
+  const [sector, setSector] = useState("");
+  const [headcount, setHeadcount] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState(favoriteSlugs);
 
@@ -69,7 +72,10 @@ export function MarketBrowser({
   );
 
   const source = onlyFavorites ? projects.filter((project) => savedSlugs.includes(project.slug)) : projects;
-  const matched = filterMarketProjects(source, { query, sort, revenueBand, ebitdaBand, regions });
+  const matched = filterMarketProjects(source, { query, sort, revenueBand, ebitdaBand, regions, sector, headcount });
+  const sectorOptions = [...new Map(projects.flatMap((project) => (project.sector && project.sectorLabel ? [[project.sector, project.sectorLabel] as const] : []))).entries()].sort(
+    (left, right) => left[1].localeCompare(right[1], "es"),
+  );
   const visible = favoritesOnly ? matched.filter((project) => savedSlugs.includes(project.slug)) : matched;
   const regionValue = regions[0] ?? "";
 
@@ -100,7 +106,7 @@ export function MarketBrowser({
         </button>
       </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))] lg:items-end">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {marketCopy.searchLabel}
             <input
@@ -125,6 +131,24 @@ export function MarketBrowser({
               onValueChange={(next) => {
                 setRegions(next.length > 0 ? [next] : []);
               }}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            Sector
+            <FilterSelect
+              label="Sector"
+              value={sector}
+              options={[{ value: "", label: "Todos los sectores" }, ...sectorOptions.map(([value, label]) => ({ value, label: sentence(label) }))]}
+              onValueChange={setSector}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            Trabajadores
+            <FilterSelect
+              label="Trabajadores"
+              value={headcount}
+              options={[{ value: "", label: "Cualquier tamaño" }, ...headcountRanges.map((value) => ({ value, label: `${headcountLabels[value]} trabajadores` }))]}
+              onValueChange={setHeadcount}
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
@@ -195,6 +219,7 @@ export function MarketBrowser({
                     place={project.region}
                   />
                   <div className="flex flex-1 flex-col gap-4 p-5">
+                    <CardFacts project={project} />
                     <MarketCardFigures
                       revenue={formatCardEur(project.revenueCents)}
                       ebitda={formatCardEur(project.ebitdaCents)}
@@ -211,5 +236,32 @@ export function MarketBrowser({
         </div>
       )}
     </div>
+  );
+}
+
+function sentence(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "Hostelería · 21-50 trab. · desde los 90" under the photo. */
+function CardFacts({ project }: { project: PublicProjectCard }) {
+  const facts = [
+    project.sectorLabel ? sentence(project.sectorLabel) : null,
+    project.headcount && isHeadcountRange(project.headcount) ? `${headcountLabels[project.headcount]} trab.` : null,
+    project.foundedDecade ? `desde ${project.foundedDecade}` : null,
+  ].filter((fact): fact is string => fact !== null);
+
+  if (facts.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="flex flex-wrap gap-2" aria-label="Datos de la empresa">
+      {facts.map((fact) => (
+        <li key={fact} className="rounded-full bg-[#f4f6fb] px-3 py-1 text-sm font-medium text-[#3d4a63]">
+          {fact}
+        </li>
+      ))}
+    </ul>
   );
 }

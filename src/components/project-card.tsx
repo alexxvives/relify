@@ -15,7 +15,7 @@ export function ProjectFigures({
       <dl className="grid grid-cols-2 gap-px bg-public-line">
         {catalogCopy.metrics.map((metric) => (
           <div key={metric.key} className="bg-public-card px-3 py-2">
-            <dt className="text-[11px] tracking-wide text-public-muted uppercase">{metric.label}</dt>
+            <dt className="text-xs text-public-muted">{metric.label}</dt>
             <dd className="mt-1 text-sm text-public-ink">{formatWholeEur(project[metric.key])}</dd>
           </div>
         ))}
