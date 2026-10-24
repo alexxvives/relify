@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdminListSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminAccounts } from "@/components/admin-accounts";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminAccountsPage() {
+async function AdminAccountsPageContent() {
   const user = await requireRole("admin");
   const accounts = await listAdminAccounts(user);
 
@@ -20,8 +22,18 @@ export default async function AdminAccountsPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.accountsTitle} showTitle={false}>
+    <>
       <AdminAccounts accounts={accounts} viewerId={user.id} />
+    </>
+  );
+}
+
+export default function AdminAccountsPage() {
+  return (
+    <SignedInPage title={adminCopy.accountsTitle} showTitle={false}>
+      <Suspense fallback={<AdminListSkeleton kind="accounts" />}>
+        <AdminAccountsPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

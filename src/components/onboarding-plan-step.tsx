@@ -11,6 +11,7 @@ const buyerPlans: {
   price: string;
   inherit: string | null;
   points: readonly string[];
+  recommended?: boolean;
 }[] = [
   {
     id: "none",
@@ -25,6 +26,7 @@ const buyerPlans: {
     price: "20 €",
     inherit: billingCopy.limitedInherit,
     points: billingCopy.limitedPoints,
+    recommended: true,
   },
   {
     id: "unlimited",
@@ -37,10 +39,10 @@ const buyerPlans: {
 
 function PointList({ points }: { points: readonly string[] }) {
   return (
-    <ul className="mt-2 flex flex-col gap-1.5">
+    <ul className="mt-3 flex flex-col gap-2.5">
       {points.map((point) => (
-        <li key={point} className="flex items-start gap-2 text-sm text-[#3d4a63]">
-          <Check className="mt-0.5 size-4 shrink-0 text-[#17663a]" aria-hidden />
+        <li key={point} className="flex items-start gap-2.5 text-[15px] leading-6 text-[#3d4a63]">
+          <Check className="mt-1 size-4 shrink-0 text-[#17663a]" aria-hidden />
           <span>{point}</span>
         </li>
       ))}
@@ -56,14 +58,18 @@ export function BuyerPlanStep({
   onChange: (value: OnboardingPlanChoice) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div data-wide className="flex flex-col gap-5">
       <div>
-        <p className="text-sm font-medium text-[#1c2740]">{billingCopy.onboardingPlanTitle}</p>
-        <p className="mt-1 text-sm text-[#5c6b78]">{billingCopy.onboardingPlanBody}</p>
+        <p className="text-base font-semibold text-[#1c2740]">{billingCopy.onboardingPlanTitle}</p>
+        <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{billingCopy.onboardingPlanBody}</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-3" role="radiogroup" aria-label={billingCopy.onboardingPlanTitle}>
+      <div className="grid gap-4 pt-3 md:grid-cols-3 md:items-stretch md:gap-5" role="radiogroup" aria-label={billingCopy.onboardingPlanTitle}>
         {buyerPlans.map((plan) => {
           const selected = value === plan.id;
+          const frame = plan.recommended
+            ? "border-2 border-[#465ab4] shadow-[0_18px_40px_-20px_rgba(70,90,180,0.55)] md:-translate-y-2"
+            : "border border-[#e1e6ee] hover:border-[#9aa8dc]";
+          const fill = selected ? "bg-[#eef2ff] ring-2 ring-[#465ab4] ring-offset-2" : "bg-white";
           return (
             <button
               key={plan.id}
@@ -73,27 +79,29 @@ export function BuyerPlanStep({
               onClick={() => {
                 onChange(plan.id);
               }}
-              className={
-                selected
-                  ? "flex cursor-pointer flex-col rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] p-4 text-left"
-                  : "flex cursor-pointer flex-col rounded-2xl border border-[#e1e6ee] bg-white p-4 text-left transition-colors hover:border-[#465ab4]"
-              }
+              className={`relative flex cursor-pointer flex-col rounded-2xl p-6 text-left transition-[box-shadow,border-color,background-color] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4] ${frame} ${fill}`}
             >
-              <span className="flex items-center justify-between gap-2">
-                <span className="text-base font-semibold text-[#1c2740]">{plan.name}</span>
+              {plan.recommended ? (
+                <span className="absolute -top-3 left-6 rounded-full bg-[#465ab4] px-3 py-1 text-xs font-semibold tracking-wide text-white shadow-sm">
+                  {billingCopy.onboardingPlanRecommended}
+                </span>
+              ) : null}
+              <span className="flex min-h-7 items-center justify-between gap-2">
+                <span className="text-lg font-semibold text-[#1c2740]">{plan.name}</span>
                 {selected ? (
-                  <span className="rounded-full bg-[#465ab4] px-2 py-0.5 text-xs font-semibold text-white">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#1c2740] px-2.5 py-1 text-xs font-semibold text-white">
+                    <Check className="size-3.5" aria-hidden />
                     {billingCopy.onboardingPlanPicked}
                   </span>
                 ) : null}
               </span>
-              <span className="mt-2 text-2xl font-semibold text-[#1c2740]">
-                {plan.price}
-                {plan.id === "none" ? null : (
-                  <span className="text-xs font-normal text-[#667085]"> {billingCopy.onboardingPlanMonthly}</span>
-                )}
+              <span className="mt-3 flex items-baseline gap-1.5">
+                <span className="text-4xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{plan.price}</span>
+                {plan.id === "none" ? null : <span className="text-sm text-[#667085]">{billingCopy.onboardingPlanMonthly}</span>}
               </span>
-              {plan.inherit ? <span className="mt-3 text-sm font-medium text-[#465ab4]">{plan.inherit}</span> : null}
+              <span className="mt-5 border-t border-[#e7eaee] pt-4 text-sm font-semibold text-[#465ab4]">
+                {plan.inherit ?? billingCopy.onboardingPlanFreeIncludes}
+              </span>
               <PointList points={plan.points} />
             </button>
           );

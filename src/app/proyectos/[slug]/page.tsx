@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Heart, Link2, Lock, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { InvestorProject } from "@/components/investor-project";
+import { ProjectSkeleton } from "@/components/page-skeletons";
 import { PublicSite } from "@/components/public-site";
 import { ProjectFigures } from "@/components/project-card";
 import { catalogCopy } from "@/lib/catalog-copy";
@@ -79,6 +81,47 @@ export async function generateMetadata({
   };
 }
 
+async function InvestorProjectContent({
+  user,
+  slug,
+  tab,
+}: {
+  user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+  slug: string;
+  tab: string | string[] | undefined;
+}) {
+  const profile = await getInvestorProject(user, slug);
+  if (!profile) {
+    notFound();
+  }
+  const [published, access, favorites, messages, billing] = await Promise.all([
+    listPublicProjects(),
+    getProjectAccess(user, slug),
+    listFavoriteSlugs(user.id),
+    listProjectMessages(user, slug),
+    buyerMatchBudget(user.id),
+  ]);
+  return (
+    <InvestorProject
+      project={profile}
+      recommendations={otherPublishedProjects(published, profile.slug)}
+      access={access}
+      plan={billing.plan}
+      favorited={favorites.includes(profile.slug)}
+      messages={messages.threads[0]?.messages ?? []}
+      documents={messages.threads[0]?.documents ?? []}
+      steps={bannerSteps(access, messages.threads[0]?.steps ?? [])}
+      today={madridToday(new Date())}
+      partyName={messages.threads[0]?.partyName ?? ""}
+      buyerName={user.displayName}
+      dateLabel={spanishDate(new Date())}
+      matchesLeft={billing.remaining}
+      initialTab={readTab(tab)}
+      accessId={messages.threads[0]?.accessId ?? ""}
+    />
+  );
+}
+
 export default async function ProjectDetailPage({
   params,
   searchParams,
@@ -98,36 +141,11 @@ export default async function ProjectDetailPage({
   }
 
   if (user?.role === "investor") {
-    const profile = await getInvestorProject(user, slug);
-    if (!profile) {
-      notFound();
-    }
-    const [published, access, favorites, messages, billing] = await Promise.all([
-      listPublicProjects(),
-      getProjectAccess(user, slug),
-      listFavoriteSlugs(user.id),
-      listProjectMessages(user, slug),
-      buyerMatchBudget(user.id),
-    ]);
     return (
-      <AppShell title={profile.codename} showTitle={false}>
-        <InvestorProject
-          project={profile}
-          recommendations={otherPublishedProjects(published, profile.slug)}
-          access={access}
-          plan={billing.plan}
-          favorited={favorites.includes(profile.slug)}
-          messages={messages.threads[0]?.messages ?? []}
-          documents={messages.threads[0]?.documents ?? []}
-          steps={bannerSteps(access, messages.threads[0]?.steps ?? [])}
-          today={madridToday(new Date())}
-          partyName={messages.threads[0]?.partyName ?? ""}
-          buyerName={user.displayName}
-          dateLabel={spanishDate(new Date())}
-          matchesLeft={billing.remaining}
-          initialTab={readTab(query.tab)}
-          accessId={messages.threads[0]?.accessId ?? ""}
-        />
+      <AppShell title={project.codename} showTitle={false}>
+        <Suspense fallback={<ProjectSkeleton />}>
+          <InvestorProjectContent user={user} slug={slug} tab={query.tab} />
+        </Suspense>
       </AppShell>
     );
   }

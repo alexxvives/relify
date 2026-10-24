@@ -1,4 +1,5 @@
 import { brandLogoJpegBase64, brandLogoSize } from "./brand-logo-jpeg";
+import { relifySignatureOps, relifySignatureWidth } from "./relify-signature";
 import { jpegSize } from "./signature-image";
 
 /*
@@ -17,6 +18,8 @@ export type PdfSigner = {
   signature?: Uint8Array | null;
   /** Draws Relify's platform seal instead of a handwritten signature. */
   stamp?: boolean;
+  /** With `stamp`, also draws the signatory's handwritten signature beside the seal. */
+  handwritten?: boolean;
   signedAt?: string | null;
 };
 
@@ -41,6 +44,7 @@ const BOTTOM = 84;
 const NAVY = "0.110 0.153 0.251";
 const BRAND = "0.153 0.639 0.667";
 const MUTED = "0.361 0.420 0.471";
+const INK = "0.122 0.227 0.541";
 const LINE = "0.863 0.886 0.910";
 const PANEL = "0.965 0.969 0.980";
 
@@ -241,7 +245,11 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
     page.push(text(x + 14, top - 16, 7.5, signer.role.toUpperCase(), { bold: true, color: MUTED }));
     const areaBottom = top - 86;
     const size = signer.signature ? jpegSize(signer.signature) : null;
-    if (signer.stamp && !input.draft) {
+    if (signer.stamp && !input.draft && signer.handwritten) {
+      const scale = Math.min(0.78, (boxWidth - 120) / relifySignatureWidth);
+      page.push(`q ${INK} rg ${scale} 0 0 ${scale} ${x + 16} ${areaBottom + 22} cm ${relifySignatureOps} f Q`);
+      page.push(...stamp(x + boxWidth - 50, areaBottom + 40, signer.signedAt ?? input.dateLabel));
+    } else if (signer.stamp && !input.draft) {
       page.push(...stamp(x + boxWidth / 2, areaBottom + 34, signer.signedAt ?? input.dateLabel));
     } else if (signer.signature && size && !input.draft) {
       const name = `Sig${index}`;
@@ -250,6 +258,10 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
       const w = size.width * scale;
       const h = size.height * scale;
       page.push(`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${(x + (boxWidth - w) / 2).toFixed(2)} ${(areaBottom + 4).toFixed(2)} cm /${name} Do Q`);
+    } else if (!input.draft && signer.signedAt) {
+      // Accepted before drawn signatures were collected: record the acceptance itself.
+      const accepted = "Aceptado electrónicamente en Relify";
+      page.push(text(x + (boxWidth - textWidth(accepted, 9)) / 2, areaBottom + 26, 9, accepted, { color: MUTED }));
     } else {
       const pending = "Pendiente de firma";
       page.push(text(x + (boxWidth - textWidth(pending, 9)) / 2, areaBottom + 26, 9, pending, { color: MUTED }));
@@ -314,7 +326,7 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
   });
   objects[catalog - 1] = `<< /Type /Catalog /Pages ${pagesRef} 0 R >>`;
   objects[pagesRef - 1] = `<< /Type /Pages /Kids [${kids.map((kid) => `${kid} 0 R`).join(" ")}] /Count ${kids.length} >>`;
-  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify) /Creator (Relify) >>`);
+  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify signed-pdf v2) /Creator (Relify) >>`);
 
   let body = "%PDF-1.4\n";
   const offsets: number[] = [];

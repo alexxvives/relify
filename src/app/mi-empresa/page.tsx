@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { SellerHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { CompanyNifDialog } from "@/components/company-nif-form";
 import { SellerOverview } from "@/components/seller-overview";
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function CompanyPage({
+async function CompanyPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ session_id?: string }>;
@@ -53,7 +55,7 @@ export default async function CompanyPage({
   ]);
 
   return (
-    <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
+    <>
       {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
         listing={listing?.status ?? "missing"}
@@ -78,6 +80,16 @@ export default async function CompanyPage({
         )}
       />
       <CancelledProcesses items={cancelled} viewer="seller" />
+    </>
+  );
+}
+
+export default function CompanyPage(props: Parameters<typeof CompanyPageContent>[0]) {
+  return (
+    <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
+      <Suspense fallback={<SellerHomeSkeleton />}>
+        <CompanyPageContent {...props} />
+      </Suspense>
     </SignedInPage>
   );
 }

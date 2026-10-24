@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { InvestorHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { InvestorHome } from "@/components/investor-home";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function InvestorHomePage() {
+async function InvestorHomePageContent() {
   const user = await requireRole("investor");
   const [notifications, sectors, cancelled] = await Promise.all([
     listNotifications(user.id),
@@ -25,7 +27,7 @@ export default async function InvestorHomePage() {
   const desk = await loadInvestorDesk(user.id, user.email);
 
   return (
-    <SignedInPage title={investorCopy.homeTitle} showTitle={false}>
+    <>
       <InvestorHome
         notifications={notifications}
         favorites={desk.favorites}
@@ -45,6 +47,16 @@ export default async function InvestorHomePage() {
         )}
       />
       <CancelledProcesses items={cancelled} viewer="investor" />
+    </>
+  );
+}
+
+export default function InvestorHomePage() {
+  return (
+    <SignedInPage title={investorCopy.homeTitle} showTitle={false}>
+      <Suspense fallback={<InvestorHomeSkeleton />}>
+        <InvestorHomePageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

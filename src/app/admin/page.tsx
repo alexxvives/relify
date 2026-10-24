@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdminHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminHome } from "@/components/admin-home";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminPage() {
+async function AdminPageContent() {
   const user = await requireRole("admin");
   const overview = await getAdminDashboard(user);
 
@@ -20,8 +22,18 @@ export default async function AdminPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.homeTitle} showTitle={false}>
+    <>
       <AdminHome overview={overview} />
+    </>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <SignedInPage title={adminCopy.homeTitle} showTitle={false}>
+      <Suspense fallback={<AdminHomeSkeleton />}>
+        <AdminPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

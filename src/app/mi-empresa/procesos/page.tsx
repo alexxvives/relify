@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerProcesses } from "@/components/seller-processes";
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProcessesPage() {
+async function ProcessesPageContent() {
   const user = await requireRole("seller");
   const nifVerified = await companyNifIsVerified(user);
 
@@ -33,7 +35,7 @@ export default async function ProcessesPage() {
   ]);
 
   return (
-    <SignedInPage title={sellerCopy.processesTitle}>
+    <>
       <SellerProcesses
         threads={messages.threads}
         counts={messages.counts}
@@ -43,6 +45,16 @@ export default async function ProcessesPage() {
         companyName={scope.codename}
         elsewhere={scope.elsewhere}
       />
+    </>
+  );
+}
+
+export default function ProcessesPage() {
+  return (
+    <SignedInPage title={sellerCopy.processesTitle}>
+      <Suspense fallback={<ProcessesSkeleton />}>
+        <ProcessesPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

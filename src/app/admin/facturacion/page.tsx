@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdminBillingSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminBilling } from "@/components/admin-billing";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminBillingPage() {
+async function AdminBillingPageContent() {
   const user = await requireRole("admin");
   const billing = await getAdminBilling(user);
 
@@ -20,8 +22,18 @@ export default async function AdminBillingPage() {
   }
 
   return (
-    <SignedInPage title={adminCopy.billingTitle}>
+    <>
       <AdminBilling billing={billing} />
+    </>
+  );
+}
+
+export default function AdminBillingPage() {
+  return (
+    <SignedInPage title={adminCopy.billingTitle}>
+      <Suspense fallback={<AdminBillingSkeleton />}>
+        <AdminBillingPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

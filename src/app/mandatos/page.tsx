@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdvisorHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { AdvisorHome } from "@/components/advisor-home";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MandatesPage({
+async function MandatesPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ session_id?: string }>;
@@ -34,8 +36,18 @@ export default async function MandatesPage({
     listPublishedSectors(),
   ]);
   return (
-    <SignedInPage title={advisorCopy.homeTitle} showTitle={false}>
+    <>
       <AdvisorHome notifications={notifications} desk={desk} profileChecks={advisorProfileChecks(profile)} sectors={sectors} />
+    </>
+  );
+}
+
+export default function MandatesPage(props: Parameters<typeof MandatesPageContent>[0]) {
+  return (
+    <SignedInPage title={advisorCopy.homeTitle} showTitle={false}>
+      <Suspense fallback={<AdvisorHomeSkeleton />}>
+        <MandatesPageContent {...props} />
+      </Suspense>
     </SignedInPage>
   );
 }

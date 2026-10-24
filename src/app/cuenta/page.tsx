@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AccountSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/account-settings";
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AccountPage() {
+async function AccountPageContent() {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -34,7 +36,7 @@ export default async function AccountPage() {
   ) : null;
 
   return (
-    <AppShell title={authCopy.accountTitle}>
+    <>
       {investorDraft ? (
         <InvestorAccount
           name={user.name}
@@ -58,6 +60,16 @@ export default async function AccountPage() {
           agreement={agreement}
         />
       )}
+    </>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <AppShell title={authCopy.accountTitle}>
+      <Suspense fallback={<AccountSkeleton />}>
+        <AccountPageContent />
+      </Suspense>
     </AppShell>
   );
 }

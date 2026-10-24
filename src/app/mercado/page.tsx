@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { MarketSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { MarketBrowser } from "@/components/market-browser";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -11,13 +13,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MarketPage() {
+async function MarketPageContent() {
   const user = await requireRole("investor");
   const [projects, favoriteSlugs] = await Promise.all([listPublicProjects(), listFavoriteSlugs(user.id)]);
 
   return (
-    <SignedInPage title={marketCopy.title} showTitle={false}>
+    <>
       <MarketBrowser projects={projects} favoriteSlugs={favoriteSlugs} heading={marketCopy.title} />
+    </>
+  );
+}
+
+export default function MarketPage() {
+  return (
+    <SignedInPage title={marketCopy.title} showTitle={false}>
+      <Suspense fallback={<MarketSkeleton />}>
+        <MarketPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

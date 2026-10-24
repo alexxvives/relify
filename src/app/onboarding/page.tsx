@@ -47,7 +47,7 @@ export default async function OnboardingPage() {
           {authCopy.backHome}
         </button>
       </form>
-      <section className="relative z-10 w-full max-w-3xl rounded-[28px] border border-white/70 bg-white/95 px-6 py-8 shadow-[0_24px_70px_-28px_rgba(22,50,79,0.55)] backdrop-blur-sm sm:px-10">
+      <section className="relative z-10 w-full max-w-3xl rounded-[28px] transition-[max-width] duration-300 has-[[data-wide]]:max-w-5xl border border-white/70 bg-white/95 px-6 py-8 shadow-[0_24px_70px_-28px_rgba(22,50,79,0.55)] backdrop-blur-sm sm:px-10">
         <div className="flex items-start justify-between gap-6">
           <div>
             <p className="text-sm font-medium tracking-[0.18em] text-[#14998a] uppercase">{authCopy.stageKicker}</p>

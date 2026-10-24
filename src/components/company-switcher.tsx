@@ -6,6 +6,7 @@ import { CheckIcon } from "@/components/ui/check";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { PlusIcon } from "@/components/ui/plus";
+import { Info } from "lucide-react";
 import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/mi-empresa/actions";
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
@@ -38,7 +39,13 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
     <dialog ref={dialogRef} className={dialogClass}>
       <form action={action}>
         <h2 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.addCompanyTitle}</h2>
-        <p className="mt-2 text-sm leading-6 text-[#667085]">{sellerCopy.addCompanyBody}</p>
+        <div role="note" className="mt-4 flex gap-3 rounded-xl border border-[#c9d3f3] bg-[#f4f7ff] p-4">
+          <Info className="mt-0.5 size-5 shrink-0 text-[#465ab4]" aria-hidden />
+          <div className="text-[15px] leading-6 text-[#1c2740]">
+            <p className="font-semibold">{sellerCopy.addCompanyFreeTitle}</p>
+            <p className="mt-1 text-[#3d4a63]">{sellerCopy.addCompanyBody}</p>
+          </div>
+        </div>
         <label className="mt-4 block text-sm font-medium text-[#1c2740]" htmlFor="nueva-empresa-cif">
           {sellerCopy.addCompanyCif}
           <input

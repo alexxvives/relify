@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { DocumentsSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerDocuments } from "@/components/seller-documents";
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function DocumentsPage() {
+async function DocumentsPageContent() {
   const user = await requireRole("seller");
   const nifVerified = await companyNifIsVerified(user);
 
@@ -29,7 +31,7 @@ export default async function DocumentsPage() {
   }
 
   return (
-    <SignedInPage title={sellerCopy.documentsTitle}>
+    <>
       <SellerDocuments
         files={room.files}
         folders={room.folders}
@@ -41,6 +43,16 @@ export default async function DocumentsPage() {
           fileIds: row.fileIds,
         }))}
       />
+    </>
+  );
+}
+
+export default function DocumentsPage() {
+  return (
+    <SignedInPage title={sellerCopy.documentsTitle}>
+      <Suspense fallback={<DocumentsSkeleton />}>
+        <DocumentsPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

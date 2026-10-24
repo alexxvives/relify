@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { InvestorProcesses } from "@/components/investor-processes";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function InvestorProcessesPage() {
+async function InvestorProcessesPageContent() {
   const viewer = await getCurrentUser();
   if (viewer?.onboarded && viewer.role === "seller") {
     redirect("/mi-empresa/procesos");
@@ -28,7 +30,7 @@ export default async function InvestorProcessesPage() {
   ]);
 
   return (
-    <SignedInPage title={investorCopy.processesTitle}>
+    <>
       {desk.processes.length === 0 ? (
         <WorkspaceNote
           title={investorCopy.processesEmpty}
@@ -38,6 +40,16 @@ export default async function InvestorProcessesPage() {
       ) : (
         <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} advisors={advisors} />
       )}
+    </>
+  );
+}
+
+export default function InvestorProcessesPage() {
+  return (
+    <SignedInPage title={investorCopy.processesTitle}>
+      <Suspense fallback={<ProcessesSkeleton />}>
+        <InvestorProcessesPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

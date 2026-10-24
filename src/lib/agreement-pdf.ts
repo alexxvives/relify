@@ -1,6 +1,7 @@
 import { pdfBase64 } from "./plain-pdf";
 import { platformTermsCopy } from "./platform-terms";
 import { relifyEntity, relifyPartyLines } from "./relify-entity";
+import { relifySignatory } from "./relify-signature";
 import { signedPdf } from "./signed-pdf";
 
 export type SignedDocumentKind = "nda" | "advisor_nda" | "loi" | "terms";
@@ -34,8 +35,9 @@ function relifySigner(signedAt: string | null) {
   return {
     role: "Por Relify",
     name: relifyEntity.signatory,
-    idLine: relifyEntity.taxId ? `CIF: ${relifyEntity.taxId}` : relifyEntity.web,
+    idLine: relifyEntity.taxId ? `CIF: ${relifyEntity.taxId}` : relifySignatory.title,
     stamp: true,
+    handwritten: true,
     signedAt,
   };
 }
@@ -67,7 +69,7 @@ export function dealDocumentPdf(input: {
   reference: string;
 }): Uint8Array<ArrayBuffer> {
   const { intro, clauses } = parseAgreement(input.text);
-  const draft = !input.signature;
+  const draft = !input.signature && !input.signedAt;
   return signedPdf({
     title: titles[input.kind],
     reference: input.reference,
@@ -103,7 +105,7 @@ export function termsDocumentPdf(input: {
       relifySigner(input.signedAt ?? null),
     ],
     note: NOTE,
-    draft: !input.signature,
+    draft: !input.signedAt,
   });
 }
 

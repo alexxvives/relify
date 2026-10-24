@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdvisorBoardsSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { AdvisorProcesses } from "@/components/advisor-processes";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdvisorEngagementsPage({
+async function AdvisorEngagementsPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ session_id?: string }>;
@@ -27,8 +29,18 @@ export default async function AdvisorEngagementsPage({
   const boards = await listAdvisorProjectBoards(user.id, "awaiting");
 
   return (
-    <SignedInPage title={advisorCopy.encargosTitle}>
+    <>
       <AdvisorProcesses boards={boards} empty={engagementCopy.mineEmpty} />
+    </>
+  );
+}
+
+export default function AdvisorEngagementsPage(props: Parameters<typeof AdvisorEngagementsPageContent>[0]) {
+  return (
+    <SignedInPage title={advisorCopy.encargosTitle}>
+      <Suspense fallback={<AdvisorBoardsSkeleton />}>
+        <AdvisorEngagementsPageContent {...props} />
+      </Suspense>
     </SignedInPage>
   );
 }

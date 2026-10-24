@@ -21,7 +21,7 @@ import type { ProjectAccessView } from "@/lib/project-access";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { BuyerPlanName } from "@/lib/billing";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
-import { formatWholeEur } from "@/lib/money";
+import { formatCardEur, formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
 
@@ -250,9 +250,9 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
                 <ProjectPhoto slug={item.slug} src={item.coverSrc} sectorKey={item.sectorKey} verified={item.verified} alt="" title={item.codename} place={item.region} />
                 <span className="flex flex-1 flex-col gap-4 p-5">
                   <MarketCardFigures
-                    revenue={formatWholeEur(item.revenueCents)}
-                    ebitda={formatWholeEur(item.ebitdaCents)}
-                    adjustedEbitda={formatWholeEur(item.adjustedEbitdaCents)}
+                    revenue={formatCardEur(item.revenueCents)}
+                    ebitda={formatCardEur(item.ebitdaCents)}
+                    adjustedEbitda={formatCardEur(item.adjustedEbitdaCents)}
                     askingPrice={formatWholeEur(item.askingPriceCents)}
                     askingPriceCents={item.askingPriceCents}
                     ebitdaCents={item.ebitdaCents}

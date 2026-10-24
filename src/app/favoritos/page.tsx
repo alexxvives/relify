@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { MarketSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { MarketBrowser } from "@/components/market-browser";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -12,18 +14,28 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function FavoritesPage() {
+async function FavoritesPageContent() {
   const user = await requireRole("investor");
   const [projects, favoriteSlugs] = await Promise.all([listPublicProjects(), listFavoriteSlugs(user.id)]);
   const favorites = projects.filter((project) => favoriteSlugs.includes(project.slug));
 
   return (
-    <SignedInPage title={investorCopy.favoritesTitle}>
+    <>
       {favorites.length === 0 ? (
         <WorkspaceNote title={investorCopy.favoritesEmpty} body={investorCopy.favoritesEmptyBody} />
       ) : (
         <MarketBrowser projects={favorites} favoriteSlugs={favoriteSlugs} onlyFavorites />
       )}
+    </>
+  );
+}
+
+export default function FavoritesPage() {
+  return (
+    <SignedInPage title={investorCopy.favoritesTitle}>
+      <Suspense fallback={<MarketSkeleton heading={false} />}>
+        <FavoritesPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdvisorServicesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { AdvisorServices } from "@/components/advisor-services";
 import { SignedInPage } from "@/components/signed-in-page";
@@ -11,13 +13,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdvisorServicesPage() {
+async function AdvisorServicesPageContent() {
   const user = await requireRole("advisor");
   const [profile, closes] = await Promise.all([getAdvisorProfile(user.id), listAdvisorPlatformCloses(user.id)]);
 
   return (
-    <SignedInPage title={advisorCopy.servicesTitle}>
+    <>
       <AdvisorServices initial={profile} closes={closes} />
+    </>
+  );
+}
+
+export default function AdvisorServicesPage() {
+  return (
+    <SignedInPage title={advisorCopy.servicesTitle}>
+      <Suspense fallback={<AdvisorServicesSkeleton />}>
+        <AdvisorServicesPageContent />
+      </Suspense>
     </SignedInPage>
   );
 }

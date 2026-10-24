@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AdvisorySkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdvisoryPicker } from "@/components/advisory-picker";
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SellerServicesPage({
+async function SellerServicesPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ empresa?: string }>;
@@ -34,7 +36,7 @@ export default async function SellerServicesPage({
   ]);
 
   return (
-    <SignedInPage title={sellerCopy.servicesHeading}>
+    <>
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{advisoryCopy.intro}</p>
@@ -46,6 +48,16 @@ export default async function SellerServicesPage({
           initialCompany={selectedEngagementCompany(companies, query.empresa)}
         />
       </section>
+    </>
+  );
+}
+
+export default function SellerServicesPage(props: Parameters<typeof SellerServicesPageContent>[0]) {
+  return (
+    <SignedInPage title={sellerCopy.servicesHeading}>
+      <Suspense fallback={<AdvisorySkeleton />}>
+        <SellerServicesPageContent {...props} />
+      </Suspense>
     </SignedInPage>
   );
 }

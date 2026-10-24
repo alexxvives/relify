@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { CompanyDetailsSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerCompanyPanel } from "@/components/seller-company-panel";
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function CompanyDetailsPage({
+async function CompanyDetailsPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ seccion?: string; alta?: string; session_id?: string }>;
@@ -47,7 +49,7 @@ export default async function CompanyDetailsPage({
   const coverSrc = listing && coverVersion ? projectCoverHref(listing.slug, coverVersion) : null;
 
   return (
-    <SignedInPage title={sellerCopy.detailsTitle} showTitle={false}>
+    <>
       <SellerCompanyPanel
         draft={draft}
         cif={cif}
@@ -57,6 +59,16 @@ export default async function CompanyDetailsPage({
         reviewPending={listing?.status === "pending"}
         coverSrc={coverSrc}
       />
+    </>
+  );
+}
+
+export default function CompanyDetailsPage(props: Parameters<typeof CompanyDetailsPageContent>[0]) {
+  return (
+    <SignedInPage title={sellerCopy.detailsTitle} showTitle={false}>
+      <Suspense fallback={<CompanyDetailsSkeleton />}>
+        <CompanyDetailsPageContent {...props} />
+      </Suspense>
     </SignedInPage>
   );
 }

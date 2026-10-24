@@ -32,10 +32,10 @@ export function MarketCardFigures({
 
   return (
     <div className="overflow-hidden rounded-xl border border-[#e7eaee]">
-      <div className="bg-[#f4f6fb] px-3 py-3 text-center">
+      <div className="bg-[#f4f6fb] px-4 py-4 text-center">
         <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">{marketCopy.metrics[3].label}</p>
         <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
-          <p className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{askingPrice}</p>
+          <p className="text-[26px] leading-8 font-semibold tracking-tight text-[#1c2740] tabular-nums">{askingPrice}</p>
           {years === null ? null : (
             <p className={`text-xs font-semibold tabular-nums ${recoveryClass[recoveryTone(years)]}`} title={marketCopy.recoveryHint}>
               {formatRecoveryYears(years)}
@@ -43,11 +43,11 @@ export function MarketCardFigures({
           )}
         </div>
       </div>
-      <dl className="grid grid-cols-3 divide-x divide-[#e7eaee]">
+      <dl className="divide-y divide-[#e7eaee] border-t border-[#e7eaee]">
         {row.map((item) => (
-          <div key={item.label} className="min-w-0 px-2 py-4 text-center">
-            <dt className="text-[16.5px] leading-5 font-medium text-[#5c6b78]">{item.label}</dt>
-            <dd className="mt-1 text-[18px] leading-6 font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</dd>
+          <div key={item.label} className="flex items-baseline justify-between gap-4 px-4 py-2.5">
+            <dt className="text-sm text-[#667085]">{item.label}</dt>
+            <dd className="text-base font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

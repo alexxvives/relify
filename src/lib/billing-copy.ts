@@ -82,6 +82,8 @@ export const billingCopy = {
   onboardingPlanMonthly: "/mes + IVA",
   onboardingPlanPick: "Elegir",
   onboardingPlanPicked: "Elegido",
+  onboardingPlanRecommended: "Recomendado",
+  onboardingPlanFreeIncludes: "Incluye:",
   onboardingPlanFinishFree: "Empezar gratis",
   onboardingPlanFinishPaid: "Continuar al pago",
   advisorPlanTitle: "Así funciona Relify para asesores",

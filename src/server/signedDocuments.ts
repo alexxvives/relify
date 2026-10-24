@@ -152,12 +152,18 @@ export async function storeSignedDocument(kind: SignedDocumentKind, refId: strin
 }
 
 /** Stored PDF; documents signed before this table existed are rendered and stored on first read. */
+/** PDFs stored by an older template are re-rendered once (signatures, seal). */
+const TEMPLATE_MARK = "Relify signed-pdf v2";
+function isCurrentTemplate(pdf: Uint8Array): boolean {
+  return new TextDecoder("latin1").decode(pdf.subarray(Math.max(0, pdf.length - 4096))).includes(TEMPLATE_MARK);
+}
+
 export async function readSignedDocument(kind: SignedDocumentKind, refId: string): Promise<StoredDocument | null> {
   const stored = await prisma.signedDocument.findUnique({
     where: { key: documentKey(kind, refId) },
     select: { fileName: true, pdf: true },
   });
-  if (stored) {
+  if (stored && isCurrentTemplate(stored.pdf)) {
     return { fileName: stored.fileName, pdf: Uint8Array.from(stored.pdf) };
   }
   return storeSignedDocument(kind, refId);

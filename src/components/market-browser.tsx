@@ -17,7 +17,7 @@ import {
   type MarketSort,
   type RevenueBandId,
 } from "@/lib/market-filters";
-import { formatWholeEur } from "@/lib/money";
+import { formatCardEur, formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 
 const fieldClassName =
@@ -196,9 +196,9 @@ export function MarketBrowser({
                   />
                   <div className="flex flex-1 flex-col gap-4 p-5">
                     <MarketCardFigures
-                      revenue={formatWholeEur(project.revenueCents)}
-                      ebitda={formatWholeEur(project.ebitdaCents)}
-                      adjustedEbitda={formatWholeEur(project.adjustedEbitdaCents)}
+                      revenue={formatCardEur(project.revenueCents)}
+                      ebitda={formatCardEur(project.ebitdaCents)}
+                      adjustedEbitda={formatCardEur(project.adjustedEbitdaCents)}
                       askingPrice={formatWholeEur(project.askingPriceCents)}
                       askingPriceCents={project.askingPriceCents}
                       ebitdaCents={project.ebitdaCents}
