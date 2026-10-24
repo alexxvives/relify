@@ -172,7 +172,7 @@ export function InvestorProcesses({
       {items.map((item) => (
         <li key={item.slug}>
           <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:gap-4">
               <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                 <h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>
                 <ProcessHeaderCue
