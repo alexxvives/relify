@@ -98,7 +98,7 @@ function MeetingCard({
                 {slot.fromTime}–{slot.toTime}
               </span>
               {tag ? (
-                <span className="ml-2 rounded-full bg-[#eef2ff] px-2 py-0.5 align-middle text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
+                <span className="ml-2 rounded-full bg-[#eef2ff] px-2 py-0.5 align-middle text-xs font-semibold text-[#465ab4]">
                   {tag}
                 </span>
               ) : null}
@@ -204,7 +204,7 @@ function MonthGrid({
           <ChevronRight className="size-4" aria-hidden />
         </button>
       </div>
-      <div className="grid grid-cols-7 text-center text-[11px] font-medium tracking-wide text-[#98a2b3]">
+      <div className="grid grid-cols-7 text-center text-xs font-medium tracking-wide text-[#98a2b3]">
         {weekdays.map((day) => (
           <span key={day} className="pb-2">
             {day}
@@ -387,7 +387,7 @@ function SlotForm({
         />
       </label>
       <div className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
-        <p className="text-[11px] font-semibold tracking-wide text-[#8b95a7] uppercase">{sellerCopy.meetingsPreview}</p>
+        <p className="text-xs font-semibold text-[#8b95a7]">{sellerCopy.meetingsPreview}</p>
         <p className="mt-1 text-sm font-semibold text-[#1c2740]">{sellerCopy.meetingsUntitled}</p>
         <p className="mt-1 text-sm text-[#465ab4]">
           {day.length > 0 ? formatDay(day) : sellerCopy.meetingsRange}

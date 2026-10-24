@@ -50,7 +50,7 @@ export default async function OnboardingPage() {
       <section className="relative z-10 w-full max-w-3xl rounded-[28px] transition-[max-width] duration-300 has-[[data-wide]]:max-w-5xl border border-white/70 bg-white/95 px-6 py-8 shadow-[0_24px_70px_-28px_rgba(22,50,79,0.55)] backdrop-blur-sm sm:px-10">
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-sm font-medium tracking-[0.18em] text-[#14998a] uppercase">{authCopy.stageKicker}</p>
+            <p className="text-sm font-medium text-[#14998a]">{authCopy.stageKicker}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#16324f]">{authCopy.onboardingTitle}</h1>
             <p className="mt-2 max-w-md text-sm leading-6 text-[#5c6b78]">{authCopy.onboardingIntro}</p>
           </div>

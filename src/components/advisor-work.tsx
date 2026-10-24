@@ -50,7 +50,7 @@ export function AdvisorWork({ mine }: { mine: EngagementCard[] }) {
       <div className="mt-6 flex flex-col gap-6">
         {groups.map((group) => (
           <div key={group.step} id={group.step === "request" ? advisorDeskAnchor.inbox : advisorDeskAnchor[group.step]} className="scroll-mt-6">
-            <h3 className="text-sm font-semibold tracking-wide text-[#64748b] uppercase">{stepLabel[group.step]}</h3>
+            <h3 className="text-sm font-semibold text-[#64748b]">{stepLabel[group.step]}</h3>
             <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {group.items.map((item) => (
                 <WorkCard key={item.id} item={item} />

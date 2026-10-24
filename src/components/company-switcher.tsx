@@ -179,7 +179,7 @@ export function CompanySwitcher({
           {currentLabel.trim().charAt(0).toUpperCase() || "E"}
         </span>
         <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="text-[11px] font-medium tracking-wide text-public-muted uppercase">{sellerCopy.companiesCurrent}</span>
+          <span className="text-xs font-medium text-public-muted">{sellerCopy.companiesCurrent}</span>
           <span className="truncate text-sm font-medium">{currentLabel}</span>
         </span>
         <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-public-muted" : "shrink-0 text-public-muted"} aria-hidden />
@@ -215,7 +215,7 @@ export function CompanySwitcher({
                       <CheckIcon size={16} className={selected ? "text-[#465ab4]" : "text-transparent"} aria-hidden />
                       <span className="min-w-0 flex-1 truncate">{label}</span>
                       {!selected && unread > 0 ? (
-                        <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-public-clay px-1 text-[10px] leading-4 font-semibold text-white">
+                        <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-public-clay px-1 text-xs leading-4 font-semibold text-white">
                           {unread > 9 ? "9+" : unread}
                         </span>
                       ) : null}

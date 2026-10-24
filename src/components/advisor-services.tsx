@@ -508,7 +508,7 @@ export function AdvisorServices({
               <li key={close.id} className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
                 <div className="flex items-start justify-between gap-4 bg-[#1c2740] px-5 pt-5 pb-6">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold tracking-[0.16em] text-white/55 uppercase">Cerrada</p>
+                    <p className="text-xs font-semibold text-white/55">Cerrada</p>
                     <h3 className="mt-2 text-3xl font-semibold tracking-tight text-white">{close.codename}</h3>
                   </div>
                   <p className="shrink-0 pt-0.5 text-sm text-white/80">{close.closedLabel}</p>

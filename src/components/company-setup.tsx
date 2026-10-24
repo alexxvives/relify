@@ -66,7 +66,7 @@ export function CompanySetup({
       className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40"
       onClose={onClose}
     >
-      <p className="text-xs font-medium tracking-wide text-[#5c6b78] uppercase">
+      <p className="text-xs font-medium text-[#5c6b78]">
         {step === "nif" ? companyCopy.setupNifStep : companyCopy.setupAccountsStep}
       </p>
       <h2 className="mt-2 text-lg font-semibold">{step === "nif" ? companyCopy.nifTitle : companyCopy.accountsTitle}</h2>

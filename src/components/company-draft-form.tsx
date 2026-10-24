@@ -218,9 +218,9 @@ function Panel({
               type="button"
               aria-expanded="true"
               onClick={onCollapse}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] bg-white px-3 text-sm"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#c5cdd8] bg-white px-4 text-base font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
             >
-              <ChevronUp className="size-3.5" aria-hidden />
+              <ChevronUp className="size-4" aria-hidden />
               {companyCopy.collapsePanel}
             </button>
           ) : (
@@ -228,7 +228,7 @@ function Panel({
               type="button"
               aria-expanded="false"
               onClick={onEdit}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] bg-white px-3 text-sm"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#c5cdd8] bg-white px-4 text-base font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
             >
               <Pencil className="size-3.5" aria-hidden />
               {companyCopy.editPanel}
@@ -285,7 +285,7 @@ function FigureField({
 
   return (
     <label className="flex min-w-0 flex-col items-center gap-2 text-center">
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085]">
         {label}
         {editable ? (
           <button
@@ -294,9 +294,10 @@ function FigureField({
             onClick={() => {
               inputRef.current?.focus();
             }}
-            className="inline-flex size-6 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff]"
+            className="inline-flex h-8 items-center gap-1 rounded-full border border-[#d5dcf5] px-2.5 text-sm font-medium text-[#465ab4] hover:bg-[#eef2ff]"
           >
             <Pencil className="size-3.5" aria-hidden />
+            Editar
           </button>
         ) : null}
       </span>
@@ -367,7 +368,7 @@ function FichaMetrics({
       frame: metricCellFrame(1),
       node: (
         <div className="flex min-w-0 flex-col items-center gap-2 text-center">
-          <span className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{companyCopy.ebitdaMarginLabel}</span>
+          <span className="text-xs font-semibold text-[#667085]">{companyCopy.ebitdaMarginLabel}</span>
           <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
         </div>
       ),
@@ -473,7 +474,7 @@ function SaveButton({
     return null;
   }
   return (
-    <div className="mt-4 flex justify-end">
+    <div className="mt-5 flex justify-end">
       <button
         key={rejected ? `${id}-${shake}` : id}
         type="submit"
@@ -483,8 +484,8 @@ function SaveButton({
         onClick={() => onChoose(id)}
         className={
           rejected
-            ? "releva-shake inline-flex h-11 items-center rounded-[14px] bg-[#c0362c] px-4 text-base font-medium text-white"
-            : "inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
+            ? "releva-shake inline-flex h-12 w-full items-center justify-center rounded-full bg-[#c0362c] px-8 text-base font-semibold text-white sm:w-auto"
+            : "inline-flex h-12 w-full items-center justify-center rounded-full bg-[#465ab4] px-8 text-base font-semibold text-white disabled:opacity-60 sm:w-auto"
         }
       >
         {active ? companyCopy.saving : companyCopy.save}
@@ -803,7 +804,7 @@ export function CompanyDraftForm({
     focus === "structure",
     focus === "structure",
   );
-  const [listedPhoto, setListedPhoto] = useState(
+  const [, setListedPhoto] = useState(
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
   const [openDeal, setOpenDeal] = usePanelOpen(

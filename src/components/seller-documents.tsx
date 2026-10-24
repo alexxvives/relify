@@ -543,7 +543,7 @@ function FileCard({
                 <span
                   key={viewer.accessId}
                   title={viewer.label}
-                  className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-[10px] font-semibold text-white"
+                  className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-xs font-semibold text-white"
                 >
                   {viewerInitials(viewer.label)}
                 </span>

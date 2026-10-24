@@ -31,7 +31,7 @@ function ReviewMark({ cases }: { cases: number }) {
   return (
     <span className="absolute top-4 right-4 flex w-36 flex-col items-end gap-1 text-right">
       <Stars />
-      <span className="text-[10px] font-semibold tracking-wide text-white/70 uppercase">{engagementCopy.noRatings}</span>
+      <span className="text-xs font-semibold text-white/70">{engagementCopy.noRatings}</span>
       <span className="text-xs font-medium text-white">{caseCount(cases)}</span>
     </span>
   );

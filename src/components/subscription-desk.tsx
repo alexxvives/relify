@@ -60,7 +60,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
             <div className="bg-[#1c2740] px-6 py-6 text-white sm:px-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.16em] text-white/60 uppercase">{billingCopy.yourPlan}</p>
+                  <p className="text-xs font-semibold text-white/60">{billingCopy.yourPlan}</p>
                   <h3 className="mt-2 text-3xl font-semibold tracking-tight">{desk.planLabel}</h3>
                   {desk.amountLabel ? <p className="mt-2 text-lg text-white/85">{desk.amountLabel}</p> : null}
                 </div>
@@ -77,15 +77,15 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
             </div>
             <div className="grid gap-6 p-6 sm:grid-cols-3 sm:p-8">
               <div>
-                <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{billingCopy.renewsOn}</p>
+                <p className="text-xs font-semibold text-[#667085]">{billingCopy.renewsOn}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.whenLabel}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{billingCopy.periodStart}</p>
+                <p className="text-xs font-semibold text-[#667085]">{billingCopy.periodStart}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.periodStart}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{billingCopy.statusLabel}</p>
+                <p className="text-xs font-semibold text-[#667085]">{billingCopy.statusLabel}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.statusLabel}</p>
               </div>
             </div>
@@ -138,7 +138,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
               <div className="layout-table mt-4">
                 <table className="text-left text-sm">
                   <thead>
-                    <tr className="border-b border-[#eef0f3] text-xs font-semibold tracking-wide text-[#667085] uppercase">
+                    <tr className="border-b border-[#eef0f3] text-xs font-semibold text-[#667085]">
                       <th className="py-2 pr-3 font-semibold">Número</th>
                       <th className="py-2 pr-3 font-semibold">Fecha</th>
                       <th className="py-2 pr-3 font-semibold">Estado</th>
@@ -218,10 +218,10 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
         </span>
         <span className="text-lg tracking-wide italic">Relify</span>
       </div>
-      <p className="relative mt-6 font-mono text-lg tracking-[0.18em]">{`••••  ••••  ••••  ${ending}`}</p>
+      <p className="relative mt-6 font-mono text-lg">{`••••  ••••  ••••  ${ending}`}</p>
       <div className="relative mt-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[10px] tracking-[0.16em] text-white/60 uppercase">{billingCopy.cardExpires}</p>
+          <p className="text-xs text-white/60">{billingCopy.cardExpires}</p>
           <p className="mt-1 text-sm tabular-nums">{expires ?? "—"}</p>
         </div>
         <p className="text-lg font-semibold tracking-[0.12em] uppercase">{brandName}</p>

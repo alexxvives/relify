@@ -29,7 +29,7 @@ export function CancelledProcesses({ items, viewer }: { items: CancelledProcess[
 
   return (
     <section aria-labelledby="cancelled-processes" className="mt-6 space-y-3">
-      <h2 id="cancelled-processes" className="text-sm font-semibold tracking-wide text-[#667085] uppercase">
+      <h2 id="cancelled-processes" className="text-sm font-semibold text-[#667085]">
         Procesos cancelados
       </h2>
       <ul className="space-y-3">

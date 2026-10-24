@@ -16,7 +16,7 @@ export function InvestorPublicCard({
   return (
     <div className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.35)]">
       <div className="bg-[#1c2740] px-6 pt-5 pb-14">
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase">Perfil del inversor</p>
+        <p className="text-xs font-semibold text-white/70">Perfil del inversor</p>
         {interest ? (
           <p className="mt-2 text-sm text-white">
             Interesado en <span className="font-semibold">{interest}</span>
@@ -65,7 +65,7 @@ function ProfilePhoto({ photo }: { photo: string }) {
 function ProfileNote({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-5">
-      <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{label}</p>
+      <p className="text-xs font-semibold text-[#667085]">{label}</p>
       <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{value.length > 0 ? value : "—"}</p>
     </div>
   );
@@ -74,7 +74,7 @@ function ProfileNote({ label, value }: { label: string; value: string }) {
 function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-[#f7f8fb] px-3 py-3">
-      <dt className="text-[11px] font-semibold tracking-wide text-[#667085] uppercase">{label}</dt>
+      <dt className="text-xs font-semibold text-[#667085]">{label}</dt>
       <dd className="mt-1 line-clamp-3 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
     </div>
   );

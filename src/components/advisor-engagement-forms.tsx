@@ -68,7 +68,7 @@ export function AdvisorDepositForm({
         aria-label="Mostrar depósito"
       >
         <span className="min-w-0">
-          <span className="block text-[11px] font-semibold tracking-[0.14em] text-[#667085] uppercase">
+          <span className="block text-xs font-semibold text-[#667085]">
             {engagementCopy.depositTitle}
           </span>
           <span className="mt-1 block truncate text-base font-semibold text-[#1c2740]">{amountLabel}</span>
@@ -164,7 +164,7 @@ export function AdvisorNdaTurn({ engagementId, text }: { engagementId: string; t
   return (
     <>
       <span className="flex min-w-0 flex-wrap items-center gap-3">
-        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">
+        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">
           Tu turno
         </span>
         <span className="text-sm leading-5 text-[#1c2740]">{advisorCopy.signNda}</span>
@@ -300,7 +300,7 @@ export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; t
 
   return (
     <section id="nda" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-      <p className="text-xs font-semibold tracking-[0.12em] text-[#b42318] uppercase">Tu turno</p>
+      <p className="text-xs font-semibold text-[#b42318]">Tu turno</p>
       <h2 className="mt-1 text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.ndaTitle}</h2>
       <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.ndaInvestorNote}</p>
       <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-[#f7f8fb] p-4 text-sm leading-6 text-[#1c2740]">{text}</pre>

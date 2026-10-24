@@ -81,7 +81,7 @@ function SourceChart({ entries, color, label }: { entries: BillingEntry[]; color
   return (
     <figure className="mt-5" aria-label={label}>
       <div className="flex h-36 gap-2">
-        <div className="flex w-7 shrink-0 flex-col justify-between pt-4 text-right text-[11px] tabular-nums text-[#98a2b3]">
+        <div className="flex w-7 shrink-0 flex-col justify-between pt-4 text-right text-xs tabular-nums text-[#98a2b3]">
           {ticks.map((tick) => (
             <span key={tick}>{tick}</span>
           ))}
@@ -103,7 +103,7 @@ function SourceChart({ entries, color, label }: { entries: BillingEntry[]; color
                 }}
               >
                 <span
-                  className={`h-4 text-center text-[11px] font-semibold tabular-nums ${on ? "text-[#1c2740]" : "text-transparent"}`}
+                  className={`h-4 text-center text-xs font-semibold tabular-nums ${on ? "text-[#1c2740]" : "text-transparent"}`}
                 >
                   {bucket.count}
                 </span>
@@ -126,7 +126,7 @@ function SourceChart({ entries, color, label }: { entries: BillingEntry[]; color
         {buckets.map((bucket, index) => (
           <span
             key={`${bucket.key}-label`}
-            className={`min-w-0 flex-1 text-center text-[10px] leading-tight ${active === bucket.key ? "font-semibold text-[#1c2740]" : "text-[#667085]"}`}
+            className={`min-w-0 flex-1 text-center text-xs leading-tight ${active === bucket.key ? "font-semibold text-[#1c2740]" : "text-[#667085]"}`}
           >
             {axisLabel(bucket, index, buckets)}
           </span>

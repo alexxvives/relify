@@ -49,7 +49,7 @@ export function FinanceCharts({
 
   return (
     <div className="mt-4 flex flex-col gap-6">
-      <div className={split ? "grid items-start gap-6 lg:grid-cols-2" : undefined}>
+      <div className={split ? "grid items-start gap-6" : undefined}>
         <SalesBars points={points} progress={progress} />
         {split ? <CostBars years={costYears} /> : null}
       </div>
@@ -83,7 +83,7 @@ const placeholderMixes = [
 export function FinanceChartsPlaceholder() {
   return (
     <div className="mt-4 flex flex-col gap-6" aria-hidden>
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6">
         <PlaceholderBars
           title={sellerCopy.financeBarsTitle}
           series={[
@@ -182,7 +182,7 @@ function PlaceholderBars({
                     />
                   );
                 })}
-                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="13" fontWeight="600">
+                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="16" fontWeight="600">
                   {year}
                 </text>
               </g>
@@ -234,7 +234,7 @@ function PlaceholderStackedBars({ title }: { title: string }) {
                     />
                   );
                 })}
-                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="13" fontWeight="600">
+                <text x={center} y={height - 12} textAnchor="middle" fill="#c5ccd8" fontSize="16" fontWeight="600">
                   {year}
                 </text>
               </g>
@@ -383,7 +383,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
                 stroke={axis ? "#c5cdd8" : "#e6e9f0"}
                 strokeWidth={axis ? 1.5 : 1}
               />
-              <text x={padLeft - 10} y={y + 4} textAnchor="end" fill="#667085" fontSize="12">
+              <text x={padLeft - 10} y={y + 4} textAnchor="end" fill="#667085" fontSize="15">
                 {formatCompactEur(tick)}
               </text>
             </g>
@@ -414,7 +414,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
                   </g>
                 );
               })}
-              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
+              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="16" fontWeight="600">
                 {group.point.forecast ? `${group.point.year}*` : group.point.year}
               </text>
             </g>
@@ -538,7 +538,7 @@ export function GroupedYearBars({
                 y={y + 4}
                 textAnchor={axis === "right" ? "start" : "end"}
                 fill="#667085"
-                fontSize="12"
+                fontSize="15"
               >
                 {formatCompactEur(tick)}
               </text>
@@ -570,7 +570,7 @@ export function GroupedYearBars({
                   </g>
                 );
               })}
-              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="13" fontWeight="600">
+              <text x={group.center} y={height - 12} textAnchor="middle" fill="#3d4a63" fontSize="16" fontWeight="600">
                 {group.year.forecast ? `${group.year.year}*` : group.year.year}
               </text>
             </g>
@@ -585,7 +585,7 @@ export function GroupedYearBars({
 
 function ChartKey({ items }: { items: { label: string; color: string | null }[] }) {
   return (
-    <ul className="pointer-events-none absolute top-2 right-[4%] left-[12%] flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] leading-4 text-[#667085]">
+    <ul className="pointer-events-none absolute top-2 right-[4%] left-[12%] flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs leading-4 text-[#667085]">
       {items.map((item) => (
         <li key={item.label} className="inline-flex items-center gap-1.5">
           {item.color ? <span className="size-2.5 rounded-sm" style={{ backgroundColor: item.color }} /> : null}
@@ -627,7 +627,7 @@ type PlotBar = {
 };
 
 function textWidth(value: string): number {
-  return Math.max(48, Math.ceil(value.length * 7.2));
+  return Math.max(48, Math.ceil(value.length * 9));
 }
 
 function labelBoxAt(bar: PlotBar) {
@@ -670,7 +670,7 @@ function BarValue({ x, y, value, muted, fill = "#1c2740" }: { x: number; y: numb
   return (
     <g>
       <rect x={x - width / 2} y={y - 12} width={width} height={15} rx="4" fill="#f7f8fc" />
-      <text x={x} y={y} textAnchor="middle" fill={muted ? "#667085" : fill} fontSize="11" fontWeight="600">
+      <text x={x} y={y} textAnchor="middle" fill={muted ? "#667085" : fill} fontSize="14" fontWeight="600">
         {value}
       </text>
     </g>

@@ -64,10 +64,10 @@ export function SignatureDocument({ when, signature }: { when: string; signature
       >
         <span className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white px-3 py-3 shadow-[0_10px_24px_-18px_rgba(28,39,64,0.7)]">
           <span className="releva-word text-sm leading-none text-[#1c2740]">Relify</span>
-          <span className="mt-2 text-[11px] font-semibold leading-4 text-[#1c2740]">{platformTermsCopy.signedTitle}</span>
-          <span className="mt-2 line-clamp-4 text-[9px] leading-[1.35] text-[#5c6b78]">{platformTermsCopy.body.join(" ")}</span>
+          <span className="mt-2 text-xs font-semibold leading-4 text-[#1c2740]">{platformTermsCopy.signedTitle}</span>
+          <span className="mt-2 line-clamp-4 text-xs leading-[1.35] text-[#5c6b78]">{platformTermsCopy.body.join(" ")}</span>
           <span className="mt-auto flex items-end justify-between gap-2 border-t border-[#eef0f3] pt-2">
-            <span className="text-[9px] leading-3 text-[#8b95a7]">
+            <span className="text-xs leading-3 text-[#8b95a7]">
               {platformTermsCopy.signedOn} {when}
             </span>
             {signature ? (
@@ -75,7 +75,7 @@ export function SignatureDocument({ when, signature }: { when: string; signature
               // eslint-disable-next-line @next/next/no-img-element
               <img src={signature} alt="" className="h-8 max-w-28 object-contain object-right" />
             ) : (
-              <span className="text-[9px] leading-3 text-[#8b95a7]">{platformTermsCopy.signedMissing}</span>
+              <span className="text-xs leading-3 text-[#8b95a7]">{platformTermsCopy.signedMissing}</span>
             )}
           </span>
         </span>

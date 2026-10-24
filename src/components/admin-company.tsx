@@ -103,7 +103,7 @@ function AdvisorSideCard({ advisor }: { advisor: AdminSideAdvisor }) {
   return (
     <article className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.35)]">
       <div className="bg-[#1c2740] px-6 py-4">
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase">Asesor</p>
+        <p className="text-xs font-semibold text-white/70">Asesor</p>
         <h2 className="mt-2 text-lg font-semibold text-white">{advisor.label}</h2>
       </div>
       <div className="px-6 py-5">
@@ -177,7 +177,7 @@ function MeetingPanel({ messages, today }: { messages: AdminCompanyMessage[]; to
                     {slot.fromTime}–{slot.toTime}
                   </span>
                   {tag ? (
-                    <span className="ml-2 rounded-full bg-[#eef2ff] px-2 py-0.5 align-middle text-[11px] font-semibold tracking-wide text-[#465ab4] uppercase">
+                    <span className="ml-2 rounded-full bg-[#eef2ff] px-2 py-0.5 align-middle text-xs font-semibold text-[#465ab4]">
                       {tag}
                     </span>
                   ) : null}

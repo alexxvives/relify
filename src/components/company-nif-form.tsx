@@ -66,7 +66,7 @@ export function CompanyNifDialog() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">{companyCopy.nifTitle}</h2>
-            <p className="mt-1 text-xs font-medium tracking-wide text-[#5c6b78] uppercase">{companyCopy.setupNifStep}</p>
+            <p className="mt-1 text-xs font-medium text-[#5c6b78]">{companyCopy.setupNifStep}</p>
             <p className="mt-2 text-sm text-[#5c6b78]">{companyCopy.nifIntro}</p>
           </div>
           <form method="dialog">

@@ -411,7 +411,7 @@ export function InvestorPhotoDrop({
         ) : (
           <User className="size-8 text-[#465ab4]" aria-hidden />
         )}
-        <span className="absolute inset-x-0 bottom-0 bg-[#1c2740]/75 px-2 py-1.5 text-center text-[11px] leading-4 font-medium text-white">
+        <span className="absolute inset-x-0 bottom-0 bg-[#1c2740]/75 px-2 py-1.5 text-center text-xs leading-4 font-medium text-white">
           <Upload className="mr-1 inline size-3" aria-hidden />
           {investorCopy.photoDrop}
         </span>

@@ -69,7 +69,7 @@ export function SignaturePad({
             inputMode="text"
             maxLength={12}
             placeholder="12345678Z"
-            className="mt-2 h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-sm text-[#1c2740] uppercase outline-none placeholder:text-[#98a2b3] placeholder:normal-case focus:border-[#465ab4] focus:ring-2 focus:ring-[#465ab4]/20"
+            className="mt-2 h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-sm text-[#1c2740] outline-none placeholder:text-[#98a2b3] placeholder:normal-case focus:border-[#465ab4] focus:ring-2 focus:ring-[#465ab4]/20"
           />
         </label>
       ) : null}

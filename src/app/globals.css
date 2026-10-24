@@ -1972,6 +1972,11 @@
   min-width: 0;
   /* Same share of the screen at every desktop size, never so narrow that labels wrap. */
   --layout-sidebar: clamp(248px, 16vw, 320px);
+  /* Readability for older owners: inside the app the smallest text size is 14px. */
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.25rem;
+  /* Amounts line up and the thousands dot stays readable. */
+  font-variant-numeric: tabular-nums;
 }
 
 .shell-backdrop {
