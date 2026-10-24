@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
@@ -201,7 +200,6 @@ export function AppFrame({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const home = destinations[0]?.href ?? "/cuenta";
   const initials = accountInitials(name);
   const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
@@ -216,27 +214,22 @@ export function AppFrame({
 
   function closeMenu() {
     setOpen(false);
-    setExpanded(false);
   }
 
   return (
     <div className="shell min-h-screen bg-public-paper font-public text-public-ink">
-      {open || expanded ? (
-        <button type="button" aria-label={shellCopy.menuClose} className={open ? "shell-backdrop" : "shell-backdrop shell-backdrop-rail"} onClick={closeMenu} />
+      {open ? (
+        <button type="button" aria-label={shellCopy.menuClose} className="shell-backdrop" onClick={closeMenu} />
       ) : null}
       <aside
         id="app-sidebar"
         data-open={open ? "true" : "false"}
-        data-expanded={expanded ? "true" : "false"}
         className="shell-sidebar"
       >
         <div className="shell-head relative z-20 flex flex-wrap items-center justify-between gap-2 px-4 pt-5 pb-2">
           <div className="flex min-w-0 items-center gap-3">
             <Link href={home} onClick={closeMenu} className="shell-full shrink-0" aria-label="Relify">
               <Logo />
-            </Link>
-            <Link href={home} onClick={closeMenu} className="shell-mark shrink-0" aria-label="Relify">
-              <Image src="/brand/mark.svg" alt="" width={32} height={32} unoptimized className="size-8" />
             </Link>
           </div>
           <div className="shell-tools flex shrink-0 items-center gap-1">
@@ -256,18 +249,6 @@ export function AppFrame({
               </span>
             ) : null}
             <NotificationBell items={notifications} />
-            <button
-              type="button"
-              aria-expanded={expanded}
-              aria-controls="app-sidebar"
-              onClick={() => {
-                setExpanded((value) => !value);
-              }}
-              className="shell-rail-toggle inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
-            >
-              <PanelLeftIcon size={16} aria-hidden />
-              <span className="sr-only">{expanded ? shellCopy.railCollapse : shellCopy.railExpand}</span>
-            </button>
             <button
               type="button"
               onClick={closeMenu}

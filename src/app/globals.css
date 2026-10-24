@@ -1960,7 +1960,6 @@
 */
 :root {
   --layout-pad: 1.5rem;
-  --layout-sidebar: 18rem;
 }
 
 @media (min-width: 640px) {
@@ -1971,8 +1970,8 @@
 
 .shell {
   min-width: 0;
-  --layout-rail: 4.5rem;
-  --layout-sidebar: 15.5rem;
+  /* Same share of the screen at every desktop size, never so narrow that labels wrap. */
+  --layout-sidebar: clamp(248px, 16vw, 320px);
 }
 
 .shell-backdrop {
@@ -2000,11 +1999,6 @@
 
 .shell-sidebar[data-open="true"] {
   display: flex;
-}
-
-.shell-mark,
-.shell-rail-toggle {
-  display: none;
 }
 
 .shell-main {
@@ -2052,80 +2046,8 @@
     display: none;
   }
 
-  .shell-backdrop:not(.shell-backdrop-rail) {
+  .shell-backdrop {
     display: none;
-  }
-}
-
-/* Laptop widths: the sidebar collapses to an icon rail; the toggle expands it over the content. */
-@media (min-width: 1024px) and (max-width: 1439.98px) {
-  .shell-main {
-    padding-left: var(--layout-rail);
-  }
-
-  .shell-rail-toggle {
-    display: inline-flex;
-  }
-
-  .shell-backdrop-rail {
-    background: rgb(18 52 58 / 0.18);
-  }
-
-  .shell-sidebar[data-expanded="true"] {
-    box-shadow: 0 24px 48px rgb(18 52 58 / 0.18);
-  }
-
-  .shell-sidebar[data-expanded="false"] {
-    width: var(--layout-rail);
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-full,
-  .shell-sidebar[data-expanded="false"] .shell-label {
-    display: none;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-badge {
-    position: absolute;
-    top: 0.125rem;
-    right: 0.125rem;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-badge > span:first-child {
-    height: 1.125rem;
-    min-width: 1.125rem;
-    padding-inline: 0.25rem;
-    font-size: 0.6875rem;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-mark {
-    display: inline-flex;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-head,
-  .shell-sidebar[data-expanded="false"] .shell-tools {
-    flex-direction: column;
-    justify-content: center;
-    padding-inline: 0.5rem;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-nav {
-    padding-inline: 0.75rem;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-link,
-  .shell-sidebar[data-expanded="false"] .shell-profile {
-    justify-content: center;
-    padding-inline: 0;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-foot {
-    padding-inline: 0.75rem;
-  }
-
-  .shell-sidebar[data-expanded="false"] .shell-dot {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
   }
 }
 

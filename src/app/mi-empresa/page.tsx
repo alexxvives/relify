@@ -11,6 +11,8 @@ import { listNotifications } from "@/server/listNotifications";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
+import { CancelledProcesses } from "@/components/cancelled-processes";
+import { listCancelledProcesses } from "@/server/listCancelledProcesses";
 import { requireRole } from "@/server/requireRole";
 import { projectCoverIsStored } from "@/server/projectCover";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -45,6 +47,7 @@ export default async function CompanyPage({
   const notifications = await listNotifications(user.id);
   const overview = await getSellerOverview(user.id);
   const messages = await listProjectMessages(user, null);
+  const cancelled = await listCancelledProcesses(user);
 
   return (
     <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
@@ -71,6 +74,7 @@ export default async function CompanyPage({
           })),
         )}
       />
+      <CancelledProcesses items={cancelled} viewer="seller" />
     </SignedInPage>
   );
 }
