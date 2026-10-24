@@ -20,6 +20,7 @@ const stepLabel: Record<AdvisorStep, string> = {
 };
 
 const stepTones = [
+  "border-[#f3c9c4] bg-[#fdf0ee] text-[#a32d23]",
   "border-[#f0d7a8] bg-[#fff6e8] text-[#9a5b12]",
   "border-[#c9d6f5] bg-[#eef3ff] text-[#465ab4]",
   "border-[#b7e4dc] bg-[#e7f7f4] text-[#0e7c6b]",
@@ -32,7 +33,7 @@ function StepCards({
   rows: { label: string; value: number; href: string }[];
 }) {
   return (
-    <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
       {rows.map((row, index) => (
         <li key={row.label}>
           <Link
@@ -83,7 +84,6 @@ export function AdvisorHome({
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <StepCards
             rows={desk.steps
-              .filter((step) => step.step !== "request")
               .map((step) => ({
                 label: stepLabel[step.step],
                 value: step.count,

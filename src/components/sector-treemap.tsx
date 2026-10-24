@@ -24,7 +24,7 @@ function sectorTree(sectors: IndustrySector[]): TreemapNode {
 export function SectorTreemap({ sectors, empty }: { sectors: IndustrySector[]; empty: string }) {
   return (
     <div className="arc-scope mt-4">
-      <Treemap data={sectorTree(sectors)} label="Facturación" formatValue={formatWholeEur} emptyLabel={empty} height={420} />
+      <Treemap data={sectorTree(sectors)} label="Precio de venta" formatValue={formatWholeEur} emptyLabel={empty} height={420} />
     </div>
   );
 }

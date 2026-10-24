@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, Circle, TriangleAlert } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, Circle, Clock, TriangleAlert } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
@@ -37,6 +37,69 @@ const panelHref: Record<SellerFocusPanel, string> = {
   price: "/mi-empresa/detalles?seccion=price#panel-price",
 };
 
+function SaleHero({
+  firstName,
+  listing,
+  sold,
+  next,
+  missingHref,
+}: {
+  firstName: string;
+  listing: "missing" | "draft" | "pending" | "published";
+  sold: boolean;
+  next: HomePendingAction | null;
+  missingHref: string | null;
+}) {
+  const status = sold
+    ? { label: "Vendida", tone: "bg-[#e7f6ee] text-[#1b7a45]", Icon: BadgeCheck }
+    : listing === "published"
+      ? { label: "Publicada en el mercado", tone: "bg-[#e7f6ee] text-[#1b7a45]", Icon: BadgeCheck }
+      : listing === "pending"
+        ? { label: "En revisión por Relify", tone: "bg-[#fff4d6] text-[#7a5410]", Icon: Clock }
+        : { label: "Sin publicar", tone: "bg-[#fdecea] text-[#a32d23]", Icon: TriangleAlert };
+  const step: { text: string; href: string | null; cta: string | null } = sold
+    ? { text: "La venta está cerrada. Tienes el contrato firmado en Mis documentos.", href: "/mi-empresa/documentos", cta: "Ver documentos" }
+    : next
+      ? { text: `${next.title} · ${next.detail}`, href: next.href, cta: "Hacerlo ahora" }
+      : listing === "published"
+        ? { text: "No tienes nada pendiente. Te avisaremos cuando un comprador se interese.", href: "/mi-empresa/procesos", cta: "Ver compradores" }
+        : listing === "pending"
+          ? { text: "Estamos revisando tu empresa. Suele tardar menos de 48 horas.", href: null, cta: null }
+          : missingHref
+            ? { text: "Completa los datos de tu empresa para poder publicarla.", href: missingHref, cta: "Completar datos" }
+            : { text: "Tus datos están completos. Publica tu empresa para recibir compradores.", href: "/mi-empresa/detalles", cta: "Revisar y publicar" };
+
+  return (
+    <section aria-labelledby="tu-venta" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
+      <h1 className="text-3xl font-semibold tracking-tight text-[#1c2740]">{firstName ? `Hola, ${firstName}` : "Tu venta"}</h1>
+      <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2">
+          <p id="tu-venta" className="flex flex-wrap items-center gap-2 text-lg text-[#1c2740]">
+            <span className="font-semibold">Tu venta:</span>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-base font-medium ${status.tone}`}>
+              <status.Icon className="size-4" aria-hidden />
+              {status.label}
+            </span>
+          </p>
+          <p className="text-base leading-relaxed text-[#5c6b78]">
+            <span className="font-semibold text-[#1c2740]">Siguiente paso: </span>
+            {step.text}
+          </p>
+        </div>
+        {step.href && step.cta ? (
+          <Link
+            href={step.href}
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[#0c7c78] px-6 text-base font-semibold text-white hover:bg-[#0a6764] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
+          >
+            {step.cta}
+            <ArrowRight className="size-5" aria-hidden />
+          </Link>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function SellerOverview({
   listing,
   payToPublish = false,
@@ -50,7 +113,11 @@ export function SellerOverview({
   mixes,
   costYears,
   pending,
+  sold = false,
+  firstName = "",
 }: {
+  sold?: boolean;
+  firstName?: string;
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
   hasPhoto?: boolean;
@@ -64,8 +131,10 @@ export function SellerOverview({
   costYears: SellerCostYear[];
   pending: HomePendingAction[];
 }) {
-  const filled = filledSellerPanels(panels) + (hasPhoto ? 1 : 0);
-  const complete = filled === panelSteps.length + 1;
+  // The photo is a recommendation, not a requirement: it never holds the meter back.
+  const filled = filledSellerPanels(panels);
+  const complete = filled === panelSteps.length;
+  const firstMissing = panelSteps.find((item) => !panels[item.key]);
   const activity = [
     { label: sellerCopy.interests, value: interests },
     { label: sellerCopy.questions, value: questions },
@@ -83,6 +152,13 @@ export function SellerOverview({
 
   return (
     <div className="flex flex-col gap-6">
+      <SaleHero
+        firstName={firstName}
+        listing={listing}
+        sold={sold}
+        next={pending[0] ?? null}
+        missingHref={firstMissing ? panelHref[firstMissing.key] : null}
+      />
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex w-full min-w-0 flex-col gap-6 self-start">
           <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
@@ -147,7 +223,9 @@ export function SellerOverview({
               {listing === "published" || listing === "pending" ? null : (
                 <TriangleAlert className="size-6 shrink-0" aria-hidden />
               )}
-              {listing === "published"
+              {sold
+                ? "Tu empresa se ha vendido."
+                : listing === "published"
                 ? billingCopy.sellerPublished
                 : listing === "pending"
                   ? billingCopy.reviewPending
@@ -155,7 +233,7 @@ export function SellerOverview({
             </h2>
             {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
             {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} /> : null}
-            <CompletionMeter filled={filled} total={panelSteps.length + 1} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
+            <CompletionMeter filled={filled} total={panelSteps.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
               {panelSteps.map((item) => {
                 const done = panels[item.key];

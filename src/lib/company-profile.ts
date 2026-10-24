@@ -388,9 +388,11 @@ export function sellerPanelFlags(input: {
   headcount: string;
   capitalPercents: string[];
   askingPrice: string;
+  saleReason?: string;
 }): SellerPanelFlags {
   return {
-    identity: input.legalName.trim().length > 0 && input.cif.trim().length > 0,
+    identity:
+      input.legalName.trim().length > 0 && input.cif.trim().length > 0 && (input.saleReason === undefined || input.saleReason.trim().length > 0),
     description: input.description.trim().length > 0,
     cnae: input.principalCnae.trim().length > 0,
     income: input.closedYears.some((year) => year.sales.trim().length > 0),

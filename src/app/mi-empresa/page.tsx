@@ -48,16 +48,19 @@ async function CompanyPageContent({
     listCancelledProcesses(user),
   ]);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [interests, questions, meetings] = await Promise.all([
+  const [interests, questions, meetings, fee] = await Promise.all([
     prisma.projectAccess.count({ where: { project: projectScope } }),
     prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
     prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
+    projectId ? prisma.successFee.findUnique({ where: { projectId }, select: { id: true } }) : Promise.resolve(null),
   ]);
 
   return (
     <>
       {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
+        sold={fee !== null}
+        firstName={user.displayName.split(" ")[0] ?? ""}
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}

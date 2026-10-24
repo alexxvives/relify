@@ -78,5 +78,5 @@ export function recoveryTone(years: number): RecoveryTone {
 export function formatRecoveryYears(years: number): string {
   const rounded = Math.round(years * 10) / 10;
   const body = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1).replace(".", ",");
-  return `ROI de ${body} años`;
+  return `Recuperas la inversión en ~${body} años`;
 }

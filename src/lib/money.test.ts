@@ -17,8 +17,8 @@ describe("recoveryYears", () => {
     expect(recoveryTone(2)).toBe("good");
     expect(recoveryTone(5)).toBe("average");
     expect(recoveryTone(8)).toBe("high");
-    expect(formatRecoveryYears(4.25)).toBe("ROI de 4,3 años");
-    expect(formatRecoveryYears(6.7)).toBe("ROI de 6,7 años");
+    expect(formatRecoveryYears(4.25)).toBe("Recuperas la inversión en ~4,3 años");
+    expect(formatRecoveryYears(6.7)).toBe("Recuperas la inversión en ~6,7 años");
     expect(recoveryYears(100, 0)).toBeNull();
   });
 });

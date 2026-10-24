@@ -66,6 +66,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
       legalName: true,
       cif: true,
       description: true,
+      saleReason: true,
       askingPriceCents: true,
       customerBase: true,
       headcountRange: true,
@@ -116,6 +117,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     headcount: project.headcountRange ?? "",
     capitalPercents: project.activitySlices.filter((slice) => slice.kind === "capital").map(() => "1"),
     askingPrice: centsToEuroInput(project.askingPriceCents),
+    saleReason: project.saleReason ?? "",
   });
   const series: SellerYearPoint[] = [];
 

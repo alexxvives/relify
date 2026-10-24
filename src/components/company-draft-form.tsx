@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type FormEvent, type React
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Heart, ImagePlus, Map, MapPin, Pencil, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, MapPin, Pencil, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { deleteProjectCoverAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
@@ -1202,7 +1202,7 @@ export function CompanyDraftForm({
         title={companyCopy.basicTitle}
         open={saveClosed === "basic" ? false : openBasic}
         dirty={basicDirty}
-        done={legalName.trim().length > 0}
+        done={legalName.trim().length > 0 && saleReason !== ""}
         onEdit={() => {
           setSaveClosed("");
           setOpenBasic(true);
@@ -1246,7 +1246,7 @@ export function CompanyDraftForm({
               className={fieldClassName}
             />
           </Fact>
-          <Fact icon={Map} label={companyCopy.saleReasonLabel} required>
+          <Fact icon={Handshake} label={companyCopy.saleReasonLabel} required>
             <OptionSelect
               key={saleReason === "" && panelRejected("basic") ? `sale-reason-${attempt}` : "sale-reason"}
               name="saleReason"
@@ -1588,7 +1588,7 @@ export function CompanyDraftForm({
         hint={dealNote}
         open={saveClosed === "deal" ? false : openDeal}
         dirty={dealDirty}
-        done={askingPrice.trim().length > 0 && listedPhoto}
+        done={askingPrice.trim().length > 0}
         onEdit={() => {
           setSaveClosed("");
           setOpenDeal(true);
