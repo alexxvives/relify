@@ -53,7 +53,7 @@ async function InvestorHomePageContent() {
 
 export default function InvestorHomePage() {
   return (
-    <SignedInPage title={investorCopy.homeTitle} showTitle={false}>
+    <SignedInPage title={investorCopy.homeTitle} greeting>
       <Suspense fallback={<InvestorHomeSkeleton />}>
         <InvestorHomePageContent />
       </Suspense>

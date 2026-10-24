@@ -54,6 +54,21 @@ const iconForHref = {
   "/mis-servicios": BriefcaseIcon,
 };
 
+const tabLabelForHref: Record<string, string> = {
+  "/mi-empresa": "Inicio",
+  "/mi-empresa/detalles": "Empresa",
+  "/mi-empresa/procesos": "Procesos",
+  "/inversor": "Inicio",
+  "/mercado": "Empresas",
+  "/procesos": "Procesos",
+  "/mandatos": "Inicio",
+  "/mandatos/encargos": "Encargos",
+  "/mandatos/venta": "Procesos",
+  "/admin": "Inicio",
+  "/admin/empresas": "Empresas",
+  "/admin/cuentas": "Cuentas",
+};
+
 const processSeenKey = "Relify-process-seen";
 let processSeen = "";
 let processSeenLoaded = false;
@@ -212,6 +227,8 @@ export function AppFrame({
     rememberProcessSeen(ids);
   }, [notifications, pathname]);
 
+  const tabs = destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
+
   function closeMenu() {
     setOpen(false);
   }
@@ -340,7 +357,7 @@ export function AppFrame({
         </div>
       </aside>
       <main className="shell-main">
-        <div className="shell-content">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-public-line bg-white px-3 lg:hidden">
           <button
             type="button"
             aria-expanded={open}
@@ -348,14 +365,58 @@ export function AppFrame({
             onClick={() => {
               setOpen(true);
             }}
-            className="shell-menu mb-4 inline-flex size-10 items-center justify-center rounded-full bg-public-card text-public-ink shadow-public"
+            className="inline-flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-public-ink hover:bg-public-sand"
           >
-            <PanelLeftIcon size={16} aria-hidden />
-            <span className="sr-only">{shellCopy.menuOpen}</span>
+            <PanelLeftIcon size={20} aria-hidden />
+            <span>Menú</span>
           </button>
+          <Link href={home} aria-label="Relify">
+            <Logo />
+          </Link>
+          <NotificationBell items={notifications} />
+        </header>
+        <div className="shell-content pb-28 lg:pb-[var(--layout-pad)]">
           {showTitle ? <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1> : null}
           <div className={showTitle ? "mt-6" : undefined}>{children}</div>
         </div>
+        <nav
+          aria-label="Accesos rápidos"
+          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-public-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+        >
+          {tabs.map((item) => {
+            const Icon = (iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon;
+            const selected = destinationIsCurrent(item.href, pathname);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={selected ? "page" : undefined}
+                className={`flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium ${selected ? "text-[#0c7c78]" : "text-public-muted"}`}
+              >
+                <Icon size={22} isAnimated={false} aria-hidden />
+                {tabLabelForHref[item.href] ?? item.label}
+              </Link>
+            );
+          })}
+          {showHelp ? (
+            <a href={shellCopy.helpPhoneHref} className="flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium text-public-muted">
+              <PhoneIcon size={22} aria-hidden />
+              Ayuda
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(true);
+              }}
+              className="flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium text-public-muted"
+            >
+              <PanelLeftIcon size={22} aria-hidden />
+              Más
+            </button>
+          )}
+        </nav>
       </main>
     </div>
   );

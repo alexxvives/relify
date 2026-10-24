@@ -12,10 +12,13 @@ import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompa
 export async function AppShell({
   title,
   showTitle = true,
+  greeting = false,
   children,
 }: {
   title: string;
   showTitle?: boolean;
+  /** Replace the title with a "Hola, {nombre}" heading (role homes). */
+  greeting?: boolean;
   children: ReactNode;
 }) {
   const user = await getCurrentUser();
@@ -40,8 +43,8 @@ export async function AppShell({
     <AppFrame
       name={user.displayName}
       destinations={destinationsForRole(user.role)}
-      title={title}
-      showTitle={showTitle}
+      title={greeting ? `Hola, ${user.displayName.split(" ")[0] ?? user.displayName}` : title}
+      showTitle={greeting || showTitle}
       notifications={notifications}
       showPremium={user.role === "investor"}
       companies={companies}

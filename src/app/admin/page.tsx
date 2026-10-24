@@ -30,7 +30,7 @@ async function AdminPageContent() {
 
 export default function AdminPage() {
   return (
-    <SignedInPage title={adminCopy.homeTitle} showTitle={false}>
+    <SignedInPage title={adminCopy.homeTitle} greeting>
       <Suspense fallback={<AdminHomeSkeleton />}>
         <AdminPageContent />
       </Suspense>
