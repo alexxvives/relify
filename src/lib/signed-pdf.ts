@@ -41,7 +41,6 @@ const BOTTOM = 84;
 const NAVY = "0.110 0.153 0.251";
 const BRAND = "0.153 0.639 0.667";
 const MUTED = "0.361 0.420 0.471";
-const INK = "0.122 0.227 0.541";
 const LINE = "0.863 0.886 0.910";
 const PANEL = "0.965 0.969 0.980";
 
