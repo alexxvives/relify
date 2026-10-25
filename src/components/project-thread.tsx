@@ -186,7 +186,7 @@ export function ProjectThread({
               setSeen(shown.length);
             }
           }}
-          className="flex max-h-[min(60vh,32rem)] min-h-[16rem] flex-1 flex-col overflow-y-auto overscroll-contain px-1 py-2"
+          className="flex max-h-[min(60vh,32rem)] min-h-[16rem] flex-1 flex-col overflow-y-auto px-1 py-2"
         >
           {shown.length === 0 ? (
             <div className="m-auto flex max-w-xs flex-col items-center gap-3 px-4 py-10 text-center">

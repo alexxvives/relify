@@ -34,6 +34,11 @@ export type PublicProjectCard = {
   headcount?: string | null;
   /** Decade only ("los 90"), so the year alone cannot identify the company. */
   foundedDecade?: string | null;
+  /** Main CNAE 2009 activity, shown on the card as "56.10 · Restaurantes…". */
+  cnaeCode?: string | null;
+  cnaeTitle?: string | null;
+  /** The seller's short public description, clamped on the card. */
+  summary?: string | null;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

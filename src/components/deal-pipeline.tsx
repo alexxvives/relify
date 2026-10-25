@@ -2,10 +2,10 @@
 
 import { PdfPages } from "@/components/pdf-pages";
 
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Check, Phone, ShieldCheck } from "lucide-react";
+import { Check, CircleHelp, Phone, ShieldCheck } from "lucide-react";
 import { shellCopy } from "@/lib/shell";
 import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
@@ -654,35 +654,70 @@ function SignError({ state }: { state: ProjectAccessActionState }) {
 
 function StepHint({ label, text, className }: { label: string; text: string; className: string }) {
   const [box, setBox] = useState<{ x: number; y: number } | null>(null);
+  const [pinned, setPinned] = useState(false);
+  const tipId = useId();
+  const ref = useRef<HTMLButtonElement>(null);
 
-  function place(target: HTMLButtonElement) {
+  function place(target: HTMLElement) {
     const rect = target.getBoundingClientRect();
-    setBox({ x: rect.left + rect.width / 2, y: rect.top });
+    const half = 144;
+    const x = Math.min(Math.max(rect.left + rect.width / 2, half + 8), window.innerWidth - half - 8);
+    setBox({ x, y: rect.top });
   }
+
+  useEffect(() => {
+    if (!pinned) return;
+    function close(event: Event) {
+      if (event instanceof KeyboardEvent && event.key !== "Escape") return;
+      if (event.type === "pointerdown" && ref.current?.contains(event.target as Node)) return;
+      setPinned(false);
+      setBox(null);
+    }
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    window.addEventListener("scroll", close, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+      window.removeEventListener("scroll", close);
+    };
+  }, [pinned]);
 
   return (
     <>
       <button
+        ref={ref}
         type="button"
-        className={`w-fit max-w-full cursor-help border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
+        aria-expanded={pinned}
+        aria-describedby={box ? tipId : undefined}
+        className={`group/hint inline-flex w-fit max-w-full cursor-pointer items-start justify-center gap-1 border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
         onMouseEnter={(event) => {
           place(event.currentTarget);
         }}
         onMouseLeave={() => {
-          setBox(null);
+          if (!pinned) setBox(null);
         }}
         onFocus={(event) => {
           place(event.currentTarget);
         }}
         onBlur={() => {
-          setBox(null);
+          if (!pinned) setBox(null);
+        }}
+        onClick={(event) => {
+          const next = !pinned;
+          setPinned(next);
+          if (next) place(event.currentTarget);
+          else setBox(null);
         }}
       >
-        {label}
+        <span>{label}</span>
+        <CircleHelp aria-hidden className="mt-[0.15em] size-3.5 shrink-0 opacity-70 group-hover/hint:opacity-100" />
+        <span className="sr-only">. Ver explicación</span>
       </button>
       {box
         ? createPortal(
             <span
+              id={tipId}
               role="tooltip"
               style={{ left: box.x, top: box.y - 8 }}
               className="pointer-events-none fixed z-[80] w-72 -translate-x-1/2 -translate-y-full rounded-xl bg-[#1c2740] px-3 py-2 text-left text-xs leading-5 font-normal text-white shadow-lg"

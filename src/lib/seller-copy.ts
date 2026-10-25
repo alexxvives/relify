@@ -7,7 +7,7 @@ export const sellerCopy = {
   trendsTitle: "Tendencias",
   servicesHeading: "Asesoramiento",
   help: "Ayuda",
-  premium: "Ser premium",
+  premium: "Hazte Premium",
   incompleteTitle: "Los inversores no pueden ver tu empresa",
   incompleteBody: "Para que podamos publicar tu empresa en la plataforma, es imprescindible completar y guardar hasta el panel de Balance.",
   completeNow: "Completar ahora",

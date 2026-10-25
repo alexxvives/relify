@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useId } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
@@ -15,6 +15,7 @@ import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { SellerTabs } from "@/components/seller-tabs";
+import { DeskToggles } from "@/components/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
@@ -201,7 +202,8 @@ function InvestorProfileDialog({
 }
 
 function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: string; advisors: AdvisorContactView[] }) {
-  const [desk, setDesk] = useState<"chat" | "meetings" | "advisor">("chat");
+  const [desk, setDesk] = useState<"chat" | "meetings" | "advisor" | null>(null);
+  const deskId = useId();
   const chat = thread.messages.filter((message) => message.kind === "question");
   const expandable = thread.stage === "open";
 
@@ -270,10 +272,11 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
         </div>
       {expandable ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-          <SellerTabs
+          <DeskToggles
             label={thread.codename}
+            controls={deskId}
             tabs={[
-              { id: "chat", label: sellerCopy.questionsPanel },
+              { id: "chat", label: sellerCopy.questionsPanel, count: chat.length },
               { id: "meetings", label: sellerCopy.meetingsHeading },
               { id: "advisor", label: "Asesor" },
             ]}
@@ -281,6 +284,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             onChange={setDesk}
             disabled={thread.advisorHired ? [] : ["advisor"]}
           />
+          <div id={deskId} hidden={desk === null}>
           {desk === "chat" ? (
             <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
@@ -322,7 +326,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 {engagementCopy.contactAdvisor}
               </Link>
             )
-          ) : (
+          ) : desk === "meetings" ? (
             <MeetingDesk
               messages={thread.messages}
               action={postSellerMessageAction}
@@ -334,7 +338,8 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 { name: "kind", value: "meeting" },
               ]}
             />
-          )}
+          ) : null}
+          </div>
         </div>
       ) : null}
     </section>

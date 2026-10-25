@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import Link from "next/link";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
@@ -13,6 +13,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { SellerTabs } from "@/components/seller-tabs";
+import { DeskToggles } from "@/components/desk-toggles";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { companyCopy } from "@/lib/company-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -48,14 +49,16 @@ function ProcessConversation({
   today: string;
   advisors: AdvisorContactView[];
 }) {
-  const [tab, setTab] = useState<(typeof processTabs)[number]["id"]>("chat");
+  const [tab, setTab] = useState<(typeof processTabs)[number]["id"] | null>(null);
   const chat = item.messages.filter((message) => message.kind === "question");
+  const deskId = useId();
 
   return (
     <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-      <SellerTabs
+      <DeskToggles
         label={item.codename}
-        tabs={processTabs}
+        controls={deskId}
+        tabs={processTabs.map((entry) => (entry.id === "chat" ? { ...entry, count: chat.length } : entry))}
         value={tab}
         onChange={setTab}
         disabled={item.advisorHired ? [] : ["advisor"]}
@@ -65,6 +68,7 @@ function ProcessConversation({
           {item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting}
         </p>
       )}
+      <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (
         <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
@@ -119,6 +123,7 @@ function ProcessConversation({
           ]}
         />
       ) : null}
+      </div>
     </div>
   );
 }

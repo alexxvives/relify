@@ -250,6 +250,7 @@ export function AppFrame({
               <Logo />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
+              {showPremium ? <PremiumLink onClick={closeMenu} /> : null}
               <NotificationBell items={notifications} />
               <button
                 type="button"
@@ -262,16 +263,6 @@ export function AppFrame({
             </div>
           </div>
           {/* Row 2: the active company spans the full sidebar width. */}
-          {showPremium ? (
-            <Link
-              href="/premium"
-              onClick={closeMenu}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-public-clay-deep"
-            >
-              <CrownIcon size={16} aria-hidden />
-              {sellerCopy.premium}
-            </Link>
-          ) : null}
           {canManageCompanies ? (
             <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
           ) : null}
@@ -373,7 +364,10 @@ export function AppFrame({
           <Link href={home} aria-label="Relify">
             <Logo />
           </Link>
-          <NotificationBell items={notifications} />
+          <div className="flex items-center gap-1">
+            {showPremium ? <PremiumLink /> : null}
+            <NotificationBell items={notifications} />
+          </div>
         </header>
         <div className="shell-content pb-28 lg:pb-[var(--layout-pad)]">
           {showTitle ? <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1> : null}
@@ -419,5 +413,25 @@ export function AppFrame({
         </nav>
       </main>
     </div>
+  );
+}
+
+/** Compact upgrade entry beside the bell; the label shows as a tooltip on hover and focus. */
+function PremiumLink({ onClick }: { onClick?: () => void }) {
+  return (
+    <Link
+      href="/premium"
+      onClick={onClick}
+      aria-label={sellerCopy.premium}
+      className="group/premium relative inline-flex size-10 items-center justify-center rounded-full text-public-clay hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+    >
+      <CrownIcon size={18} aria-hidden />
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute top-full left-1/2 z-30 mt-1 -translate-x-1/2 rounded-md bg-[#1c2740] px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover/premium:opacity-100 group-focus-visible/premium:opacity-100"
+      >
+        {sellerCopy.premium}
+      </span>
+    </Link>
   );
 }

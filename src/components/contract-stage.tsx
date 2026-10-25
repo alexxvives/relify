@@ -149,15 +149,7 @@ function ContractPane({ contract, onClose }: { contract: ContractView; onClose: 
                 </p>
               </div>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-[#f7f8fb] px-3 py-2">
-                <dt className="text-[#5c6b78]">Precio final</dt>
-                <dd className="mt-0.5 font-semibold tabular-nums">{current.price}</dd>
-              </div>
-              <div className="rounded-xl bg-[#f7f8fb] px-3 py-2">
-                <dt className="text-[#5c6b78]">Subido</dt>
-                <dd className="mt-0.5 font-semibold tabular-nums">{shortDate(current.uploadedAt)}</dd>
-              </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm" role="group" aria-label="Firmas">
               <div className="flex items-center gap-2 rounded-xl bg-[#f7f8fb] px-3 py-2">
                 <SignedMark done={Boolean(current.sellerSignedAt)} />
                 <span>Vendedor</span>
@@ -166,7 +158,7 @@ function ContractPane({ contract, onClose }: { contract: ContractView; onClose: 
                 <SignedMark done={Boolean(current.buyerSignedAt)} />
                 <span>Comprador</span>
               </div>
-            </dl>
+            </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"

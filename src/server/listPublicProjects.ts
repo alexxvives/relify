@@ -1,6 +1,7 @@
 import { prisma } from "@/server/db";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { publicProjectSelect, publicProjectWhere } from "@/lib/public-project";
+import { cnaeTitle } from "@/lib/cnae-2009";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { sectorMultiples, valuationSectorFromCnae } from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
@@ -15,13 +16,15 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       verifiedAt: true,
       headcountRange: true,
       foundedYear: true,
+      description: true,
       cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
     },
     orderBy: { codename: "asc" },
   });
 
   return rows.map((row) => {
-    const sector = valuationSectorFromCnae(row.cnaes[0]?.code);
+    const code = row.cnaes[0]?.code ?? null;
+    const sector = valuationSectorFromCnae(code ?? undefined);
     const version = projectCoverIsStored(row.id) ? projectCoverVersion(row.id) : null;
 
     return {
@@ -38,6 +41,9 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       sectorLabel: sectorMultiples[sector].label,
       headcount: row.headcountRange,
       foundedDecade: foundedDecade(row.foundedYear),
+      cnaeCode: code,
+      cnaeTitle: code ? cnaeTitle(code) : null,
+      summary: row.description?.trim() || null,
       coverSrc: version ? projectCoverHref(row.slug, version) : null,
     };
   });
