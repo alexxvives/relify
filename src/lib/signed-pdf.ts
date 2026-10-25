@@ -1,5 +1,4 @@
 import { brandLogoJpegBase64, brandLogoSize } from "./brand-logo-jpeg";
-import { relifySignatureOps, relifySignatureWidth } from "./relify-signature";
 import { jpegSize } from "./signature-image";
 
 /*
@@ -18,8 +17,6 @@ export type PdfSigner = {
   signature?: Uint8Array | null;
   /** Draws Relify's platform seal instead of a handwritten signature. */
   stamp?: boolean;
-  /** With `stamp`, also draws the signatory's handwritten signature beside the seal. */
-  handwritten?: boolean;
   signedAt?: string | null;
 };
 
@@ -245,11 +242,7 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
     page.push(text(x + 14, top - 16, 7.5, signer.role.toUpperCase(), { bold: true, color: MUTED }));
     const areaBottom = top - 86;
     const size = signer.signature ? jpegSize(signer.signature) : null;
-    if (signer.stamp && !input.draft && signer.handwritten) {
-      const scale = Math.min(0.78, (boxWidth - 120) / relifySignatureWidth);
-      page.push(`q ${INK} rg ${scale} 0 0 ${scale} ${x + 16} ${areaBottom + 22} cm ${relifySignatureOps} f Q`);
-      page.push(...stamp(x + boxWidth - 50, areaBottom + 40, signer.signedAt ?? input.dateLabel));
-    } else if (signer.stamp && !input.draft) {
+    if (signer.stamp && !input.draft) {
       page.push(...stamp(x + boxWidth / 2, areaBottom + 34, signer.signedAt ?? input.dateLabel));
     } else if (signer.signature && size && !input.draft) {
       const name = `Sig${index}`;
@@ -326,7 +319,7 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
   });
   objects[catalog - 1] = `<< /Type /Catalog /Pages ${pagesRef} 0 R >>`;
   objects[pagesRef - 1] = `<< /Type /Pages /Kids [${kids.map((kid) => `${kid} 0 R`).join(" ")}] /Count ${kids.length} >>`;
-  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify signed-pdf v2) /Creator (Relify) >>`);
+  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify signed-pdf v3) /Creator (Relify) >>`);
 
   let body = "%PDF-1.4\n";
   const offsets: number[] = [];

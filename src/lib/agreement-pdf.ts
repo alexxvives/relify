@@ -1,7 +1,6 @@
 import { pdfBase64 } from "./plain-pdf";
 import { platformTermsCopy } from "./platform-terms";
 import { relifyEntity, relifyPartyLines } from "./relify-entity";
-import { relifySignatory } from "./relify-signature";
 import { signedPdf } from "./signed-pdf";
 
 export type SignedDocumentKind = "nda" | "advisor_nda" | "loi" | "terms";
@@ -34,10 +33,9 @@ function idLine(signer: DocumentSigner): string {
 function relifySigner(signedAt: string | null) {
   return {
     role: "Por Relify",
-    name: relifyEntity.signatory,
-    idLine: relifyEntity.taxId ? `CIF: ${relifyEntity.taxId}` : relifySignatory.title,
+    name: relifyEntity.name,
+    idLine: relifyEntity.taxId ? `CIF: ${relifyEntity.taxId}` : `Plataforma · ${relifyEntity.web}`,
     stamp: true,
-    handwritten: true,
     signedAt,
   };
 }

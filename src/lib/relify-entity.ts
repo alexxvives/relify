@@ -8,7 +8,6 @@ export const relifyEntity = {
   taxId: "",
   address: "",
   web: "itsreleva.com",
-  signatory: "Lucía Ferrer",
 } as const;
 
 export function relifyPartyLines(): string[] {
