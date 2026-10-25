@@ -28,9 +28,9 @@ export function PhotoScrim({ title, place }: { title: string; place: string }) {
   );
 }
 
-export function AiImageTag() {
+export function AiImageTag({ inline = false }: { inline?: boolean }) {
   return (
-    <span className="pointer-events-none absolute right-3 bottom-3 z-[2] inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm">
+    <span className={`pointer-events-none ${inline ? "shrink-0" : "absolute right-3 bottom-3 z-[2]"} inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm`}>
       <Sparkles className="size-3.5" aria-hidden />
       {aiImageLabel}
     </span>
@@ -57,6 +57,7 @@ export function ProjectPhoto({
   src,
   sectorKey,
   verified = false,
+  tags,
 }: {
   slug: string;
   alt: string;
@@ -66,6 +67,8 @@ export function ProjectPhoto({
   src?: string | null;
   sectorKey?: SectorImageKey;
   verified?: boolean;
+  /** Short facts overlaid along the bottom of the photo, with the verified and AI badges. */
+  tags?: string[];
 }) {
   const own = src && src.length > 0 ? src : projectImageSrc(slug);
   const generated = !own && sectorKey !== undefined;
@@ -84,8 +87,28 @@ export function ProjectPhoto({
         <ProjectPhotoMark />
       )}
       {title && place ? <PhotoScrim title={title} place={place} /> : null}
-      {verified ? <VerifiedBadge className="absolute bottom-3 left-3 z-[2]" /> : null}
-      {generated ? <AiImageTag /> : null}
+      {tags ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] flex items-end justify-between gap-2 bg-gradient-to-t from-[#0c1224]/85 via-[#0c1224]/45 to-transparent px-3 pt-10 pb-3">
+          <ul className="flex min-w-0 flex-wrap gap-1.5" aria-label="Datos de la empresa">
+            {verified ? (
+              <li>
+                <VerifiedBadge />
+              </li>
+            ) : null}
+            {tags.map((tag) => (
+              <li key={tag} className="rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-[#1c2740] backdrop-blur-sm">
+                {tag}
+              </li>
+            ))}
+          </ul>
+          {generated ? <AiImageTag inline /> : null}
+        </div>
+      ) : (
+        <>
+          {verified ? <VerifiedBadge className="absolute bottom-3 left-3 z-[2]" /> : null}
+          {generated ? <AiImageTag /> : null}
+        </>
+      )}
     </div>
   );
 }

@@ -32,22 +32,24 @@ export function MarketCardFigures({
 
   return (
     <div className="overflow-hidden rounded-xl border border-[#e7eaee]">
-      <div className="bg-[#f4f6fb] px-4 py-4 text-center">
+      <div className="flex items-baseline justify-between gap-3 bg-[#f4f6fb] px-4 py-3">
         <p className="text-xs font-medium text-[#8b95a7]">{marketCopy.metrics[3].label}</p>
-        <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
-          <p className="text-[26px] leading-8 font-semibold tracking-tight text-[#1c2740] tabular-nums">{askingPrice}</p>
+        <div className="flex min-w-0 items-baseline gap-2">
           {years === null ? null : (
-            <p className={`text-xs font-semibold tabular-nums ${recoveryClass[recoveryTone(years)]}`} title={marketCopy.recoveryHint}>
+            <p className={`text-xs font-semibold whitespace-nowrap tabular-nums ${recoveryClass[recoveryTone(years)]}`} title={marketCopy.recoveryHint}>
               {formatRecoveryYears(years)}
             </p>
           )}
+          <p className="text-[22px] leading-7 font-semibold tracking-tight whitespace-nowrap text-[#1c2740] tabular-nums">{askingPrice}</p>
         </div>
       </div>
-      <dl className="divide-y divide-[#e7eaee] border-t border-[#e7eaee]">
+      <dl className="grid grid-cols-3 divide-x divide-[#e7eaee] border-t border-[#e7eaee]">
         {row.map((item) => (
-          <div key={item.label} className="flex items-baseline justify-between gap-4 px-4 py-2.5">
-            <dt className="text-sm text-[#667085]">{item.label}</dt>
-            <dd className="text-base font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
+          <div key={item.label} className="min-w-0 px-2 py-2.5 text-center">
+            <dt className="truncate text-[11px] font-medium text-[#8b95a7]" title={item.label}>
+              {item.label}
+            </dt>
+            <dd className="mt-0.5 text-[15px] font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

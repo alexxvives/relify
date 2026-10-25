@@ -217,9 +217,9 @@ export function MarketBrowser({
                     alt={`Ilustración de ${project.codename}`}
                     title={project.codename}
                     place={project.region}
+                    tags={cardFacts(project)}
                   />
-                  <div className="flex flex-1 flex-col gap-4 p-5">
-                    <CardFacts project={project} />
+                  <div className="flex flex-1 flex-col p-4">
                     <MarketCardFigures
                       revenue={formatCardEur(project.revenueCents)}
                       ebitda={formatCardEur(project.ebitdaCents)}
@@ -243,25 +243,11 @@ function sentence(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** "Hostelería · 21-50 trab. · desde los 90" under the photo. */
-function CardFacts({ project }: { project: PublicProjectCard }) {
-  const facts = [
+/** "Hostelería", "21-50 trab.", "desde los 90": overlaid on the photo. */
+function cardFacts(project: PublicProjectCard): string[] {
+  return [
     project.sectorLabel ? sentence(project.sectorLabel) : null,
     project.headcount && isHeadcountRange(project.headcount) ? `${headcountLabels[project.headcount]} trab.` : null,
     project.foundedDecade ? `desde ${project.foundedDecade}` : null,
   ].filter((fact): fact is string => fact !== null);
-
-  if (facts.length === 0) {
-    return null;
-  }
-
-  return (
-    <ul className="flex flex-wrap gap-2" aria-label="Datos de la empresa">
-      {facts.map((fact) => (
-        <li key={fact} className="rounded-full bg-[#f4f6fb] px-3 py-1 text-sm font-medium text-[#3d4a63]">
-          {fact}
-        </li>
-      ))}
-    </ul>
-  );
 }
