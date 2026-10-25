@@ -238,6 +238,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           />
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {thread.contract ? <ContractStage contract={thread.contract} /> : null}
           {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
           <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
         </div>
@@ -267,7 +268,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             }
           />
         </div>
-      {thread.contract ? <ContractStage contract={thread.contract} /> : null}
       {expandable ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
           <SellerTabs
@@ -309,7 +309,8 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 nda
                 ndaHref={`/acuerdos/nda/${thread.accessId}`}
                 loiHref={thread.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${thread.accessId}` : null}
-                contractHref={thread.contract?.signedHref ?? null}
+                contractHref={thread.contract?.signedHref ?? thread.contract?.current?.href ?? null}
+                contractSigned={Boolean(thread.contract?.signedHref)}
                 empty={sellerCopy.documentsEmpty}
               />
             </div>

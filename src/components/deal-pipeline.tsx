@@ -99,7 +99,7 @@ export function DealPipeline({
   const edge = `calc(100% / ${count * 2})`;
   const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
   const showDiligence = current?.id === "diligence" && diligence !== undefined && !hideAsideCue;
-  const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept && current !== undefined;
+  const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept;
   const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
@@ -352,6 +352,10 @@ export function ProcessHeaderCue({
     ) : (
       <DealWaitingCue cue={{ action: contractNext.text }} />
     );
+  }
+
+  if (!current) {
+    return <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />;
   }
 
   if (!cue || (cue.yours && role === "seller" && current?.id !== "diligence")) {
@@ -819,6 +823,7 @@ export function ProcessRoom({
   ndaHref = null,
   loiHref = null,
   contractHref = null,
+  contractSigned = true,
   empty,
   prompt = null,
 }: {
@@ -828,6 +833,7 @@ export function ProcessRoom({
   ndaHref?: string | null;
   loiHref?: string | null;
   contractHref?: string | null;
+  contractSigned?: boolean;
   empty: string;
   prompt?: ReactNode;
 }) {
@@ -881,7 +887,7 @@ export function ProcessRoom({
           ) : null}
           {contractHref ? (
             <SignedDocumentRow
-              label="Contrato de compraventa firmado"
+              label={contractSigned ? "Contrato de compraventa firmado" : "Contrato de compraventa (borrador actual)"}
               onOpen={() => {
                 setOpenSigned({ fileName: "Contrato-de-compraventa.pdf", href: contractHref });
               }}

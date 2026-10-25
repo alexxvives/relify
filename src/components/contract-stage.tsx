@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Check, FileSignature, FileText, PenLine, Upload } from "lucide-react";
+import { Check, Download, Eye, FileSignature, FileText, PenLine, Upload, X } from "lucide-react";
 import { FilePreviewDialog, useModalScrollLock } from "@/components/file-preview-dialog";
 import { PdfPages } from "@/components/pdf-pages";
 import { SignaturePad } from "@/components/signature-pad";
@@ -37,126 +37,226 @@ function Feedback({ state }: { state: ContractActionState }) {
   );
 }
 
-/** "Contrato de compraventa" panel shown in the documents stage of a process. */
+/**
+ * One button in the process header opens the sale contract in a pane: status, what's next, the
+ * current file, the action for this user and the full version history.
+ */
 export function ContractStage({ contract }: { contract: ContractView }) {
+  const [open, setOpen] = useState(false);
+  const current = contract.current;
+  const yours = contract.next.who === "you";
+  const signed = contract.stage === "signed";
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`relative inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+          yours ? "bg-[#465ab4] text-white hover:bg-[#3d4fa3]" : "border border-[#c9d2f5] bg-white text-[#465ab4] hover:bg-[#f4f6fb]"
+        }`}
+      >
+        <FileSignature aria-hidden className="size-4" />
+        Contrato
+        {current ? (
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${yours ? "bg-white/20 text-white" : signed ? "bg-[#e7f4ec] text-[#17663a]" : "bg-[#eef1f8] text-[#465ab4]"}`}>
+            {signed ? "Firmado" : `v${current.version}`}
+          </span>
+        ) : null}
+        {yours ? (
+          <span className="absolute -top-0.5 -right-0.5 flex size-3" aria-hidden>
+            <span className="deal-pulse absolute inset-0 rounded-full bg-[#d92d20]" />
+            <span className="relative size-3 rounded-full border-2 border-white bg-[#d92d20]" />
+          </span>
+        ) : null}
+        {yours ? <span className="sr-only">Tienes una acción pendiente</span> : null}
+      </button>
+      {open ? <ContractPane contract={contract} onClose={() => setOpen(false)} /> : null}
+    </>
+  );
+}
+
+function ContractPane({ contract, onClose }: { contract: ContractView; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useModalScrollLock(true);
   const [preview, setPreview] = useState<{ fileName: string; href: string } | null>(null);
   const [signing, setSigning] = useState(false);
   const current = contract.current;
   const active = stageIndex(contract.stage);
   const yours = contract.next.who === "you";
+  const signed = contract.stage === "signed";
+  const versions = [...contract.versions].sort((x, y) => y.version - x.version);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
 
   return (
-    <section aria-labelledby={`contract-${contract.accessId}`} className="rounded-2xl border border-[#dfe5f5] bg-[#f8f9fe] px-5 py-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 id={`contract-${contract.accessId}`} className="flex items-center gap-2 text-base font-semibold text-[#1c2740]">
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      aria-labelledby={`contract-${contract.accessId}`}
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(48rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4">
+        <h2 id={`contract-${contract.accessId}`} className="flex items-center gap-2 text-lg font-semibold">
           <FileSignature aria-hidden className="size-5 text-[#465ab4]" />
           Contrato de compraventa
-        </h3>
-        {current ? (
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#3d4a63] ring-1 ring-[#e1e6f0]">
-            Versión {current.version} · {contractStatusLabel[current.status]}
+        </h2>
+        <form method="dialog">
+          <button type="submit" aria-label="Cerrar" className="inline-flex size-10 items-center justify-center rounded-full text-[#5c6b78] hover:bg-[#f4f6fb]">
+            <X aria-hidden className="size-5" />
+          </button>
+        </form>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+        <ol className="flex items-center gap-1" aria-label="Estado del contrato">
+          {stageOrder.map((item, index) => {
+            const done = index < active || signed;
+            const now = index === active && !signed;
+            return (
+              <li key={item.id} aria-current={now ? "step" : undefined} className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span className={`h-1.5 rounded-full ${done ? "bg-[#17663a]" : now ? "bg-[#465ab4]" : "bg-[#e5e9ef]"}`} aria-hidden />
+                <span className={`truncate text-sm ${now ? "font-semibold text-[#1c2740]" : done ? "text-[#17663a]" : "text-[#5c6b78]"}`}>{item.label}</span>
+              </li>
+            );
+          })}
+        </ol>
+
+        <div
+          className={`mt-5 flex items-start gap-3 rounded-xl px-4 py-3 ${yours ? "bg-[#fff5f5]" : signed ? "bg-[#e7f4ec]" : "bg-[#f7f8fb]"}`}
+        >
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : signed ? "bg-white text-[#17663a]" : "bg-[#e8f6ee] text-[#17663a]"}`}>
+            {yours ? "Tu turno" : signed ? "Hecho" : "Qué sigue"}
           </span>
+          <p className="pt-0.5 text-base leading-6 text-[#1c2740]">{contract.next.text}</p>
+        </div>
+
+        {current ? (
+          <div className="mt-5 rounded-2xl border border-[#e7eaee] p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eef1f8] text-[#465ab4]">
+                <FileText aria-hidden className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base font-semibold">{current.fileName}</p>
+                <p className="mt-0.5 text-sm text-[#5c6b78]">
+                  Versión {current.version} · {contractStatusLabel[current.status]}
+                </p>
+              </div>
+            </div>
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-xl bg-[#f7f8fb] px-3 py-2">
+                <dt className="text-[#5c6b78]">Precio final</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums">{current.price}</dd>
+              </div>
+              <div className="rounded-xl bg-[#f7f8fb] px-3 py-2">
+                <dt className="text-[#5c6b78]">Subido</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums">{shortDate(current.uploadedAt)}</dd>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-[#f7f8fb] px-3 py-2">
+                <SignedMark done={Boolean(current.sellerSignedAt)} />
+                <span>Vendedor</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-[#f7f8fb] px-3 py-2">
+                <SignedMark done={Boolean(current.buyerSignedAt)} />
+                <span>Comprador</span>
+              </div>
+            </dl>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setPreview({ fileName: current.fileName, href: current.href })}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-[#c9d2f5] bg-white px-4 text-sm font-medium text-[#465ab4]"
+              >
+                <Eye aria-hidden className="size-4" />
+                Ver contrato
+              </button>
+              {contract.signedHref ? (
+                <a href={`${contract.signedHref}&download=1`} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#17663a] px-4 text-sm font-semibold text-white">
+                  <Download aria-hidden className="size-4" />
+                  Descargar firmado
+                </a>
+              ) : null}
+              {contract.can.sign ? (
+                <button
+                  type="button"
+                  onClick={() => setSigning(true)}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white"
+                >
+                  <PenLine aria-hidden className="size-4" />
+                  Firmar contrato
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {contract.can.review && current ? <ReviewForm contractId={current.id} /> : null}
+        {contract.can.upload ? <UploadForm accessId={contract.accessId} first={!current} /> : null}
+
+        {versions.length > 0 ? (
+          <section className="mt-6" aria-label="Versiones">
+            <h3 className="text-base font-semibold">Versiones</h3>
+            <ol className="mt-3 flex flex-col">
+              {versions.map((version, index) => (
+                <li key={version.id} className="relative flex gap-3 pb-4 last:pb-0">
+                  {index < versions.length - 1 ? <span className="absolute top-7 bottom-0 left-[13px] w-px bg-[#e5e9ef]" aria-hidden /> : null}
+                  <span
+                    className={`relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums ${
+                      index === 0 ? "bg-[#465ab4] text-white" : "bg-[#eef1f8] text-[#5c6b78]"
+                    }`}
+                  >
+                    {version.version}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">
+                        {contractStatusLabel[version.status]}
+                        {index === 0 ? <span className="ml-2 font-normal text-[#5c6b78]">· actual</span> : null}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setPreview({ fileName: version.fileName, href: version.href })}
+                        className="inline-flex h-9 items-center rounded-full px-3 text-sm font-medium text-[#465ab4] hover:bg-[#f4f6fb]"
+                      >
+                        Ver
+                      </button>
+                    </div>
+                    <p className="text-sm text-[#5c6b78]">
+                      {version.uploadedBy} · {shortDate(version.uploadedAt)}
+                    </p>
+                    {version.comment ? (
+                      <p className="mt-2 rounded-xl bg-[#f7f8fb] px-3 py-2 text-sm text-[#3d4a63]">“{version.comment}”</p>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
         ) : null}
       </div>
-
-      <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Estado del contrato">
-        {stageOrder.map((item, index) => {
-          const done = index < active || contract.stage === "signed";
-          const now = index === active && contract.stage !== "signed";
-          return (
-            <li
-              key={item.id}
-              aria-current={now ? "step" : undefined}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
-                done ? "bg-[#e7f4ec] text-[#17663a]" : now ? "bg-white font-semibold text-[#1c2740] ring-2 ring-[#465ab4]" : "bg-white/60 text-[#8a96a3]"
-              }`}
-            >
-              <span className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs ${done ? "bg-[#17663a] text-white" : now ? "bg-[#465ab4] text-white" : "bg-[#e5e9ef] text-[#5c6b78]"}`}>
-                {done ? <Check aria-hidden className="size-3" /> : index + 1}
-              </span>
-              {item.label}
-            </li>
-          );
-        })}
-      </ol>
-
-      <div
-        className={`mt-4 flex items-start gap-3 rounded-xl px-4 py-3 ${yours ? "bg-[#fff4e5] text-[#7a4100]" : contract.stage === "signed" ? "bg-[#e7f4ec] text-[#17663a]" : "bg-white text-[#3d4a63]"}`}
-      >
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#eef1f8] text-[#465ab4]"}`}>
-          {yours ? "Tu turno" : contract.stage === "signed" ? "Hecho" : "Qué sigue"}
-        </span>
-        <p className="pt-0.5 text-base leading-6">{contract.next.text}</p>
-      </div>
-
-      {current ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-[#e7eaee]">
-          <FileText aria-hidden className="size-5 shrink-0 text-[#5c6b78]" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-medium text-[#1c2740]">{current.fileName}</p>
-            <p className="text-sm text-[#5c6b78]">
-              Precio final {current.price} · subido el {shortDate(current.uploadedAt)}
-              {current.sellerSignedAt ? " · firmado por el vendedor" : ""}
-              {current.buyerSignedAt ? " · firmado por el comprador" : ""}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPreview({ fileName: current.fileName, href: current.href })}
-            className="inline-flex h-10 items-center rounded-full border border-[#c9d2f5] bg-white px-4 text-sm font-medium text-[#465ab4]"
-          >
-            Ver contrato
-          </button>
-          {contract.signedHref ? (
-            <a href={`${contract.signedHref}&download=1`} className="inline-flex h-10 items-center rounded-full bg-[#17663a] px-4 text-sm font-semibold text-white">
-              Descargar contrato firmado
-            </a>
-          ) : null}
-          {contract.can.sign ? (
-            <button
-              type="button"
-              onClick={() => setSigning(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white"
-            >
-              <PenLine aria-hidden className="size-4" />
-              Firmar contrato
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {contract.can.review && current ? <ReviewForm contractId={current.id} /> : null}
-      {contract.can.upload ? <UploadForm accessId={contract.accessId} first={!current} /> : null}
-
-      {contract.versions.length > 1 ? (
-        <details className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-[#e7eaee]">
-          <summary className="cursor-pointer text-sm font-medium text-[#3d4a63]">Historial de versiones ({contract.versions.length})</summary>
-          <ul className="mt-3 flex flex-col gap-3">
-            {contract.versions.map((version) => (
-              <li key={version.id} className="flex flex-wrap items-start justify-between gap-2 border-t border-[#eef0f3] pt-3 text-sm first:border-0 first:pt-0">
-                <div className="min-w-0">
-                  <p className="font-medium text-[#1c2740]">
-                    Versión {version.version} · {contractStatusLabel[version.status]}
-                  </p>
-                  <p className="text-[#5c6b78]">
-                    {version.uploadedBy} · {shortDate(version.uploadedAt)}
-                  </p>
-                  {version.comment ? <p className="mt-1 text-[#3d4a63]">Comentario del comprador: “{version.comment}”</p> : null}
-                </div>
-                <button type="button" onClick={() => setPreview({ fileName: version.fileName, href: version.href })} className="text-sm font-medium text-[#465ab4] underline">
-                  Ver
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
 
       <FilePreviewDialog file={preview ? { ...preview, folder: "Contrato" } : null} onClose={() => setPreview(null)} />
       {signing && current ? (
         <SignContractDialog contractId={current.id} href={current.href} fileName={current.fileName} price={current.price} onClose={() => setSigning(false)} />
       ) : null}
-    </section>
+    </dialog>
+  );
+}
+
+function SignedMark({ done }: { done: boolean }) {
+  return done ? (
+    <span className="flex size-5 items-center justify-center rounded-full bg-[#17663a] text-white">
+      <Check aria-hidden className="size-3" />
+      <span className="sr-only">Firmado</span>
+    </span>
+  ) : (
+    <span className="size-5 rounded-full border-2 border-dashed border-[#c5ccd6]">
+      <span className="sr-only">Sin firmar</span>
+    </span>
   );
 }
 

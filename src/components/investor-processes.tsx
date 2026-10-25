@@ -90,7 +90,8 @@ function ProcessConversation({
             nda
             ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
             loiHref={item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null}
-            contractHref={item.contract?.signedHref ?? null}
+            contractHref={item.contract?.signedHref ?? item.contract?.current?.href ?? null}
+            contractSigned={Boolean(item.contract?.signedHref)}
             empty={sellerCopy.documentsEmpty}
           />
         </div>
@@ -210,6 +211,7 @@ export function InvestorProcesses({
                 ) : null}
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {item.contract ? <ContractStage contract={item.contract} /> : null}
                 {item.contract?.stage === "signed" ? null : <CancelProcessButton accessId={item.accessId} />}
                 <ProcessFichaLink href={`/proyectos/${item.slug}`} />
               </div>
@@ -236,7 +238,6 @@ export function InvestorProcesses({
               }}
               diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
-            {item.contract ? <ContractStage contract={item.contract} /> : null}
             <ProcessConversation item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
           </section>
         </li>
