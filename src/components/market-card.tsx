@@ -146,24 +146,12 @@ export function MarketCard({ project, action }: { project: PublicProjectCard; ac
               </div>
             ) : null}
           </div>
-          {years !== null && yearsTone ? (
-            <div className="mt-3">
-              <div className="relative h-3" aria-hidden>
-                <span className="absolute inset-x-0 top-[3px] h-1.5 rounded-full bg-[linear-gradient(90deg,#1b7a45_0%,#1b7a45_40%,#d98a10_40%,#d98a10_70%,#d0362c_70%,#d0362c_100%)] opacity-25" />
-                <span
-                  className={`absolute top-0 block size-3 -translate-x-1/2 rounded-full ring-2 ring-white ${yearsTone.dot}`}
-                  style={{ left: `${Math.max(3, Math.min(years, 10) * 10)}%` }}
-                />
-              </div>
-              <p className={`mt-2 text-xs font-medium ${yearsTone.text}`}>{yearsTone.label} · escala de 0 a 10 años</p>
-            </div>
-          ) : null}
         </div>
 
         <dl className="grid grid-cols-3 gap-2">
           <Figure label="Facturación" value={formatCardEur(project.revenueCents)} />
-          <Figure label="EBITDA" value={formatCardEur(project.ebitdaCents)} share={margin} accent={style.accent} />
-          <Figure label="EBITDA aj." value={formatCardEur(project.adjustedEbitdaCents)} share={adjustedMargin} accent={style.accent} />
+          <Figure label="EBITDA" value={formatCardEur(project.ebitdaCents)} share={margin} />
+          <Figure label="EBITDA aj." value={formatCardEur(project.adjustedEbitdaCents)} share={adjustedMargin} />
         </dl>
 
         <span className="mt-auto flex items-center justify-end gap-1 text-sm font-semibold text-[#465ab4] group-hover:text-[#33429a]">
@@ -175,23 +163,25 @@ export function MarketCard({ project, action }: { project: PublicProjectCard; ac
   );
 }
 
-function Figure({ label, value, share = null, accent }: { label: string; value: string; share?: number | null; accent?: string }) {
+export function marginTone(share: number): string {
+  // ≥15 % healthy, 5–15 % middling, <5 % thin or negative.
+  if (share >= 15) return "text-[#17663a]";
+  if (share >= 5) return "text-[#b45f06]";
+  return "text-[#b42318]";
+}
+
+function Figure({ label, value, share = null }: { label: string; value: string; share?: number | null }) {
   return (
     <div className="min-w-0 rounded-xl border border-[#eef0f4] px-2.5 py-2">
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 text-base leading-6 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{value}</dd>
-      {share !== null && accent ? (
-        <dd className="mt-1.5 flex items-center gap-1.5" title={`Margen sobre facturación: ${share} %`}>
-          <span className="block h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-[#eef0f4]">
-            <span className={`block h-full rounded-full ${accent}`} style={{ width: `${Math.max(4, Math.min(share, 100))}%` }} />
-          </span>
-          <span className="shrink-0 text-xs text-[#667085] tabular-nums">
+      <dd className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-[#1c2740]">
+        <span className="text-base leading-6 font-semibold whitespace-nowrap tabular-nums">{value}</span>
+        {share !== null ? (
+          <span className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`} title={`Margen sobre facturación: ${share} %`}>
             {share} %<span className="sr-only"> de margen</span>
           </span>
-        </dd>
-      ) : (
-        <dd className="mt-1.5 text-xs text-[#667085]">Ventas anuales</dd>
-      )}
+        ) : null}
+      </dd>
     </div>
   );
 }

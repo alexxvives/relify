@@ -60,7 +60,6 @@ async function CompanyPageContent({
       {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
         sold={fee !== null}
-        firstName={user.displayName.split(" ")[0] ?? ""}
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
@@ -89,7 +88,7 @@ async function CompanyPageContent({
 
 export default function CompanyPage(props: Parameters<typeof CompanyPageContent>[0]) {
   return (
-    <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
+    <SignedInPage title={sellerCopy.homeTitle} greeting>
       <Suspense fallback={<SellerHomeSkeleton />}>
         <CompanyPageContent {...props} />
       </Suspense>

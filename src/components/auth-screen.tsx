@@ -18,7 +18,7 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
       <div className="shrink-0 px-5 pt-4 sm:px-8">
         <PublicMenu signedIn={false} />
       </div>
-      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 pt-3 pb-4 sm:px-10 lg:px-16 xl:px-24">
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 xl:max-w-[80%] pt-3 pb-4 sm:px-10 lg:px-16 xl:px-24">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
           <Image
             src="/auth/login-background.jpg"
@@ -37,7 +37,7 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
             <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
               <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2">
                 <p className="text-base font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
-                <h1 className="mt-4 text-[clamp(3rem,4.6vw,4.5rem)] leading-[0.98] font-semibold tracking-tight text-[#16324f]">
+                <h1 className="mt-4 text-[clamp(3rem,4.6vw,4.5rem)] xl:text-[clamp(3rem,3.7vw,3.75rem)] leading-[0.98] font-semibold tracking-tight text-[#16324f]">
                   <span className="block">{authCopy.stageHeadlineLead}</span>
                   <span className="block">{authCopy.stageHeadlineTail}</span>
                 </h1>

@@ -52,7 +52,7 @@ export function ContractStage({ contract }: { contract: ContractView }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`relative inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+        className={`relative inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
           yours ? "bg-[#465ab4] text-white hover:bg-[#3d4fa3]" : "border border-[#c9d2f5] bg-white text-[#465ab4] hover:bg-[#f4f6fb]"
         }`}
       >

@@ -49,6 +49,7 @@ export function InvestorProject({
   matchesLeft,
   initialTab = "company",
   accessId,
+  cover = null,
 }: {
   project: InvestorProjectProfile;
   recommendations: PublicProjectCard[];
@@ -65,6 +66,7 @@ export function InvestorProject({
   matchesLeft: number | null;
   initialTab?: "company" | "questions" | "meetings";
   accessId: string;
+  cover?: { src: string; ai: boolean } | null;
 }) {
   const locked = access !== "accepted";
   const chat = messages.filter((message) => message.kind === "question");
@@ -97,6 +99,7 @@ export function InvestorProject({
 
       <CompanyBanner
         title={project.codename}
+        image={cover}
         progress={
           steps.length > 0 ? (
             <DealPipeline

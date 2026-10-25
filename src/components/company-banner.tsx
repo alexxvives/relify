@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { MapPin } from "lucide-react";
+import { AiImageTag } from "@/components/project-photo";
 
 export function CompanyBanner({
   title,
@@ -9,6 +10,7 @@ export function CompanyBanner({
   children,
   besideTitle,
   heading = "h1",
+  image = null,
 }: {
   title: string;
   subtitle?: string;
@@ -17,17 +19,36 @@ export function CompanyBanner({
   children?: ReactNode;
   besideTitle?: ReactNode;
   heading?: "h1" | "p";
+  /** Company or sector photo shown behind the banner; `ai` adds the AI-image label. */
+  image?: { src: string; ai: boolean } | null;
 }) {
   const Title = heading;
 
   return (
     <header
       className="relative overflow-hidden rounded-[1.75rem] px-6 py-[4.625rem] text-white sm:px-8 sm:py-[5.125rem]"
-      style={{
-        background:
-          "radial-gradient(140% 120% at -8% -20%, #ffffff 0%, #d5e0ff 16%, rgba(70, 90, 180, 0.55) 42%, #05070f 72%)",
-      }}
+      style={
+        image
+          ? { background: "#05070f" }
+          : {
+              background:
+                "radial-gradient(140% 120% at -8% -20%, #ffffff 0%, #d5e0ff 16%, rgba(70, 90, 180, 0.55) 42%, #05070f 72%)",
+            }
+      }
     >
+      {image ? (
+        <>
+          {/* Covers can come from the app's upload route, which next/image cannot optimise. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image.src} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05070f]/55 via-[#05070f]/65 to-[#05070f]/90" aria-hidden />
+          {image.ai ? (
+            <div className="absolute top-6 left-6 z-10">
+              <AiImageTag inline />
+            </div>
+          ) : null}
+        </>
+      ) : null}
       <div
         className="pointer-events-none absolute -inset-4 opacity-20"
         aria-hidden
