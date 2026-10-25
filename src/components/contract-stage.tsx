@@ -125,14 +125,16 @@ function ContractPane({ contract, onClose }: { contract: ContractView; onClose: 
           })}
         </ol>
 
-        <div
-          className={`mt-5 flex items-start gap-3 rounded-xl px-4 py-3 ${yours ? "bg-[#fff5f5]" : signed ? "bg-[#e7f4ec]" : "bg-[#f7f8fb]"}`}
-        >
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : signed ? "bg-white text-[#17663a]" : "bg-[#e8f6ee] text-[#17663a]"}`}>
-            {yours ? "Tu turno" : signed ? "Hecho" : "Qué sigue"}
-          </span>
-          <p className="pt-0.5 text-base leading-6 text-[#1c2740]">{contract.next.text}</p>
-        </div>
+        {signed ? null : (
+          <div
+            className={`mt-5 flex items-start gap-3 rounded-xl px-4 py-3 ${yours ? "bg-[#fff5f5]" : "bg-[#f7f8fb]"}`}
+          >
+            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#e8f6ee] text-[#17663a]"}`}>
+              {yours ? "Tu turno" : "Qué sigue"}
+            </span>
+            <p className="pt-0.5 text-base leading-6 text-[#1c2740]">{contract.next.text}</p>
+          </div>
+        )}
 
         {current ? (
           <div className="mt-5 rounded-2xl border border-[#e7eaee] p-4">

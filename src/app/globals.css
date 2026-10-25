@@ -157,6 +157,17 @@
     @apply font-sans scroll-smooth;
     font-synthesis: none;
   }
+  /* Large monitors: scale the rem-based UI up a little so the full-width layout does not look tiny. */
+  @media (min-width: 1800px) {
+    html {
+      font-size: 17px;
+    }
+  }
+  @media (min-width: 2300px) {
+    html {
+      font-size: 18.5px;
+    }
+  }
   dialog:not([open]) {
     display: none;
   }

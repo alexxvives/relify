@@ -48,8 +48,8 @@ export function FinanceCharts({
   const split = costYears.length > 0;
 
   return (
-    <div className="mt-4 flex flex-col gap-6">
-      <div className={split ? "grid items-start gap-6" : undefined}>
+    <div className="@container mt-4 flex flex-col gap-6">
+      <div className={split ? "grid items-start gap-6 @4xl:grid-cols-2" : "max-w-4xl"}>
         <SalesBars points={points} progress={progress} />
         {split ? <CostBars years={costYears} /> : null}
       </div>
@@ -82,8 +82,8 @@ const placeholderMixes = [
 
 export function FinanceChartsPlaceholder() {
   return (
-    <div className="mt-4 flex flex-col gap-6" aria-hidden>
-      <div className="grid items-start gap-6">
+    <div className="@container mt-4 flex flex-col gap-6" aria-hidden>
+      <div className="grid items-start gap-6 @4xl:grid-cols-2">
         <PlaceholderBars
           title={sellerCopy.financeBarsTitle}
           series={[
