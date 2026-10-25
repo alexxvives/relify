@@ -7,7 +7,7 @@ export const relifyEntity = {
   legalName: "",
   taxId: "",
   address: "",
-  web: "itsreleva.com",
+  web: "itsrelify.com",
 } as const;
 
 export function relifyPartyLines(): string[] {

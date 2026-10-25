@@ -282,7 +282,7 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
       text(W - M - textWidth(`Ref. ${input.reference}`, 8), 795, 8, `Ref. ${input.reference}`, { color: MUTED }),
       `${BRAND} rg ${M} 782 ${contentWidth} 1.2 re f`,
       `${LINE} RG 0.6 w ${M} 60 m ${W - M} 60 l S`,
-      text(M, 46, 7.5, "Relify  ·  itsreleva.com  ·  Documento generado y custodiado por Relify", { color: MUTED }),
+      text(M, 46, 7.5, "Relify  ·  itsrelify.com  ·  Documento generado y custodiado por Relify", { color: MUTED }),
     ];
     const label = `Página ${index + 1} de ${total}`;
     chrome.push(text(W - M - textWidth(label, 7.5), 46, 7.5, label, { color: MUTED }));
@@ -318,7 +318,7 @@ export function signedPdf(input: SignedPdfInput): Uint8Array<ArrayBuffer> {
   });
   objects[catalog - 1] = `<< /Type /Catalog /Pages ${pagesRef} 0 R >>`;
   objects[pagesRef - 1] = `<< /Type /Pages /Kids [${kids.map((kid) => `${kid} 0 R`).join(" ")}] /Count ${kids.length} >>`;
-  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify signed-pdf v3) /Creator (Relify) >>`);
+  const info = add(`<< /Title ${lit(input.title)} /Producer (Relify signed-pdf v4) /Creator (Relify) >>`);
 
   let body = "%PDF-1.4\n";
   const offsets: number[] = [];

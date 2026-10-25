@@ -153,7 +153,7 @@ export async function storeSignedDocument(kind: SignedDocumentKind, refId: strin
 
 /** Stored PDF; documents signed before this table existed are rendered and stored on first read. */
 /** PDFs stored by an older template are re-rendered once (signatures, seal). */
-const TEMPLATE_MARK = "Relify signed-pdf v3";
+const TEMPLATE_MARK = "Relify signed-pdf v4";
 function isCurrentTemplate(pdf: Uint8Array): boolean {
   return new TextDecoder("latin1").decode(pdf.subarray(Math.max(0, pdf.length - 4096))).includes(TEMPLATE_MARK);
 }
