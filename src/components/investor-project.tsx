@@ -12,8 +12,7 @@ import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInve
 import { FavoriteButton } from "@/components/favorite-button";
 import { LoiCard } from "@/components/loi-card";
 import { ConnectControl } from "@/components/project-access-panel";
-import { MarketCardFigures } from "@/components/market-card-figures";
-import { ProjectPhoto } from "@/components/project-photo";
+import { MarketCard } from "@/components/market-card";
 import { companyCopy } from "@/lib/company-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
@@ -21,7 +20,7 @@ import type { ProjectAccessView } from "@/lib/project-access";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { BuyerPlanName } from "@/lib/billing";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
-import { formatCardEur, formatWholeEur } from "@/lib/money";
+import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
 
@@ -242,24 +241,10 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
       <h2 id="recomendadas" className="mt-2 text-2xl font-semibold text-[#1c2740]">
         {companyCopy.recommendationsHeading}
       </h2>
-      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.slice(0, 3).map((item) => (
           <li key={item.slug}>
-            <article className="h-full overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-              <Link href={`/proyectos/${item.slug}`} className="flex h-full flex-col">
-                <ProjectPhoto slug={item.slug} src={item.coverSrc} sectorKey={item.sectorKey} verified={item.verified} alt="" title={item.codename} place={item.region} />
-                <span className="flex flex-1 flex-col gap-4 p-5">
-                  <MarketCardFigures
-                    revenue={formatCardEur(item.revenueCents)}
-                    ebitda={formatCardEur(item.ebitdaCents)}
-                    adjustedEbitda={formatCardEur(item.adjustedEbitdaCents)}
-                    askingPrice={formatWholeEur(item.askingPriceCents)}
-                    askingPriceCents={item.askingPriceCents}
-                    ebitdaCents={item.ebitdaCents}
-                  />
-                </span>
-              </Link>
-            </article>
+            <MarketCard project={item} />
           </li>
         ))}
       </ul>

@@ -16,6 +16,9 @@ export const marketCopy = {
     recommended: "Recomendados",
     revenue: "Facturación",
     price: "Precio de venta",
+    headcount: "Trabajadores",
+    ebitda: "EBITDA",
+    adjustedEbitda: "EBITDA ajustado",
   },
   revenueBands: {
     any: "Cualquiera",

@@ -1,7 +1,8 @@
 import { recoveryYears } from "./money";
+import { headcountRanges } from "./company-profile";
 import type { PublicProjectCard } from "@/lib/public-project";
 
-export const marketSorts = ["recommended", "revenue", "price"] as const;
+export const marketSorts = ["recommended", "revenue", "price", "headcount", "ebitda", "adjustedEbitda"] as const;
 
 export type MarketSort = (typeof marketSorts)[number];
 
@@ -17,7 +18,8 @@ export type MarketFilters = {
   query: string;
   sort: MarketSort;
   revenueBand: RevenueBandId;
-  ebitdaBand: EbitdaBandId;
+  /** Kept for callers and tests; the marketplace no longer shows this filter. */
+  ebitdaBand?: EbitdaBandId;
   regions: string[];
   /** valuation-multiples sector id; empty = any. */
   sector?: string;
@@ -82,7 +84,7 @@ export function filterMarketProjects(
       return false;
     }
 
-    if (filters.ebitdaBand !== "any" && !inBand(project.ebitdaCents, ebitdaBounds[filters.ebitdaBand])) {
+    if (filters.ebitdaBand && filters.ebitdaBand !== "any" && !inBand(project.ebitdaCents, ebitdaBounds[filters.ebitdaBand])) {
       return false;
     }
 
@@ -98,8 +100,25 @@ export function filterMarketProjects(
       return right.askingPriceCents - left.askingPriceCents;
     }
 
+    if (filters.sort === "headcount") {
+      return headcountRank(right) - headcountRank(left) || comparePayback(left, right);
+    }
+
+    if (filters.sort === "ebitda") {
+      return right.ebitdaCents - left.ebitdaCents;
+    }
+
+    if (filters.sort === "adjustedEbitda") {
+      return right.adjustedEbitdaCents - left.adjustedEbitdaCents;
+    }
+
     return comparePayback(left, right);
   });
+}
+
+/** Position of the headcount range (bigger teams rank higher); unknown sorts last. */
+function headcountRank(project: PublicProjectCard): number {
+  return project.headcount ? headcountRanges.findIndex((range) => range === project.headcount) : -1;
 }
 
 function comparePayback(left: PublicProjectCard, right: PublicProjectCard): number {
