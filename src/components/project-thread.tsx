@@ -484,7 +484,6 @@ function ChatComposer({
           <span className="sr-only">{pending ? pendingLabel : submitLabel}</span>
         </button>
       </div>
-      <p className="px-2 text-sm text-[#5c6b78] max-sm:hidden">Intro para enviar · Mayús + Intro para nueva línea</p>
       {state?.ok === true ? <p className="sr-only" role="status">{savedLabel}</p> : null}
       {state && !state.ok && !hideError ? (
         <p className="text-sm text-red-700" role="alert">
