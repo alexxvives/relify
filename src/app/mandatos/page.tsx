@@ -44,7 +44,7 @@ async function MandatesPageContent({
 
 export default function MandatesPage(props: Parameters<typeof MandatesPageContent>[0]) {
   return (
-    <SignedInPage title={advisorCopy.homeTitle} greeting>
+    <SignedInPage title={advisorCopy.homeTitle} showTitle={false}>
       <Suspense fallback={<AdvisorHomeSkeleton />}>
         <MandatesPageContent {...props} />
       </Suspense>

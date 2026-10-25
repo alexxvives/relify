@@ -88,7 +88,7 @@ async function CompanyPageContent({
 
 export default function CompanyPage(props: Parameters<typeof CompanyPageContent>[0]) {
   return (
-    <SignedInPage title={sellerCopy.homeTitle} greeting>
+    <SignedInPage title={sellerCopy.homeTitle} showTitle={false}>
       <Suspense fallback={<SellerHomeSkeleton />}>
         <CompanyPageContent {...props} />
       </Suspense>
