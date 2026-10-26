@@ -291,7 +291,8 @@ export function InvestorProfile({
           {investorCopy.sectorsLabel}
           <SectorField value={sectors} onChange={setSectors} />
         </div>
-        <div id="aporte" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div id="aporte" className="flex scroll-mt-8 flex-col gap-2 text-sm">
           <span className="flex items-center gap-2">
             <label htmlFor="investor-contribution">{investorCopy.contributionTitle}</label>
             <FieldHint text={investorCopy.contributionHint} />
@@ -300,16 +301,17 @@ export function InvestorProfile({
             id="investor-contribution"
             value={contribution}
             onChange={(event) => setContribution(event.target.value)}
-            rows={3}
+            rows={4}
             className="rounded-xl border border-[#e7eaee] px-3 py-2"
           />
         </div>
-        <label className="mt-4 flex flex-col gap-2 text-sm">
+        <label className="flex flex-col gap-2 text-sm">
           {investorCopy.searchLabel}
           <textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
         </label>
         </div>
-        <div id="foto" className="min-w-0 scroll-mt-24 lg:col-span-1">
+        </div>
+        <div id="foto" className="min-w-0 scroll-mt-24 lg:sticky lg:top-6 lg:col-span-1">
           {hidePhotoControl ? null : (
             <InvestorPhotoDrop
               photo={photo}
