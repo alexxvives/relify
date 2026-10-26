@@ -5,7 +5,7 @@ export type ActivityTile = {
   value: number;
   icon: LucideIcon;
   /** Accent colour for the icon chip and the bar. */
-  tone: "indigo" | "emerald" | "amber" | "sky";
+  tone: "indigo" | "emerald" | "amber" | "sky" | "orange";
   /** Bar fill 0..1. */
   ratio: number;
   /** Small caption under the bar, e.g. "3 de 5 procesos". */
@@ -17,11 +17,12 @@ const tones = {
   emerald: { chip: "bg-[#e9f7f0] text-[#16805a]", bar: "bg-[#22a06b]" },
   amber: { chip: "bg-[#fdf4e3] text-[#b26b00]", bar: "bg-[#e3a008]" },
   sky: { chip: "bg-[#e8f4fb] text-[#1f6f9f]", bar: "bg-[#3b9fd6]" },
+  orange: { chip: "bg-[#fdf1e8] text-[#c25e22]", bar: "bg-[#e07a3e]" },
 } as const;
 
-export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
+export function ActivityTiles({ tiles, columns = "lg:grid-cols-4" }: { tiles: ActivityTile[]; columns?: string }) {
   return (
-    <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <ul className={`mt-4 grid grid-cols-2 gap-3 ${columns}`}>
       {tiles.map((tile) => {
         const tone = tones[tile.tone];
         const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);

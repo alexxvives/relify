@@ -131,7 +131,7 @@ export const sellerCopy = {
   threadEmpty: "Todavía no hay mensajes.",
   threadKind: "Tipo",
   activitySummary: "Resumen de tu actividad",
-  activitySummaryIntro: "Información sobre tus procesos con los inversores.",
+  activitySummaryIntro: "Cómo avanza tu empresa: de las visitas a las ofertas.",
   accepted: "Solicitudes aceptadas",
   questionsIn: "Preguntas recibidas",
   questionsOut: "Preguntas respondidas",

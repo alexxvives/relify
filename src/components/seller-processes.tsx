@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
-import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
+import { CalendarDays, Eye, FileSignature, ShieldCheck, UserPlus } from "lucide-react";
+import type { SellerFunnel } from "@/server/activityFunnel";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
@@ -348,8 +349,8 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
 }
 
 export function SellerProcesses({
+  funnel,
   threads,
-  counts,
   pendingMatches,
   today,
   advisors = [],
@@ -363,8 +364,9 @@ export function SellerProcesses({
   advisors?: AdvisorContactView[];
   companyName?: string;
   elsewhere?: string | null;
+  funnel: SellerFunnel;
 }) {
-  const peak = Math.max(counts.accepted, counts.questionsIn, counts.questionsOut, counts.meetings, 1);
+  const percent = (part: number, whole: number) => `${Math.round(share(part, whole) * 100)} %`;
 
   return (
     <div>
@@ -374,11 +376,13 @@ export function SellerProcesses({
             <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
             <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activitySummaryIntro}</p>
             <ActivityTiles
+              columns="md:grid-cols-3 xl:grid-cols-5"
               tiles={[
-                { label: sellerCopy.accepted, value: counts.accepted, icon: Link2, tone: "indigo", ratio: share(counts.accepted, threads.length), caption: `${counts.accepted} de ${threads.length} ${threads.length === 1 ? "proceso" : "procesos"}` },
-                { label: sellerCopy.questionsIn, value: counts.questionsIn, icon: MessageCircleQuestion, tone: "amber", ratio: share(counts.questionsIn, peak), caption: "Recibidas de inversores" },
-                { label: sellerCopy.questionsOut, value: counts.questionsOut, icon: MessageCircle, tone: "emerald", ratio: share(counts.questionsOut, counts.questionsIn), caption: counts.questionsIn > 0 ? `${Math.round(share(counts.questionsOut, counts.questionsIn) * 100)} % respondidas` : "Sin preguntas aún" },
-                { label: sellerCopy.meetingsDone, value: counts.meetings, icon: Calendar, tone: "sky", ratio: share(counts.meetings, peak), caption: "Con inversores" },
+                { label: "Visitas a la ficha", value: funnel.views, icon: Eye, tone: "indigo", ratio: funnel.views > 0 ? 1 : 0, caption: "Inversores distintos" },
+                { label: "Solicitudes", value: funnel.requests, icon: UserPlus, tone: "sky", ratio: share(funnel.requests, funnel.views), caption: funnel.views > 0 ? `${percent(funnel.requests, funnel.views)} de las visitas` : "Piden acceso a tu empresa" },
+                { label: "NDAs firmados", value: funnel.ndas, icon: ShieldCheck, tone: "emerald", ratio: share(funnel.ndas, funnel.requests), caption: `${funnel.ndas} de ${funnel.requests} ${funnel.requests === 1 ? "solicitud" : "solicitudes"}` },
+                { label: "LOIs recibidas", value: funnel.lois, icon: FileSignature, tone: "amber", ratio: share(funnel.lois, funnel.ndas), caption: `${funnel.lois} de ${funnel.ndas} con NDA` },
+                { label: "Días publicado", value: funnel.daysListed ?? 0, icon: CalendarDays, tone: "orange", ratio: share(funnel.daysListed ?? 0, 180), caption: funnel.daysListed === null ? "Aún no publicada" : "Lo habitual: de 6 a 12 meses" },
               ]}
             />
           </section>

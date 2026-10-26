@@ -23,7 +23,8 @@ import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/server/investorDesk";
-import { Briefcase, Calendar, ChevronDown, MessageCircleQuestion, ShieldCheck } from "lucide-react";
+import { Briefcase, ChevronDown, Heart, Send, ShieldCheck } from "lucide-react";
+import type { InvestorFunnel } from "@/server/activityFunnel";
 import { ActivityTiles, share } from "@/components/activity-tiles";
 
 const processTabs = [
@@ -150,7 +151,9 @@ export function InvestorProcesses({
   today,
   advisors = [],
   cancelled = [],
+  funnel,
 }: {
+  funnel: InvestorFunnel;
   cancelled?: CancelledProcess[];
   items: InvestorProcessCard[];
   buyerName: string;
@@ -160,10 +163,6 @@ export function InvestorProcesses({
 }) {
   const closed = items.filter((item) => item.closed !== null);
   items = items.filter((item) => item.closed === null);
-  const questions = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "question").length, 0);
-  const meetings = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "meeting").length, 0);
-  const ndas = items.filter((item) => item.nda).length;
-  const peak = Math.max(questions, meetings, 1);
 
   return (
     <div>
@@ -172,10 +171,10 @@ export function InvestorProcesses({
           <h2 id="processes-summary" className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
           <ActivityTiles
             tiles={[
-              { label: sellerCopy.active, value: items.length, icon: Briefcase, tone: "indigo", ratio: items.length > 0 ? 1 : 0, caption: closed.length > 0 ? `${closed.length} cerrados` : "En curso" },
-              { label: "NDA firmados", value: ndas, icon: ShieldCheck, tone: "emerald", ratio: share(ndas, items.length), caption: `${ndas} de ${items.length} ${items.length === 1 ? "proceso" : "procesos"}` },
-              { label: "Preguntas y respuestas", value: questions, icon: MessageCircleQuestion, tone: "amber", ratio: share(questions, peak), caption: "En todos tus procesos" },
-              { label: sellerCopy.meetingsDone, value: meetings, icon: Calendar, tone: "sky", ratio: share(meetings, peak), caption: "Con vendedores" },
+              { label: "Favoritos", value: funnel.favorites, icon: Heart, tone: "orange", ratio: funnel.favorites > 0 ? 1 : 0, caption: "Empresas guardadas" },
+              { label: "Solicitudes enviadas", value: funnel.requests, icon: Send, tone: "sky", ratio: share(funnel.requests, Math.max(funnel.favorites, funnel.requests)), caption: "Peticiones de acceso" },
+              { label: "Procesos activos", value: items.length, icon: Briefcase, tone: "indigo", ratio: share(items.length, funnel.requests), caption: closed.length > 0 ? `${closed.length} ${closed.length === 1 ? "cerrado" : "cerrados"}` : `${items.length} de ${funnel.requests} aceptadas` },
+              { label: "NDAs firmados", value: funnel.ndas, icon: ShieldCheck, tone: "emerald", ratio: share(funnel.ndas, funnel.requests), caption: `${funnel.ndas} de ${funnel.requests} ${funnel.requests === 1 ? "solicitud" : "solicitudes"}` },
             ]}
           />
           {cancelled.length > 0 ? (

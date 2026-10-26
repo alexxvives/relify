@@ -24,6 +24,7 @@ import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { getPublicProject } from "@/server/getPublicProject";
 import { listPublicProjects } from "@/server/listPublicProjects";
+import { recordProjectView } from "@/server/projectViews";
 
 type ProjectTab = "company" | "questions" | "meetings";
 
@@ -101,7 +102,8 @@ async function InvestorProjectContent({
     notFound();
   }
   const [published, access, favorites, messages, billing] = await Promise.all([
-    listPublicProjects(),
+    // Recorded alongside the reads so the Worker doesn't drop the write after responding.
+    recordProjectView(user.id, slug).then(() => listPublicProjects()),
     getProjectAccess(user, slug),
     listFavoriteSlugs(user.id),
     listProjectMessages(user, slug),
