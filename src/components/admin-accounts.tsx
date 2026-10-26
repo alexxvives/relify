@@ -103,9 +103,9 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <ul className="grid gap-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {visible.map((account) => (
-            <li key={account.id}>
+            <li key={account.id} className="flex">
               <AccountCard account={account} self={account.id === viewerId} />
             </li>
           ))}
@@ -117,23 +117,23 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
 
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   return (
-    <article className="grid items-start gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5 sm:grid-cols-2">
+    <article className="flex w-full flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
         </span>
         <div className="min-w-0">
-          <p className="text-base font-semibold text-[#1c2740]">{account.name}</p>
-          <p className="mt-0.5 break-all text-sm text-[#667085]">{account.email}</p>
+          <p className="truncate text-sm font-semibold text-[#1c2740]">{account.name}</p>
+          <p className="truncate text-xs text-[#667085]" title={account.email}>{account.email}</p>
           {account.onboarded ? (
-            <p className="mt-1 text-sm text-[#667085]">
+            <p className="mt-1 text-xs text-[#667085]">
               {adminCopy.referralSourceLabel}:{" "}
               <span className="font-medium text-[#3d4a63]">
                 {account.referralSource ?? adminCopy.referralSourceEmpty}
               </span>
             </p>
           ) : null}
-          <ul className="mt-2 flex flex-wrap gap-1.5">
+          <ul className="mt-2 flex flex-wrap gap-1.5 empty:hidden">
             {account.suspended ? (
               <li className="rounded-full bg-[#fdeeee] px-2.5 py-1 text-xs font-medium text-[#8d2424]">{adminCopy.suspendedBadge}</li>
             ) : null}
@@ -146,12 +146,12 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
         </div>
       </div>
       {self ? (
-        <p className="text-sm text-[#667085] sm:text-right">
+        <p className="mt-auto text-xs text-[#667085]">
           {adminCopy.ownSuspend} {adminCopy.ownRole}
         </p>
       ) : (
-        <div className="flex flex-col items-stretch gap-3 sm:items-end">
-          <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="mt-auto flex flex-col items-stretch gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <SuspensionButton userId={account.id} suspended={account.suspended} />
             <RoleForm userId={account.id} role={account.role} />
           </div>
