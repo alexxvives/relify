@@ -14,6 +14,15 @@ export default function AsesoresPage() {
       lead="El inicio lista lo que te toca: encargos abiertos, depósitos y acuerdos. El cliente sigue con nombre de proyecto hasta que el encargo está aceptado."
       image="/product/asesor.jpg"
       imageAlt="Inicio del asesor en Relify, con encargos y acciones pendientes"
+      photo="/roles/asesor.webp"
+      photoAlt="Dos asesores revisando una operación"
+      cta={{ href: "/lista-de-espera", label: "Apuntarme" }}
+      highlights={[
+        "Perfil público con tus servicios y sectores",
+        "Encargos de empresas y compradores ya en proceso",
+        "Depósito reembolsable antes de empezar el trabajo",
+      ]}
+      stat={{ value: "6", label: "servicios que puedes ofrecer" }}
       featuresTitle="Servicios, encargos y el proceso del cliente"
       features={[
         {
@@ -36,6 +45,14 @@ export default function AsesoresPage() {
         { title: "Aceptas con el depósito", body: "El pago abre el recorrido. Rechazar deja el encargo fuera." },
         { title: "Trabajas dentro de Relify", body: "Chat, documentos y reuniones. La sociedad no se publica en la ficha." },
       ]}
+      productTitle="Tus encargos, depósitos y acuerdos en un solo inicio"
+      productBody="Ves lo que te toca hacer hoy, aceptas encargos con un clic y trabajas con el cliente dentro de la misma operación: chat, documentos y reuniones."
+      faq={[
+        { q: "¿Quién puede contratarme?", a: "Empresas que venden y compradores que ya están en un proceso dentro de Relify." },
+        { q: "¿Cómo funciona el depósito?", a: "El cliente paga un depósito al aceptar el encargo. Es reembolsable y se descuenta del trabajo final." },
+        { q: "¿Veo los datos del cliente?", a: "Ves el nombre de proyecto hasta que el encargo está aceptado. Después se abre la ficha y los documentos que te comparten." },
+      ]}
+      closingTitle="Llega a las operaciones cuando necesitan un asesor."
     />
   );
 }
