@@ -31,7 +31,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
 import type { NotificationView } from "@/lib/notifications";
 import { sellerCopy } from "@/lib/seller-copy";
-import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, shellCopy, type ShellDestination } from "@/lib/shell";
+import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, saleClosedDestination, shellCopy, type ShellDestination } from "@/lib/shell";
 
 const iconForHref = {
   "/mercado": Building2Icon,
@@ -232,6 +232,9 @@ export function AppFrame({
 
   const tabs = destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
 
+  const saleItem = destinations.find((item) => item.href === saleClosedDestination.href);
+  const navItems = destinations.filter((item) => item.href !== saleClosedDestination.href);
+
   function closeMenu() {
     setOpen(false);
   }
@@ -271,9 +274,9 @@ export function AppFrame({
           ) : null}
         </div>
         <nav aria-label={shellCopy.navLabel} className="shell-nav flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-3">
-          {destinations.map((item, index) => {
+          {navItems.map((item, index) => {
             const selected = destinationIsCurrent(item.href, pathname);
-            const previous = destinations[index - 1];
+            const previous = navItems[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
             const seenIds = new Set(seen.split(",").filter((id) => id.length > 0));
             const alert =
@@ -301,6 +304,18 @@ export function AppFrame({
           })}
         </nav>
         <div className="shell-foot border-t border-public-line p-3">
+          {saleItem ? (
+            <Link
+              href={saleItem.href}
+              onClick={closeMenu}
+              title={saleItem.label}
+              aria-current={destinationIsCurrent(saleItem.href, pathname) ? "page" : undefined}
+              className="group mb-3 flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-[linear-gradient(120deg,#b8862b_0%,#e3b85a_45%,#f6dc95_70%,#c99a3e_100%)] px-4 py-2 text-base font-semibold text-[#3b2a07] shadow-[0_8px_22px_-10px_rgba(184,134,43,0.75)] ring-1 ring-[#b8862b]/40 transition hover:brightness-105 aria-[current=page]:ring-2 aria-[current=page]:ring-[#8a6114]"
+            >
+              <TrophyIcon size={16} isAnimated={false} aria-hidden />
+              <span className="shell-label min-w-0 flex-1 truncate">{saleItem.label}</span>
+            </Link>
+          ) : null}
           {showHelp ? (
             <details className="shell-full group/help mb-3 rounded-2xl bg-public-sand px-3 py-2 open:py-3">
               <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-public-ink [&::-webkit-details-marker]:hidden">
