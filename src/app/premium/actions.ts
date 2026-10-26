@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { startBuyerCheckout } from "@/server/startCheckout";
-import { setSubscriptionCancel, startCardSetup, updateBillingEmail } from "@/server/subscriptionDesk";
+import { changeSubscriptionPlan, setSubscriptionCancel, startCardSetup, updateBillingEmail } from "@/server/subscriptionDesk";
 
 export type PlanActionState = { ok: false; message: string } | null;
 
@@ -40,6 +40,25 @@ export async function startBuyerPlanAction(_state: PlanActionState, formData: Fo
   }
 
   redirect(result.url);
+}
+
+export async function changeBuyerPlanAction(_state: PlanActionState, formData: FormData): Promise<PlanActionState> {
+  const user = await investor();
+  const plan = formData.get("plan");
+
+  if (plan !== "limited" && plan !== "unlimited") {
+    return { ok: false, message: billingCopy.stripeFailed };
+  }
+
+  const result = await changeSubscriptionPlan(user, plan);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidatePath("/premium");
+  revalidatePath("/premium/suscripcion");
+  redirect("/premium?changed=1");
 }
 
 export async function setSubscriptionCancelAction(

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { billingCopy } from "@/lib/billing-copy";
+import { grossCents, planNetCents } from "@/lib/billing";
 import { readSiteUrl } from "@/lib/env";
 import { formatEur } from "@/lib/money";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -205,6 +206,41 @@ export async function setSubscriptionCancel(user: CurrentUser, cancel: boolean):
 
   try {
     const updated = await owned.stripe.subscriptions.update(owned.subscriptionId, { cancel_at_period_end: cancel });
+    await syncSubscription(updated);
+    return { ok: true };
+  } catch {
+    return { ok: false, message: billingCopy.stripeFailed };
+  }
+}
+
+/** Switches an active buyer subscription between plans in place; Stripe prorates the difference on the next invoice. */
+export async function changeSubscriptionPlan(user: CurrentUser, plan: "limited" | "unlimited"): Promise<{ ok: true } | { ok: false; message: string }> {
+  const owned = await ownedSubscription(user.id);
+
+  if (!owned) {
+    return { ok: false, message: billingCopy.grantedChange };
+  }
+
+  try {
+    const current = await owned.stripe.subscriptions.retrieve(owned.subscriptionId);
+    const item = current.items.data[0];
+
+    if (!item || current.metadata.kind !== "buyer_plan" || current.status !== "active") {
+      return { ok: false, message: billingCopy.stripeFailed };
+    }
+
+    if (current.metadata.plan === plan) {
+      return { ok: true };
+    }
+
+    const product = typeof item.price.product === "string" ? item.price.product : item.price.product.id;
+    await owned.stripe.products.update(product, { name: plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados" });
+    const updated = await owned.stripe.subscriptions.update(owned.subscriptionId, {
+      items: [{ id: item.id, price_data: { currency: "eur", product, unit_amount: grossCents(planNetCents(plan)), recurring: { interval: "month" } } }],
+      metadata: { ...current.metadata, plan },
+      proration_behavior: "create_prorations",
+      cancel_at_period_end: false,
+    });
     await syncSubscription(updated);
     return { ok: true };
   } catch {

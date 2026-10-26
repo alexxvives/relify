@@ -7,7 +7,7 @@ import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
 import { HeartIcon } from "@/components/ui/heart";
 import { CheckIcon } from "@/components/ui/check";
 import { AppToast } from "@/components/app-toast";
-import { startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
+import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
 
@@ -23,8 +23,9 @@ function Note({ state }: { state: PlanActionState }) {
   );
 }
 
-function PlanButton({ plan, label }: { plan: "limited" | "unlimited"; label: string }) {
-  const [state, action, pending] = useActionState(startBuyerPlanAction, null);
+function PlanButton({ plan, label, change = false }: { plan: "limited" | "unlimited"; label: string; change?: boolean }) {
+  // Subscribers switch plan in place (prorated); everyone else goes through Checkout.
+  const [state, action, pending] = useActionState(change ? changeBuyerPlanAction : startBuyerPlanAction, null);
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-2">
@@ -34,7 +35,7 @@ function PlanButton({ plan, label }: { plan: "limited" | "unlimited"; label: str
         disabled={pending}
         className="inline-flex h-11 items-center justify-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {pending ? billingCopy.choosing : label}
+        {pending ? (change ? billingCopy.switching : billingCopy.choosing) : label}
       </button>
       <Note state={state} />
     </form>
@@ -97,7 +98,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
         </h2>
         <p className="mt-4 text-sm leading-6 text-white/80">{billingCopy.intro}</p>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
-        <AppToast message={notice} tone={notice === billingCopy.paid ? "ok" : "error"} />
+        <AppToast message={notice} tone={notice === billingCopy.paid || notice === billingCopy.planChanged ? "ok" : "error"} />
       </section>
       <div className="flex justify-center">
         <div className="inline-flex rounded-full bg-[#1c2740] p-1" role="group" aria-label={billingCopy.periodLabel}>
@@ -174,6 +175,9 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
               <div className="mt-auto">
                 {item.id === "limited" && plan === "none" ? <PlanButton plan="limited" label={billingCopy.chooseLimited} /> : null}
                 {item.id === "unlimited" && plan === "none" ? <PlanButton plan="unlimited" label={billingCopy.chooseUnlimited} /> : null}
+                {!active && plan !== "none" && (item.id === "limited" || item.id === "unlimited") ? (
+                  <PlanButton plan={item.id} label={billingCopy.switchPlan} change />
+                ) : null}
                 {active && plan !== "none" ? (
                   <Link
                     href="/premium/suscripcion"

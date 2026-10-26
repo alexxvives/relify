@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function PremiumPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; changed?: string }>;
 }) {
   const user = await requireRole("investor");
   const query = await searchParams;
@@ -23,6 +23,8 @@ export default async function PremiumPage({
   if (typeof query.session_id === "string" && query.session_id !== "") {
     const fulfilled = await fulfillCheckout(query.session_id, user.id);
     notice = fulfilled.ok ? billingCopy.paid : fulfilled.message;
+  } else if (query.changed === "1") {
+    notice = billingCopy.planChanged;
   }
 
   const billing = await loadBuyerPlan(user.id);
