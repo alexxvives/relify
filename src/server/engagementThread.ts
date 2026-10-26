@@ -6,6 +6,7 @@ import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { meetingBody, proposeMeetingChange, readMeeting, withMeetingStatus } from "@/lib/meeting";
 import type { MessageKindName, ThreadMessageView } from "@/lib/project-message";
+import { personName } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -156,8 +157,34 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
   };
 }
 
+/** Public advisor name (business name, else the person), shown to the client once the advisor is on the encargo. */
+export async function advisorPublicName(advisorId: string): Promise<string> {
+  const row = await prisma.user.findUnique({
+    where: { id: advisorId },
+    select: { name: true, lastName: true, advisorProfile: { select: { businessName: true } } },
+  });
+  const business = row?.advisorProfile?.businessName.trim() ?? "";
+  const person = row ? personName(row.name, row.lastName).trim() : "";
+  return business || person || engagementCopy.advisorFallback;
+}
+
+/** Investor's real name for the advisor, only after the seller accepted that investor on the project; null keeps them anonymous. */
+export async function revealedInvestorName(projectId: string, investorId: string): Promise<string | null> {
+  const access = await prisma.projectAccess.findUnique({
+    where: { projectId_investorId: { projectId, investorId } },
+    select: { sellerAcceptedAt: true, cancelledAt: true, investor: { select: { name: true, lastName: true } } },
+  });
+  if (!access?.sellerAcceptedAt || access.cancelledAt) {
+    return null;
+  }
+  const name = personName(access.investor.name, access.investor.lastName).trim();
+  return name || null;
+}
+
 function viewOf(
   row: {
+    advisorName?: string;
+    clientName?: string | null;
     id: string;
     client: "investor" | "seller";
     services: string[];
@@ -174,10 +201,10 @@ function viewOf(
   return {
     id: row.id,
     slug: row.slug,
-    heading: row.side === "client" ? engagementCopy.advisorFallback : row.codename,
+    heading: row.side === "client" ? (row.advisorName ?? engagementCopy.advisorFallback) : row.codename,
     detail: row.side === "client" ? `${row.codename} · ${row.region}` : row.region,
     services: serviceLabel(row.services),
-    partyName: row.side === "client" ? engagementCopy.advisorFallback : clientLabel,
+    partyName: row.side === "client" ? (row.advisorName ?? engagementCopy.advisorFallback) : (row.clientName ?? clientLabel),
     placeholder:
       row.side === "client"
         ? engagementCopy.threadPlaceholder
@@ -219,6 +246,7 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      advisorId: true,
       client: true,
       services: true,
       projectId: true,
@@ -233,10 +261,14 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
   const contacts: AdvisorContactView[] = [];
 
   for (const row of rows) {
-    const documents = await sharedFiles(row);
+    const [documents, advisorName] = await Promise.all([
+      sharedFiles(row),
+      row.advisorId ? advisorPublicName(row.advisorId) : Promise.resolve(engagementCopy.advisorFallback),
+    ]);
     contacts.push(
       viewOf(
         {
+          advisorName,
           id: row.id,
           client: row.client,
           services: row.services,
@@ -270,8 +302,15 @@ export async function getEngagementThread(user: CurrentUser, engagementId: strin
     return null;
   }
 
-  const [messages, documents] = await Promise.all([messagesFor(row.id, row.side), sharedFiles(row)]);
-  return viewOf(row, messages, documents);
+  const [messages, documents, advisorName, clientName] = await Promise.all([
+    messagesFor(row.id, row.side),
+    sharedFiles(row),
+    row.side === "client" ? advisorPublicName(row.advisorId) : Promise.resolve(undefined),
+    row.side === "advisor" && row.client === "investor"
+      ? revealedInvestorName(row.projectId, row.requesterId)
+      : Promise.resolve(null),
+  ]);
+  return viewOf({ ...row, advisorName, clientName }, messages, documents);
 }
 
 async function notifyOther(row: {

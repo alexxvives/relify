@@ -38,6 +38,7 @@ import { personName } from "@/lib/project-message";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { advisorPublicName, revealedInvestorName } from "@/server/engagementThread";
 import { publicCardsByInvestor } from "@/server/investorProfile";
 import { investorVisibleFiles, type VisibleFile } from "@/server/investorVisibleFiles";
 import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
@@ -282,11 +283,26 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
       closedAt: true,
       depositPaidAt: true,
       advisorNdaAcceptedAt: true,
+      projectId: true,
+      requesterId: true,
       requester: { select: { name: true, lastName: true } },
       project: { select: { codename: true, region: true } },
     },
     orderBy: { createdAt: "desc" },
   });
+  const investorRows = mine.filter((row) => row.client === "investor");
+  const accepted =
+    investorRows.length === 0
+      ? []
+      : await prisma.projectAccess.findMany({
+          where: {
+            sellerAcceptedAt: { not: null },
+            cancelledAt: null,
+            OR: investorRows.map((row) => ({ projectId: row.projectId, investorId: row.requesterId })),
+          },
+          select: { projectId: true, investorId: true },
+        });
+  const revealed = new Set(accepted.map((row) => `${row.projectId}:${row.investorId}`));
   const inbox = paid
     ? await prisma.advisoryEngagement.findMany({
         where: { advisorId: null },
@@ -303,7 +319,15 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
   return {
     paid,
     mine: mine.map((row) =>
-      toCard(row, true, row.client === "investor" ? investorPartyName(row.requester) : engagementCopy.fromSeller),
+      toCard(
+        row,
+        true,
+        row.client === "investor"
+          ? revealed.has(`${row.projectId}:${row.requesterId}`)
+            ? investorPartyName(row.requester)
+            : engagementCopy.fromInvestor
+          : engagementCopy.fromSeller,
+      ),
     ),
     inbox: inbox.map((row) => toCard(row, false)),
   };
@@ -559,7 +583,11 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     select: investorProjectSelect,
   });
   const company = companyRow ? toInvestorProject(companyRow) : null;
-  const namedClient = row.client === "investor" ? investorPartyName(row.requester) : engagementCopy.fromSeller;
+  // Buyers stay anonymous to the advisor until the seller accepts them on this project.
+  const namedClient =
+    row.client === "investor"
+      ? ((await revealedInvestorName(row.project.id, row.requesterId)) ?? engagementCopy.fromInvestor)
+      : engagementCopy.fromSeller;
   const investorCard = await investorCardFor(row.client, row.requester);
   const steps = await bannerStepsFor(row);
 
@@ -980,6 +1008,9 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
     orderBy: { createdAt: "desc" },
   });
 
+  const advisorIds = [...new Set(rows.flatMap((row) => (row.advisorId ? [row.advisorId] : [])))];
+  const names = new Map(await Promise.all(advisorIds.map(async (id) => [id, await advisorPublicName(id)] as const)));
+
   return {
     waiting: rows.some((row) => row.advisorId === null),
     ready: rows.flatMap((row) => {
@@ -990,7 +1021,7 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
       return [
         {
           engagementId: row.id,
-          advisorName: "Asesor",
+          advisorName: names.get(row.advisorId) ?? "Asesor",
           folders: row.folders.map((folder) => folder.folder),
           fileIds: row.fileShares.map((share) => share.fileId),
           processOpened: row.processOpened,
