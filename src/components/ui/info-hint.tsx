@@ -12,6 +12,7 @@ const iconTone = {
   light: "text-white/70 hover:text-white",
   warning: "text-[#b54708] hover:text-[#93370d]",
   verified: "text-[#465ab4]",
+  verifiedLight: "text-[#7ee2a8]",
 } as const;
 
 /**

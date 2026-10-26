@@ -1,6 +1,6 @@
 "use client";
 
-import { VerifiedBadge } from "@/components/project-photo";
+import { InfoHint } from "@/components/ui/info-hint";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Check, Star } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
@@ -105,8 +105,10 @@ export function AdvisorListingCard({
       <div className="bg-[linear-gradient(135deg,#1c2740_0%,#27366b_100%)] px-5 py-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold text-white">{advisor.name || engagementCopy.advisorFallback}</p>
-            <div className="mt-2 flex min-h-6 items-center">{advisor.verified ? <VerifiedBadge /> : null}</div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <p className="truncate text-lg font-semibold text-white">{advisor.name || engagementCopy.advisorFallback}</p>
+              {advisor.verified ? <InfoHint text="Verificado por Relify" icon="verified" tone="verifiedLight" align="center" side="bottom" width="auto" /> : null}
+            </div>
           </div>
           <ReviewMark cases={advisor.cases.length} />
         </div>
@@ -156,7 +158,7 @@ export function AdvisorListingCard({
               );
             })}
           </div>
-          <div className="mt-auto flex justify-end pt-2">
+          <div className="mt-auto flex justify-center pt-2">
             <span title={projectSlug ? undefined : engagementCopy.connectNeedsCompany} className="inline-flex">
               <button
                 type="submit"
