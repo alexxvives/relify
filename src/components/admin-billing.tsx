@@ -34,7 +34,7 @@ function BillingSource({ book }: { book: BillingBook }) {
         <p className="shrink-0 text-right text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{book.total}</p>
       </div>
       {book.entries.length === 0 ? (
-        <p className="mt-4 text-sm text-[#667085]">{adminCopy.billingNone}</p>
+        <EmptyChart label={adminCopy.billingNone} />
       ) : (
         <>
           <SourceChart entries={book.entries} color={color} label={book.title} />
@@ -65,6 +65,30 @@ function BillingSource({ book }: { book: BillingBook }) {
         </>
       )}
     </section>
+  );
+}
+
+const placeholderBars = [38, 62, 45, 80, 55, 70, 40, 66, 50, 74, 58, 48];
+
+function EmptyChart({ label }: { label: string }) {
+  return (
+    <figure className="mt-5" aria-label={label}>
+      <div className="flex h-36 gap-2" aria-hidden="true">
+        <div className="flex w-7 shrink-0 flex-col justify-between pt-4">
+          {[0, 1, 2].map((tick) => (
+            <span key={tick} className="ml-auto h-2 w-4 rounded bg-[#eef0f4]" />
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 items-end border-b border-[#e6e9f0] pt-4">
+          {placeholderBars.map((height, index) => (
+            <div key={index} className="flex h-full min-w-0 flex-1 items-end justify-center">
+              <span className="w-2 animate-pulse rounded-t-full bg-[#eef0f4]" style={{ height: `${height}%` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <figcaption className="sr-only">{label}</figcaption>
+    </figure>
   );
 }
 
