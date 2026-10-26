@@ -1,12 +1,14 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  previewFeatures = ["relationJoins"]
 }
 
 generator client_cloudflare {
   provider = "prisma-client"
   output   = "../src/generated/prisma-worker"
   runtime  = "cloudflare"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
