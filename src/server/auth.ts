@@ -23,6 +23,10 @@ function createAuth() {
     },
     session: {
       freshAge: 60 * 60 * 24 * 30,
+      // Signed session snapshot in a cookie: skips the session-table round
+      // trip on most requests. The user row (role, suspension) is still read
+      // live in getCurrentUser, so a suspended account is cut off at once.
+      cookieCache: { enabled: true, maxAge: 5 * 60 },
     },
     user: {
       changeEmail: {
