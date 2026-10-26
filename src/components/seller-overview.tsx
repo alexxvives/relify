@@ -110,14 +110,14 @@ export function SellerOverview({
                 sold
                   ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "published"
-                  ? "flex items-center gap-2 text-2xl font-semibold text-[#17663a]"
+                  ? "flex items-center gap-2 text-xl font-semibold sm:whitespace-nowrap text-[#17663a]"
                   : listing === "pending"
-                    ? "text-2xl font-semibold text-[#8a6112]"
-                    : "flex items-center gap-2 text-2xl font-semibold text-[#c0362c]"
+                    ? "text-xl font-semibold sm:whitespace-nowrap text-[#8a6112]"
+                    : "flex items-center gap-2 text-xl font-semibold sm:whitespace-nowrap text-[#c0362c]"
               }
             >
               {listing === "published" || listing === "pending" ? null : (
-                <TriangleAlert className="size-6 shrink-0" aria-hidden />
+                <TriangleAlert className="size-5 shrink-0" aria-hidden />
               )}
               {sold
                 ? "Tu empresa se ha vendido."
