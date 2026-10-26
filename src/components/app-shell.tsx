@@ -7,7 +7,7 @@ import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } f
 import { hasCompletedPurchase, projectSold } from "@/server/saleOutcome";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
-import { menuProcessCount } from "@/server/menuProcessCount";
+import { menuEncargoCount, menuProcessCount } from "@/server/menuProcessCount";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
 export async function AppShell({
@@ -32,7 +32,7 @@ export async function AppShell({
     redirect("/onboarding");
   }
 
-  const [notifications, companies, activeCompanyId, processCount, purchased, sold] = await Promise.all([
+  const [notifications, companies, activeCompanyId, processCount, purchased, sold, encargoCount] = await Promise.all([
     listNotifications(user.id),
     user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
     user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
@@ -41,6 +41,7 @@ export async function AppShell({
     user.role === "seller"
       ? activeSellerProjectId(user.id).then((id) => (id ? projectSold(id) : false))
       : Promise.resolve(false),
+    menuEncargoCount(user),
   ]);
 
   const destinations = destinationsForRole(user.role);
@@ -65,6 +66,7 @@ export async function AppShell({
       canManageCompanies={user.role === "seller"}
       showHelp={user.role !== "admin"}
       processCount={processCount}
+      encargoCount={encargoCount}
     >
       {children}
       {user.termsAccepted || user.role === "admin" ? null : <PlatformTermsDialog />}

@@ -201,6 +201,7 @@ export function AppFrame({
   canManageCompanies = false,
   showHelp = true,
   processCount = 0,
+  encargoCount = 0,
   children,
 }: {
   name: string;
@@ -214,6 +215,7 @@ export function AppFrame({
   canManageCompanies?: boolean;
   showHelp?: boolean;
   processCount?: number;
+  encargoCount?: number;
   children: ReactNode;
 }) {
   // Multi-company sellers: the bell and menu dots only cover the selected company.
@@ -302,7 +304,7 @@ export function AppFrame({
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
                   onNavigate={closeMenu}
                   alert={alert}
-                  count={processHrefs.has(item.href) ? processCount : null}
+                  count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : null}
                 />
               </div>
             );
