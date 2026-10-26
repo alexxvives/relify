@@ -1675,7 +1675,7 @@ export function CompanyDraftForm({
             }
           />
         </PublicFicha>
-        <div className="mt-8 flex flex-col gap-4">
+        <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
           <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
@@ -2045,7 +2045,8 @@ function MarketPreview({
         </div>
         <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
           <SampleListing />
-          <div inert className="h-full shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)] rounded-2xl">
+          <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
+            <div inert className="h-full">
             <MarketCard
               project={card}
               actions={
@@ -2053,6 +2054,16 @@ function MarketPreview({
                   <Heart className="size-4" aria-hidden />
                 </span>
               }
+            />
+            </div>
+            {/* The whole card, photo included, opens the details preview below, as it would for an investor. */}
+            <button
+              type="button"
+              aria-label={companyCopy.openFichaTitle}
+              onClick={() => {
+                document.getElementById("ficha-detalles")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="absolute inset-0 z-30 cursor-pointer rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-[#5c4de0]/35"
             />
           </div>
           <SampleListing />

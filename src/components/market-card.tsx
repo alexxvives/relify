@@ -120,6 +120,15 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           {referencePhotoLabel}<span className="sr-only">. {aiImageLabel}</span>
         </span>
       </div>
+      {/* Direct child of the article, so the stretched link covers the photo as well as the body. */}
+      <h3 className="m-0 h-0">
+        <Link
+          href={href}
+          className="outline-none after:absolute after:inset-0 after:z-[5] after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
+        >
+          <span className="sr-only">{sectorName ? `Empresa de ${sectorName.toLowerCase()} en ${project.region}` : `Empresa en ${project.region}`}</span>
+        </Link>
+      </h3>
       {actions ? <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">{actions}</div> : null}
 
       <div className="relative flex flex-1 flex-col px-5 pb-5">
@@ -133,14 +142,6 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
         {sectorName ? (
           <span className={`absolute top-3 right-5 max-w-[60%] truncate rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>{sectorName}</span>
         ) : null}
-        <h3 className="m-0 h-0">
-          <Link
-            href={href}
-            className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
-          >
-            <span className="sr-only">{sectorName ? `Empresa de ${sectorName.toLowerCase()} en ${project.region}` : `Empresa en ${project.region}`}</span>
-          </Link>
-        </h3>
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#5c6b78]">
           <span className="inline-flex min-w-0 items-center gap-1">
             <MapPin className="size-3.5 shrink-0" aria-hidden />
