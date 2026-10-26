@@ -1,5 +1,5 @@
 import type { PendingMatch } from "@/lib/billing";
-import { labelAccesses } from "@/lib/project-message";
+import { labelAccesses, personName } from "@/lib/project-message";
 import { prisma } from "@/server/db";
 
 export type { PendingMatch };
@@ -14,12 +14,14 @@ export async function listPendingMatches(ownerId: string, projectId?: string | n
       id: true,
       projectId: true,
       requestedAt: true,
+      investor: { select: { name: true, lastName: true } },
       sellerAcceptedAt: true,
       project: { select: { codename: true } },
     },
     orderBy: { requestedAt: "asc" },
   });
-  const labeled = labelAccesses(rows).filter((row) => row.sellerAcceptedAt === null);
+  // Alex (t32): sellers see the buyer's real name from the request on.
+  const labeled = labelAccesses(rows.map((row) => ({ ...row, connectedName: personName(row.investor.name, row.investor.lastName) }))).filter((row) => row.sellerAcceptedAt === null);
 
   return labeled.map((row) => ({
     accessId: row.id,
