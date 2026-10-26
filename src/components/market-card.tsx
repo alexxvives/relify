@@ -24,7 +24,7 @@ import {
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { formatCardEur, recoveryTone, recoveryYears } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
-import { aiImageLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
+import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
 type SectorStyle = { icon: LucideIcon; tile: string; ink: string; accent: string };
 
@@ -100,11 +100,11 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           </span>
         ) : null}
         <span
-          className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-1.5 py-0.5 text-xs font-medium text-white/90 backdrop-blur-sm"
+          className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
           title={aiImageLabel}
         >
           <Sparkles className="size-3" aria-hidden />
-          IA<span className="sr-only">: {aiImageLabel}</span>
+          {referencePhotoLabel}<span className="sr-only">. {aiImageLabel}</span>
         </span>
       </div>
       {actions ? <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">{actions}</div> : null}

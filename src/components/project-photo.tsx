@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { BadgeCheck, Building2, MapPin, Sparkles } from "lucide-react";
 import { projectImageSrc } from "@/lib/project-image";
-import { aiImageLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
+import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
 export const projectPhotoFrame =
   "relative aspect-[16/9] bg-[radial-gradient(120%_100%_at_15%_0%,#3a4d86_0%,#1c2a52_46%,#0c1224_100%)]";
@@ -30,9 +30,10 @@ export function PhotoScrim({ title, place }: { title: string; place: string }) {
 
 export function AiImageTag({ inline = false }: { inline?: boolean }) {
   return (
-    <span className={`pointer-events-none ${inline ? "shrink-0" : "absolute right-3 bottom-3 z-[2]"} inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm`}>
+    <span title={aiImageLabel} className={`pointer-events-auto cursor-help ${inline ? "shrink-0" : "absolute right-3 bottom-3 z-[2]"} inline-flex items-center gap-1 rounded-full bg-[#0c1224]/70 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm`}>
       <Sparkles className="size-3.5" aria-hidden />
-      {aiImageLabel}
+      {referencePhotoLabel}
+      <span className="sr-only">. {aiImageLabel}</span>
     </span>
   );
 }

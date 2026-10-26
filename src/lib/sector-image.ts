@@ -15,7 +15,9 @@ export const sectorImageKeys = [
 
 export type SectorImageKey = (typeof sectorImageKeys)[number];
 
-export const aiImageLabel = "Imagen generada con IA";
+export const aiImageLabel = "Imagen de referencia generada con IA";
+/** Short on-photo label; the full AI disclosure goes in aiImageLabel (title + screen readers). */
+export const referencePhotoLabel = "Foto de referencia";
 
 /** Maps a CNAE 2009 code (e.g. "56.10") to a generic, AI-generated sector picture. */
 export function sectorKeyFromCnae(code: string | null | undefined): SectorImageKey {
