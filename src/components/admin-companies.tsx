@@ -98,7 +98,7 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
         <>
-          <div className="hidden overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white md:block">
+          <div className="hidden overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white lg:block">
             <table className="w-full text-sm text-[#1c2740]">
               <caption className="sr-only">{adminCopy.companiesTitle}</caption>
               <thead className="border-b border-[#eef1f4] bg-[#fafbfd] text-left text-xs text-[#667085]">
@@ -141,7 +141,7 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
               </tbody>
             </table>
           </div>
-          <ul className="grid gap-3 md:hidden">
+          <ul className="grid gap-3 lg:hidden md:grid-cols-2">
             {sorted.map((project) => (
               <li key={project.id}>
                 <CompanyCard project={project} />
