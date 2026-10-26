@@ -21,6 +21,16 @@ export function PendingActions({
 
   const emptySection = items.length === 0;
 
+  if (emptySection) {
+    // Nothing to do: a slim line instead of a big empty card at the top of Inicio.
+    return (
+      <section className="flex w-full flex-wrap items-baseline gap-x-3 gap-y-1 rounded-2xl border border-[#e7eaee] bg-white px-5 py-3">
+        <h2 className="text-base font-semibold text-[#2b3b4a]">Acciones pendientes</h2>
+        <p className="text-sm text-[#64748b]">{empty}</p>
+      </section>
+    );
+  }
+
   return (
     <section
       className={
