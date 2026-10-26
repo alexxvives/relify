@@ -52,6 +52,55 @@ export function noticeSegments(text: string): NoticeSegment[] {
     });
 }
 
+function mentions(text: string, name: string): boolean {
+  let from = text.indexOf(name);
+  while (from !== -1) {
+    const next = text.charAt(from + name.length);
+    if (!/[\p{L}\p{N}]/u.test(next)) {
+      return true;
+    }
+    from = text.indexOf(name, from + 1);
+  }
+  return false;
+}
+
+/**
+ * Which of the seller's companies a notice is about, by its codename in the title or body
+ * ("Proyecto Cala: …"). Longest codename wins so "Proyecto Cala" never claims "Proyecto Cala Norte".
+ */
+export function noticeCompanyId(
+  item: { title: string; body: string },
+  companies: readonly { id: string; codename: string }[],
+): string | null {
+  const ranked = companies
+    .map((company) => ({ id: company.id, name: company.codename.trim() }))
+    .filter((company) => company.name.length > 0)
+    .sort((a, b) => b.name.length - a.name.length);
+  return ranked.find((company) => mentions(item.title, company.name) || mentions(item.body, company.name))?.id ?? null;
+}
+
+/** Notices for the active company (plus ones about no company); other companies only count unread. */
+export function scopeNoticesToCompany<T extends { title: string; body: string; unread?: boolean }>(
+  items: readonly T[],
+  companies: readonly { id: string; codename: string }[],
+  activeId: string | null,
+): { scoped: T[]; unreadElsewhere: Record<string, number> } {
+  if (companies.length < 2 || activeId === null) {
+    return { scoped: items as T[], unreadElsewhere: {} };
+  }
+  const scoped: T[] = [];
+  const unreadElsewhere: Record<string, number> = {};
+  for (const item of items) {
+    const owner = noticeCompanyId(item, companies);
+    if (owner === null || owner === activeId) {
+      scoped.push(item);
+    } else if (item.unread === true) {
+      unreadElsewhere[owner] = (unreadElsewhere[owner] ?? 0) + 1;
+    }
+  }
+  return { scoped, unreadElsewhere };
+}
+
 export function noticesForCompany(
   codename: string,
   items: readonly { title: string; body: string; unread?: boolean }[],
@@ -62,7 +111,7 @@ export function noticesForCompany(
     return 0;
   }
 
-  return items.filter((item) => item.unread === true && (item.body.includes(name) || item.title.includes(name))).length;
+  return items.filter((item) => item.unread === true && (mentions(item.body, name) || mentions(item.title, name))).length;
 }
 
 /** Connected buyers are named; before the seller accepts they stay anonymous. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseIcon } from "@animateicons/react/lucide/briefcase-icon";
@@ -27,6 +27,8 @@ import { signOutAction } from "@/app/cuenta/actions";
 import { Logo } from "@/components/logo";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { NotificationBell } from "@/components/notification-bell";
+import { AlertDot } from "@/components/ui/badge";
+import { scopeNoticesToCompany } from "@/lib/notifications";
 import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
 import type { NotificationView } from "@/lib/notifications";
@@ -171,7 +173,7 @@ function SideLink({
       <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
       <span className="shell-label min-w-0 flex-1">{label}</span>
       {count === null || count === 0 ? (
-        alert ? <span className="shell-dot inline-flex size-2.5 shrink-0 rounded-full bg-[#d92d20]" aria-label="Hay novedades sin ver" /> : null
+        alert ? <AlertDot className="shell-dot" label="Hay novedades sin ver" /> : null
       ) : (
         <span className="shell-badge relative inline-flex shrink-0">
           <span
@@ -180,9 +182,7 @@ function SideLink({
           >
             {count > 99 ? "99+" : count}
           </span>
-          {alert ? (
-            <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-[#d92d20] ring-2 ring-white" aria-label="Hay novedades sin ver" />
-          ) : null}
+          {alert ? <AlertDot ring className="absolute -top-1 -right-1" label="Hay novedades sin ver" /> : null}
         </span>
       )}
     </Link>
@@ -194,7 +194,7 @@ export function AppFrame({
   destinations,
   title,
   showTitle = true,
-  notifications,
+  notifications: allNotifications,
   showPremium = false,
   companies = [],
   activeCompanyId = null,
@@ -216,6 +216,11 @@ export function AppFrame({
   processCount?: number;
   children: ReactNode;
 }) {
+  // Multi-company sellers: the bell and menu dots only cover the selected company.
+  const { scoped: notifications, unreadElsewhere } = useMemo(
+    () => scopeNoticesToCompany(allNotifications, companies, activeCompanyId),
+    [allNotifications, companies, activeCompanyId],
+  );
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const home = destinations[0]?.href ?? "/cuenta";
@@ -270,7 +275,7 @@ export function AppFrame({
           </div>
           {/* Row 2: the active company spans the full sidebar width. */}
           {canManageCompanies ? (
-            <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} />
+            <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} unreadElsewhere={unreadElsewhere} />
           ) : null}
         </div>
         <nav aria-label={shellCopy.navLabel} className="shell-nav flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-3">

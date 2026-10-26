@@ -7,6 +7,7 @@ import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { PlusIcon } from "@/components/ui/plus";
 import { Info } from "lucide-react";
+import { AlertDot } from "@/components/ui/badge";
 import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/mi-empresa/actions";
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
@@ -138,10 +139,13 @@ export function CompanySwitcher({
   companies,
   activeId,
   notices,
+  unreadElsewhere,
 }: {
   companies: { id: string; legalName: string; codename: string }[];
   activeId: string | null;
   notices: NotificationView[];
+  /** Unread notices per non-active company id. */
+  unreadElsewhere?: Record<string, number>;
 }) {
   const pathname = usePathname();
   const panelId = useId();
@@ -179,6 +183,9 @@ export function CompanySwitcher({
   }
 
   const currentLabel = sellerCompanyLabel(current.legalName, current.codename);
+  const unreadFor = (company: { id: string; codename: string }) =>
+    unreadElsewhere ? (unreadElsewhere[company.id] ?? 0) : noticesForCompany(company.codename, notices);
+  const elsewhere = companies.reduce((sum, company) => (company.id === current.id ? sum : sum + unreadFor(company)), 0);
 
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
@@ -190,7 +197,7 @@ export function CompanySwitcher({
         onClick={() => {
           setOpen((value) => !value);
         }}
-        className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-public-line bg-public-paper px-2.5 text-left text-public-ink transition-colors duration-150 hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
+        className="relative flex h-12 w-full items-center gap-2.5 rounded-xl border border-public-line bg-public-paper px-2.5 text-left text-public-ink transition-colors duration-150 hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
       >
         <span aria-hidden className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#465ab4] text-sm font-semibold text-white">
           {currentLabel.trim().charAt(0).toUpperCase() || "E"}
@@ -199,6 +206,7 @@ export function CompanySwitcher({
           <span className="text-xs font-medium text-public-muted">{sellerCopy.companiesCurrent}</span>
           <span className="truncate text-sm font-medium">{currentLabel}</span>
         </span>
+        {elsewhere > 0 ? <AlertDot ring className="absolute -top-1 -right-1" label={`${elsewhere} novedades en otras empresas`} /> : null}
         <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-public-muted" : "shrink-0 text-public-muted"} aria-hidden />
       </button>
       {open ? (
@@ -213,7 +221,7 @@ export function CompanySwitcher({
             {companies.map((company) => {
               const selected = company.id === current.id;
               const label = sellerCompanyLabel(company.legalName, company.codename);
-              const unread = noticesForCompany(company.codename, notices);
+              const unread = unreadFor(company);
               return (
                 <div key={company.id} className="flex items-center gap-1">
                   <form action={selectSellerCompanyAction} className="min-w-0 flex-1">
@@ -232,9 +240,7 @@ export function CompanySwitcher({
                       <CheckIcon size={16} className={selected ? "text-[#465ab4]" : "text-transparent"} aria-hidden />
                       <span className="min-w-0 flex-1 truncate">{label}</span>
                       {!selected && unread > 0 ? (
-                        <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-public-clay px-1 text-xs leading-4 font-semibold text-white">
-                          {unread > 9 ? "9+" : unread}
-                        </span>
+                        <AlertDot label={`${unread} novedades`} />
                       ) : null}
                     </button>
                   </form>

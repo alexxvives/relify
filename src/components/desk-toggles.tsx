@@ -1,5 +1,6 @@
 "use client";
 
+import { CountBadge } from "@/components/ui/badge";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
@@ -51,9 +52,7 @@ export function DeskToggles<T extends string>({
           >
             {item.label}
             {item.count && item.count > 0 && !open ? (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#465ab4] px-1.5 text-xs font-semibold text-white tabular-nums">
-                {item.count > 99 ? "99+" : item.count}
-              </span>
+              <CountBadge count={item.count} max={99} size="md" tone="brand" />
             ) : null}
             <ChevronDown aria-hidden className={`size-4 transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`} />
           </button>
