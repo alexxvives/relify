@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { unreadCount, type ThreadMessageView } from "@/lib/project-message";
+import { unreadCount, type ThreadMessageView } from "./project-message";
 
 const msg = (id: string, mine: boolean, createdAt: string): ThreadMessageView => ({ id, kind: "question", body: id, mine, createdAt });
 
