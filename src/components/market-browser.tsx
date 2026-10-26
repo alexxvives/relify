@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpDown, Check, Eye, EyeOff } from "lucide-react";
-import { setHiddenAction } from "@/app/mercado/actions";
+import { ArrowUpDown, Check } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarketCard } from "@/components/market-card";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -32,13 +31,11 @@ function isRevenueBand(value: string): value is RevenueBandId {
 export function MarketBrowser({
   projects,
   favoriteSlugs,
-  hiddenSlugs: initialHidden = [],
   heading,
   onlyFavorites = false,
 }: {
   projects: PublicProjectCard[];
   favoriteSlugs: string[];
-  hiddenSlugs?: string[];
   heading?: string;
   onlyFavorites?: boolean;
 }) {
@@ -49,40 +46,6 @@ export function MarketBrowser({
   const [sector, setSector] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState(favoriteSlugs);
-  const [hiddenSlugs, setHiddenSlugs] = useState<string[]>(initialHidden);
-  const [showHidden, setShowHidden] = useState(false);
-
-  useEffect(() => {
-    // One-time move of companies hidden in this browser before hiding was saved to the account.
-    try {
-      const stored = JSON.parse(window.localStorage.getItem(hiddenStorageKey) ?? "[]") as unknown;
-      window.localStorage.removeItem(hiddenStorageKey);
-      if (Array.isArray(stored)) {
-        const legacy = stored.filter((item): item is string => typeof item === "string" && !initialHidden.includes(item));
-        if (legacy.length > 0) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- merge legacy browser-only hides after mount
-          setHiddenSlugs((current) => [...new Set([...current, ...legacy])]);
-          for (const slug of legacy) {
-            void setHiddenAction(slug, true);
-          }
-        }
-      }
-    } catch {
-      // Ignore a corrupt or blocked store.
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
-  }, []);
-
-  function toggleHidden(slug: string) {
-    const hide = !hiddenSlugs.includes(slug);
-    setHiddenSlugs((current) => (hide ? [...current, slug] : current.filter((item) => item !== slug)));
-    void setHiddenAction(slug, hide).then((result) => {
-      if (!result.ok) {
-        setHiddenSlugs((current) => (hide ? current.filter((item) => item !== slug) : [...current, slug]));
-      }
-    });
-  }
-
   function rememberFavorite(slug: string, favorited: boolean) {
     setSavedSlugs((current) => {
       if (favorited) {
@@ -103,8 +66,7 @@ export function MarketBrowser({
     (left, right) => left[1].localeCompare(right[1], "es"),
   );
   const shown = favoritesOnly ? matched.filter((project) => savedSlugs.includes(project.slug)) : matched;
-  const hiddenCount = shown.filter((project) => hiddenSlugs.includes(project.slug)).length;
-  const visible = showHidden ? shown : shown.filter((project) => !hiddenSlugs.includes(project.slug));
+  const visible = shown;
   const regionValue = regions[0] ?? "";
 
   return (
@@ -186,21 +148,6 @@ export function MarketBrowser({
           <SortMenu value={sort} onChange={setSort} />
         </div>
       </div>
-      {hiddenCount > 0 ? (
-        <p className="-mt-2 flex items-center gap-2 text-sm text-[#5c6b78]">
-          {hiddenCount === 1 ? "1 empresa oculta." : `${hiddenCount} empresas ocultas.`}
-          <button
-            type="button"
-            aria-pressed={showHidden}
-            onClick={() => {
-              setShowHidden((current) => !current);
-            }}
-            className="rounded-md font-semibold text-[#465ab4] underline-offset-2 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-[#5c4de0]/30"
-          >
-            {showHidden ? "Ocultarlas de nuevo" : "Mostrarlas"}
-          </button>
-        </p>
-      ) : null}
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
@@ -210,16 +157,8 @@ export function MarketBrowser({
               <MarketCard
                 key={project.slug}
                 project={project}
-                muted={hiddenSlugs.includes(project.slug)}
                 actions={
                   <>
-                    <HideButton
-                      hidden={hiddenSlugs.includes(project.slug)}
-                      name={project.codename}
-                      onToggle={() => {
-                        toggleHidden(project.slug);
-                      }}
-                    />
                     <FavoriteButton
                       slug={project.slug}
                       favorited={savedSlugs.includes(project.slug)}
@@ -235,24 +174,6 @@ export function MarketBrowser({
         </div>
       )}
     </div>
-  );
-}
-
-const hiddenStorageKey = "releva:mercado:ocultas";
-
-function HideButton({ hidden, name, onToggle }: { hidden: boolean; name: string; onToggle: () => void }) {
-  const Icon = hidden ? Eye : EyeOff;
-  return (
-    <button
-      type="button"
-      aria-pressed={hidden}
-      aria-label={hidden ? `Volver a mostrar ${name}` : `Ocultar ${name}`}
-      title={hidden ? "Volver a mostrar" : "Ocultar"}
-      onClick={onToggle}
-      className="inline-flex size-11 items-center justify-center rounded-xl border border-[#e6e9f0] bg-white text-[#5c6b78] outline-none hover:text-[#1c2740] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/30"
-    >
-      <Icon className="size-4" aria-hidden />
-    </button>
   );
 }
 
