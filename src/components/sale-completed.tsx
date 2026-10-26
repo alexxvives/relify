@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, CalendarClock, CircleCheck, FolderOpen, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
+import { Archive, BadgeEuro, CalendarClock, CircleCheck, FolderOpen, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { ListAnotherCompany } from "@/components/company-switcher";
 import { ProcessRoom } from "@/components/deal-pipeline";
@@ -120,7 +120,7 @@ export function SellerSaleCompleted({
         <Stat icon={<UserRound className="size-5" aria-hidden />} label="Comprador" value={stats.buyer} />
         <Stat icon={<CalendarClock className="size-5" aria-hidden />} label="De publicación a cierre" value={days} note={`Publicada el ${stats.listedOn}`} />
         <Stat icon={<Users className="size-5" aria-hidden />} label="Interés recibido" value={interested} />
-        <Stat icon={<Receipt className="size-5" aria-hidden />} label="Success fee Relify" value={figures.fee} note={figures.feeNote} />
+        <Stat icon={<BadgeEuro className="size-5" aria-hidden />} label="Precio de venta" value={figures.price} note={`Cerrada el ${figures.date}`} />
       </dl>
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -130,7 +130,7 @@ export function SellerSaleCompleted({
             <Step
               icon={<Receipt className="size-4" aria-hidden />}
               title="Pago de la success fee"
-              body={`Te enviaremos la factura de ${figures.fee} por email. Puedes pagarla por transferencia en los próximos 30 días.`}
+              body={`Te enviaremos la factura de ${figures.fee} (${figures.feeNote}) por email. Puedes pagarla por transferencia en los próximos 30 días.`}
               action={<a href="mailto:ayuda@itsreleva.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
             />
             <Step
