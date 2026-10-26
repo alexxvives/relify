@@ -7,11 +7,11 @@ import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminAccountRow } from "@/server/listAdminAccounts";
 
-type RoleFilter = "all" | "seller" | "investor" | "advisor" | "admin" | "none";
+type RoleFilter = "all" | "seller" | "investor" | "advisor";
 type StateFilter = "all" | "active" | "suspended" | "pending";
 
 function isRoleFilter(value: string): value is RoleFilter {
-  return value === "all" || value === "seller" || value === "investor" || value === "advisor" || value === "admin" || value === "none";
+  return value === "all" || value === "seller" || value === "investor" || value === "advisor";
 }
 
 function isStateFilter(value: string): value is StateFilter {
@@ -37,11 +37,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
   const [state, setState] = useState<StateFilter>("all");
   const needle = query.trim().toLocaleLowerCase("es");
   const visible = accounts.filter((account) => {
-    if (role === "none" && account.role !== null) {
-      return false;
-    }
-
-    if (role !== "all" && role !== "none" && account.role !== role) {
+    if (role !== "all" && account.role !== role) {
       return false;
     }
 
@@ -85,8 +81,6 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
               { value: "seller", label: adminCopy.accountRoles.seller },
               { value: "investor", label: adminCopy.accountRoles.investor },
               { value: "advisor", label: adminCopy.accountRoles.advisor },
-              { value: "admin", label: adminCopy.accountRoles.admin },
-              { value: "none", label: adminCopy.roles.none },
             ]}
             onValueChange={(next) => {
               if (isRoleFilter(next)) {
