@@ -18,7 +18,7 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
       <div className="shrink-0 px-5 pt-4 sm:px-8">
         <PublicMenu signedIn={false} />
       </div>
-      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 xl:max-w-[80%] pt-3 pb-4 sm:px-10 lg:px-16 xl:px-24">
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 xl:max-w-[80%] pt-3 pb-8 sm:px-10 lg:pb-10 lg:px-16 xl:px-24">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
           <Image
             src="/auth/login-background.jpg"
@@ -33,7 +33,7 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
           />
-          <div className="relative z-10 flex h-full min-h-0 flex-col px-6 pt-5 pb-8 sm:px-8 sm:pt-5 sm:pb-10 lg:px-10 lg:pt-5 lg:pb-12">
+          <div className="relative z-10 flex h-full min-h-0 flex-col px-6 py-5 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
             <div className="relative flex flex-1 flex-col justify-center gap-8 py-4 lg:block lg:py-2">
               <section className="min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2">
                 <p className="text-base font-medium tracking-[0.22em] text-[#8aa0b2] uppercase">{authCopy.stageKicker}</p>
