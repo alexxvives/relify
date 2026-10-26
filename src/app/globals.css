@@ -210,6 +210,18 @@
   }
 }
 
+.releva-tag-marquee[data-overflow] {
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+}
+
+.releva-tag-marquee[data-overflow] .releva-tag-track {
+  animation: releva-marquee 22s linear infinite;
+}
+
+.releva-tag-marquee[data-overflow]:hover .releva-tag-track {
+  animation-play-state: paused;
+}
+
 @keyframes releva-cursor {
   0% {
     transform: translate(0, 0);
@@ -1834,6 +1846,7 @@
   .releva-float,
   .releva-float-late,
   .releva-marquee,
+  .releva-tag-marquee[data-overflow] .releva-tag-track,
   .releva-cursor,
   .releva-toast,
   .releva-app-toast,
@@ -2572,5 +2585,12 @@
   .layout-track > li {
     flex: 1 1 0;
     min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .releva-tag-marquee[data-overflow] {
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 }

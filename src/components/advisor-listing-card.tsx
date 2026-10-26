@@ -1,7 +1,7 @@
 "use client";
 
 import { VerifiedBadge } from "@/components/project-photo";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Check, Star } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
 import { AppToast } from "@/components/app-toast";
@@ -37,20 +37,44 @@ function ReviewMark({ cases }: { cases: number }) {
   );
 }
 
-function SectorTags({ sectors }: { sectors: string[] }) {
+function SectorChips({ sectors, hidden = false }: { sectors: string[]; hidden?: boolean }) {
   return (
-    <span className="mt-4 flex min-h-6 flex-nowrap items-center gap-1.5 overflow-hidden" title={sectors.join(" · ")}>
-      {sectors.slice(0, 2).map((sector) => (
-        <span key={sector} className="max-w-[45%] truncate rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 text-white">
+    <span className="flex shrink-0 items-center gap-1.5 pr-1.5" aria-hidden={hidden || undefined}>
+      {sectors.map((sector) => (
+        <span key={sector} className="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 whitespace-nowrap text-white">
           {sector}
         </span>
       ))}
-      {sectors.length > 2 ? (
-        <span className="shrink-0 rounded-full bg-white/25 px-2 py-1 text-xs leading-4 font-semibold text-white">
-          +{sectors.length - 2}
-          <span className="sr-only">: {sectors.slice(2).join(", ")}</span>
+    </span>
+  );
+}
+
+function SectorTags({ sectors }: { sectors: string[] }) {
+  const boxRef = useRef<HTMLSpanElement>(null);
+  const rowRef = useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = useState(false);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    const row = rowRef.current;
+    if (!box || !row) {
+      return;
+    }
+    const measure = () => setOverflow(row.scrollWidth > box.clientWidth + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [sectors]);
+
+  return (
+    <span ref={boxRef} className="releva-tag-marquee mt-4 flex min-h-6 overflow-hidden" title={sectors.join(" · ")} data-overflow={overflow || undefined}>
+      <span className="releva-tag-track flex w-max">
+        <span ref={rowRef} className="flex">
+          <SectorChips sectors={sectors} />
         </span>
-      ) : null}
+        {overflow ? <SectorChips sectors={sectors} hidden /> : null}
+      </span>
     </span>
   );
 }
