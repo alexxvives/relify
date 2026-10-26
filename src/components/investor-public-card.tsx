@@ -16,11 +16,10 @@ export function InvestorPublicCard({
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.35)]">
-      <div className="bg-[#1c2740] px-6 pt-5 pb-14">
-        <p className="text-xs font-semibold text-white/70">Perfil del inversor</p>
-        <h2 className="mt-2 truncate text-xl font-semibold text-white">{label}</h2>
+      <div className="relative bg-[#1c2740] px-6 pt-5 pb-14">
+        <h2 className="truncate text-xl font-semibold text-white">{label}</h2>
         {profile?.place ? (
-          <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
+          <p className="absolute right-6 bottom-3 flex max-w-[55%] items-center gap-1 text-sm text-white/80">
             <MapPin className="size-3.5 shrink-0" aria-hidden />
             <span className="truncate">{profile.place}</span>
           </p>
