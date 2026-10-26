@@ -198,21 +198,20 @@ export function CompanySwitcher({
         onClick={() => {
           setOpen((value) => !value);
         }}
-        className="relative flex h-12 w-full items-center gap-2.5 rounded-xl border border-public-line bg-public-paper px-2.5 text-left text-public-ink transition-colors duration-150 hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
+        aria-label={`${sellerCopy.companiesCurrent}: ${currentLabel}`}
+        className="relative flex h-11 w-full items-center gap-3 rounded-xl border border-white/10 bg-[#222839] px-3 text-left text-white transition-colors duration-150 hover:bg-[#2a3146] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2fc4b2]"
       >
-        <span aria-hidden className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#465ab4] text-sm font-semibold text-white">
-          {currentLabel.trim().charAt(0).toUpperCase() || "E"}
+        <span aria-hidden className="relative inline-flex size-2.5 shrink-0">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#34d399] opacity-75 motion-reduce:animate-none" />
+          <span className="relative inline-flex size-2.5 rounded-full bg-[#34d399]" />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="text-xs font-medium text-public-muted">{sellerCopy.companiesCurrent}</span>
-          <span className="truncate text-sm font-medium">{currentLabel}</span>
-        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">{currentLabel}</span>
         {pendingTotal > 0 ? (
           <CountBadge count={pendingTotal} ring className="absolute -top-2 -right-2" label={`${pendingTotal} acciones pendientes`} />
         ) : elsewhere > 0 ? (
           <AlertDot ring className="absolute -top-1 -right-1" label={`${elsewhere} novedades en otras empresas`} />
         ) : null}
-        <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-public-muted" : "shrink-0 text-public-muted"} aria-hidden />
+        <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-[#aeb6c7]" : "shrink-0 text-[#aeb6c7]"} aria-hidden />
       </button>
       {open ? (
         <div
