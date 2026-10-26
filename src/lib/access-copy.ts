@@ -3,6 +3,8 @@ export const accessCopy = {
   requestBody: "Pide acceso a este proyecto. La ficha que ya ves no cambia.",
   requestAction: "Solicitar acceso",
   connect: "Conectar",
+  profileRequired: "Completa tu perfil de comprador para poder conectar: el vendedor necesita saber quién eres, tu ticket, sectores y cómo inviertes.",
+  profileRequiredAction: "Completar mi perfil",
   pending: "Solicitud enviada",
   connected: "Conectado",
   ndaHeading: "Acuerdo de confidencialidad",

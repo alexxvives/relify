@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Link2 } from "lucide-react";
+import { Link2, UserRound } from "lucide-react";
 import { AgreementSheet } from "@/components/agreement-sheet";
 import { SignBubble } from "@/components/deal-pipeline";
 import { useModalScrollLock } from "@/components/file-preview-dialog";
@@ -73,6 +73,7 @@ export function ConnectControl({
   status,
   plan,
   matchesLeft,
+  profileComplete = true,
   title = "",
   align = "end",
 }: {
@@ -80,6 +81,7 @@ export function ConnectControl({
   status: ProjectAccessView;
   plan: BuyerPlanName;
   matchesLeft: number | null;
+  profileComplete?: boolean;
   title?: string;
   align?: "end" | "center";
 }) {
@@ -99,6 +101,18 @@ export function ConnectControl({
         <Link2 className="size-4" aria-hidden />
         {billingCopy.seePlans}
       </Link>
+    );
+  }
+
+  if (!profileComplete) {
+    return (
+      <div className={`${stack} max-w-xs`} role="note">
+        <p className={align === "center" ? "text-center text-sm leading-6 text-[#5c6b78]" : "text-right text-sm leading-6 text-[#5c6b78]"}>{accessCopy.profileRequired}</p>
+        <Link href="/inversor/perfil" className={buttonClassName}>
+          <UserRound className="size-4" aria-hidden />
+          {accessCopy.profileRequiredAction}
+        </Link>
+      </div>
     );
   }
 

@@ -47,6 +47,7 @@ export function InvestorProject({
   buyerName,
   dateLabel,
   matchesLeft,
+  profileComplete = true,
   initialTab = "company",
   accessId,
   cover = null,
@@ -64,6 +65,7 @@ export function InvestorProject({
   buyerName: string;
   dateLabel: string;
   matchesLeft: number | null;
+  profileComplete?: boolean;
   initialTab?: "company" | "questions" | "meetings";
   accessId: string;
   cover?: { src: string; ai: boolean } | null;
@@ -79,7 +81,7 @@ export function InvestorProject({
   };
   const figureAction =
     access === "none" ? (
-      <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} align="center" />
+      <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
     ) : access === "requested" ? (
       <Link
         href="/procesos"
@@ -119,7 +121,7 @@ export function InvestorProject({
         }
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
-        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />
+        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
       </CompanyBanner>
 
       {access === "accepted" && signedOffer ? (
@@ -147,7 +149,7 @@ export function InvestorProject({
           ) : access === "requested" ? (
             <LockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
           ) : locked ? (
-            <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />} />
+            <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />} />
           ) : (
             <section className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -184,7 +186,7 @@ export function InvestorProject({
           ) : locked ? (
             <LockedNote
               text={companyCopy.threadLocked}
-              action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} title={project.codename} />}
+              action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />}
             />
           ) : (
             <MeetingDesk
@@ -219,19 +221,21 @@ function LockedWriteAction({
   access,
   plan,
   matchesLeft,
+  profileComplete,
   title,
 }: {
   slug: string;
   access: ProjectAccessView;
   plan: BuyerPlanName;
   matchesLeft: number | null;
+  profileComplete: boolean;
   title: string;
 }) {
   if (access === "awaiting-seller") {
     return <ProcessLink />;
   }
 
-  return <ConnectControl slug={slug} status={access} plan={plan} matchesLeft={matchesLeft} title={title} />;
+  return <ConnectControl slug={slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={title} />;
 }
 
 function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {

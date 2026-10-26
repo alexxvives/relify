@@ -18,6 +18,7 @@ import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { buyerMatchBudget } from "@/server/buyerPlan";
+import { buyerProfileComplete } from "@/server/investorProfile";
 import { getInvestorProject } from "@/server/getInvestorProject";
 import { getProjectAccess } from "@/server/getProjectAccess";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
@@ -101,13 +102,14 @@ async function InvestorProjectContent({
   if (!profile) {
     notFound();
   }
-  const [published, access, favorites, messages, billing] = await Promise.all([
+  const [published, access, favorites, messages, billing, profileComplete] = await Promise.all([
     // Recorded alongside the reads so the Worker doesn't drop the write after responding.
     recordProjectView(user.id, slug).then(() => listPublicProjects()),
     getProjectAccess(user, slug),
     listFavoriteSlugs(user.id),
     listProjectMessages(user, slug),
     buyerMatchBudget(user.id),
+    buyerProfileComplete(user.id, user.email),
   ]);
   if (sold && access === "none") {
     return <SoldNotice codename={profile.codename} />;
@@ -127,6 +129,7 @@ async function InvestorProjectContent({
       buyerName={user.displayName}
       dateLabel={spanishDate(new Date())}
       matchesLeft={billing.remaining}
+      profileComplete={profileComplete}
       initialTab={readTab(tab)}
       accessId={messages.threads[0]?.accessId ?? ""}
       cover={cover}

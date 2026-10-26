@@ -3,6 +3,7 @@ import { accessCopy } from "@/lib/access-copy";
 import { accessRequestedNotice, incomingAccessNotice } from "@/lib/notifications";
 import { accessMessage, requestAccessOutcome, type ProjectAccessInput } from "@/lib/project-access";
 import { buyerMatchSlot } from "@/server/buyerPlan";
+import { buyerProfileComplete } from "@/server/investorProfile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -10,6 +11,10 @@ import { recordNotification } from "@/server/recordNotification";
 export type ProjectAccessResult = { ok: true } | { ok: false; message: string };
 
 export async function requestProjectAccess(user: CurrentUser, input: ProjectAccessInput): Promise<ProjectAccessResult> {
+  if (!(await buyerProfileComplete(user.id, user.email))) {
+    return { ok: false, message: accessCopy.profileRequired };
+  }
+
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
     select: { id: true, status: true, codename: true, ownerId: true, slug: true, successFee: { select: { id: true } } },

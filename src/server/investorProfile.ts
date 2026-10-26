@@ -1,3 +1,4 @@
+import { investorProfileIsComplete } from "@/lib/investor-profile-complete";
 import { createHash } from "node:crypto";
 import type { InvestorProfileDraft, PublicInvestorCard } from "@/lib/demo-profile";
 import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
@@ -170,4 +171,8 @@ export async function saveInvestorProfile(user: CurrentUser, input: InvestorProf
   });
 
   return { ok: true };
+}
+
+export async function buyerProfileComplete(userId: string, email: string): Promise<boolean> {
+  return investorProfileIsComplete(await loadInvestorDraft(userId, email));
 }
