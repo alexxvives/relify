@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Briefcase, Check, FileText, Layers, User } from "lucide-react";
+import { Briefcase, Check, CircleCheck, FileText, Layers, ShieldCheck, User, UserPlus, Wallet, type LucideIcon } from "lucide-react";
+import { ActivityTiles, type ActivityTile } from "@/components/activity-tiles";
 import { CompletionMeter } from "@/components/completion-meter";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { PendingActions } from "@/components/pending-actions";
@@ -17,35 +18,13 @@ const stepLabel: Record<AdvisorStep, string> = {
   closed: advisorCopy.stepClosed,
 };
 
-const stepTones = [
-  "border-[#f3c9c4] bg-[#fdf0ee] text-[#a32d23]",
-  "border-[#f0d7a8] bg-[#fff6e8] text-[#9a5b12]",
-  "border-[#c9d6f5] bg-[#eef3ff] text-[#465ab4]",
-  "border-[#b7e4dc] bg-[#e7f7f4] text-[#0e7c6b]",
-  "border-[#c6e6d0] bg-[#eef8f1] text-[#17663a]",
-] as const;
-
-function StepCards({
-  rows,
-}: {
-  rows: { label: string; value: number; href: string }[];
-}) {
-  return (
-    <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
-      {rows.map((row, index) => (
-        <li key={row.label}>
-          <Link
-            href={row.href}
-            className={`flex h-full flex-col rounded-2xl border px-4 py-5 transition duration-300 hover:-translate-y-0.5 ${stepTones[index] ?? stepTones[0]}`}
-          >
-            <span className="text-4xl font-semibold tracking-tight tabular-nums">{row.value}</span>
-            <span className="mt-2 text-sm font-medium">{row.label}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
+const stepLook: Record<AdvisorStep, { icon: LucideIcon; tone: ActivityTile["tone"] }> = {
+  request: { icon: UserPlus, tone: "sky" },
+  deposit: { icon: Wallet, tone: "amber" },
+  nda: { icon: ShieldCheck, tone: "emerald" },
+  active: { icon: Briefcase, tone: "indigo" },
+  closed: { icon: CircleCheck, tone: "orange" },
+};
 
 const checklist = [
   { key: "identity", label: advisorCopy.profileIdentity, href: "/mis-servicios", icon: User },
@@ -72,19 +51,24 @@ export function AdvisorHome({
   }));
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
   const profileComplete = filled === checklist.length;
+  const totalEngagements = desk.steps.reduce((sum, step) => sum + step.count, 0);
 
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
-          <StepCards
-            rows={desk.steps
-              .map((step) => ({
-                label: stepLabel[step.step],
-                value: step.count,
-                href: step.href,
-              }))}
+          <ActivityTiles
+            columns="md:grid-cols-3 2xl:grid-cols-5"
+            tiles={desk.steps.map((step) => ({
+              label: stepLabel[step.step],
+              value: step.count,
+              icon: stepLook[step.step].icon,
+              tone: stepLook[step.step].tone,
+              ratio: totalEngagements > 0 ? step.count / totalEngagements : 0,
+              caption: `${step.count} de ${totalEngagements} encargos`,
+              href: step.href,
+            }))}
           />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">

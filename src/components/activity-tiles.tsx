@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
 export type ActivityTile = {
@@ -10,6 +11,8 @@ export type ActivityTile = {
   ratio: number;
   /** Small caption under the bar, e.g. "3 de 5 procesos". */
   caption: string;
+  /** Optional: the whole card links here. */
+  href?: string;
 };
 
 const tones = {
@@ -20,6 +23,26 @@ const tones = {
   orange: { chip: "bg-[#fdf1e8] text-[#c25e22]", bar: "bg-[#e07a3e]" },
 } as const;
 
+const cardClass = "flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4";
+
+function TileBody({ tile, tone, pct }: { tile: ActivityTile; tone: (typeof tones)[keyof typeof tones]; pct: number }) {
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>
+          <tile.icon className="size-[18px]" aria-hidden />
+        </span>
+        <p className="min-w-0 flex-1 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
+        <p className="shrink-0 text-2xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6]" role="presentation">
+        <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-2 text-[11px] leading-4 text-[#8a94a6]">{tile.caption}</p>
+    </>
+  );
+}
+
 export function ActivityTiles({ tiles, columns = "lg:grid-cols-4" }: { tiles: ActivityTile[]; columns?: string }) {
   return (
     <ul className={`mt-4 grid grid-cols-2 gap-3 ${columns}`}>
@@ -27,18 +50,16 @@ export function ActivityTiles({ tiles, columns = "lg:grid-cols-4" }: { tiles: Ac
         const tone = tones[tile.tone];
         const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);
         return (
-          <li key={tile.label} className="flex flex-col rounded-2xl border border-[#e7eaee] bg-white p-4">
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>
-                <tile.icon className="size-[18px]" aria-hidden />
-              </span>
-              <p className="min-w-0 flex-1 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
-              <p className="shrink-0 text-2xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
-            </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6]" role="presentation">
-              <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
-            </div>
-            <p className="mt-2 text-[11px] leading-4 text-[#8a94a6]">{tile.caption}</p>
+          <li key={tile.label} className="flex">
+            {tile.href ? (
+              <Link href={tile.href} className={`${cardClass} transition duration-300 hover:-translate-y-0.5 hover:border-[#c9d2f5]`}>
+                <TileBody tile={tile} tone={tone} pct={pct} />
+              </Link>
+            ) : (
+              <div className={cardClass}>
+                <TileBody tile={tile} tone={tone} pct={pct} />
+              </div>
+            )}
           </li>
         );
       })}
