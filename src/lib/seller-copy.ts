@@ -2,6 +2,7 @@ export const sellerCopy = {
   homeTitle: "Inicio",
   detailsTitle: "Detalles de empresa",
   documentsTitle: "Mis documentos",
+  documentsNote: "Prepara aquí tu dataroom. Nadie lo ve hasta que lo compartes con un inversor (tras su NDA) o con tu asesor.",
   processesTitle: "Mis procesos",
   servicesTitle: "Solicitar servicios",
   trendsTitle: "Tendencias",

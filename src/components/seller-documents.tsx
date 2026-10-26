@@ -424,7 +424,7 @@ function FolderCard({
   }
 
   return (
-    <li className="relative">
+    <li className="group/folder relative">
       {editing ? (
         <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-4">
           <input type="hidden" name="from" value={name} />
@@ -480,8 +480,8 @@ function FolderCard({
               </span>
             ) : null}
           </button>
-          <div className="absolute top-3 left-3">{share}</div>
-          <div className="absolute top-3 right-3 flex items-center">
+          <div className="absolute top-3 left-3 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">{share}</div>
+          <div className="absolute top-3 right-3 flex items-center transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">
             <button
               type="button"
               aria-label={sellerCopy.folderRename}
@@ -627,7 +627,8 @@ export function SellerDocuments({
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
         <>
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-2xl text-sm leading-6 text-[#5c6b78]">{sellerCopy.documentsNote}</p>
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
