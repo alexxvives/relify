@@ -104,3 +104,38 @@ export function CountDonut({
     </div>
   );
 }
+
+/** Horizontal bar list: easier to compare 3–5 counts than a donut and half the height. */
+export function CountBars({
+  rows,
+  palette,
+}: {
+  rows: { label: string; value: number }[];
+  palette: DonutPalette;
+}) {
+  const colors = donutPalettes[palette];
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  const max = Math.max(1, ...rows.map((row) => row.value));
+
+  return (
+    <ul className="mt-4 flex flex-col gap-3">
+      {rows.map((row) => {
+        const share = total === 0 ? 0 : Math.round((row.value / total) * 100);
+        return (
+          <li key={row.label} className="flex flex-col gap-1.5">
+            <span className="flex items-baseline justify-between gap-3 text-sm">
+              <span className="min-w-0 truncate text-[#3d4a63]">{row.label}</span>
+              <span className="shrink-0 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
+                {row.value}
+                <span className="ml-2 font-medium text-[#667085]">{share} %</span>
+              </span>
+            </span>
+            <span className="h-2 w-full overflow-hidden rounded-full bg-[#eef1f6]" aria-hidden>
+              <span className="block h-full rounded-full" style={{ width: `${(row.value / max) * 100}%`, backgroundColor: colors[1] }} />
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

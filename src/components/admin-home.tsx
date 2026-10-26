@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from "lucide-react";
-import { CountDonut, type DonutPalette } from "@/components/admin-charts";
+import { CountBars, type DonutPalette } from "@/components/admin-charts";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { adminCopy } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/money";
@@ -111,7 +111,7 @@ function ChartLink({
           </p>
         </div>
       </div>
-      {total === 0 ? <p className="mt-4 text-sm text-[#667085]">{adminCopy.empty}</p> : <CountDonut rows={rows} palette={palette} />}
+      {total === 0 ? <p className="mt-4 text-sm text-[#667085]">{adminCopy.empty}</p> : <CountBars rows={rows} palette={palette} />}
     </Link>
   );
 }
