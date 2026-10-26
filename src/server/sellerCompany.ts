@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { uniqueCodename } from "@/server/uniqueCodename";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { projectSlug } from "@/lib/company-draft";
 import { companyCopy } from "@/lib/company-copy";
 import type { RegistryCompany } from "@/lib/company-registry";
@@ -84,7 +85,13 @@ export async function sellerProcessScope(ownerId: string): Promise<{ codename: s
   };
 }
 
-export async function activeSellerProjectId(ownerId: string): Promise<string | null> {
+/**
+ * Active company for this request. Memoised per request with React `cache`:
+ * the shell, sidebar badges and page all ask for it.
+ */
+export const activeSellerProjectId = cache(resolveActiveSellerProjectId);
+
+async function resolveActiveSellerProjectId(ownerId: string): Promise<string | null> {
   const companies = await prisma.project.findMany({
     where: { ownerId },
     orderBy: { createdAt: "asc" },
@@ -279,7 +286,7 @@ export async function deleteSellerCompany(
     await prisma.companyRegistryPrefill.delete({ where: { userId: user.id } });
   }
 
-  const next = await activeSellerProjectId(user.id);
+  const next = await resolveActiveSellerProjectId(user.id);
 
   if (next) {
     await rememberCompany(next);

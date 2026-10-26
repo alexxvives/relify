@@ -8,6 +8,7 @@ import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
+import { projectSold } from "@/server/saleOutcome";
 import { getSellerOverview } from "@/server/getSellerOverview";
 import { withoutOwnCompany } from "@/lib/notifications";
 import { listNotifications } from "@/server/listNotifications";
@@ -49,11 +50,11 @@ async function CompanyPageContent({
     listCancelledProcesses(user),
   ]);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [interests, questions, meetings, fee, own] = await Promise.all([
+  const [interests, questions, meetings, sold, own] = await Promise.all([
     prisma.projectAccess.count({ where: { project: projectScope } }),
     prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
     prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
-    projectId ? prisma.successFee.findUnique({ where: { projectId }, select: { id: true } }) : Promise.resolve(null),
+    projectId ? projectSold(projectId) : Promise.resolve(false),
     projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true } }) : Promise.resolve(null),
   ]);
 
@@ -61,7 +62,7 @@ async function CompanyPageContent({
     <>
       {nifVerified ? null : <CompanyNifDialog />}
       <SellerOverview
-        sold={fee !== null}
+        sold={sold}
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}

@@ -1,7 +1,14 @@
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { shortNickname } from "@/lib/nickname";
 import { personName } from "@/lib/project-message";
+import { cache } from "react";
 import { prisma } from "@/server/db";
+
+/** Whether a company has a closed sale (success fee). Memoised per request. */
+export const projectSold = cache(async (projectId: string): Promise<boolean> => {
+  const fee = await prisma.successFee.findUnique({ where: { projectId }, select: { id: true } });
+  return fee !== null;
+});
 
 export type SaleSummary = {
   codename: string;

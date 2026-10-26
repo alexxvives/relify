@@ -4,11 +4,10 @@ import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { SignerProvider } from "@/components/signer-context";
 import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } from "@/lib/shell";
-import { hasCompletedPurchase } from "@/server/saleOutcome";
+import { hasCompletedPurchase, projectSold } from "@/server/saleOutcome";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
 import { menuProcessCount } from "@/server/menuProcessCount";
-import { prisma } from "@/server/db";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
 export async function AppShell({
@@ -33,17 +32,17 @@ export async function AppShell({
     redirect("/onboarding");
   }
 
-  const [notifications, companies, activeCompanyId, processCount, purchased] = await Promise.all([
+  const [notifications, companies, activeCompanyId, processCount, purchased, sold] = await Promise.all([
     listNotifications(user.id),
     user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
     user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
     menuProcessCount(user),
     user.role === "investor" ? hasCompletedPurchase(user.id) : Promise.resolve(false),
+    user.role === "seller"
+      ? activeSellerProjectId(user.id).then((id) => (id ? projectSold(id) : false))
+      : Promise.resolve(false),
   ]);
 
-  const sold = activeCompanyId
-    ? (await prisma.successFee.findUnique({ where: { projectId: activeCompanyId }, select: { id: true } })) !== null
-    : false;
   const destinations = destinationsForRole(user.role);
   if (user.role === "seller" && sold) {
     destinations.push(saleClosedDestination);
