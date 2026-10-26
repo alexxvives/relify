@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { formatCardEur, recoveryTone, recoveryYears } from "@/lib/money";
+import { shortNickname } from "@/lib/nickname";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -123,7 +124,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
               href={href}
               className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
             >
-              <span className="block truncate">{project.codename}</span>
+              <span className="block truncate">{shortNickname(project.codename)}</span>
             </Link>
           </h3>
           {sectorName ? (
