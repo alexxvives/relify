@@ -78,7 +78,7 @@ async function CompanyPageContent({
           "seller",
           messages.threads.map((thread) => ({
             id: thread.accessId,
-            who: thread.codename.length > 0 ? `${thread.label} · ${thread.codename}` : thread.label,
+            who: thread.label,
             href: "/mi-empresa/procesos",
             steps: thread.steps,
           })),
