@@ -18,14 +18,6 @@ function isStateFilter(value: string): value is StateFilter {
   return value === "all" || value === "active" || value === "suspended" || value === "pending";
 }
 
-function accountRoleLabel(role: string | null): string {
-  if (role === "seller" || role === "investor" || role === "advisor" || role === "admin") {
-    return adminCopy.accountRoles[role];
-  }
-
-  return adminCopy.roles.none;
-}
-
 function initialOf(name: string): string {
   const letter = name.trim().charAt(0);
   return letter.length > 0 ? letter.toLocaleUpperCase("es-ES") : "?";
@@ -142,16 +134,6 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
             </p>
           ) : null}
           <ul className="mt-2 flex flex-wrap gap-1.5">
-            <li className="rounded-full bg-[#eef2ff] px-2.5 py-1 text-xs font-medium text-[#163a8a]">{accountRoleLabel(account.role)}</li>
-            <li
-              className={
-                account.onboarded
-                  ? "rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-medium text-[#17663a]"
-                  : "rounded-full bg-[#fff4d6] px-2.5 py-1 text-xs font-medium text-[#8a6112]"
-              }
-            >
-              {account.onboarded ? adminCopy.onboarded : adminCopy.pendingOnboarding}
-            </li>
             {account.suspended ? (
               <li className="rounded-full bg-[#fdeeee] px-2.5 py-1 text-xs font-medium text-[#8d2424]">{adminCopy.suspendedBadge}</li>
             ) : null}
