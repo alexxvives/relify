@@ -6,7 +6,7 @@ import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
@@ -271,12 +271,14 @@ function FigureField({
   value,
   onChange,
   locked = false,
+  corner = null,
 }: {
   label: string;
   name: string;
   value: string;
   onChange?: (next: string) => void;
   locked?: boolean;
+  corner?: ReactNode;
 }) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -285,32 +287,41 @@ function FigureField({
   const editable = !locked && onChange !== undefined;
 
   return (
-    <label className="flex min-w-0 flex-col items-center gap-2 text-center">
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085]">
-        {label}
-        {editable ? (
+    <MetricTile
+      label={label}
+      corner={corner}
+      action={
+        editable ? (
           <button
             type="button"
             aria-label={`Editar ${label}`}
+            title={`Editar ${label}`}
             onClick={() => {
               inputRef.current?.focus();
+              inputRef.current?.select();
             }}
-            className="inline-flex h-8 items-center gap-1 rounded-full border border-[#d5dcf5] px-2.5 text-sm font-medium text-[#465ab4] hover:bg-[#eef2ff]"
+            className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
           >
             <Pencil className="size-3.5" aria-hidden />
-            Editar
           </button>
-        ) : null}
-      </span>
+        ) : locked ? (
+          <span title="Dato de tus cuentas anuales" className="inline-flex size-7 shrink-0 items-center justify-center text-[#98a2b3]">
+            <Lock className="size-3.5" aria-hidden />
+            <span className="sr-only">Dato de tus cuentas anuales</span>
+          </span>
+        ) : null
+      }
+    >
       <input type="hidden" name={name} value={value} />
       {editable ? (
-        <span className="inline-flex max-w-full items-baseline justify-center gap-1.5">
+        <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
           <input
             ref={inputRef}
             inputMode="decimal"
+            aria-label={label}
             value={shown}
             placeholder="0"
-            className="field-sizing-content max-w-full min-w-[6rem] rounded-lg border border-[#c5cdd8] bg-white px-2 py-1 text-center text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none focus:border-[#465ab4]"
+            className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
             onFocus={() => {
               setEditing(true);
             }}
@@ -321,15 +332,39 @@ function FigureField({
               onChange(keepUnsignedEuro(event.target.value));
             }}
           />
-          <span className="text-sm font-medium text-[#667085]">€</span>
+          <span className="text-2xl font-semibold text-[#1c2740]">€</span>
         </span>
       ) : (
-        <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
-          {amount}
-          <span className="ml-1 text-sm font-medium text-[#667085]">€</span>
+        <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+          {amount === "—" ? amount : `${amount}\u00a0€`}
         </span>
       )}
-    </label>
+    </MetricTile>
+  );
+}
+
+function MetricTile({
+  label,
+  action = null,
+  corner = null,
+  children,
+}: {
+  label: string;
+  action?: ReactNode;
+  corner?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative flex min-h-[6.5rem] min-w-0 flex-col justify-between gap-3 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <div className="flex min-h-7 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1">
+          <span className="truncate text-sm font-semibold text-[#667085]">{label}</span>
+          {action}
+        </div>
+        {corner ? <div className="-mr-1 shrink-0">{corner}</div> : null}
+      </div>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
 }
 
@@ -364,42 +399,16 @@ function FichaMetrics({
   margin: string;
   priceStatus?: ReactNode;
 }) {
-  const cells = [
-    {
-      id: "asking-price",
-      frame: metricCellFrame(0),
-      node: (
-        <div className="flex min-w-0 flex-col items-center">
-          <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} />
-          {priceStatus}
-        </div>
-      ),
-    },
-    {
-      id: "margin",
-      frame: metricCellFrame(1),
-      node: (
-        <div className="flex min-w-0 flex-col items-center gap-2 text-center">
-          <span className="text-xs font-semibold text-[#667085]">{companyCopy.ebitdaMarginLabel}</span>
-          <span className="text-xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
-        </div>
-      ),
-    },
-    { id: "revenue", frame: metricCellFrame(2), node: <FigureField label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} /> },
-    { id: "ebitda", frame: metricCellFrame(3), node: <FigureField label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} /> },
-    { id: "adjusted", frame: metricCellFrame(4), node: <FigureField label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} /> },
-    { id: "opex", frame: metricCellFrame(5), node: <FigureField label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} /> },
-  ];
-
   return (
-    <div className="mt-6 rounded-3xl border border-[#e7eaee] bg-white">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3">
-        {cells.map((cell) => (
-          <div key={cell.id} className={`border-[#eef0f3] p-4 ${cell.frame}`}>
-            {cell.node}
-          </div>
-        ))}
-      </div>
+    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} />
+      <MetricTile label={companyCopy.ebitdaMarginLabel}>
+        <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+      </MetricTile>
+      <FigureField label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} />
+      <FigureField label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} />
+      <FigureField label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} />
+      <FigureField label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} />
     </div>
   );
 }
@@ -425,9 +434,9 @@ function wholeEur(cents: number): string {
 }
 
 const standingCopy = {
-  below: { text: "Por debajo del rango", className: "bg-[#eef1fb] text-[#465ab4]" },
-  within: { text: "Dentro del rango", className: "bg-[#e8f6ee] text-[#17663a]" },
-  above: { text: "Por encima del rango", className: "bg-[#fff4e0] text-[#8a5300]" },
+  below: { text: "Por debajo del rango", short: "Bajo rango", className: "bg-[#eef1fb] text-[#465ab4]" },
+  within: { text: "Dentro del rango", short: "En rango", className: "bg-[#e8f6ee] text-[#17663a]" },
+  above: { text: "Por encima del rango", short: "Sobre rango", className: "bg-[#fff4e0] text-[#8a5300]" },
 } as const;
 
 /** Suggested price as a status pill under the price input; the range and the why live in a popover. */
@@ -438,7 +447,7 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
   const standing = estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
   return (
     <div
-      className="relative mt-2 flex justify-center"
+      className="relative"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -448,17 +457,18 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
         aria-controls="price-guide"
         onClick={() => setPinned((value) => !value)}
         onBlur={() => setPinned(false)}
-        className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
+        className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] leading-none font-semibold whitespace-nowrap ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
       >
-        {standing ? standing.text : estimate ? `Rango ${wholeEur(estimate.lowCents)} – ${wholeEur(estimate.highCents)}` : "Precio orientativo"}
-        <Info className="size-4 shrink-0" aria-hidden />
-        <span className="sr-only">Ver rango de precio orientativo</span>
+        <span className="sm:hidden">{standing ? standing.short : "Rango"}</span>
+        <span className="hidden sm:inline">{standing ? standing.text : "Rango orientativo"}</span>
+        <Info className="size-3 shrink-0" aria-hidden />
+        <span className="sr-only">{standing ? standing.text : ""} · Ver rango de precio orientativo</span>
       </button>
       {shown ? (
         <div
           id="price-guide"
           role="tooltip"
-          className="absolute top-full z-30 mt-2 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
+          className="absolute top-full right-0 z-30 mt-2 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
         >
           {estimate ? (
             <>
@@ -477,15 +487,6 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
       ) : null}
     </div>
   );
-}
-
-function metricCellFrame(index: number): string {
-  const bottom = index < 5 ? "border-b" : "";
-  const pairRight = index % 2 === 0 ? "sm:border-r" : "";
-  const pairBottom = index >= 4 ? "sm:border-b-0" : "";
-  const tripleRight = index % 3 === 2 ? "lg:border-r-0" : "lg:border-r";
-  const tripleBottom = index >= 3 ? "lg:border-b-0" : "";
-  return [bottom, pairRight, pairBottom, tripleRight, tripleBottom].filter((part) => part.length > 0).join(" ");
 }
 
 function SaveButton({
