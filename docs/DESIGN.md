@@ -30,6 +30,7 @@ Full rule text: `.cursor/skills/ui-ux-pro-max/references/quick-reference.md`; pr
 | Public (marketing) ink / paper | `public-ink #12343a`, `public-paper #e5eef0` |
 | Public primary (clay) | `public-clay #0f6e73`, hover `public-clay-deep #0b5559` |
 | Seller CTA | `#0c7c78` |
+| App primary button (signed-in pages) | `#465ab4`; every other button is secondary (white, `border-[#e1e6ee]`). Green `#17663a` only for sign/accept steps; teal `public-clay` only on public pages. |
 | Fonts | DM Sans (UI, `font-sans`), Instrument Serif (public display only) |
 | Radius | cards `rounded-2xl`/`rounded-3xl`, buttons and chips `rounded-full` |
 

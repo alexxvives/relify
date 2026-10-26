@@ -305,7 +305,7 @@ export function AppFrame({
               <div className="mt-3 grid gap-2">
                 <a
                   href={shellCopy.helpPhoneHref}
-                  className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-public-clay px-3 text-sm font-medium text-white hover:bg-public-clay-deep"
+                  className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-sm font-medium text-public-ink hover:bg-white"
                 >
                   <PhoneIcon size={16} aria-hidden />
                   {shellCopy.helpCall} {shellCopy.helpPhone}
