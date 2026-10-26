@@ -390,7 +390,29 @@ function FileDelete({ id }: { id: string }) {
   );
 }
 
-function FolderCard({ name, count, onOpen, share }: { name: string; count: number; onOpen: () => void; share: ReactNode }) {
+function latestUpload(files: readonly OwnerFileView[]): string | null {
+  return files.reduce<string | null>((latest, file) => (file.uploadedAt && (!latest || file.uploadedAt > latest) ? file.uploadedAt : latest), null);
+}
+
+function folderDate(iso: string): string {
+  return `act. ${new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "short", timeZone: "Europe/Madrid" })}`;
+}
+
+function FolderCard({
+  name,
+  count,
+  updatedAt = null,
+  viewers = 0,
+  onOpen,
+  share,
+}: {
+  name: string;
+  count: number;
+  updatedAt?: string | null;
+  viewers?: number;
+  onOpen: () => void;
+  share: ReactNode;
+}) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(name);
   const [state, action, pending] = useActionState(renameDataRoomFolderAction, null);
@@ -446,9 +468,17 @@ function FolderCard({ name, count, onOpen, share }: { name: string; count: numbe
             onClick={onOpen}
             className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
           >
-            <FolderOpenIcon size={64} className="text-[#d5dbe3]" aria-hidden />
+            <FolderOpenIcon size={64} className={count > 0 ? "text-[#8f9bd6]" : "text-[#d5dbe3]"} aria-hidden />
             <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
-            <span className="mt-1 text-xs text-[#667085]">{documentCountLabel(count)}</span>
+            <span className="mt-1 text-xs text-[#667085]">
+              {documentCountLabel(count)}
+              {updatedAt ? ` · ${folderDate(updatedAt)}` : ""}
+            </span>
+            {viewers > 0 ? (
+              <span className="mt-2 rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#157a45]">
+                {viewers === 1 ? "Visible para 1 inversor" : `Visible para ${viewers} inversores`}
+              </span>
+            ) : null}
           </button>
           <div className="absolute top-3 left-3">{share}</div>
           <div className="absolute top-3 right-3 flex items-center">
@@ -653,6 +683,8 @@ export function SellerDocuments({
               key={name}
               name={name}
               count={listed.filter((file) => file.folder === name).length}
+              updatedAt={latestUpload(listed.filter((file) => file.folder === name))}
+              viewers={new Set(listed.filter((file) => file.folder === name).flatMap((file) => file.viewers.map((viewer) => viewer.accessId))).size}
               onOpen={() => {
                 setFolder(name);
               }}

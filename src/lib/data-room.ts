@@ -122,6 +122,8 @@ export type OwnerFileView = DataRoomFileView & {
   stored: boolean;
   viewers: { accessId: string; label: string }[];
   platform?: boolean;
+  /** ISO upload time, for "actualizada" dates on folders. */
+  uploadedAt?: string;
 };
 
 export function filesWithBytes<T extends { stored?: boolean; platform?: boolean }>(files: readonly T[]): T[] {

@@ -59,7 +59,7 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
     const [files, accesses, grants, shareRows, folderRows] = await Promise.all([
       prisma.dataRoomFile.findMany({
         where: { projectId: { in: ids } },
-        select: { id: true, folder: true, fileName: true },
+        select: { id: true, folder: true, fileName: true, createdAt: true },
         orderBy: { createdAt: "asc" },
       }),
       prisma.projectAccess.findMany({
@@ -110,6 +110,7 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
       id: file.id,
       stored: dataRoomFileIsStored(file.id),
       viewers: fileViewerLabels({ fileId: file.id, files, investors, shares: shareRows }),
+      uploadedAt: file.createdAt.toISOString(),
     }));
 
     return {
