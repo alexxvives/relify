@@ -257,6 +257,8 @@ export function Hero() {
   return (
     <section aria-labelledby="inicio" className="releva-hero releva-hero-sky">
       <div className="releva-hero-glass">
+        {/* Alex (t32): city + spots share one 3:2 box so the price pins stay on their buildings at every width. */}
+        <div className="releva-city-box">
         <div className="releva-city-frame" aria-hidden="true">
           <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
           {spots.map((spot) => (
@@ -297,8 +299,9 @@ export function Hero() {
             </span>
           </button>
         ))}
+        </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(3.1rem,6vw,5.2rem)] leading-[0.96] text-public-ink">
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.96] text-public-ink">
             <span className="block">Un mercado para</span>
             <span className="block">
               <SwapVerb /> empresas
@@ -320,7 +323,7 @@ export function Hero() {
           </div>
         </div>
         {open ? (
-          <article className="releva-market-float" aria-live="polite">
+          <article className={`releva-market-float${open.id === "norte" ? " releva-market-float-left" : ""}`} aria-live="polite">
             <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">
               <Image src={sectorImageSrc(open.sectorKey)} alt="" fill sizes="320px" className="object-cover" unoptimized />
               <AiImageTag />

@@ -109,8 +109,8 @@ export function WaitlistBoard() {
       </div>
       <div className="releva-wait-marquee" aria-hidden="true">
         <p>
-          {Array.from({ length: 8 }, (_, index) => (
-            <span key={index}>Empresa · Comprador · Asesor · </span>
+          {Array.from({ length: 24 }, (_, index) => (
+            <span key={index}>Empresa · Comprador · Asesor ·{"\u00a0"}</span>
           ))}
         </p>
       </div>

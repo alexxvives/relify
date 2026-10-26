@@ -498,9 +498,10 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  width: 80%;
+  display: flex;
+  flex-direction: column;
+  width: min(80%, 1320px, max(640px, calc((100svh - 9rem) * 1.5)));
   margin-inline: auto;
-  min-height: calc((100svh - 8.5rem) * 0.8);
   border: 1px solid rgb(255 255 255 / 0.62);
   border-radius: 2rem;
   background: rgb(255 255 255 / 0.18);
@@ -531,10 +532,20 @@
   animation: releva-swap-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* t32: the city box keeps the image's 3:2 ratio so the % spot positions map to the
+   picture at every width (it used to stretch with 100svh and drift on 2560/390). */
+.releva-city-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+}
+
+/* Below 1024px the copy sits above the city instead of over it, so the title and
+   buttons never cover the price pins. */
 .releva-hero-copy {
-  position: absolute;
+  position: relative;
+  order: -1;
   z-index: 10;
-  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -612,6 +623,17 @@
   box-shadow: 0 22px 40px -24px rgb(18 52 58 / 0.45);
   transform-origin: top right;
   animation: releva-card-in 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  /* t32: the card used to sit on top of the "norte" pin, steal the pointer and make
+     the hover flicker open/closed. It is read-only, so let the pointer pass through. */
+  pointer-events: none;
+}
+
+@media (min-width: 901px) {
+  .releva-market-float-left {
+    right: auto;
+    left: 1.25rem;
+    transform-origin: top left;
+  }
 }
 
 @keyframes releva-card-in {
@@ -665,24 +687,24 @@
   top: 50%;
   left: 39%;
   width: 6.5%;
-  height: 12%;
+  height: 9.5%;
   pointer-events: auto;
   background: transparent;
   cursor: pointer;
 }
 
 .releva-city-spot-b {
-  top: 66%;
+  top: 62.7%;
   left: 64%;
   width: 8.5%;
-  height: 18%;
+  height: 14.3%;
 }
 
 .releva-city-spot-c {
-  top: 46%;
+  top: 46.8%;
   left: 8%;
   width: 10%;
-  height: 16%;
+  height: 12.7%;
 }
 
 .releva-city-spot .releva-city-pin {
@@ -1721,13 +1743,20 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .releva-hero-copy {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+}
+
 @media (max-width: 900px) {
   .releva-hero-glass {
     width: calc(100% - 1.5rem);
   }
 
   .releva-hero-copy {
-    padding: 1rem 1rem 0;
+    padding: 1rem 1rem 1.25rem;
   }
 
   .releva-market-float {
@@ -2251,7 +2280,7 @@
   width: max-content;
   gap: 0;
   padding: 0.7rem 0;
-  animation: releva-wait-marquee 28s linear infinite;
+  animation: releva-wait-marquee 84s linear infinite;
 }
 
 .releva-wait-layout {
