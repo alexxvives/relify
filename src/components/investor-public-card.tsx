@@ -30,7 +30,7 @@ export function InvestorPublicCard({
           </p>
         ) : null}
       </div>
-      <div className="-mt-10 px-6 pb-6">
+      <div className="relative -mt-10 px-6 pb-6">
         <ProfilePhoto photo={profile?.photo ?? ""} />
         {profile ? (
           <>
