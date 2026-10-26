@@ -13,9 +13,9 @@ import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftActio
 import { AccountsUpload } from "@/components/accounts-upload";
 import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
+import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
-import { projectPhotoFrame } from "@/components/project-photo";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
@@ -1344,7 +1344,7 @@ export function CompanyDraftForm({
             aria-label={companyCopy.descriptionLabel}
           />
           <span className="flex items-start justify-between gap-4 text-sm text-[#667085]">
-            {description.length > 80 ? <span className="text-[#9a6b12]">{companyCopy.descriptionProgress}</span> : <span />}
+            {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : <span />}
             <span>
               {description.length} / {descriptionMaxLength}
             </span>
@@ -1690,12 +1690,8 @@ export function CompanyDraftForm({
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
           </span>
-          <div className="flex flex-col gap-3 rounded-2xl border border-[#e6e9f0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-start gap-2 text-sm leading-6 text-[#3d4a63]">
-              <Lock className="mt-1 size-4 shrink-0 text-[#465ab4]" aria-hidden />
-              <span>{companyCopy.previewLockNote}</span>
-            </p>
-            <div role="radiogroup" aria-label="Vista previa" className="grid w-full shrink-0 grid-cols-2 rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:inline-flex sm:w-auto sm:self-center">
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-4">
+            <div role="radiogroup" aria-label="Vista previa" className="grid min-w-0 flex-1 grid-cols-2 rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:inline-flex sm:flex-none">
               {[
                 { open: false, label: companyCopy.previewBefore, short: "Antes", Icon: Lock },
                 { open: true, label: companyCopy.previewAfter, short: "Tras el NDA", Icon: LockOpen },
@@ -1714,6 +1710,7 @@ export function CompanyDraftForm({
                 </button>
               ))}
             </div>
+            <InfoHint text={companyCopy.previewLockNote} icon="info" align="end" width="lg" />
           </div>
           <CompanyBanner
             heading="p"
@@ -2079,7 +2076,7 @@ function MarketPreview({
           ))}
         </div>
         <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
-          <SampleListing />
+          <SampleListing side="left" />
           <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div inert className="h-full">
             <MarketCard
@@ -2101,31 +2098,24 @@ function MarketPreview({
               className="absolute inset-0 z-30 cursor-pointer rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-[#5c4de0]/35"
             />
           </div>
-          <SampleListing />
+          <SampleListing side="right" />
         </div>
       </div>
     </div>
   );
 }
 
-function SampleListing() {
+/** Neighbouring listings beside the seller's card: the real MarketCard with sample figures, blurred so it stays a backdrop. */
+const sampleListings: Record<"left" | "right", PublicProjectCard> = {
+  left: { slug: "muestra-1", codename: "Taller Norte", region: "Madrid", revenueCents: 120_000_000, ebitdaCents: 18_000_000, adjustedEbitdaCents: 0, askingPriceCents: 72_000_000, sectorKey: "industria", cnaeCode: null, summary: "Taller de mecanizado con clientes industriales recurrentes." },
+  right: { slug: "muestra-2", codename: "Clínica Mar", region: "Valencia", revenueCents: 85_000_000, ebitdaCents: 15_000_000, adjustedEbitdaCents: 0, askingPriceCents: 60_000_000, sectorKey: "salud", cnaeCode: null, summary: "Clínica de fisioterapia con equipo consolidado." },
+};
+
+function SampleListing({ side }: { side: keyof typeof sampleListings }) {
   return (
-    <article aria-hidden className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-      <div className={projectPhotoFrame}>
-        <div className="absolute inset-x-4 bottom-4 flex animate-pulse flex-col gap-2">
-          <div className="h-4 w-2/3 rounded bg-white/25" />
-          <div className="h-3 w-1/3 rounded bg-white/15" />
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="h-16 animate-pulse rounded-xl bg-[#f4f6fb]" />
-        <div className="grid grid-cols-3 gap-2">
-          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
-          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
-          <div className="h-12 animate-pulse rounded-lg bg-[#f4f6fb]" />
-        </div>
-      </div>
-    </article>
+    <div aria-hidden inert className="pointer-events-none h-full blur-[2px] select-none">
+      <MarketCard project={sampleListings[side]} muted />
+    </div>
   );
 }
 
