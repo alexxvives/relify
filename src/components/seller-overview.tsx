@@ -87,6 +87,23 @@ export function SellerOverview({
     <div className="flex flex-col gap-6">
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex w-full min-w-0 flex-col gap-6 self-start">
+          <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
+            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+              {sellerCopy.activityTitle}
+              <FieldHint text={sellerCopy.activityIntro} />
+            </h2>
+            {listing === "published" ? (
+              <ActivityStatTiles stats={activity} className="sm:grid-cols-3" />
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.activityEmpty}</p>
+                <p className="max-w-md text-sm text-[#667085]">{sellerCopy.activityLocked}</p>
+                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
+                  {sellerCopy.fillInfo}
+                </Link>
+              </div>
+            )}
+          </section>
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -108,30 +125,15 @@ export function SellerOverview({
               <FinanceCharts points={chartPoints} mixes={mixes} costYears={chartCostYears} />
             )}
           </section>
-          <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
-            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-              {sellerCopy.activityTitle}
-              <FieldHint text={sellerCopy.activityIntro} />
-            </h2>
-            {listing === "published" ? (
-              <ActivityStatTiles stats={activity} className="sm:grid-cols-3" />
-            ) : (
-              <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
-                <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.activityEmpty}</p>
-                <p className="max-w-md text-sm text-[#667085]">{sellerCopy.activityLocked}</p>
-                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
-                  {sellerCopy.fillInfo}
-                </Link>
-              </div>
-            )}
-          </section>
         </div>
         <div className="relative w-full xl:min-h-full">
           <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
           <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
             <h2
               className={
-                listing === "published"
+                sold
+                  ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
+                  : listing === "published"
                   ? "flex items-center gap-2 text-2xl font-semibold text-[#17663a]"
                   : listing === "pending"
                     ? "text-2xl font-semibold text-[#8a6112]"
