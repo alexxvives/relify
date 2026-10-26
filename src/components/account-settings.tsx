@@ -107,7 +107,7 @@ export function AccountSettings({
   return (
     <div className="flex flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
-      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
+      <div className={agreement ? "grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] items-start" : ""}>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
           <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
@@ -181,9 +181,7 @@ export function AccountSettings({
         </form>
       </section>
       {agreement ? (
-        <div className="min-h-48 xl:relative xl:min-h-0">
-          <div className="h-full xl:absolute xl:inset-0">{agreement}</div>
-        </div>
+        <div className="mx-auto w-full max-w-60 md:mx-0">{agreement}</div>
       ) : null}
       </div>
 

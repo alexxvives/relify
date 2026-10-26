@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 type Status = "loading" | "ready" | "error";
 
@@ -89,5 +89,63 @@ export function PdfPages({ src, title }: { src: string; title: string }) {
       ) : null}
       <div ref={containerRef} />
     </div>
+  );
+}
+
+/** First page of a PDF as a small static thumbnail (pdf.js), for document cards. */
+export function PdfThumb({ src, title, fallback }: { src: string; title: string; fallback?: ReactNode }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [status, setStatus] = useState<Status>("loading");
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    let cancelled = false;
+    let destroy: (() => void) | undefined;
+    void (async () => {
+      try {
+        const pdfjs = await import("pdfjs-dist");
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const response = await fetch(src, { credentials: "same-origin" });
+        if (!response.ok) {
+          throw new Error(`PDF ${response.status}`);
+        }
+        const task = pdfjs.getDocument({ data: new Uint8Array(await response.arrayBuffer()) });
+        destroy = () => void task.destroy();
+        const page = await (await task.promise).getPage(1);
+        if (cancelled) {
+          return;
+        }
+        const width = Math.max(canvas.parentElement?.clientWidth ?? 200, 120);
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        const viewport = page.getViewport({ scale: (width / page.getViewport({ scale: 1 }).width) * ratio });
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        const context = canvas.getContext("2d");
+        if (context) {
+          await page.render({ canvasContext: context, viewport }).promise;
+        }
+        if (!cancelled) {
+          setStatus("ready");
+        }
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      destroy?.();
+    };
+  }, [src]);
+
+  return (
+    <span className="relative block size-full overflow-hidden bg-white" data-pdf-status={status}>
+      <canvas ref={canvasRef} role="img" aria-label={`${title} · primera página`} className={`block h-auto w-full ${status === "ready" ? "" : "invisible"}`} />
+      {status !== "ready" ? <span className="absolute inset-0">{fallback}</span> : null}
+    </span>
   );
 }
