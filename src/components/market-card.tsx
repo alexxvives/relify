@@ -218,9 +218,9 @@ function Figure({
 }) {
   const border = edge === "left" ? "border-l" : edge === "top" ? "border-t" : edge === "both" ? "border-t border-l" : "";
   return (
-    <div className={`min-w-0 border-[#eceff4] px-3.5 py-3 ${border}`}>
+    <div className={`min-w-0 border-[#eceff4] px-3.5 py-3 text-center ${border}`}>
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-[#1c2740]">
+      <dd className="mt-0.5 flex flex-wrap items-baseline justify-center gap-x-1.5 text-[#1c2740]">
         <span className={`${strong ? "text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}>{value}</span>
         {share !== null ? (
           <span className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`} title={`Margen sobre facturación: ${share} %`}>
