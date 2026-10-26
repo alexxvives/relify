@@ -68,13 +68,16 @@ function ProcessConversation({
         tabs={processTabs.map((entry) => (entry.id === "chat" ? { ...entry, count: unread } : entry))}
         value={tab}
         onChange={changeTab}
-        disabled={item.advisorHired ? [] : ["advisor"]}
+        disabled={[...(item.nda ? [] : (["chat", "meetings"] as const)), ...(item.advisorHired ? [] : (["advisor"] as const))]}
+        hints={
+          item.nda
+            ? {}
+            : {
+                chat: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
+                meetings: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
+              }
+        }
       />
-      {item.nda ? null : (
-        <p className="text-sm leading-6 text-[#5c6b78]">
-          {item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting}
-        </p>
-      )}
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (
         <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
