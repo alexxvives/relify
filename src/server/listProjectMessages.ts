@@ -124,7 +124,8 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         accessId: access.id,
         slug: slugById.get(access.projectId) ?? "",
         codename: codenameById.get(access.projectId) ?? "",
-        label: nameById.get(access.investorId) || sellerCopy.investorParty,
+        // Buyers stay anonymous until the seller accepts them.
+        label: stage === "pending" ? access.label : nameById.get(access.investorId) || sellerCopy.investorParty,
         stage,
         profile,
         partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
