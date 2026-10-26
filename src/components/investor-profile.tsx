@@ -387,8 +387,8 @@ export function InvestorPhotoDrop({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <div className="flex items-center gap-4">
-      <div className="relative size-32 shrink-0">
+      <div className="flex w-28 flex-col items-center gap-1.5">
+      <div className="relative size-28 shrink-0">
       <label
         onDragOver={(event) => {
           event.preventDefault();
@@ -440,9 +440,9 @@ export function InvestorPhotoDrop({
         </button>
       ) : null}
       </div>
-      <label htmlFor="investor-photo-input" className="cursor-pointer text-sm leading-5 whitespace-nowrap">
+      <label htmlFor="investor-photo-input" className="cursor-pointer text-center text-[11px] leading-4">
         <span className="block font-medium text-[#1c2740]">{investorCopy.photoDrop}</span>
-        <span className="block text-xs text-[#667085]">{investorCopy.photoDropHint}</span>
+        <span className="block text-[#667085]">{investorCopy.photoDropHint}</span>
       </label>
       </div>
       {note ? <p className="text-sm text-[#c0362c]">{note}</p> : null}
