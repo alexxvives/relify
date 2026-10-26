@@ -7,6 +7,9 @@ export default defineConfig({
     compatibilityDate: "2026-10-03",
     compatibilityFlags: ["nodejs_compat"],
     assets: { notFoundHandling: "none" },
+    // Run next to Neon (AWS eu-central-1): every page makes many sequential
+    // queries, so each round trip must be ~1-3 ms instead of 20-120 ms.
+    placement: { region: "aws:eu-central-1" },
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
