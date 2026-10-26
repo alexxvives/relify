@@ -97,7 +97,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
     <article
       className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e4e8ef] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)] transition-[box-shadow,border-color,opacity] duration-200 focus-within:border-[#c9d1e0] hover:border-[#c9d1e0] hover:shadow-[0_18px_40px_-24px_rgba(28,39,64,0.5)] motion-reduce:transition-none ${muted ? "opacity-60" : ""}`}
     >
-      <div className="relative aspect-[16/8] max-h-60 w-full overflow-hidden bg-[#1c2a52]">
+      <div className="relative aspect-[16/7] max-h-52 w-full overflow-hidden bg-[#1c2a52]">
         <Image
           src={sectorImageSrc(key)}
           alt=""
@@ -106,19 +106,37 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           className="object-cover transition-transform duration-500 group-hover/card:scale-[1.03] motion-reduce:transition-none"
         />
         <span className="absolute inset-0 bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25" aria-hidden />
-        {project.verified ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-[#1b7a45] shadow-sm">
-            <BadgeCheck className="size-3.5" aria-hidden />
-            Verificado
+        <div className="absolute top-3 left-3 flex max-w-[calc(100%-6rem)] flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
+            title={aiImageLabel}
+          >
+            <Sparkles className="size-3" aria-hidden />
+            {referencePhotoLabel}<span className="sr-only">. {aiImageLabel}</span>
           </span>
-        ) : null}
-        <span
-          className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
-          title={aiImageLabel}
-        >
-          <Sparkles className="size-3" aria-hidden />
-          {referencePhotoLabel}<span className="sr-only">. {aiImageLabel}</span>
-        </span>
+          {project.verified ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-xs font-semibold text-[#1b7a45] shadow-sm">
+              <BadgeCheck className="size-3.5" aria-hidden />
+              Verificado
+            </span>
+          ) : null}
+        </div>
+        {/* Location, size and age ride on the photo, so the body only carries the deal. */}
+        <ul className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
+          {[
+            { key: "region", icon: MapPin, text: project.region },
+            ...(headcount ? [{ key: "headcount", icon: Users, text: headcount }] : []),
+            ...(project.foundedDecade ? [{ key: "founded", icon: CalendarDays, text: `desde ${project.foundedDecade}` }] : []),
+          ].map((tag) => (
+            <li
+              key={tag.key}
+              className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+            >
+              <tag.icon className="size-3.5 shrink-0 text-[#5c6b78]" aria-hidden />
+              <span className="truncate">{tag.text}</span>
+            </li>
+          ))}
+        </ul>
       </div>
       {/* Direct child of the article, so the stretched link covers the photo as well as the body. */}
       <h3 className="m-0 h-0">
@@ -131,42 +149,24 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
       </h3>
       {actions ? <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">{actions}</div> : null}
 
-      <div className="relative flex flex-1 flex-col px-5 pb-5">
-        <span
-          className={`relative z-10 -mt-7 flex size-14 items-center justify-center rounded-2xl border-4 border-white shadow-[0_6px_16px_-8px_rgba(28,39,64,0.45)] ${style.tile}`}
-          aria-hidden
-        >
-          <Icon className={`size-6 ${style.ink}`} />
-        </span>
-
-        {sectorName ? (
-          <span className={`absolute top-3 right-5 max-w-[60%] truncate rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>{sectorName}</span>
-        ) : null}
-        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#5c6b78]">
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <MapPin className="size-3.5 shrink-0" aria-hidden />
-            <span className="truncate">{project.region}</span>
-          </span>
-          {headcount ? (
-            <span className="inline-flex items-center gap-1">
-              <Users className="size-3.5 shrink-0" aria-hidden />
-              {headcount}
+      <div className="flex flex-1 flex-col px-5 pb-5">
+        {/* Sector pill in the top-right corner, right under the photo; the CNAE line flows beside it. */}
+        <div className="mt-3 flex items-start gap-2">
+          {project.cnaeCode ? (
+            <p className="line-clamp-2 min-h-10 min-w-0 flex-1 text-xs leading-5 text-[#3d4a63]" title={project.cnaeTitle ? `CNAE ${project.cnaeCode} · ${project.cnaeTitle}` : undefined}>
+              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold text-[#1c2740] tabular-nums">CNAE {project.cnaeCode}</span>
+              {project.cnaeTitle}
+            </p>
+          ) : (
+            <span className="flex-1" />
+          )}
+          {sectorName ? (
+            <span className={`inline-flex max-w-[50%] shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>
+              <Icon className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{sectorName}</span>
             </span>
           ) : null}
-          {project.foundedDecade ? (
-            <span className="inline-flex items-center gap-1">
-              <CalendarDays className="size-3.5 shrink-0" aria-hidden />
-              desde {project.foundedDecade}
-            </span>
-          ) : null}
-        </p>
-
-        {project.cnaeCode ? (
-          <p className="mt-3 line-clamp-2 min-h-10 text-xs leading-5 text-[#3d4a63]" title={project.cnaeTitle ? `CNAE ${project.cnaeCode} · ${project.cnaeTitle}` : undefined}>
-            <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold text-[#1c2740] tabular-nums">CNAE {project.cnaeCode}</span>
-            {project.cnaeTitle}
-          </p>
-        ) : null}
+        </div>
         {project.summary ? (
           <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">{project.summary}</p>
         ) : !project.cnaeCode ? (
@@ -176,7 +176,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           </p>
         ) : null}
 
-        <dl className="mt-4 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
+        <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure label="Facturación" value={formatCardEur(project.revenueCents)} />
           <Figure label="EBITDA" value={formatCardEur(project.ebitdaCents)} share={margin} edge="left" />
           <Figure label="EBITDA ajustado" value={formatCardEur(project.adjustedEbitdaCents)} share={adjustedMargin} edge="top" />
