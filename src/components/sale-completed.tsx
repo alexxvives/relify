@@ -76,6 +76,33 @@ function Stat({ icon, label, value, note }: { icon: ReactNode; label: string; va
   );
 }
 
+/** Signed NDA, LOI and contract links; shared by the seller's sale page and the buyer's purchase page. */
+function SignedDocuments({ contractHref, loiHref, ndaHref }: { contractHref: string | null; loiHref: string | null; ndaHref: string | null }) {
+  const docs = [
+    { href: contractHref, label: "Contrato de compraventa" },
+    { href: loiHref, label: "Carta de intenciones (LOI)" },
+    { href: ndaHref, label: "Acuerdo de confidencialidad (NDA)" },
+  ].filter((doc): doc is { href: string; label: string } => doc.href !== null);
+  if (docs.length === 0) return null;
+  return (
+    <section aria-labelledby="signed-docs" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <h2 id="signed-docs" className="text-lg font-semibold text-[#1c2740]">Documentos firmados</h2>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+        {docs.map((doc) => (
+          <li key={doc.href}>
+            <Link href={doc.href} className="flex items-center gap-3 rounded-xl border border-[#e7eaee] p-3 text-sm font-medium text-[#1c2740] hover:bg-[#f7f8fb]">
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef2ff] text-[#465ab4]">
+                <FileText className="size-4" aria-hidden />
+              </span>
+              {doc.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function SellerSaleCompleted({
   codename,
   figures,
@@ -112,6 +139,8 @@ export function SellerSaleCompleted({
         <Stat icon={<BadgeEuro className="size-5" aria-hidden />} label="Precio de venta" value={figures.price} note={`Cerrada el ${figures.date}`} />
       </dl>
 
+      <SignedDocuments contractHref={docs.contractHref} loiHref={docs.loiHref} ndaHref={docs.ndaHref} />
+
       <section aria-labelledby="sale-next">
           <h2 id="sale-next" className="mb-3 text-lg font-semibold text-[#1c2740]">Próximos pasos</h2>
           <ol className="grid gap-3 md:grid-cols-2">
@@ -136,13 +165,8 @@ export function SellerSaleCompleted({
             <Step
               icon={<Archive className="size-4" aria-hidden />}
               title="Tu documentación sigue disponible"
-              body={`NDA, carta de intenciones y contrato firmados${docs.contractHref ? "" : " (cuando estén listos)"}, junto al resto de tus documentos, en solo lectura.`}
-              action={
-                <span className="flex flex-wrap gap-x-4 gap-y-1">
-                  {docs.contractHref ? <Link href={docs.contractHref} className="text-sm font-medium text-[#465ab4]">Ver contrato</Link> : null}
-                  <Link href="/mi-empresa/documentos" className="text-sm font-medium text-[#465ab4]">Ver Mis documentos</Link>
-                </span>
-              }
+              body="Tus documentos firmados y el resto de la documentación siguen disponibles en solo lectura."
+              action={<Link href="/mi-empresa/documentos" className="text-sm font-medium text-[#465ab4]">Ver Mis documentos</Link>}
             />
           </ol>
         </section>
@@ -190,25 +214,7 @@ export function BuyerPurchaseCompleted({ purchase }: { purchase: BuyerPurchase }
         <Stat icon={<Receipt className="size-5" aria-hidden />} label="Success fee" value={purchase.fee} note={purchase.feeNote} />
       </dl>
 
-      <section aria-labelledby="purchase-docs" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 id="purchase-docs" className="text-lg font-semibold text-[#1c2740]">Documentos firmados</h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-3">
-          {[
-            { href: purchase.contractHref, label: "Contrato de compraventa" },
-            { href: purchase.loiHref, label: "Carta de intenciones (LOI)" },
-            { href: purchase.ndaHref, label: "Acuerdo de confidencialidad (NDA)" },
-          ].map((doc) => (
-            <li key={doc.href}>
-              <Link href={doc.href} className="flex items-center gap-3 rounded-xl border border-[#e7eaee] p-3 text-sm font-medium text-[#1c2740] hover:bg-[#f7f8fb]">
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef2ff] text-[#465ab4]">
-                  <FileText className="size-4" aria-hidden />
-                </span>
-                {doc.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <SignedDocuments contractHref={purchase.contractHref} loiHref={purchase.loiHref} ndaHref={purchase.ndaHref} />
 
       <section aria-labelledby="sale-next">
         <h2 id="sale-next" className="mb-3 text-lg font-semibold text-[#1c2740]">Próximos pasos</h2>
