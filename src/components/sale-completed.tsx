@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Archive, BadgeEuro, CalendarClock, CircleCheck, FolderOpen, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { ListAnotherCompany } from "@/components/company-switcher";
-import { ProcessRoom } from "@/components/deal-pipeline";
 import { shortNickname } from "@/lib/nickname";
 import type { ProcessFile } from "@/lib/deal-pipeline";
 
@@ -25,31 +24,24 @@ function Step({ icon, title, body, action }: { icon: ReactNode; title: string; b
   );
 }
 
-function ArchivedDocs({ docs, extra }: { docs: Docs; extra?: ReactNode }) {
+export function SaleHero({ badge, title, body, priceLabel, price }: { badge: string; title: string; body: string; priceLabel: string; price: string }) {
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5" aria-labelledby="sale-docs">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="sale-docs" className="flex items-center gap-2 text-lg font-semibold text-[#1c2740]">
-          <Archive className="size-5 text-[#667085]" aria-hidden />
-          Proceso archivado
-        </h2>
-        <span className="rounded-full bg-[#f2f4f7] px-2.5 py-1 text-xs font-medium text-[#475467]">Solo lectura</span>
+    <>
+      <PartyPopper className="pointer-events-none absolute -right-6 -bottom-8 size-48 text-white/10" aria-hidden />
+      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+            <Trophy className="size-3.5" aria-hidden /> {badge}
+          </span>
+          <h2 id="sale-done" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+          <p className="mt-2 text-base leading-7 text-white/80">{body}</p>
+        </div>
+        <div className="shrink-0 lg:text-right">
+          <p className="text-sm text-white/70">{priceLabel}</p>
+          <p className="text-4xl font-semibold tracking-tight whitespace-nowrap sm:text-5xl">{price}</p>
+        </div>
       </div>
-      <p className="mt-1 text-sm text-[#5c6b78]">Los acuerdos firmados y la documentación siguen disponibles cuando los necesites.</p>
-      <div className="mt-4">
-        <ProcessRoom
-          files={docs.files ?? []}
-          bodies={[]}
-          nda={docs.ndaHref !== null}
-          ndaHref={docs.ndaHref}
-          loiHref={docs.loiHref}
-          contractHref={docs.contractHref}
-          contractSigned
-          empty="Sin documentos compartidos."
-        />
-      </div>
-      {extra}
-    </section>
+    </>
   );
 }
 
@@ -104,16 +96,13 @@ export function SellerSaleCompleted({
         className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#1c2740_0%,#2f418f_55%,#465ab4_100%)] px-6 py-8 text-white sm:px-10 sm:py-10"
         aria-labelledby="sale-done"
       >
-        <PartyPopper className="pointer-events-none absolute -right-6 -bottom-8 size-48 text-white/10" aria-hidden />
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-          <Trophy className="size-3.5" aria-hidden /> Venta cerrada · {figures.date}
-        </span>
-        <h2 id="sale-done" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">¡Enhorabuena! Has vendido {codename}.</h2>
-        <p className="mt-2 max-w-2xl text-base leading-7 text-white/80">
-          El contrato de compraventa está firmado por las dos partes. La empresa ya no aparece en el marketplace.
-        </p>
-        <p className="mt-6 text-sm text-white/70">Precio de cierre</p>
-        <p className="text-5xl font-semibold tracking-tight sm:text-6xl">{figures.price}</p>
+        <SaleHero
+          badge={`Venta cerrada · ${figures.date}`}
+          title={`¡Enhorabuena! Has vendido ${codename}.`}
+          body="El contrato de compraventa está firmado por las dos partes. La empresa ya no aparece en el marketplace."
+          priceLabel="Precio de cierre"
+          price={figures.price}
+        />
       </section>
 
       <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -123,10 +112,9 @@ export function SellerSaleCompleted({
         <Stat icon={<BadgeEuro className="size-5" aria-hidden />} label="Precio de venta" value={figures.price} note={`Cerrada el ${figures.date}`} />
       </dl>
 
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <section aria-labelledby="sale-next">
+      <section aria-labelledby="sale-next">
           <h2 id="sale-next" className="mb-3 text-lg font-semibold text-[#1c2740]">Próximos pasos</h2>
-          <ol className="flex flex-col gap-3">
+          <ol className="grid gap-3 md:grid-cols-2">
             <Step
               icon={<Receipt className="size-4" aria-hidden />}
               title="Pago de la success fee"
@@ -145,17 +133,19 @@ export function SellerSaleCompleted({
               body="Publícala con la misma cuenta; tus datos de vendedor ya están verificados."
               action={<ListAnotherCompany />}
             />
+            <Step
+              icon={<Archive className="size-4" aria-hidden />}
+              title="Tu documentación sigue disponible"
+              body={`NDA, carta de intenciones y contrato firmados${docs.contractHref ? "" : " (cuando estén listos)"}, junto al resto de tus documentos, en solo lectura.`}
+              action={
+                <span className="flex flex-wrap gap-x-4 gap-y-1">
+                  {docs.contractHref ? <Link href={docs.contractHref} className="text-sm font-medium text-[#465ab4]">Ver contrato</Link> : null}
+                  <Link href="/mi-empresa/documentos" className="text-sm font-medium text-[#465ab4]">Ver Mis documentos</Link>
+                </span>
+              }
+            />
           </ol>
         </section>
-        <ArchivedDocs
-          docs={docs}
-          extra={
-            <Link href="/mi-empresa/documentos" className="mt-4 inline-flex text-sm font-medium text-[#465ab4]">
-              Ver Mis documentos
-            </Link>
-          }
-        />
-      </div>
     </div>
   );
 }
