@@ -25,7 +25,7 @@ export function PdfPages({ src, title }: { src: string; title: string }) {
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const response = await fetch(src, { credentials: "same-origin" });
+        const response = await fetch(src, { credentials: "same-origin", cache: "no-store" });
         if (!response.ok) {
           throw new Error(`PDF ${response.status}`);
         }
@@ -108,7 +108,7 @@ export function PdfThumb({ src, title, fallback }: { src: string; title: string;
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const response = await fetch(src, { credentials: "same-origin" });
+        const response = await fetch(src, { credentials: "same-origin", cache: "no-store" });
         if (!response.ok) {
           throw new Error(`PDF ${response.status}`);
         }
@@ -145,7 +145,19 @@ export function PdfThumb({ src, title, fallback }: { src: string; title: string;
   return (
     <span className="relative block size-full overflow-hidden bg-white" data-pdf-status={status}>
       <canvas ref={canvasRef} role="img" aria-label={`${title} · primera página`} className={`block h-auto w-full ${status === "ready" ? "" : "invisible"}`} />
-      {status !== "ready" ? <span className="absolute inset-0">{fallback}</span> : null}
+      {status === "loading" ? (
+        // Skeleton while the current PDF loads: never paint stale text that then swaps out.
+        <span className="absolute inset-0 flex flex-col gap-2 p-3" aria-hidden>
+          <span className="h-3 w-1/3 animate-pulse rounded bg-[#eef0f4]" />
+          <span className="h-2 w-full animate-pulse rounded bg-[#f1f3f6]" />
+          <span className="h-2 w-11/12 animate-pulse rounded bg-[#f1f3f6]" />
+          <span className="h-2 w-10/12 animate-pulse rounded bg-[#f1f3f6]" />
+          <span className="h-2 w-full animate-pulse rounded bg-[#f1f3f6]" />
+          <span className="h-2 w-9/12 animate-pulse rounded bg-[#f1f3f6]" />
+        </span>
+      ) : status === "error" ? (
+        <span className="absolute inset-0">{fallback}</span>
+      ) : null}
     </span>
   );
 }
