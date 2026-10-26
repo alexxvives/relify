@@ -721,3 +721,13 @@ model SaleContract {
   @@unique([accessId, version])
   @@map("sale_contract")
 }
+
+/// When each admin last opened an admin page; rows newer than this show as NEW (sidebar bubble + highlight).
+model AdminSeen {
+  adminId String   @map("admin_id")
+  page    String
+  seenAt  DateTime @map("seen_at")
+
+  @@id([adminId, page])
+  @@map("admin_seen")
+}

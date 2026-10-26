@@ -202,6 +202,7 @@ export function AppFrame({
   showHelp = true,
   processCount = 0,
   encargoCount = 0,
+  navCounts = {},
   children,
 }: {
   name: string;
@@ -216,6 +217,8 @@ export function AppFrame({
   showHelp?: boolean;
   processCount?: number;
   encargoCount?: number;
+  /** Extra sidebar bubbles by href (admin: new items since last visit). */
+  navCounts?: Record<string, number>;
   children: ReactNode;
 }) {
   // Multi-company sellers: the bell and menu dots only cover the selected company.
@@ -304,7 +307,7 @@ export function AppFrame({
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
                   onNavigate={closeMenu}
                   alert={alert}
-                  count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : null}
+                  count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
                 />
               </div>
             );

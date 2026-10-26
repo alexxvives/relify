@@ -11,6 +11,7 @@ import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
 import { formatCardEur } from "@/lib/money";
 import type { AdminCompanyRow } from "@/server/listAdminCompanies";
+import { NewPill, adminNewRing } from "@/components/admin-new";
 
 type CompanyStatusFilter = "all" | "published" | "pending" | "draft";
 
@@ -116,11 +117,12 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
               </thead>
               <tbody className="divide-y divide-[#eef1f4]">
                 {sorted.map((project) => (
-                  <tr key={project.id} className="hover:bg-[#fafbfd]">
+                  <tr key={project.id} className={project.isNew ? "bg-[#f5f7ff]" : "hover:bg-[#fafbfd]"}>
                     <td className="px-4 py-3">
                       <Link href={`/admin/empresas/${project.slug}`} className="font-semibold hover:underline">
                         {project.codename}
                       </Link>
+                      {project.isNew ? <span className="ml-2 align-middle"><NewPill /></span> : null}
                       <p className="text-xs text-[#667085]">{project.region}</p>
                     </td>
                     <td className="px-4 py-3">
@@ -187,9 +189,10 @@ function CompanyActions({ project }: { project: AdminCompanyRow }) {
 /** Phone layout: one compact card per company; identity details live on the company page. */
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
   return (
-    <article className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+    <article className={`rounded-2xl border p-4 ${project.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-base font-semibold text-[#1c2740]">{project.codename}</h2>
+        {project.isNew ? <NewPill /> : null}
         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[project.status]}`}>{projectStatus(project.status)}</span>
         {project.verified ? <VerifiedBadge /> : null}
       </div>

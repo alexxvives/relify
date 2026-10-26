@@ -24,13 +24,14 @@ export type AdminAdvisorRow = {
   breakdown: AdvisorScoreBreakdown | null;
   justification: string;
   verified: boolean;
+  isNew: boolean;
 };
 
 function personName(name: string, lastName: string | null): string {
   return [name, lastName ?? ""].filter((part) => part.trim().length > 0).join(" ");
 }
 
-export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisorRow[] | null> {
+export async function listAdminAdvisors(user: CurrentUser, since?: Date): Promise<AdminAdvisorRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -42,6 +43,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
       name: true,
       lastName: true,
       email: true,
+      createdAt: true,
       advisorProfile: {
         select: {
           userId: true,
@@ -118,6 +120,7 @@ export async function listAdminAdvisors(user: CurrentUser): Promise<AdminAdvisor
         sectors: advisor.advisorProfile?.sectors ?? [],
         listed: card !== null,
         verified: advisor.advisorProfile?.verifiedAt != null,
+        isNew: since ? advisor.createdAt > since : false,
         place,
         total,
         breakdown,

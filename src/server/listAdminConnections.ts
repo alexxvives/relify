@@ -10,9 +10,10 @@ export type AdminConnectionRow = {
   accepted: boolean;
   closed: boolean;
   steps: DealStep[];
+  isNew: boolean;
 };
 
-export async function listAdminConnections(user: CurrentUser): Promise<AdminConnectionRow[] | null> {
+export async function listAdminConnections(user: CurrentUser, since?: Date): Promise<AdminConnectionRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -22,6 +23,7 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
     select: {
       id: true,
       investorId: true,
+      requestedAt: true,
       sellerAcceptedAt: true,
       ndaAcceptedAt: true,
       loiAcceptedAt: true,
@@ -67,6 +69,7 @@ export async function listAdminConnections(user: CurrentUser): Promise<AdminConn
       accepted,
       closed: connection.project.successFee !== null,
       steps,
+      isNew: since ? connection.requestedAt > since : false,
     };
   });
 }

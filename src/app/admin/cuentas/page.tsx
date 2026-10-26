@@ -6,6 +6,7 @@ import { AdminAccounts } from "@/components/admin-accounts";
 import { SignedInPage } from "@/components/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
 import { listAdminAccounts } from "@/server/listAdminAccounts";
+import { markAdminSeen } from "@/server/adminSeen";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
 
 async function AdminAccountsPageContent() {
   const user = await requireRole("admin");
-  const accounts = await listAdminAccounts(user);
+  const since = await markAdminSeen(user.id, "cuentas");
+  const accounts = await listAdminAccounts(user, since);
 
   if (!accounts) {
     notFound();

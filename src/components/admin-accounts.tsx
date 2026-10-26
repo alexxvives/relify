@@ -5,6 +5,7 @@ import { AccountToastHost, PlanForm, RoleForm, SuspensionButton } from "@/compon
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
+import { NewPill, adminNewRing } from "@/components/admin-new";
 import type { AdminAccountRow } from "@/server/listAdminAccounts";
 
 type RoleFilter = "all" | "seller" | "investor" | "advisor";
@@ -117,13 +118,16 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
 
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   return (
-    <article className="flex w-full flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4">
+    <article className={`flex w-full flex-col gap-3 rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
       <div className="flex min-w-0 items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-[#1c2740]">{account.name}</p>
+          <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[#1c2740]">
+            <span className="truncate">{account.name}</span>
+            {account.isNew ? <NewPill /> : null}
+          </p>
           <p className="truncate text-xs text-[#667085]" title={account.email}>{account.email}</p>
           {account.onboarded ? (
             <p className="mt-1 text-xs text-[#667085]">

@@ -11,6 +11,7 @@ import { adminCopy } from "@/lib/admin-copy";
 import { advisorSectorName } from "@/lib/advisor-sectors";
 import type { AdvisorScoreBreakdown } from "@/lib/advisor-directory";
 import type { AdminAdvisorRow } from "@/server/listAdminAdvisors";
+import { NewPill, adminNewRing } from "@/components/admin-new";
 
 
 type RankFilter = "all" | "ranked" | "out";
@@ -81,13 +82,14 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
               key={advisor.id}
               className={
                 advisor.breakdown
-                  ? "flex flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4 lg:flex-row lg:items-center lg:justify-between"
-                  : "rounded-2xl border border-[#e7eaee] bg-white p-4"
+                  ? `flex flex-col gap-3 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`
+                  : `rounded-2xl border p-4 ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`
               }
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-lg font-semibold text-[#1c2740]">{advisorHeading(advisor)}</p>
+                  {advisor.isNew ? <NewPill /> : null}
                   <p className="rounded-full bg-[#e8f6ee] px-3 py-1 text-sm font-semibold text-[#17663a]">
                     {advisor.place === null
                       ? adminCopy.advisorUnranked

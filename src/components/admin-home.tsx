@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from "lucide-react";
 import { CountBars, type DonutPalette } from "@/components/admin-charts";
 import { SectorTreemap } from "@/components/sector-treemap";
+import { CountBadge } from "@/components/ui/badge";
 import { adminCopy } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/money";
 import type { AdminDashboard } from "@/server/getAdminDashboard";
@@ -29,11 +30,11 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
     value: row.count,
   }));
   const activity = [
-    { label: adminCopy.funnel.accesses, value: overview.accesses, href: "/admin/conexiones", icon: Unlock, tone: "bg-[#eef2ff] text-[#163a8a]" },
-    { label: adminCopy.funnel.ndas, value: overview.ndas, href: "/admin/conexiones", icon: ShieldCheck, tone: "bg-[#e8f6ee] text-[#0d5c38]" },
-    { label: adminCopy.funnel.messages, value: overview.messages, href: "/admin/conexiones", icon: MessageSquare, tone: "bg-[#f4f5f8] text-[#1c2740]" },
-    { label: adminCopy.favoritesTitle, value: overview.favorites, href: null, icon: Heart, tone: "bg-[#fdeeee] text-[#8d2424]" },
-    { label: adminCopy.quotesTitle, value: overview.quotes, href: "/admin/facturacion", icon: Wallet, tone: "bg-[#fff4e8] text-[#9a4a08]" },
+    { label: adminCopy.funnel.accesses, value: overview.accesses, fresh: overview.fresh.accesses, href: "/admin/conexiones", icon: Unlock, tone: "bg-[#eef2ff] text-[#163a8a]" },
+    { label: adminCopy.funnel.ndas, value: overview.ndas, fresh: overview.fresh.ndas, href: "/admin/conexiones", icon: ShieldCheck, tone: "bg-[#e8f6ee] text-[#0d5c38]" },
+    { label: adminCopy.funnel.messages, value: overview.messages, fresh: overview.fresh.messages, href: "/admin/conexiones", icon: MessageSquare, tone: "bg-[#f4f5f8] text-[#1c2740]" },
+    { label: adminCopy.favoritesTitle, value: overview.favorites, fresh: overview.fresh.favorites, href: null, icon: Heart, tone: "bg-[#fdeeee] text-[#8d2424]" },
+    { label: adminCopy.quotesTitle, value: overview.quotes, fresh: overview.fresh.quotes, href: "/admin/facturacion", icon: Wallet, tone: "bg-[#fff4e8] text-[#9a4a08]" },
   ];
 
   return (
@@ -49,11 +50,12 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
         </ul>
       </section>
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} total={accounts} palette="blue" rows={roles} />
+        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={accounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
         <ChartLink
           href="/admin/empresas"
           title={adminCopy.listingsTitle}
+          fresh={overview.fresh.companies}
           total={overview.published + overview.drafts + overview.pending}
           palette="orange"
           rows={listings}
@@ -86,9 +88,11 @@ function ChartLink({
   palette,
   rows,
   aside,
+  fresh = 0,
 }: {
   href: string;
   title: string;
+  fresh?: number;
   total: number;
   palette: DonutPalette;
   rows: { label: string; value: number }[];
@@ -97,7 +101,10 @@ function ChartLink({
   return (
     <Link href={href} className={cardClass}>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-2xl font-semibold text-[#1c2740]">{title}</h2>
+        <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#1c2740]">
+          {title}
+          {fresh > 0 ? <CountBadge count={fresh} label={`${fresh} nuevos`} /> : null}
+        </h2>
         <div className="flex items-start gap-4">
           {aside ? (
             <p className="text-right">
@@ -119,10 +126,13 @@ function ChartLink({
 function ActivityTile({
   item,
 }: {
-  item: { label: string; value: number; href: string | null; icon: typeof Heart; tone: string };
+  item: { label: string; value: number; fresh: number; href: string | null; icon: typeof Heart; tone: string };
 }) {
   const body = (
     <>
+      {item.fresh > 0 ? (
+        <CountBadge count={item.fresh} ring className="absolute -top-2 -right-2" label={`${item.fresh} nuevos`} />
+      ) : null}
       <div className="min-w-0">
         <p className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
         <p className="mt-1 text-sm text-[#3d4a63]">{item.label}</p>
@@ -130,7 +140,7 @@ function ActivityTile({
       <item.icon className="size-8 shrink-0" aria-hidden />
     </>
   );
-  const className = `flex h-full items-center justify-between gap-3 rounded-2xl px-4 py-4 ${item.tone}`;
+  const className = `relative flex h-full items-center justify-between gap-3 rounded-2xl px-4 py-4 ${item.tone}`;
 
   if (!item.href) {
     return <div className={className}>{body}</div>;

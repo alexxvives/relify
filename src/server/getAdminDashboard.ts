@@ -22,6 +22,8 @@ export type AdminDashboard = {
   quotes: number;
   plans: InvestorPlanCount[];
   sectors: IndustrySector[];
+  /** Items created since this admin last opened Inicio (red bubbles; totals stay plain text). */
+  fresh: { accesses: number; ndas: number; messages: number; favorites: number; quotes: number; accounts: number; companies: number };
 };
 
 function roleKey(role: string | null): AdminRoleCount["role"] {
@@ -32,7 +34,7 @@ function roleKey(role: string | null): AdminRoleCount["role"] {
   return "none";
 }
 
-export async function getAdminDashboard(user: CurrentUser): Promise<AdminDashboard | null> {
+export async function getAdminDashboard(user: CurrentUser, since: Date = new Date()): Promise<AdminDashboard | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -48,6 +50,16 @@ export async function getAdminDashboard(user: CurrentUser): Promise<AdminDashboa
     prisma.advisoryQuote.count(),
     countInvestorPlans(),
     listPublishedSectors(),
+  ]);
+  const after = { gt: since };
+  const [freshAccesses, freshNdas, freshMessages, freshFavorites, freshQuotes, freshAccounts, freshCompanies] = await Promise.all([
+    prisma.projectAccess.count({ where: { requestedAt: after } }),
+    prisma.projectAccess.count({ where: { ndaAcceptedAt: after } }),
+    prisma.projectMessage.count({ where: { createdAt: after } }),
+    prisma.projectFavorite.count({ where: { createdAt: after } }),
+    prisma.advisoryQuote.count({ where: { createdAt: after } }),
+    prisma.user.count({ where: { createdAt: after } }),
+    prisma.project.count({ where: { createdAt: after } }),
   ]);
   const roleCounts = new Map<AdminRoleCount["role"], number>();
 
@@ -74,6 +86,15 @@ export async function getAdminDashboard(user: CurrentUser): Promise<AdminDashboa
     messages,
     favorites,
     quotes,
+    fresh: {
+      accesses: freshAccesses,
+      ndas: freshNdas,
+      messages: freshMessages,
+      favorites: freshFavorites,
+      quotes: freshQuotes,
+      accounts: freshAccounts,
+      companies: freshCompanies,
+    },
     plans,
     sectors,
   };

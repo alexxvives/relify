@@ -17,9 +17,10 @@ export type AdminCompanyRow = {
   address: string;
   shareholders: string[];
   verified: boolean;
+  isNew: boolean;
 };
 
-export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompanyRow[] | null> {
+export async function listAdminCompanies(user: CurrentUser, since?: Date): Promise<AdminCompanyRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -29,6 +30,7 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     select: {
       id: true,
       verifiedAt: true,
+      createdAt: true,
       slug: true,
       codename: true,
       region: true,
@@ -61,5 +63,6 @@ export async function listAdminCompanies(user: CurrentUser): Promise<AdminCompan
     address: project.address,
     shareholders: project.shareholders.map((holder) => holder.name),
     verified: project.verifiedAt !== null,
+    isNew: since ? project.createdAt > since : false,
   }));
 }

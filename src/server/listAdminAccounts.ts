@@ -11,9 +11,10 @@ export type AdminAccountRow = {
   suspended: boolean;
   plan: "none" | "limited" | "unlimited";
   referralSource: string | null;
+  isNew: boolean;
 };
 
-export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccountRow[] | null> {
+export async function listAdminAccounts(user: CurrentUser, since?: Date): Promise<AdminAccountRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -29,6 +30,7 @@ export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccount
       onboardedAt: true,
       suspendedAt: true,
       referralSource: true,
+      createdAt: true,
       billingCustomer: { select: { plan: true } },
     },
   });
@@ -42,5 +44,6 @@ export async function listAdminAccounts(user: CurrentUser): Promise<AdminAccount
     suspended: account.suspendedAt !== null,
     plan: account.billingCustomer?.plan ?? "none",
     referralSource: referralSourceLabel(account.referralSource),
+    isNew: since ? account.createdAt > since : false,
   }));
 }
