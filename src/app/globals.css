@@ -2607,3 +2607,16 @@
 .shell-dark .shell-tools > div > button {
   color: #d6dbe6;
 }
+
+/* Sidebar tools (bell, premium, close) hover on the dark sidebar. */
+.shell-dark .shell-tools > button:hover,
+.shell-dark .shell-tools > a:hover,
+.shell-dark .shell-tools > div > button:hover,
+.shell-dark .shell-tools > div > button[aria-expanded="true"] {
+  background: #2a3146;
+  color: #ffffff;
+}
+
+.shell-dark .shell-tools > a {
+  color: #e9c46a;
+}
