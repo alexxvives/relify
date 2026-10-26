@@ -168,7 +168,7 @@ function AdvisorMarket({
         </div>
       </div>
       {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
-      <ul className="grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,32rem),36rem))]">
+      <ul className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,26rem),1fr))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
             <AdvisorListingCard advisor={advisor} connect projectSlug={company.length > 0 ? company : undefined} />

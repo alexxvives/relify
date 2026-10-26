@@ -187,8 +187,8 @@ export function InvestorProcesses({
             </div>
           ) : null}
         </section>
-      {items.length > 0 ? <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
-      <ul className="flex flex-col gap-3">
+      {items.length > 0 ? <h2 className="mt-6 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
+      <ul className="mt-3 flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
           <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
