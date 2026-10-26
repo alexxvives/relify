@@ -29,7 +29,7 @@ function Stars() {
 
 function ReviewMark({ cases }: { cases: number }) {
   return (
-    <span className="absolute top-4 right-4 flex w-36 flex-col items-end gap-1 text-right">
+    <span className="flex shrink-0 flex-col items-end gap-1 text-right">
       <Stars />
       <span className="text-xs font-semibold text-white/70">{engagementCopy.noRatings}</span>
       <span className="text-xs font-medium text-white">{caseCount(cases)}</span>
@@ -39,12 +39,18 @@ function ReviewMark({ cases }: { cases: number }) {
 
 function SectorTags({ sectors }: { sectors: string[] }) {
   return (
-    <span className="mt-3 flex flex-wrap gap-1.5 pr-36">
-      {sectors.map((sector) => (
-        <span key={sector} className="rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 text-white">
+    <span className="mt-4 flex min-h-6 flex-nowrap items-center gap-1.5 overflow-hidden" title={sectors.join(" · ")}>
+      {sectors.slice(0, 2).map((sector) => (
+        <span key={sector} className="max-w-[45%] truncate rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 text-white">
           {sector}
         </span>
       ))}
+      {sectors.length > 2 ? (
+        <span className="shrink-0 rounded-full bg-white/25 px-2 py-1 text-xs leading-4 font-semibold text-white">
+          +{sectors.length - 2}
+          <span className="sr-only">: {sectors.slice(2).join(", ")}</span>
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -72,10 +78,14 @@ export function AdvisorListingCard({
 
   return (
     <article className={frame}>
-      <div className="relative bg-[#1c2740] px-5 py-5">
-        <ReviewMark cases={advisor.cases.length} />
-        <p className="pr-36 text-lg font-semibold text-white">{engagementCopy.advisorFallback}</p>
-        {advisor.verified ? <VerifiedBadge className="mt-2" /> : null}
+      <div className="bg-[linear-gradient(135deg,#1c2740_0%,#27366b_100%)] px-5 py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="truncate text-lg font-semibold text-white">{engagementCopy.advisorFallback}</p>
+            <div className="mt-2 flex min-h-6 items-center">{advisor.verified ? <VerifiedBadge /> : null}</div>
+          </div>
+          <ReviewMark cases={advisor.cases.length} />
+        </div>
         <SectorTags sectors={advisor.sectors} />
       </div>
       {connect ? (
