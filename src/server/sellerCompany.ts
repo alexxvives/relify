@@ -17,6 +17,8 @@ export type SellerCompanyChoice = {
   id: string;
   legalName: string;
   codename: string;
+  /** Seller actions waiting on this company (accept a request, accept a LOI). */
+  pending?: number;
 };
 
 const cookieOptions = {
@@ -37,7 +39,7 @@ export async function listSellerAdvisoryCompanies(
 }
 
 export async function listSellerCompanies(ownerId: string): Promise<SellerCompanyChoice[]> {
-  const [rows, prefill] = await Promise.all([
+  const [rows, prefill, waiting] = await Promise.all([
     prisma.project.findMany({
       where: { ownerId, NOT: { cif: "" } },
       orderBy: { createdAt: "asc" },
@@ -47,7 +49,19 @@ export async function listSellerCompanies(ownerId: string): Promise<SellerCompan
       where: { userId: ownerId },
       select: { cif: true, legalName: true },
     }),
+    prisma.projectAccess.findMany({
+      where: {
+        project: { ownerId },
+        cancelledAt: null,
+        OR: [{ sellerAcceptedAt: null }, { loiSignedAt: { not: null }, loiAcceptedAt: null }],
+      },
+      select: { projectId: true },
+    }),
   ]);
+  const pendingBy = new Map<string, number>();
+  for (const row of waiting) {
+    pendingBy.set(row.projectId, (pendingBy.get(row.projectId) ?? 0) + 1);
+  }
 
   return rows.map((row) => {
     const legal = row.legalName.trim();
@@ -56,6 +70,7 @@ export async function listSellerCompanies(ownerId: string): Promise<SellerCompan
     return {
       id: row.id,
       codename: row.codename,
+      pending: pendingBy.get(row.id) ?? 0,
       legalName: legal.length > 0 ? row.legalName : fromBulletin.length > 0 ? fromBulletin : row.codename,
     };
   });

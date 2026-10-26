@@ -209,7 +209,7 @@ export function AppFrame({
   showTitle?: boolean;
   notifications: NotificationView[];
   showPremium?: boolean;
-  companies?: { id: string; legalName: string; codename: string }[];
+  companies?: { id: string; legalName: string; codename: string; pending?: number }[];
   activeCompanyId?: string | null;
   canManageCompanies?: boolean;
   showHelp?: boolean;

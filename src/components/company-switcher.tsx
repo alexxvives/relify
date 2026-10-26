@@ -7,7 +7,7 @@ import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { PlusIcon } from "@/components/ui/plus";
 import { Info } from "lucide-react";
-import { AlertDot } from "@/components/ui/badge";
+import { AlertDot, CountBadge } from "@/components/ui/badge";
 import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/mi-empresa/actions";
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
@@ -141,7 +141,7 @@ export function CompanySwitcher({
   notices,
   unreadElsewhere,
 }: {
-  companies: { id: string; legalName: string; codename: string }[];
+  companies: { id: string; legalName: string; codename: string; pending?: number }[];
   activeId: string | null;
   notices: NotificationView[];
   /** Unread notices per non-active company id. */
@@ -186,6 +186,7 @@ export function CompanySwitcher({
   const unreadFor = (company: { id: string; codename: string }) =>
     unreadElsewhere ? (unreadElsewhere[company.id] ?? 0) : noticesForCompany(company.codename, notices);
   const elsewhere = companies.reduce((sum, company) => (company.id === current.id ? sum : sum + unreadFor(company)), 0);
+  const pendingTotal = companies.reduce((sum, company) => sum + (company.pending ?? 0), 0);
 
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
@@ -206,7 +207,11 @@ export function CompanySwitcher({
           <span className="text-xs font-medium text-public-muted">{sellerCopy.companiesCurrent}</span>
           <span className="truncate text-sm font-medium">{currentLabel}</span>
         </span>
-        {elsewhere > 0 ? <AlertDot ring className="absolute -top-1 -right-1" label={`${elsewhere} novedades en otras empresas`} /> : null}
+        {pendingTotal > 0 ? (
+          <CountBadge count={pendingTotal} ring className="absolute -top-2 -right-2" label={`${pendingTotal} acciones pendientes`} />
+        ) : elsewhere > 0 ? (
+          <AlertDot ring className="absolute -top-1 -right-1" label={`${elsewhere} novedades en otras empresas`} />
+        ) : null}
         <ChevronDownIcon size={16} className={open ? "shrink-0 rotate-180 text-public-muted" : "shrink-0 text-public-muted"} aria-hidden />
       </button>
       {open ? (
@@ -239,7 +244,9 @@ export function CompanySwitcher({
                     >
                       <CheckIcon size={16} className={selected ? "text-[#465ab4]" : "text-transparent"} aria-hidden />
                       <span className="min-w-0 flex-1 truncate">{label}</span>
-                      {!selected && unread > 0 ? (
+                      {(company.pending ?? 0) > 0 ? (
+                        <CountBadge count={company.pending ?? 0} label={`${company.pending ?? 0} acciones pendientes`} />
+                      ) : !selected && unread > 0 ? (
                         <AlertDot label={`${unread} novedades`} />
                       ) : null}
                     </button>
