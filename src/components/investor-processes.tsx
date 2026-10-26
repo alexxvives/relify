@@ -173,7 +173,7 @@ export function InvestorProcesses({
           <ActivityTiles
             tiles={[
               { label: sellerCopy.active, value: items.length, icon: Briefcase, tone: "indigo", ratio: items.length > 0 ? 1 : 0, caption: closed.length > 0 ? `${closed.length} cerrados` : "En curso" },
-              { label: "NDA firmados", value: ndas, icon: ShieldCheck, tone: "emerald", ratio: share(ndas, items.length), caption: `${ndas} de ${items.length} procesos` },
+              { label: "NDA firmados", value: ndas, icon: ShieldCheck, tone: "emerald", ratio: share(ndas, items.length), caption: `${ndas} de ${items.length} ${items.length === 1 ? "proceso" : "procesos"}` },
               { label: "Preguntas y respuestas", value: questions, icon: MessageCircleQuestion, tone: "amber", ratio: share(questions, peak), caption: "En todos tus procesos" },
               { label: sellerCopy.meetingsDone, value: meetings, icon: Calendar, tone: "sky", ratio: share(meetings, peak), caption: "Con vendedores" },
             ]}

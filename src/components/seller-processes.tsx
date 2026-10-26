@@ -375,7 +375,7 @@ export function SellerProcesses({
             <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activitySummaryIntro}</p>
             <ActivityTiles
               tiles={[
-                { label: sellerCopy.accepted, value: counts.accepted, icon: Link2, tone: "indigo", ratio: share(counts.accepted, threads.length), caption: `${counts.accepted} de ${threads.length} procesos` },
+                { label: sellerCopy.accepted, value: counts.accepted, icon: Link2, tone: "indigo", ratio: share(counts.accepted, threads.length), caption: `${counts.accepted} de ${threads.length} ${threads.length === 1 ? "proceso" : "procesos"}` },
                 { label: sellerCopy.questionsIn, value: counts.questionsIn, icon: MessageCircleQuestion, tone: "amber", ratio: share(counts.questionsIn, peak), caption: "Recibidas de inversores" },
                 { label: sellerCopy.questionsOut, value: counts.questionsOut, icon: MessageCircle, tone: "emerald", ratio: share(counts.questionsOut, counts.questionsIn), caption: counts.questionsIn > 0 ? `${Math.round(share(counts.questionsOut, counts.questionsIn) * 100)} % respondidas` : "Sin preguntas aún" },
                 { label: sellerCopy.meetingsDone, value: counts.meetings, icon: Calendar, tone: "sky", ratio: share(counts.meetings, peak), caption: "Con inversores" },
