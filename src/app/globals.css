@@ -2566,3 +2566,11 @@
     transform: translateY(-10px);
   }
 }
+
+/* Phones: the stepper shows dots only (labels move below), so all steps fit without scrolling. */
+@media (max-width: 639px) {
+  .layout-track > li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

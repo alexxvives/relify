@@ -140,11 +140,32 @@ export function DealPipeline({
                 <span className="relative z-10 flex h-7 items-center justify-center">
                   <StepDot state={step.state} onDark={onDark} />
                 </span>
-                <StepHint label={step.label} text={step.detail} className={labelClass} />
+                <span className="max-sm:hidden">
+                  <StepHint label={step.label} text={step.detail} className={labelClass} />
+                </span>
               </li>
             );
           })}
         </ol>
+        {(() => {
+          // On phones the eight labels cannot fit side by side, so only the current step is named.
+          const focus = current ?? shownSteps[shownSteps.length - 1];
+          if (!focus) return null;
+          const position = shownSteps.indexOf(focus) + 1;
+          return (
+            <p className={`mt-3 flex items-center justify-center gap-2 text-sm sm:hidden ${onDark ? "text-white/80" : "text-[#5c6b78]"}`}>
+              <span className="tabular-nums">
+                Paso {position} de {shownSteps.length}
+              </span>
+              <span aria-hidden>·</span>
+              <StepHint
+                label={focus.label}
+                text={focus.detail}
+                className={onDark ? "text-sm font-semibold text-white" : "text-sm font-semibold text-[#17663a]"}
+              />
+            </p>
+          );
+        })()}
       </div>
       {showDiligence && diligence ? (
         <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} hideWaitingCue={hideWaitingCue} />
