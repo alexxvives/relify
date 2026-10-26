@@ -174,7 +174,7 @@ export function InvestorProfile({
 
   const professional = publicOnly ? null : (
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             {investorCopy.professionalTitle}
             <FieldHint text={investorCopy.professionalHint} />
@@ -240,8 +240,8 @@ export function InvestorProfile({
           </div>
           <Chip done={publicDone} />
         </div>
-        <div className="mt-5 grid min-w-0 items-start gap-6 lg:grid-cols-4">
-        <div className="min-w-0 lg:col-span-3">
+        <div className="mt-5 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,71fr)_minmax(0,29fr)]">
+        <div className="min-w-0">
         <fieldset id="lugar" className="scroll-mt-8 border-0 p-0">
           <legend className="text-sm">{investorCopy.locationLabel}</legend>
           <div className="mt-2 grid gap-4 sm:grid-cols-2">
@@ -311,7 +311,7 @@ export function InvestorProfile({
         </label>
         </div>
         </div>
-        <div id="foto" className="min-w-0 scroll-mt-24 lg:sticky lg:top-6 lg:col-span-1">
+        <div id="foto" className="min-w-0 scroll-mt-24 lg:sticky lg:top-6">
           {hidePhotoControl ? null : (
             <InvestorPhotoDrop
               photo={photo}
