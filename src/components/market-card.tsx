@@ -48,10 +48,23 @@ export const sectorStyles: Record<SectorImageKey, SectorStyle> = {
 const fallbackKey: SectorImageKey = "servicios";
 
 const recoveryClass = {
-  good: "text-[#17663a]",
-  average: "text-[#b45f06]",
-  high: "text-[#b42318]",
+  good: "bg-[#e7f6ee] text-[#17663a]",
+  average: "bg-[#fdf1e3] text-[#b45f06]",
+  high: "bg-[#fdecec] text-[#b42318]",
 } as const;
+
+/** "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price. */
+export function RoiChip({ years }: { years: number }) {
+  const value = (Math.round(years * 10) / 10).toLocaleString("es-ES", { maximumFractionDigits: 1 });
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${recoveryClass[recoveryTone(years)]}`}
+      title="Años para recuperar el precio de venta con el EBITDA"
+    >
+      ROI {value} años
+    </span>
+  );
+}
 
 function sentence(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -174,9 +187,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
             value={formatCardEur(project.askingPriceCents)}
             edge="both"
             strong
-            note={years === null ? null : <span className={recoveryClass[recoveryTone(years)]} title="Años para recuperar el precio de venta con el EBITDA">
-                  Retorno ~{(Math.round(years * 10) / 10).toLocaleString("es-ES", { maximumFractionDigits: 1 })} años
-                </span>}
+            note={years === null ? null : <RoiChip years={years} />}
           />
         </dl>
 
@@ -218,7 +229,7 @@ function Figure({
             {share} %<span className="sr-only"> de margen</span>
           </span>
         ) : null}
-        {note ? <span className="w-full text-xs font-semibold tabular-nums">{note}</span> : null}
+        {note}
       </dd>
     </div>
   );
