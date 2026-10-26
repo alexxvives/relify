@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
-import { BuyerProcessClosed } from "@/components/sale-completed";
+import { ClosedProcessRow } from "@/components/sale-completed";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { ContractStage } from "@/components/contract-stage";
@@ -184,31 +184,6 @@ export function InvestorProcesses({
             </div>
           ) : null}
         </section>
-      {closed.length > 0 ? (
-        <>
-          <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">Cerrados</h2>
-          <ul className="flex flex-col gap-3">
-            {closed.map((item) =>
-              item.closed ? (
-                <li key={item.slug}>
-                  <BuyerProcessClosed
-                    codename={item.codename}
-                    slug={item.slug}
-                    won={item.closed.won}
-                    figures={item.closed}
-                    docs={{
-                      ndaHref: item.nda ? `/acuerdos/nda/${item.accessId}` : null,
-                      loiHref: item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null,
-                      contractHref: item.contract?.signedHref ?? null,
-                      files: item.documents,
-                    }}
-                  />
-                </li>
-              ) : null,
-            )}
-          </ul>
-        </>
-      ) : null}
       {items.length > 0 ? <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
       <ul className="flex flex-col gap-3">
       {items.map((item) => (
@@ -280,6 +255,18 @@ export function InvestorProcesses({
           </section>
         </li>
       ))}
+      {closed.map((item) =>
+        item.closed ? (
+          <li key={item.slug}>
+            <ClosedProcessRow
+              codename={item.codename}
+              slug={item.slug}
+              closed={item.closed}
+              contractHref={item.contract?.signedHref ?? null}
+            />
+          </li>
+        ) : null,
+      )}
       </ul>
     </div>
   );

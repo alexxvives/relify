@@ -12,16 +12,6 @@ export type SaleFigures = { price: string; fee: string; feeNote: string; date: s
 
 type Docs = { ndaHref: string | null; loiHref: string | null; contractHref: string | null; files?: ProcessFile[] };
 
-function Figure({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div className="rounded-xl border border-[#e7eaee] bg-white px-4 py-3">
-      <dt className="text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-1 text-lg font-semibold text-[#1c2740]">{value}</dd>
-      {note ? <dd className="text-xs text-[#667085]">{note}</dd> : null}
-    </div>
-  );
-}
-
 function Step({ icon, title, body, action }: { icon: ReactNode; title: string; body: string; action?: ReactNode }) {
   return (
     <li className="flex gap-3 rounded-xl border border-[#e7eaee] bg-white p-4">
@@ -170,50 +160,40 @@ export function SellerSaleCompleted({
   );
 }
 
-export function BuyerProcessClosed({
+/** Compact end-of-list row for a buyer process that ended in a sale (won or lost). */
+export function ClosedProcessRow({
   codename,
   slug,
-  won,
-  figures,
-  docs,
+  closed,
+  contractHref,
 }: {
   codename: string;
   slug: string;
-  won: boolean;
-  figures: SaleFigures;
-  docs: Docs;
+  closed: SaleFigures & { won: boolean };
+  contractHref: string | null;
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-lg font-semibold text-[#2b3b4a]">{shortNickname(codename)}</h2>
-          <span
-            className={
-              won
-                ? "inline-flex items-center gap-1.5 rounded-full bg-[#dff3e7] px-2.5 py-1 text-xs font-semibold text-[#17663a]"
-                : "rounded-full bg-[#f2f4f7] px-2.5 py-1 text-xs font-semibold text-[#475467]"
-            }
-          >
-            {won ? <CircleCheck className="size-3.5" aria-hidden /> : null}
-            {won ? "Compra completada" : "Vendida a otro comprador"}
-          </span>
-        </div>
-        <Link href={`/proyectos/${slug}`} className="text-sm font-medium text-[#465ab4]">Ver ficha</Link>
-      </div>
-      {won ? (
-        <>
-          <p className="text-sm leading-6 text-[#5c6b78]">¡Enhorabuena! El contrato está firmado por las dos partes desde el {figures.date}. Te enviaremos la factura de la success fee por email.</p>
-          <dl className="grid gap-3 sm:grid-cols-3">
-            <Figure label="Precio de cierre" value={figures.price} />
-            <Figure label="Success fee Relify" value={figures.fee} note={figures.feeNote} />
-            <Figure label="Fecha de cierre" value={figures.date} />
-          </dl>
-          <ArchivedDocs docs={docs} />
-        </>
-      ) : (
-        <p className="text-sm leading-6 text-[#5c6b78]">El vendedor cerró la venta con otro comprador el {figures.date}. El proceso queda archivado; tus acuerdos firmados siguen disponibles en la ficha.</p>
-      )}
-    </section>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm">
+      <span className="font-semibold text-[#2b3b4a]">{shortNickname(codename)}</span>
+      <span
+        className={
+          closed.won
+            ? "inline-flex items-center gap-1 rounded-full bg-[#dff3e7] px-2.5 py-0.5 text-xs font-semibold text-[#17663a]"
+            : "rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]"
+        }
+      >
+        {closed.won ? <CircleCheck className="size-3.5" aria-hidden /> : null}
+        {closed.won ? "Comprada" : "Vendida a otro comprador"}
+      </span>
+      <span className="text-[#667085]">
+        {closed.won ? `${closed.price} · ${closed.date}` : closed.date}
+      </span>
+      <span className="ml-auto flex items-center gap-4">
+        {closed.won && contractHref ? (
+          <Link href={contractHref} className="font-medium text-[#465ab4]">Contrato</Link>
+        ) : null}
+        <Link href={`/proyectos/${slug}`} className="font-medium text-[#465ab4]">Ver ficha</Link>
+      </span>
+    </div>
   );
 }
