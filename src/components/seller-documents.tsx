@@ -628,12 +628,12 @@ export function SellerDocuments({
       {folder === null ? (
         <>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex max-w-3xl items-start gap-3 rounded-xl bg-[#f5f7ff] px-3.5 py-3">
+          <div className="flex min-w-0 flex-[1_1_28rem] items-start gap-3 rounded-xl bg-[#f5f7ff] px-3.5 py-3">
             <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[#465ab4]">
               <Lock className="size-4" aria-hidden />
             </span>
-            <p className="text-sm leading-6 text-[#3d4a63]">
-              <span className="block font-semibold text-[#1c2740]">{sellerCopy.documentsNoteTitle}</span>
+            <p className="min-w-0 flex-1 text-sm leading-6 text-[#3d4a63]">
+              <span className="font-semibold text-[#1c2740]">{sellerCopy.documentsNoteTitle}.</span>{" "}
               {sellerCopy.documentsNoteBody}
             </p>
           </div>
