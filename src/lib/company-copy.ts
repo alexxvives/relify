@@ -75,6 +75,11 @@ export const companyCopy = {
   cardPreviewBody: "Así la ve un inversor antes de conectar.",
   marketPreviewTitle: "Cómo se verá mi empresa en el Marketplace",
   openFichaTitle: "Cómo se verán los detalles de mi empresa",
+  previewBefore: "Antes de conectar",
+  previewAfter: "Tras aceptar y NDA",
+  previewLockNote:
+    "La estructura de la empresa, la cuenta de resultados y el balance solo se muestran cuando tú aceptas la solicitud del inversor y él firma el NDA. Antes, el inversor ve estas secciones difuminadas.",
+  previewLockedSeller: "Privado: se abre cuando aceptas al inversor y firma el NDA.",
   openFichaHint: "La misma ficha que ve un inversor al pulsar la tarjeta: descripción, sectores, cifras, estructura y cuentas.",
   cardPreviewMark: "Antes de conectar",
   cardPhotos: "Subir fotos",

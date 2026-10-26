@@ -6,7 +6,7 @@ import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
@@ -1178,6 +1178,7 @@ export function CompanyDraftForm({
     : principalCnae
       ? { src: sectorImageSrc(sectorKeyFromCnae(principalCnae)), ai: true }
       : null;
+  const [previewOpen, setPreviewOpen] = useState(false);
   const investorPreview = draftInvestorPreview({
     legalName,
     address,
@@ -1681,13 +1682,37 @@ export function CompanyDraftForm({
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
           </span>
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#e6e9f0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-start gap-2 text-sm leading-6 text-[#3d4a63]">
+              <Lock className="mt-1 size-4 shrink-0 text-[#465ab4]" aria-hidden />
+              <span>{companyCopy.previewLockNote}</span>
+            </p>
+            <div role="radiogroup" aria-label="Vista previa" className="inline-flex shrink-0 self-start rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:self-center">
+              {[
+                { open: false, label: companyCopy.previewBefore, Icon: Lock },
+                { open: true, label: companyCopy.previewAfter, Icon: LockOpen },
+              ].map(({ open, label, Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="radio"
+                  aria-checked={previewOpen === open}
+                  onClick={() => setPreviewOpen(open)}
+                  className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold whitespace-nowrap transition ${previewOpen === open ? "bg-white text-[#1c2740] shadow-sm" : "text-[#667085] hover:text-[#1c2740]"}`}
+                >
+                  <Icon className="size-3.5" aria-hidden />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <CompanyBanner
             heading="p"
             title={investorPreview.codename.trim().length > 0 ? investorPreview.codename : companyCopy.codenameLabel}
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyProfile project={investorPreview} />
+          <CompanyProfile project={investorPreview} figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
         </div>
         <SaveButton id="deal" pending={pending} pendingId={saveTarget} rejected={panelRejected("deal")} shake={attempt} dirty={dealDirty} onChoose={chooseSave} />
       </Panel>
