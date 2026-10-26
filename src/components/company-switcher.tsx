@@ -60,8 +60,7 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
         <div role="note" className="mt-4 flex gap-3 rounded-xl border border-[#c9d3f3] bg-[#f4f7ff] p-4">
           <Info className="mt-0.5 size-5 shrink-0 text-[#465ab4]" aria-hidden />
           <div className="text-[15px] leading-6 text-[#1c2740]">
-            <p className="font-semibold">{sellerCopy.addCompanyFreeTitle}</p>
-            <p className="mt-1 text-[#3d4a63]">{sellerCopy.addCompanyBody}</p>
+            <p className="text-[#3d4a63]">{sellerCopy.addCompanyBody}</p>
           </div>
         </div>
         <label className="mt-4 block text-sm font-medium text-[#1c2740]" htmlFor="nueva-empresa-cif">
