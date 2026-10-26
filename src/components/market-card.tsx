@@ -156,7 +156,14 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
             {project.cnaeTitle}
           </p>
         ) : null}
-        {project.summary ? <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">{project.summary}</p> : null}
+        {project.summary ? (
+          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">{project.summary}</p>
+        ) : !project.cnaeCode ? (
+          // Same height as a described card so the grid rows stay aligned.
+          <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[#8a96a3] italic">
+            {sectorName ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El vendedor aún no ha añadido una descripción.
+          </p>
+        ) : null}
 
         <dl className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure label="Facturación" value={formatCardEur(project.revenueCents)} />
