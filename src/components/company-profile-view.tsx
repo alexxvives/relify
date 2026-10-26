@@ -1,4 +1,6 @@
 import { cloneElement, isValidElement, type ReactNode } from "react";
+import { RoiChip } from "@/components/market-card";
+import { recoveryYears } from "@/lib/money";
 import {
   Building2,
   CalendarDays,
@@ -82,7 +84,7 @@ export function CompanyProfile({
   const metrics = [
     { label: companyCopy.revenueLabel, value: formatEur(project.revenueCents) },
     { label: companyCopy.opexLabel, value: moneyOrUnavailable(project.opexCents) },
-    { label: companyCopy.askingPriceLabel, value: formatEur(project.askingPriceCents) },
+    { label: companyCopy.askingPriceLabel, value: formatEur(project.askingPriceCents), roi: recoveryYears(project.askingPriceCents, project.ebitdaCents) },
     { label: companyCopy.ebitdaLabel, value: formatEur(project.ebitdaCents) },
     { label: companyCopy.adjustedEbitdaLabel, value: formatEur(project.adjustedEbitdaCents) },
     { label: companyCopy.ebitdaMarginLabel, value: margin },
@@ -158,7 +160,10 @@ export function CompanyProfile({
           {metrics.map((metric) => (
             <div key={metric.label} className="rounded-2xl bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs text-[#8b95a7]">{metric.label}</dt>
-              <dd className="mt-2 text-lg font-semibold">{metric.value}</dd>
+              <dd className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-semibold">
+                {metric.value}
+                {"roi" in metric && typeof metric.roi === "number" ? <RoiChip years={metric.roi} /> : null}
+              </dd>
             </div>
           ))}
         </dl>
