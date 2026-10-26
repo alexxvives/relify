@@ -524,6 +524,7 @@ model ProjectMessage {
   body       String        @db.Text
   createdAt  DateTime      @default(now()) @map("created_at")
 
+  @@index([investorId, kind])
   @@index([projectId, investorId, createdAt])
   @@map("project_message")
 }
