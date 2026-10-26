@@ -11,6 +11,8 @@ export type AdminConnectionRow = {
   closed: boolean;
   steps: DealStep[];
   isNew: boolean;
+  /** Set only on the winning access of a completed sale (LOI accepted on a project with a success fee). */
+  soldPriceCents: number | null;
 };
 
 export async function listAdminConnections(user: CurrentUser, since?: Date): Promise<AdminConnectionRow[] | null> {
@@ -19,6 +21,7 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
   }
 
   const connections = await prisma.projectAccess.findMany({
+    where: { cancelledAt: null },
     orderBy: { requestedAt: "desc" },
     select: {
       id: true,
@@ -33,7 +36,7 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
           slug: true,
           codename: true,
           region: true,
-          successFee: { select: { id: true } },
+          successFee: { select: { id: true, closedPriceCents: true } },
           dataRoomGrants: { select: { investorId: true } },
           messages: { select: { investorId: true, kind: true } },
         },
@@ -70,6 +73,8 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
       closed: connection.project.successFee !== null,
       steps,
       isNew: since ? connection.requestedAt > since : false,
+      soldPriceCents:
+        connection.project.successFee && connection.loiAcceptedAt !== null ? connection.project.successFee.closedPriceCents : null,
     };
   });
 }

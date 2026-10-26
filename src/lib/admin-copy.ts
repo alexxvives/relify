@@ -50,6 +50,8 @@ export const adminCopy = {
   processAll: "Todos",
   processActive: "Activos",
   processClosed: "Cerrados",
+  processSold: "Ventas completadas",
+  soldPrice: "Precio de cierre",
   processWaiting: "Esperando",
   processEmptyActive: "Todavía no hay procesos activos.",
   billingSummary: "Resumen",

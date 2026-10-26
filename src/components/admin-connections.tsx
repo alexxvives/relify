@@ -7,13 +7,14 @@ import { AdminPageHeader } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { watchingCue } from "@/lib/deal-pipeline";
+import { formatEur } from "@/lib/money";
 import type { AdminConnectionRow } from "@/server/listAdminConnections";
 import { NewPill, adminNewRing } from "@/components/admin-new";
 
-type ProcessFilter = "active" | "closed" | "waiting" | "all";
+type ProcessFilter = "active" | "closed" | "sold" | "waiting" | "all";
 
 function isProcessFilter(value: string): value is ProcessFilter {
-  return value === "active" || value === "closed" || value === "waiting" || value === "all";
+  return value === "active" || value === "closed" || value === "sold" || value === "waiting" || value === "all";
 }
 
 function matches(connection: AdminConnectionRow, filter: ProcessFilter): boolean {
@@ -23,6 +24,10 @@ function matches(connection: AdminConnectionRow, filter: ProcessFilter): boolean
 
   if (filter === "waiting") {
     return !connection.accepted;
+  }
+
+  if (filter === "sold") {
+    return connection.soldPriceCents !== null;
   }
 
   if (filter === "closed") {
@@ -39,7 +44,7 @@ export function AdminConnections({ connections }: { connections: AdminConnection
   return (
     <div>
       <AdminPageHeader title={adminCopy.connectionsTitle} note={adminCopy.activeIntro}>
-        <div className="w-40">
+        <div className="w-52">
           <FilterSelect
             compact
             label={adminCopy.processFilter}
@@ -48,6 +53,7 @@ export function AdminConnections({ connections }: { connections: AdminConnection
               { value: "active", label: adminCopy.processActive },
               { value: "waiting", label: adminCopy.processWaiting },
               { value: "closed", label: adminCopy.processClosed },
+              { value: "sold", label: `${adminCopy.processSold} (${connections.filter((c) => c.soldPriceCents !== null).length})` },
               { value: "all", label: adminCopy.processAll },
             ]}
             onValueChange={(next) => {
@@ -71,7 +77,14 @@ export function AdminConnections({ connections }: { connections: AdminConnection
                     {connection.codename}
                     {connection.isNew ? <NewPill /> : null}
                   </h2>
-                  <p className="mt-1 text-sm text-[#667085]">{connection.region}</p>
+                  <p className="mt-1 text-sm text-[#667085]">
+                    {connection.region}
+                    {connection.soldPriceCents !== null ? (
+                      <span className="ml-2 font-semibold text-[#0d5c38]">
+                        {adminCopy.soldPrice}: {formatEur(connection.soldPriceCents)}
+                      </span>
+                    ) : null}
+                  </p>
                 </div>
                 <DealWaitingCue cue={{ action: watchingCue(connection.steps) }} />
                 </div>
