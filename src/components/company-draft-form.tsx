@@ -476,8 +476,16 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
                 Rango estimado: <span className="tabular-nums">{wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}</span>
               </p>
               <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
-                Las empresas de {estimate.sectorLabel} suelen venderse por {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)} su {basis}
-                {estimate.adjustments.length > 0 ? `, ajustado por ${estimate.adjustments.join(" y ")}` : ""}. No es una valoración; el precio lo decides tú.
+                En <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span>, las empresas suelen venderse por{" "}
+                <span className="tabular-nums">{formatMultiple(estimate.sectorLow)} – {formatMultiple(estimate.sectorHigh)}</span> su {basis}.
+              </p>
+              {estimate.adjustments.length > 0 ? (
+                <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
+                  Ajustado por {estimate.adjustments.join(" y ")}: <span className="tabular-nums">{formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}</span>.
+                </p>
+              ) : null}
+              <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
+                Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
               </p>
             </>
           ) : (

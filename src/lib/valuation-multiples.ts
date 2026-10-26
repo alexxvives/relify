@@ -66,6 +66,9 @@ export type PriceEstimate = {
   highCents: number;
   sector: ValuationSector;
   sectorLabel: string;
+  /** Múltiplos típicos del sector, antes de ajustar por tamaño o crecimiento. */
+  sectorLow: number;
+  sectorHigh: number;
   multipleLow: number;
   multipleHigh: number;
   adjustments: string[];
@@ -105,6 +108,8 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
     highCents: Math.round((ebitdaCents * multipleHigh) / roundTo) * roundTo,
     sector,
     sectorLabel: base.label,
+    sectorLow: base.low,
+    sectorHigh: base.high,
     multipleLow,
     multipleHigh,
     adjustments,
