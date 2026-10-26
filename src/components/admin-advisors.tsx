@@ -5,7 +5,7 @@ import { useState } from "react";
 import { VerifiedToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { VerifiedBadge } from "@/components/project-photo";
-import { FieldHint } from "@/components/field-hint";
+import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { advisorSectorName } from "@/lib/advisor-sectors";
@@ -76,48 +76,43 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{advisors.length === 0 ? adminCopy.advisorsEmpty : adminCopy.empty}</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {visible.map((advisor) => (
             <li
               key={advisor.id}
-              className={
-                advisor.breakdown
-                  ? `flex flex-col gap-3 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`
-                  : `rounded-2xl border p-4 ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`
-              }
+              className={`flex flex-col gap-3 rounded-2xl border p-3 ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-[#f8f9fb]"}`}
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
+              {advisor.card ? (
+                <AdvisorListingCard advisor={advisor.card} natural />
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[#c5ced8] bg-white p-5">
                   <p className="text-lg font-semibold text-[#1c2740]">{advisorHeading(advisor)}</p>
+                  <p className="mt-2 text-sm text-[#667085]">{advisor.justification}</p>
+                </div>
+              )}
+              <div className="flex flex-col gap-2 px-1">
+                <div className="flex flex-wrap items-center gap-2">
                   {advisor.isNew ? <NewPill /> : null}
                   <p className="rounded-full bg-[#e8f6ee] px-3 py-1 text-sm font-semibold text-[#17663a]">
                     {advisor.place === null
                       ? adminCopy.advisorUnranked
                       : `${adminCopy.advisorPlace} ${advisor.place} de ${advisor.total}`}
                   </p>
-                  <FieldHint
-                    wide
-                    align="start"
-                    text={advisor.place === null ? adminCopy.rankRules : `${adminCopy.rankRules}\n\n${advisor.justification}`}
-                  />
+                  {advisor.breakdown ? (
+                    <p className="text-sm font-semibold text-[#1c2740] tabular-nums">
+                      Score {scoreText(advisor.breakdown.rank)}
+                    </p>
+                  ) : null}
+                  {advisor.breakdown ? <ScorePopover advisor={advisor} breakdown={advisor.breakdown} /> : null}
                 </div>
-                <p className="mt-1 text-sm text-[#667085]">{advisor.email}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <p className="truncate text-sm text-[#667085]">
+                  {advisorHeading(advisor)} · {advisor.email}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
                   {advisor.verified ? <VerifiedBadge /> : null}
                   <VerifiedToggle target="advisor" id={advisor.id} verified={advisor.verified} />
                 </div>
-                {advisor.sectors.length > 0 ? (
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {advisor.sectors.map((sector) => (
-                      <li key={sector} className="rounded-full bg-[#f4f7ff] px-3 py-1 text-xs text-[#1c2740]">
-                        {advisorSectorName(sector)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {advisor.place === null ? <p className="mt-3 text-sm text-[#667085]">{advisor.justification}</p> : null}
               </div>
-              {advisor.breakdown ? <AdvisorScores breakdown={advisor.breakdown} /> : null}
             </li>
           ))}
         </ul>
@@ -137,6 +132,21 @@ function advisorHeading(advisor: AdminAdvisorRow): string {
   return business.length > 0 ? business : person;
 }
 
+function ScorePopover({ advisor, breakdown }: { advisor: AdminAdvisorRow; breakdown: AdvisorScoreBreakdown }) {
+  return (
+    <details className="relative">
+      <summary className="cursor-pointer list-none rounded-full border border-[#c5ced8] bg-white px-3 py-1 text-sm font-medium text-[#465ab4] hover:border-[#465ab4]">
+        Ver score
+      </summary>
+      <div className="absolute left-0 z-20 mt-2 w-[22rem] max-w-[80vw] rounded-2xl border border-[#e7eaee] bg-white p-4 shadow-[0_18px_40px_-18px_rgba(28,39,64,0.45)]">
+        <AdvisorScores breakdown={breakdown} />
+        <p className="mt-3 text-xs leading-5 text-[#3d4a63]">{advisor.justification}</p>
+        <p className="mt-2 text-xs leading-5 text-[#667085] whitespace-pre-line">{adminCopy.rankRules}</p>
+      </div>
+    </details>
+  );
+}
+
 function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   const rows = [
     { label: adminCopy.advisorCases, value: String(breakdown.caseCount) },
@@ -146,7 +156,7 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   ];
 
   return (
-    <dl className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[28rem]">
+    <dl className="grid grid-cols-2 gap-2">
       {rows.map((row) => (
         <div key={row.label} className="rounded-xl bg-[#f4f7ff] px-3 py-2">
           <dt className="text-xs text-[#3d4a63]">{row.label}</dt>

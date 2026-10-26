@@ -9,7 +9,7 @@ import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
-import { formatCardEur } from "@/lib/money";
+import { MarketCard } from "@/components/market-card";
 import type { AdminCompanyRow } from "@/server/listAdminCompanies";
 import { NewPill, adminNewRing } from "@/components/admin-new";
 
@@ -99,51 +99,21 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
         <>
-          <div className="hidden overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white lg:block">
-            <table className="w-full text-sm text-[#1c2740]">
-              <caption className="sr-only">{adminCopy.companiesTitle}</caption>
-              <thead className="border-b border-[#eef1f4] bg-[#fafbfd] text-left text-xs text-[#667085]">
-                <tr>
-                  <SortHeader label="Empresa" active={sort.key === "codename"} dir={sort.dir} onClick={() => sortBy("codename")} />
-                  <SortHeader label="Estado" active={sort.key === "status"} dir={sort.dir} onClick={() => sortBy("status")} />
-                  <th scope="col" className="px-4 py-3 font-medium">Propietario</th>
-                  <SortHeader label={companyCopy.revenueLabel} numeric active={sort.key === "revenueCents"} dir={sort.dir} onClick={() => sortBy("revenueCents")} />
-                  <SortHeader label={companyCopy.ebitdaLabel} numeric active={sort.key === "ebitdaCents"} dir={sort.dir} onClick={() => sortBy("ebitdaCents")} />
-                  <SortHeader label={companyCopy.askingPriceLabel} numeric active={sort.key === "askingPriceCents"} dir={sort.dir} onClick={() => sortBy("askingPriceCents")} />
-                  <th scope="col" className="px-4 py-3 text-right font-medium">
-                    <span className="sr-only">Acciones</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#eef1f4]">
-                {sorted.map((project) => (
-                  <tr key={project.id} className={project.isNew ? "bg-[#f5f7ff]" : "hover:bg-[#fafbfd]"}>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/empresas/${project.slug}`} className="font-semibold hover:underline">
-                        {project.codename}
-                      </Link>
-                      {project.isNew ? <span className="ml-2 align-middle"><NewPill /></span> : null}
-                      <p className="text-xs text-[#667085]">{project.region}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex flex-wrap items-center gap-1.5">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ${statusTone[project.status]}`}>{projectStatus(project.status)}</span>
-                        {project.verified ? <VerifiedBadge /> : null}
-                      </span>
-                    </td>
-                    <td className="max-w-56 truncate px-4 py-3 text-[#3d4a63]">{project.ownerEmail ?? adminCopy.ownerMissing}</td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">{formatCardEur(project.revenueCents)}</td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">{formatCardEur(project.ebitdaCents)}</td>
-                    <td className="px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums">{formatCardEur(project.askingPriceCents)}</td>
-                    <td className="px-4 py-3">
-                      <CompanyActions project={project} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[#667085]">
+            <span>Ordenar:</span>
+            {sortOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => sortBy(option.key)}
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 ${sort.key === option.key ? "border-[#465ab4] text-[#1c2740]" : "border-[#e7eaee] bg-white"}`}
+              >
+                {option.label}
+                {sort.key === option.key ? (sort.dir === 1 ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />) : <ArrowUpDown className="size-3.5" aria-hidden />}
+              </button>
+            ))}
           </div>
-          <ul className="grid gap-3 lg:hidden md:grid-cols-2">
+          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {sorted.map((project) => (
               <li key={project.id}>
                 <CompanyCard project={project} />
@@ -158,17 +128,13 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
 
 type SortKey = "codename" | "status" | "revenueCents" | "ebitdaCents" | "askingPriceCents";
 
-function SortHeader({ label, active, dir, numeric = false, onClick }: { label: string; active: boolean; dir: 1 | -1; numeric?: boolean; onClick: () => void }) {
-  const Icon = !active ? ArrowUpDown : dir === 1 ? ArrowUp : ArrowDown;
-  return (
-    <th scope="col" aria-sort={active ? (dir === 1 ? "ascending" : "descending") : "none"} className={`px-4 py-3 font-medium ${numeric ? "text-right" : ""}`}>
-      <button type="button" onClick={onClick} className="inline-flex items-center gap-1 rounded hover:text-[#1c2740] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/30 focus-visible:outline-none">
-        {label}
-        <Icon className="size-3.5" aria-hidden />
-      </button>
-    </th>
-  );
-}
+const sortOptions: { key: SortKey; label: string }[] = [
+  { key: "codename", label: "Empresa" },
+  { key: "status", label: "Estado" },
+  { key: "revenueCents", label: companyCopy.revenueLabel },
+  { key: "ebitdaCents", label: companyCopy.ebitdaLabel },
+  { key: "askingPriceCents", label: companyCopy.askingPriceLabel },
+];
 
 const fichaClass =
   "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#1c2740]";
@@ -186,32 +152,20 @@ function CompanyActions({ project }: { project: AdminCompanyRow }) {
   );
 }
 
-/** Phone layout: one compact card per company; identity details live on the company page. */
+/** Marketplace-style card (unblurred for admin) linking to the admin company page, plus admin status and actions. */
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
   return (
-    <article className={`rounded-2xl border p-4 ${project.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-base font-semibold text-[#1c2740]">{project.codename}</h2>
+    <div className={`flex h-full flex-col gap-3 rounded-2xl border p-2 ${project.isNew ? adminNewRing : "border-transparent"}`}>
+      <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
+      <div className="flex flex-wrap items-center gap-2 px-1">
         {project.isNew ? <NewPill /> : null}
         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[project.status]}`}>{projectStatus(project.status)}</span>
         {project.verified ? <VerifiedBadge /> : null}
+        <span className="min-w-0 truncate text-xs text-[#667085]">{project.ownerEmail ?? adminCopy.ownerMissing}</span>
       </div>
-      <p className="mt-1 truncate text-sm text-[#667085]">{[project.region, project.ownerEmail ?? adminCopy.ownerMissing].join(" · ")}</p>
-      <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
-        {[
-          { label: companyCopy.revenueLabel, value: formatCardEur(project.revenueCents) },
-          { label: companyCopy.ebitdaLabel, value: formatCardEur(project.ebitdaCents) },
-          { label: "Precio", value: formatCardEur(project.askingPriceCents) },
-        ].map((figure) => (
-          <div key={figure.label} className="min-w-0 rounded-xl bg-[#f7f8fb] px-3 py-2">
-            <dt className="truncate text-xs text-[#667085]">{figure.label}</dt>
-            <dd className="font-semibold whitespace-nowrap tabular-nums">{figure.value}</dd>
-          </div>
-        ))}
-      </dl>
-      <div className="mt-3">
+      <div className="px-1 pb-1">
         <CompanyActions project={project} />
       </div>
-    </article>
+    </div>
   );
 }

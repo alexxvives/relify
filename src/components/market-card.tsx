@@ -82,7 +82,18 @@ function percent(part: number, whole: number): number | null {
  * the real premises. The CNAE line and the four figures carry the deal; the whole card links to
  * the ficha, and the optional `actions` (hide, favorite) sit on the photo above that link.
  */
-export function MarketCard({ project, actions, muted = false }: { project: PublicProjectCard; actions?: ReactNode; muted?: boolean }) {
+export function MarketCard({
+  project,
+  actions,
+  muted = false,
+  href: hrefOverride,
+}: {
+  project: PublicProjectCard;
+  actions?: ReactNode;
+  muted?: boolean;
+  /** Admin reuses the card but links to its own company page. */
+  href?: string;
+}) {
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
   const Icon = style.icon;
@@ -91,7 +102,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
   const adjustedMargin = percent(project.adjustedEbitdaCents, project.revenueCents);
   const headcount = project.headcount && isHeadcountRange(project.headcount) ? `${headcountLabels[project.headcount]} trab.` : null;
   const sectorName = project.sectorLabel ? sentence(project.sectorLabel) : null;
-  const href = `/proyectos/${project.slug}`;
+  const href = hrefOverride ?? `/proyectos/${project.slug}`;
 
   return (
     <article

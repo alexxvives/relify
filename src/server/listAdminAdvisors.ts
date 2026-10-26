@@ -25,6 +25,8 @@ export type AdminAdvisorRow = {
   justification: string;
   verified: boolean;
   isNew: boolean;
+  /** Same card the marketplace renders, when the profile is complete enough to list. */
+  card: PublicAdvisorCard | null;
 };
 
 function personName(name: string, lastName: string | null): string {
@@ -121,6 +123,7 @@ export async function listAdminAdvisors(user: CurrentUser, since?: Date): Promis
         listed: card !== null,
         verified: advisor.advisorProfile?.verifiedAt != null,
         isNew: since ? advisor.createdAt > since : false,
+        card,
         place,
         total,
         breakdown,
