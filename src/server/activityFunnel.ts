@@ -1,7 +1,7 @@
 import { prisma } from "@/server/db";
 
 export type SellerFunnel = { views: number; requests: number; ndas: number; lois: number; daysListed: number | null };
-export type InvestorFunnel = { favorites: number; requests: number; active: number; ndas: number };
+export type InvestorFunnel = { requests: number; active: number; ndas: number };
 
 const dayMs = 86_400_000;
 
@@ -26,11 +26,10 @@ export async function sellerFunnel(ownerId: string, projectId: string | null): P
 }
 
 export async function investorFunnel(investorId: string): Promise<InvestorFunnel> {
-  const [favorites, requests, active, ndas] = await Promise.all([
-    prisma.projectFavorite.count({ where: { investorId } }),
+  const [requests, active, ndas] = await Promise.all([
     prisma.projectAccess.count({ where: { investorId } }),
     prisma.projectAccess.count({ where: { investorId, sellerAcceptedAt: { not: null }, cancelledAt: null } }),
     prisma.projectAccess.count({ where: { investorId, ndaAcceptedAt: { not: null } } }),
   ]);
-  return { favorites, requests, active, ndas };
+  return { requests, active, ndas };
 }

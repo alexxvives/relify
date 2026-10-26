@@ -23,7 +23,7 @@ import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/server/investorDesk";
-import { Briefcase, ChevronDown, Heart, Send, ShieldCheck } from "lucide-react";
+import { Briefcase, ChevronDown, FileSignature, Send, ShieldCheck } from "lucide-react";
 import type { InvestorFunnel } from "@/server/activityFunnel";
 import { ActivityTiles, share } from "@/components/activity-tiles";
 
@@ -162,6 +162,8 @@ export function InvestorProcesses({
   advisors?: AdvisorContactView[];
 }) {
   const closed = items.filter((item) => item.closed !== null);
+  // Processes past the NDA: in Q&A, with an LOI, or further along.
+  const pastNda = items.filter((item) => reachedQa(item.steps)).length;
   items = items.filter((item) => item.closed === null);
 
   return (
@@ -171,10 +173,10 @@ export function InvestorProcesses({
           <h2 id="processes-summary" className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
           <ActivityTiles
             tiles={[
-              { label: "Favoritos", value: funnel.favorites, icon: Heart, tone: "orange", ratio: funnel.favorites > 0 ? 1 : 0, caption: "Empresas guardadas" },
-              { label: "Solicitudes enviadas", value: funnel.requests, icon: Send, tone: "sky", ratio: share(funnel.requests, Math.max(funnel.favorites, funnel.requests)), caption: "Peticiones de acceso" },
+              { label: "Solicitudes enviadas", value: funnel.requests, icon: Send, tone: "sky", ratio: funnel.requests > 0 ? 1 : 0, caption: "Peticiones de acceso" },
               { label: "Procesos activos", value: items.length, icon: Briefcase, tone: "indigo", ratio: share(items.length, funnel.requests), caption: closed.length > 0 ? `${closed.length} ${closed.length === 1 ? "cerrado" : "cerrados"}` : `${items.length} de ${funnel.requests} aceptadas` },
               { label: "NDAs firmados", value: funnel.ndas, icon: ShieldCheck, tone: "emerald", ratio: share(funnel.ndas, funnel.requests), caption: `${funnel.ndas} de ${funnel.requests} ${funnel.requests === 1 ? "solicitud" : "solicitudes"}` },
+              { label: "Preguntas y LOIs", value: pastNda, icon: FileSignature, tone: "orange", ratio: share(pastNda, funnel.ndas), caption: `${pastNda} de ${funnel.ndas} con NDA` },
             ]}
           />
           {cancelled.length > 0 ? (
