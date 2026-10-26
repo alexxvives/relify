@@ -1,5 +1,6 @@
-import { CircleHelp } from "lucide-react";
+import { InfoHint } from "@/components/ui/info-hint";
 
+/** Form-field help icon; a thin preset of the shared InfoHint. */
 export function FieldHint({
   text,
   align = "start",
@@ -11,24 +12,5 @@ export function FieldHint({
   tone?: "ink" | "light";
   wide?: boolean;
 }) {
-  const place = align === "center" ? "left-1/2 -translate-x-1/2" : align === "end" ? "right-0" : "left-0";
-  const icon = tone === "light" ? "text-white/70 hover:text-white" : "text-[#8b95a7] hover:text-[#465ab4]";
-
-  return (
-    <span className="group relative inline-flex">
-      <span
-        tabIndex={0}
-        aria-label={text}
-        className={`inline-flex size-5 items-center justify-center rounded-full ${icon}`}
-      >
-        <CircleHelp className="size-4" aria-hidden />
-      </span>
-      <span
-        role="tooltip"
-        className={`pointer-events-none absolute bottom-full z-30 mb-2 hidden rounded-xl bg-[#1c2740] px-3 py-2 text-left text-xs leading-5 font-normal whitespace-pre-line text-white shadow-lg group-focus-within:block group-hover:block ${wide ? "w-96" : "w-64"} ${place}`}
-      >
-        {text}
-      </span>
-    </span>
-  );
+  return <InfoHint text={text} align={align} tone={tone} width={wide ? "lg" : "md"} />;
 }
