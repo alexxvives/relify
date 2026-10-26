@@ -113,14 +113,32 @@ function ThreadList({
     );
   }
 
+  // Investors still waiting for an answer are vertical profile cards side by side; open processes stay full width.
+  const pending = threads.filter((thread) => thread.stage === "pending");
+  const open = threads.filter((thread) => thread.stage !== "pending");
+  const card = (thread: SellerThread) => (
+    <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
+  );
+
   return (
-    <ul className="mt-4 flex flex-wrap items-start gap-4">
-      {threads.map((thread) => (
-        <li key={thread.accessId} className={thread.stage === "pending" ? "w-full max-w-sm" : "w-full"}>
-          <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
-        </li>
-      ))}
-    </ul>
+    <div className="mt-4 flex flex-col gap-4">
+      {pending.length > 0 ? (
+        <ul className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3 min-[1600px]:grid-cols-4">
+          {pending.map((thread) => (
+            <li key={thread.accessId} className="flex min-w-0 [&>*]:w-full">
+              {card(thread)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {open.length > 0 ? (
+        <ul className="flex flex-col gap-4">
+          {open.map((thread) => (
+            <li key={thread.accessId}>{card(thread)}</li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
