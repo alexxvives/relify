@@ -406,7 +406,7 @@ export function AppFrame({
             <button
               type="submit"
               title={authCopy.signOut}
-              className="mt-1 flex h-10 w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-[#aeb6c7] hover:bg-[#222839] hover:text-white"
+              className="mt-1 flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium text-[#aeb6c7] hover:bg-[#222839] hover:text-white"
             >
               <LogOutIcon size={16} aria-hidden />
               <span className="shell-label">{authCopy.signOut}</span>

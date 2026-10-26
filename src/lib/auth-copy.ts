@@ -1,7 +1,7 @@
 export const authCopy = {
   signIn: "Entrar",
   signUp: "Crear cuenta",
-  signOut: "Salir",
+  signOut: "Cerrar sesión",
   signInTitle: "Iniciar sesión",
   signUpTitle: "Crear cuenta",
   stageKicker: "Compra. Vende. Crece.",
