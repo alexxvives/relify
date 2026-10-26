@@ -3,8 +3,6 @@ import { ProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerProcesses } from "@/components/seller-processes";
-import { SellerSaleCompleted } from "@/components/sale-completed";
-import { sellerSaleSummary } from "@/server/saleOutcome";
 import { SignedInPage } from "@/components/signed-in-page";
 import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -35,11 +33,6 @@ async function ProcessesPageContent() {
     listClientContacts(user),
     sellerProcessScope(user.id),
   ]);
-
-  const sale = await sellerSaleSummary(user.id, projectId);
-  if (sale) {
-    return <SellerSaleCompleted codename={sale.codename} figures={sale} docs={sale} />;
-  }
 
   return (
     <>

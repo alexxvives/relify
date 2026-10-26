@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { SignerProvider } from "@/components/signer-context";
-import { destinationsForRole } from "@/lib/shell";
+import { destinationsForRole, saleClosedDestination } from "@/lib/shell";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
 import { menuProcessCount } from "@/server/menuProcessCount";
+import { prisma } from "@/server/db";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
 export async function AppShell({
@@ -38,11 +39,19 @@ export async function AppShell({
     menuProcessCount(user),
   ]);
 
+  const sold = activeCompanyId
+    ? (await prisma.successFee.findUnique({ where: { projectId: activeCompanyId }, select: { id: true } })) !== null
+    : false;
+  const destinations = destinationsForRole(user.role);
+  if (user.role === "seller" && sold) {
+    destinations.push(saleClosedDestination);
+  }
+
   return (
     <SignerProvider nationalIdMissing={user.nationalIdMissing}>
     <AppFrame
       name={user.displayName}
-      destinations={destinationsForRole(user.role)}
+      destinations={destinations}
       title={greeting ? `Hola, ${user.displayName.split(" ")[0] ?? user.displayName}` : title}
       showTitle={greeting || showTitle}
       notifications={notifications}

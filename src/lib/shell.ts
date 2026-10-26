@@ -22,6 +22,9 @@ export type ShellDestination = {
   section?: string;
 };
 
+/** Seller-only entry shown while the selected company has a closed sale. */
+export const saleClosedDestination: ShellDestination = { href: "/mi-empresa/venta", label: "Venta cerrada", section: "Gestión de procesos" };
+
 const destinations = {
   investor: [
     { href: "/inversor", label: "Inicio" },

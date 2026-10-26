@@ -20,6 +20,7 @@ import { PhoneIcon } from "@animateicons/react/lucide/phone-icon";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
 import { ReceiptIcon } from "@animateicons/react/lucide/receipt-icon";
 import { TableIcon } from "@animateicons/react/lucide/table-icon";
+import { TrophyIcon } from "@animateicons/react/lucide/trophy-icon";
 import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/cuenta/actions";
@@ -42,6 +43,7 @@ const iconForHref = {
   "/mi-empresa/procesos": TableIcon,
   "/procesos": TableIcon,
   "/mi-empresa/servicios": MessageCircleMoreIcon,
+  "/mi-empresa/venta": TrophyIcon,
   "/favoritos": HeartIcon,
   "/mandatos": HouseIcon,
   "/mandatos/encargos": HandshakeIcon,

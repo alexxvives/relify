@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, CircleCheck, FolderOpen, MessageSquareQuote, Receipt } from "lucide-react";
-import type { ReactNode } from "react";
+import { Archive, CalendarClock, CircleCheck, FolderOpen, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
 import { ListAnotherCompany } from "@/components/company-switcher";
 import { ProcessRoom } from "@/components/deal-pipeline";
 import { shortNickname } from "@/lib/nickname";
@@ -63,23 +63,76 @@ function ArchivedDocs({ docs, extra }: { docs: Docs; extra?: ReactNode }) {
   );
 }
 
-export function SellerSaleCompleted({ codename, figures, docs }: { codename: string; figures: SaleFigures; docs: Docs }) {
+export type SellerSaleStats = { buyer: string; daysToClose: number; listedOn: string; interested: number };
+
+function useSaleConfetti() {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false;
+    void import("canvas-confetti").then(({ default: confetti }) => {
+      if (cancelled) return;
+      const colors = ["#465ab4", "#17663a", "#f5b942", "#e8eefb"];
+      confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.35 }, colors, disableForReducedMotion: true });
+      confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.35 }, colors, disableForReducedMotion: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+}
+
+function Stat({ icon, label, value, note }: { icon: ReactNode; label: string; value: string; note?: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4">
+      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eef2ff] text-[#465ab4]">{icon}</span>
+      <div className="min-w-0">
+        <dt className="text-xs text-[#667085]">{label}</dt>
+        <dd className="mt-0.5 text-lg font-semibold text-[#1c2740]">{value}</dd>
+        {note ? <dd className="text-xs text-[#667085]">{note}</dd> : null}
+      </div>
+    </div>
+  );
+}
+
+export function SellerSaleCompleted({
+  codename,
+  figures,
+  docs,
+  stats,
+}: {
+  codename: string;
+  figures: SaleFigures;
+  docs: Docs;
+  stats: SellerSaleStats;
+}) {
+  useSaleConfetti();
+  const days = stats.daysToClose === 1 ? "1 día" : `${stats.daysToClose} días`;
+  const interested = stats.interested === 1 ? "1 inversor interesado" : `${stats.interested} inversores interesados`;
   return (
     <div className="flex flex-col gap-4">
-      <section className="rounded-2xl border border-[#cfe9da] bg-[#f3fbf6] p-6" aria-labelledby="sale-done">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#dff3e7] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
-          <CircleCheck className="size-3.5" aria-hidden /> Vendida
+      <section
+        className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#1c2740_0%,#2f418f_55%,#465ab4_100%)] px-6 py-8 text-white sm:px-10 sm:py-10"
+        aria-labelledby="sale-done"
+      >
+        <PartyPopper className="pointer-events-none absolute -right-6 -bottom-8 size-48 text-white/10" aria-hidden />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+          <Trophy className="size-3.5" aria-hidden /> Venta cerrada · {figures.date}
         </span>
-        <h2 id="sale-done" className="mt-3 text-2xl font-semibold text-[#17663a]">Venta completada. ¡Enhorabuena!</h2>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-[#2f5b43]">
-          {codename} ya tiene nuevo dueño: el contrato de compraventa está firmado por las dos partes desde el {figures.date}. La empresa deja de aparecer en el marketplace.
+        <h2 id="sale-done" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">¡Enhorabuena! Has vendido {codename}.</h2>
+        <p className="mt-2 max-w-2xl text-base leading-7 text-white/80">
+          El contrato de compraventa está firmado por las dos partes. La empresa ya no aparece en el marketplace.
         </p>
-        <dl className="mt-5 grid gap-3 sm:grid-cols-3">
-          <Figure label="Precio de cierre" value={figures.price} />
-          <Figure label="Success fee Relify" value={figures.fee} note={figures.feeNote} />
-          <Figure label="Fecha de cierre" value={figures.date} />
-        </dl>
+        <p className="mt-6 text-sm text-white/70">Precio de cierre</p>
+        <p className="text-5xl font-semibold tracking-tight sm:text-6xl">{figures.price}</p>
       </section>
+
+      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat icon={<UserRound className="size-5" aria-hidden />} label="Comprador" value={stats.buyer} />
+        <Stat icon={<CalendarClock className="size-5" aria-hidden />} label="De publicación a cierre" value={days} note={`Publicada el ${stats.listedOn}`} />
+        <Stat icon={<Users className="size-5" aria-hidden />} label="Interés recibido" value={interested} />
+        <Stat icon={<Receipt className="size-5" aria-hidden />} label="Success fee Relify" value={figures.fee} note={figures.feeNote} />
+      </dl>
+
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <section aria-labelledby="sale-next">
           <h2 id="sale-next" className="mb-3 text-lg font-semibold text-[#1c2740]">Próximos pasos</h2>
