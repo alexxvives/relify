@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition, type FormEv
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
@@ -346,6 +346,7 @@ function FichaMetrics({
   adjustedEbitda,
   onAdjustedEbitda,
   margin,
+  priceStatus = null,
 }: {
   revenue: string;
   revenueLocked: boolean;
@@ -360,9 +361,19 @@ function FichaMetrics({
   adjustedEbitda: string;
   onAdjustedEbitda: (value: string) => void;
   margin: string;
+  priceStatus?: ReactNode;
 }) {
   const cells = [
-    { id: "asking-price", frame: metricCellFrame(0), node: <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} /> },
+    {
+      id: "asking-price",
+      frame: metricCellFrame(0),
+      node: (
+        <div className="flex min-w-0 flex-col items-center">
+          <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} />
+          {priceStatus}
+        </div>
+      ),
+    },
     {
       id: "margin",
       frame: metricCellFrame(1),
@@ -380,7 +391,7 @@ function FichaMetrics({
   ];
 
   return (
-    <div className="mt-6 overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
+    <div className="mt-6 rounded-3xl border border-[#e7eaee] bg-white">
       <div className="grid sm:grid-cols-2 lg:grid-cols-3">
         {cells.map((cell) => (
           <div key={cell.id} className={`border-[#eef0f3] p-4 ${cell.frame}`}>
@@ -413,32 +424,56 @@ function wholeEur(cents: number): string {
 }
 
 const standingCopy = {
-  below: { text: "Tu precio está por debajo del rango", className: "bg-[#eef1fb] text-[#465ab4]" },
-  within: { text: "Tu precio está dentro del rango", className: "bg-[#e8f6ee] text-[#17663a]" },
-  above: { text: "Tu precio está por encima del rango", className: "bg-[#fff4e0] text-[#8a5300]" },
+  below: { text: "Por debajo del rango", className: "bg-[#eef1fb] text-[#465ab4]" },
+  within: { text: "Dentro del rango", className: "bg-[#e8f6ee] text-[#17663a]" },
+  above: { text: "Por encima del rango", className: "bg-[#fff4e0] text-[#8a5300]" },
 } as const;
 
-function PriceGuide({ estimate, askingCents, basis }: { estimate: PriceEstimate | null; askingCents: number | null; basis: string }) {
-  if (!estimate) {
-    return (
-      <p className="mt-4 rounded-2xl border border-dashed border-[#d9dee8] bg-[#f7f8fb] px-4 py-3 text-sm leading-6 text-[#3d4a63]">
-        Añade el EBITDA (o sube tus cuentas) y te mostraremos un rango de precio orientativo para tu sector.
-      </p>
-    );
-  }
-  const standing = askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
+/** Suggested price as a status pill under the price input; the range and the why live in a popover. */
+function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate | null; askingCents: number | null; basis: string }) {
+  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const shown = open || pinned;
+  const standing = estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
   return (
-    <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3" aria-live="polite">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-base font-semibold text-[#1c2740]">
-          Rango estimado: <span className="tabular-nums">{wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}</span>
-        </p>
-        {standing ? <span className={`rounded-full px-3 py-1 text-sm font-semibold ${standing.className}`}>{standing.text}</span> : null}
-      </div>
-      <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
-        Orientativo: las empresas de {estimate.sectorLabel} suelen venderse por {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)} su {basis}
-        {estimate.adjustments.length > 0 ? `, ajustado por ${estimate.adjustments.join(" y ")}` : ""}. No es una valoración; el precio lo decides tú.
-      </p>
+    <div
+      className="relative mt-2 flex justify-center"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-expanded={shown}
+        aria-controls="price-guide"
+        onClick={() => setPinned((value) => !value)}
+        onBlur={() => setPinned(false)}
+        className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
+      >
+        {standing ? standing.text : estimate ? `Rango ${wholeEur(estimate.lowCents)} – ${wholeEur(estimate.highCents)}` : "Precio orientativo"}
+        <Info className="size-4 shrink-0" aria-hidden />
+        <span className="sr-only">Ver rango de precio orientativo</span>
+      </button>
+      {shown ? (
+        <div
+          id="price-guide"
+          role="tooltip"
+          className="absolute top-full z-30 mt-2 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
+        >
+          {estimate ? (
+            <>
+              <p className="text-sm font-semibold text-[#1c2740]">
+                Rango estimado: <span className="tabular-nums">{wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}</span>
+              </p>
+              <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
+                Las empresas de {estimate.sectorLabel} suelen venderse por {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)} su {basis}
+                {estimate.adjustments.length > 0 ? `, ajustado por ${estimate.adjustments.join(" y ")}` : ""}. No es una valoración; el precio lo decides tú.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm leading-6 text-[#3d4a63]">Añade el EBITDA (o sube tus cuentas) y te mostraremos un rango de precio orientativo para tu sector.</p>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1621,11 +1656,13 @@ export function CompanyDraftForm({
             adjustedEbitda={adjustedEbitda}
             onAdjustedEbitda={setAdjustedEbitda}
             margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-          />
-          <PriceGuide
-            estimate={priceEstimate}
-            askingCents={euroCentsOrNull(askingPrice)}
-            basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
+            priceStatus={
+              <PriceStatus
+                estimate={priceEstimate}
+                askingCents={euroCentsOrNull(askingPrice)}
+                basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
+              />
+            }
           />
         </PublicFicha>
         <div className="mt-8 flex flex-col gap-4">
