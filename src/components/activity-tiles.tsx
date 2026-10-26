@@ -31,9 +31,9 @@ export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
               <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>
                 <tile.icon className="size-[18px]" aria-hidden />
               </span>
-              <p className="min-w-0 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
+              <p className="min-w-0 flex-1 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
+              <p className="shrink-0 text-2xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
             </div>
-            <p className="mt-3 text-3xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6]" role="presentation">
               <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
             </div>
