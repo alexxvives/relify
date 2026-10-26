@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState } from "react";
-import { useSessionChoice } from "@/components/session-flag";
 import Link from "next/link";
 import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
@@ -12,17 +11,17 @@ import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/deal-p
 import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { SellerTabs } from "@/components/seller-tabs";
 import { DeskToggles } from "@/components/desk-toggles";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { companyCopy } from "@/lib/company-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { investorCopy } from "@/lib/investor-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 import { unreadCount } from "@/lib/project-message";
+import type { CancelledProcess } from "@/server/investorDesk";
+import { ChevronDown } from "lucide-react";
 
 const processTabs = [
   { id: "chat", label: sellerCopy.questionsPanel },
@@ -30,10 +29,6 @@ const processTabs = [
   { id: "advisor", label: "Asesor" },
 ] as const;
 
-const pageTabs = [
-  { id: "summary", label: sellerCopy.summary },
-  { id: "active", label: sellerCopy.active },
-] as const;
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
@@ -145,28 +140,23 @@ export function InvestorProcesses({
   dateLabel,
   today,
   advisors = [],
+  cancelled = [],
 }: {
+  cancelled?: CancelledProcess[];
   items: InvestorProcessCard[];
   buyerName: string;
   dateLabel: string;
   today: string;
   advisors?: AdvisorContactView[];
 }) {
-  const [page, setPage] = useSessionChoice(
-    "Relify:investor-process-tab",
-    "active",
-    pageTabs.map((item) => item.id),
-  );
   const questions = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "question").length, 0);
   const meetings = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "meeting").length, 0);
 
   return (
     <div>
       <LiveRefresh />
-      <SellerTabs label={investorCopy.processesTitle} tabs={pageTabs} value={page} onChange={setPage} />
-      {page === "summary" ? (
-        <section className="mt-4 rounded-2xl border border-[#e6e9f0] bg-white p-5">
-          <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
+      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5" aria-labelledby="processes-summary">
+          <h2 id="processes-summary" className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
           <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
               <p className="text-2xl font-semibold text-[#2b3b4a]">{items.length}</p>
@@ -185,10 +175,14 @@ export function InvestorProcesses({
               <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.meetingsDone}</p>
             </li>
           </ul>
+          {cancelled.length > 0 ? (
+            <div className="mt-4">
+              <CancelledList items={cancelled} />
+            </div>
+          ) : null}
         </section>
-      ) : null}
-      {page === "active" ? (
-      <ul className="mt-4 flex flex-col gap-3">
+      <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2>
+      <ul className="flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
           <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
@@ -259,7 +253,30 @@ export function InvestorProcesses({
         </li>
       ))}
       </ul>
-      ) : null}
     </div>
+  );
+}
+
+/** Closed processes stay reachable (read-only, via the ficha) instead of silently disappearing. */
+export function CancelledList({ items }: { items: CancelledProcess[] }) {
+  return (
+    <details className="group/cancel rounded-xl border border-[#e7eaee] bg-[#fafbfd] px-4 py-2 open:pb-3">
+      <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-[#2b3b4a] [&::-webkit-details-marker]:hidden">
+        Procesos cancelados ({items.length})
+        <ChevronDown className="size-4 shrink-0 text-[#64748b] transition-transform group-open/cancel:rotate-180" aria-hidden />
+      </summary>
+      <ul className="mt-2 flex flex-col divide-y divide-[#eceff4]">
+        {items.map((item) => (
+          <li key={item.accessId} className="flex items-center justify-between gap-3 py-2 text-sm">
+            <Link href={`/proyectos/${item.slug}`} className="min-w-0 truncate font-medium text-[#465ab4] hover:underline">
+              {item.codename}
+            </Link>
+            <span className="shrink-0 text-[#64748b]">
+              Cancelado el {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

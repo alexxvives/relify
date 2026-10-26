@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
-import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
 import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
@@ -15,7 +14,6 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { SellerTabs } from "@/components/seller-tabs";
 import { DeskToggles } from "@/components/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
@@ -25,11 +23,6 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy } from "@/lib/seller-copy";
-
-const tabs = [
-  { id: "summary", label: sellerCopy.summary },
-  { id: "active", label: sellerCopy.active },
-] as const;
 
 const counters = [
   { label: sellerCopy.accepted, icon: Link2 },
@@ -375,19 +368,12 @@ export function SellerProcesses({
   companyName?: string;
   elsewhere?: string | null;
 }) {
-  const [tab, setTab] = useSessionChoice(
-    "Relify:seller-process-tab",
-    "active",
-    tabs.map((item) => item.id),
-  );
   const counterValues = [counts.accepted, counts.questionsIn, counts.questionsOut, counts.meetings];
 
   return (
     <div>
       <LiveRefresh />
-      <SellerTabs label={sellerCopy.processesTitle} tabs={tabs} value={tab} onChange={setTab} />
-      {tab === "summary" ? (
-        <div className="mt-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
           <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
             <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
             <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activitySummaryIntro}</p>
@@ -431,9 +417,8 @@ export function SellerProcesses({
               </div>
             </section>
           </div>
-        </div>
-      ) : null}
-      {tab === "active" ? (
+      </div>
+      <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2>
         <ThreadList
           threads={threads}
           emptyTitle={sellerCopy.activeEmpty}
@@ -443,7 +428,6 @@ export function SellerProcesses({
           companyName={companyName}
           elsewhere={elsewhere}
         />
-      ) : null}
     </div>
   );
 }

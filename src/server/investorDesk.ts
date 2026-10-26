@@ -211,3 +211,21 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
     profileChecks: investorProfileChecks(draft),
   };
 }
+
+export type CancelledProcess = { accessId: string; slug: string; codename: string; cancelledAt: string };
+
+/** Processes the buyer (or seller) closed; kept reachable from the summary so nothing silently disappears. */
+export async function listCancelledProcesses(userId: string): Promise<CancelledProcess[]> {
+  const rows = await prisma.projectAccess.findMany({
+    where: { investorId: userId, cancelledAt: { not: null } },
+    select: { id: true, cancelledAt: true, project: { select: { slug: true, codename: true } } },
+    orderBy: { cancelledAt: "desc" },
+    take: 50,
+  });
+  return rows.map((row) => ({
+    accessId: row.id,
+    slug: row.project.slug,
+    codename: row.project.codename,
+    cancelledAt: (row.cancelledAt ?? new Date()).toISOString(),
+  }));
+}
