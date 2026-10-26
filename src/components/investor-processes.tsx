@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import Link from "next/link";
-import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
+import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
@@ -22,6 +22,7 @@ import { sellerCopy } from "@/lib/seller-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
+import { unreadCount } from "@/lib/project-message";
 
 const processTabs = [
   { id: "chat", label: sellerCopy.questionsPanel },
@@ -52,15 +53,25 @@ function ProcessConversation({
   const [tab, setTab] = useState<(typeof processTabs)[number]["id"] | null>(null);
   const chat = item.messages.filter((message) => message.kind === "question");
   const deskId = useId();
+  const [readAt, setReadAt] = useState(item.lastReadAt);
+  const unread = tab === "chat" ? 0 : unreadCount(chat, readAt);
+
+  function changeTab(next: (typeof processTabs)[number]["id"] | null) {
+    if (next === "chat" || tab === "chat") {
+      setReadAt(new Date().toISOString());
+      void markThreadReadAction(item.accessId);
+    }
+    setTab(next);
+  }
 
   return (
     <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
       <DeskToggles
         label={item.codename}
         controls={deskId}
-        tabs={processTabs.map((entry) => (entry.id === "chat" ? { ...entry, count: chat.length } : entry))}
+        tabs={processTabs.map((entry) => (entry.id === "chat" ? { ...entry, count: unread } : entry))}
         value={tab}
-        onChange={setTab}
+        onChange={changeTab}
         disabled={item.advisorHired ? [] : ["advisor"]}
       />
       {item.nda ? null : (

@@ -64,6 +64,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           ndaAcceptedAt: true,
           loiAcceptedAt: true,
           diligencePassedAt: true,
+          sellerReadAt: true,
         },
         orderBy: { requestedAt: "asc" },
       }),
@@ -171,6 +172,7 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
               )
             : [],
         advisorHired: hiredProjects.has(access.projectId),
+        lastReadAt: access.sellerReadAt?.toISOString() ?? null,
       };
     });
 

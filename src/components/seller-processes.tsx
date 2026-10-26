@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState, useId } from "react";
 import { useSessionChoice } from "@/components/session-flag";
 import { Calendar, Link2, MessageCircle, MessageCircleQuestion } from "lucide-react";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
+import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ContractStage } from "@/components/contract-stage";
@@ -18,6 +19,7 @@ import { SellerTabs } from "@/components/seller-tabs";
 import { DeskToggles } from "@/components/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
+import { unreadCount } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
@@ -205,6 +207,16 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
   const [desk, setDesk] = useState<"chat" | "meetings" | "advisor" | null>(null);
   const deskId = useId();
   const chat = thread.messages.filter((message) => message.kind === "question");
+  const [readAt, setReadAt] = useState(thread.lastReadAt);
+  const unread = desk === "chat" ? 0 : unreadCount(chat, readAt);
+
+  function changeDesk(next: "chat" | "meetings" | "advisor" | null) {
+    if (next === "chat" || desk === "chat") {
+      setReadAt(new Date().toISOString());
+      void markThreadReadAction(thread.accessId);
+    }
+    setDesk(next);
+  }
   const expandable = thread.stage === "open";
 
   if (thread.stage === "pending") {
@@ -276,12 +288,12 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             label={thread.codename}
             controls={deskId}
             tabs={[
-              { id: "chat", label: sellerCopy.questionsPanel, count: chat.length },
+              { id: "chat", label: sellerCopy.questionsPanel, count: unread },
               { id: "meetings", label: sellerCopy.meetingsHeading },
               { id: "advisor", label: "Asesor" },
             ]}
             value={desk}
-            onChange={setDesk}
+            onChange={changeDesk}
             disabled={thread.advisorHired ? [] : ["advisor"]}
           />
           <div id={deskId} hidden={desk === null}>

@@ -314,6 +314,9 @@ model ProjectAccess {
   ndaSignature      Bytes?         @map("nda_signature")
   loiSignature      Bytes?         @map("loi_signature")
   loiSignedAt       DateTime?      @map("loi_signed_at")
+  /// When each side last opened the chat; drives the real unread badge.
+  sellerReadAt      DateTime?      @map("seller_read_at")
+  investorReadAt    DateTime?      @map("investor_read_at")
   saleContracts     SaleContract[]
 
   @@unique([projectId, investorId])

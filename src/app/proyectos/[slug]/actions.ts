@@ -13,6 +13,7 @@ import { companyCopy } from "@/lib/company-copy";
 import { investorMessageSchema } from "@/lib/project-message";
 import { postInvestorMessage } from "@/server/postProjectMessage";
 import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
+import { markThreadRead } from "@/server/markThreadRead";
 import { toggleProjectFavorite, type FavoriteResult } from "@/server/toggleProjectFavorite";
 
 export type ProjectAccessActionState = { ok: true } | { ok: false; message: string } | null;
@@ -221,4 +222,12 @@ export async function toggleFavoriteAction(slug: string): Promise<FavoriteResult
   }
 
   return result;
+}
+
+export async function markThreadReadAction(accessId: string): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user || typeof accessId !== "string") {
+    return false;
+  }
+  return markThreadRead(user, accessId);
 }

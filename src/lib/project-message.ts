@@ -108,6 +108,12 @@ export type ThreadMessageView = {
   createdAt: string;
 };
 
+/** Chat messages from the other side that arrived after this viewer last opened the chat. */
+export function unreadCount(messages: readonly ThreadMessageView[], lastReadAt: string | null | undefined): number {
+  const since = lastReadAt ? Date.parse(lastReadAt) : Number.NEGATIVE_INFINITY;
+  return messages.filter((message) => !message.mine && Date.parse(message.createdAt) > since).length;
+}
+
 export function personName(name: string, lastName: string | null | undefined): string {
   return [name, lastName ?? ""].map((part) => part.trim()).filter((part) => part.length > 0).join(" ");
 }
@@ -129,6 +135,8 @@ export type SellerThread = {
   documents: ProcessFile[];
   advisorHired: boolean;
   contract?: ContractView | null;
+  /** ISO time this viewer last opened the chat, or null if never. */
+  lastReadAt?: string | null;
 };
 
 export type MessageCounts = {

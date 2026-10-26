@@ -27,6 +27,7 @@ export type InvestorProcessCard = {
   partyName: string;
   advisorHired: boolean;
   contract: ContractView | null;
+  lastReadAt: string | null;
 };
 
 export type InvestorProfileChecks = {
@@ -73,6 +74,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
         ndaAcceptedAt: true,
         loiAcceptedAt: true,
         diligencePassedAt: true,
+        investorReadAt: true,
         project: {
           select: {
             id: true,
@@ -179,6 +181,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       partyName: access.project.owner ? personName(access.project.owner.name, access.project.owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
       advisorHired: hiredProjects.has(access.project.id),
       contract: null as ContractView | null,
+      lastReadAt: access.investorReadAt?.toISOString() ?? null,
     };
   });
   const contracts = await contractViews(
