@@ -32,16 +32,19 @@ function closingDate(date: Date): string {
 /** Closed sale for the seller's active company, or null while it is still on the market. */
 export async function sellerSaleSummary(ownerId: string, projectId: string | null): Promise<SaleSummary | null> {
   if (!projectId) return null;
-  const project = await prisma.project.findFirst({
-    where: { id: projectId, ownerId },
-    select: { codename: true, successFee: true, createdAt: true, verifiedAt: true, _count: { select: { accesses: true } } },
-  });
+  // Both lookups only need the ids, so run them together (one round trip instead of two).
+  const [project, contract] = await Promise.all([
+    prisma.project.findFirst({
+      where: { id: projectId, ownerId },
+      select: { codename: true, successFee: true, createdAt: true, verifiedAt: true, _count: { select: { accesses: true } } },
+    }),
+    prisma.saleContract.findFirst({
+      where: { status: "signed", access: { projectId, project: { ownerId } } },
+      orderBy: { sellerSignedAt: "desc" },
+      select: { id: true, accessId: true, access: { select: { investor: { select: { name: true, lastName: true } } } } },
+    }),
+  ]);
   if (!project?.successFee) return null;
-  const contract = await prisma.saleContract.findFirst({
-    where: { status: "signed", access: { projectId } },
-    orderBy: { sellerSignedAt: "desc" },
-    select: { id: true, accessId: true, access: { select: { investor: { select: { name: true, lastName: true } } } } },
-  });
   const fee = project.successFee;
   const listed = project.verifiedAt ?? project.createdAt;
   const buyer = contract ? personName(contract.access.investor.name, contract.access.investor.lastName) : "";

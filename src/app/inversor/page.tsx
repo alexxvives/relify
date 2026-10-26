@@ -19,12 +19,12 @@ export const metadata: Metadata = {
 
 async function InvestorHomePageContent() {
   const user = await requireRole("investor");
-  const [notifications, sectors, cancelled] = await Promise.all([
+  const [notifications, sectors, cancelled, desk] = await Promise.all([
     listNotifications(user.id),
     listPublishedSectors(),
     listCancelledProcesses(user),
+    loadInvestorDesk(user.id, user.email),
   ]);
-  const desk = await loadInvestorDesk(user.id, user.email);
 
   return (
     <>

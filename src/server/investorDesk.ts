@@ -67,7 +67,7 @@ function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date |
 }
 
 export async function loadInvestorDesk(userId: string, email: string): Promise<InvestorDesk> {
-  const [accesses, favorites, questions, meetings, hired] = await Promise.all([
+  const [accesses, favorites, questions, meetings, hired, draft] = await Promise.all([
     prisma.projectAccess.findMany({
       where: { investorId: userId, cancelledAt: null, project: { status: "published" } },
       select: {
@@ -107,26 +107,39 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       where: { requesterId: userId, advisorId: { not: null }, depositPaidAt: { not: null }, declinedAt: null },
       select: { projectId: true },
     }),
+    loadInvestorDraft(userId, email),
   ]);
   const hiredProjects = new Set(hired.map((row) => row.projectId));
   const sharedIds = accesses
     .filter((access) => access.ndaAcceptedAt !== null && access.project.dataRoomGrants.length > 0)
     .map((access) => access.project.id);
-  const sharedFiles =
+  // One round of independent lookups: each extra await is a full round trip to the database.
+  const [sharedFiles, shareRows, contracts] = await Promise.all([
     sharedIds.length === 0
-      ? []
-      : await prisma.dataRoomFile.findMany({
+      ? Promise.resolve([])
+      : prisma.dataRoomFile.findMany({
           where: { projectId: { in: sharedIds } },
           select: { id: true, projectId: true, folder: true, fileName: true },
           orderBy: { createdAt: "asc" },
-        });
-  const shareRows =
+        }),
     sharedIds.length === 0
-      ? []
-      : await prisma.dataRoomFileShare.findMany({
+      ? Promise.resolve([])
+      : prisma.dataRoomFileShare.findMany({
           where: { investorId: userId, file: { projectId: { in: sharedIds } } },
           select: { fileId: true, investorId: true },
-        });
+        }),
+    contractViews(
+      accesses.map((access) => ({
+        accessId: access.id,
+        party: "buyer" as const,
+        open: contractStageOpen({
+          loiAccepted: access.loiAcceptedAt !== null,
+          passedDiligence: access.diligencePassedAt !== null,
+          roomShared: access.project.dataRoomGrants.length > 0,
+        }),
+      })),
+    ),
+  ]);
   const processes = accesses.map((access) => {
     const stage = stageFor(access);
     const granted = access.project.dataRoomGrants.length > 0;
@@ -187,24 +200,12 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       closed: null as BuyerClosed | null,
     };
   });
-  const contracts = await contractViews(
-    accesses.map((access) => ({
-      accessId: access.id,
-      party: "buyer" as const,
-      open: contractStageOpen({
-        loiAccepted: access.loiAcceptedAt !== null,
-        passedDiligence: access.diligencePassedAt !== null,
-        roomShared: access.project.dataRoomGrants.length > 0,
-      }),
-    })),
-  );
   for (const card of processes) {
     card.contract = contracts.get(card.accessId) ?? null;
     card.steps = withContractAccepted(card.steps, card.contract?.stage === "signing");
     const fee = accesses.find((access) => access.id === card.accessId)?.project.successFee ?? null;
     card.closed = buyerClosed(fee, card.contract?.stage === "signed");
   }
-  const draft = await loadInvestorDraft(userId, email);
 
   return {
     pending: processes.filter((process) => process.open && process.closed === null),
