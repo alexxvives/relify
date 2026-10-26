@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { SellerHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { CompanyNifDialog } from "@/components/company-nif-form";
+import { SellerSaleCompleted } from "@/components/sale-completed";
+import { sellerSaleSummary } from "@/server/saleOutcome";
 import { SellerOverview } from "@/components/seller-overview";
 import { SignedInPage } from "@/components/signed-in-page";
 import { projectImageSrc } from "@/lib/project-image";
@@ -56,6 +58,11 @@ async function CompanyPageContent({
     projectId ? prisma.successFee.findUnique({ where: { projectId }, select: { id: true } }) : Promise.resolve(null),
     projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true } }) : Promise.resolve(null),
   ]);
+
+  const sale = fee !== null ? await sellerSaleSummary(user.id, projectId) : null;
+  if (sale) {
+    return <SellerSaleCompleted codename={sale.codename} figures={sale} docs={sale} />;
+  }
 
   return (
     <>

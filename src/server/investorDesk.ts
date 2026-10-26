@@ -8,6 +8,7 @@ import { formatWholeEur } from "@/lib/money";
 import type { ContractView } from "@/lib/sale-contract";
 import { contractStageOpen, contractViews } from "@/server/saleContract";
 import { prisma } from "@/server/db";
+import { buyerClosed, type BuyerClosed } from "@/server/saleOutcome";
 import { loadInvestorDraft } from "@/server/investorProfile";
 
 export type InvestorProcessCard = {
@@ -28,6 +29,7 @@ export type InvestorProcessCard = {
   advisorHired: boolean;
   contract: ContractView | null;
   lastReadAt: string | null;
+  closed: BuyerClosed | null;
 };
 
 export type InvestorProfileChecks = {
@@ -82,7 +84,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
             codename: true,
             region: true,
             askingPriceCents: true,
-            successFee: { select: { id: true } },
+            successFee: { select: { id: true, closedPriceCents: true, buyerNetCents: true, buyerVatCents: true, recordedAt: true } },
             owner: { select: { name: true, lastName: true } },
             dataRoomGrants: {
               where: { investorId: userId },
@@ -182,6 +184,7 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       advisorHired: hiredProjects.has(access.project.id),
       contract: null as ContractView | null,
       lastReadAt: access.investorReadAt?.toISOString() ?? null,
+      closed: null as BuyerClosed | null,
     };
   });
   const contracts = await contractViews(
@@ -198,11 +201,13 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
   for (const card of processes) {
     card.contract = contracts.get(card.accessId) ?? null;
     card.steps = withContractAccepted(card.steps, card.contract?.stage === "signing");
+    const fee = accesses.find((access) => access.id === card.accessId)?.project.successFee ?? null;
+    card.closed = buyerClosed(fee, card.contract?.stage === "signed");
   }
   const draft = await loadInvestorDraft(userId, email);
 
   return {
-    pending: processes.filter((process) => process.open),
+    pending: processes.filter((process) => process.open && process.closed === null),
     processes,
     favorites,
     interests: accesses.length,

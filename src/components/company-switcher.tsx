@@ -32,6 +32,24 @@ function AddCompanyButton({ prominent, onOpen }: { prominent: boolean; onOpen: (
   );
 }
 
+/** Standalone "publish another company" entry (used after a sale). */
+export function ListAnotherCompany() {
+  const ref = useRef<HTMLDialogElement>(null);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => ref.current?.showModal()}
+        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
+      >
+        <PlusIcon size={14} aria-hidden />
+        {sellerCopy.addCompany}
+      </button>
+      <AddCompanyDialog dialogRef={ref} />
+    </>
+  );
+}
+
 function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | null> }) {
   const [state, action, pending] = useActionState(addSellerCompanyAction, null);
 

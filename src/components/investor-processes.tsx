@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
+import { BuyerProcessClosed } from "@/components/sale-completed";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { ContractStage } from "@/components/contract-stage";
@@ -149,6 +150,8 @@ export function InvestorProcesses({
   today: string;
   advisors?: AdvisorContactView[];
 }) {
+  const closed = items.filter((item) => item.closed !== null);
+  items = items.filter((item) => item.closed === null);
   const questions = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "question").length, 0);
   const meetings = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "meeting").length, 0);
 
@@ -181,7 +184,32 @@ export function InvestorProcesses({
             </div>
           ) : null}
         </section>
-      <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2>
+      {closed.length > 0 ? (
+        <>
+          <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">Cerrados</h2>
+          <ul className="flex flex-col gap-3">
+            {closed.map((item) =>
+              item.closed ? (
+                <li key={item.slug}>
+                  <BuyerProcessClosed
+                    codename={item.codename}
+                    slug={item.slug}
+                    won={item.closed.won}
+                    figures={item.closed}
+                    docs={{
+                      ndaHref: item.nda ? `/acuerdos/nda/${item.accessId}` : null,
+                      loiHref: item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null,
+                      contractHref: item.contract?.signedHref ?? null,
+                      files: item.documents,
+                    }}
+                  />
+                </li>
+              ) : null,
+            )}
+          </ul>
+        </>
+      ) : null}
+      {items.length > 0 ? <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
       <ul className="flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
