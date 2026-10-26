@@ -22,7 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
-import { formatCardEur, recoveryTone, recoveryYears } from "@/lib/money";
+import { formatCardEur, formatDecimal, recoveryTone, recoveryYears } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -54,7 +54,7 @@ const recoveryClass = {
 
 /** "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price. */
 export function RoiChip({ years }: { years: number }) {
-  const value = (Math.round(years * 10) / 10).toLocaleString("es-ES", { maximumFractionDigits: 1 });
+  const value = formatDecimal(years);
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${recoveryClass[recoveryTone(years)]}`}

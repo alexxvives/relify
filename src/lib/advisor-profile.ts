@@ -1,3 +1,4 @@
+import { formatWholeEur } from "./money";
 import * as z from "zod";
 import { advisorCopy } from "./advisor-copy";
 import { advisorSectors, type AdvisorSectorId } from "./advisor-sectors";
@@ -133,11 +134,7 @@ export function centsToEuroInput(cents: number): string {
 }
 
 export function formatAdvisorEuros(cents: number): string {
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+  return formatWholeEur(cents);
 }
 
 export function readStoredServices(value: unknown): StoredService[] {

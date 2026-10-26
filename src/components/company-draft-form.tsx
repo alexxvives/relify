@@ -22,7 +22,7 @@ import { SellerTabs } from "@/components/seller-tabs";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
 import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
-import { formatEur } from "@/lib/money";
+import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
 import { billingCopy } from "@/lib/billing-copy";
@@ -2179,18 +2179,9 @@ function previewAmount(value: string): string {
     return "—";
   }
 
-  return previewEuro(optionalEurosToCents(trimmed) ?? 0);
+  return formatEurTrimmed(optionalEurosToCents(trimmed) ?? 0);
 }
 
-function previewEuro(cents: number): string {
-  const negative = cents < 0;
-  const absolute = Math.abs(cents);
-  const whole = Math.trunc(absolute / 100);
-  const fraction = absolute % 100;
-  const grouped = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  const body = fraction === 0 ? grouped : `${grouped},${String(fraction).padStart(2, "0")}`;
-  return `${negative ? "-" : ""}${body} €`;
-}
 
 function eurosToCentsLabel(cents: number): string {
   const negative = cents < 0;

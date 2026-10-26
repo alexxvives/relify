@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDecimal } from "@/lib/money";
 import { useState } from "react";
 import { VerifiedToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
@@ -11,7 +12,6 @@ import { advisorSectorName } from "@/lib/advisor-sectors";
 import type { AdvisorScoreBreakdown } from "@/lib/advisor-directory";
 import type { AdminAdvisorRow } from "@/server/listAdminAdvisors";
 
-const scoreFormat = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 
 type RankFilter = "all" | "ranked" | "out";
 
@@ -20,7 +20,7 @@ function isRankFilter(value: string): value is RankFilter {
 }
 
 function scoreText(value: number): string {
-  return scoreFormat.format(value);
+  return formatDecimal(value);
 }
 
 export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {

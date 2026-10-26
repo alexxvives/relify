@@ -1,16 +1,37 @@
+/** es-ES thousands with a dot, also for 4-digit numbers (Intl skips those): 1.500. */
+export function groupThousands(value: number): string {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/** Decimal with a comma, at most `digits` decimals: 3,2. */
+export function formatDecimal(value: number, digits = 1): string {
+  const factor = 10 ** digits;
+  return String(Math.round(value * factor) / factor).replace(".", ",");
+}
+
+/** Whole euros or euros with cents when there are any: 1.500 € / 1.500,50 €. */
+export function formatEurTrimmed(cents: number): string {
+  const negative = cents < 0;
+  const absolute = Math.abs(Math.round(cents));
+  const whole = Math.trunc(absolute / 100);
+  const fraction = absolute % 100;
+  const body = fraction === 0 ? groupThousands(whole) : `${groupThousands(whole)},${String(fraction).padStart(2, "0")}`;
+  return `${negative ? "-" : ""}${body} €`;
+}
+
 export function formatEur(cents: number): string {
   const negative = cents < 0;
   const absolute = Math.abs(Math.round(cents));
   const whole = Math.trunc(absolute / 100);
   const fraction = absolute % 100;
-  const grouped = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const grouped = groupThousands(whole);
   return `${negative ? "-" : ""}${grouped},${String(fraction).padStart(2, "0")} €`;
 }
 
 export function formatWholeEur(cents: number): string {
   const negative = cents < 0;
   const euros = Math.round(Math.abs(cents) / 100);
-  const grouped = String(euros).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const grouped = groupThousands(euros);
   return `${negative ? "-" : ""}${grouped} €`;
 }
 
@@ -30,7 +51,7 @@ export function formatCompactEur(cents: number): string {
     return `${sign}${Math.round(euros / 1000)} mil €`;
   }
 
-  const grouped = String(Math.round(euros)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const grouped = groupThousands(Math.round(euros));
   return `${sign}${grouped} €`;
 }
 
@@ -49,7 +70,7 @@ export function formatCardEur(cents: number): string {
     return `${sign}${Math.round(euros / 1000)} K €`;
   }
 
-  const grouped = String(Math.round(euros)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const grouped = groupThousands(Math.round(euros));
   return `${sign}${grouped} €`;
 }
 

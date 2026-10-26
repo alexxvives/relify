@@ -1,3 +1,4 @@
+import { formatDecimal } from "./money";
 import { advisorCopy } from "./advisor-copy";
 import { corporateIsComplete, formatAdvisorEuros, readStoredOperations, readStoredServices, type AdvisorServiceId } from "./advisor-profile";
 import { advisorSectorName } from "./advisor-sectors";
@@ -204,7 +205,7 @@ function spanishList(items: string[]): string {
 }
 
 function scoreLabel(value: number): string {
-  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(value);
+  return formatDecimal(value);
 }
 
 export function advisorRankJustification(place: number, total: number, breakdown: AdvisorScoreBreakdown): string {
