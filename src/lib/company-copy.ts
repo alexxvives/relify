@@ -3,7 +3,8 @@ export const companyCopy = {
   intro:
     "Completa el borrador con la información que verá un inversor. La ficha pública sigue mostrando solo el nombre de proyecto y las cifras abiertas.",
   codenameLabel: "Nombre de proyecto",
-  codenameHint: "Es el apodo público de la empresa. Los inversores ven este nombre, no la razón social.",
+  codenameHint: "Relify lo genera automáticamente y es único. Los inversores ven este nombre, no la razón social. Si no te convence, genera otro.",
+  codenameRegenerate: "Generar otro",
   regionLabel: "Provincia o región",
   foundedYearLabel: "Año de fundación",
   saleReasonLabel: "Por qué se vende",

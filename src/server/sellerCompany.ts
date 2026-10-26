@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { uniqueCodename } from "@/server/uniqueCodename";
 import { cookies } from "next/headers";
 import { projectSlug } from "@/lib/company-draft";
 import { companyCopy } from "@/lib/company-copy";
-import { anonymousCodename, type RegistryCompany } from "@/lib/company-registry";
+import type { RegistryCompany } from "@/lib/company-registry";
 import { sellerCopy } from "@/lib/seller-copy";
 import { activeSellerChoice, sellerCompanyCookie } from "@/lib/seller-company";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
@@ -203,7 +204,8 @@ export async function addSellerCompany(
     orderBy: { createdAt: "desc" },
     select: { id: true, legalName: true, codename: true },
   });
-  const codename = record?.codename ?? anonymousCodename(cif);
+  // Every company gets its own curated nickname; registry aliases can repeat.
+  const codename = await uniqueCodename();
   let projectId: string;
 
   if (blank) {

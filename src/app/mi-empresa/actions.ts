@@ -22,6 +22,7 @@ import { publishSellerProject } from "@/server/publishSellerProject";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
+import { uniqueCodename } from "@/server/uniqueCodename";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -276,4 +277,13 @@ export async function deleteSellerCompanyAction(formData: FormData): Promise<voi
   await deleteSellerCompany(user, readText(formData, "projectId"));
   refreshSellerPages();
   redirect(safeSellerPath(readText(formData, "next")));
+}
+
+/** "Generar otro": a fresh free nickname for the seller's form. Saved with the rest of the draft. */
+export async function generateCodenameAction(current: string): Promise<string> {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "seller") {
+    return current;
+  }
+  return uniqueCodename([current]);
 }

@@ -1,4 +1,5 @@
 import { draftFromRegistry, type RegistryCompany } from "@/lib/company-registry";
+import { uniqueCodename } from "@/server/uniqueCodename";
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
   centsToEuroInput,
@@ -179,7 +180,7 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       return null;
     }
 
-    return draftFromRegistry(registryFromPrefill(prefill));
+    return { ...draftFromRegistry(registryFromPrefill(prefill)), codename: await uniqueCodename() };
   }
 
   const principal = draft.cnaes.find((cnae) => cnae.role === "principal");
@@ -230,7 +231,6 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       ...result,
       legalName: filled.legalName,
       address: filled.address,
-      codename: filled.codename,
       region: filled.region,
       foundedYear: filled.foundedYear,
       description: filled.description,

@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, MapPin, Pencil, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
-import { deleteProjectCoverAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
+import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
 import { AccountsUpload } from "@/components/accounts-upload";
 import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
@@ -1693,6 +1693,7 @@ function PublicFicha({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const [regenerating, startRegenerate] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [active, setActive] = useState(0);
@@ -1784,14 +1785,29 @@ function PublicFicha({
             <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
             <FieldHint text={companyCopy.codenameHint} />
           </span>
-          <input
-            id="project-codename"
-            name="codename"
-            required
-            value={codename}
-            onChange={(event) => onCodename(event.target.value)}
-            className={fieldClassName}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              id="project-codename"
+              name="codename"
+              required
+              readOnly
+              value={codename}
+              className={`${fieldClassName} min-w-0 flex-1 bg-[#f7f8fb] text-[#1c2740]`}
+            />
+            <button
+              type="button"
+              disabled={regenerating}
+              onClick={() => {
+                startRegenerate(async () => {
+                  onCodename(await generateCodenameAction(codename));
+                });
+              }}
+              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#d5dbe3] bg-white px-3 text-sm font-medium text-[#465ab4] hover:bg-[#f4f7ff] disabled:opacity-60"
+            >
+              <RefreshCw className={`size-4 ${regenerating ? "animate-spin" : ""}`} aria-hidden />
+              {companyCopy.codenameRegenerate}
+            </button>
+          </div>
         </div>
         <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
           <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">

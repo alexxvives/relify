@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { codenameIsFree, uniqueCodename } from "@/server/uniqueCodename";
+import { isCuratedNickname } from "@/lib/nickname";
 import { companyCopy } from "@/lib/company-copy";
 import {
   closedYearIsActive,
@@ -122,6 +124,7 @@ export async function saveCompanyDraft(
       select: {
         id: true,
         legalName: true,
+        codename: true,
         cif: true,
         address: true,
         shareholders: { select: { name: true } },
@@ -151,10 +154,18 @@ export async function saveCompanyDraft(
     return { ok: false, message: companyCopy.descriptionPrivate };
   }
 
+  // The nickname is generated, not typed: a change is kept only when it is
+  // another free curated name (the "Generar otro" button); anything else keeps the stored one.
+  const requested = input.codename.trim();
+  const acceptable = isCuratedNickname(requested) && (await codenameIsFree(requested, existing?.id));
+  const codename = existing
+    ? requested === existing.codename || acceptable ? requested : existing.codename
+    : acceptable ? requested : await uniqueCodename();
+
   const profile = {
     legalName: input.legalName,
     address: input.address,
-    codename: input.codename,
+    codename,
     region: input.region,
     revenueCents: eurosToCents(input.revenue),
     ebitdaCents: eurosToCents(input.ebitda),
@@ -196,7 +207,7 @@ export async function saveCompanyDraft(
       await tx.project.create({
         data: {
           id: projectId,
-          slug: await unusedSlug(input.codename),
+          slug: await unusedSlug(codename),
           ...profile,
           netDebtCents: 0,
           workingCapitalCents: 0,
