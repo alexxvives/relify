@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useSyncExternalStore } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   approveProjectAction,
   changeRoleAction,
@@ -93,6 +93,9 @@ const buttonClass =
 const quietButtonClass =
   "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740] disabled:opacity-60";
 
+const dangerButtonClass =
+  "inline-flex h-8 items-center rounded-full bg-[#c0362c] px-3 text-xs font-semibold text-white hover:bg-[#a52d24] disabled:opacity-60";
+
 export function UnpublishButton({ projectId }: { projectId: string }) {
   const [state, action, pending] = useActionState(unpublishProjectAction, null);
 
@@ -143,7 +146,7 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
   return (
     <form action={formAction}>
       <input type="hidden" name="userId" value={userId} />
-      <button type="submit" disabled={pending} className={quietButtonClass}>
+      <button type="submit" disabled={pending} className={suspended ? quietButtonClass : dangerButtonClass}>
         {pending
           ? suspended
             ? adminCopy.reactivating
@@ -161,25 +164,60 @@ export function RoleForm({ userId, role }: { userId: string; role: string | null
   const { state, formAction, pending } = useAccountAction(changeRoleAction);
   const current = isAccountRole(role) ? role : "seller";
   const [nextRole, setNextRole] = useState<string>(current);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (state?.ok) {
+      dialogRef.current?.close();
+    }
+  }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center justify-end gap-2">
-      <input type="hidden" name="userId" value={userId} />
-      <input type="hidden" name="role" value={nextRole} />
-      <div className="w-40">
-        <FilterSelect
-          compact
-          label={adminCopy.roleLabel}
-          value={nextRole}
-          options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
-          onValueChange={setNextRole}
-        />
-      </div>
-      <button type="submit" disabled={pending} className={buttonClass}>
-        {pending ? adminCopy.changingRole : adminCopy.changeRole}
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setNextRole(current);
+          dialogRef.current?.showModal();
+        }}
+        className="inline-flex h-8 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-xs font-medium text-[#3d4a63] hover:bg-[#f6f7f9]"
+      >
+        {adminCopy.changeRoleOpen}
       </button>
-      <ErrorNote state={state} />
-    </form>
+      <dialog
+        ref={dialogRef}
+        className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border-0 bg-white p-6 text-[#1c2740] open:block backdrop:bg-[#1c2740]/40"
+      >
+        <h2 className="text-lg font-semibold">{adminCopy.changeRoleTitle}</h2>
+        <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{adminCopy.changeRoleBody}</p>
+        <form action={formAction} className="mt-4 grid gap-4">
+          <input type="hidden" name="userId" value={userId} />
+          <input type="hidden" name="role" value={nextRole} />
+          <FilterSelect
+            compact
+            label={adminCopy.roleLabel}
+            value={nextRole}
+            options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
+            onValueChange={setNextRole}
+          />
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                dialogRef.current?.close();
+              }}
+              className={quietButtonClass}
+            >
+              {adminCopy.changeRoleCancel}
+            </button>
+            <button type="submit" disabled={pending || nextRole === current} className={buttonClass}>
+              {pending ? adminCopy.changingRole : adminCopy.changeRoleConfirm}
+            </button>
+          </div>
+          <ErrorNote state={state} />
+        </form>
+      </dialog>
+    </>
   );
 }
 
