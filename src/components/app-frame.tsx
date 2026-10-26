@@ -310,10 +310,10 @@ export function AppFrame({
               onClick={closeMenu}
               title={saleItem.label}
               aria-current={destinationIsCurrent(saleItem.href, pathname) ? "page" : undefined}
-              className="group mb-3 flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-[linear-gradient(120deg,#b8862b_0%,#e3b85a_45%,#f6dc95_70%,#c99a3e_100%)] px-4 py-2 text-base font-semibold text-[#3b2a07] shadow-[0_8px_22px_-10px_rgba(184,134,43,0.75)] ring-1 ring-[#b8862b]/40 transition hover:brightness-105 aria-[current=page]:ring-2 aria-[current=page]:ring-[#8a6114]"
+              className="group mb-3 flex h-9 min-w-0 items-center justify-center gap-2 rounded-full bg-[linear-gradient(120deg,#f3e2b3_0%,#ecd08a_50%,#f3e2b3_100%)] px-3 text-sm font-semibold text-[#5a4210] ring-1 ring-[#d4b062]/60 transition hover:brightness-[1.03] aria-[current=page]:ring-[#a87f2c]"
             >
               <TrophyIcon size={16} isAnimated={false} aria-hidden />
-              <span className="shell-label min-w-0 flex-1 truncate">{saleItem.label}</span>
+              <span className="shell-label min-w-0 truncate">{saleItem.label}</span>
             </Link>
           ) : null}
           {showHelp ? (
