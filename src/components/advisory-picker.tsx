@@ -111,9 +111,6 @@ function AdvisorMarket({
 
   return (
     <section className="flex flex-col gap-4">
-      <div>
-        <h3 className="text-lg font-semibold text-[#1c2740]">{engagementCopy.marketplaceTitle}</h3>
-      </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
