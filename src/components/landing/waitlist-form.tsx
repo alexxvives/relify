@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useEffect, useState } from "react";
 import { ArrowRight, Briefcase, Building2, Landmark } from "lucide-react";
 import { joinWaitlistAction, type WaitlistState } from "@/app/lista-de-espera/actions";
@@ -99,7 +100,7 @@ export function WaitlistBoard() {
           <div className="releva-wait-orbit" aria-hidden="true">
             {seats.map((seed, index) => (
               <span key={seed} className="releva-wait-face" style={{ animationDelay: `${index * -1.4}s` }}>
-                <img src={gazeAvatarUrl(seed)} alt="" width={64} height={64} />
+                <Image src={gazeAvatarUrl(seed)} alt="" width={64} height={64} unoptimized />
               </span>
             ))}
           </div>
