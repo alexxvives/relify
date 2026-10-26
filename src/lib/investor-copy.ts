@@ -66,7 +66,7 @@ export const investorCopy = {
   contributionHint: "Cómo ayudas a quien vende. Sin nombres de terceros.",
   saveProfile: "Guardar perfil",
   savingProfile: "Guardando…",
-  profileSaved: "Perfil guardado. El vendedor ve esto, sin tu nombre.",
+  profileSaved: "✓ Guardado",
   investorType: "Tipo de inversor",
   investorTypeEmpty: "Sin indicar",
   trajectoryTitle: "Trayectoria profesional",

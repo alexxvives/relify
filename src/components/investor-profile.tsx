@@ -96,7 +96,6 @@ export function InvestorProfile({
   const [stake, setStake] = useState(draft.stake);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedNote, setSavedNote] = useState<string | null>(null);
-  const [savedPulse, setSavedPulse] = useState(0);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
   const shownPhoto = investorDisplayPhoto(photo, avatarUrl);
@@ -158,7 +157,6 @@ export function InvestorProfile({
           lastSaved.current = draftKey;
           setSaveError(null);
           setSavedNote(investorCopy.profileSaved);
-          setSavedPulse((current) => current + 1);
           return;
         }
 
@@ -225,9 +223,11 @@ export function InvestorProfile({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="relative flex flex-col gap-4">
+      <p aria-live="polite" className="pointer-events-none absolute -top-6 right-1 text-xs text-[#667085]">
+        {savedNote ?? ""}
+      </p>
       {professional}
-      <AppToast message={savedNote} pulse={savedPulse} />
       <AppToast message={saveError} tone="error" />
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
