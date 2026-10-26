@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, type ChangeEvent } from "react";
+import { useActionState, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { Package } from "lucide-react";
 import {
@@ -109,6 +109,22 @@ function PendingItem({ item }: { item: PendingMatch }) {
   );
 }
 
+type StatusFilter = "all" | MandateDisplay["status"];
+
+const statusLabel: Record<MandateDisplay["status"], string> = { draft: "Borrador", pending: "Pendiente", published: "Publicado" };
+const statusTone: Record<MandateDisplay["status"], string> = {
+  draft: "bg-[#f1f3f8] text-[#475467]",
+  pending: "bg-[#fff4e5] text-[#9a5b00]",
+  published: "bg-[#e8f5ee] text-[#157a45]",
+};
+
+function nextStep(project: MandateDisplay): string {
+  if (project.feeRecorded) return "Venta registrada. Nada pendiente.";
+  if (project.status === "draft") return "El vendedor completa la ficha y la envía a revisión.";
+  if (project.status === "pending") return "Releva revisa la ficha antes de publicarla.";
+  return "Acepta compradores y registra la venta al cerrar.";
+}
+
 function MandateCard({ project }: { project: MandateDisplay }) {
   const live = project.status === "published";
 
@@ -116,9 +132,13 @@ function MandateCard({ project }: { project: MandateDisplay }) {
     <li className="rounded-2xl border border-[#e7eaee] p-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-[#2b3b4a]">{project.codename}</h3>
-        <span className="text-xs text-[#64748b]">{live ? billingCopy.liveLabel : billingCopy.draftLabel}</span>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusTone[project.status]}`}>{statusLabel[project.status]}</span>
       </div>
       <p className="mt-1 text-sm text-[#64748b]">{project.region}</p>
+      <p className="mt-2 text-sm text-[#2b3b4a]">
+        <span className="font-medium">Siguiente paso: </span>
+        {nextStep(project)}
+      </p>
       <div className="mt-4">
         <MandateFigures project={project} />
       </div>
@@ -141,6 +161,8 @@ export function AdvisorMandateBoard({
   mandates: MandateDisplay[];
   pending: PendingMatch[];
 }) {
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const shown = filter === "all" ? mandates : mandates.filter((item) => item.status === filter);
   return (
     <div className="mt-6">
       <p className="text-sm text-[#64748b]">{billingCopy.advisorDoesNotPublish}</p>
@@ -153,11 +175,36 @@ export function AdvisorMandateBoard({
           <p className="mt-2 text-sm text-[#64748b]">{advisorCopy.mandatesEmptyBody}</p>
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
-          {mandates.map((project) => (
-            <MandateCard key={project.slug} project={project} />
-          ))}
-        </ul>
+        <>
+          <div role="tablist" aria-label="Estado del mandato" className="mt-6 flex flex-wrap gap-2">
+            {(["all", "draft", "pending", "published"] as const).map((id) => {
+              const count = id === "all" ? mandates.length : mandates.filter((item) => item.status === id).length;
+              const active = filter === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setFilter(id)}
+                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors ${active ? "border-[#465ab4] bg-[#465ab4] text-white" : "border-[#e1e6ee] bg-white text-[#1c2740] hover:bg-[#f4f6fb]"}`}
+                >
+                  {id === "all" ? "Todos" : statusLabel[id]}
+                  <span className={`tabular-nums ${active ? "text-white/80" : "text-[#64748b]"}`}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+          {shown.length === 0 ? (
+            <p className="mt-6 text-sm text-[#64748b]">No hay mandatos en este estado.</p>
+          ) : (
+            <ul className="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+              {shown.map((project) => (
+                <MandateCard key={project.slug} project={project} />
+              ))}
+            </ul>
+          )}
+        </>
       )}
       {pending.length > 0 ? <PendingList pending={pending} /> : null}
     </div>
