@@ -1687,21 +1687,22 @@ export function CompanyDraftForm({
               <Lock className="mt-1 size-4 shrink-0 text-[#465ab4]" aria-hidden />
               <span>{companyCopy.previewLockNote}</span>
             </p>
-            <div role="radiogroup" aria-label="Vista previa" className="inline-flex shrink-0 self-start rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:self-center">
+            <div role="radiogroup" aria-label="Vista previa" className="grid w-full shrink-0 grid-cols-2 rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:inline-flex sm:w-auto sm:self-center">
               {[
-                { open: false, label: companyCopy.previewBefore, Icon: Lock },
-                { open: true, label: companyCopy.previewAfter, Icon: LockOpen },
-              ].map(({ open, label, Icon }) => (
+                { open: false, label: companyCopy.previewBefore, short: "Antes", Icon: Lock },
+                { open: true, label: companyCopy.previewAfter, short: "Tras el NDA", Icon: LockOpen },
+              ].map(({ open, label, short, Icon }) => (
                 <button
                   key={label}
                   type="button"
                   role="radio"
                   aria-checked={previewOpen === open}
                   onClick={() => setPreviewOpen(open)}
-                  className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold whitespace-nowrap transition ${previewOpen === open ? "bg-white text-[#1c2740] shadow-sm" : "text-[#667085] hover:text-[#1c2740]"}`}
+                  className={`inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold whitespace-nowrap transition sm:px-3 sm:text-sm ${previewOpen === open ? "bg-white text-[#1c2740] shadow-sm" : "text-[#667085] hover:text-[#1c2740]"}`}
                 >
-                  <Icon className="size-3.5" aria-hidden />
-                  {label}
+                  <Icon className="size-3.5 shrink-0" aria-hidden />
+                  <span className="sm:hidden">{short}</span>
+                  <span className="hidden sm:inline">{label}</span>
                 </button>
               ))}
             </div>
