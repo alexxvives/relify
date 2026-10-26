@@ -7,6 +7,7 @@ import { marketCopy } from "@/lib/market-copy";
 import { listPublicProjects } from "@/server/listPublicProjects";
 import { requireRole } from "@/server/requireRole";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
+import { listHiddenSlugs } from "@/server/toggleProjectHidden";
 
 export const metadata: Metadata = {
   title: marketCopy.title,
@@ -15,11 +16,11 @@ export const metadata: Metadata = {
 
 async function MarketPageContent() {
   const user = await requireRole("investor");
-  const [projects, favoriteSlugs] = await Promise.all([listPublicProjects(), listFavoriteSlugs(user.id)]);
+  const [projects, favoriteSlugs, hiddenSlugs] = await Promise.all([listPublicProjects(), listFavoriteSlugs(user.id), listHiddenSlugs(user.id)]);
 
   return (
     <>
-      <MarketBrowser projects={projects} favoriteSlugs={favoriteSlugs} heading={marketCopy.title} />
+      <MarketBrowser projects={projects} favoriteSlugs={favoriteSlugs} hiddenSlugs={hiddenSlugs} heading={marketCopy.title} />
     </>
   );
 }

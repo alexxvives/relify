@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpDown, Check, Eye, EyeOff } from "lucide-react";
+import { setHiddenAction } from "@/app/mercado/actions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarketCard } from "@/components/market-card";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -31,11 +32,13 @@ function isRevenueBand(value: string): value is RevenueBandId {
 export function MarketBrowser({
   projects,
   favoriteSlugs,
+  hiddenSlugs: initialHidden = [],
   heading,
   onlyFavorites = false,
 }: {
   projects: PublicProjectCard[];
   favoriteSlugs: string[];
+  hiddenSlugs?: string[];
   heading?: string;
   onlyFavorites?: boolean;
 }) {
@@ -46,30 +49,37 @@ export function MarketBrowser({
   const [sector, setSector] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState(favoriteSlugs);
-  const [hiddenSlugs, setHiddenSlugs] = useState<string[]>([]);
+  const [hiddenSlugs, setHiddenSlugs] = useState<string[]>(initialHidden);
   const [showHidden, setShowHidden] = useState(false);
 
   useEffect(() => {
+    // One-time move of companies hidden in this browser before hiding was saved to the account.
     try {
       const stored = JSON.parse(window.localStorage.getItem(hiddenStorageKey) ?? "[]") as unknown;
+      window.localStorage.removeItem(hiddenStorageKey);
       if (Array.isArray(stored)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
-        setHiddenSlugs(stored.filter((item): item is string => typeof item === "string"));
+        const legacy = stored.filter((item): item is string => typeof item === "string" && !initialHidden.includes(item));
+        if (legacy.length > 0) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- merge legacy browser-only hides after mount
+          setHiddenSlugs((current) => [...new Set([...current, ...legacy])]);
+          for (const slug of legacy) {
+            void setHiddenAction(slug, true);
+          }
+        }
       }
     } catch {
-      // Ignore a corrupt or blocked store; nothing is hidden.
+      // Ignore a corrupt or blocked store.
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   function toggleHidden(slug: string) {
-    setHiddenSlugs((current) => {
-      const next = current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug];
-      try {
-        window.localStorage.setItem(hiddenStorageKey, JSON.stringify(next));
-      } catch {
-        // Hiding still works for this visit.
+    const hide = !hiddenSlugs.includes(slug);
+    setHiddenSlugs((current) => (hide ? [...current, slug] : current.filter((item) => item !== slug)));
+    void setHiddenAction(slug, hide).then((result) => {
+      if (!result.ok) {
+        setHiddenSlugs((current) => (hide ? current.filter((item) => item !== slug) : [...current, slug]));
       }
-      return next;
     });
   }
 
