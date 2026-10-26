@@ -17,6 +17,7 @@ import { MailIcon } from "@animateicons/react/lucide/mail-icon";
 import { MessageCircleMoreIcon } from "@animateicons/react/lucide/message-circle-more-icon";
 import { PanelLeftIcon } from "@animateicons/react/lucide/panel-left-icon";
 import { PhoneIcon } from "@animateicons/react/lucide/phone-icon";
+import { ChevronDown as ChevronDownIcon } from "lucide-react";
 import { ReceiptIcon } from "@animateicons/react/lucide/receipt-icon";
 import { TableIcon } from "@animateicons/react/lucide/table-icon";
 import { UsersIcon } from "@animateicons/react/lucide/users-icon";
@@ -299,8 +300,11 @@ export function AppFrame({
         </nav>
         <div className="shell-foot border-t border-public-line p-3">
           {showHelp ? (
-            <section className="shell-full mb-3 rounded-2xl bg-public-sand p-3">
-              <h2 className="text-sm font-semibold text-public-ink">{shellCopy.helpTitle}</h2>
+            <details className="shell-full group/help mb-3 rounded-2xl bg-public-sand px-3 py-2 open:py-3">
+              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-public-ink [&::-webkit-details-marker]:hidden">
+                {shellCopy.helpTitle}
+                <ChevronDownIcon size={16} className="shrink-0 text-public-muted transition-transform duration-200 group-open/help:rotate-180" aria-hidden />
+              </summary>
               <p className="mt-1 text-xs leading-5 text-public-muted">{shellCopy.helpBody}</p>
               <div className="mt-3 grid gap-2">
                 <a
@@ -318,7 +322,7 @@ export function AppFrame({
                   <span className="truncate">{shellCopy.helpEmail}</span>
                 </a>
               </div>
-            </section>
+            </details>
           ) : null}
           <Link
             href="/cuenta"
