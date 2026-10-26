@@ -13,6 +13,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { DeskToggles } from "@/components/desk-toggles";
+import { advisorHintHireInvestor, advisorHintLater, reachedQa } from "@/lib/advisor-hint";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { companyCopy } from "@/lib/company-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -69,14 +70,17 @@ function ProcessConversation({
         value={tab}
         onChange={changeTab}
         disabled={[...(item.nda ? [] : (["chat", "meetings"] as const)), ...(item.advisorHired ? [] : (["advisor"] as const))]}
-        hints={
-          item.nda
+        hints={{
+          ...(item.nda
             ? {}
             : {
                 chat: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
                 meetings: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
-              }
-        }
+              }),
+          ...(item.advisorHired
+            ? {}
+            : { advisor: reachedQa(item.steps) ? advisorHintHireInvestor : advisorHintLater }),
+        }}
       />
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (

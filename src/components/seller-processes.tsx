@@ -15,6 +15,7 @@ import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { DeskToggles } from "@/components/desk-toggles";
+import { advisorHintHireSeller, advisorHintLater, reachedQa } from "@/lib/advisor-hint";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import { unreadCount } from "@/lib/project-message";
@@ -288,6 +289,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             value={desk}
             onChange={changeDesk}
             disabled={thread.advisorHired ? [] : ["advisor"]}
+            hints={thread.advisorHired ? {} : { advisor: reachedQa(thread.steps) ? advisorHintHireSeller : advisorHintLater }}
           />
           <div id={deskId} hidden={desk === null}>
           {desk === "chat" ? (
