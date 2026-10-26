@@ -387,7 +387,8 @@ export function InvestorPhotoDrop({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <div className="relative size-32">
+      <div className="flex items-center gap-4">
+      <div className="relative size-32 shrink-0">
       <label
         onDragOver={(event) => {
           event.preventDefault();
@@ -413,11 +414,11 @@ export function InvestorPhotoDrop({
         ) : (
           <User className="size-8 text-[#465ab4]" aria-hidden />
         )}
-        <span className="absolute inset-x-0 bottom-0 bg-[#1c2740]/75 px-2 py-1.5 text-center text-xs leading-4 font-medium text-white">
-          <Upload className="mr-1 inline size-3" aria-hidden />
-          {investorCopy.photoDrop}
+        <span className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-full bg-[#1c2740]/80 text-white">
+          <Upload className="size-4" aria-hidden />
         </span>
         <input
+          id="investor-photo-input"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="hidden"
@@ -439,7 +440,11 @@ export function InvestorPhotoDrop({
         </button>
       ) : null}
       </div>
-      <p className="text-xs text-[#667085]">{investorCopy.photoDropHint}</p>
+      <label htmlFor="investor-photo-input" className="cursor-pointer text-sm leading-5 whitespace-nowrap">
+        <span className="block font-medium text-[#1c2740]">{investorCopy.photoDrop}</span>
+        <span className="block text-xs text-[#667085]">{investorCopy.photoDropHint}</span>
+      </label>
+      </div>
       {note ? <p className="text-sm text-[#c0362c]">{note}</p> : null}
     </div>
   );
