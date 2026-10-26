@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Check, Circle, TriangleAlert } from "lucide-react";
+import { CalendarCheck, Check, Circle, HeartHandshake, MessageCircleQuestion, TriangleAlert } from "lucide-react";
+import { ActivityStatTiles } from "@/components/activity-stat-tiles";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
@@ -68,9 +69,9 @@ export function SellerOverview({
   const filled = filledSellerPanels(panels);
   const complete = filled === panelSteps.length;
   const activity = [
-    { label: sellerCopy.interests, value: interests },
-    { label: sellerCopy.questions, value: questions },
-    { label: sellerCopy.meetings, value: meetings },
+    { label: sellerCopy.interests, value: interests, icon: HeartHandshake },
+    { label: sellerCopy.questions, value: questions, icon: MessageCircleQuestion },
+    { label: sellerCopy.meetings, value: meetings, icon: CalendarCheck },
   ];
   const chartPoints = series.map((point) => ({
     ...point,
@@ -113,14 +114,7 @@ export function SellerOverview({
               <FieldHint text={sellerCopy.activityIntro} />
             </h2>
             {listing === "published" ? (
-              <ul className="mt-4 grid grid-cols-3 gap-3">
-                {activity.map((item) => (
-                  <li key={item.label} className="rounded-xl bg-[#f3f5f8] px-3 py-4">
-                    <p className="text-2xl font-semibold text-[#1c2740]">{item.value}</p>
-                    <p className="mt-1 text-xs text-[#667085]">{item.label}</p>
-                  </li>
-                ))}
-              </ul>
+              <ActivityStatTiles stats={activity} className="sm:grid-cols-3" />
             ) : (
               <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
                 <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.activityEmpty}</p>

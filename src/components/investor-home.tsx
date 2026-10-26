@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
+import { ArrowRight, CalendarCheck, Camera, Check, HandHeart, Heart, MapPin, MessageCircleQuestion, Search, Send, UserRound } from "lucide-react";
+import { ActivityStatTiles } from "@/components/activity-stat-tiles";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { SectorTreemap } from "@/components/sector-treemap";
@@ -37,10 +38,10 @@ export function InvestorHome({
   pending: HomePendingAction[];
 }) {
   const stats = [
-    { label: investorCopy.favoritesStat, value: favorites },
-    { label: investorCopy.interestsSent, value: interests },
-    { label: investorCopy.questionsSent, value: questions },
-    { label: investorCopy.meetingsDone, value: meetings },
+    { label: investorCopy.favoritesStat, value: favorites, icon: Heart },
+    { label: investorCopy.interestsSent, value: interests, icon: Send },
+    { label: investorCopy.questionsSent, value: questions, icon: MessageCircleQuestion },
+    { label: investorCopy.meetingsDone, value: meetings, icon: CalendarCheck },
   ];
   const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
@@ -52,14 +53,7 @@ export function InvestorHome({
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
-          <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {stats.map((item) => (
-              <li key={item.label} className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-                <p className="text-2xl font-semibold">{item.value}</p>
-                <p className="mt-2 text-xs text-[#64748b]">{item.label}</p>
-              </li>
-            ))}
-          </ul>
+          <ActivityStatTiles stats={stats} className="mt-4 sm:grid-cols-2 2xl:grid-cols-4" />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.sectorsTitle}</h2>
