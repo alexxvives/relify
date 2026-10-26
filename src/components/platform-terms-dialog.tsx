@@ -65,7 +65,7 @@ export function SignatureDocument({ when }: { when: string }) {
         title={`${platformTermsCopy.signedOn} ${when}`}
         className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#d5dbe3] bg-white text-left shadow-[0_12px_30px_-24px_rgba(28,39,64,0.45)] transition hover:border-[#465ab4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
       >
-        <span className="relative block min-h-56 flex-1 overflow-hidden bg-white">
+        <span className="relative block min-h-56 flex-1 overflow-hidden bg-white md:min-h-0">
           <span className="absolute inset-0 block transition group-hover:-translate-y-0.5">
             <PdfThumb
               src="/cuenta/acuerdo"
