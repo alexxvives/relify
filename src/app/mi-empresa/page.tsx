@@ -9,6 +9,7 @@ import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
 import { getSellerOverview } from "@/server/getSellerOverview";
+import { withoutOwnCompany } from "@/lib/notifications";
 import { listNotifications } from "@/server/listNotifications";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
@@ -48,11 +49,12 @@ async function CompanyPageContent({
     listCancelledProcesses(user),
   ]);
   const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [interests, questions, meetings, fee] = await Promise.all([
+  const [interests, questions, meetings, fee, own] = await Promise.all([
     prisma.projectAccess.count({ where: { project: projectScope } }),
     prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
     prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
     projectId ? prisma.successFee.findUnique({ where: { projectId }, select: { id: true } }) : Promise.resolve(null),
+    projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true } }) : Promise.resolve(null),
   ]);
 
   return (
@@ -66,7 +68,7 @@ async function CompanyPageContent({
         interests={interests}
         questions={questions}
         meetings={meetings}
-        notifications={notifications}
+        notifications={withoutOwnCompany(notifications, own?.codename)}
         panels={overview.panels}
         series={overview.series}
         mixes={overview.mixes}

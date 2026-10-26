@@ -152,3 +152,13 @@ export function questionSentNotice(codename: string): { title: string; body: str
     body: `Has escrito a ${codename}.`,
   };
 }
+
+/** On the seller's own home the selected company is implied: "a Proyecto Cala" reads "a tu empresa". */
+export function withoutOwnCompany<T extends { title: string; body: string }>(items: readonly T[], codename: string | null | undefined): T[] {
+  const name = codename?.trim() ?? "";
+  if (name.length === 0) {
+    return [...items];
+  }
+  const swap = (text: string) => text.split(name).join("tu empresa");
+  return items.map((item) => ({ ...item, title: swap(item.title), body: swap(item.body) }));
+}

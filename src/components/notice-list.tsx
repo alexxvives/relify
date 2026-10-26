@@ -42,13 +42,11 @@ export function NoticeList({
               </span>
             ) : null}
             <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-base font-semibold text-[#1c2740]">
-                  {item.unread ? <span className="mr-2 inline-block size-2 translate-y-[-1px] rounded-full bg-[#465ab4]" aria-hidden /> : null}
-                  <NoticeText text={item.title} />
-                </p>
-                <time className="shrink-0 pt-1 text-xs text-[#98a2b3]">{item.when}</time>
-              </div>
+              <p className="text-base font-semibold text-[#1c2740]">
+                {item.unread ? <span className="mr-2 inline-block size-2 translate-y-[-1px] rounded-full bg-[#465ab4]" aria-hidden /> : null}
+                <NoticeText text={item.title} />
+              </p>
+              <time className="block text-xs text-[#667085]">{item.when}</time>
               <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{item.body}</p>
             </div>
           </div>
