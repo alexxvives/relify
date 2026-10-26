@@ -39,7 +39,7 @@ function SellerPending({
   const [state, action, pending] = useActionState(acceptSellerBuyerAction, null);
   const [profileOpen, setProfileOpen] = useState(false);
   const buttons = (
-    <div className="flex items-center gap-2">
+    <div className={named ? "flex items-center gap-2 [&_button]:whitespace-nowrap" : "flex flex-wrap justify-center gap-2 [&_button]:whitespace-nowrap"}>
       <button
         type="button"
         onClick={() => {
@@ -64,7 +64,7 @@ function SellerPending({
   );
 
   return (
-    <div className={named ? "flex flex-wrap items-center justify-between gap-3" : "flex flex-col items-end gap-2"}>
+    <div className={named ? "flex flex-wrap items-center justify-between gap-3" : "flex flex-col items-stretch gap-2"}>
       {named ? <p className="text-sm font-medium text-[#1c2740]">{item.label}</p> : null}
       {buttons}
       {state && !state.ok ? <p className="w-full text-sm text-red-700">{state.message}</p> : null}
