@@ -48,7 +48,7 @@ export function AccountsUpload({
         onClick={() => {
           dialogRef.current?.showModal();
         }}
-        className="inline-flex h-11 shrink-0 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white"
+        className="inline-flex h-11 shrink-0 items-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white"
       >
         {companyCopy.accountsOpen}
       </button>
@@ -83,7 +83,7 @@ export function AccountsUpload({
           onClick={() => {
             fileRef.current?.click();
           }}
-          className="mt-4 inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
+          className="mt-4 inline-flex h-11 items-center rounded-xl bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
         >
           {companyCopy.accountsChoose}
         </button>
@@ -97,7 +97,7 @@ export function AccountsUpload({
           <button
             type="button"
             onClick={closeDialog}
-            className="inline-flex h-11 items-center rounded-[14px] border border-[#e7eaee] px-4 text-base"
+            className="inline-flex h-11 items-center rounded-xl border border-[#e7eaee] px-4 text-base"
           >
             {companyCopy.accountsClose}
           </button>

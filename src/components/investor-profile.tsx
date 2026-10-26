@@ -57,7 +57,7 @@ function Fact({
   );
 }
 
-const fieldClass = "h-11 w-full rounded-[14px] border border-[#e7eaee] px-3";
+const fieldClass = "h-11 w-full rounded-xl border border-[#e7eaee] px-3";
 
 export function InvestorProfile({
   displayName,

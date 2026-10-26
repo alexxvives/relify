@@ -67,8 +67,8 @@ export function AdvisorListingCard({
     return id ? [{ id, title: service.title, range: service.range }] : [];
   });
   const frame = natural
-    ? "flex w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]"
-    : "flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]";
+    ? "flex w-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]"
+    : "flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white text-left text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]";
 
   return (
     <article className={frame}>

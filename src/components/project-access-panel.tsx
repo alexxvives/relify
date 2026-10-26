@@ -48,7 +48,7 @@ function ConnectConfirm({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/55 p-4">
-      <form action={requestAction} className="w-full max-w-sm rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl">
+      <form action={requestAction} className="w-full max-w-sm rounded-2xl bg-white p-6 text-[#1c2740] shadow-xl">
         <input type="hidden" name="slug" value={slug} />
         {title.length > 0 ? <p className="text-lg font-semibold">{title}</p> : null}
         <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{connectConfirm(matchesLeft)}</p>

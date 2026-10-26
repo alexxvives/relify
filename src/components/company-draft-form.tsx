@@ -69,7 +69,7 @@ import {
 } from "@/lib/company-profile";
 
 const fieldClassName =
-  "h-11 w-full rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
+  "h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -247,7 +247,7 @@ function RemoveRowButton({ onClick }: { onClick: () => void }) {
       type="button"
       aria-label={companyCopy.removeRow}
       onClick={onClick}
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px] border border-[#f0c2c2] bg-white text-[#c0362c] hover:bg-[#fff1f1]"
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-[#f0c2c2] bg-white text-[#c0362c] hover:bg-[#fff1f1]"
     >
       <X className="size-4" aria-hidden />
     </button>
@@ -1809,7 +1809,7 @@ function PublicFicha({
               onClick={() => {
                 fileRef.current?.click();
               }}
-              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-[14px] border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
             >
               <ImagePlus className="size-4" aria-hidden />
               {companyCopy.cardPhotos}
@@ -1821,7 +1821,7 @@ function PublicFicha({
                 onClick={() => {
                   setFocusOpen(true);
                 }}
-                className="relative size-11 shrink-0 overflow-hidden rounded-[14px] border border-[#e7eaee]"
+                className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-[#e7eaee]"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={shown} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />

@@ -87,8 +87,8 @@ export function OptionSelect({
         style={invalid ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
         className={
           invalid
-            ? "releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#c0362c] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none"
-            : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[14px] border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+            ? "releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none"
+            : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
         }
       >
         <span className="truncate">{selected?.label ?? label}</span>

@@ -56,8 +56,8 @@ export function AppToast({
       role={ok ? "status" : "alert"}
       className={
         ok
-          ? "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-[18px] border border-[#b7e4c7] bg-[#f4fbf7] text-[#14532d] shadow-[0_22px_44px_-22px_rgba(20,83,45,0.45)]"
-          : "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-[18px] border border-[#f3c1bd] bg-[#fff7f6] text-[#7a1f1a] shadow-[0_22px_44px_-22px_rgba(122,31,26,0.4)]"
+          ? "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-[#b7e4c7] bg-[#f4fbf7] text-[#14532d] shadow-[0_22px_44px_-22px_rgba(20,83,45,0.45)]"
+          : "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-[#f3c1bd] bg-[#fff7f6] text-[#7a1f1a] shadow-[0_22px_44px_-22px_rgba(122,31,26,0.4)]"
       }
     >
       <div className="flex items-start gap-3 px-4 py-3.5">

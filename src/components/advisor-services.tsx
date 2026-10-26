@@ -20,7 +20,7 @@ import { isValidSpanishCif } from "@/lib/spanish-cif";
 type PanelId = "corporate" | "services" | "documents";
 
 const fieldClass =
-  "h-11 w-full rounded-[14px] border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
+  "h-11 w-full rounded-xl border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
 
 function PriceField({
   label,
@@ -343,7 +343,7 @@ export function AdvisorServices({
                 maxLength={1000}
                 placeholder={advisorCopy.descriptionPlaceholder}
                 onChange={(event) => setDescription(event.target.value)}
-                className="min-h-28 rounded-[14px] border border-[#e7eaee] px-3 py-3 pr-16 pb-7 text-sm font-normal text-[#2b3b4a] outline-none focus-visible:border-[#5c4de0]"
+                className="min-h-28 rounded-xl border border-[#e7eaee] px-3 py-3 pr-16 pb-7 text-sm font-normal text-[#2b3b4a] outline-none focus-visible:border-[#5c4de0]"
               />
               <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
                 {description.length} / 1000

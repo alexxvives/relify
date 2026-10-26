@@ -16,7 +16,7 @@ const timeSlots = Array.from({ length: 25 }, (_, index) => {
 });
 
 const dialogClass =
-  "fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(52rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40";
+  "fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(52rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40";
 
 function formatDay(iso: string): string {
   const [year, month, day] = iso.split("-");
@@ -178,7 +178,7 @@ function MonthGrid({
   const [yearText, monthText] = cursor.split("-");
 
   return (
-    <div className="rounded-3xl border border-[#e6e9f0] bg-white p-4">
+    <div className="rounded-2xl border border-[#e6e9f0] bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <button
           type="button"
@@ -279,7 +279,7 @@ function HourRange({ from, to, onChange }: { from: string; to: string; onChange:
   }
 
   return (
-    <div className="max-h-72 overflow-y-auto rounded-3xl border border-[#e6e9f0] bg-[#f7f8fb] p-1.5">
+    <div className="max-h-72 overflow-y-auto rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-1.5">
       {timeSlots.map((slot, index) => {
         const selected = slot >= from && slot < to;
         const previous = timeSlots[index - 1];

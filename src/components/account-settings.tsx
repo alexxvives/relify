@@ -12,7 +12,7 @@ import { accountDisplayName } from "@/lib/auth-input";
 import { readStoredPhone } from "@/lib/phone-countries";
 
 const fieldClassName =
-  "h-11 w-full rounded-[14px] border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
+  "h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
 
 export function AccountSettings({
   name: initialName,
@@ -172,7 +172,7 @@ export function AccountSettings({
               <button
                 type="submit"
                 disabled={profilePending}
-                className="inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
+                className="inline-flex h-11 items-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
               >
                 {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
               </button>
@@ -199,7 +199,7 @@ export function AccountSettings({
           <button
             type="submit"
             disabled={passwordPending}
-            className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
           >
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </button>
@@ -224,7 +224,7 @@ export function AccountSettings({
           <button
             type="submit"
             disabled={deletePending}
-            className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#c0362c] px-4 text-base font-medium text-white disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#c0362c] px-4 text-base font-medium text-white disabled:opacity-60"
           >
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
           </button>

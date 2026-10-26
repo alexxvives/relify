@@ -143,7 +143,7 @@ export function FilePreviewDialog({
                 href={file.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex h-11 items-center rounded-[14px] bg-[#465ab4] px-4 text-base font-medium text-white"
+                className="mt-5 inline-flex h-11 items-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white"
               >
                 {sellerCopy.documentOpenFile}
               </a>

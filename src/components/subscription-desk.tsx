@@ -41,7 +41,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
         {billingCopy.backToPlans}
       </Link>
       {desk.kind === "none" ? (
-        <section className="rounded-3xl border border-[#e7eaee] bg-white px-6 py-10 text-center">
+        <section className="rounded-2xl border border-[#e7eaee] bg-white px-6 py-10 text-center">
           <p className="text-sm text-[#5c6b78]">{billingCopy.noSubscription}</p>
           <Link href="/premium" className="mt-4 inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white">
             {billingCopy.seePlans}
@@ -49,14 +49,14 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
         </section>
       ) : null}
       {desk.kind === "granted" ? (
-        <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
+        <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
           <p className="text-lg font-semibold text-[#1c2740]">{desk.planLabel}</p>
           <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{billingCopy.grantedPlan}</p>
         </section>
       ) : null}
       {desk.kind === "stripe" ? (
         <>
-          <section className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
+          <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
             <div className="bg-[#1c2740] px-6 py-6 text-white sm:px-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -91,7 +91,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
             </div>
           </section>
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
+            <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.cardLabel}</h3>
               <div className="mt-5 flex flex-col items-center">
                 <PaymentCard brand={desk.cardBrand} last4={desk.cardLast4} expires={desk.cardExpires} />
@@ -107,7 +107,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </form>
               </div>
             </section>
-            <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
+            <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.billingEmail}</h3>
               <p className="mt-2 text-sm leading-6 text-[#5c6b78]">Las facturas se envían a este correo.</p>
               <form action={emailAction} className="mt-4 flex flex-col gap-3">
@@ -118,7 +118,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                   maxLength={160}
                   defaultValue={desk.email}
                   aria-label={billingCopy.billingEmail}
-                  className="h-11 rounded-[14px] border border-[#e7eaee] px-3"
+                  className="h-11 rounded-xl border border-[#e7eaee] px-3"
                 />
                 <button
                   type="submit"
@@ -131,7 +131,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
               </form>
             </section>
           </div>
-          <section className="rounded-3xl border border-[#e7eaee] bg-white p-6">
+          <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
             <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.invoicesTitle}</h3>
             {desk.invoices.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{billingCopy.invoicesEmpty}</p> : null}
             {desk.invoices.length > 0 ? (
@@ -207,7 +207,7 @@ function PaymentCard({ brand, last4, expires }: { brand: string | null; last4: s
   const ending = last4 ?? "••••";
 
   return (
-    <div className="relative aspect-[1.586/1] w-[20rem] max-w-full overflow-hidden rounded-[18px] bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-5 text-white shadow-[0_18px_36px_-24px_rgba(28,39,64,0.9)]">
+    <div className="relative aspect-[1.586/1] w-[20rem] max-w-full overflow-hidden rounded-2xl bg-[linear-gradient(145deg,#243656_0%,#1c2740_38%,#3d4f86_72%,#465ab4_100%)] p-5 text-white shadow-[0_18px_36px_-24px_rgba(28,39,64,0.9)]">
       <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-white/10" />
       <div className="pointer-events-none absolute -bottom-24 -left-10 size-48 rounded-full bg-[#8ea2ff]/20" />
       <div className="relative flex items-start justify-between">

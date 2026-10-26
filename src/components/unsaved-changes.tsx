@@ -116,7 +116,7 @@ export function UnsavedChangesGuard({
             onClick={() => {
               setHref(null);
             }}
-            className="inline-flex h-11 items-center justify-center rounded-[14px] border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
           >
             {unsavedCopy.stay}
           </button>
@@ -126,7 +126,7 @@ export function UnsavedChangesGuard({
               setHref(null);
               router.push(next);
             }}
-            className="inline-flex h-11 items-center justify-center rounded-[14px] border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
           >
             {unsavedCopy.discard}
           </button>
@@ -137,7 +137,7 @@ export function UnsavedChangesGuard({
                 setHref(null);
                 onSave(next);
               }}
-              className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#465ab4] px-4 text-sm font-medium text-white"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-[#465ab4] px-4 text-sm font-medium text-white"
             >
               {unsavedCopy.save}
             </button>

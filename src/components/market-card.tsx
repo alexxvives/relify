@@ -83,7 +83,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
 
   return (
     <article
-      className={`group/card relative flex h-full flex-col overflow-hidden rounded-[20px] border border-[#e4e8ef] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)] transition-[box-shadow,border-color,opacity] duration-200 focus-within:border-[#c9d1e0] hover:border-[#c9d1e0] hover:shadow-[0_18px_40px_-24px_rgba(28,39,64,0.5)] motion-reduce:transition-none ${muted ? "opacity-60" : ""}`}
+      className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e4e8ef] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)] transition-[box-shadow,border-color,opacity] duration-200 focus-within:border-[#c9d1e0] hover:border-[#c9d1e0] hover:shadow-[0_18px_40px_-24px_rgba(28,39,64,0.5)] motion-reduce:transition-none ${muted ? "opacity-60" : ""}`}
     >
       <div className="relative aspect-[16/8] max-h-60 w-full overflow-hidden bg-[#1c2a52]">
         <Image
@@ -122,7 +122,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           <h3 className="min-w-0 text-lg leading-6 font-semibold tracking-tight text-[#1c2740]">
             <Link
               href={href}
-              className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-[20px] focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
+              className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
             >
               <span className="block truncate">{project.codename}</span>
             </Link>
