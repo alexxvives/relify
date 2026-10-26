@@ -229,11 +229,11 @@ describe("homePendingActions", () => {
         { id: "wait", who: "Proyecto Duna", href: "/procesos", steps: waiting },
         { id: "sign", who: "Proyecto Cala", href: "/procesos", steps: signing },
       ]).map((item) => item.title),
-    ).toEqual(["Firma el acuerdo de confidencialidad"]);
+    ).toEqual(["Acuerdo de confidencialidad"]);
     expect(homePendingActions("seller", [{ id: "accept", who: "Inversor 1", href: "/mi-empresa/procesos", steps: seller }])).toEqual([
       {
         id: "accept",
-        title: "Acepta la solicitud de conexión",
+        title: "Solicitud de conexión",
         detail: "Inversor 1",
         href: "/mi-empresa/procesos",
       },

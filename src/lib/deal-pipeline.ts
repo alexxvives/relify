@@ -230,6 +230,15 @@ export function watchingCue(steps: readonly DealStep[]): string {
   return stepCue(current.id, "advisor", current.pendingLoi === true).action;
 }
 
+// Short titles for Acciones pendientes cards (the long cue stays in the process timeline).
+const shortPendingTitle: Partial<Record<DealStepId, string>> = {
+  solicitud: "Solicitud de conexión",
+  conexion: "Solicitud de conexión",
+  nda: "Acuerdo de confidencialidad",
+  loi: "Carta de intenciones",
+  qa: "Carta de intenciones",
+};
+
 export type HomePendingAction = {
   id: string;
   title: string;
@@ -256,7 +265,7 @@ export function homePendingActions(
       continue;
     }
 
-    actions.push({ id: item.id, title: cue.action, detail: item.who, href: item.href });
+    actions.push({ id: item.id, title: shortPendingTitle[current.id] ?? cue.action, detail: item.who, href: item.href });
   }
 
   return actions;
