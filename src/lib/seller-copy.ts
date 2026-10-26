@@ -2,7 +2,9 @@ export const sellerCopy = {
   homeTitle: "Inicio",
   detailsTitle: "Detalles de empresa",
   documentsTitle: "Mis documentos",
-  documentsNote: "Prepara aquí tu dataroom. Nadie lo ve hasta que lo compartes con un inversor (tras su NDA) o con tu asesor.",
+  documentsNoteTitle: "Nadie ve tus documentos hasta que tú los compartes",
+  documentsNoteBody:
+    "Subirlos aquí no los muestra a nadie. Solo los verá quien elijas, de forma explícita con «Compartir todos» o carpeta a carpeta: un inversor que ya haya firmado el NDA, o tu asesor.",
   processesTitle: "Mis procesos",
   servicesTitle: "Solicitar servicios",
   trendsTitle: "Tendencias",

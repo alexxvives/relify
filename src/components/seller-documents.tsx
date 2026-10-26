@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, Share2 } from "lucide-react";
+import { ChevronLeft, Lock, Share2 } from "lucide-react";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -628,7 +628,15 @@ export function SellerDocuments({
       {folder === null ? (
         <>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-2xl text-sm leading-6 text-[#5c6b78]">{sellerCopy.documentsNote}</p>
+          <div className="flex max-w-3xl items-start gap-3 rounded-xl bg-[#f5f7ff] px-3.5 py-3">
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[#465ab4]">
+              <Lock className="size-4" aria-hidden />
+            </span>
+            <p className="text-sm leading-6 text-[#3d4a63]">
+              <span className="block font-semibold text-[#1c2740]">{sellerCopy.documentsNoteTitle}</span>
+              {sellerCopy.documentsNoteBody}
+            </p>
+          </div>
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
