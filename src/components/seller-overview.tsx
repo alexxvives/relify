@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CalendarCheck, Check, Circle, HeartHandshake, MessageCircleQuestion, TriangleAlert } from "lucide-react";
-import { ActivityStatTiles } from "@/components/activity-tiles";
+import { Check, Circle, TriangleAlert } from "lucide-react";
+import { SellerActivitySummary } from "@/components/seller-activity-summary";
+import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
@@ -41,9 +42,7 @@ export function SellerOverview({
   listing,
   payToPublish = false,
   hasPhoto = false,
-  interests,
-  questions,
-  meetings,
+  funnel,
   panels,
   series,
   mixes,
@@ -55,9 +54,7 @@ export function SellerOverview({
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
   hasPhoto?: boolean;
-  interests: number;
-  questions: number;
-  meetings: number;
+  funnel: SellerFunnel;
   notifications: NotificationView[];
   panels: SellerPanelFlags;
   series: SellerYearPoint[];
@@ -68,11 +65,6 @@ export function SellerOverview({
   // The photo is a recommendation, not a requirement: it never holds the meter back.
   const filled = filledSellerPanels(panels);
   const complete = filled === panelSteps.length;
-  const activity = [
-    { label: sellerCopy.interests, value: interests, icon: HeartHandshake },
-    { label: sellerCopy.questions, value: questions, icon: MessageCircleQuestion },
-    { label: sellerCopy.meetings, value: meetings, icon: CalendarCheck },
-  ];
   const chartPoints = series.map((point) => ({
     ...point,
     salesLabel: point.salesCents === null ? "—" : formatCompactEur(point.salesCents),
@@ -87,23 +79,7 @@ export function SellerOverview({
     <div className="flex flex-col gap-6">
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-          <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5">
-            <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-              {sellerCopy.activityTitle}
-              <FieldHint text={sellerCopy.activityIntro} />
-            </h2>
-            {listing === "published" ? (
-              <ActivityStatTiles stats={activity} className="sm:grid-cols-3" />
-            ) : (
-              <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-[#f3f5f8] px-4 py-8 text-center">
-                <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.activityEmpty}</p>
-                <p className="max-w-md text-sm text-[#667085]">{sellerCopy.activityLocked}</p>
-                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
-                  {sellerCopy.fillInfo}
-                </Link>
-              </div>
-            )}
-          </section>
+          <SellerActivitySummary funnel={funnel} />
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">

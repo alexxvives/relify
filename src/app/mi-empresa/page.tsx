@@ -8,6 +8,7 @@ import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
+import { sellerFunnel } from "@/server/activityFunnel";
 import { projectSold } from "@/server/saleOutcome";
 import { getSellerOverview } from "@/server/getSellerOverview";
 import { withoutOwnCompany } from "@/lib/notifications";
@@ -49,11 +50,8 @@ async function CompanyPageContent({
     listProjectMessages(user, null),
     listCancelledProcesses(user),
   ]);
-  const projectScope = projectId ? { id: projectId, ownerId: user.id } : { id: "" };
-  const [interests, questions, meetings, sold, own] = await Promise.all([
-    prisma.projectAccess.count({ where: { project: projectScope } }),
-    prisma.projectMessage.count({ where: { project: projectScope, author: "investor", kind: "question" } }),
-    prisma.projectMessage.count({ where: { project: projectScope, kind: "meeting" } }),
+  const [funnel, sold, own] = await Promise.all([
+    sellerFunnel(user.id, projectId),
     projectId ? projectSold(projectId) : Promise.resolve(false),
     projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true } }) : Promise.resolve(null),
   ]);
@@ -66,9 +64,7 @@ async function CompanyPageContent({
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
-        interests={interests}
-        questions={questions}
-        meetings={meetings}
+        funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
         panels={overview.panels}
         series={overview.series}
