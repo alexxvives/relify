@@ -101,7 +101,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           </span>
         ) : null}
         <span
-          className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-1.5 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-sm"
+          className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-1.5 py-0.5 text-xs font-medium text-white/90 backdrop-blur-sm"
           title={aiImageLabel}
         >
           <Sparkles className="size-3" aria-hidden />

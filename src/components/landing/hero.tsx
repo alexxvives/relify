@@ -118,8 +118,8 @@ function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonl
   return (
     <div role="img" aria-label="Facturación y EBITDA de los últimos cuatro años">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Facturación y EBITDA</p>
-        <p className="flex gap-2 text-[10px] text-[#5c6b78]">
+        <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">Facturación y EBITDA</p>
+        <p className="flex gap-2 text-xs text-[#5c6b78]">
           <span className="inline-flex items-center gap-1"><span className="size-2 rounded-sm bg-[#1aa6a0]" /> Facturación</span>
           <span className="inline-flex items-center gap-1"><span className="size-2 rounded-sm bg-[#e07a3d]" /> EBITDA</span>
         </p>
@@ -131,7 +131,7 @@ function PairBars({ sales, ebitda }: { sales: readonly number[]; ebitda: readonl
               <div className="w-2 rounded-t-sm bg-[#1aa6a0]" style={{ height: `${Math.round((sale / max) * 36)}px` }} />
               <div className="w-2 rounded-t-sm bg-[#e07a3d]" style={{ height: `${Math.round(((ebitda[index] ?? 0) / max) * 36)}px` }} />
             </div>
-            <span className="text-[10px] text-[#8b95a7]">{2022 + index}</span>
+            <span className="text-xs text-[#8b95a7]">{2022 + index}</span>
           </div>
         ))}
       </div>
@@ -151,7 +151,7 @@ function CostBars({ years }: { years: readonly (readonly number[])[] }) {
   const max = Math.max(...years.flat(), 1);
   return (
     <div role="img" aria-label="Composición del gasto">
-      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">Composición del gasto</p>
+      <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">Composición del gasto</p>
       <div className="mt-1.5 flex h-16 items-end gap-2 rounded-lg bg-[#f4f7fb] px-2 pt-2">
         {labels.map((year, yearIndex) => (
           <div key={year} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
@@ -167,7 +167,7 @@ function CostBars({ years }: { years: readonly (readonly number[])[] }) {
                 />
               ))}
             </div>
-            <span className="text-[10px] text-[#8b95a7]">{year}</span>
+            <span className="text-xs text-[#8b95a7]">{year}</span>
           </div>
         ))}
       </div>
@@ -191,7 +191,7 @@ function MiniDonut({
   }));
   return (
     <div role="img" aria-label={title}>
-      <p className="text-[11px] font-medium tracking-wide text-[#8b95a7] uppercase">{title}</p>
+      <p className="text-xs font-medium tracking-wide text-[#8b95a7] uppercase">{title}</p>
       <div className="mt-1.5 flex items-center gap-2">
         <svg viewBox="0 0 42 42" className="size-11 shrink-0" aria-hidden="true">
           <circle cx="21" cy="21" r="14" fill="none" stroke="#e7eaee" strokeWidth="7" />
@@ -210,7 +210,7 @@ function MiniDonut({
             />
           ))}
         </svg>
-        <ul className="grid gap-0.5 text-[11px] text-[#3d4a63]">
+        <ul className="grid gap-0.5 text-xs text-[#3d4a63]">
           {rings.map((ring) => (
             <li key={ring.label} className="flex items-center gap-1.5">
               <span className="size-2 rounded-full" style={{ background: ring.color }} />

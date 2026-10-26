@@ -72,7 +72,7 @@ function Stage({ deal }: { deal: ShowcaseDeal }) {
         <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
           {specimenMetrics.map((metric) => (
             <div key={metric.key}>
-              <dt className="text-[11px] tracking-wide text-white/60 uppercase">{metric.label}</dt>
+              <dt className="text-xs tracking-wide text-white/60 uppercase">{metric.label}</dt>
               <dd className="mt-1 text-xl font-medium tracking-tight sm:text-2xl">{deal[metric.key]}</dd>
             </div>
           ))}

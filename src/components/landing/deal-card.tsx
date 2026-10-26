@@ -34,11 +34,11 @@ export function DealCard({
       <div className="p-4 sm:p-5">
         <p className="text-xs text-public-muted">{deal.region}</p>
         <h3 className="text-lg font-medium">{deal.codename}</h3>
-        {deal.badge ? <p className="mt-1 text-[11px] tracking-[0.12em] text-public-muted uppercase">{deal.badge}</p> : null}
+        {deal.badge ? <p className="mt-1 text-xs tracking-[0.12em] text-public-muted uppercase">{deal.badge}</p> : null}
         <dl className={tall ? "mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4" : "mt-4 grid grid-cols-2 gap-x-3 gap-y-3"}>
           {specimenMetrics.map((metric) => (
             <div key={metric.key} className={sequence ? "landing-metric" : undefined}>
-              <dt className="text-[10px] tracking-wide text-public-muted uppercase">{metric.label}</dt>
+              <dt className="text-xs tracking-wide text-public-muted uppercase">{metric.label}</dt>
               <dd className="text-sm font-medium text-public-clay">{deal[metric.key]}</dd>
             </div>
           ))}

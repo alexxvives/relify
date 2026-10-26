@@ -20,7 +20,7 @@ export function Confidentiality() {
                 <div className="h-2 w-5/6 rounded-full bg-public-sand" />
               </div>
               <p className="mt-4 flex items-start gap-2 text-sm text-public-muted">
-                <span className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded border border-public-clay bg-public-clay text-[10px] text-white">
+                <span className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded border border-public-clay bg-public-clay text-xs text-white">
                   ✓
                 </span>
                 He leído cómo se trata la ficha pública

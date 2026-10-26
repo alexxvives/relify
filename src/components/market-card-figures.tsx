@@ -46,7 +46,7 @@ export function MarketCardFigures({
       <dl className="grid grid-cols-3 divide-x divide-[#e7eaee] border-t border-[#e7eaee]">
         {row.map((item) => (
           <div key={item.label} className="min-w-0 px-2 py-2.5 text-center">
-            <dt className="truncate text-[11px] font-medium text-[#8b95a7]" title={item.label}>
+            <dt className="truncate text-xs font-medium text-[#8b95a7]" title={item.label}>
               {item.label}
             </dt>
             <dd className="mt-0.5 text-[15px] font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{item.value}</dd>

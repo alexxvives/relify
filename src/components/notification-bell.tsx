@@ -150,7 +150,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
       >
         <Bell className="nav-icon nav-motion-bell size-4" aria-hidden />
         {unread > 0 ? (
-          <span className="absolute top-0.5 right-0.5 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-public-clay px-[3px] text-[9px] leading-none font-semibold ring-2 ring-white text-white">
+          <span className="absolute top-0 right-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-public-clay px-[3px] text-xs leading-none font-semibold ring-2 ring-white text-white">
             {unread > 9 ? "9+" : unread}
           </span>
         ) : null}

@@ -83,7 +83,7 @@ export function MiniFicha({
       <dl className="grid grid-cols-3 border-t border-public-line">
         {figures.map(([label, value]) => (
           <div key={label} className="px-3 py-3">
-            <dt className="text-[10px] tracking-wide text-public-muted uppercase">{label}</dt>
+            <dt className="text-xs tracking-wide text-public-muted uppercase">{label}</dt>
             <dd className="mt-1 text-sm tabular-nums">{value}</dd>
           </div>
         ))}
