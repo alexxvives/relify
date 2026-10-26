@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { Briefcase, Check, FileText, Layers, User } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
-import { NoticeList } from "@/components/notice-list";
 import { SectorTreemap } from "@/components/sector-treemap";
-import { OpenNoticeList } from "@/components/notification-bell";
 import { PendingActions } from "@/components/pending-actions";
 import { advisorCopy } from "@/lib/advisor-copy";
 import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
@@ -57,7 +55,6 @@ const checklist = [
 ] as const;
 
 export function AdvisorHome({
-  notifications,
   desk,
   profileChecks,
   sectors,
@@ -79,7 +76,6 @@ export function AdvisorHome({
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-        <PendingActions items={pending} empty={advisorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <StepCards
@@ -129,20 +125,7 @@ export function AdvisorHome({
             })}
           </ul>
         </section>
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.notificationsTitle}</h2>
-            <OpenNoticeList label={advisorCopy.seeAll} />
-          </div>
-          {notifications.length === 0 ? (
-            <div className="mt-6 text-center">
-              <p className="text-sm font-semibold text-[#1c2740]">{advisorCopy.notificationsEmpty}</p>
-              <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.notificationsEmptyBody}</p>
-            </div>
-          ) : (
-            <NoticeList items={notifications} scroll icons />
-          )}
-        </section>
+        <PendingActions side items={pending} empty={advisorCopy.pendingEmpty} />
         </div>
       </div>
     </div>

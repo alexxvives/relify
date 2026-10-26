@@ -3,7 +3,6 @@ import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from 
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { SectorTreemap } from "@/components/sector-treemap";
-import { NoticeList } from "@/components/notice-list";
 import { investorCopy } from "@/lib/investor-copy";
 import type { IndustrySector } from "@/lib/cnae-section";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
@@ -20,7 +19,6 @@ const checklist = [
 ] as const;
 
 export function InvestorHome({
-  notifications,
   favorites,
   interests,
   questions,
@@ -51,7 +49,6 @@ export function InvestorHome({
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-        <PendingActions items={pending} empty={investorCopy.pendingEmpty} />
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
@@ -124,17 +121,7 @@ export function InvestorHome({
             })}
           </ul>
         </section>
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.notificationsTitle}</h2>
-          {notifications.length === 0 ? (
-            <div className="mt-6 text-center">
-              <p className="text-sm font-semibold">{investorCopy.notificationsEmpty}</p>
-              <p className="mt-1 text-sm text-[#64748b]">{investorCopy.notificationsEmptyBody}</p>
-            </div>
-          ) : (
-            <NoticeList items={notifications} scroll icons />
-          )}
-        </section>
+        <PendingActions side items={pending} empty={investorCopy.pendingEmpty} />
         </div>
       </div>
     </div>

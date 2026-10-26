@@ -3,7 +3,6 @@ import { Check, Circle, TriangleAlert } from "lucide-react";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
-import { NoticeList } from "@/components/notice-list";
 import { PublishSellerButton } from "@/components/publish-seller";
 import { FinanceCharts, FinanceChartsPlaceholder } from "@/components/seller-finance-charts";
 import { billingCopy } from "@/lib/billing-copy";
@@ -44,7 +43,6 @@ export function SellerOverview({
   interests,
   questions,
   meetings,
-  notifications,
   panels,
   series,
   mixes,
@@ -88,7 +86,6 @@ export function SellerOverview({
     <div className="flex flex-col gap-6">
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
         <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-          <PendingActions items={pending} empty={sellerCopy.pendingEmpty} />
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -204,17 +201,7 @@ export function SellerOverview({
               </li>
             </ul>
           </section>
-          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sellerCopy.notificationsTitle}</h2>
-            {notifications.length === 0 ? (
-              <div className="mt-6 text-center">
-                <p className="text-sm font-semibold text-[#1c2740]">{sellerCopy.notificationsEmpty}</p>
-                <p className="mt-1 text-sm text-[#667085]">{sellerCopy.notificationsEmptyBody}</p>
-              </div>
-            ) : (
-              <NoticeList items={notifications} scroll icons />
-            )}
-          </section>
+          <PendingActions side items={pending} empty={sellerCopy.pendingEmpty} />
           </div>
         </div>
       </div>
