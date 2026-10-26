@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import { formatCardEur, recoveryTone, recoveryYears } from "@/lib/money";
-import { shortNickname } from "@/lib/nickname";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -131,20 +130,18 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           <Icon className={`size-6 ${style.ink}`} />
         </span>
 
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <h3 className="min-w-0 text-lg leading-6 font-semibold tracking-tight text-[#1c2740]">
-            <Link
-              href={href}
-              className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
-            >
-              <span className="block truncate">{shortNickname(project.codename)}</span>
-            </Link>
-          </h3>
-          {sectorName ? (
-            <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>{sectorName}</span>
-          ) : null}
-        </div>
-        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#5c6b78]">
+        {sectorName ? (
+          <span className={`absolute top-3 right-5 max-w-[60%] truncate rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>{sectorName}</span>
+        ) : null}
+        <h3 className="m-0 h-0">
+          <Link
+            href={href}
+            className="outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
+          >
+            <span className="sr-only">{sectorName ? `Empresa de ${sectorName.toLowerCase()} en ${project.region}` : `Empresa en ${project.region}`}</span>
+          </Link>
+        </h3>
+        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#5c6b78]">
           <span className="inline-flex min-w-0 items-center gap-1">
             <MapPin className="size-3.5 shrink-0" aria-hidden />
             <span className="truncate">{project.region}</span>
