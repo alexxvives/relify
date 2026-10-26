@@ -37,11 +37,10 @@ export async function getAdminDashboard(user: CurrentUser): Promise<AdminDashboa
     return null;
   }
 
-  const [users, unfinished, statuses, asking, accesses, ndas, messages, favorites, quotes, plans, sectors] = await Promise.all([
+  const [users, unfinished, statuses, accesses, ndas, messages, favorites, quotes, plans, sectors] = await Promise.all([
     prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
     prisma.user.count({ where: { onboardedAt: null } }),
     prisma.project.groupBy({ by: ["status"], _count: { _all: true } }),
-    prisma.project.aggregate({ where: { status: "published" }, _sum: { askingPriceCents: true } }),
     prisma.projectAccess.count(),
     prisma.projectAccess.count({ where: { ndaAcceptedAt: { not: null } } }),
     prisma.projectMessage.count(),
@@ -68,7 +67,8 @@ export async function getAdminDashboard(user: CurrentUser): Promise<AdminDashboa
     published: statusCounts.get("published") ?? 0,
     drafts: statusCounts.get("draft") ?? 0,
     pending: statusCounts.get("pending") ?? 0,
-    publishedAskingCents: asking._sum.askingPriceCents ?? 0,
+    // Same set as the "Sectores en venta" treemap (published, unsold, with a CNAE) so both totals always agree.
+    publishedAskingCents: sectors.reduce((sum, sector) => sum + (sector.revenueCents ?? 0), 0),
     accesses,
     ndas,
     messages,

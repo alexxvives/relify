@@ -13,7 +13,7 @@ export const adminCopy = {
   users: "Cuentas",
   published: "Publicadas",
   drafts: "Borradores",
-  asking: "Precio publicado",
+  asking: "En venta",
   searchLabel: "Buscar",
   searchCompanies: "Nombre, región o correo",
   searchAccounts: "Nombre o correo",
