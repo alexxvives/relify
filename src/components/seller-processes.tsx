@@ -241,7 +241,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           />
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {thread.contract ? <ContractStage contract={thread.contract} /> : null}
+          {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
           {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
           <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
         </div>
@@ -273,6 +273,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
         </div>
       {expandable ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
           <DeskToggles
             label={thread.codename}
             controls={deskId}
@@ -286,6 +287,9 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             disabled={thread.advisorHired ? [] : ["advisor"]}
             hints={thread.advisorHired ? {} : { advisor: reachedQa(thread.steps) ? advisorHintHireSeller : advisorHintLater }}
           />
+          {/* Signed contract: a quiet record, kept at the far right of the panel toggles. */}
+          {thread.contract?.stage === "signed" ? <div className="ml-auto"><ContractStage contract={thread.contract} /></div> : null}
+          </div>
           <div id={deskId} hidden={desk === null}>
           {desk === "chat" ? (
             <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
