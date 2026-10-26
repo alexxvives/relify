@@ -390,7 +390,7 @@ export function SellerProcesses({
               ]}
             />
           </section>
-          <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
+          <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-2">
             <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
               <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length)}</h2>
               {pendingMatches.length > 0 ? (

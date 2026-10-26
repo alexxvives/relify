@@ -105,7 +105,7 @@ export function AdvisorListingCard({
       <div className="bg-[linear-gradient(135deg,#1c2740_0%,#27366b_100%)] px-5 py-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold text-white">{engagementCopy.advisorFallback}</p>
+            <p className="truncate text-lg font-semibold text-white">{advisor.name || engagementCopy.advisorFallback}</p>
             <div className="mt-2 flex min-h-6 items-center">{advisor.verified ? <VerifiedBadge /> : null}</div>
           </div>
           <ReviewMark cases={advisor.cases.length} />

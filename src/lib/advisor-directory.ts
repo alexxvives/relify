@@ -21,6 +21,8 @@ export function casesForVerifiedCloses(count: number): PublicAdvisorCase[] {
 
 export type PublicAdvisorCard = {
   id: string;
+  /** Public business name the advisor lists under. */
+  name: string;
   description: string;
   sectors: string[];
   services: { title: string; range: string; fromCents: number }[];
@@ -88,6 +90,7 @@ export function toPublicAdvisorCard(profile: {
 
   return {
     id: profile.userId,
+    name: profile.businessName.trim(),
     verified: profile.verifiedAt != null,
     description: profile.description.trim(),
     sectors: profile.sectors.map((sector) => advisorSectorName(sector)),

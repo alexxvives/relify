@@ -33,7 +33,7 @@ describe("toPublicAdvisorCard", () => {
     expect(card?.services[0]?.title).toBe("Due Diligence");
     expect(card?.services[0]?.fromCents).toBe(100_000);
     expect(card?.cases).toEqual([]);
-    expect(JSON.stringify(card)).not.toContain("Navarro");
+    expect(card?.name).toBe("Navarro Asesores");
     expect(publicAdvisorFields).toEqual(["userId", "description", "sectors", "services", "cases"]);
 
     for (const key of privateAdvisorFields) {
@@ -41,7 +41,7 @@ describe("toPublicAdvisorCard", () => {
     }
   });
 
-  it("filters the directory by sector and service, and keeps the firm name off the card", () => {
+  it("filters the directory by sector and service, and shows the firm name on the card", () => {
     const card = toPublicAdvisorCard(complete);
     expect(card).not.toBeNull();
     if (!card) {
@@ -50,7 +50,7 @@ describe("toPublicAdvisorCard", () => {
     expect(filterPublicAdvisors([card], { sector: "Hostelería", service: "" })).toHaveLength(0);
     expect(filterPublicAdvisors([card], { sector: "", service: "Due Diligence" })).toHaveLength(1);
     expect(filterPublicAdvisors([card], { sector: "", service: "Valoración de empresas" })).toHaveLength(0);
-    expect(JSON.stringify(card)).not.toContain("Navarro");
+    expect(card?.name).toBe("Navarro Asesores");
   });
 
   it("ranks a proven advisor above one that takes the chat off the platform, and sorts price separately", () => {
