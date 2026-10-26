@@ -859,18 +859,16 @@ export function SignBubble({
   );
 }
 
-function SignedDocumentRow({ label, onOpen }: { label: string; onOpen: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="mt-3 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm font-medium text-[#465ab4] hover:bg-white"
-    >
-      <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-      <span className="min-w-0 truncate">{label}</span>
-    </button>
-  );
-}
+type DocBadge = "NDA" | "LOI" | "Contrato" | "Compartido" | "Chat" | "Sin acceso";
+
+const badgeTone: Record<DocBadge, string> = {
+  NDA: "bg-[#e8f6ee] text-[#17663a]",
+  LOI: "bg-[#eef1ff] text-[#465ab4]",
+  Contrato: "bg-[#fff4e0] text-[#8a5300]",
+  Compartido: "bg-[#e8f4fb] text-[#1f6f9f]",
+  Chat: "bg-[#f2f4f7] text-[#475467]",
+  "Sin acceso": "bg-[#fdecec] text-[#a33a2f]",
+};
 
 export function ProcessRoom({
   files,
@@ -900,7 +898,36 @@ export function ProcessRoom({
   const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda && !contractHref;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);
   const [openSigned, setOpenSigned] = useState<{ fileName: string; href: string } | null>(null);
-  const other = nda || loiHref !== null || contractHref !== null || hidden.length > 0 || sent.length > 0;
+  const rows: { key: string; label: string; badge: DocBadge; signed?: boolean; title?: string; onOpen?: () => void }[] = [
+    ...(nda
+      ? [
+          {
+            key: "nda",
+            label: sellerCopy.ndaAcceptedRow,
+            badge: "NDA" as const,
+            signed: true,
+            onOpen: ndaHref ? () => setOpenSigned({ fileName: "Acuerdo-de-confidencialidad.pdf", href: ndaHref }) : undefined,
+          },
+        ]
+      : []),
+    ...(loiHref
+      ? [{ key: "loi", label: "Carta de intenciones firmada", badge: "LOI" as const, signed: true, onOpen: () => setOpenSigned({ fileName: "Carta-de-intenciones.pdf", href: loiHref }) }]
+      : []),
+    ...(contractHref
+      ? [
+          {
+            key: "contract",
+            label: contractSigned ? "Contrato de compraventa firmado" : "Contrato de compraventa (borrador actual)",
+            badge: "Contrato" as const,
+            signed: contractSigned,
+            onOpen: () => setOpenSigned({ fileName: "Contrato-de-compraventa.pdf", href: contractHref }),
+          },
+        ]
+      : []),
+    ...shared.map((file) => ({ key: `s-${file.folder}-${file.fileName}`, label: file.fileName, title: file.folder, badge: "Compartido" as const, onOpen: () => setOpenFile(file) })),
+    ...sent.map((name) => ({ key: `c-${name}`, label: name, title: sellerCopy.documentsSent, badge: "Chat" as const, onOpen: () => setOpenFile({ folder: sellerCopy.documentsSent, fileName: name }) })),
+    ...hidden.map((file) => ({ key: `h-${file.folder}-${file.fileName}`, label: file.fileName, title: sellerCopy.documentsPrivate, badge: "Sin acceso" as const, onOpen: () => setOpenFile(file) })),
+  ];
 
   return (
     <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -908,78 +935,34 @@ export function ProcessRoom({
       {prompt ? <div className="mt-4">{prompt}</div> : null}
       {bare && !prompt ? <p className="mt-3 text-sm leading-6 text-[#667085]">{empty}</p> : null}
       {bare ? null : (
-      <div className="mt-4 flex-1 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
-        <p className="text-xs font-semibold text-[#1c2740]">{sellerCopy.documentsShared}</p>
-        <div className="mt-2">
-          <ProcessDocuments files={shared} empty={sellerCopy.documentsEmpty} onOpen={setOpenFile} />
-        </div>
-      </div>
-      )}
-      {other ? (
-        <div className="mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-4">
-          <p className="text-xs font-semibold text-[#5c6b78]">{sellerCopy.documentsOther}</p>
-          {nda ? (
-            ndaHref ? (
-              <SignedDocumentRow
-                label={sellerCopy.ndaAcceptedRow}
-                onOpen={() => {
-                  setOpenSigned({ fileName: "Acuerdo-de-confidencialidad.pdf", href: ndaHref });
-                }}
-              />
-            ) : (
-              <p className="mt-3 flex items-center gap-2 text-sm text-[#1c2740]">
-                <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-                {sellerCopy.ndaAcceptedRow}
-              </p>
-            )
-          ) : null}
-          {loiHref ? (
-            <SignedDocumentRow
-              label="Carta de intenciones firmada"
-              onOpen={() => {
-                setOpenSigned({ fileName: "Carta-de-intenciones.pdf", href: loiHref });
-              }}
-            />
-          ) : null}
-          {contractHref ? (
-            <SignedDocumentRow
-              label={contractSigned ? "Contrato de compraventa firmado" : "Contrato de compraventa (borrador actual)"}
-              onOpen={() => {
-                setOpenSigned({ fileName: "Contrato-de-compraventa.pdf", href: contractHref });
-              }}
-            />
-          ) : null}
-          {hidden.length > 0 ? (
-            <div className="mt-3">
-              <p className="text-xs font-medium text-[#8b95a7]">{sellerCopy.documentsPrivate}</p>
-              <div className="mt-1">
-                <ProcessDocuments files={hidden} empty="" onOpen={setOpenFile} />
-              </div>
-            </div>
-          ) : null}
-          {sent.length > 0 ? (
-            <div className="mt-3">
-              <p className="text-xs font-medium text-[#5c6b78]">{sellerCopy.documentsSent}</p>
-              <ul className="mt-1 flex flex-col gap-1">
-                {sent.map((name) => (
-                  <li key={name}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpenFile({ folder: sellerCopy.documentsSent, fileName: name });
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-sm text-[#1c2740] hover:bg-white"
-                    >
+        <div className="mt-4 flex-1 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-2">
+          {rows.length === 0 ? (
+            <p className="px-2 py-1.5 text-sm leading-6 text-[#667085]">{sellerCopy.documentsEmpty}</p>
+          ) : (
+            <ul className="flex flex-col gap-0.5">
+              {rows.map((row) => (
+                <li key={row.key}>
+                  <button
+                    type="button"
+                    onClick={row.onOpen}
+                    disabled={row.onOpen === undefined}
+                    title={row.title}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-[#1c2740] enabled:hover:bg-white disabled:cursor-default"
+                  >
+                    {row.signed ? (
+                      <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+                    ) : (
                       <FileTextIcon size={16} className="shrink-0 text-[#465ab4]" aria-hidden />
-                      <span className="min-w-0 truncate">{name}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+                    )}
+                    <span className="min-w-0 flex-1 truncate font-medium">{row.label}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${badgeTone[row.badge]}`}>{row.badge}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      ) : null}
+      )}
       <FilePreviewDialog
         file={
           openFile

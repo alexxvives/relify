@@ -140,8 +140,6 @@ export const sellerCopy = {
   messagesTitle: "Mensajes",
   processDocumentsTitle: "Documentación",
   documentsEmpty: "Todavía no hay documentos en el dataroom.",
-  documentsShared: "Tus documentos compartidos",
-  documentsOther: "Otros documentos",
   documentsPrivate: "Sin acceso para el inversor",
   documentsSent: "Enviados en el chat",
   documentOpenBody: "Este archivo se guardó solo con el nombre. Vuelve a subirlo para poder abrirlo.",
