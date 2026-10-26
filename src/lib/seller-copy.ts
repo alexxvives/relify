@@ -114,7 +114,6 @@ export const sellerCopy = {
   shareFolder: "Compartir carpeta",
   documentEdit: "Editar",
   shareAll: "Compartir todos",
-  meetingsTitle: "Próximas reuniones (0)",
   meetingsHeading: "Reuniones",
   meetingsCalendar: "Calendario",
   meetingsRegister: "Registro",
@@ -235,6 +234,10 @@ export const documentFolders = dataRoomFolderNames.map((name) => ({ name }));
 
 export function documentCountLabel(count: number): string {
   return count === 1 ? "1 documento" : `${count} documentos`;
+}
+
+export function upcomingMeetingsTitle(count: number): string {
+  return count === 1 ? "Tienes 1 próxima reunión" : `Tienes ${count} próximas reuniones`;
 }
 
 export function pendingActionsTitle(count: number): string {

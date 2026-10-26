@@ -24,7 +24,7 @@ import type { PendingMatch } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
-import { pendingActionsTitle, sellerCopy } from "@/lib/seller-copy";
+import { pendingActionsTitle, sellerCopy, upcomingMeetingsTitle } from "@/lib/seller-copy";
 
 function SellerPending({
   item,
@@ -401,7 +401,7 @@ export function SellerProcesses({
               )}
             </section>
             <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
-              <h2 className="text-lg font-semibold">{sellerCopy.meetingsTitle}</h2>
+              <h2 className="text-lg font-semibold">{upcomingMeetingsTitle(0)}</h2>
               <div className="mt-4">
                 <p className="text-sm font-semibold">{sellerCopy.meetingsEmpty}</p>
                 <p className="mt-2 text-sm leading-6 text-[#667085]">{sellerCopy.meetingsEmptyBody}</p>
