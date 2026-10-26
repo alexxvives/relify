@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CalendarCheck, Camera, Check, HandHeart, Heart, MapPin, MessageCircleQuestion, Search, Send, UserRound } from "lucide-react";
-import { ActivityStatTiles } from "@/components/activity-stat-tiles";
+import { ActivityStatTiles } from "@/components/activity-tiles";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { SectorTreemap } from "@/components/sector-treemap";

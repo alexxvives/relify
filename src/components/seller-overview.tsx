@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarCheck, Check, Circle, HeartHandshake, MessageCircleQuestion, TriangleAlert } from "lucide-react";
-import { ActivityStatTiles } from "@/components/activity-stat-tiles";
+import { ActivityStatTiles } from "@/components/activity-tiles";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
