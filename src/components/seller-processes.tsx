@@ -14,6 +14,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
+import { ActivityTiles, share } from "@/components/activity-tiles";
 import { DeskToggles } from "@/components/desk-toggles";
 import { advisorHintHireSeller, advisorHintLater, reachedQa } from "@/lib/advisor-hint";
 import { billingCopy } from "@/lib/billing-copy";
@@ -24,13 +25,6 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy } from "@/lib/seller-copy";
-
-const counters = [
-  { label: sellerCopy.accepted, icon: Link2 },
-  { label: sellerCopy.questionsIn, icon: MessageCircleQuestion },
-  { label: sellerCopy.questionsOut, icon: MessageCircle },
-  { label: sellerCopy.meetingsDone, icon: Calendar },
-] as const;
 
 function SellerPending({
   item,
@@ -370,7 +364,7 @@ export function SellerProcesses({
   companyName?: string;
   elsewhere?: string | null;
 }) {
-  const counterValues = [counts.accepted, counts.questionsIn, counts.questionsOut, counts.meetings];
+  const peak = Math.max(counts.accepted, counts.questionsIn, counts.questionsOut, counts.meetings, 1);
 
   return (
     <div>
@@ -379,19 +373,14 @@ export function SellerProcesses({
           <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
             <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
             <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activitySummaryIntro}</p>
-            <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {counters.map((item, index) => (
-                <li key={item.label} className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-2xl font-semibold text-[#2b3b4a]">{counterValues[index]}</p>
-                    <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#f4f4f5] text-[#64748b]">
-                      <item.icon className="size-4" aria-hidden />
-                    </span>
-                  </div>
-                  <p className="mt-3 text-xs leading-4 text-[#64748b]">{item.label}</p>
-                </li>
-              ))}
-            </ul>
+            <ActivityTiles
+              tiles={[
+                { label: sellerCopy.accepted, value: counts.accepted, icon: Link2, tone: "indigo", ratio: share(counts.accepted, threads.length), caption: `${counts.accepted} de ${threads.length} procesos` },
+                { label: sellerCopy.questionsIn, value: counts.questionsIn, icon: MessageCircleQuestion, tone: "amber", ratio: share(counts.questionsIn, peak), caption: "Recibidas de inversores" },
+                { label: sellerCopy.questionsOut, value: counts.questionsOut, icon: MessageCircle, tone: "emerald", ratio: share(counts.questionsOut, counts.questionsIn), caption: counts.questionsIn > 0 ? `${Math.round(share(counts.questionsOut, counts.questionsIn) * 100)} % respondidas` : "Sin preguntas aún" },
+                { label: sellerCopy.meetingsDone, value: counts.meetings, icon: Calendar, tone: "sky", ratio: share(counts.meetings, peak), caption: "Con inversores" },
+              ]}
+            />
           </section>
           <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
             <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">

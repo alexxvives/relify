@@ -23,7 +23,8 @@ import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/server/investorDesk";
 import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/server/investorDesk";
-import { ChevronDown } from "lucide-react";
+import { Briefcase, Calendar, ChevronDown, MessageCircleQuestion, ShieldCheck } from "lucide-react";
+import { ActivityTiles, share } from "@/components/activity-tiles";
 
 const processTabs = [
   { id: "chat", label: sellerCopy.questionsPanel },
@@ -161,30 +162,22 @@ export function InvestorProcesses({
   items = items.filter((item) => item.closed === null);
   const questions = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "question").length, 0);
   const meetings = items.reduce((sum, item) => sum + item.messages.filter((message) => message.kind === "meeting").length, 0);
+  const ndas = items.filter((item) => item.nda).length;
+  const peak = Math.max(questions, meetings, 1);
 
   return (
     <div>
       <LiveRefresh />
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5" aria-labelledby="processes-summary">
           <h2 id="processes-summary" className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
-          <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-              <p className="text-2xl font-semibold text-[#2b3b4a]">{items.length}</p>
-              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.active}</p>
-            </li>
-            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-              <p className="text-2xl font-semibold text-[#2b3b4a]">{items.filter((item) => item.nda).length}</p>
-              <p className="mt-3 text-xs text-[#64748b]">NDA</p>
-            </li>
-            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-              <p className="text-2xl font-semibold text-[#2b3b4a]">{questions}</p>
-              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.questionsIn}</p>
-            </li>
-            <li className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-              <p className="text-2xl font-semibold text-[#2b3b4a]">{meetings}</p>
-              <p className="mt-3 text-xs text-[#64748b]">{sellerCopy.meetingsDone}</p>
-            </li>
-          </ul>
+          <ActivityTiles
+            tiles={[
+              { label: sellerCopy.active, value: items.length, icon: Briefcase, tone: "indigo", ratio: items.length > 0 ? 1 : 0, caption: closed.length > 0 ? `${closed.length} cerrados` : "En curso" },
+              { label: "NDA firmados", value: ndas, icon: ShieldCheck, tone: "emerald", ratio: share(ndas, items.length), caption: `${ndas} de ${items.length} procesos` },
+              { label: "Preguntas y respuestas", value: questions, icon: MessageCircleQuestion, tone: "amber", ratio: share(questions, peak), caption: "En todos tus procesos" },
+              { label: sellerCopy.meetingsDone, value: meetings, icon: Calendar, tone: "sky", ratio: share(meetings, peak), caption: "Con vendedores" },
+            ]}
+          />
           {cancelled.length > 0 ? (
             <div className="mt-4">
               <CancelledList items={cancelled} />
