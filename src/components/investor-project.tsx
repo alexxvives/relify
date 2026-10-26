@@ -20,9 +20,36 @@ import type { ProjectAccessView } from "@/lib/project-access";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { BuyerPlanName } from "@/lib/billing";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
-import { formatWholeEur } from "@/lib/money";
+import { formatCardEur, formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
+
+/** Headline numbers kept in view while the buyer scrolls the ficha (wide screens only). */
+function KeyFiguresRail({ project }: { project: InvestorProjectProfile }) {
+  const base = project.adjustedEbitdaCents > 0 ? project.adjustedEbitdaCents : project.ebitdaCents;
+  const payback = base > 0 && project.askingPriceCents > 0 ? project.askingPriceCents / base : null;
+  const rows = [
+    { label: "Precio pedido", value: formatCardEur(project.askingPriceCents), strong: true },
+    { label: "Facturación", value: formatCardEur(project.revenueCents) },
+    { label: "EBITDA", value: formatCardEur(project.ebitdaCents) },
+    { label: "Retorno (precio / EBITDA)", value: payback ? `${payback.toLocaleString("es-ES", { maximumFractionDigits: 1 })} años` : "—" },
+  ];
+  return (
+    <aside aria-label="Cifras clave" className="hidden min-[1280px]:block">
+      <div className="sticky top-24 rounded-2xl border border-[#e6e9f0] bg-white p-5">
+        <h2 className="text-sm font-semibold text-[#1c2740]">Cifras clave</h2>
+        <dl className="mt-3 flex flex-col divide-y divide-[#eef0f3]">
+          {rows.map((row) => (
+            <div key={row.label} className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0">
+              <dt className="text-xs text-[#5c6b78]">{row.label}</dt>
+              <dd className={`tabular-nums text-[#1c2740] ${row.strong ? "text-2xl font-semibold" : "text-lg font-semibold"}`}>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </aside>
+  );
+}
 
 function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
@@ -130,14 +157,17 @@ export function InvestorProject({
         initialTab={initialTab}
         panels={{
           company: (
-            <div className="flex flex-col gap-6">
-              <CompanyProfile
-                project={project}
-                figuresOpen={access === "accepted"}
-                lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
-                lockAction={figureAction}
-              />
-              <RelatedCompanies items={recommendations} />
+            <div className="grid min-w-0 gap-6 min-[1280px]:grid-cols-[minmax(0,1fr)_17rem]">
+              <div className="flex min-w-0 flex-col gap-6">
+                <CompanyProfile
+                  project={project}
+                  figuresOpen={access === "accepted"}
+                  lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
+                  lockAction={figureAction}
+                />
+                <RelatedCompanies items={recommendations} />
+              </div>
+              <KeyFiguresRail project={project} />
             </div>
           ),
           questions: access === "awaiting-seller" ? (
