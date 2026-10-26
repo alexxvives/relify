@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { cancelProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy } from "@/lib/access-copy";
 
-export function CancelProcessButton({ accessId }: { accessId: string }) {
+export function CancelProcessButton({ accessId, label = accessCopy.cancelProcess }: { accessId: string; label?: string }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -40,7 +40,7 @@ export function CancelProcessButton({ accessId }: { accessId: string }) {
         }}
         className="inline-flex h-9 items-center rounded-full border border-[#f3c7c4] bg-white px-3 text-sm font-medium text-[#c0362c]"
       >
-        {accessCopy.cancelProcess}
+        {label}
       </button>
       <dialog
         ref={dialogRef}

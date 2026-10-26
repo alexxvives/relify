@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
 import type { SellerFunnel } from "@/server/activityFunnel";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/mi-empresa/procesos/actions";
@@ -38,28 +39,15 @@ function SellerPending({
   const [state, action, pending] = useActionState(acceptSellerBuyerAction, null);
   const [profileOpen, setProfileOpen] = useState(false);
   const buttons = (
-    <div className={named ? "flex items-center gap-2 [&_button]:whitespace-nowrap" : "flex flex-wrap justify-center gap-2 [&_button]:whitespace-nowrap"}>
-      <button
-        type="button"
-        onClick={() => {
-          setProfileOpen(true);
-        }}
-        className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-      >
-        {sellerCopy.viewInvestor}
-      </button>
-      <CancelProcessButton accessId={item.accessId} />
-      <form action={action}>
-        <input type="hidden" name="accessId" value={item.accessId} />
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white disabled:opacity-60"
-        >
-          {pending ? billingCopy.acceptingBuyer : billingCopy.acceptBuyer}
-        </button>
-      </form>
-    </div>
+    <button
+      type="button"
+      onClick={() => {
+        setProfileOpen(true);
+      }}
+      className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+    >
+      {sellerCopy.viewInvestor}
+    </button>
   );
 
   return (
@@ -100,7 +88,10 @@ function ThreadList({
   companyName?: string;
   elsewhere?: string | null;
 }) {
-  if (threads.length === 0) {
+  // Investors still waiting for an answer live only in Acciones pendientes (Ver perfil → Aceptar / Rechazar).
+  const open = threads.filter((thread) => thread.stage !== "pending");
+
+  if (open.length === 0) {
     const title = companyName.length > 0 ? sellerCopy.activeEmptyFor(companyName) : emptyTitle;
     const body = elsewhere ? sellerCopy.activeElsewhere(elsewhere) : emptyBody;
 
@@ -112,31 +103,17 @@ function ThreadList({
     );
   }
 
-  // Investors still waiting for an answer are vertical profile cards side by side; open processes stay full width.
-  const pending = threads.filter((thread) => thread.stage === "pending");
-  const open = threads.filter((thread) => thread.stage !== "pending");
   const card = (thread: SellerThread) => (
     <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
   );
 
   return (
     <div className="mt-4 flex flex-col gap-4">
-      {pending.length > 0 ? (
-        <ul className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3 min-[1600px]:grid-cols-4">
-          {pending.map((thread) => (
-            <li key={thread.accessId} className="flex min-w-0 [&>*]:w-full">
-              {card(thread)}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {open.length > 0 ? (
-        <ul className="flex flex-col gap-4">
-          {open.map((thread) => (
-            <li key={thread.accessId}>{card(thread)}</li>
-          ))}
-        </ul>
-      ) : null}
+      <ul className="flex flex-col gap-4">
+        {open.map((thread) => (
+          <li key={thread.accessId}>{card(thread)}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -182,11 +159,17 @@ function InvestorProfileDialog({
       className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 open:block backdrop:bg-[#1c2740]/40"
       onClose={onClose}
     >
+      <form method="dialog" className="absolute top-3 right-3 z-10">
+        <button type="submit" aria-label={sellerCopy.closeProfile} className="flex size-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25">
+          <X className="size-4" aria-hidden />
+        </button>
+      </form>
       <InvestorPublicCard
         label={label}
         profile={profile}
         footer={
-          <div className="mt-5 flex flex-wrap items-center gap-2">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <CancelProcessButton accessId={accessId} label={sellerCopy.rejectInvestor} />
             <form action={action}>
               <input type="hidden" name="accessId" value={accessId} />
               <button
@@ -195,11 +178,6 @@ function InvestorProfileDialog({
                 className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-sm font-medium text-white disabled:opacity-60"
               >
                 {pending ? billingCopy.acceptingBuyer : billingCopy.acceptBuyer}
-              </button>
-            </form>
-            <form method="dialog">
-              <button type="submit" className="inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740]">
-                {sellerCopy.closeProfile}
               </button>
             </form>
           </div>

@@ -202,6 +202,7 @@ export const sellerCopy = {
   investorOfferLabel: "Qué aporta",
   investorProfileEmpty: "Todavía no ha publicado cómo invierte.",
   closeProfile: "Cerrar",
+  rejectInvestor: "Rechazar",
   activeEmpty: "No tienes procesos activos en este momento.",
   activeEmptyBody: "Cuando tengas procesos activos, podrás verlos aquí.",
   activeEmptyFor: (codename: string) => `No hay procesos en ${codename}.`,
