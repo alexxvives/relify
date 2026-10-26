@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight,
   BadgeCheck,
   Briefcase,
   Building2,
@@ -165,7 +164,7 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           </p>
         ) : null}
 
-        <dl className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
+        <dl className="mt-4 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure label="Facturación" value={formatCardEur(project.revenueCents)} />
           <Figure label="EBITDA" value={formatCardEur(project.ebitdaCents)} share={margin} edge="left" />
           <Figure label="EBITDA ajustado" value={formatCardEur(project.adjustedEbitdaCents)} share={adjustedMargin} edge="top" />
@@ -180,10 +179,6 @@ export function MarketCard({ project, actions, muted = false }: { project: Publi
           />
         </dl>
 
-        <span className="mt-auto flex items-center justify-between gap-2 pt-4 text-sm font-semibold text-[#465ab4] group-hover/card:text-[#33429a]">
-          Ver detalles
-          <ArrowRight className="size-4 transition-transform duration-200 group-hover/card:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
-        </span>
       </div>
     </article>
   );
