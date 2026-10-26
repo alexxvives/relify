@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { MapPin } from "lucide-react";
-import { AiImageTag } from "@/components/project-photo";
 
 export function CompanyBanner({
   title,
@@ -42,11 +41,6 @@ export function CompanyBanner({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image.src} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-[#05070f]/55 via-[#05070f]/65 to-[#05070f]/90" aria-hidden />
-          {image.ai ? (
-            <div className="absolute top-6 left-6 z-10">
-              <AiImageTag inline />
-            </div>
-          ) : null}
         </>
       ) : null}
       <div
