@@ -1,9 +1,11 @@
 "use client";
 
+import { MarketCard } from "@/components/market-card";
+import type { PublicProjectCard } from "@/lib/public-project";
+import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
@@ -13,8 +15,7 @@ import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
-import { MarketCardFigures } from "@/components/market-card-figures";
-import { PhotoScrim, projectPhotoFrame, ProjectPhotoMark } from "@/components/project-photo";
+import { projectPhotoFrame } from "@/components/project-photo";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
@@ -1169,6 +1170,13 @@ export function CompanyDraftForm({
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
       : companyCopy.euroHint;
+  // Same banner the investor sees on the ficha: own photo first, else the sector reference photo.
+  const ownBanner = coverSrc ?? projectImageSrc(projectSlug(codename));
+  const previewBanner = ownBanner
+    ? { src: ownBanner, ai: false }
+    : principalCnae
+      ? { src: sectorImageSrc(sectorKeyFromCnae(principalCnae)), ai: true }
+      : null;
   const investorPreview = draftInvestorPreview({
     legalName,
     address,
@@ -1641,6 +1649,8 @@ export function CompanyDraftForm({
           ebitda={ebitdaFromAccounts ?? ebitda}
           adjustedEbitda={adjustedEbitda}
           askingPrice={askingPrice}
+          principalCnae={principalCnae}
+          summary={description}
         >
           <FichaMetrics
             revenue={salesFromAccounts ?? revenue}
@@ -1674,6 +1684,7 @@ export function CompanyDraftForm({
             heading="p"
             title={investorPreview.codename.trim().length > 0 ? investorPreview.codename : companyCopy.codenameLabel}
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
+            image={previewBanner}
           />
           <CompanyProfile project={investorPreview} />
         </div>
@@ -1716,6 +1727,8 @@ function PublicFicha({
   ebitda,
   adjustedEbitda,
   askingPrice,
+  principalCnae = "",
+  summary = "",
   children,
 }: {
   codename: string;
@@ -1727,6 +1740,8 @@ function PublicFicha({
   ebitda: string;
   adjustedEbitda: string;
   askingPrice: string;
+  principalCnae?: string;
+  summary?: string;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -1962,8 +1977,8 @@ function PublicFicha({
         ebitda={ebitda}
         adjustedEbitda={adjustedEbitda}
         askingPrice={askingPrice}
-        shown={shown}
-        focus={focus}
+        principalCnae={principalCnae}
+        summary={summary}
       />
     </>
   );
@@ -1976,8 +1991,8 @@ function MarketPreview({
   ebitda,
   adjustedEbitda,
   askingPrice,
-  shown,
-  focus,
+  principalCnae = "",
+  summary = "",
 }: {
   codename: string;
   region: string;
@@ -1985,15 +2000,22 @@ function MarketPreview({
   ebitda: string;
   adjustedEbitda: string;
   askingPrice: string;
-  shown: string | null;
-  focus: string;
+  principalCnae?: string;
+  summary?: string;
 }) {
-  const figures = [
-    { label: companyCopy.revenueLabel, value: previewAmount(revenue) },
-    { label: companyCopy.ebitdaLabel, value: previewAmount(ebitda) },
-    { label: companyCopy.adjustedEbitdaLabel, value: previewAmount(adjustedEbitda) },
-    { label: companyCopy.askingPriceLabel, value: previewAmount(askingPrice) },
-  ];
+  // The preview is the real marketplace card, so it can never drift from it.
+  const card: PublicProjectCard = {
+    slug: "vista-previa",
+    codename: codename.trim().length > 0 ? codename : companyCopy.codenameLabel,
+    region: region.trim().length > 0 ? region : companyCopy.regionLabel,
+    revenueCents: previewCents(revenue) ?? 0,
+    ebitdaCents: previewCents(ebitda) ?? 0,
+    adjustedEbitdaCents: previewCents(adjustedEbitda) ?? 0,
+    askingPriceCents: previewCents(askingPrice) ?? 0,
+    sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,
+    cnaeCode: principalCnae || null,
+    summary: summary.trim() || null,
+  };
 
   const filters = [
     { label: marketCopy.searchLabel, value: marketCopy.searchPlaceholder },
@@ -2023,36 +2045,16 @@ function MarketPreview({
         </div>
         <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
           <SampleListing />
-          <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
-            <div className={projectPhotoFrame}>
-              {shown && (shown.startsWith("data:") || shown.includes("/portadas/")) ? (
-                // User-chosen bytes stay in this preview. next/image does not accept a data URL.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={shown} alt="" className="absolute inset-0 size-full object-cover" style={{ objectPosition: focus }} />
-              ) : shown ? (
-                <Image src={shown} alt="" fill sizes="320px" className="object-cover" style={{ objectPosition: focus }} />
-              ) : (
-                <ProjectPhotoMark />
-              )}
-              <span className="absolute top-3 right-3 z-10 inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">
-                <Heart className="size-4" aria-hidden />
-              </span>
-              <PhotoScrim
-                title={codename.trim().length > 0 ? codename : companyCopy.codenameLabel}
-                place={region.trim().length > 0 ? region : companyCopy.regionLabel}
-              />
-            </div>
-            <div className="flex flex-1 flex-col gap-4 p-5">
-              <MarketCardFigures
-                revenue={figures[0]?.value ?? "—"}
-                ebitda={figures[1]?.value ?? "—"}
-                adjustedEbitda={figures[2]?.value ?? "—"}
-                askingPrice={figures[3]?.value ?? "—"}
-                askingPriceCents={previewCents(askingPrice)}
-                ebitdaCents={previewCents(ebitda)}
-              />
-            </div>
-          </article>
+          <div inert className="h-full shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)] rounded-2xl">
+            <MarketCard
+              project={card}
+              actions={
+                <span className="inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">
+                  <Heart className="size-4" aria-hidden />
+                </span>
+              }
+            />
+          </div>
           <SampleListing />
         </div>
       </div>
