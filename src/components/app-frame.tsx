@@ -166,18 +166,20 @@ function SideLink({
       title={label}
       className={
         selected
-          ? "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-2xl bg-public-sand px-4 py-2 text-base font-medium text-public-ink"
-          : "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-2xl px-4 py-2 text-base text-public-muted hover:bg-public-sand hover:text-public-ink"
+          ? "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-xl bg-[#262d40] px-4 py-2 text-base font-medium text-white before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-[#2fc4b2]"
+          : "shell-link group relative flex min-h-11 min-w-0 items-center gap-3 rounded-xl px-4 py-2 text-base text-[#aeb6c7] hover:bg-[#222839] hover:text-white"
       }
     >
-      <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
+      <span className={selected ? "inline-flex text-[#2fc4b2]" : "inline-flex"}>
+        <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
+      </span>
       <span className="shell-label min-w-0 flex-1">{label}</span>
       {count === null || count === 0 ? (
         alert ? <AlertDot className="shell-dot" label="Hay novedades sin ver" /> : null
       ) : (
         <span className="shell-badge relative inline-flex shrink-0">
           <span
-            className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#465ab4] px-2 text-sm font-semibold text-white"
+            className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#2fc4b2] px-2 text-sm font-semibold text-[#0f1b24]"
             aria-label={`${count} procesos`}
           >
             {count > 99 ? "99+" : count}
@@ -228,6 +230,19 @@ export function AppFrame({
   );
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+
+  function toggleSection(section: string) {
+    setCollapsed((current) => {
+      const next = new Set(current);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  }
   const home = destinations[0]?.href ?? "/cuenta";
   const initials = accountInitials(name);
   const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
@@ -257,7 +272,7 @@ export function AppFrame({
       <aside
         id="app-sidebar"
         data-open={open ? "true" : "false"}
-        className="shell-sidebar"
+        className="shell-sidebar shell-dark"
       >
         <div className="shell-head relative z-20 flex flex-col gap-3 px-4 pt-5 pb-2">
           {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
@@ -271,7 +286,7 @@ export function AppFrame({
               <button
                 type="button"
                 onClick={closeMenu}
-                className="shell-close inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
+                className="shell-close inline-flex size-10 items-center justify-center rounded-full text-[#d6dbe6] hover:bg-[#262d40]"
               >
                 <XIcon size={16} aria-hidden />
                 <span className="sr-only">{shellCopy.menuClose}</span>
@@ -288,6 +303,8 @@ export function AppFrame({
             const selected = destinationIsCurrent(item.href, pathname);
             const previous = navItems[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
+            const sectionId = item.section ? `nav-section-${item.section.replace(/\W+/g, "-")}` : undefined;
+            const hidden = item.section !== undefined && collapsed.has(item.section) && !selected;
             const seenIds = new Set(seen.split(",").filter((id) => id.length > 0));
             const alert =
               ready &&
@@ -297,9 +314,26 @@ export function AppFrame({
 
             return (
               <div key={item.href}>
-                {showSection ? (
-                  <p className="shell-label px-4 pt-5 pb-1 text-xs font-medium tracking-wide text-public-muted">{item.section}</p>
+                {showSection && item.section ? (
+                  <button
+                    type="button"
+                    aria-expanded={!collapsed.has(item.section)}
+                    aria-controls={sectionId}
+                    onClick={() => {
+                      toggleSection(item.section ?? "");
+                    }}
+                    className="shell-label flex w-full items-center justify-between rounded-lg px-4 pt-5 pb-2 text-[11px] font-semibold tracking-[0.08em] text-[#8a93a8] uppercase hover:text-[#d6dbe6] focus-visible:outline-2 focus-visible:outline-[#2fc4b2]"
+                  >
+                    {item.section}
+                    <ChevronDownIcon
+                      size={14}
+                      className={`shrink-0 transition-transform duration-200 ${collapsed.has(item.section) ? "-rotate-90" : ""}`}
+                      aria-hidden
+                    />
+                  </button>
                 ) : null}
+                {hidden ? null : (
+                <div id={showSection ? sectionId : undefined}>
                 <SideLink
                   href={item.href}
                   label={item.label}
@@ -309,11 +343,13 @@ export function AppFrame({
                   alert={alert}
                   count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
                 />
+                </div>
+                )}
               </div>
             );
           })}
         </nav>
-        <div className="shell-foot border-t border-public-line p-3">
+        <div className="shell-foot border-t border-white/10 p-3">
           {saleItem ? (
             <Link
               href={saleItem.href}
@@ -327,23 +363,23 @@ export function AppFrame({
             </Link>
           ) : null}
           {showHelp ? (
-            <details className="shell-full group/help mb-3 rounded-2xl bg-public-sand px-3 py-2 open:py-3">
-              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-public-ink [&::-webkit-details-marker]:hidden">
+            <details className="shell-full group/help mb-3 rounded-xl bg-[#222839] px-3 py-2 open:py-3">
+              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
                 {shellCopy.helpTitle}
-                <ChevronDownIcon size={16} className="shrink-0 text-public-muted transition-transform duration-200 group-open/help:rotate-180" aria-hidden />
+                <ChevronDownIcon size={16} className="shrink-0 text-[#aeb6c7] transition-transform duration-200 group-open/help:rotate-180" aria-hidden />
               </summary>
-              <p className="mt-1 text-xs leading-5 text-public-muted">{shellCopy.helpBody}</p>
+              <p className="mt-1 text-xs leading-5 text-[#aeb6c7]">{shellCopy.helpBody}</p>
               <div className="mt-3 grid gap-2">
                 <a
                   href={shellCopy.helpPhoneHref}
-                  className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-sm font-medium text-public-ink hover:bg-white"
+                  className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] px-3 text-sm font-medium text-[#d6dbe6] hover:bg-[#262d40] hover:text-white"
                 >
                   <PhoneIcon size={16} aria-hidden />
                   {shellCopy.helpCall} {shellCopy.helpPhone}
                 </a>
                 <a
                   href={shellCopy.helpEmailHref}
-                  className="group inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-public-line bg-public-card px-3 text-sm font-medium text-public-ink hover:bg-white"
+                  className="group inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] px-3 text-sm font-medium text-[#d6dbe6] hover:bg-[#262d40] hover:text-white"
                 >
                   <MailIcon size={16} aria-hidden />
                   <span className="truncate">{shellCopy.helpEmail}</span>
@@ -355,22 +391,22 @@ export function AppFrame({
             href="/cuenta"
             onClick={closeMenu}
             title={name}
-            className="shell-profile flex items-center gap-3 rounded-2xl border border-public-line px-3 py-2 hover:bg-public-sand"
+            className="shell-profile flex items-center gap-3 rounded-xl px-3 py-2 text-white hover:bg-[#222839]"
           >
-            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-public-sand text-sm font-medium text-public-clay">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#2fc4b2] text-sm font-semibold text-[#0f1b24]">
               {initials}
             </span>
             <span className="shell-label min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">{name}</span>
-              <span className="block text-sm font-medium text-public-clay">{shellCopy.viewProfile}</span>
+              <span className="block text-sm text-[#aeb6c7]">{shellCopy.viewProfile}</span>
             </span>
-            <ChevronRightIcon size={16} className="shell-label shrink-0 text-public-clay" aria-hidden />
+            <ChevronRightIcon size={16} className="shell-label shrink-0 text-[#8a93a8]" aria-hidden />
           </Link>
           <form action={signOutAction}>
             <button
               type="submit"
               title={authCopy.signOut}
-              className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-public-line text-sm font-medium text-public-ink hover:bg-public-sand"
+              className="mt-1 flex h-10 w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-[#aeb6c7] hover:bg-[#222839] hover:text-white"
             >
               <LogOutIcon size={16} aria-hidden />
               <span className="shell-label">{authCopy.signOut}</span>

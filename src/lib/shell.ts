@@ -44,17 +44,17 @@ const destinations = {
   ],
   advisor: [
     { href: "/mandatos", label: "Inicio" },
-    { href: "/mandatos/encargos", label: "Encargos" },
-    { href: "/mandatos/venta", label: "Mis procesos" },
-    { href: "/mis-servicios", label: "Mis servicios" },
+    { href: "/mandatos/encargos", label: "Encargos", section: "Trabajo" },
+    { href: "/mandatos/venta", label: "Mis procesos", section: "Trabajo" },
+    { href: "/mis-servicios", label: "Mis servicios", section: "Perfil" },
   ],
   admin: [
     { href: "/admin", label: "Inicio" },
-    { href: "/admin/empresas", label: "Empresas" },
-    { href: "/admin/cuentas", label: "Cuentas" },
-    { href: "/admin/conexiones", label: "Conexiones" },
-    { href: "/admin/asesores", label: "Asesores" },
-    { href: "/admin/facturacion", label: "Facturación" },
+    { href: "/admin/empresas", label: "Empresas", section: "Gestión" },
+    { href: "/admin/cuentas", label: "Cuentas", section: "Gestión" },
+    { href: "/admin/conexiones", label: "Conexiones", section: "Gestión" },
+    { href: "/admin/asesores", label: "Asesores", section: "Gestión" },
+    { href: "/admin/facturacion", label: "Facturación", section: "Gestión" },
   ],
 } as const satisfies Record<UserRoleName, readonly ShellDestination[]>;
 
