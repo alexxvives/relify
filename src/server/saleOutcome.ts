@@ -69,3 +69,69 @@ export function buyerClosed(
     date: closingDate(fee.recordedAt),
   };
 }
+
+export type PurchaseSummary = {
+  codename: string;
+  slug: string;
+  price: string;
+  fee: string;
+  feeNote: string;
+  date: string;
+  seller: string;
+  daysToClose: number;
+  requestedOn: string;
+  contractHref: string;
+  ndaHref: string;
+  loiHref: string;
+};
+
+/** The investor's most recent completed purchase (signed contract on a project with a recorded success fee). */
+export async function buyerPurchaseSummary(investorId: string): Promise<PurchaseSummary | null> {
+  const contract = await prisma.saleContract.findFirst({
+    where: { status: "signed", access: { investorId, project: { successFee: { isNot: null } } } },
+    orderBy: { sellerSignedAt: "desc" },
+    select: {
+      id: true,
+      accessId: true,
+      access: {
+        select: {
+          requestedAt: true,
+          project: {
+            select: {
+              codename: true,
+              slug: true,
+              successFee: true,
+              owner: { select: { name: true, lastName: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  const project = contract?.access.project;
+  const fee = project?.successFee;
+  if (!contract || !project || !fee) return null;
+  const seller = project.owner ? personName(project.owner.name, project.owner.lastName) : "";
+  return {
+    codename: shortNickname(project.codename),
+    slug: project.slug,
+    price: formatWholeEur(fee.closedPriceCents),
+    fee: formatEur(fee.buyerNetCents + fee.buyerVatCents),
+    feeNote: `${formatEur(fee.buyerNetCents)} + IVA`,
+    date: closingDate(fee.recordedAt),
+    seller: seller.length > 0 ? seller : "Vendedor verificado",
+    daysToClose: Math.max(1, Math.round((fee.recordedAt.getTime() - contract.access.requestedAt.getTime()) / 86_400_000)),
+    requestedOn: closingDate(contract.access.requestedAt),
+    contractHref: `/acuerdos/contrato/${contract.id}?firmado=1`,
+    ndaHref: `/acuerdos/nda/${contract.accessId}`,
+    loiHref: `/acuerdos/loi/${contract.accessId}`,
+  };
+}
+
+export async function hasCompletedPurchase(investorId: string): Promise<boolean> {
+  const found = await prisma.saleContract.findFirst({
+    where: { status: "signed", access: { investorId, project: { successFee: { isNot: null } } } },
+    select: { id: true },
+  });
+  return found !== null;
+}

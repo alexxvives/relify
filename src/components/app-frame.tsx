@@ -31,7 +31,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
 import type { NotificationView } from "@/lib/notifications";
 import { sellerCopy } from "@/lib/seller-copy";
-import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, saleClosedDestination, shellCopy, type ShellDestination } from "@/lib/shell";
+import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, goldPillHrefs, shellCopy, type ShellDestination } from "@/lib/shell";
 
 const iconForHref = {
   "/mercado": Building2Icon,
@@ -232,8 +232,8 @@ export function AppFrame({
 
   const tabs = destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
 
-  const saleItem = destinations.find((item) => item.href === saleClosedDestination.href);
-  const navItems = destinations.filter((item) => item.href !== saleClosedDestination.href);
+  const saleItem = destinations.find((item) => goldPillHrefs.includes(item.href));
+  const navItems = destinations.filter((item) => !goldPillHrefs.includes(item.href));
 
   function closeMenu() {
     setOpen(false);

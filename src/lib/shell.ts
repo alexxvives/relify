@@ -24,6 +24,9 @@ export type ShellDestination = {
 
 /** Seller-only entry shown while the selected company has a closed sale. */
 export const saleClosedDestination: ShellDestination = { href: "/mi-empresa/venta", label: "Venta cerrada", section: "Gestión de procesos" };
+export const purchaseDoneDestination: ShellDestination = { href: "/inversor/compra", label: "Empresa comprada", section: "Gestión de procesos" };
+/** Destinations shown as the gold pill above the help menu instead of in the nav list. */
+export const goldPillHrefs: readonly string[] = [saleClosedDestination.href, purchaseDoneDestination.href];
 
 const destinations = {
   investor: [

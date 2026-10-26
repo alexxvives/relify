@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, BadgeEuro, CalendarClock, CircleCheck, FolderOpen, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
+import { Archive, BadgeEuro, CalendarClock, CircleCheck, FileText, FolderOpen, Handshake, KeyRound, MessageSquareQuote, PartyPopper, Receipt, Trophy, UserRound, Users } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { ListAnotherCompany } from "@/components/company-switcher";
 import { shortNickname } from "@/lib/nickname";
@@ -150,6 +150,98 @@ export function SellerSaleCompleted({
   );
 }
 
+export type BuyerPurchase = {
+  codename: string;
+  slug: string;
+  price: string;
+  fee: string;
+  feeNote: string;
+  date: string;
+  seller: string;
+  daysToClose: number;
+  requestedOn: string;
+  contractHref: string;
+  ndaHref: string;
+  loiHref: string;
+};
+
+export function BuyerPurchaseCompleted({ purchase }: { purchase: BuyerPurchase }) {
+  useSaleConfetti();
+  const days = purchase.daysToClose === 1 ? "1 día" : `${purchase.daysToClose} días`;
+  return (
+    <div className="flex flex-col gap-4">
+      <section
+        className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#1c2740_0%,#2f418f_55%,#465ab4_100%)] px-6 py-8 text-white sm:px-10 sm:py-10"
+        aria-labelledby="sale-done"
+      >
+        <SaleHero
+          badge={`Compra cerrada · ${purchase.date}`}
+          title={`¡Enhorabuena! Has comprado ${purchase.codename}.`}
+          body="El contrato de compraventa está firmado por las dos partes. Ahora empieza el traspaso: aquí tienes todo lo que necesitas."
+          priceLabel="Precio de compra"
+          price={purchase.price}
+        />
+      </section>
+
+      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat icon={<UserRound className="size-5" aria-hidden />} label="Vendedor" value={purchase.seller} />
+        <Stat icon={<CalendarClock className="size-5" aria-hidden />} label="De la solicitud al cierre" value={days} note={`Solicitud el ${purchase.requestedOn}`} />
+        <Stat icon={<BadgeEuro className="size-5" aria-hidden />} label="Precio de compra" value={purchase.price} note={`Cerrada el ${purchase.date}`} />
+        <Stat icon={<Receipt className="size-5" aria-hidden />} label="Success fee" value={purchase.fee} note={purchase.feeNote} />
+      </dl>
+
+      <section aria-labelledby="purchase-docs" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <h2 id="purchase-docs" className="text-lg font-semibold text-[#1c2740]">Documentos firmados</h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+          {[
+            { href: purchase.contractHref, label: "Contrato de compraventa" },
+            { href: purchase.loiHref, label: "Carta de intenciones (LOI)" },
+            { href: purchase.ndaHref, label: "Acuerdo de confidencialidad (NDA)" },
+          ].map((doc) => (
+            <li key={doc.href}>
+              <Link href={doc.href} className="flex items-center gap-3 rounded-xl border border-[#e7eaee] p-3 text-sm font-medium text-[#1c2740] hover:bg-[#f7f8fb]">
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef2ff] text-[#465ab4]">
+                  <FileText className="size-4" aria-hidden />
+                </span>
+                {doc.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="sale-next">
+        <h2 id="sale-next" className="mb-3 text-lg font-semibold text-[#1c2740]">Próximos pasos</h2>
+        <ol className="grid gap-3 md:grid-cols-2">
+          <Step
+            icon={<Receipt className="size-4" aria-hidden />}
+            title="Pago de la success fee"
+            body={`Te enviaremos la factura de ${purchase.fee} (${purchase.feeNote}) por email. Puedes pagarla por transferencia en los próximos 30 días.`}
+            action={<a href="mailto:ayuda@itsreleva.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
+          />
+          <Step
+            icon={<KeyRound className="size-4" aria-hidden />}
+            title="Traspaso y escritura"
+            body="Coordina con el vendedor y tu notario la firma de la escritura, el cambio de titularidad y el traspaso de cuentas, contratos y licencias."
+          />
+          <Step
+            icon={<Handshake className="size-4" aria-hidden />}
+            title="Transición con el vendedor"
+            body={`Acordad con ${purchase.seller} un periodo de acompañamiento para presentar clientes, proveedores y equipo.`}
+            action={<Link href={`/proyectos/${purchase.slug}`} className="text-sm font-medium text-[#465ab4]">Ver la ficha de la empresa</Link>}
+          />
+          <Step
+            icon={<FolderOpen className="size-4" aria-hidden />}
+            title="¿Buscas otra empresa?"
+            body="Tu perfil de comprador ya está verificado. Sigue explorando el marketplace."
+            action={<Link href="/mercado" className="text-sm font-medium text-[#465ab4]">Ver empresas en venta</Link>}
+          />
+        </ol>
+      </section>
+    </div>
+  );
+}
+
 /** Compact end-of-list row for a buyer process that ended in a sale (won or lost). */
 export function ClosedProcessRow({
   codename,
@@ -179,6 +271,9 @@ export function ClosedProcessRow({
         {closed.won ? `${closed.price} · ${closed.date}` : closed.date}
       </span>
       <span className="ml-auto flex items-center gap-4">
+        {closed.won ? (
+          <Link href="/inversor/compra" className="font-medium text-[#465ab4]">Ver compra</Link>
+        ) : null}
         {closed.won && contractHref ? (
           <Link href={contractHref} className="font-medium text-[#465ab4]">Contrato</Link>
         ) : null}

@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { SignerProvider } from "@/components/signer-context";
-import { destinationsForRole, saleClosedDestination } from "@/lib/shell";
+import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } from "@/lib/shell";
+import { hasCompletedPurchase } from "@/server/saleOutcome";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
 import { menuProcessCount } from "@/server/menuProcessCount";
@@ -32,11 +33,12 @@ export async function AppShell({
     redirect("/onboarding");
   }
 
-  const [notifications, companies, activeCompanyId, processCount] = await Promise.all([
+  const [notifications, companies, activeCompanyId, processCount, purchased] = await Promise.all([
     listNotifications(user.id),
     user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
     user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
     menuProcessCount(user),
+    user.role === "investor" ? hasCompletedPurchase(user.id) : Promise.resolve(false),
   ]);
 
   const sold = activeCompanyId
@@ -45,6 +47,9 @@ export async function AppShell({
   const destinations = destinationsForRole(user.role);
   if (user.role === "seller" && sold) {
     destinations.push(saleClosedDestination);
+  }
+  if (user.role === "investor" && purchased) {
+    destinations.push(purchaseDoneDestination);
   }
 
   return (
