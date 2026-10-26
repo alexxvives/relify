@@ -476,7 +476,7 @@ function FolderCard({
             </span>
             {viewers > 0 ? (
               <span className="mt-2 rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#157a45]">
-                {viewers === 1 ? "Visible para 1 inversor" : `Visible para ${viewers} inversores`}
+                {viewers === 1 ? "Visible para 1 comprador" : `Visible para ${viewers} compradores`}
               </span>
             ) : null}
           </button>
@@ -768,10 +768,10 @@ export function SellerDocuments({
   );
 }
 
-/** "Inversor 2" → "2"; a connected buyer's name → initials ("MS"). */
+/** "Comprador 2" → "2"; a connected buyer's name → initials ("MS"). */
 function viewerInitials(label: string): string {
-  if (label.startsWith("Inversor ")) {
-    return label.slice("Inversor ".length);
+  if (label.startsWith("Comprador ")) {
+    return label.slice("Comprador ".length);
   }
 
   return label

@@ -119,10 +119,10 @@ describe("data room views", () => {
       toDataRoomShareView({
         id: "11111111-1111-1111-1111-111111111111",
         granted: true,
-        label: "Inversor 1",
+        label: "Comprador 1",
         email: "inversor@example.com",
       }),
-    ).toEqual({ accessId: "11111111-1111-1111-1111-111111111111", label: "Inversor 1", granted: true });
+    ).toEqual({ accessId: "11111111-1111-1111-1111-111111111111", label: "Comprador 1", granted: true });
   });
 });
 
@@ -163,9 +163,9 @@ describe("sharedFileIds", () => {
       fileViewerLabels({
         fileId: "a",
         files,
-        investors: [{ investorId: "inv", accessId: "access", label: "Inversor 1", granted: true }],
+        investors: [{ investorId: "inv", accessId: "access", label: "Comprador 1", granted: true }],
         shares: [{ fileId: "a", investorId: "inv" }],
       }),
-    ).toEqual([{ accessId: "access", label: "Inversor 1" }]);
+    ).toEqual([{ accessId: "access", label: "Comprador 1" }]);
   });
 });

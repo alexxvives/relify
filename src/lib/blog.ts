@@ -142,7 +142,7 @@ export const blogPosts: BlogPost[] = [
         heading: "Cuándo pedir acceso",
         paragraphs: [
           "Pedir acceso tiene sentido cuando la región, el tamaño y el precio encajan con lo que se busca. Antes de eso, la ficha ya ha hecho el trabajo de criba. Después, la empresa decide si acepta la conversación. Hasta esa aceptación no hay acuerdo de confidencialidad ni preguntas sobre el detalle.",
-          "El NDA abre la conversación: preguntas, una reunión y una oferta indicativa. No publica la razón social en el catálogo. El comprador sigue viendo el nombre de proyecto en la lista, y el vendedor sigue viendo «Un inversor» en sus avisos, sin el nombre ni el correo de quien ha escrito.",
+          "El NDA abre la conversación: preguntas, una reunión y una oferta indicativa. No publica la razón social en el catálogo. El comprador sigue viendo el nombre de proyecto en la lista, y el vendedor sigue viendo «Un comprador» en sus avisos, sin el nombre ni el correo de quien ha escrito.",
         ],
         points: [
           "Lee región, facturación, EBITDA y precio",
@@ -205,7 +205,7 @@ export const blogPosts: BlogPost[] = [
         heading: "Qué abre el NDA y qué no",
         paragraphs: [
           "El acuerdo se ofrece cuando la empresa ha aceptado la conexión. Usa el apodo del proyecto, la región y el nombre de quien compra. No incluye la razón social, el CIF, el domicilio ni los socios. Firmarlo abre preguntas, una reunión y la oferta indicativa. No convierte la ficha pública en un anuncio con el nombre.",
-          "El vendedor sigue viendo «Un inversor». El aviso no lleva el nombre ni el correo de quien ha escrito. La conversación tiene un hilo, y el aviso no es el hilo: el aviso solo señala que hay algo que leer dentro del proceso.",
+          "El vendedor sigue viendo «Un comprador». El aviso no lleva el nombre ni el correo de quien ha escrito. La conversación tiene un hilo, y el aviso no es el hilo: el aviso solo señala que hay algo que leer dentro del proceso.",
         ],
       },
     ],
@@ -311,7 +311,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Qué no adelanta el cierre",
         paragraphs: [
-          "Compartir documentos no adelanta la oferta. Una oferta indicativa no abre sola el dataroom. Un mensaje en el chat no sustituye el NDA. El vendedor sigue viendo «Un inversor» y un número de orden, Inversor 1, Inversor 2, según el momento en que pidieron acceso.",
+          "Compartir documentos no adelanta la oferta. Una oferta indicativa no abre sola el dataroom. Un mensaje en el chat no sustituye el NDA. El vendedor sigue viendo «Un comprador» y un número de orden, Comprador 1, Comprador 2, según el momento en que pidieron acceso.",
           "El nombre y el correo del comprador no entran en el aviso ni se publican en la ficha. En el hilo, cuando la conversación ya está abierta, cada parte ve el nombre y el apellido de la otra. El aviso y el hilo no son la misma cosa.",
         ],
       },

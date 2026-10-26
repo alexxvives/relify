@@ -15,7 +15,7 @@ export const landingCopy = {
       links: [{ label: "Cómo funciona", href: "/empresas" }],
     },
     {
-      label: "Inversores",
+      label: "Compradores",
       links: [{ label: "Cómo funciona", href: "/inversores" }],
     },
     {
@@ -48,8 +48,8 @@ export const landingCopy = {
       register: "Regístrate ahora",
     },
     investors: {
-      id: "inversores",
-      eyebrow: "Inversores",
+      id: "compradores",
+      eyebrow: "Compradores",
       heading: "Invierte en",
       accent: "empresas rentables",
       body: "Encuentra empresas en venta que encajan con tus criterios y revisa facturación, EBITDA y precio antes de pedir el detalle confidencial.",
@@ -61,7 +61,7 @@ export const landingCopy = {
       eyebrow: "Asesores",
       heading: "Publica tus mandatos",
       accent: "en Relify",
-      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato y habla con empresas e inversores que ya están en el proceso.",
+      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato y habla con empresas e compradores que ya están en el proceso.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -77,11 +77,11 @@ export const landingCopy = {
       "La ficha pública no incluye la razón social, el CIF ni la dirección. El detalle queda para quien entra en la operación.",
     namesTitle: "Nombres aleatorios",
     namesBody:
-      "Empresa, inversor y asesor aparecen con un nombre de proyecto o un identificador, no con la identidad legal.",
+      "Empresa, comprador y asesor aparecen con un nombre de proyecto o un identificador, no con la identidad legal.",
     ndaTitle: "Firma NDA",
     ndaBody: "Antes de abrir lo confidencial, las partes firman un acuerdo. Sin esa firma no hay acceso al detalle.",
     toastTitle: "Nuevo interés",
-    toastBody: "Un inversor se ha interesado por una empresa",
+    toastBody: "Un comprador se ha interesado por una empresa",
     ndaFile: "Acuerdo de confidencialidad (NDA) con Proyecto Alba",
     ndaAction: "Firmar NDA",
   },
@@ -122,7 +122,7 @@ export const landingCopy = {
         title: "Plataforma",
         links: [
           { label: "Empresas", href: "/empresas" },
-          { label: "Inversores", href: "/inversores" },
+          { label: "Compradores", href: "/inversores" },
           { label: "Asesores", href: "/asesores" },
         ],
       },
@@ -196,7 +196,7 @@ export const landingCopy = {
     offer: {
       id: "oferta",
       heading: "Empresas en venta",
-      kicker: "Inversores",
+      kicker: "Compradores",
       intro: "Región, facturación, EBITDA y precio en cada ficha. La razón social se queda fuera.",
       catalog: "Ver el catálogo",
     },
@@ -387,7 +387,7 @@ export const landingCopy = {
               panel: {
                 kind: "tasks",
                 strong: "El mandato queda anónimo desde el primer día.",
-                note: "Empresas e inversores ven el proyecto, no la sociedad.",
+                note: "Empresas e compradores ven el proyecto, no la sociedad.",
                 rows: [
                   { name: "Mandato", pending: "Preparando", done: "Anónimo" },
                   { name: "Nombre de proyecto", pending: "Asignando", done: "Proyecto Norte" },
@@ -636,7 +636,7 @@ export const heroDetail = {
   ebitda: "3,2M €",
   adjusted: "3,4M €",
   price: "17M €",
-  cursor: "Inversor industrial 1842",
+  cursor: "Comprador industrial 1842",
   goals: ["Ampliar clientes", "Comprar un competidor", "Incorporar equipo"],
   bars: [46, 62, 54, 88],
   years: ["2022", "2023", "2024", "2025"],
@@ -649,7 +649,7 @@ export const heroDetail = {
     { year: "2024", rows: [["Ventas", "5,4M €"], ["Aprovisionamientos", "3,1M €"], ["Margen bruto", "2,3M €"]] },
     { year: "2025", rows: [["Ventas", "15,6M €"], ["Aprovisionamientos", "9,1M €"], ["Margen bruto", "6,5M €"]] },
   ],
-  investor: "Inversor industrial 1842",
+  investor: "Comprador industrial 1842",
   investorCity: "Madrid",
   capital: "5M € – 10M €",
   stake: "100%",
@@ -678,16 +678,16 @@ export const mapRegions = [
 ] as const;
 
 export const activityItems = [
-  { time: "Hoy · 21:41", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del inversor", from: "IN 1842", to: "Proyecto Alba" },
-  { time: "Hoy · 21:12", title: "Nuevo interés", body: "El inversor ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
+  { time: "Hoy · 21:41", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del comprador", from: "IN 1842", to: "Proyecto Alba" },
+  { time: "Hoy · 21:12", title: "Nuevo interés", body: "El comprador ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
   { time: "Hoy · 20:48", title: "Reunión aceptada", body: "La empresa ha aceptado la reunión", from: "IN 0901", to: "Proyecto Mar" },
-  { time: "Hoy · 20:05", title: "Reunión solicitada", body: "El inversor pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
+  { time: "Hoy · 20:05", title: "Reunión solicitada", body: "El comprador pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
   { time: "Hoy · 19:22", title: "Conexión aceptada", body: "La solicitud de conexión ya está aceptada", from: "IN 1188", to: "Proyecto Cobre" },
   { time: "Hoy · 18:40", title: "Nuevo interés", body: "Un asesor ha presentado un mandato", from: "AS 044", to: "Proyecto Delta" },
 ] as const;
 
 export const caseStudies = [
-  { days: "107 días", date: "Ene 2024", revenue: "1,6M €", ebitda: "310K €", summary: "Un inversor industrial adquiere una empresa de alimentación. Mandato presentado con nombre de proyecto.", image: "/cities/city-valencia.jpg" },
+  { days: "107 días", date: "Ene 2024", revenue: "1,6M €", ebitda: "310K €", summary: "Un comprador industrial adquiere una empresa de alimentación. Mandato presentado con nombre de proyecto.", image: "/cities/city-valencia.jpg" },
   { days: "96 días", date: "Nov 2024", revenue: "2,2M €", ebitda: "640K €", summary: "Un family office compra una firma de componentes térmicos. La sociedad no figura en la ficha.", image: "/cities/city-bilbao.jpg" },
   { days: "128 días", date: "Mar 2025", revenue: "7,5M €", ebitda: "450K €", summary: "Un grupo entra en una compañía de servicios de salud. El acceso al detalle llega tras el NDA.", image: "/cities/city-madrid.jpg" },
   { days: "84 días", date: "Jun 2025", revenue: "5,2M €", ebitda: "150K €", summary: "Un comprador sectorial cierra una operación de comunicaciones asesorada desde el mandato.", image: "/cities/city-barcelona.jpg" },

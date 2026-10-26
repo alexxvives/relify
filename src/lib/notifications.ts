@@ -27,8 +27,8 @@ export type NoticeSegment = {
 
 export function noticePhrase(text: string): string {
   return text
-    .replaceAll("El inversor", "Un inversor")
-    .replaceAll("el inversor", "un inversor")
+    .replaceAll("El comprador", "Un comprador")
+    .replaceAll("el comprador", "un comprador")
     .replaceAll("El asesor", "Un asesor")
     .replaceAll("el asesor", "un asesor");
 }
@@ -117,7 +117,7 @@ export function noticesForCompany(
 /** Connected buyers are named; before the seller accepts they stay anonymous. */
 function buyerSubject(buyer: string | null | undefined): string {
   const name = buyer?.trim() ?? "";
-  return name.length > 0 ? name : "Un inversor";
+  return name.length > 0 ? name : "Un comprador";
 }
 
 export function accessRequestedNotice(codename: string): { title: string; body: string } {
@@ -130,7 +130,7 @@ export function accessRequestedNotice(codename: string): { title: string; body: 
 export function incomingAccessNotice(codename: string): { title: string; body: string } {
   return {
     title: "Nuevo interés",
-    body: `Un inversor ha solicitado acceso a ${codename}.`,
+    body: `Un comprador ha solicitado acceso a ${codename}.`,
   };
 }
 

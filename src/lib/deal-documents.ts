@@ -64,7 +64,7 @@ export function advisorNdaAgreement(input: {
     `${input.advisorName}, como asesor en Relify, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
     "",
     `1. El asesor usará la información del proyecto ${input.codename} solo para el encargo.`,
-    "2. La firma del inversor no abre esta ficha. El asesor firma la suya.",
+    "2. La firma del comprador no abre esta ficha. El asesor firma la suya.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa.",
     "5. Firmar en Relify deja constancia de la aceptación. No es una firma electrónica cualificada.",

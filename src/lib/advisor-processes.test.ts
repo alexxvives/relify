@@ -119,7 +119,7 @@ describe("advisorProjectBoards", () => {
     ]);
 
     expect(board?.hiredBySeller).toBe(true);
-    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1"]);
+    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Comprador 1"]);
     expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("done");
     expect(board?.lanes[0]?.steps.find((step) => step.id === "qa")?.state).toBe("current");
     expect(JSON.stringify(board)).not.toContain("@");
@@ -137,7 +137,7 @@ describe("advisorProjectBoards", () => {
     ]);
 
     expect(board?.lanes).toHaveLength(1);
-    expect(board?.lanes[0]?.label).toBe("Inversor");
+    expect(board?.lanes[0]?.label).toBe("Comprador");
     expect(board?.lanes[0]?.steps.find((step) => step.id === "nda")?.state).toBe("done");
     expect(board?.advisorNda).toBe(true);
     expect(board?.ndaPending).toBe(false);
@@ -163,7 +163,7 @@ describe("advisorProjectBoards", () => {
     ]);
 
     expect(board?.depositPending).toBe(true);
-    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Inversor 1", "Inversor 2"]);
+    expect(board?.lanes.map((lane) => lane.label)).toEqual(["Comprador 1", "Comprador 2"]);
     expect(board?.note).toBeNull();
   });
 
@@ -179,7 +179,7 @@ describe("advisorProjectBoards", () => {
     ]);
     const lane = board?.lanes[0];
 
-    expect(lane?.label).toBe("Inversor");
+    expect(lane?.label).toBe("Comprador");
     expect(lane?.signNdaId).toBe("buyer-job");
     expect(advisorLaneCue(lane?.steps ?? [], true)).toEqual({ yours: true, action: "Firma el NDA" });
     expect(board?.ndaPending).toBe(true);
@@ -197,7 +197,7 @@ describe("advisorProjectBoards", () => {
 
     expect(board?.depositPending).toBe(true);
     expect(board?.lanes).toHaveLength(1);
-    expect(board?.lanes[0]?.label).toBe("Inversor");
+    expect(board?.lanes[0]?.label).toBe("Comprador");
     expect(board?.lanes[0]?.steps.find((step) => step.id === "qa")?.state).toBe("current");
     expect(board?.note).toBeNull();
     expect(board?.href).toBe("/mandatos/encargos/buyer-job");

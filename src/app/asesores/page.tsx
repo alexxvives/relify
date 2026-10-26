@@ -32,7 +32,7 @@ export default function AsesoresPage() {
       stepsTitle="Cómo funciona para quien asesora"
       steps={[
         { title: "Completas el perfil", body: "Nombre comercial, sectores y el rango de cada servicio." },
-        { title: "Te eligen en un proceso", body: "Empresa o inversor pide el servicio. El encargo queda por aceptar." },
+        { title: "Te eligen en un proceso", body: "Empresa o comprador pide el servicio. El encargo queda por aceptar." },
         { title: "Aceptas con el depósito", body: "El pago abre el recorrido. Rechazar deja el encargo fuera." },
         { title: "Trabajas dentro de Relify", body: "Chat, documentos y reuniones. La sociedad no se publica en la ficha." },
       ]}

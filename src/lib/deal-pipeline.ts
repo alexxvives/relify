@@ -88,7 +88,7 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
     label: "Preguntas",
     investor: "Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor.",
     seller:
-      "El inversor preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
+      "El comprador preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
   },
   loi: {
     label: "Carta de intenciones",
@@ -180,7 +180,7 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
   if (id === "solicitud") {
     return role === "investor"
       ? { yours: true, action: "Envía la solicitud de conexión" }
-      : { yours: false, action: "El inversor todavía no ha enviado la solicitud" };
+      : { yours: false, action: "El comprador todavía no ha enviado la solicitud" };
   }
 
   if (id === "conexion") {
@@ -192,7 +192,7 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
   if (id === "nda") {
     return role === "investor"
       ? { yours: true, action: "Firma el acuerdo de confidencialidad" }
-      : { yours: false, action: "El inversor debe firmar el NDA para proceder." };
+      : { yours: false, action: "El comprador debe firmar el NDA para proceder." };
   }
 
   if (id === "qa") {
@@ -202,7 +202,7 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
   if (id === "loi") {
     return role === "investor"
       ? { yours: true, action: "Firma la carta de intenciones" }
-      : { yours: false, action: "El inversor todavía no ha firmado la carta de intenciones" };
+      : { yours: false, action: "El comprador todavía no ha firmado la carta de intenciones" };
   }
 
   if (id === "diligence") {

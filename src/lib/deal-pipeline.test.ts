@@ -85,7 +85,7 @@ describe("dealPipeline", () => {
     expect(stepCue("nda", "investor")).toEqual({ yours: true, action: "Firma el acuerdo de confidencialidad" });
     expect(stepCue("nda", "seller")).toEqual({
       yours: false,
-      action: "El inversor debe firmar el NDA para proceder.",
+      action: "El comprador debe firmar el NDA para proceder.",
     });
     expect(stepCue("qa", "investor").action).toBe("Esta es la etapa para preguntar lo que necesites o reunirte con el vendedor.");
     expect(stepCue("qa", "investor", true)).toEqual({
@@ -230,11 +230,11 @@ describe("homePendingActions", () => {
         { id: "sign", who: "Proyecto Cala", href: "/procesos", steps: signing },
       ]).map((item) => item.title),
     ).toEqual(["Acuerdo de confidencialidad"]);
-    expect(homePendingActions("seller", [{ id: "accept", who: "Inversor 1", href: "/mi-empresa/procesos", steps: seller }])).toEqual([
+    expect(homePendingActions("seller", [{ id: "accept", who: "Comprador 1", href: "/mi-empresa/procesos", steps: seller }])).toEqual([
       {
         id: "accept",
         title: "Solicitud de conexión",
-        detail: "Inversor 1",
+        detail: "Comprador 1",
         href: "/mi-empresa/procesos",
       },
     ]);

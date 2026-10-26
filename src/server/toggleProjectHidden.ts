@@ -7,7 +7,7 @@ export type HiddenResult = { ok: true; hidden: boolean } | { ok: false; message:
 /** Hides or shows one published company in this investor's Mercado. Idempotent for the target state. */
 export async function setProjectHidden(user: CurrentUser, slug: string, hidden: boolean): Promise<HiddenResult> {
   if (user.role !== "investor") {
-    return { ok: false, message: "Solo los inversores pueden ocultar empresas." };
+    return { ok: false, message: "Solo los compradores pueden ocultar empresas." };
   }
   const project = await prisma.project.findFirst({ where: { slug }, select: { id: true } });
   if (!project) {

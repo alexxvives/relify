@@ -8,7 +8,7 @@ import { authCopy } from "@/lib/auth-copy";
 
 const intents = [
   { id: "seller", label: "Empresa" },
-  { id: "investor", label: "Inversor" },
+  { id: "investor", label: "Comprador" },
   { id: "advisor", label: "Asesor" },
 ] as const;
 
@@ -39,7 +39,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
         key={roleAlert}
         className={roleMissing ? "releva-shake grid grid-cols-3 gap-2" : "grid grid-cols-3 gap-2"}
         role="group"
-        aria-label="Empresa, inversor o asesor"
+        aria-label="Empresa, comprador o asesor"
       >
         {intents.map((item) => {
           const selected = role === item.id;

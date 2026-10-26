@@ -18,7 +18,7 @@ export default function EmpresasPage() {
       features={[
         {
           title: "El NIF rellena el borrador",
-          body: "Un CIF válido busca los datos públicos del boletín. Revisas la ficha antes de publicar. El inversor no ve el nombre ni el NIF.",
+          body: "Un CIF válido busca los datos públicos del boletín. Revisas la ficha antes de publicar. El comprador no ve el nombre ni el NIF.",
         },
         {
           title: "Cifras y actividad a la vista",
@@ -26,7 +26,7 @@ export default function EmpresasPage() {
         },
         {
           title: "Interés sin nombres",
-          body: "Cada solicitud llega como inversor. Aceptas, y el acuerdo abre preguntas, reuniones y la carta.",
+          body: "Cada solicitud llega como comprador. Aceptas, y el acuerdo abre preguntas, reuniones y la carta.",
         },
       ]}
       stepsTitle="Cómo funciona para quien vende"

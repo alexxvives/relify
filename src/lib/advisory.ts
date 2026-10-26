@@ -54,7 +54,7 @@ export const advisoryCopy = {
   saved: "Hemos recibido tu solicitud. Uno de nuestros Deal Managers se pondrá en contacto contigo en breve.",
   empty: "Selecciona al menos un servicio.",
   failed: "No se ha podido registrar la solicitud.",
-  forbidden: "Solo un vendedor o un inversor puede solicitar presupuesto.",
+  forbidden: "Solo un vendedor o un comprador puede solicitar presupuesto.",
   noticeTitle: "Presupuesto solicitado",
   noticeBody: "Has pedido presupuesto de asesoramiento.",
   adminNoticeTitle: "Solicitud de asesoramiento",

@@ -39,7 +39,7 @@ export function Confidentiality() {
               <p className="text-sm text-public-muted">{copy.toastBody}</p>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <p className="rounded-xl bg-public-sand px-2 py-2 text-public-ink">
-                  <span className="block text-public-muted">Inversor</span>
+                  <span className="block text-public-muted">Comprador</span>
                   Industrial 1842
                 </p>
                 <p className="rounded-xl bg-public-sand px-2 py-2 text-public-ink">

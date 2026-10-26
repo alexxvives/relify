@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
 
 export const metadata: Metadata = {
-  title: "Inversores",
+  title: "Compradores",
   description: "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.",
 };
 
 export default function InversoresPage() {
   return (
     <RolePage
-      kicker="Inversores"
+      kicker="Compradores"
       title="Encuentra empresas rentables antes de saber el nombre"
       lead="El catálogo enseña nickname, región, facturación, EBITDA y precio. Pides conexión cuando una operación encaja. La sociedad llega después del acuerdo."
       image="/product/inversor.jpg"

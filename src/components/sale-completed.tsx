@@ -116,7 +116,7 @@ export function SellerSaleCompleted({
 }) {
   useSaleConfetti();
   const days = stats.daysToClose === 1 ? "1 día" : `${stats.daysToClose} días`;
-  const interested = stats.interested === 1 ? "1 inversor interesado" : `${stats.interested} inversores interesados`;
+  const interested = stats.interested === 1 ? "1 comprador interesado" : `${stats.interested} compradores interesados`;
   return (
     <div className="flex flex-col gap-4">
       <section

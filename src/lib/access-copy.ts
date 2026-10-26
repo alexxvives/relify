@@ -19,7 +19,7 @@ export const accessCopy = {
   connectCancel: "Cancelar",
   accepted: "NDA aceptado",
   acceptedBody: "El acuerdo queda registrado. La ficha sigue igual.",
-  forbidden: "Solo un inversor puede solicitar acceso.",
+  forbidden: "Solo un comprador puede solicitar acceso.",
   missing: "Ese proyecto no está publicado.",
   ndaRequired: "Primero tienes que solicitar acceso.",
   planRequired: "Elige un plan para conectar con empresas.",

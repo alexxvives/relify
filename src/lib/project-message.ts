@@ -168,11 +168,11 @@ export function toThreadMessage(input: {
 }
 
 export function anonymousInvestorLabel(order: number): string {
-  return `Inversor ${order}`;
+  return `Comprador ${order}`;
 }
 
 /**
- * Numbers buyers per project ("Inversor 2") until the seller accepts them; from then
+ * Numbers buyers per project ("Comprador 2") until the seller accepts them; from then
  * on (`connectedName` set) the label is the buyer's real name.
  */
 export function labelAccesses<T extends { projectId: string; requestedAt: Date; connectedName?: string | null }>(rows: readonly T[]): (T & { label: string })[] {

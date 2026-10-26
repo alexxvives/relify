@@ -19,9 +19,9 @@ export const advisorCopy = {
   ndaSignedChip: "NDA firmado",
   ndaPendingChip: "NDA pendiente",
   ndaToSign: "NDA por firmar",
-  buyerLane: "Inversor",
+  buyerLane: "Comprador",
   mandatesEmpty: "Aún no tienes mandatos de venta",
-  mandatesEmptyBody: "Sube un mandato para empezar a generar interés entre inversores",
+  mandatesEmptyBody: "Sube un mandato para empezar a generar interés entre compradores",
   addMandate: "Añadir nuevo mandato de venta",
   pickMandate: "Elige un proyecto publicado",
   pickMandateBody:

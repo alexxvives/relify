@@ -34,7 +34,7 @@ export function Confidentiality() {
               <p className="text-sm text-[#3e4d5c]">{copy.toastBody}</p>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <p className="rounded-xl bg-[#f4f6f8] px-2 py-2">
-                  <span className="block text-[#7b8792]">Inversor</span>
+                  <span className="block text-[#7b8792]">Comprador</span>
                   Industrial 1842
                 </p>
                 <p className="rounded-xl bg-[#f4f6f8] px-2 py-2">

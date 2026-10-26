@@ -139,11 +139,11 @@ function SellerWorkspace() {
           </div>
           <div className="mt-3 rounded-2xl bg-white p-3">
             <p className="text-xs font-medium tracking-wide text-[#7b8792] uppercase">Acciones pendientes</p>
-            <p className="mt-2 text-sm">Inversor industrial 1842 te ha enviado una solicitud</p>
+            <p className="mt-2 text-sm">Comprador industrial 1842 te ha enviado una solicitud</p>
           </div>
         </div>
         <div className="rounded-2xl bg-white p-3">
-          <p className="text-sm text-[#6d7c89]">Inversor industrial 1842 · Madrid</p>
+          <p className="text-sm text-[#6d7c89]">Comprador industrial 1842 · Madrid</p>
           <div className="mt-3 space-y-2">
             <p className="ml-6 rounded-2xl rounded-tr-md bg-[#eef2fb] px-3 py-2 text-sm text-[#2b3b4a]">
               ¿Los socios actuales quieren mantenerse en la operación?
@@ -175,7 +175,7 @@ function SellerWorkspace() {
 
 function InvestorShortlist() {
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]" aria-label="Panel de inversor">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]" aria-label="Panel de comprador">
       <div className="overflow-hidden rounded-2xl border border-[#d9e2ef] bg-white">
         <p className="border-b border-[#eef1f4] px-4 py-3 text-sm text-[#6d7c89]">Empresas que encajan</p>
         <ul>
@@ -251,7 +251,7 @@ function AdvisorBoard() {
       <div className="mt-5 border-l-4 border-[#c4a574] bg-[#fbf7f1] px-4 py-3">
         <p className="text-xs text-[#7b8792]">Hoy · 18:40</p>
         <p className="mt-1 text-lg font-medium">Nuevo interés</p>
-        <p className="text-sm text-[#3e4d5c]">Un inversor ha pedido conexión con Proyecto Delta.</p>
+        <p className="text-sm text-[#3e4d5c]">Un comprador ha pedido conexión con Proyecto Delta.</p>
         <p className="mt-2 text-xs text-[#6d7c89]">De IN 2204 · Hacia Proyecto Delta</p>
       </div>
     </div>

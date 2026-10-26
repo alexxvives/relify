@@ -16,7 +16,7 @@ export type WaitlistInput = z.infer<typeof waitlistSchema>;
 export const waitlistCopy = {
   title: "Apúntate para entrar en el marketplace",
   description:
-    "Apúntate a la lista de espera de Relify. Empresas, inversores y asesores entran juntos para que el primer día ya haya con quién hablar.",
+    "Apúntate a la lista de espera de Relify. Empresas, compradores y asesores entran juntos para que el primer día ya haya con quién hablar.",
   kicker: "Lista de espera",
   heading: "Apúntate para entrar en el marketplace",
   body: "Deja tu correo. Cuando abramos, te escribimos a todos a la vez para publicar, leer el catálogo o traer un mandato.",
@@ -29,7 +29,7 @@ export const waitlistCopy = {
     },
     {
       id: "investor" as const,
-      label: "Inversor",
+      label: "Comprador",
       line: "Busco una pyme para continuar",
       note: "Cifras a la vista antes del detalle.",
     },
