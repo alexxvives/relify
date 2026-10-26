@@ -75,7 +75,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </span>
               </div>
             </div>
-            <div className="grid gap-6 p-6 sm:grid-cols-3 sm:p-8">
+            <div className="grid gap-6 p-6 text-center sm:grid-cols-3 sm:p-8">
               <div>
                 <p className="text-xs font-semibold text-[#667085]">{billingCopy.renewsOn}</p>
                 <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.whenLabel}</p>
@@ -176,11 +176,11 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
               </div>
             ) : null}
           </section>
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex flex-wrap items-start justify-center gap-3">
             <Link href="/premium" className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white">
               {billingCopy.changePlan}
             </Link>
-            <form action={cancelAction} className="flex flex-col items-end gap-2">
+            <form action={cancelAction} className="flex flex-col items-center gap-2">
               <input type="hidden" name="cancel" value={desk.canceling ? "0" : "1"} />
               <button
                 type="submit"
