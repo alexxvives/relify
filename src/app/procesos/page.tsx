@@ -4,7 +4,7 @@ import { ProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { CancelledList, InvestorProcesses } from "@/components/investor-processes";
 import { SignedInPage } from "@/components/signed-in-page";
-import { WorkspaceNote } from "@/components/workspace-note";
+import { ProcessesPlaceholder } from "@/components/processes-placeholder";
 import { spanishDate } from "@/lib/deal-documents";
 import { madridToday } from "@/lib/meeting";
 import { investorCopy } from "@/lib/investor-copy";
@@ -35,11 +35,7 @@ async function InvestorProcessesPageContent() {
   return (
     <>
       {desk.processes.length === 0 ? (
-        <WorkspaceNote
-          title={investorCopy.processesEmpty}
-          body={investorCopy.processesEmptyBody}
-          action={{ href: "/mercado", label: investorCopy.processesCta }}
-        />
+        <ProcessesPlaceholder cta={investorCopy.processesCta} />
       ) : null}
       {desk.processes.length === 0 && cancelled.length > 0 ? (
         <div className="mt-4">
