@@ -93,21 +93,21 @@ export function FinanceChartsPlaceholder() {
         />
         <PlaceholderStackedBars title={sellerCopy.financeCostTitle} />
       </div>
-      <div className="grid items-stretch gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] items-stretch gap-3">
         {placeholderMixes.map((mix) => (
           <section key={mix.title} className="@container flex h-full min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
             <h3 className="text-sm font-semibold text-[#b0b8c4]">{mix.title}</h3>
             {/* Same grid and donut size as ShareDonut so the empty state matches the real chart. */}
-            <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-3 py-2 @[18rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-              <div className="flex items-center justify-center">
-                <svg viewBox="0 0 42 42" className="h-auto w-24 @[18rem]:w-36" aria-hidden>
+            <div className="flex min-h-0 flex-1 flex-col items-center gap-4 py-2 @[24rem]:flex-row">
+              <div className="flex shrink-0 items-center justify-center">
+                <svg viewBox="0 0 42 42" className="size-28" aria-hidden>
                   <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e6e9f0" strokeWidth="6" />
                   <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke={mix.tones[0]} strokeWidth="6" strokeDasharray="40 60" strokeDashoffset="0" transform="rotate(-90 21 21)" />
                   <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke={mix.tones[1]} strokeWidth="6" strokeDasharray="28 72" strokeDashoffset="-40" transform="rotate(-90 21 21)" />
                   <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke={mix.tones[2]} strokeWidth="6" strokeDasharray="18 82" strokeDashoffset="-68" transform="rotate(-90 21 21)" />
                 </svg>
               </div>
-              <ul className="flex min-w-0 flex-col gap-2">
+              <ul className="flex w-full min-w-0 flex-col gap-2">
                 {mix.tones.slice(0, 3).map((tone) => (
                   <li key={tone} className="flex items-center gap-2">
                     <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: tone }} />
@@ -240,11 +240,11 @@ function PlaceholderStackedBars({ title }: { title: string }) {
 
 function mixRowClass(count: number): string {
   if (count >= 3) {
-    return "grid items-stretch gap-3 md:grid-cols-3";
+    return "grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] items-stretch gap-3";
   }
 
   if (count === 2) {
-    return "grid items-stretch gap-3 md:grid-cols-2";
+    return "grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] items-stretch gap-3";
   }
 
   return "grid min-w-0 items-stretch gap-3";

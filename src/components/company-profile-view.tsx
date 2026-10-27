@@ -174,7 +174,7 @@ export function CompanyProfile({
           {companyCopy.structureHeading}
         </SectionTitle>
         <LockedFigures open={figuresOpen} kind="structure" note={lockedNote} action={lockAction}>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
             <ShareDonut title={companyCopy.chartCapital} slices={project.capital} palette="capital" />
             <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
             {project.customerBase === "consumer" ? (
@@ -248,7 +248,7 @@ function LockedFigures({
 function FigureVeil({ kind }: { kind: "structure" | "income" | "balance" }) {
   if (kind === "structure") {
     return (
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
         <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />
         <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
         <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />

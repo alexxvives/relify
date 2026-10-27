@@ -35,9 +35,9 @@ export function ShareDonut({
       {slices.length === 0 ? (
         <p className="mt-3 text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-3 py-2 @[18rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div className="flex items-center justify-center">
-            <svg viewBox="0 0 42 42" className="h-auto w-24 @[18rem]:w-36" aria-hidden="true">
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-4 py-2 @[24rem]:flex-row @[24rem]:items-center">
+          <div className="flex shrink-0 items-center justify-center">
+            <svg viewBox="0 0 42 42" className="size-28" aria-hidden="true">
               <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e6e9f0" strokeWidth="6" />
               {rings.map((ring, index) => (
                 <circle
@@ -63,7 +63,7 @@ export function ShareDonut({
               ))}
             </svg>
           </div>
-          <ul className="flex min-w-0 flex-col gap-1 text-xs text-[#3d4a63]">
+          <ul className="flex w-full min-w-0 flex-col gap-0.5 text-xs text-[#3d4a63]">
             {rings.map((ring, index) => (
               <li
                 key={ring.label}
@@ -75,15 +75,14 @@ export function ShareDonut({
                 }}
                 className={
                   active === index
-                    ? "flex items-start gap-2 rounded-lg bg-white px-2 py-1 font-semibold text-[#1c2740] shadow-sm"
-                    : "flex items-start gap-2 rounded-lg px-2 py-1"
+                    ? "flex items-center gap-2 rounded-lg bg-white px-2 py-1 font-semibold text-[#1c2740] shadow-sm"
+                    : "flex items-center gap-2 rounded-lg px-2 py-1"
                 }
+                title={`${ring.label} · ${ring.detail}`}
               >
-                <span className="mt-1 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ring.color }} />
-                <span className="min-w-0 break-words">
-                  {ring.label}
-                  <span className="mt-0.5 block font-medium text-[#1c2740]">{ring.detail}</span>
-                </span>
+                <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ring.color }} />
+                <span className="min-w-0 flex-1 truncate">{ring.label}</span>
+                <span className="shrink-0 font-semibold text-[#1c2740] tabular-nums">{ring.detail}</span>
               </li>
             ))}
           </ul>
