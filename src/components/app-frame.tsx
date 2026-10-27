@@ -177,7 +177,7 @@ function SideLink({
         <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
       </span>
       <span className="shell-label min-w-0 flex-1">{label}</span>
-      {pending > 0 ? (
+      {pending > 0 && (count === null || count === 0) ? (
         <span
           className="shell-badge inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#d92d20] px-1.5 text-xs font-semibold text-white"
           aria-label={`${pending} acciones pendientes`}
@@ -196,7 +196,18 @@ function SideLink({
           >
             {count > 99 ? "99+" : count}
           </span>
-          {alert ? <AlertDot ring className="absolute -top-1 -right-1" label="Hay novedades sin ver" /> : null}
+          {pending > 0 ? (
+            // Pending actions ride on the count circle as one red bubble (no separate dot beside it).
+            <span
+              className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d92d20] px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-[#1a1f2e]"
+              aria-label={`${pending} acciones pendientes`}
+              title={`${pending} acciones pendientes`}
+            >
+              {pending > 99 ? "99+" : pending}
+            </span>
+          ) : alert ? (
+            <AlertDot ring className="absolute -top-1 -right-1" label="Hay novedades sin ver" />
+          ) : null}
         </span>
       )}
     </Link>
