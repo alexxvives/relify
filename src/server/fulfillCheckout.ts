@@ -256,3 +256,33 @@ export async function syncSubscription(subscription: Stripe.Subscription): Promi
   const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
   await applySubscription(userId, customerId, subscription);
 }
+
+// Fallback when the Stripe return URL never ran (e.g. user returned on another host) and no
+// webhook delivered: look for a paid listing checkout for this project and apply it.
+export async function reconcileListingPayment(userId: string, projectId: string): Promise<boolean> {
+  const stripe = stripeClient();
+  const billing = await prisma.billingCustomer.findUnique({ where: { userId }, select: { stripeCustomerId: true } });
+
+  if (stripe === null || !billing?.stripeCustomerId) {
+    return false;
+  }
+
+  try {
+    const sessions = await stripe.checkout.sessions.list({ customer: billing.stripeCustomerId, status: "complete", limit: 50 });
+    const paid = sessions.data.find(
+      (session) =>
+        session.payment_status === "paid" &&
+        session.metadata?.kind === "seller_listing" &&
+        session.metadata?.projectId === projectId,
+    );
+
+    if (!paid) {
+      return false;
+    }
+
+    const result = await fulfillCheckout(paid.id, userId);
+    return result.ok;
+  } catch {
+    return false;
+  }
+}

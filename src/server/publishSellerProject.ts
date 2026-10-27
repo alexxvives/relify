@@ -2,6 +2,7 @@ import { sellerPublishOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { reconcileListingPayment } from "@/server/fulfillCheckout";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { startListingCheckout, type CheckoutStart } from "@/server/startCheckout";
 
@@ -19,7 +20,7 @@ export async function getSellerListing(userId: string): Promise<{
   const project = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: userId },
-        select: { status: true, slug: true, successFee: { select: { id: true } }, listingPayment: { select: { id: true } } },
+        select: { id: true, status: true, slug: true, successFee: { select: { id: true } }, listingPayment: { select: { id: true } } },
       })
     : null;
 
@@ -30,12 +31,15 @@ export async function getSellerListing(userId: string): Promise<{
   const liveCompanyCount = await prisma.project.count({
     where: { ownerId: userId, status: { in: ["published", "pending"] } },
   });
+  const paid =
+    project.listingPayment !== null ||
+    (project.status === "draft" && liveCompanyCount > 0 && (await reconcileListingPayment(userId, project.id)));
 
   return {
     status: project.status,
     slug: project.slug,
     feeRecorded: project.successFee !== null,
-    requiresPayment: project.status === "draft" && liveCompanyCount > 0 && project.listingPayment === null,
+    requiresPayment: project.status === "draft" && liveCompanyCount > 0 && !paid,
   };
 }
 
