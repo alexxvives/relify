@@ -75,7 +75,6 @@ export const authCopy = {
   signupRoleRequired: "Elige si eres empresa, comprador o asesor antes de crear la cuenta.",
   referralRequired: "Elige cómo has conocido Relify.",
   onboardingTitle: "Tu perfil en Relify",
-  onboardingIntro: "Tu información no se compartirá con ningún otro usuario de Relify",
   nameQuestion: "Nombre",
   namePlaceholder: "Escribe tu nombre",
   lastNameLabel: "Apellidos",

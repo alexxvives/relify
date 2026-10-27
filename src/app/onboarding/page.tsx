@@ -52,7 +52,6 @@ export default async function OnboardingPage() {
           <div>
             <p className="text-sm font-medium text-[#14998a]">{authCopy.stageKicker}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#16324f]">{authCopy.onboardingTitle}</h1>
-            <p className="mt-2 max-w-md text-sm leading-6 text-[#5c6b78]">{authCopy.onboardingIntro}</p>
           </div>
           <Logo size="lg" />
         </div>
