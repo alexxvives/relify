@@ -319,6 +319,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         height: box.height,
         value: formatCompactEur(point.salesCents),
         fill: "#465ab4",
+        label: sellerCopy.financeSales,
         muted: point.forecast,
         color: "#465ab4",
       });
@@ -332,6 +333,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         height: box.height,
         value: formatCompactEur(point.ebitdaCents),
         fill: "#17663a",
+        label: sellerCopy.financeEbitda,
         muted: point.forecast,
         color: "#17663a",
       });
@@ -347,8 +349,10 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
     ...(points.some((point) => point.forecast) ? [{ label: `* ${sellerCopy.financeForecast}`, color: null }] : []),
   ];
 
+  const tip = findTip(groups.map((group) => ({ key: group.point.year, year: group.point.forecast ? `${group.point.year}*` : String(group.point.year), bars: group.bars })), hover);
+
   return (
-    <div>
+    <div className="@container">
       <div className="flex h-11 items-center">
         <h3 className="text-sm font-semibold text-[#1c2740]">
           {hasEbitda ? sellerCopy.financeBarsTitle : sellerCopy.financeSales}
@@ -414,6 +418,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         })}
       </svg>
       <ChartKey items={legend} />
+      <ChartTip tip={tip} width={width} height={height} />
       </div>
     </div>
   );
@@ -482,6 +487,7 @@ export function GroupedYearBars({
           height: box.height,
           value: formatCompactEur(value),
           fill: item.color,
+          label: item.label,
           muted: year.forecast,
           color: item.color,
         },
@@ -491,9 +497,10 @@ export function GroupedYearBars({
   });
   const flatBars = groups.flatMap((group) => group.bars);
   const resting = restingLabels(flatBars);
+  const tip = findTip(groups.map((group) => ({ key: group.year.year, year: group.year.forecast ? `${group.year.year}*` : String(group.year.year), bars: group.bars })), hover);
 
   return (
-    <div className={paired ? undefined : "mt-6"}>
+    <div className={paired ? "@container" : "@container mt-6"}>
       {paired ? (
         <div className="flex h-11 items-center">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
@@ -570,14 +577,47 @@ export function GroupedYearBars({
         })}
       </svg>
       <ChartKey items={drawn.map((item) => ({ label: item.label, color: item.color }))} />
+      <ChartTip tip={tip} width={width} height={height} />
       </div>
+    </div>
+  );
+}
+
+type Tip = { bar: PlotBar; year: string };
+
+function findTip(groups: { key: number; year: string; bars: PlotBar[] }[], hover: string | null): Tip | null {
+  if (!hover) return null;
+  for (const group of groups) {
+    for (const [index, bar] of group.bars.entries()) {
+      if (`${group.key}-${index}` === hover) return { bar, year: group.year };
+    }
+  }
+  return null;
+}
+
+/** Hover (or tap) card for one bar: series, year and value. It stands in for the legend on narrow cards. */
+function ChartTip({ tip, width, height }: { tip: Tip | null; width: number; height: number }) {
+  if (!tip) return null;
+  const center = ((tip.bar.x + tip.bar.width / 2) / width) * 100;
+  const top = (tip.bar.top / height) * 100;
+  return (
+    <div
+      role="status"
+      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+8px)] rounded-lg bg-[#1c2740] px-2.5 py-1.5 text-xs whitespace-nowrap text-white shadow-lg"
+      style={{ left: `${Math.min(88, Math.max(12, center))}%`, top: `${top}%` }}
+    >
+      <span className="flex items-center gap-1.5">
+        <span className="size-2 rounded-sm" style={{ backgroundColor: tip.bar.color }} aria-hidden />
+        {tip.bar.label} · {tip.year}
+      </span>
+      <span className="mt-0.5 block font-semibold tabular-nums">{tip.bar.value}</span>
     </div>
   );
 }
 
 function ChartKey({ items }: { items: { label: string; color: string | null }[] }) {
   return (
-    <ul className="pointer-events-none absolute top-2 right-[4%] left-[12%] flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs leading-4 text-[#667085]">
+    <ul className="pointer-events-none absolute top-2 right-[4%] left-[12%] hidden flex-wrap @[30rem]:flex justify-center gap-x-3 gap-y-1 text-xs leading-4 text-[#667085]">
       {items.map((item) => (
         <li key={item.label} className="inline-flex items-center gap-1.5">
           {item.color ? <span className="size-2.5 rounded-sm" style={{ backgroundColor: item.color }} /> : null}
@@ -614,6 +654,7 @@ type PlotBar = {
   height: number;
   value: string;
   fill: string;
+  label: string;
   muted: boolean;
   color: string;
 };
@@ -707,6 +748,10 @@ function Bar({
       onMouseLeave={() => {
         onHover?.(false);
       }}
+      onClick={() => {
+        onHover?.(true);
+      }}
+      style={{ cursor: onHover ? "pointer" : undefined }}
     />
   );
 }
