@@ -6,7 +6,7 @@ describe("publicInvestorCard", () => {
   it("shows place, ticket, and thesis, and leaves the name, NIF, and email out", () => {
     const card = publicInvestorCard("inversor@itsreleva.com");
     expect(card?.investorType).toBe("Family office");
-    expect(card?.place).toBe("Valencia · Comunitat Valenciana");
+    expect(card?.place).toBe("Valencia, Comunidad Valenciana");
     expect(card?.ticket).toBe("Entre 1 y 3 millones");
     expect(card?.photo.startsWith("/investors/")).toBe(true);
     expect(card?.thesis.length).toBeGreaterThan(0);
@@ -32,7 +32,7 @@ describe("publicInvestorCard", () => {
       investorProfileChecks({
         photo: card.photo,
         city: "Valencia",
-        province: "Comunitat Valenciana",
+        province: "Comunidad Valenciana",
         investorType: card.investorType,
         ticket: card.ticket,
         sectors: card.sectors,

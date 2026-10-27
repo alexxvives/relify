@@ -114,7 +114,7 @@ export function CompanyProfile({
             value={project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
           />
         </div>
-        <h3 className="mt-8 flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
+        <h3 className="mt-8 flex items-center gap-2 text-base font-semibold text-[#1c2740]">
           {companyCopy.descriptionLabel}
         </h3>
         <p className="mt-2 leading-7">{project.description ?? companyCopy.unavailable}</p>

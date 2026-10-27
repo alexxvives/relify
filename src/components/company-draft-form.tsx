@@ -1329,8 +1329,9 @@ export function CompanyDraftForm({
           </Fact>
         </div>
         <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col gap-2">
-          <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
+          <span className="flex items-center gap-2 text-base font-semibold text-[#1c2740]">
             {companyCopy.descriptionLabel}
+            {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : null}
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
           <textarea
@@ -1343,8 +1344,7 @@ export function CompanyDraftForm({
             className="rounded-xl border border-[#e7eaee] bg-white px-3 py-2 text-base outline-none focus-visible:border-[#465ab4]"
             aria-label={companyCopy.descriptionLabel}
           />
-          <span className="flex items-start justify-between gap-4 text-sm text-[#667085]">
-            {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : <span />}
+          <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
             <span>
               {description.length} / {descriptionMaxLength}
             </span>

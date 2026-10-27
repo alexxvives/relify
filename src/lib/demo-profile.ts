@@ -25,7 +25,7 @@ const profiles: Record<string, DemoInvestorProfile> = {
     postal: "46001",
     photo: investorPhotoPath,
     city: "Valencia",
-    province: "Comunitat Valenciana",
+    province: "Comunidad Valenciana",
     investorType: "Family office",
     ticket: "Entre 1 y 3 millones",
     sectors: "Alimentación y comercio de proximidad",
@@ -58,7 +58,7 @@ export function publicCardFromDraft(draft: InvestorProfileDraft): PublicInvestor
     return null;
   }
 
-  const place = [draft.city.trim(), draft.province.trim()].filter((part) => part.length > 0).join(" · ");
+  const place = [draft.city.trim(), draft.province.trim()].filter((part) => part.length > 0).join(", ");
 
   return {
     photo: draft.photo.trim(),
