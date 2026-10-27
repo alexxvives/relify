@@ -46,8 +46,6 @@ export type AdvisoryServiceId = (typeof advisoryServiceIds)[number];
 
 export const advisoryCopy = {
   title: "Asesoramiento",
-  heading: "Servicios de asesoramiento",
-  intro: "Selecciona los servicios que más te interesen para solicitar presupuesto.",
   clear: "Borrar selección",
   submit: "Solicitar presupuesto",
   pending: "Enviando…",

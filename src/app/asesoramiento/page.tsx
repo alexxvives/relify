@@ -29,8 +29,6 @@ async function AdvisoryPageContent({
   return (
     <>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisoryCopy.heading}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisoryCopy.intro}</p>
         <AdvisoryPicker
           key={selectedEngagementCompany(companies, query.empresa) || "empresa"}
           layout="cards"

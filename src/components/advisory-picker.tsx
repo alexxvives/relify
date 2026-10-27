@@ -44,7 +44,7 @@ export function AdvisoryPicker({
   const cards = layout === "cards";
 
   return (
-    <div className="mt-6 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <AdvisorMarket
         advisors={advisors}
         companies={companies}

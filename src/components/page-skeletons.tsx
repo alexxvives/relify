@@ -359,9 +359,7 @@ export function AdvisorySkeleton() {
   return (
     <Shell>
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
-        <B className="h-8 w-72" />
-        <B className="mt-2 h-4 w-96 max-w-full" />
-        <B className="mt-6 h-4 w-20" />
+        <B className="h-4 w-20" />
         <div className="mt-3 rounded-2xl border border-[#e7eaee] bg-white p-4">
           <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
             {[0, 1, 2, 3].map((index) => (
