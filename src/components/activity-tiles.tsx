@@ -43,15 +43,22 @@ function TileBody({ tile, tone, pct }: { tile: ActivityTile; tone: (typeof tones
   );
 }
 
-/** Responsive: as many 10.5rem+ columns as the container fits (auto-fit), so labels never get squeezed. */
+/**
+ * Responsive: as many ~10.5rem columns as the container fits, so labels never get squeezed.
+ * Flex-wrap (not grid) so the tiles that wrap to a second row sit centred under the first.
+ */
+const tileWidth =
+  "w-full @[22.5rem]:w-[calc((100%-0.75rem)/2)] @[33.75rem]:w-[calc((100%-1.5rem)/3)] @[45rem]:w-[calc((100%-2.25rem)/4)] @[56.25rem]:w-[calc((100%-3rem)/5)]";
+
 export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
   return (
-    <ul className="mt-4 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr))" }}>
+    <div className="@container mt-4">
+    <ul className="flex flex-wrap justify-center gap-3">
       {tiles.map((tile) => {
         const tone = tones[tile.tone];
         const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);
         return (
-          <li key={tile.label} className="flex">
+          <li key={tile.label} className={`flex ${tileWidth}`}>
             {tile.href ? (
               <Link href={tile.href} className={`${cardClass} transition duration-300 hover:-translate-y-0.5 hover:border-[#c9d2f5]`}>
                 <TileBody tile={tile} tone={tone} pct={pct} />
@@ -65,6 +72,7 @@ export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
         );
       })}
     </ul>
+    </div>
   );
 }
 
