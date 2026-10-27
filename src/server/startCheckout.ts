@@ -1,10 +1,10 @@
+import { requestOrigin } from "@/server/requestOrigin";
 import { ADVISOR_INBOX_NET_CENTS, SELLER_LISTING_NET_CENTS, advisorDepositCents, grossCents, planNetCents } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { billingCopy } from "@/lib/billing-copy";
-import { readSiteUrl } from "@/lib/env";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
-import { integrationLabel, stripeClient } from "@/server/stripe";
+import { integrationLabel, spanishIvaRate, stripeClient } from "@/server/stripe";
 
 export type CheckoutStart = { ok: true; url: string } | { ok: false; message: string };
 
@@ -71,7 +71,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
   });
 
   if (current && current.plan !== "none") {
-    return { ok: true, url: `${readSiteUrl().origin}/premium/suscripcion` };
+    return { ok: true, url: `${await requestOrigin()}/premium/suscripcion` };
   }
 
   const stripe = stripeClient();
@@ -86,7 +86,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
-  const origin = readSiteUrl().origin;
+  const origin = await requestOrigin();
 
   try {
   const session = await stripe.checkout.sessions.create({
@@ -141,8 +141,9 @@ export async function startListingCheckout(
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
-  const origin = readSiteUrl().origin;
+  const origin = await requestOrigin();
   const successPath = intent === "add" ? "/mi-empresa/detalles" : "/mi-empresa";
+  const ivaRate = await spanishIvaRate(stripe);
 
   try {
   const session = await stripe.checkout.sessions.create({
@@ -155,9 +156,10 @@ export async function startListingCheckout(
         quantity: 1,
         price_data: {
           currency: "eur",
-          unit_amount: grossCents(SELLER_LISTING_NET_CENTS),
+          unit_amount: ivaRate === null ? grossCents(SELLER_LISTING_NET_CENTS) : SELLER_LISTING_NET_CENTS,
           product_data: { name: "Relify empresa adicional" },
         },
+        ...(ivaRate === null ? {} : { tax_rates: [ivaRate] }),
       },
     ],
     metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
@@ -199,7 +201,7 @@ export async function startAdvisorInboxCheckout(user: CurrentUser, returnPath = 
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
-  const origin = readSiteUrl().origin;
+  const origin = await requestOrigin();
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -262,7 +264,7 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
     return { ok: false, message: engagementCopy.subscriptionRequired };
   }
 
-  const origin = readSiteUrl().origin;
+  const origin = await requestOrigin();
   const back = `${origin}/mandatos/encargos/${row.id}`;
 
   if (row.depositPaidAt) {

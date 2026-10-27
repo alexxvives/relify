@@ -1,7 +1,7 @@
+import { requestOrigin } from "@/server/requestOrigin";
 import { z } from "zod";
 import { billingCopy } from "@/lib/billing-copy";
 import { grossCents, planNetCents } from "@/lib/billing";
-import { readSiteUrl } from "@/lib/env";
 import { formatEur } from "@/lib/money";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -271,7 +271,7 @@ export async function startCardSetup(user: CurrentUser): Promise<{ ok: true; url
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
-  const origin = readSiteUrl().origin;
+  const origin = await requestOrigin();
 
   try {
     const session = await owned.stripe.checkout.sessions.create({
