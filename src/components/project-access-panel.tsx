@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Link2, UserRound } from "lucide-react";
-import { AgreementSheet } from "@/components/agreement-sheet";
+import { AgreementDocument } from "@/components/agreement-document";
 import { SignBubble } from "@/components/deal-pipeline";
 import { useModalScrollLock } from "@/components/file-preview-dialog";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
@@ -187,8 +187,9 @@ export function NdaSignBubble({ slug, agreement }: { slug: string; agreement: st
         {open ? "Cerrar documento" : "Abrir documento"}
       </button>
       {open ? (
-        <div className="mt-2 max-h-72 overflow-y-auto">
-          <AgreementSheet text={agreement} />
+        <div className="mt-2 max-h-72 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-4 py-4">
+          <p className="mb-3 text-base font-semibold tracking-tight text-[#1c2740]">{accessCopy.ndaHeading}</p>
+          <AgreementDocument text={agreement} />
         </div>
       ) : null}
       <form action={acceptAction} className="mt-3 flex flex-col items-start gap-2">
@@ -227,14 +228,15 @@ export function ProjectAccessPanel({
   }
 
   return (
-    <section id="firmar" className="scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="acceso-nda">
-      <h2 id="acceso-nda" className="text-xl font-semibold">
+    <section id="firmar" className="scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white p-6 text-[#1c2740]" aria-labelledby="acceso-nda">
+      <h2 id="acceso-nda" className="text-2xl font-semibold tracking-tight">
         {accessCopy.ndaHeading}
       </h2>
-      <div className="mt-4 max-h-96 overflow-y-auto">
-        <AgreementSheet text={agreement} />
+      <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{accessCopy.ndaIntro}</p>
+      <div className="mt-5 max-h-[50vh] overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-5">
+        <AgreementDocument text={agreement} />
       </div>
-      <form action={acceptAction} className="mt-4 flex flex-col items-start gap-3">
+      <form action={acceptAction} className="mt-5 flex flex-col items-end gap-3 border-t border-[#eef0f4] pt-4">
         <input type="hidden" name="slug" value={slug} />
         <button type="submit" className={buttonClassName} disabled={acceptPending}>
           {accessCopy.acceptAction}

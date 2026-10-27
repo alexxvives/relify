@@ -9,6 +9,8 @@ export const accessCopy = {
   pending: "Solicitud enviada",
   connected: "Conectado",
   ndaHeading: "Acuerdo de confidencialidad",
+  ndaIntro: "Antes de ver los datos de la empresa, acepta este acuerdo.",
+  loiIntro: "Lee la carta y fírmala para enviarla al vendedor.",
   ndaBody:
     "Aceptas no revelar la información de este proyecto. Esta aceptación no muestra la razón social, el CIF, la dirección ni los archivos, y no abre un data room.",
   acceptAction: "Firmar acuerdo",

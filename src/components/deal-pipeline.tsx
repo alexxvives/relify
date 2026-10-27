@@ -5,7 +5,8 @@ import { PdfPages } from "@/components/pdf-pages";
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Check, CircleHelp, Phone, ShieldCheck } from "lucide-react";
+import { Check, CircleHelp, Phone, ShieldCheck, X } from "lucide-react";
+import { AgreementDocument } from "@/components/agreement-document";
 import { shellCopy } from "@/lib/shell";
 import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
@@ -540,14 +541,21 @@ function ProcessSignDialog({
   return (
     <dialog
       ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(44rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(48rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
       onClose={onClose}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4">
-        <h2 className="text-lg font-semibold">{fileName}</h2>
+      <div className="flex items-start justify-between gap-3 px-6 pt-6">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight">{fileName}</h2>
+          <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{kind === "nda" ? accessCopy.ndaIntro : accessCopy.loiIntro}</p>
+        </div>
         <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
-            Cerrar
+          <button
+            type="submit"
+            aria-label="Cerrar"
+            className="inline-flex size-9 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740]"
+          >
+            <X className="size-4" aria-hidden />
           </button>
         </form>
       </div>
@@ -564,11 +572,11 @@ function ProcessSignDialog({
           }
         }}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{agreement}</pre>
+        <div className="mx-6 mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-5">
+          <AgreementDocument text={agreement} />
         </div>
         {(
-          <div className="shrink-0 border-t border-[#eef0f3] px-5 pt-3 pb-1">
+          <div className="shrink-0 px-6 pt-4 pb-1">
             <input type="hidden" name="signature" value={signature} />
             <SignaturePad
               invalid={needsSignature}
@@ -586,7 +594,7 @@ function ProcessSignDialog({
             ) : null}
           </div>
         )}
-        <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
+        <div className="flex items-center justify-end gap-3 px-6 pt-3 pb-6">
           <input type="hidden" name="slug" value={slug} />
           {kind === "loi" ? (
             <>
