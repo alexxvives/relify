@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, Circle, TriangleAlert } from "lucide-react";
+import { Check, Circle } from "lucide-react";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
@@ -110,15 +110,12 @@ export function SellerOverview({
                 sold
                   ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "published"
-                  ? "flex items-center gap-2 text-xl font-semibold sm:whitespace-nowrap text-[#17663a]"
+                  ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "pending"
                     ? "text-xl font-semibold sm:whitespace-nowrap text-[#8a6112]"
-                    : "flex items-center gap-2 text-xl font-semibold sm:whitespace-nowrap text-[#c0362c]"
+                    : "text-lg font-semibold whitespace-nowrap text-[#c0362c]"
               }
             >
-              {listing === "published" || listing === "pending" ? null : (
-                <TriangleAlert className="size-5 shrink-0" aria-hidden />
-              )}
               {sold
                 ? "Tu empresa se ha vendido."
                 : listing === "published"
