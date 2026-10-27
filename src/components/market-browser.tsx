@@ -151,7 +151,7 @@ export function MarketBrowser({
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 min-[1600px]:grid-cols-4">
+        <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3 min-[2100px]:grid-cols-4">
           {visible.map((project) => {
             return (
               <MarketCard

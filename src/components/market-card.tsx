@@ -22,26 +22,101 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
-import { formatCardEur, formatDecimal, recoveryTone, recoveryYears } from "@/lib/money";
+import {
+  formatCardEur,
+  formatDecimal,
+  recoveryTone,
+  recoveryYears,
+} from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
-import { aiImageLabel, referencePhotoLabel, sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
+import {
+  aiImageLabel,
+  referencePhotoLabel,
+  sectorImageSrc,
+  type SectorImageKey,
+} from "@/lib/sector-image";
 
-type SectorStyle = { icon: LucideIcon; tile: string; ink: string; accent: string };
+type SectorStyle = {
+  icon: LucideIcon;
+  tile: string;
+  ink: string;
+  accent: string;
+};
 
 /** One icon and colour family per broad sector, so a buyer can scan the grid by industry. */
 export const sectorStyles: Record<SectorImageKey, SectorStyle> = {
-  hosteleria: { icon: UtensilsCrossed, tile: "bg-[#fff1e8]", ink: "text-[#b4541a]", accent: "bg-[#e07a3a]" },
-  comercio: { icon: Store, tile: "bg-[#eef1fd]", ink: "text-[#3b4fc4]", accent: "bg-[#5c6ee6]" },
-  industria: { icon: Factory, tile: "bg-[#eef2f6]", ink: "text-[#3d4f66]", accent: "bg-[#64788f]" },
-  alimentacion: { icon: Wheat, tile: "bg-[#f6f4e3]", ink: "text-[#7a6a12]", accent: "bg-[#c2a422]" },
-  construccion: { icon: HardHat, tile: "bg-[#fff6e0]", ink: "text-[#9a6200]", accent: "bg-[#e3a21a]" },
-  servicios: { icon: Briefcase, tile: "bg-[#f1edfc]", ink: "text-[#5b3fb8]", accent: "bg-[#7c5ce0]" },
-  transporte: { icon: Truck, tile: "bg-[#e8f4fb]", ink: "text-[#1d6a96]", accent: "bg-[#3a95c9]" },
-  turismo: { icon: Palmtree, tile: "bg-[#e5f5f2]", ink: "text-[#11766b]", accent: "bg-[#1fa290]" },
-  tecnologia: { icon: Cpu, tile: "bg-[#eaf0ff]", ink: "text-[#2f4fb0]", accent: "bg-[#4a6be0]" },
-  salud: { icon: HeartPulse, tile: "bg-[#fdecef]", ink: "text-[#b0304a]", accent: "bg-[#d9506a]" },
-  educacion: { icon: GraduationCap, tile: "bg-[#eef6e6]", ink: "text-[#4a7a1c]", accent: "bg-[#6fa53a]" },
-  inmobiliaria: { icon: Building2, tile: "bg-[#f5efe8]", ink: "text-[#8a5a2b]", accent: "bg-[#b07a45]" },
+  hosteleria: {
+    icon: UtensilsCrossed,
+    tile: "bg-[#fff1e8]",
+    ink: "text-[#b4541a]",
+    accent: "bg-[#e07a3a]",
+  },
+  comercio: {
+    icon: Store,
+    tile: "bg-[#eef1fd]",
+    ink: "text-[#3b4fc4]",
+    accent: "bg-[#5c6ee6]",
+  },
+  industria: {
+    icon: Factory,
+    tile: "bg-[#eef2f6]",
+    ink: "text-[#3d4f66]",
+    accent: "bg-[#64788f]",
+  },
+  alimentacion: {
+    icon: Wheat,
+    tile: "bg-[#f6f4e3]",
+    ink: "text-[#7a6a12]",
+    accent: "bg-[#c2a422]",
+  },
+  construccion: {
+    icon: HardHat,
+    tile: "bg-[#fff6e0]",
+    ink: "text-[#9a6200]",
+    accent: "bg-[#e3a21a]",
+  },
+  servicios: {
+    icon: Briefcase,
+    tile: "bg-[#f1edfc]",
+    ink: "text-[#5b3fb8]",
+    accent: "bg-[#7c5ce0]",
+  },
+  transporte: {
+    icon: Truck,
+    tile: "bg-[#e8f4fb]",
+    ink: "text-[#1d6a96]",
+    accent: "bg-[#3a95c9]",
+  },
+  turismo: {
+    icon: Palmtree,
+    tile: "bg-[#e5f5f2]",
+    ink: "text-[#11766b]",
+    accent: "bg-[#1fa290]",
+  },
+  tecnologia: {
+    icon: Cpu,
+    tile: "bg-[#eaf0ff]",
+    ink: "text-[#2f4fb0]",
+    accent: "bg-[#4a6be0]",
+  },
+  salud: {
+    icon: HeartPulse,
+    tile: "bg-[#fdecef]",
+    ink: "text-[#b0304a]",
+    accent: "bg-[#d9506a]",
+  },
+  educacion: {
+    icon: GraduationCap,
+    tile: "bg-[#eef6e6]",
+    ink: "text-[#4a7a1c]",
+    accent: "bg-[#6fa53a]",
+  },
+  inmobiliaria: {
+    icon: Building2,
+    tile: "bg-[#f5efe8]",
+    ink: "text-[#8a5a2b]",
+    accent: "bg-[#b07a45]",
+  },
 };
 
 const fallbackKey: SectorImageKey = "servicios";
@@ -99,55 +174,115 @@ export function MarketCard({
   const Icon = style.icon;
   const years = recoveryYears(project.askingPriceCents, project.ebitdaCents);
   const margin = percent(project.ebitdaCents, project.revenueCents);
-  const adjustedMargin = percent(project.adjustedEbitdaCents, project.revenueCents);
-  const headcount = project.headcount && isHeadcountRange(project.headcount) ? `${headcountLabels[project.headcount]} trab.` : null;
+  const adjustedMargin = percent(
+    project.adjustedEbitdaCents,
+    project.revenueCents,
+  );
+  const headcount =
+    project.headcount && isHeadcountRange(project.headcount)
+      ? `${headcountLabels[project.headcount]} trab.`
+      : null;
   const sectorName = project.sectorLabel ? sentence(project.sectorLabel) : null;
   const href = hrefOverride ?? `/proyectos/${project.slug}`;
+  const photoTags = [
+    { key: "region", icon: MapPin, text: project.region },
+    ...(headcount ? [{ key: "headcount", icon: Users, text: headcount }] : []),
+    ...(project.foundedDecade
+      ? [
+          {
+            key: "founded",
+            icon: CalendarDays,
+            text: `desde ${project.foundedDecade}`,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <article
       className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e4e8ef] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)] transition-[box-shadow,border-color,opacity] duration-200 focus-within:border-[#c9d1e0] hover:border-[#c9d1e0] hover:shadow-[0_18px_40px_-24px_rgba(28,39,64,0.5)] motion-reduce:transition-none ${muted ? "opacity-60" : ""}`}
     >
-      <div className="relative aspect-[16/7] max-h-52 w-full overflow-hidden bg-[#1c2a52]">
-        <Image
-          src={sectorImageSrc(key)}
-          alt=""
-          fill
-          sizes="(min-width: 2200px) 25vw, (min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-          className="object-cover transition-transform duration-500 group-hover/card:scale-[1.03] motion-reduce:transition-none"
-        />
-        <span className="absolute inset-0 bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25" aria-hidden />
-        <div className="absolute top-3 left-3 flex max-w-[calc(100%-6rem)] flex-wrap items-center gap-1.5">
+      <div className="relative">
+        <div className="relative aspect-[16/7] max-h-52 w-full overflow-hidden bg-[#1c2a52]">
+          <Image
+            src={sectorImageSrc(key)}
+            alt=""
+            fill
+            sizes="(min-width: 2200px) 25vw, (min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover transition-transform duration-500 group-hover/card:scale-[1.03] motion-reduce:transition-none"
+          />
           <span
-            className="inline-flex items-center gap-1 rounded-full bg-[#0c1224]/55 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
-            title={aiImageLabel}
-          >
-            <Sparkles className="size-3" aria-hidden />
-            {referencePhotoLabel}<span className="sr-only">. {aiImageLabel}</span>
-          </span>
-          {project.verified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-xs font-semibold text-[#1b7a45] shadow-sm">
-              <BadgeCheck className="size-3.5" aria-hidden />
-              Verificado
-            </span>
-          ) : null}
-        </div>
-        {/* Location, size and age ride on the photo, so the body only carries the deal. */}
-        <ul className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
-          {[
-            { key: "region", icon: MapPin, text: project.region },
-            ...(headcount ? [{ key: "headcount", icon: Users, text: headcount }] : []),
-            ...(project.foundedDecade ? [{ key: "founded", icon: CalendarDays, text: `desde ${project.foundedDecade}` }] : []),
-          ].map((tag) => (
-            <li
-              key={tag.key}
-              className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+            className="absolute inset-0 bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25"
+            aria-hidden
+          />
+          <div className="absolute top-2.5 left-2.5 flex max-w-[calc(100%-6rem)] flex-nowrap items-center gap-1 overflow-hidden">
+            <span
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#0c1224]/55 px-1.5 py-px text-[11px] font-medium text-white backdrop-blur-sm"
+              title={aiImageLabel}
             >
-              <tag.icon className="size-3.5 shrink-0 text-[#5c6b78]" aria-hidden />
-              <span className="truncate">{tag.text}</span>
-            </li>
-          ))}
-        </ul>
+              <Sparkles className="size-2.5" aria-hidden />
+              {referencePhotoLabel}
+              <span className="sr-only">. {aiImageLabel}</span>
+            </span>
+            {project.verified ? (
+              <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/95 px-1.5 py-px text-[11px] font-semibold text-[#1b7a45] shadow-sm">
+                <BadgeCheck className="size-3 shrink-0" aria-hidden />
+                <span className="truncate">Verificado</span>
+              </span>
+            ) : null}
+          </div>
+          {/* Location, size and age ride on the photo, so the body only carries the deal. */}
+          {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". */}
+          <ul className="absolute right-2.5 bottom-2.5 left-[6.75rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
+            {photoTags.slice(0, 2).map((tag) => (
+              <li
+                key={tag.key}
+                className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+                title={tag.text}
+              >
+                <tag.icon
+                  className="size-3 shrink-0 text-[#5c6b78]"
+                  aria-hidden
+                />
+                <span className="truncate">{tag.text}</span>
+              </li>
+            ))}
+            {photoTags.length > 2 ? (
+              <li
+                className="inline-flex shrink-0 items-center rounded-full bg-white/90 px-1.5 py-px text-[11px] font-semibold text-[#1c2740] shadow-sm backdrop-blur-sm"
+                title={photoTags
+                  .slice(2)
+                  .map((tag) => tag.text)
+                  .join(" · ")}
+              >
+                +{photoTags.length - 2}
+                <span className="sr-only">
+                  :{" "}
+                  {photoTags
+                    .slice(2)
+                    .map((tag) => tag.text)
+                    .join(", ")}
+                </span>
+              </li>
+            ) : null}
+          </ul>
+        </div>
+        {/* Sector badge straddles the photo's bottom edge, bottom-left. */}
+        <div
+          className={`pointer-events-none absolute bottom-0 left-4 z-[6] flex w-[5.5rem] translate-y-1/2 flex-col items-center gap-1 rounded-2xl border-[3px] border-white px-1.5 pt-2.5 pb-2 shadow-[0_6px_16px_-8px_rgba(28,39,64,0.45)] ${style.tile}`}
+          title={sectorName ?? undefined}
+        >
+          <Icon
+            className={`size-7 shrink-0 ${style.ink}`}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <span
+            className={`line-clamp-2 w-full text-center text-[11px] leading-[13px] font-semibold break-words ${style.ink}`}
+          >
+            {sectorName ?? "Empresa"}
+          </span>
+        </div>
       </div>
       {/* Direct child of the article, so the stretched link covers the photo as well as the body. */}
       <h3 className="m-0 h-0">
@@ -155,42 +290,69 @@ export function MarketCard({
           href={href}
           className="outline-none after:absolute after:inset-0 after:z-[5] after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-[#5c4de0]/35"
         >
-          <span className="sr-only">{sectorName ? `Empresa de ${sectorName.toLowerCase()} en ${project.region}` : `Empresa en ${project.region}`}</span>
+          <span className="sr-only">
+            {sectorName
+              ? `Empresa de ${sectorName.toLowerCase()} en ${project.region}`
+              : `Empresa en ${project.region}`}
+          </span>
         </Link>
       </h3>
-      {actions ? <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">{actions}</div> : null}
+      {actions ? (
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
+          {actions}
+        </div>
+      ) : null}
 
       <div className="flex flex-1 flex-col px-5 pb-5">
-        {/* Sector pill in the top-right corner, right under the photo; the CNAE line flows beside it. */}
-        <div className="mt-3 flex items-start gap-2">
+        {/* The CNAE line starts right of the sector badge that hangs from the photo. */}
+        <div className="mt-3 flex min-h-11 items-start gap-2 pl-[6.25rem]">
           {project.cnaeCode ? (
-            <p className="line-clamp-2 min-h-10 min-w-0 flex-1 text-xs leading-5 text-[#3d4a63]" title={project.cnaeTitle ? `CNAE ${project.cnaeCode} · ${project.cnaeTitle}` : undefined}>
-              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold text-[#1c2740] tabular-nums">CNAE {project.cnaeCode}</span>
+            <p
+              className="line-clamp-2 min-h-10 min-w-0 flex-1 text-xs leading-5 text-[#3d4a63]"
+              title={
+                project.cnaeTitle
+                  ? `CNAE ${project.cnaeCode} · ${project.cnaeTitle}`
+                  : undefined
+              }
+            >
+              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold text-[#1c2740] tabular-nums">
+                CNAE {project.cnaeCode}
+              </span>
               {project.cnaeTitle}
             </p>
           ) : (
             <span className="flex-1" />
           )}
-          {sectorName ? (
-            <span className={`inline-flex max-w-[50%] shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.tile} ${style.ink}`}>
-              <Icon className="size-3.5 shrink-0" aria-hidden />
-              <span className="truncate">{sectorName}</span>
-            </span>
-          ) : null}
         </div>
         {project.summary ? (
-          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">{project.summary}</p>
+          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">
+            {project.summary}
+          </p>
         ) : !project.cnaeCode ? (
           // Same height as a described card so the grid rows stay aligned.
           <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[#8a96a3] italic">
-            {sectorName ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El vendedor aún no ha añadido una descripción.
+            {sectorName ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El
+            vendedor aún no ha añadido una descripción.
           </p>
         ) : null}
 
         <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
-          <Figure label="Facturación" value={formatCardEur(project.revenueCents)} />
-          <Figure label="EBITDA" value={formatCardEur(project.ebitdaCents)} share={margin} edge="left" />
-          <Figure label="EBITDA ajustado" value={formatCardEur(project.adjustedEbitdaCents)} share={adjustedMargin} edge="top" />
+          <Figure
+            label="Facturación"
+            value={formatCardEur(project.revenueCents)}
+          />
+          <Figure
+            label="EBITDA"
+            value={formatCardEur(project.ebitdaCents)}
+            share={margin}
+            edge="left"
+          />
+          <Figure
+            label="EBITDA ajustado"
+            value={formatCardEur(project.adjustedEbitdaCents)}
+            share={adjustedMargin}
+            edge="top"
+          />
           <Figure
             label="Precio de venta"
             value={formatCardEur(project.askingPriceCents)}
@@ -199,7 +361,6 @@ export function MarketCard({
             note={years === null ? null : <RoiChip years={years} />}
           />
         </dl>
-
       </div>
     </article>
   );
@@ -227,14 +388,30 @@ function Figure({
   strong?: boolean;
   note?: ReactNode;
 }) {
-  const border = edge === "left" ? "border-l" : edge === "top" ? "border-t" : edge === "both" ? "border-t border-l" : "";
+  const border =
+    edge === "left"
+      ? "border-l"
+      : edge === "top"
+        ? "border-t"
+        : edge === "both"
+          ? "border-t border-l"
+          : "";
   return (
-    <div className={`min-w-0 border-[#eceff4] px-3.5 py-3 text-center ${border}`}>
+    <div
+      className={`min-w-0 border-[#eceff4] px-3.5 py-3 text-center ${border}`}
+    >
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
       <dd className="mt-0.5 flex flex-wrap items-baseline justify-center gap-x-1.5 text-[#1c2740]">
-        <span className={`${strong ? "text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}>{value}</span>
+        <span
+          className={`${strong ? "text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}
+        >
+          {value}
+        </span>
         {share !== null ? (
-          <span className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`} title={`Margen sobre facturación: ${share} %`}>
+          <span
+            className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`}
+            title={`Margen sobre facturación: ${share} %`}
+          >
             {share} %<span className="sr-only"> de margen</span>
           </span>
         ) : null}

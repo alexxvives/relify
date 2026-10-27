@@ -275,7 +275,7 @@ export function MarketSkeleton({ heading = true, cards = 6 }: { heading?: boolea
           ))}
         </div>
       </div>
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3 min-[2100px]:grid-cols-4">
         {Array.from({ length: cards }, (_, index) => (
           <MarketCardBone key={index} />
         ))}
