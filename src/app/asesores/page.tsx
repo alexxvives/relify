@@ -48,9 +48,11 @@ export default function AsesoresPage() {
       productTitle="Tus encargos, depósitos y acuerdos en un solo inicio"
       productBody="Ves lo que te toca hacer hoy, aceptas encargos con un clic y trabajas con el cliente dentro de la misma operación: chat, documentos y reuniones."
       faq={[
-        { q: "¿Quién puede contratarme?", a: "Empresas que venden y compradores que ya están en un proceso dentro de Relify." },
-        { q: "¿Cómo funciona el depósito?", a: "El cliente paga un depósito al aceptar el encargo. Es reembolsable y se descuenta del trabajo final." },
-        { q: "¿Veo los datos del cliente?", a: "Ves el nombre de proyecto hasta que el encargo está aceptado. Después se abre la ficha y los documentos que te comparten." },
+        { q: "\u00bfQui\u00e9n puede contratarme?", a: "Empresas que venden y compradores que ya est\u00e1n en un proceso dentro de Relify." },
+        { q: "\u00bfC\u00f3mo me verifican?", a: "Relify revisa tu perfil y, si todo cuadra, marca tu ficha como verificada. Los clientes ven esa marca en el directorio." },
+        { q: "\u00bfC\u00f3mo funciona el dep\u00f3sito?", a: "El cliente paga un dep\u00f3sito al aceptar el encargo. Es reembolsable y se descuenta del trabajo final." },
+        { q: "\u00bfCu\u00e1nto cuesta estar en Relify?", a: "La ficha en el directorio es gratis. Para aceptar encargos y hablar con clientes est\u00e1 la suscripci\u00f3n de asesor de 49 \u20ac. Relify cobra un 15% de tus honorarios por encargo." },
+        { q: "\u00bfVeo los datos del cliente?", a: "Ves el nombre de proyecto hasta que el encargo est\u00e1 aceptado. Despu\u00e9s se abre la ficha y los documentos que te comparten." },
       ]}
       closingTitle="Llega a las operaciones cuando necesitan un asesor."
     />

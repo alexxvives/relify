@@ -48,9 +48,13 @@ export default function EmpresasPage() {
       productTitle="Tu inicio te dice qué falta y quién está interesado"
       productBody="Facturación, EBITDA, el estado de la ficha y las acciones pendientes en una sola pantalla. Aceptas o rechazas cada solicitud con el perfil del comprador delante."
       faq={[
-        { q: "¿Quién ve el nombre de mi empresa?", a: "Nadie en el catálogo. La ficha sale con un nombre de proyecto. La razón social y las cuentas solo se abren a quien aceptas y firma el NDA." },
-        { q: "¿Cuánto cuesta publicar?", a: "Crear la cuenta y publicar la primera empresa no tiene coste. El precio que ves en la ficha es el de la operación." },
-        { q: "¿Puedo pausar la venta?", a: "Sí. Puedes ocultar la ficha en cualquier momento y volver a publicarla cuando quieras." },
+        { q: "\u00bfQui\u00e9n ve el nombre de mi empresa?", a: "Nadie en el cat\u00e1logo. La ficha sale con un nombre de proyecto. La raz\u00f3n social y las cuentas solo se abren a quien aceptas y firma el NDA." },
+        { q: "\u00bfCu\u00e1nto cuesta publicar?", a: "Crear la cuenta y publicar tu primera empresa no tiene coste. Cada empresa adicional cuesta 149 \u20ac + IVA (180,29 \u20ac), en un solo pago." },
+        { q: "\u00bfQui\u00e9n revisa la ficha antes de publicarla?", a: "Relify. Comprobamos el NIF en el registro mercantil y revisamos la ficha antes de que salga en el cat\u00e1logo." },
+        { q: "\u00bfElijo yo con qui\u00e9n hablo?", a: "S\u00ed. Cada comprador te pide conexi\u00f3n con su perfil p\u00fablico. T\u00fa decides a qui\u00e9n aceptas; sin tu aceptaci\u00f3n no ve nada m\u00e1s." },
+        { q: "\u00bfQu\u00e9 firma el comprador antes de ver los detalles?", a: "Un acuerdo de confidencialidad (NDA) dentro de Relify. Despu\u00e9s se abren preguntas, reuniones y la carta de intenciones." },
+        { q: "\u00bfPuedo contar con un asesor?", a: "S\u00ed. Puedes contratar a un asesor verificado desde Relify para que te acompa\u00f1e en la venta." },
+        { q: "\u00bfPuedo pausar la venta?", a: "S\u00ed. Puedes ocultar la ficha en cualquier momento y volver a publicarla cuando quieras." },
       ]}
       closingTitle="Prepara la ficha hoy. Publica cuando esté lista."
     />
