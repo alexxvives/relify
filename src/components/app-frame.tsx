@@ -141,6 +141,7 @@ function SideLink({
   onNavigate,
   alert,
   count,
+  pending = 0,
 }: {
   href: string;
   label: string;
@@ -149,6 +150,7 @@ function SideLink({
   onNavigate: () => void;
   alert: boolean;
   count: number | null;
+  pending?: number;
 }) {
   const iconRef = useRef<HouseIconHandle>(null);
 
@@ -174,6 +176,15 @@ function SideLink({
         <Icon ref={iconRef} size={16} isAnimated={false} aria-hidden />
       </span>
       <span className="shell-label min-w-0 flex-1">{label}</span>
+      {pending > 0 ? (
+        <span
+          className="shell-badge inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#d92d20] px-1.5 text-xs font-semibold text-white"
+          aria-label={`${pending} acciones pendientes`}
+          title={`${pending} acciones pendientes`}
+        >
+          {pending > 99 ? "99+" : pending}
+        </span>
+      ) : null}
       {count === null || count === 0 ? (
         alert ? <AlertDot className="shell-dot" label="Hay novedades sin ver" /> : null
       ) : (
@@ -229,6 +240,7 @@ export function AppFrame({
     [allNotifications, companies, activeCompanyId],
   );
   const pathname = usePathname();
+  const activePending = companies.find((company) => company.id === activeCompanyId)?.pending ?? 0;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
 
@@ -341,6 +353,7 @@ export function AppFrame({
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
                   onNavigate={closeMenu}
                   alert={alert}
+                  pending={item.href === "/mi-empresa/procesos" ? activePending : 0}
                   count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
                 />
                 </div>
