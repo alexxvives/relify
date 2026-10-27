@@ -22,7 +22,7 @@ export default function InversoresPage() {
         "Pides conexión con tu perfil, sin enseñar tu correo",
         "Preguntas, reuniones y carta de intenciones en un mismo hilo",
       ]}
-      stat={{ value: "NDA", label: "firmado antes de ver la sociedad" }}
+      stat={{ value: "Verificadas", label: "empresas con NIF comprobado y ficha revisada por Relify" }}
       featuresTitle="Busca, compara y sigue la operación en el mismo sitio"
       features={[
         {
