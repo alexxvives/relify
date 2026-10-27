@@ -157,6 +157,7 @@ function SideLink({
   return (
     <Link
       href={href}
+      prefetch
       onClick={onNavigate}
       onMouseEnter={() => {
         iconRef.current?.startAnimation();
@@ -239,7 +240,10 @@ export function AppFrame({
     () => scopeNoticesToCompany(allNotifications, companies, activeCompanyId),
     [allNotifications, companies, activeCompanyId],
   );
-  const pathname = usePathname();
+  const routePath = usePathname();
+  // Optimistic active state: highlight the clicked item at once, before the route commits.
+  const [navTarget, setNavTarget] = useState<{ href: string; from: string } | null>(null);
+  const pathname = navTarget !== null && navTarget.from === routePath ? navTarget.href : routePath;
   const activePending = companies.find((company) => company.id === activeCompanyId)?.pending ?? 0;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
@@ -262,10 +266,10 @@ export function AppFrame({
 
   useEffect(() => {
     const ids = notifications
-      .filter((item) => item.unread && processMenuTarget(item.href) !== null && noticeOpenOnPath(item.href, pathname))
+      .filter((item) => item.unread && processMenuTarget(item.href) !== null && noticeOpenOnPath(item.href, routePath))
       .map((item) => item.id);
     rememberProcessSeen(ids);
-  }, [notifications, pathname]);
+  }, [notifications, routePath]);
 
   const tabs = destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
 
@@ -351,7 +355,10 @@ export function AppFrame({
                   label={item.label}
                   selected={selected}
                   icon={(iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon}
-                  onNavigate={closeMenu}
+                  onNavigate={() => {
+                    setNavTarget({ href: item.href, from: routePath });
+                    closeMenu();
+                  }}
                   alert={alert}
                   pending={item.href === "/mi-empresa/procesos" ? activePending : 0}
                   count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
