@@ -220,7 +220,6 @@ export function CompanySwitcher({
           aria-label={sellerCopy.companiesLabel}
           className="absolute top-14 left-0 z-50 w-[max(100%,min(20rem,calc(100vw-2rem)))] overflow-hidden rounded-2xl border border-public-line bg-white shadow-[0_18px_50px_-28px_rgba(28,39,64,0.45)]"
         >
-          <p className="px-3 pt-3 pb-1 text-xs font-medium tracking-wide text-public-muted">{sellerCopy.companiesCurrent}</p>
           <div className="max-h-64 overflow-y-auto p-1">
             {companies.map((company) => {
               const selected = company.id === current.id;
