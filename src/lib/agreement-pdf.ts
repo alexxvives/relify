@@ -13,7 +13,7 @@ export type DocumentSigner = {
 };
 
 const NOTE =
-  "Firma electrónica simple registrada en Relify con la cuenta del firmante, su DNI/NIE y la fecha. No es una firma electrónica cualificada. El sello de Relify acredita que el documento se generó y custodia en la plataforma.";
+  "Firma electrónica simple registrada en Relify con la cuenta del firmante, su DNI/NIE y la fecha. Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI). El sello de Relify acredita que el documento se generó y custodia en la plataforma.";
 
 const titles: Record<SignedDocumentKind, string> = {
   nda: "Acuerdo de confidencialidad",

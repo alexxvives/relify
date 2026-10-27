@@ -24,7 +24,7 @@ export function ndaAgreement(input: {
     "2. No la revelará a terceros, salvo a asesores que acepten esta misma confidencialidad.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa ni impide hablar con otros compradores.",
-    "5. Firmar en Relify deja constancia de la aceptación. No es una firma electrónica cualificada.",
+    "5. Firmar en Relify deja constancia de la aceptación. Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI).",
   ].join("\n");
 }
 
@@ -46,7 +46,7 @@ export function loiAgreement(input: {
     "2. Esta carta no obliga a comprar ni a vender. No es el contrato de compraventa y no es el pago. La revisión, el contrato y el pago vienen después.",
     "3. Firmarla no reserva la empresa. Si el vendedor la acepta, durante seis meses no negociará la venta de este proyecto con otros compradores. Si no la acepta, no hay reserva y el proceso sigue en preguntas y reuniones.",
     "4. La información del proyecto se sigue usando solo para valorar la compra, como en el acuerdo de confidencialidad.",
-    "5. La firma en Relify deja constancia y envía esta carta al vendedor como oferta indicativa. No es una firma electrónica cualificada. El proceso no avanza hasta que el vendedor la acepta.",
+    "5. La firma en Relify deja constancia y envía esta carta al vendedor como oferta indicativa. El proceso no avanza hasta que el vendedor la acepta.",
   ].join("\n");
 }
 
@@ -67,6 +67,6 @@ export function advisorNdaAgreement(input: {
     "2. La firma del comprador no abre esta ficha. El asesor firma la suya.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa.",
-    "5. Firmar en Relify deja constancia de la aceptación. No es una firma electrónica cualificada.",
+    "5. Firmar en Relify deja constancia de la aceptación. Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI).",
   ].join("\n");
 }

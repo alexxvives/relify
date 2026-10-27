@@ -22,7 +22,7 @@ const clauses = [
   },
   {
     title: "Validez",
-    text: "Al aceptarlo, este acuerdo es **vinculante y válido** conforme a la legislación española sobre contratación electrónica (art. 23 de la Ley 34/2002, LSSI).",
+    text: "**Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI).**",
   },
 ] as const;
 

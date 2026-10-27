@@ -34,7 +34,7 @@ export function relevaDraftText(id: string): string | null {
   return null;
 }
 
-const signNote = "La firma se hace desde el proceso. Deja constancia y no es una firma electrónica cualificada.";
+const signNote = "La firma se hace desde el proceso. Deja constancia de la aceptación.";
 
 function letterFor(id: string): LetterPdfInput | null {
   const agreement =
