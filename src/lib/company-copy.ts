@@ -208,7 +208,7 @@ export const companyCopy = {
   nifAliasBody: "Para la empresa, con el fin de preservar su confidencialidad.",
   nifSaved: "NIF guardado de forma confidencial.",
   nifPrefilled:
-    "Hemos rellenado la razón social y, si el boletín los publica, el domicilio, la provincia y el CNAE. Fuente: BORME (Agencia Estatal BOE), vía OpenMercantil. Las cuentas no están en ese boletín: súbelas abajo o escríbelas.",
+    "Hemos rellenado la razón social y, si el boletín los publica, el domicilio, la provincia y el CNAE. Fuente: BORME (Agencia Estatal BOE) y registros públicos. Las cuentas no están en ese boletín: súbelas abajo o escríbelas.",
   accountsPrompt: "Rellena las cifras más rápido",
   accountsOpen: "Subir cuentas",
   accountsClose: "Cerrar",

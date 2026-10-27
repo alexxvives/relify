@@ -19,6 +19,8 @@ export type RegistryCompany = {
   ebitdaCents: number | null;
   adjustedEbitdaCents: number | null;
   statementYear: number | null;
+  legalForm?: string | null;
+  registryStatus?: string | null;
 };
 
 export function anonymousCodename(cif: string): string {

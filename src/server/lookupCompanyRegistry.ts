@@ -5,16 +5,69 @@ import {
   registryCompanyFromBorme,
 } from "@/lib/borme-record";
 import type { RegistryCompany } from "@/lib/company-registry";
+import {
+  createRegistryLookup,
+  type RegistryCacheEntry,
+  type RegistryLookup,
+  type RegistrySource,
+} from "@/lib/registry-lookup";
 import { normalizeCif } from "@/lib/spanish-cif";
+import { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/server/db";
+import { fetchApiEmpresas } from "@/server/fetchApiEmpresas";
 
 const searchUrl = "https://openmercantil.es/api/v1/search";
 const companyUrl = "https://openmercantil.es/api/v1/company";
 
-export type RegistryLookup =
-  | { ok: true; record: RegistryCompany | null }
-  | { ok: false; code: "unavailable" };
+export type { RegistryLookup };
 
 export async function lookupCompanyRegistry(cif: string): Promise<RegistryLookup> {
+  return createRegistryLookup({
+    apiKey: process.env.APIEMPRESAS_API_KEY ?? null,
+    now: () => new Date(),
+    readCache,
+    writeCache,
+    fetchApiEmpresas,
+    fetchOpenMercantil: lookupOpenMercantil,
+    warn: (message) => {
+      console.warn(`[registry] ${message}`);
+    },
+  })(cif);
+}
+
+async function readCache(cif: string, source: RegistrySource): Promise<RegistryCacheEntry | null> {
+  const row = await prisma.companyRegistryCache.findUnique({
+    where: { cif_source: { cif, source } },
+  });
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    found: row.found,
+    record: row.found ? (row.record as RegistryCompany | null) : null,
+    fetchedAt: row.fetchedAt,
+  };
+}
+
+async function writeCache(
+  cif: string,
+  source: RegistrySource,
+  found: boolean,
+  record: RegistryCompany | null,
+): Promise<void> {
+  const json = found && record ? (record as unknown as Prisma.InputJsonValue) : Prisma.JsonNull;
+  const data = { found, record: json, fetchedAt: new Date() };
+
+  await prisma.companyRegistryCache.upsert({
+    where: { cif_source: { cif, source } },
+    create: { cif, source, ...data },
+    update: data,
+  });
+}
+
+async function lookupOpenMercantil(cif: string): Promise<RegistryLookup> {
   const normalized = normalizeCif(cif);
   const searchPayload = await readJson(`${searchUrl}?q=${encodeURIComponent(normalized)}`);
 

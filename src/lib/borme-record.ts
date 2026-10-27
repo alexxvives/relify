@@ -175,7 +175,7 @@ function isWeakDomicilio(value: string): boolean {
   return folded.length < 6 || folded.startsWith("social") || folded.startsWith("el dia");
 }
 
-function withProvince(address: string, province: string): string {
+export function withProvince(address: string, province: string): string {
   if (province.length === 0 || address.toLowerCase().includes(province.toLowerCase())) {
     return address;
   }
@@ -213,7 +213,7 @@ function foundedYear(
   return earliest;
 }
 
-function yearFromIso(value: string | null | undefined): number | null {
+export function yearFromIso(value: string | null | undefined): number | null {
   if (!value) {
     return null;
   }
@@ -233,7 +233,7 @@ function principalCnae(fromSearch: string | null | undefined, fromCompany: strin
   return cnaeOrEmpty(fromSearch) || cnaeOrEmpty(fromCompany);
 }
 
-function cnaeOrEmpty(raw: string | null | undefined): string {
+export function cnaeOrEmpty(raw: string | null | undefined): string {
   if (!raw) {
     return "";
   }
@@ -287,11 +287,11 @@ function headcountFromWorkers(workers: string | number | null | undefined): Head
   return "band_over_50";
 }
 
-function clean(value: string): string {
+export function clean(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function clip(value: string, max: number): string {
+export function clip(value: string, max: number): string {
   const cleaned = clean(value);
 
   if (cleaned.length <= max) {
