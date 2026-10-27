@@ -17,6 +17,7 @@ const companySchema = z
     cif: z.string(),
     name: z.string(),
     cnae: z.union([z.string(), z.number()]).nullable().optional(),
+    cnae_2025: z.union([z.string(), z.number()]).nullable().optional(),
     founded: text,
     province: text,
     municipality: text,
@@ -123,7 +124,7 @@ export function registryCompanyFromApiEmpresas(
   const province = clip(titleCaseProvince(company.province ?? ""), 80);
   const municipality = titleCaseProvince(company.municipality ?? "");
   const address = clip(streetAddress(company.address, municipality, province), 240);
-  const cnae = company.cnae === null || company.cnae === undefined ? "" : String(company.cnae);
+  const cnae = cnaeOrEmpty(asText(company.cnae)) || cnaeOrEmpty(asText(company.cnae_2025));
 
   return {
     cif,
@@ -133,7 +134,7 @@ export function registryCompanyFromApiEmpresas(
     codename: anonymousCodename(cif),
     foundedYear: yearFromIso(company.founded),
     description: "",
-    principalCnae: cnaeOrEmpty(cnae),
+    principalCnae: cnae,
     secondaryCnaes: [],
     headcount: null,
     revenueCents: null,
@@ -143,4 +144,8 @@ export function registryCompanyFromApiEmpresas(
     legalForm: legalFormLabel(company.legal_form),
     registryStatus: clean(company.status_code ?? company.status ?? "") || null,
   };
+}
+
+function asText(value: string | number | null | undefined): string {
+  return value === null || value === undefined ? "" : String(value);
 }
