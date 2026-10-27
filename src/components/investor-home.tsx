@@ -53,7 +53,7 @@ export function InvestorHome({
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
-          <ActivityStatTiles stats={stats} className="mt-4 sm:grid-cols-2 2xl:grid-cols-4" />
+          <ActivityStatTiles stats={stats} className="mt-4" />
         </section>
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.sectorsTitle}</h2>

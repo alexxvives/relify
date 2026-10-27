@@ -28,13 +28,13 @@ const cardClass = "flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-w
 function TileBody({ tile, tone, pct }: { tile: ActivityTile; tone: (typeof tones)[keyof typeof tones]; pct: number }) {
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>
           <tile.icon className="size-[18px]" aria-hidden />
         </span>
-        <p className="min-w-0 flex-1 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
         <p className="shrink-0 text-2xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
       </div>
+      <p className="mt-2 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6]" role="presentation">
         <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
       </div>
@@ -43,9 +43,10 @@ function TileBody({ tile, tone, pct }: { tile: ActivityTile; tone: (typeof tones
   );
 }
 
-export function ActivityTiles({ tiles, columns = "lg:grid-cols-4" }: { tiles: ActivityTile[]; columns?: string }) {
+/** Responsive: as many 10.5rem+ columns as the container fits (auto-fit), so labels never get squeezed. */
+export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
   return (
-    <ul className={`mt-4 grid grid-cols-2 gap-3 ${columns}`}>
+    <ul className="mt-4 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr))" }}>
       {tiles.map((tile) => {
         const tone = tones[tile.tone];
         const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);
@@ -79,7 +80,7 @@ const statTones = [
 
 export function ActivityStatTiles({ stats, className = "" }: { stats: ActivityStat[]; className?: string }) {
   return (
-    <ul className={`grid gap-3 ${className}`}>
+    <ul className={`grid gap-3 ${className}`} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr))" }}>
       {stats.map((item, index) => {
         const tone = statTones[index % statTones.length];
         const Icon = item.icon;

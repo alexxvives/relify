@@ -59,7 +59,6 @@ export function AdvisorHome({
         <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <ActivityTiles
-            columns="md:grid-cols-3 2xl:grid-cols-5"
             tiles={desk.steps.map((step) => ({
               label: stepLabel[step.step],
               value: step.count,

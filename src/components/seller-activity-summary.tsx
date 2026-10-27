@@ -12,7 +12,6 @@ export function SellerActivitySummary({ funnel, className = "" }: { funnel: Sell
       <h2 className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
       <p className="mt-1 text-sm text-[#667085]">{sellerCopy.activitySummaryIntro}</p>
       <ActivityTiles
-        columns="md:grid-cols-3 xl:grid-cols-5"
         tiles={[
           { label: "Visitas a la ficha", value: funnel.views, icon: Eye, tone: "indigo", ratio: funnel.views > 0 ? 1 : 0, caption: "Compradores distintos" },
           { label: "Solicitudes", value: funnel.requests, icon: UserPlus, tone: "sky", ratio: share(funnel.requests, funnel.views), caption: funnel.views > 0 ? `${percent(funnel.requests, funnel.views)} de las visitas` : "Piden acceso a tu empresa" },
