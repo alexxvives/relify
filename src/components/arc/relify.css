@@ -1,0 +1,20 @@
+/* Relify brand on top of the uiarc foundation: navy ink, teal accent, the site's own fonts. */
+.arc-scope.relify-arc {
+  --background: transparent;
+  --surface: #fff;
+  --surface-raised: #fff;
+  --surface-muted: var(--public-sand, #eef3f3);
+  --foreground: var(--public-ink, #12343a);
+  --text-secondary: var(--public-muted, #4f6468);
+  --text-muted: var(--public-muted, #4f6468);
+  --border: var(--public-line, #dfe6e7);
+  --accent: var(--public-clay, #1aa6a0);
+  --accent-strong: var(--public-clay-deep, #12807b);
+  --accent-subtle: rgb(26 166 160 / .14);
+  --accent-foreground: #fff;
+  --control-on: var(--public-clay, #1aa6a0);
+  --control-thumb-on: #fff;
+  --control-glyph: #fff;
+  --font-display: inherit;
+  --font-body: inherit;
+}

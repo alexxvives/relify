@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArcScope } from "@/components/arc/arc-scope";
+import { FaqSection } from "@/components/arc/blocks/faq-section/faq-section";
 import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
 import { PublicSite } from "@/components/public-site";
 import { AiImageTag } from "@/components/project-photo";
-import { shellCopy } from "@/lib/shell";
 
 const featureTones = [
   { icon: FileSearch, chip: "bg-[#e7f7f4] text-[#0e7c6b]" },
@@ -31,6 +32,7 @@ export type RolePageProps = {
   stepsTitle: string;
   steps: { title: string; body: string }[];
   faq: { q: string; a: string }[];
+  faqIntro?: string;
   closingTitle: string;
 };
 
@@ -141,39 +143,16 @@ export function RolePage(props: RolePageProps) {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-[1440px] gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:px-8 lg:py-24">
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <p className="text-sm font-medium tracking-wide text-public-clay uppercase">FAQ</p>
-            <h2 className="mt-3 text-3xl leading-[1.08] font-medium tracking-tight md:text-4xl">Preguntas frecuentes</h2>
-            <p className="mt-4 max-w-sm leading-7 text-public-muted">
-              ¿No encuentras tu respuesta? Escríbenos a{" "}
-              <a href={shellCopy.helpEmailHref} className="font-medium text-public-ink underline decoration-public-line underline-offset-4 hover:decoration-public-clay">
-                {shellCopy.helpEmail}
-              </a>
-              .
-            </p>
-          </div>
-          <div className="flex flex-col gap-3">
-            {props.faq.map((item, index) => (
-              <details
-                key={item.q}
-                open={index === 0}
-                className="group rounded-2xl border border-public-line bg-white px-6 py-4 transition-colors duration-200 open:border-public-clay/40 open:shadow-[0_16px_40px_-32px_rgba(18,52,58,0.45)]"
-              >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-lg font-medium [&::-webkit-details-marker]:hidden">
-                  {item.q}
-                  <span
-                    aria-hidden
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-public-sand text-xl leading-none text-public-clay transition-transform duration-200 group-open:rotate-45"
-                  >
-                    +
-                  </span>
-                </summary>
-                <p className="mt-2 max-w-2xl pb-1 leading-7 text-public-muted">{item.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <ArcScope>
+        <FaqSection
+          variant="accordion"
+          title="Preguntas frecuentes"
+          description={props.faqIntro ?? "Lo que más nos preguntan antes de empezar."}
+          items={props.faq.map((item) => ({ id: item.q, question: item.q, answer: item.a }))}
+          contact={{ label: "¿No encuentras tu respuesta?", description: "Escríbenos desde la página de contacto.", href: "/contacto" }}
+          className="releva-faq"
+        />
+        </ArcScope>
 
         <section className="px-5 pb-20 sm:px-6 lg:px-8">
           <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[2rem] bg-[#12343a]">
