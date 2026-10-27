@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
 import { PublicSite } from "@/components/public-site";
 import { AiImageTag } from "@/components/project-photo";
+import { shellCopy } from "@/lib/shell";
 
 const featureTones = [
   { icon: FileSearch, chip: "bg-[#e7f7f4] text-[#0e7c6b]" },
@@ -43,7 +44,7 @@ export function RolePage(props: RolePageProps) {
   return (
     <PublicSite>
       <main className="overflow-x-clip bg-public-paper text-public-ink">
-        <section className="mx-auto grid max-w-[1280px] items-center gap-12 px-5 pt-12 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:px-10 lg:pt-20 lg:pb-24">
+        <section className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 pt-12 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:px-8 lg:pt-20 lg:pb-24">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-public-line bg-white/70 px-3 py-1 text-sm text-public-clay">
               <Sparkles className="size-4" aria-hidden />
@@ -91,7 +92,7 @@ export function RolePage(props: RolePageProps) {
         </section>
 
         <section className="border-y border-public-line bg-white">
-          <div className="mx-auto max-w-[1280px] px-5 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
             <h2 className="max-w-3xl text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-[2.75rem]">{props.featuresTitle}</h2>
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               {props.features.map((feature, index) => {
@@ -111,7 +112,7 @@ export function RolePage(props: RolePageProps) {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-[1280px] items-center gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:px-10 lg:py-24">
+        <section className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:px-8 lg:py-24">
           <div>
             <p className="text-sm font-medium tracking-[0.16em] text-public-clay uppercase">Dentro de Relify</p>
             <h2 className="mt-3 text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-4xl">{props.productTitle}</h2>
@@ -123,7 +124,7 @@ export function RolePage(props: RolePageProps) {
         </section>
 
         <section id="como-funciona" className="scroll-mt-24 bg-[#12343a] text-white">
-          <div className="mx-auto max-w-[1280px] px-5 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
             <p className="text-sm font-medium tracking-[0.16em] text-[#8fd8cf] uppercase">El recorrido</p>
             <h2 className="mt-3 max-w-3xl text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-[2.75rem]">{props.stepsTitle}</h2>
             <ol className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -140,23 +141,42 @@ export function RolePage(props: RolePageProps) {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-[1280px] gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:px-10 lg:py-24">
-          <h2 className="text-3xl leading-[1.08] font-medium tracking-tight md:text-4xl">Preguntas frecuentes</h2>
-          <div className="divide-y divide-public-line rounded-3xl border border-public-line bg-white">
-            {props.faq.map((item) => (
-              <details key={item.q} className="group px-6 py-5">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-lg [&::-webkit-details-marker]:hidden">
+        <section className="mx-auto grid max-w-[1440px] gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:px-8 lg:py-24">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <p className="text-sm font-medium tracking-wide text-public-clay uppercase">FAQ</p>
+            <h2 className="mt-3 text-3xl leading-[1.08] font-medium tracking-tight md:text-4xl">Preguntas frecuentes</h2>
+            <p className="mt-4 max-w-sm leading-7 text-public-muted">
+              ¿No encuentras tu respuesta? Escríbenos a{" "}
+              <a href={shellCopy.helpEmailHref} className="font-medium text-public-ink underline decoration-public-line underline-offset-4 hover:decoration-public-clay">
+                {shellCopy.helpEmail}
+              </a>
+              .
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {props.faq.map((item, index) => (
+              <details
+                key={item.q}
+                open={index === 0}
+                className="group rounded-2xl border border-public-line bg-white px-6 py-4 transition-colors duration-200 open:border-public-clay/40 open:shadow-[0_16px_40px_-32px_rgba(18,52,58,0.45)]"
+              >
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-lg font-medium [&::-webkit-details-marker]:hidden">
                   {item.q}
-                  <span aria-hidden className="text-2xl leading-none text-public-clay transition-transform duration-200 group-open:rotate-45">+</span>
+                  <span
+                    aria-hidden
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-public-sand text-xl leading-none text-public-clay transition-transform duration-200 group-open:rotate-45"
+                  >
+                    +
+                  </span>
                 </summary>
-                <p className="mt-2 max-w-2xl leading-7 text-public-muted">{item.a}</p>
+                <p className="mt-2 max-w-2xl pb-1 leading-7 text-public-muted">{item.a}</p>
               </details>
             ))}
           </div>
         </section>
 
-        <section className="px-5 pb-20 sm:px-6 lg:px-10">
-          <div className="relative mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] bg-[#12343a]">
+        <section className="px-5 pb-20 sm:px-6 lg:px-8">
+          <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[2rem] bg-[#12343a]">
             <Image src={photo} alt="" fill sizes="1280px" className="object-cover opacity-25" />
             <div className="relative flex flex-col items-start gap-6 px-6 py-14 sm:px-12 md:flex-row md:items-center md:justify-between">
               <h2 className="max-w-xl text-3xl leading-[1.1] font-medium tracking-tight text-balance text-white md:text-4xl">{props.closingTitle}</h2>
