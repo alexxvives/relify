@@ -203,12 +203,13 @@ export const companyCopy = {
   nifConfidentialBody: "En ningún caso se compartirá el NIF de la compañía con terceros.",
   nifAutofill: "Autorellenamos tus datos",
   nifAutofillBody:
-    "Con tu NIF rellenamos la razón social y, cuando el boletín la publica, el domicilio y la provincia.",
+    "Con tu NIF rellenamos la razón social y, si el registro mercantil los tiene, el domicilio, la provincia y el CNAE.",
   nifAlias: "Nombre aleatorio",
   nifAliasBody: "Para la empresa, con el fin de preservar su confidencialidad.",
   nifSaved: "NIF guardado de forma confidencial.",
+  nifPrefilledLabel: "Datos del registro mercantil",
   nifPrefilled:
-    "Hemos rellenado la razón social y, si el boletín los publica, el domicilio, la provincia y el CNAE. Fuente: BORME (Agencia Estatal BOE) y registros públicos. Las cuentas no están en ese boletín: súbelas abajo o escríbelas.",
+    "Razón social, domicilio, provincia, año de constitución y CNAE vienen de APIEmpresas, que consulta el registro mercantil. Revísalos: la API puede no tener todos los datos. Las cuentas no están ahí; súbelas o escríbelas.",
   accountsPrompt: "Rellena las cifras más rápido",
   accountsOpen: "Subir cuentas",
   accountsClose: "Cerrar",
