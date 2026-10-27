@@ -238,7 +238,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
         <div className="flex shrink-0 items-center gap-2">
           {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
           {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
-          <ProcessFichaLink href={`/proyectos/${thread.slug}`} />
+          <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}`} />
         </div>
         </div>
         {wantsAdvisor(thread.steps) ? (

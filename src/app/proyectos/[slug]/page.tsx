@@ -16,6 +16,7 @@ import { projectImageSrc } from "@/lib/project-image";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
+import { prisma } from "@/server/db";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { buyerMatchBudget } from "@/server/buyerPlan";
 import { buyerProfileComplete } from "@/server/investorProfile";
@@ -180,6 +181,12 @@ export default async function ProjectDetailPage({
 
   if (user && !user.onboarded) {
     redirect("/onboarding");
+  }
+
+  // Sellers manage their own company from Mis procesos (company + buyer card per process);
+  // the buyer-facing project page is not meant for the owner.
+  if (user?.role === "seller" && (await prisma.project.count({ where: { slug, ownerId: user.id } })) > 0) {
+    redirect("/mi-empresa/procesos");
   }
 
   if (user?.role === "investor") {
