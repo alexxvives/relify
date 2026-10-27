@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { signOutAction } from "@/app/cuenta/actions";
 import { OnboardingForm } from "@/components/onboarding-form";
+import { OnboardingPlanResume } from "@/components/onboarding-plan-resume";
+import { loadBuyerPlan } from "@/server/buyerPlan";
 import { Logo } from "@/components/logo";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, type SignupRole } from "@/lib/auth-input";
@@ -15,14 +17,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ paso?: string }> }) {
   const user = await getCurrentUser();
+  const { paso } = await searchParams;
 
   if (!user) {
     redirect("/entrar");
   }
 
-  if (user.onboarded) {
+  // Backing out of Stripe during signup lands here: resume at the Plan step while no plan is active.
+  const resumePlan =
+    user.onboarded &&
+    paso === "plan" &&
+    user.role === "investor" &&
+    (await loadBuyerPlan(user.id)).plan === "none";
+
+  if (user.onboarded && !resumePlan) {
     redirect(homeForRole(user.role));
   }
 
@@ -56,7 +66,7 @@ export default async function OnboardingPage() {
           <Logo size="lg" />
         </div>
         <div className="mt-8">
-          <OnboardingForm initialRole={initialRole} />
+          {resumePlan ? <OnboardingPlanResume home={homeForRole(user.role)} /> : <OnboardingForm initialRole={initialRole} />}
         </div>
       </section>
     </main>

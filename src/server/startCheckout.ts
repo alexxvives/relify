@@ -64,7 +64,11 @@ async function customerId(user: CurrentUser): Promise<string | null> {
   }
 }
 
-export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "unlimited"): Promise<CheckoutStart> {
+export async function startBuyerCheckout(
+  user: CurrentUser,
+  plan: "limited" | "unlimited",
+  options: { cancelPath?: string } = {},
+): Promise<CheckoutStart> {
   const current = await prisma.billingCustomer.findUnique({
     where: { userId: user.id },
     select: { plan: true },
@@ -110,7 +114,7 @@ export async function startBuyerCheckout(user: CurrentUser, plan: "limited" | "u
     metadata: { kind: "buyer_plan", plan, userId: user.id },
     subscription_data: { metadata: { kind: "buyer_plan", plan, userId: user.id } },
     success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/premium`,
+    cancel_url: `${origin}${options.cancelPath ?? "/premium"}`,
     integration_identifier: integrationLabel("Relify_buyer"),
   });
 

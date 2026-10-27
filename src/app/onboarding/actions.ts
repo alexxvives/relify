@@ -9,6 +9,9 @@ import { startBuyerCheckout } from "@/server/startCheckout";
 
 export type OnboardingState = { message: string } | null;
 
+/** Where Stripe's back button lands during signup: the Plan step again. */
+const onboardingPlanPath = "/onboarding?paso=plan";
+
 function readOnboardingForm(formData: FormData): OnboardingInput | { message: string } {
   const fullName = formData.get("fullName");
   const split = splitAccountName(typeof fullName === "string" ? fullName : "");
@@ -55,9 +58,32 @@ export async function onboardingAction(_state: OnboardingState, formData: FormDa
 
   if (result.role === "investor" && (plan === "limited" || plan === "unlimited")) {
     const user = await getCurrentUser();
-    const checkout = user ? await startBuyerCheckout(user, plan) : null;
+    const checkout = user ? await startBuyerCheckout(user, plan, { cancelPath: onboardingPlanPath }) : null;
     redirect(checkout?.ok ? checkout.url : "/premium");
   }
 
   redirect(homeForRole(result.role));
+}
+
+/** Resumes the Plan step after the buyer backed out of Stripe during signup. */
+export async function resumePlanAction(_state: OnboardingState, formData: FormData): Promise<OnboardingState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  const plan = formData.get("plan");
+
+  if (user.role !== "investor" || (plan !== "limited" && plan !== "unlimited")) {
+    redirect(homeForRole(user.role));
+  }
+
+  const checkout = await startBuyerCheckout(user, plan, { cancelPath: onboardingPlanPath });
+
+  if (!checkout.ok) {
+    return { message: checkout.message };
+  }
+
+  redirect(checkout.url);
 }
