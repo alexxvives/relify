@@ -268,9 +268,9 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
                   }}
                   className={
                     selected
-                      ? "rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-4 py-3 text-left text-sm"
+                      ? "rounded-2xl border border-[#465ab4] bg-[#eef2ff] px-4 py-3 text-left text-sm shadow-[inset_0_0_0_1px_#465ab4]"
                       : referralMissing
-                        ? "rounded-2xl border-2 border-[#c0362c] bg-[#fff6f6] px-4 py-3 text-left text-sm"
+                        ? "rounded-2xl border border-[#c0362c] bg-[#fff6f6] px-4 py-3 text-left text-sm shadow-[inset_0_0_0_1px_#c0362c]"
                         : "rounded-2xl border border-[#e1e6ee] bg-white px-4 py-3 text-left text-sm hover:border-[#465ab4]"
                   }
                 >
