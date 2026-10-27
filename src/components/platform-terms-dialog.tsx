@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileText, LogOut } from "lucide-react";
-import { signOutAction } from "@/app/cuenta/actions";
+import { FileText } from "lucide-react";
 import { FilePreviewDialog } from "@/components/file-preview-dialog";
 import { PdfThumb } from "@/components/pdf-pages";
 import { PlatformTermsForm } from "@/components/platform-terms-form";
 import { PlatformTermsText } from "@/components/platform-terms-text";
-import { authCopy } from "@/lib/auth-copy";
 import { platformTermsCopy } from "@/lib/platform-terms";
 
 export function PlatformTermsDialog() {
@@ -36,16 +34,6 @@ export function PlatformTermsDialog() {
         <PlatformTermsText />
       </div>
       <PlatformTermsForm />
-      {/* The modal covers the whole shell, so it carries its own way out. */}
-      <form action={signOutAction} className="mt-4 flex justify-end border-t border-[#eef0f3] pt-4">
-        <button
-          type="submit"
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-[#d5dbe3] bg-white px-4 text-sm font-medium text-[#1c2740] hover:bg-[#f5f6f8]"
-        >
-          <LogOut className="size-4" aria-hidden />
-          {authCopy.signOut}
-        </button>
-      </form>
     </dialog>
   );
 }
