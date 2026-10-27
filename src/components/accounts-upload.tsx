@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { compactButtonClass } from "@/components/ui/compact-button";
 import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
 import { companyCopy } from "@/lib/company-copy";
 
@@ -97,7 +98,7 @@ export function AccountsUpload({
           <button
             type="button"
             onClick={closeDialog}
-            className="inline-flex h-11 items-center rounded-xl border border-[#e7eaee] px-4 text-base"
+            className={compactButtonClass}
           >
             {companyCopy.accountsClose}
           </button>

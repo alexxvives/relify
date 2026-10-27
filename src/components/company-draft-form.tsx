@@ -1,6 +1,7 @@
 "use client";
 
 import { MarketCard } from "@/components/market-card";
+import { compactButtonClass } from "@/components/ui/compact-button";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
@@ -219,7 +220,7 @@ function Panel({
               type="button"
               aria-expanded="true"
               onClick={onCollapse}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#c5cdd8] bg-white px-4 text-base font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
+              className={compactButtonClass}
             >
               <ChevronUp className="size-4" aria-hidden />
               {companyCopy.collapsePanel}
@@ -229,7 +230,7 @@ function Panel({
               type="button"
               aria-expanded="false"
               onClick={onEdit}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#c5cdd8] bg-white px-4 text-base font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
+              className={compactButtonClass}
             >
               <Pencil className="size-3.5" aria-hidden />
               {companyCopy.editPanel}

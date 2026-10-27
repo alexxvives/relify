@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { compactButtonClass } from "@/components/ui/compact-button";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User, X } from "lucide-react";
 import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/inversor/perfil/actions";
 import { AppToast } from "@/components/app-toast";
@@ -184,7 +185,7 @@ export function InvestorProfile({
               onClick={() => {
                 setEditingProfessional((current) => !current);
               }}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] px-3 text-sm"
+              className={compactButtonClass}
             >
               <Pencil className="size-3.5" aria-hidden />
               {editingProfessional ? investorCopy.save : investorCopy.edit}

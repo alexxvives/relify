@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { compactButtonClass } from "@/components/ui/compact-button";
 import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
@@ -301,7 +302,7 @@ export function AdvisorServices({
           <div className="flex items-center gap-2">
             <Chip done={profile.corporateComplete} editing={editing === "corporate"} />
             {editing === "corporate" ? null : (
-              <button type="button" onClick={() => open("corporate")} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] px-3 text-sm">
+              <button type="button" onClick={() => open("corporate")} className={compactButtonClass}>
                 <Pencil className="size-3.5" aria-hidden />
                 {advisorCopy.edit}
               </button>
@@ -580,7 +581,7 @@ function PanelHeading({
             type="button"
             disabled={disabled}
             onClick={onEdit}
-            className="inline-flex h-9 items-center gap-1 rounded-full border border-[#e7eaee] px-3 text-sm disabled:cursor-not-allowed"
+            className={compactButtonClass}
           >
             <Pencil className="size-3.5" aria-hidden />
             {advisorCopy.edit}
