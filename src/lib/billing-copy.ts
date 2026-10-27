@@ -112,7 +112,6 @@ export const billingCopy = {
   acceptingBuyer: "Aceptando…",
   buyerAccepted: "Comprador aceptado. Este match queda contado.",
   buyerAcceptFailed: "No se ha podido aceptar al comprador.",
-  buyerLimit: "Este comprador no tiene matches disponibles este mes.",
   pendingTitle: "Solicitudes por aceptar",
   pendingBody: "Aceptar cuenta como un match del plan del comprador.",
   listingPrice: "149 €",
