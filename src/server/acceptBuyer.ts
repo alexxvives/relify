@@ -1,6 +1,5 @@
 import { buyerAcceptOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
-import { loadBuyerPlan } from "@/server/buyerPlan";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
@@ -14,6 +13,8 @@ export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<
       id: true,
       investorId: true,
       sellerAcceptedAt: true,
+      // The buyer's plan rides on the same query (relation join) instead of a second round trip.
+      investor: { select: { billingCustomer: { select: { plan: true } } } },
       project: { select: { ownerId: true, codename: true, slug: true } },
     },
   });
@@ -32,17 +33,22 @@ export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<
   }
 
   if (outcome.stamp) {
-    const buyerPlan = await loadBuyerPlan(access.investorId);
-    await prisma.projectAccess.update({
-      where: { id: access.id },
-      data: { sellerAcceptedAt: new Date(), buyerPlanAtMatch: buyerPlan.plan },
-    });
-    await recordNotification({
-      userId: access.investorId,
-      title: "Solicitud aceptada",
-      body: `La empresa ha aceptado tu solicitud en ${access.project.codename}.`,
-      href: `/proyectos/${access.project.slug}`,
-    });
+    // Same plan rule as loadBuyerPlan: no billing row means "none".
+    const plan = access.investor.billingCustomer?.plan ?? "none";
+    // Alex (t50): accepting felt slow. Each Prisma call is a separate HTTP round trip to Neon on
+    // Workers, so the stamp and the buyer's notice run side by side instead of one after another.
+    await Promise.all([
+      prisma.projectAccess.update({
+        where: { id: access.id },
+        data: { sellerAcceptedAt: new Date(), buyerPlanAtMatch: plan },
+      }),
+      recordNotification({
+        userId: access.investorId,
+        title: "Solicitud aceptada",
+        body: `La empresa ha aceptado tu solicitud en ${access.project.codename}.`,
+        href: `/proyectos/${access.project.slug}`,
+      }),
+    ]);
   }
 
   return { ok: true };

@@ -55,6 +55,7 @@ function SellerPending({
       {named ? <p className="text-sm font-medium text-[#1c2740]">{item.label}</p> : null}
       {buttons}
       {state && !state.ok ? <p className="w-full text-sm text-red-700">{state.message}</p> : null}
+      {pending ? <p className="w-full text-sm text-[#465ab4]" role="status">{billingCopy.acceptingBuyer}</p> : null}
       {state?.ok ? <p className="w-full text-sm text-[#157a45]">{billingCopy.buyerAccepted}</p> : null}
       <InvestorProfileDialog
         label={item.label}
@@ -170,7 +171,14 @@ function InvestorProfileDialog({
         footer={
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             <CancelProcessButton accessId={accessId} label={sellerCopy.rejectInvestor} />
-            <form action={action}>
+            {/* Close the card on submit and show progress in the row: the server round trip plus the
+                refreshed page take ~1 s on Workers, which felt like a frozen button (Alex, t50). */}
+            <form
+              action={action}
+              onSubmit={(event) => {
+                event.currentTarget.closest("dialog")?.close();
+              }}
+            >
               <input type="hidden" name="accessId" value={accessId} />
               <button
                 type="submit"

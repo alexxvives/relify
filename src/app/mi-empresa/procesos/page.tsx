@@ -21,13 +21,13 @@ export const metadata: Metadata = {
 
 async function ProcessesPageContent() {
   const user = await requireRole("seller");
-  const nifVerified = await companyNifIsVerified(user);
+  // Independent lookups: run together rather than as a waterfall (every query is a Neon round trip).
+  const [nifVerified, projectId] = await Promise.all([companyNifIsVerified(user), activeSellerProjectId(user.id)]);
 
   if (!nifVerified) {
     redirect("/mi-empresa");
   }
 
-  const projectId = await activeSellerProjectId(user.id);
   const [messages, pendingMatches, advisors, scope, funnel] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
