@@ -1,5 +1,6 @@
 "use client";
 
+import { Pagination, usePageParam } from "@/components/pagination";
 import { useMemo, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users, X } from "lucide-react";
@@ -82,6 +83,8 @@ function isAdvisorSort(value: string): value is AdvisorMarketplaceSort {
   return advisorMarketplaceSorts.some((sort) => sort === value);
 }
 
+const ADVISOR_PAGE_SIZE = 8;
+
 function AdvisorMarket({
   advisors,
   companies,
@@ -107,7 +110,9 @@ function AdvisorMarket({
     [advisors],
   );
   const filtered = filterPublicAdvisors(advisors, { sector, service });
-  const visible = sort === "recommended" ? filtered : sortPublicAdvisors(filtered, sort);
+  const sorted = sort === "recommended" ? filtered : sortPublicAdvisors(filtered, sort);
+  const paging = usePageParam(sorted.length, ADVISOR_PAGE_SIZE, JSON.stringify([sector, service, sort]));
+  const visible = sorted.slice(paging.start, paging.end);
 
   return (
     <section className="flex flex-col gap-4">
@@ -164,7 +169,7 @@ function AdvisorMarket({
           </label>
         </div>
       </div>
-      {visible.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
+      {sorted.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
       <ul className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,26rem),1fr))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
@@ -172,6 +177,7 @@ function AdvisorMarket({
           </li>
         ))}
       </ul>
+      <Pagination page={paging.page} pages={paging.pages} onChange={paging.setPage} />
       <div className="flex justify-center pt-2">
         <button
           type="button"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Pagination, usePageParam } from "@/components/pagination";
 import { ArrowUpDown, Check } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarketCard } from "@/components/market-card";
@@ -27,6 +28,8 @@ function isRevenueBand(value: string): value is RevenueBandId {
   return revenueBandIds.some((band) => band === value);
 }
 
+
+const MARKET_PAGE_SIZE = 12;
 
 export function MarketBrowser({
   projects,
@@ -66,7 +69,8 @@ export function MarketBrowser({
     (left, right) => left[1].localeCompare(right[1], "es"),
   );
   const shown = favoritesOnly ? matched.filter((project) => savedSlugs.includes(project.slug)) : matched;
-  const visible = shown;
+  const paging = usePageParam(shown.length, MARKET_PAGE_SIZE, JSON.stringify([query, sort, revenueBand, regions, sector, favoritesOnly]));
+  const visible = shown.slice(paging.start, paging.end);
   const regionValue = regions[0] ?? "";
 
   return (
@@ -173,6 +177,7 @@ export function MarketBrowser({
           })}
         </div>
       )}
+      <Pagination page={paging.page} pages={paging.pages} onChange={paging.setPage} />
     </div>
   );
 }
