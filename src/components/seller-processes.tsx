@@ -210,6 +210,12 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
     setDesk(next);
   }
   const expandable = thread.stage === "open";
+  const processActions = (
+    <>
+      {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
+      <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}`} />
+    </>
+  );
 
   if (thread.stage === "pending") {
     return (
@@ -242,21 +248,23 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
             contractNext={thread.contract?.next ?? null}
           />
+          {/* Alex (t50): the advisor nudge closes the "Qué sigue" line instead of sitting under it. */}
+          {wantsAdvisor(thread.steps) ? (
+            <Link
+              href={`/mi-empresa/servicios?empresa=${thread.slug}`}
+              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+            >
+              {engagementCopy.contactAdvisor}
+            </Link>
+          ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
-          {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
-          <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}`} />
-        </div>
-        </div>
-        {wantsAdvisor(thread.steps) ? (
-          <Link
-            href={`/mi-empresa/servicios?empresa=${thread.slug}`}
-            className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-          >
-            {engagementCopy.contactAdvisor}
-          </Link>
+        {(thread.contract && thread.contract.stage !== "signed") || !expandable ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
+            {expandable ? null : processActions}
+          </div>
         ) : null}
+        </div>
       </div>
       <div>
           <DealPipeline
@@ -290,8 +298,12 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             disabled={thread.advisorHired ? [] : ["advisor"]}
             hints={thread.advisorHired ? {} : { advisor: reachedQa(thread.steps) ? advisorHintHireSeller : advisorHintLater }}
           />
-          {/* Signed contract: a quiet record, kept at the far right of the panel toggles. */}
-          {thread.contract?.stage === "signed" ? <div className="ml-auto"><ContractStage contract={thread.contract} /></div> : null}
+          {/* Alex (t50): "Ver ficha" and "Cancelar proceso" sit at the far right of the panel toggles
+              (with the signed-contract record, when there is one); they wrap under the toggles on narrow cards. */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            {thread.contract?.stage === "signed" ? <ContractStage contract={thread.contract} /> : null}
+            {processActions}
+          </div>
           </div>
           <div id={deskId} hidden={desk === null}>
           {desk === "chat" ? (
