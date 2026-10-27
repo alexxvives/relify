@@ -4,6 +4,7 @@ export const accessCopy = {
   requestAction: "Solicitar acceso",
   connect: "Conectar",
   profileRequired: "Completa tu perfil de comprador para poder conectar: el vendedor necesita saber quién eres, tu ticket, sectores y cómo inviertes.",
+  profileRequiredShort: "Para conectar, el vendedor debe saber quién eres.",
   profileRequiredAction: "Completar mi perfil",
   pending: "Solicitud enviada",
   connected: "Conectado",

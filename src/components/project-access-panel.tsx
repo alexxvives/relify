@@ -105,14 +105,29 @@ export function ConnectControl({
   }
 
   if (!profileComplete) {
+    if (align === "center") {
+      return (
+        <div className={`${stack} max-w-xs`} role="note">
+          <p className="text-center text-sm leading-6 text-[#5c6b78]">{accessCopy.profileRequired}</p>
+          <Link href="/inversor/perfil" className={buttonClassName}>
+            <UserRound className="size-4" aria-hidden />
+            {accessCopy.profileRequiredAction}
+          </Link>
+        </div>
+      );
+    }
+
+    // Banner (dark photo): keep the button in the action row and hang the explanation below it, so the favourite button stays aligned.
     return (
-      <div className={`${stack} max-w-xs`} role="note">
-        <p className={align === "center" ? "text-center text-sm leading-6 text-[#5c6b78]" : "text-right text-sm leading-6 text-[#5c6b78]"}>{accessCopy.profileRequired}</p>
+      <>
         <Link href="/inversor/perfil" className={buttonClassName}>
           <UserRound className="size-4" aria-hidden />
           {accessCopy.profileRequiredAction}
         </Link>
-      </div>
+        <p role="note" className="absolute top-full right-0 mt-2 w-max max-w-[16rem] rounded-xl bg-white/95 px-3 py-2 text-right text-xs leading-5 text-[#1c2740] shadow-lg">
+          {accessCopy.profileRequiredShort}
+        </p>
+      </>
     );
   }
 
