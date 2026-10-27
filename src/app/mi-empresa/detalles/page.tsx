@@ -12,7 +12,7 @@ import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { companyNifIsVerified, getSellerCif, sellerHasRegistryPrefill } from "@/server/verifyCompanyNif";
+import { companyNifIsVerified, getSellerCif } from "@/server/verifyCompanyNif";
 
 export const metadata: Metadata = {
   title: sellerCopy.detailsTitle,
@@ -38,10 +38,9 @@ async function CompanyDetailsPageContent({
     redirect("/mi-empresa");
   }
 
-  const [draft, cif, registryFilled, listing, projectId] = await Promise.all([
+  const [draft, cif, listing, projectId] = await Promise.all([
     getCompanyDraft(user),
     getSellerCif(user),
-    sellerHasRegistryPrefill(user),
     getSellerListing(user.id),
     activeSellerProjectId(user.id),
   ]);
@@ -53,7 +52,6 @@ async function CompanyDetailsPageContent({
       <SellerCompanyPanel
         draft={draft}
         cif={cif}
-        registryFilled={registryFilled && (draft?.legalName.trim().length ?? 0) > 0}
         focus={focus}
         promptSetup={query.alta === "1"}
         reviewPending={listing?.status === "pending"}

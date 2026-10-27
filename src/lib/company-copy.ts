@@ -207,9 +207,10 @@ export const companyCopy = {
   nifAlias: "Nombre aleatorio",
   nifAliasBody: "Para la empresa, con el fin de preservar su confidencialidad.",
   nifSaved: "NIF guardado de forma confidencial.",
-  nifPrefilledLabel: "Datos del registro mercantil",
-  nifPrefilled:
-    "Razón social, domicilio, provincia, año de constitución y CNAE vienen de APIEmpresas, que consulta el registro mercantil. Revísalos: la API puede no tener todos los datos. Las cuentas no están ahí; súbelas o escríbelas.",
+  nifFilling: "Rellenando datos…",
+  nifFillingBody: "Consultamos el registro mercantil para completar la ficha.",
+  nifFilled: "Datos listos",
+  nifFilledBody: "Te llevamos a los detalles de tu empresa.",
   accountsPrompt: "Rellena las cifras más rápido",
   accountsOpen: "Subir cuentas",
   accountsClose: "Cerrar",

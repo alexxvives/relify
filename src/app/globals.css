@@ -2649,3 +2649,30 @@
 .shell-dark .shell-tools > a {
   color: #e9c46a;
 }
+
+@keyframes releva-check-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes releva-check-draw {
+  from { stroke-dashoffset: 30; }
+  to { stroke-dashoffset: 0; }
+}
+
+.releva-check-pop {
+  animation: releva-check-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.releva-check-draw path {
+  stroke-dasharray: 30;
+  animation: releva-check-draw 380ms 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .releva-check-pop,
+  .releva-check-draw path {
+    animation: none;
+  }
+}
