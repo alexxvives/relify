@@ -2676,3 +2676,24 @@
     animation: none;
   }
 }
+
+/* t50: on large screens the hero is wider (16:9). The 1536×1024 city is cropped
+   top/bottom with object-cover (≈8% each side), so the pins are remapped to the
+   same buildings: y' = (y − 7.8125) / 0.84375. The image is upscaled at most ~1.1×. */
+@media (min-width: 1280px) {
+  .releva-hero-glass {
+    width: min(92%, 1680px, max(760px, calc((100svh - 9rem) * 16 / 9)));
+  }
+  .releva-city-box {
+    aspect-ratio: 16 / 9;
+  }
+  .releva-city-spot {
+    top: 50%;
+  }
+  .releva-city-spot-b {
+    top: 65.05%;
+  }
+  .releva-city-spot-c {
+    top: 46.2%;
+  }
+}
