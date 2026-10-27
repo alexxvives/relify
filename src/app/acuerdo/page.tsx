@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PlatformTermsForm } from "@/components/platform-terms-form";
+import { PlatformTermsText } from "@/components/platform-terms-text";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { getCurrentUser } from "@/server/getCurrentUser";
@@ -29,11 +30,7 @@ export default async function PlatformTermsPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight text-[#1c2740]">{platformTermsCopy.title}</h1>
       <p className="mt-3 text-sm leading-6 text-[#5c6b78]">{platformTermsCopy.intro}</p>
-      <div className="mt-8 flex flex-col gap-4 text-sm leading-6 text-[#1c2740]">
-        {platformTermsCopy.body.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
-      </div>
+      <PlatformTermsText className="mt-8" />
       <PlatformTermsForm />
     </main>
   );

@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/cuenta/actions";
 import { FilePreviewDialog } from "@/components/file-preview-dialog";
 import { PdfThumb } from "@/components/pdf-pages";
 import { PlatformTermsForm } from "@/components/platform-terms-form";
+import { PlatformTermsText } from "@/components/platform-terms-text";
 import { authCopy } from "@/lib/auth-copy";
 import { platformTermsCopy } from "@/lib/platform-terms";
 
@@ -31,10 +32,8 @@ export function PlatformTermsDialog() {
     >
       <h2 className="text-2xl font-semibold tracking-tight">{platformTermsCopy.title}</h2>
       <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{platformTermsCopy.intro}</p>
-      <div className="mt-4 flex max-h-[50vh] flex-col gap-3 overflow-y-auto text-sm leading-6">
-        {platformTermsCopy.body.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
+      <div className="mt-5 max-h-[50vh] overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-5">
+        <PlatformTermsText />
       </div>
       <PlatformTermsForm />
       {/* The modal covers the whole shell, so it carries its own way out. */}

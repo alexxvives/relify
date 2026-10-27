@@ -1,14 +1,37 @@
+/** Clauses of the platform agreement. `**text**` marks the key terms shown in bold. */
+const clauses = [
+  {
+    title: "Qué es este acuerdo",
+    text: "Relify es un mercado para poner en contacto a quien vende una empresa, quien quiere comprarla y quien asesora esa operación. Este texto es el **acuerdo de uso de la plataforma**. No es el contrato de compraventa ni una escritura.",
+  },
+  {
+    title: "Operaciones cerradas fuera de Relify",
+    text: "Durante los **dos años siguientes a cada conexión** que se abra en Relify, si esa empresa se vende entre las personas que se conectaron aquí, **la comisión de Relify se debe igual** aunque el cierre se haga fuera de la plataforma.",
+  },
+  {
+    title: "Comisiones y suscripción",
+    text: "La comisión de cierre es el **5% del precio final para quien vende** y el **2,5% para quien compra**, o el **2%** si el comprador tenía el plan Empresa cuando se hizo el match. Sin mínimos, más el IVA. Un asesor paga una suscripción de **49 € al mes más IVA** desde su primer encargo aceptado o su primer chat con un cliente, y el **15% de lo que cobre por cada encargo**, más el IVA de ese 15%.",
+  },
+  {
+    title: "Confidencialidad",
+    text: "Lo que ves de una empresa antes del acuerdo de confidencialidad es el **nombre de proyecto, la región y las cifras públicas**. La razón social, el CIF, la dirección y los nombres de los socios no se publican.",
+  },
+  {
+    title: "Uso del chat",
+    text: "**No uses el chat para pasar un teléfono, un correo o una vía para cerrar fuera de Relify.** Relify puede suspender la cuenta si lo hace.",
+  },
+  {
+    title: "Validez",
+    text: "Al aceptarlo, este acuerdo es **vinculante y válido** conforme a la legislación española sobre contratación electrónica (art. 23 de la Ley 34/2002, LSSI).",
+  },
+] as const;
+
 export const platformTermsCopy = {
   title: "Acuerdo con Relify",
-  intro: "Antes de entrar, acepta este acuerdo. Queda guardada la fecha y la cuenta que lo firmó.",
-  body: [
-    "Relify es un mercado para poner en contacto a quien vende una empresa, quien quiere comprarla y quien asesora esa operación. Este texto es el acuerdo de uso de la plataforma. No es el contrato de compraventa ni una escritura.",
-    "Durante los dos años siguientes a cada conexión que se abra en Relify, si esa empresa se vende entre las personas que se conectaron aquí, la comisión de Relify se debe igual aunque el cierre se haga fuera de la plataforma.",
-    "La comisión de cierre es el 5% del precio final para quien vende y el 2,5% para quien compra, o el 2% si el comprador tenía el plan Empresa cuando se hizo el match. Sin mínimos, más el IVA. Un asesor paga una suscripción de 49 € al mes más IVA desde su primer encargo aceptado o su primer chat con un cliente, y el 15% de lo que cobre por cada encargo, más el IVA de ese 15%.",
-    "Lo que ves de una empresa antes del acuerdo de confidencialidad es el nombre de proyecto, la región y las cifras públicas. La razón social, el CIF, la dirección y los nombres de los socios no se publican.",
-    "No uses el chat para pasar un teléfono, un correo o una vía para cerrar fuera de Relify. Relify puede suspender la cuenta si lo hace.",
-    "Aceptar aquí deja constancia de tu nombre, tu correo y la fecha. No es una firma electrónica cualificada ni sustituye al notario.",
-  ],
+  intro: "Antes de entrar, acepta este acuerdo.",
+  clauses,
+  /** Plain-text clauses for the PDF and previews. */
+  body: clauses.map((clause) => clause.text.replaceAll("**", "")),
   signLabel: "Firma con el ratón",
   signHint: "Firma aquí",
   clearSignature: "Borrar firma",
