@@ -22,6 +22,7 @@
     "@prisma/adapter-neon": "^7.10.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@radix-ui/react-switch": "^1.4.1",
     "@vinext/cloudflare": "^1.0.1",
     "better-auth": "^1.7.6",
     "canvas-confetti": "^1.9.4",
