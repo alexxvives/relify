@@ -9,7 +9,7 @@ export function PublishSellerButton({ requiresPayment = false }: { requiresPayme
 
   return (
     <form action={action} className="mt-4 flex flex-col items-start gap-2">
-      <p className="text-sm text-[#667085]">{requiresPayment ? billingCopy.listingNote : billingCopy.sellerDraft}</p>
+      {requiresPayment ? <p className="text-sm text-[#667085]">{billingCopy.listingNote}</p> : null}
       <button
         type="submit"
         disabled={pending}

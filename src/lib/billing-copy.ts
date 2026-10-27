@@ -128,8 +128,6 @@ export const billingCopy = {
   publishForbidden: "No puedes publicar esta empresa.",
   sellerPublish: "Pedir publicación",
   sellerPublished: "Tu empresa está publicada.",
-  sellerDraft:
-    "La primera empresa es gratis. Cada empresa adicional se paga al crearla (149 € más IVA). Pedir publicación la deja en revisión hasta que un admin la apruebe.",
   advisorDoesNotPublish: "En este paso el asesor no publica la empresa del cliente. El borrador sigue en la lista.",
   recordSale: "Registrar venta",
   recordingSale: "Registrando…",
