@@ -10,6 +10,8 @@ import { listNotifications } from "@/server/listNotifications";
 import { adminNewCounts } from "@/server/adminSeen";
 import { menuEncargoCount, menuProcessCount } from "@/server/menuProcessCount";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
+import { loadInvestorDesk } from "@/server/investorDesk";
+import { homePendingActions } from "@/lib/deal-pipeline";
 
 /**
  * Signed-in frame (sidebar, mobile header, bottom tabs). Rendered once by the (app) route-group
@@ -26,7 +28,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     redirect("/onboarding");
   }
 
-  const [notifications, companies, activeCompanyId, processCount, purchased, sold, encargoCount, adminCounts] = await Promise.all([
+  const [notifications, companies, activeCompanyId, processCount, purchased, sold, encargoCount, adminCounts, buyerPending] = await Promise.all([
     listNotifications(user.id),
     user.role === "seller" ? listSellerCompanies(user.id) : Promise.resolve([]),
     user.role === "seller" ? activeSellerProjectId(user.id) : Promise.resolve(null),
@@ -37,6 +39,16 @@ export async function AppShell({ children }: { children: ReactNode }) {
       : Promise.resolve(false),
     menuEncargoCount(user),
     user.role === "admin" ? adminNewCounts(user.id) : Promise.resolve({} as Record<string, number>),
+    // Buyer: same "your turn" actions as the Inicio list, as a red bubble on Mis procesos.
+    user.role === "investor"
+      ? loadInvestorDesk(user.id, user.email).then(
+          (desk) =>
+            homePendingActions(
+              "investor",
+              desk.processes.map((process) => ({ id: process.accessId, who: process.codename, href: "/procesos", steps: process.steps })),
+            ).length,
+        )
+      : Promise.resolve(0),
   ]);
 
   const destinations = destinationsForRole(user.role);
@@ -59,6 +71,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       canManageCompanies={user.role === "seller"}
       showHelp={user.role !== "admin"}
       processCount={processCount}
+      processPending={buyerPending}
       encargoCount={encargoCount}
       navCounts={adminCounts}
     >

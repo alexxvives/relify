@@ -225,6 +225,7 @@ export function AppFrame({
   canManageCompanies = false,
   showHelp = true,
   processCount = 0,
+  processPending = 0,
   encargoCount = 0,
   navCounts = {},
   children,
@@ -238,6 +239,8 @@ export function AppFrame({
   canManageCompanies?: boolean;
   showHelp?: boolean;
   processCount?: number;
+  /** Pending "your turn" actions for roles without a company switcher (buyer). */
+  processPending?: number;
   encargoCount?: number;
   /** Extra sidebar bubbles by href (admin: new items since last visit). */
   navCounts?: Record<string, number>;
@@ -252,7 +255,7 @@ export function AppFrame({
   // Optimistic active state: highlight the clicked item at once, before the route commits.
   const [navTarget, setNavTarget] = useState<{ href: string; from: string } | null>(null);
   const pathname = navTarget !== null && navTarget.from === routePath ? navTarget.href : routePath;
-  const activePending = companies.find((company) => company.id === activeCompanyId)?.pending ?? 0;
+  const activePending = (companies.find((company) => company.id === activeCompanyId)?.pending ?? 0) + processPending;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
 
@@ -368,7 +371,7 @@ export function AppFrame({
                     closeMenu();
                   }}
                   alert={alert}
-                  pending={item.href === "/mi-empresa/procesos" ? activePending : 0}
+                  pending={item.href === "/mi-empresa/procesos" || item.href === "/procesos" ? activePending : 0}
                   count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
                 />
                 </div>
