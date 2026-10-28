@@ -85,7 +85,7 @@ function SectorChips({ label, value }: { label: string; value: string }) {
 
   return (
     <div className="min-w-0 rounded-2xl bg-[#f7f8fb] px-3 py-3">
-      <dt className="text-xs font-semibold break-normal hyphens-auto text-[#667085]">{label}</dt>
+      <dt className="text-xs font-semibold whitespace-nowrap hyphens-none text-[#667085]">{label}</dt>
       <dd className="mt-1.5 min-w-0">
         {sectors.length === 0 ? <span className="text-sm font-medium text-[#1c2740]">—</span> : <SectorMarquee sectors={sectors} />}
       </dd>
@@ -96,7 +96,7 @@ function SectorChips({ label, value }: { label: string; value: string }) {
 function ProfileFact({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
   return (
     <div className={wide ? "col-span-2 rounded-2xl bg-[#f7f8fb] px-3 py-3" : "rounded-2xl bg-[#f7f8fb] px-3 py-3"}>
-      <dt className="text-xs font-semibold break-normal hyphens-auto text-[#667085]">{label}</dt>
+      <dt className="text-xs font-semibold whitespace-nowrap hyphens-none text-[#667085]">{label}</dt>
       <dd className="mt-1 line-clamp-3 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
     </div>
   );
