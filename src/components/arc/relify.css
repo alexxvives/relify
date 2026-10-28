@@ -23,3 +23,6 @@
 .arc-scope.relify-arc > section { background: transparent; }
 /* Primary buttons use the brand teal. */
 .arc-scope.relify-arc button[class*="_primary_"] { background: var(--public-clay, #0f6e73); border-color: var(--public-clay, #0f6e73); color: #fff; }
+/* Footer: the Relify logo already carries the wordmark, so the text name stays for screen readers only. */
+.relify-footer [class*="_brandRow_"] > :last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.relify-footer > footer { background: transparent; }

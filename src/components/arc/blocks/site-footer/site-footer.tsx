@@ -90,7 +90,7 @@ function Newsletter({ title, description, placeholder = "you@example.com", onSub
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
 
-  const validate = (value: string) => !value.trim() ? "Enter your email address" : EMAIL.test(value.trim()) ? null : "That email doesn't look right";
+  const validate = (value: string) => !value.trim() ? "Escribe tu email" : EMAIL.test(value.trim()) ? null : "Ese email no parece correcto";
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -105,7 +105,7 @@ function Newsletter({ title, description, placeholder = "you@example.com", onSub
       setState("done");
     } catch {
       setState("idle");
-      setError("We couldn't subscribe you. Try again in a moment");
+      setError("No se ha podido guardar. Vuelve a intentarlo en un momento");
     }
   }
 
@@ -115,7 +115,7 @@ function Newsletter({ title, description, placeholder = "you@example.com", onSub
   return <form className={styles.newsletter} onSubmit={submit} noValidate aria-labelledby={title ? `${id}-title` : undefined}>
     {title && <h2 id={`${id}-title`} className={styles.newsletterTitle}>{title}</h2>}
     <div className={styles.newsletterRow} data-invalid={error ? "" : undefined} data-done={state === "done" ? "" : undefined}>
-      <label className={styles.srOnly} htmlFor={`${id}-email`}>Email address</label>
+      <label className={styles.srOnly} htmlFor={`${id}-email`}>Email</label>
       <input
         id={`${id}-email`}
         className={styles.newsletterInput}
@@ -131,7 +131,7 @@ function Newsletter({ title, description, placeholder = "you@example.com", onSub
         onBlur={() => { if (email) { setTouched(true); setError(validate(email)); } }}
       />
       <Button type="submit" size="sm" variant="primary" loading={state === "loading"} className={styles.newsletterButton} aria-disabled={state === "done" || undefined}>
-        {state === "done" ? <><Check size={15} strokeWidth={2.25} aria-hidden="true" />Subscribed</> : "Subscribe"}
+        {state === "done" ? <><Check size={15} strokeWidth={2.25} aria-hidden="true" />Suscrito</> : "Suscribirme"}
       </Button>
     </div>
     <div className={styles.messageSlot} id={`${id}-message`} aria-live="polite">
@@ -179,7 +179,7 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(function Site
     </div>
     <div className={styles.bottomEnd}>{statusNode}{socialNode}</div>
   </div>;
-  const columnNav = <nav className={styles.columns} aria-label="Footer">
+  const columnNav = <nav className={styles.columns} aria-label="Pie de página">
     {columns.map(column => <div key={column.title} className={styles.column}>
       <h2>{column.title}</h2>
       <ul>{column.links.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul>
@@ -191,7 +191,7 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(function Site
     return <footer ref={ref} className={[styles.footer, styles.minimal, className].filter(Boolean).join(" ")}>
       <div className={styles.minimalRow}>
         {brandWithMark}
-        <nav aria-label="Footer"><ul className={styles.inline}>{rowLinks.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul></nav>
+        <nav aria-label="Pie de página"><ul className={styles.inline}>{rowLinks.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul></nav>
       </div>
       <div className={styles.minimalRow}>
         <span className={styles.copyright}>© {year} {brand.name}. {tagline}</span>
