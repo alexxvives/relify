@@ -943,7 +943,7 @@ export function ProcessRoom({
       {prompt ? <div className="mt-4">{prompt}</div> : null}
       {bare && !prompt ? <p className="mt-3 text-sm leading-6 text-[#667085]">{empty}</p> : null}
       {bare ? null : (
-        <div className="mt-4 flex-1 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] p-2">
+        <div className="-mx-2 mt-3 flex-1">
           {rows.length === 0 ? (
             <p className="px-2 py-1.5 text-sm leading-6 text-[#667085]">{sellerCopy.documentsEmpty}</p>
           ) : (
@@ -955,7 +955,7 @@ export function ProcessRoom({
                     onClick={row.onOpen}
                     disabled={row.onOpen === undefined}
                     title={row.title}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-[#1c2740] enabled:hover:bg-white disabled:cursor-default"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-[#1c2740] enabled:hover:bg-[#f4f6fa] disabled:cursor-default"
                   >
                     {row.signed ? (
                       <ShieldCheck className="size-4 shrink-0 text-[#17663a]" aria-hidden />
