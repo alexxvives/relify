@@ -744,3 +744,22 @@ model AdminSeen {
   @@id([adminId, page])
   @@map("admin_seen")
 }
+
+model ContactMessage {
+  id        String   @id
+  name      String
+  email     String
+  topic     String
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("contact_message")
+}
+
+model NewsletterSubscriber {
+  email     String   @id
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("newsletter_subscriber")
+}

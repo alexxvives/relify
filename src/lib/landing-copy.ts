@@ -22,6 +22,10 @@ export const landingCopy = {
       label: "Asesores",
       links: [{ label: "Cómo funciona", href: "/asesores" }],
     },
+    {
+      label: "Contacto",
+      links: [{ label: "Contacto", href: "/contacto" }],
+    },
   ],
   waitlistNav: { label: "Lista de espera", href: "/lista-de-espera" },
   stats: [
@@ -135,7 +139,10 @@ export const landingCopy = {
       },
       {
         title: "Relify",
-        links: [{ label: "Archivo", href: "/archivo" }],
+        links: [
+          { label: "Archivo", href: "/archivo" },
+          { label: "Contacto", href: "/contacto" },
+        ],
       },
     ],
   },

@@ -59,6 +59,8 @@ export interface ContactSectionProps {
   defaultChannel?: string;
   onChannelChange?: (value: string) => void;
   offices?: ContactOffice[];
+  /** Shown beside the form intro with a copy button. */
+  email?: string;
   className?: string;
 }
 
@@ -131,7 +133,7 @@ function TopicPicker({ topics, value, onChange, reduced }: { topics: string[]; v
     refs.current[next]?.focus();
   }
   return <div className={styles.topicField}>
-    <span id={`${id}-label`} className={styles.fieldLabel}>Topic</span>
+    <span id={`${id}-label`} className={styles.fieldLabel}>Tema</span>
     <LayoutGroup id={id}>
       <div className={styles.topics} role="radiogroup" aria-labelledby={`${id}-label`} onKeyDown={onKeyDown}>
         {topics.map((topic, index) => <button key={topic} ref={node => { refs.current[index] = node; }} type="button" role="radio" aria-checked={topic === value} tabIndex={topic === value ? 0 : -1} className={styles.topic} onClick={() => onChange(topic)}>
@@ -146,10 +148,10 @@ function TopicPicker({ topics, value, onChange, reduced }: { topics: string[]; v
 type Errors = Partial<Record<"name" | "email" | "message", string>>;
 function validate(values: { name: string; email: string; message: string }): Errors {
   const errors: Errors = {};
-  if (!values.name.trim()) errors.name = "Enter your name";
-  if (!values.email.trim()) errors.email = "Enter your email address";
-  else if (!EMAIL.test(values.email.trim())) errors.email = "Enter an email like name@example.com";
-  if (values.message.trim().length < 20) errors.message = values.message.trim() ? "Add a little more detail, at least 20 characters" : "Tell us how we can help";
+  if (!values.name.trim()) errors.name = "Escribe tu nombre";
+  if (!values.email.trim()) errors.email = "Escribe tu email";
+  else if (!EMAIL.test(values.email.trim())) errors.email = "Escribe un email como nombre@empresa.es";
+  if (values.message.trim().length < 20) errors.message = values.message.trim() ? "Cuéntanos un poco más, al menos 20 caracteres" : "Cuéntanos en qué podemos ayudarte";
   return errors;
 }
 
@@ -194,7 +196,7 @@ function ContactForm({ topics, onSubmit, reduced }: { topics: string[]; onSubmit
       setPhase("sent");
     } catch {
       setPhase("editing");
-      setFailure("We couldn't send your message. Check your connection and try again.");
+      setFailure("No hemos podido enviar tu mensaje. Revisa la conexión y vuelve a intentarlo.");
     }
   }
 
@@ -216,23 +218,23 @@ function ContactForm({ topics, onSubmit, reduced }: { topics: string[]; onSubmit
               <motion.path d="M5 12.5l4.5 4.5L19 7.5" initial={reduced ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: reduced ? 0 : .42, ease: enter, delay: .16 }} />
             </svg>
           </span>
-          <h3 ref={successRef} tabIndex={-1} className={styles.successTitle}>Thanks, {sentTo.name}</h3>
-          <p className={styles.successText}>Your message is with our {topic.toLowerCase()} team. We&rsquo;ll reply to {sentTo.email} within one business day.</p>
-          <Button variant="secondary" onClick={reset}>Send another message</Button>
+          <h3 ref={successRef} tabIndex={-1} className={styles.successTitle}>Gracias, {sentTo.name}</h3>
+          <p className={styles.successText}>Hemos recibido tu mensaje sobre «{topic}». Te responderemos en {sentTo.email}.</p>
+          <Button variant="secondary" onClick={reset}>Enviar otro mensaje</Button>
         </div>
-      : <form className={styles.formBody} onSubmit={submit} noValidate aria-label="Contact form">
+      : <form className={styles.formBody} onSubmit={submit} noValidate aria-label="Formulario de contacto">
           <div className={styles.row}>
-            <Input ref={nameRef} label="Name" name="name" autoComplete="name" placeholder="Emma Collins" value={values.name} onChange={update("name")} error={errors.name} readOnly={phase === "sending"} />
-            <Input ref={emailRef} label="Work email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="emma@northwind.example" value={values.email} onChange={update("email")} error={errors.email} readOnly={phase === "sending"} />
+            <Input ref={nameRef} label="Nombre" name="name" autoComplete="name" placeholder="Tu nombre" value={values.name} onChange={update("name")} error={errors.name} readOnly={phase === "sending"} />
+            <Input ref={emailRef} label="Email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="nombre@empresa.es" value={values.email} onChange={update("email")} error={errors.email} readOnly={phase === "sending"} />
           </div>
           <TopicPicker topics={topics} value={topic} onChange={setTopic} reduced={reduced} />
-          <Textarea ref={messageRef} label="Message" name="message" rows={4} maxLength={MAX_MESSAGE} placeholder="What are you building?" value={values.message} onChange={update("message")} error={errors.message} description={`${left} characters left`} readOnly={phase === "sending"} />
+          <Textarea ref={messageRef} label="Mensaje" name="message" rows={4} maxLength={MAX_MESSAGE} placeholder="¿En qué podemos ayudarte?" value={values.message} onChange={update("message")} error={errors.message} description={`Quedan ${left} caracteres`} readOnly={phase === "sending"} />
           <AnimatePresence initial={false}>
             {failure && <motion.p key="failure" role="alert" className={styles.failure} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={reduced ? { duration: 0 } : { height: motionTokens.spring.smooth, opacity: { duration: motionTokens.duration.fast, ease: standard } }}>{failure}</motion.p>}
           </AnimatePresence>
           <div className={styles.submitRow}>
-            <p className={styles.fine}>We reply within one business day.</p>
-            <Button type="submit" variant="primary" loading={phase === "sending"}>Send message</Button>
+            <p className={styles.fine}>Solo el equipo de Relify lee este mensaje.</p>
+            <Button type="submit" variant="primary" loading={phase === "sending"}>Enviar mensaje</Button>
           </div>
         </form>}
   </MorphPanel>;
@@ -403,6 +405,7 @@ export const ContactSection = forwardRef<HTMLElement, ContactSectionProps>(funct
   defaultChannel,
   onChannelChange,
   offices = contactExampleOffices,
+  email,
   className,
 }, ref) {
   const id = useId();
@@ -421,9 +424,8 @@ export const ContactSection = forwardRef<HTMLElement, ContactSectionProps>(funct
       <div className={styles.intro}>
         <h2 id={`${id}-title`} className={styles.title}>{title ?? copy.title}</h2>
         <p className={styles.description}>{description ?? copy.description}</p>
-        {variant === "form" && <ul className={styles.facts}>
-          <li><Clock size={16} strokeWidth={1.75} aria-hidden="true" />Replies within one business day</li>
-          <li><Mail size={16} strokeWidth={1.75} aria-hidden="true" /><span>hello@example.com</span><CopyButton value="hello@example.com" label="Copy email" iconOnly variant="plain" /></li>
+        {variant === "form" && email && <ul className={styles.facts}>
+          <li><Mail size={16} strokeWidth={1.75} aria-hidden="true" /><span>{email}</span><CopyButton value={email} label="Copiar email" iconOnly variant="plain" /></li>
         </ul>}
       </div>
       {variant === "form" && <ContactForm topics={topics} onSubmit={onSubmit} reduced={reduced} />}

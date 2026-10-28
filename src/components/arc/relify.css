@@ -1,6 +1,6 @@
 /* Relify brand on top of the uiarc foundation: navy ink, teal accent, the site's own fonts. */
 .arc-scope.relify-arc {
-  --background: transparent;
+  --background: #fff;
   --surface: #fff;
   --surface-raised: #fff;
   --surface-muted: var(--public-sand, #eef3f3);
@@ -18,3 +18,8 @@
   --font-display: inherit;
   --font-body: inherit;
 }
+
+/* Blocks sit on the page's own paper colour. */
+.arc-scope.relify-arc > section { background: transparent; }
+/* Primary buttons use the brand teal. */
+.arc-scope.relify-arc button[class*="_primary_"] { background: var(--public-clay, #0f6e73); border-color: var(--public-clay, #0f6e73); color: #fff; }
