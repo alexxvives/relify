@@ -22,10 +22,6 @@ export const landingCopy = {
       label: "Asesores",
       links: [{ label: "Cómo funciona", href: "/asesores" }],
     },
-    {
-      label: "Contacto",
-      links: [{ label: "Contacto", href: "/contacto" }],
-    },
   ],
   waitlistNav: { label: "Lista de espera", href: "/lista-de-espera" },
   stats: [
