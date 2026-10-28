@@ -2,6 +2,7 @@ import { MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
 import { sellerCopy } from "@/lib/seller-copy";
+import { SectorMarquee } from "@/components/sector-marquee";
 
 export function InvestorPublicCard({
   label,
@@ -37,7 +38,7 @@ export function InvestorPublicCard({
             <dl className="mt-5 grid grid-cols-2 gap-3">
               <ProfileFact label={sellerCopy.investorTypeLabel} value={profile.investorType} />
               <ProfileFact label={sellerCopy.investorTicketLabel} value={profile.ticket} />
-              <ProfileFact label={sellerCopy.investorStakeLabel} value={profile.stake} wide />
+              <ProfileFact label={sellerCopy.investorStakeLabel} value={profile.stake} />
               <SectorChips label={sellerCopy.investorSectorsLabel} value={profile.sectors} />
             </dl>
             <ProfileNote label={sellerCopy.investorOfferLabel} value={profile.contribution} />
@@ -76,49 +77,17 @@ function ProfileNote({ label, value }: { label: string; value: string }) {
   );
 }
 
-const visibleSectors = 3;
-
 function SectorChips({ label, value }: { label: string; value: string }) {
   const sectors = value
     .split(" · ")
     .map((sector) => sector.trim())
     .filter((sector) => sector.length > 0);
-  const shown = sectors.slice(0, visibleSectors);
-  const hidden = sectors.slice(visibleSectors);
 
   return (
-    <div className="col-span-2 rounded-2xl bg-[#f7f8fb] px-3 py-3">
-      <dt className="text-xs font-semibold text-[#667085]">{label}</dt>
-      <dd className="mt-2 flex flex-wrap items-center gap-1.5">
-        {sectors.length === 0 ? <span className="text-sm font-medium text-[#1c2740]">—</span> : null}
-        {shown.map((sector) => (
-          <span
-            key={sector}
-            title={sector}
-            className="max-w-full truncate rounded-full border border-[#dfe4f5] bg-white px-2.5 py-1 text-xs font-medium text-[#1c2740]"
-          >
-            {sector}
-          </span>
-        ))}
-        {hidden.length > 0 ? (
-          <span className="group relative">
-            <button
-              type="button"
-              aria-label={`${hidden.length} sectores más: ${hidden.join(", ")}`}
-              className="rounded-full bg-[#3d34b8] px-2.5 py-1 text-xs font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-[#5c4de0]"
-            >
-              +{hidden.length}
-            </button>
-            <span
-              role="tooltip"
-              className="invisible absolute top-full left-0 z-20 mt-2 flex w-60 max-w-[70vw] flex-col gap-1 rounded-xl border border-[#e1e6ee] bg-white p-3 text-xs font-medium text-[#1c2740] opacity-0 shadow-[0_12px_32px_-12px_rgba(28,39,64,0.35)] transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
-            >
-              {hidden.map((sector) => (
-                <span key={sector}>{sector}</span>
-              ))}
-            </span>
-          </span>
-        ) : null}
+    <div className="min-w-0 rounded-2xl bg-[#f7f8fb] px-3 py-3">
+      <dt className="text-xs font-semibold break-normal hyphens-auto text-[#667085]">{label}</dt>
+      <dd className="mt-1.5 min-w-0">
+        {sectors.length === 0 ? <span className="text-sm font-medium text-[#1c2740]">—</span> : <SectorMarquee sectors={sectors} />}
       </dd>
     </div>
   );
@@ -127,7 +96,7 @@ function SectorChips({ label, value }: { label: string; value: string }) {
 function ProfileFact({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
   return (
     <div className={wide ? "col-span-2 rounded-2xl bg-[#f7f8fb] px-3 py-3" : "rounded-2xl bg-[#f7f8fb] px-3 py-3"}>
-      <dt className="text-xs font-semibold text-[#667085]">{label}</dt>
+      <dt className="text-xs font-semibold break-normal hyphens-auto text-[#667085]">{label}</dt>
       <dd className="mt-1 line-clamp-3 text-sm font-medium text-[#1c2740]">{value.length > 0 ? value : "—"}</dd>
     </div>
   );
