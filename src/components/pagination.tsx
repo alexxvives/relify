@@ -1,25 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const subscribeNever = () => () => {};
+function readUrlPage() {
+  const fromUrl = Number(new URLSearchParams(window.location.search).get("page"));
+  return Number.isInteger(fromUrl) && fromUrl > 1 ? fromUrl : 1;
+}
 
 /** Reads ?page= on mount and writes it back without a navigation, so a reload or shared link keeps the page. */
 export function usePageParam(total: number, pageSize: number, resetKey: string) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  const [page, setPageState] = useState(1);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const fromUrl = Number(new URLSearchParams(window.location.search).get("page"));
-    if (Number.isInteger(fromUrl) && fromUrl > 1) setPageState(fromUrl);
-    setReady(true);
-  }, []);
+  // The URL page is read after hydration (the server renders page 1), without a setState inside an effect.
+  const urlPage = useSyncExternalStore(subscribeNever, readUrlPage, () => null);
+  const ready = urlPage !== null;
+  const [picked, setPicked] = useState<number | null>(null);
+  const page = picked ?? urlPage ?? 1;
 
   // A new filter starts again at page 1.
   const [lastKey, setLastKey] = useState(resetKey);
-  if (ready && lastKey !== resetKey) {
+  if (lastKey !== resetKey) {
     setLastKey(resetKey);
-    setPageState(1);
+    setPicked(1);
   }
 
   const current = Math.min(page, pages);
@@ -33,7 +36,7 @@ export function usePageParam(total: number, pageSize: number, resetKey: string) 
   }, [current, ready]);
 
   function setPage(next: number) {
-    setPageState(Math.min(Math.max(1, next), pages));
+    setPicked(Math.min(Math.max(1, next), pages));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 

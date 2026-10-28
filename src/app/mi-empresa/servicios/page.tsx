@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { AdvisoryPicker } from "@/components/advisory-picker";
 import { SignedInPage } from "@/components/signed-in-page";
 import { selectedEngagementCompany } from "@/lib/advisor-directory";
-import { advisoryCopy } from "@/lib/advisory";
 import { sellerCopy } from "@/lib/seller-copy";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
