@@ -243,13 +243,13 @@ export const landingCopy = {
           steps: [
             {
               n: "01",
-              title: "Cuéntanos la pyme",
-              body: "Cuatro datos bastan. No hace falta preparar la razón social ni el CIF.",
-              cardTitle: "Nos lo cuentas",
+              title: "Valora tu empresa",
+              body: "Con cuatro datos tienes una primera horquilla de valor en menos de un minuto. Sin CIF ni razón social.",
+              cardTitle: "Tu valoración",
               chip: "Unos minutos",
               panel: {
                 kind: "form",
-                foot: "Cuatro datos, y la ficha puede salir",
+                foot: "Cuatro datos y ya sabes cuánto puede valer",
                 fields: [
                   { kind: "choice", label: "¿Qué vas a vender?", options: ["La empresa", "Una parte", "Aún no lo sé"], pickAt: 700 },
                   { kind: "choice", label: "¿Cuántas personas?", options: ["Menos de 10", "De 10 a 30", "Más de 30"], pickAt: 1500 },
@@ -260,8 +260,8 @@ export const landingCopy = {
             },
             {
               n: "02",
-              title: "Sale la ficha, no el nombre",
-              body: "Región, facturación, EBITDA y precio. La razón social se queda fuera.",
+              title: "Crea el perfil de tu compañía para atraer más interesados",
+              body: "Una ficha clara con región, facturación, EBITDA y precio atrae a más compradores. La razón social se queda fuera.",
               cardTitle: "Relify prepara",
               chip: "Sin el nombre",
               panel: {
@@ -279,8 +279,8 @@ export const landingCopy = {
             },
             {
               n: "03",
-              title: "Llegan compradores",
-              body: "El interés entra en la operación. El nombre de la sociedad sigue en reserva.",
+              title: "Elige y contacta a los compradores",
+              body: "Ves quién se interesa, decides con quién hablar y conversas dentro de la operación. Tu nombre sigue en reserva.",
               cardTitle: "Hay interés",
               chip: "En curso",
               panel: {
