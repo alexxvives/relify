@@ -112,9 +112,9 @@ function Marker({ number, kind, current, glyphDelay, ringDelay, reduced }: { num
   </span>;
 }
 
-const statusText: Record<StepperStatus, string> = { complete: "Completed", current: "", upcoming: "Not started", error: "Error" };
+const statusText: Record<StepperStatus, string> = { complete: "Hecho", current: "", upcoming: "Pendiente", error: "Error" };
 
-export function Stepper({ steps, current, orientation = "horizontal", onStepSelect, details = "all", compact = false, label = "Progress", completeLabel = "All steps complete", className }: StepperProps) {
+export function Stepper({ steps, current, orientation = "horizontal", onStepSelect, details = "all", compact = false, label = "Progreso", completeLabel = "Todos los pasos hechos", className }: StepperProps) {
   const reduced = useReducedMotion() ?? false;
   const count = steps.length;
   const active = Math.min(Math.max(Math.round(current), 0), count);
