@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { compactButtonClass } from "@/components/ui/compact-button";
 import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
-import { saveCorporateAction, saveServicesAction } from "@/app/mis-servicios/actions";
+import { saveCorporateAction, saveServicesAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { AppToast } from "@/components/app-toast";
 import { advisorCopy } from "@/lib/advisor-copy";

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { signOutAction } from "@/app/cuenta/actions";
+import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { OnboardingPlanResume } from "@/components/onboarding-plan-resume";
 import { loadBuyerPlan } from "@/server/buyerPlan";

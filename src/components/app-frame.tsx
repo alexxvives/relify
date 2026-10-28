@@ -23,7 +23,7 @@ import { TableIcon } from "@animateicons/react/lucide/table-icon";
 import { TrophyIcon } from "@animateicons/react/lucide/trophy-icon";
 import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
-import { signOutAction } from "@/app/cuenta/actions";
+import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { Logo } from "@/components/logo";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { NotificationBell } from "@/components/notification-bell";
@@ -218,8 +218,6 @@ function SideLink({
 export function AppFrame({
   name,
   destinations,
-  title,
-  showTitle = true,
   notifications: allNotifications,
   showPremium = false,
   companies = [],
@@ -233,8 +231,6 @@ export function AppFrame({
 }: {
   name: string;
   destinations: ShellDestination[];
-  title: string;
-  showTitle?: boolean;
   notifications: NotificationView[];
   showPremium?: boolean;
   companies?: { id: string; legalName: string; codename: string; pending?: number }[];
@@ -469,8 +465,7 @@ export function AppFrame({
           </div>
         </header>
         <div className="shell-content pb-28 lg:pb-[var(--layout-pad)]">
-          {showTitle ? <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1> : null}
-          <div className={showTitle ? "mt-6" : undefined}>{children}</div>
+          {children}
         </div>
         <nav
           aria-label="Accesos rápidos"

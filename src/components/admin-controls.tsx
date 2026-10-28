@@ -10,7 +10,7 @@ import {
   toggleVerifiedAction,
   unpublishProjectAction,
   type AdminActionState,
-} from "@/app/admin/actions";
+} from "@/app/(app)/admin/actions";
 import { AppToast } from "@/components/app-toast";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";

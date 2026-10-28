@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { compactButtonClass } from "@/components/ui/compact-button";
-import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
+import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
 import { companyCopy } from "@/lib/company-copy";
 
 export function AccountsUpload({

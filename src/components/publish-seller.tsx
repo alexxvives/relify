@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { publishSellerProjectAction } from "@/app/mi-empresa/actions";
+import { publishSellerProjectAction } from "@/app/(app)/mi-empresa/actions";
 import { billingCopy } from "@/lib/billing-copy";
 
 export function PublishSellerButton({ requiresPayment = false }: { requiresPayment?: boolean }) {

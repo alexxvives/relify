@@ -191,7 +191,7 @@ export default async function ProjectDetailPage({
 
   if (user?.role === "investor") {
     return (
-      <AppShell title={project.codename} showTitle={false}>
+      <AppShell>
         <Suspense fallback={<ProjectSkeleton />}>
           <InvestorProjectContent user={user} slug={slug} tab={query.tab} sold={project.sold === true} cover={bannerImage(project)} />
         </Suspense>
@@ -202,7 +202,7 @@ export default async function ProjectDetailPage({
   const signedIn = user !== null;
   if (project.sold) {
     return signedIn ? (
-      <AppShell title={project.codename} showTitle={false}>
+      <AppShell>
         <SoldNotice codename={project.codename} />
       </AppShell>
     ) : (
@@ -281,7 +281,7 @@ export default async function ProjectDetailPage({
 
   if (signedIn) {
     return (
-      <AppShell title={project.codename} showTitle={false}>
+      <AppShell>
         <div className="text-public-ink">{listing}</div>
       </AppShell>
     );

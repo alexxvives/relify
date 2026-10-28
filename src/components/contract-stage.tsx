@@ -10,7 +10,7 @@ import {
   signContractAction,
   uploadContractAction,
   type ContractActionState,
-} from "@/app/procesos/contract-actions";
+} from "@/app/(app)/procesos/contract-actions";
 import { contractStatusLabel, type ContractStage as Stage, type ContractView } from "@/lib/sale-contract";
 
 const stageOrder: { id: Stage; label: string }[] = [

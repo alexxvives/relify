@@ -13,7 +13,7 @@ import {
   declineEngagementAction,
   startAdvisorDepositAction,
   startInboxCheckoutAction,
-} from "@/app/mandatos/encargos/actions";
+} from "@/app/(app)/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 

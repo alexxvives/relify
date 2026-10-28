@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransitio
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Bell, ChevronRight } from "lucide-react";
-import { markNotificationsReadAction } from "@/app/cuenta/actions";
+import { markNotificationsReadAction } from "@/app/(app)/cuenta/actions";
 import { NoticeText } from "@/components/notice-list";
 import { noticeIconFor } from "@/lib/notice-icons";
 import { notificationCopy, type NotificationView } from "@/lib/notifications";

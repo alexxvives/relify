@@ -9,8 +9,8 @@ import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/component
 import { useRouter } from "next/navigation";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
-import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/mi-empresa/actions";
+import type { AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
+import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { AccountsUpload } from "@/components/accounts-upload";
 import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";

@@ -4,7 +4,7 @@ import { Pagination, usePageParam } from "@/components/pagination";
 import { useMemo, useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Briefcase, Calculator, Check, FileSpreadsheet, Scale, Search, Users, X } from "lucide-react";
-import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
+import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/(app)/asesoramiento/actions";
 import { AppToast } from "@/components/app-toast";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { useModalScrollLock } from "@/components/file-preview-dialog";

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { compactButtonClass } from "@/components/ui/compact-button";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User, X } from "lucide-react";
-import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/inversor/perfil/actions";
+import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/(app)/inversor/perfil/actions";
 import { AppToast } from "@/components/app-toast";
 import { FieldHint } from "@/components/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";

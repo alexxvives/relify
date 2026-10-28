@@ -12,7 +12,7 @@ import {
 import {
   verifyCompanyNifAction,
   type VerifyNifState,
-} from "@/app/mi-empresa/nif-actions";
+} from "@/app/(app)/mi-empresa/nif-actions";
 import { companyCopy } from "@/lib/company-copy";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 

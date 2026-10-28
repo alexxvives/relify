@@ -7,7 +7,7 @@ import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
 import { HeartIcon } from "@/components/ui/heart";
 import { CheckIcon } from "@/components/ui/check";
 import { AppToast } from "@/components/app-toast";
-import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/premium/actions";
+import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/(app)/premium/actions";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
 

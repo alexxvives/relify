@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
-import { AppShell } from "@/components/app-shell";
+import { getCurrentUser } from "@/server/getCurrentUser";
 
+/**
+ * Page heading + body inside the persistent (app) layout. The sidebar frame lives in
+ * src/app/(app)/layout.tsx, so changing page never re-renders or reloads the menu.
+ */
 export async function SignedInPage({
   title,
   showTitle = true,
@@ -9,12 +13,18 @@ export async function SignedInPage({
 }: {
   title: string;
   showTitle?: boolean;
+  /** Replace the title with a "Hola, {nombre}" heading (role homes). */
   greeting?: boolean;
   children: ReactNode;
 }) {
+  const user = greeting ? await getCurrentUser() : null;
+  const heading = greeting && user ? `Hola, ${user.displayName.split(" ")[0] ?? user.displayName}` : title;
+  const show = greeting || showTitle;
+
   return (
-    <AppShell title={title} showTitle={showTitle} greeting={greeting}>
-      {children}
-    </AppShell>
+    <>
+      {show ? <h1 className="text-3xl tracking-tight text-public-ink">{heading}</h1> : null}
+      <div className={show ? "mt-6" : undefined}>{children}</div>
+    </>
   );
 }

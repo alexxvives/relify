@@ -7,7 +7,7 @@ import {
   startCardSetupAction,
   updateBillingEmailAction,
   type SubscriptionActionState,
-} from "@/app/premium/actions";
+} from "@/app/(app)/premium/actions";
 import { AppToast } from "@/components/app-toast";
 import { billingCopy } from "@/lib/billing-copy";
 import type { SubscriptionDesk } from "@/server/subscriptionDesk";

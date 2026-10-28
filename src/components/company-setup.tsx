@@ -2,8 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/mi-empresa/accounts-actions";
-import { verifyCompanyNifAction, type VerifyNifState } from "@/app/mi-empresa/nif-actions";
+import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
+import { verifyCompanyNifAction, type VerifyNifState } from "@/app/(app)/mi-empresa/nif-actions";
 import { companyCopy } from "@/lib/company-copy";
 
 export function CompanySetup({

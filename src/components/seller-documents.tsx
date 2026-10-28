@@ -18,7 +18,7 @@ import {
   shareDataRoomScopeFormAction,
   storeDataRoomFileAction,
   type DataRoomActionState,
-} from "@/app/mi-empresa/documentos/actions";
+} from "@/app/(app)/mi-empresa/documentos/actions";
 import { filesWithBytes, type DataRoomShareView, type OwnerFileView } from "@/lib/data-room";
 
 export type DocumentAdvisor = {

@@ -8,7 +8,7 @@ import {
   deleteClientEngagementAction,
   postEngagementMessageAction,
   rescheduleEngagementMeetingAction,
-} from "@/app/asesoramiento/thread-actions";
+} from "@/app/(app)/asesoramiento/thread-actions";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";

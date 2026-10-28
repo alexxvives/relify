@@ -3,7 +3,7 @@
 import { InfoHint } from "@/components/ui/info-hint";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Check, Star } from "lucide-react";
-import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/asesoramiento/actions";
+import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/(app)/asesoramiento/actions";
 import { AppToast } from "@/components/app-toast";
 import { advisoryCopy, advisoryServiceIdFromTitle, type AdvisoryServiceId } from "@/lib/advisory";
 import type { PublicAdvisorCard } from "@/lib/advisor-directory";

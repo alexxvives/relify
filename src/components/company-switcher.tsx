@@ -8,7 +8,7 @@ import { Trash2Icon } from "@/components/ui/trash-2";
 import { PlusIcon } from "@/components/ui/plus";
 import { Info } from "lucide-react";
 import { AlertDot, CountBadge } from "@/components/ui/badge";
-import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/mi-empresa/actions";
+import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyAction } from "@/app/(app)/mi-empresa/actions";
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
 import { sellerCopy } from "@/lib/seller-copy";

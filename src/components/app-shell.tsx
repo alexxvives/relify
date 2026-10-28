@@ -11,18 +11,11 @@ import { adminNewCounts } from "@/server/adminSeen";
 import { menuEncargoCount, menuProcessCount } from "@/server/menuProcessCount";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 
-export async function AppShell({
-  title,
-  showTitle = true,
-  greeting = false,
-  children,
-}: {
-  title: string;
-  showTitle?: boolean;
-  /** Replace the title with a "Hola, {nombre}" heading (role homes). */
-  greeting?: boolean;
-  children: ReactNode;
-}) {
+/**
+ * Signed-in frame (sidebar, mobile header, bottom tabs). Rendered once by the (app) route-group
+ * layout so it persists across page changes; pages render their own title via SignedInPage.
+ */
+export async function AppShell({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -59,8 +52,6 @@ export async function AppShell({
     <AppFrame
       name={user.displayName}
       destinations={destinations}
-      title={greeting ? `Hola, ${user.displayName.split(" ")[0] ?? user.displayName}` : title}
-      showTitle={greeting || showTitle}
       notifications={notifications}
       showPremium={user.role === "investor"}
       companies={companies}

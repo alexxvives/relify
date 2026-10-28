@@ -4,7 +4,7 @@ import { NewPasswordField } from "@/components/new-password-field";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/cuenta/actions";
+import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/(app)/cuenta/actions";
 import { AppToast } from "@/components/app-toast";
 import { PhoneField } from "@/components/phone-field";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";

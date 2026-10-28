@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/account-settings";
 import { SignedPlatformTerms } from "@/components/signed-platform-terms";
-import { AppShell } from "@/components/app-shell";
+import { SignedInPage } from "@/components/signed-in-page";
 import { InvestorAccount } from "@/components/investor-account";
 import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
@@ -66,10 +66,10 @@ async function AccountPageContent() {
 
 export default function AccountPage() {
   return (
-    <AppShell title={authCopy.accountTitle}>
+    <SignedInPage title={authCopy.accountTitle}>
       <Suspense fallback={<AccountSkeleton />}>
         <AccountPageContent />
       </Suspense>
-    </AppShell>
+    </SignedInPage>
   );
 }
