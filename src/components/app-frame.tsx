@@ -305,7 +305,7 @@ export function AppFrame({
           {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
           <div className="flex min-w-0 items-center justify-between gap-2">
             <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
-              <Logo />
+              <Logo tone="light" />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
               {showPremium ? <PremiumLink onClick={closeMenu} /> : null}
