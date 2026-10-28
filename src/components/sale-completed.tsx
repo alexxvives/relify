@@ -148,13 +148,13 @@ export function SellerSaleCompleted({
               icon={<Receipt className="size-4" aria-hidden />}
               title="Pago de la success fee"
               body={`Te enviaremos la factura de ${figures.fee} (${figures.feeNote}) por email. Puedes pagarla por transferencia en los próximos 30 días.`}
-              action={<a href="mailto:ayuda@itsreleva.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
+              action={<a href="mailto:info@itsrelify.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
             />
             <Step
               icon={<MessageSquareQuote className="size-4" aria-hidden />}
               title="Cuéntanos tu experiencia"
               body="Un testimonio de dos líneas ayuda a otros empresarios a dar el paso."
-              action={<a href="mailto:ayuda@itsreleva.com?subject=Mi%20testimonio%20en%20Relify" className="text-sm font-medium text-[#465ab4]">Enviar testimonio</a>}
+              action={<a href="mailto:info@itsrelify.com?subject=Mi%20testimonio%20en%20Relify" className="text-sm font-medium text-[#465ab4]">Enviar testimonio</a>}
             />
             <Step
               icon={<FolderOpen className="size-4" aria-hidden />}
@@ -223,7 +223,7 @@ export function BuyerPurchaseCompleted({ purchase }: { purchase: BuyerPurchase }
             icon={<Receipt className="size-4" aria-hidden />}
             title="Pago de la success fee"
             body={`Te enviaremos la factura de ${purchase.fee} (${purchase.feeNote}) por email. Puedes pagarla por transferencia en los próximos 30 días.`}
-            action={<a href="mailto:ayuda@itsreleva.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
+            action={<a href="mailto:info@itsrelify.com?subject=Factura%20success%20fee" className="text-sm font-medium text-[#465ab4]">¿Dudas con la factura?</a>}
           />
           <Step
             icon={<KeyRound className="size-4" aria-hidden />}

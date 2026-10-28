@@ -142,6 +142,7 @@ export const landingCopy = {
         links: [
           { label: "Archivo", href: "/archivo" },
           { label: "Contacto", href: "/contacto" },
+          { label: "info@itsrelify.com", href: "mailto:info@itsrelify.com" },
         ],
       },
     ],

@@ -12,8 +12,8 @@ export const shellCopy = {
   helpPhone: "910 88 40 12",
   helpPhoneHref: "tel:+34910884012",
   helpWrite: "Escribir",
-  helpEmail: "ayuda@itsreleva.com",
-  helpEmailHref: "mailto:ayuda@itsreleva.com",
+  helpEmail: "info@itsrelify.com",
+  helpEmailHref: "mailto:info@itsrelify.com",
 } as const;
 
 export type ShellDestination = {

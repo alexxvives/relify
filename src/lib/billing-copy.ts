@@ -26,7 +26,7 @@ export const billingCopy = {
   priceLabel: "Precio",
   changePlan: "Cambiar de plan",
   switchPlan: "Cambiar a este plan",
-  grantedChange: "Este plan lo concedió Relify. Escríbenos a ayuda@itsreleva.com para cambiarlo.",
+  grantedChange: "Este plan lo concedió Relify. Escríbenos a info@itsrelify.com para cambiarlo.",
   switching: "Cambiando de plan…",
   planChanged: "Plan actualizado. La diferencia se prorratea en tu próxima factura.",
   invoicePdf: "PDF",
