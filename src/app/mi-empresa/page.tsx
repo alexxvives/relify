@@ -16,8 +16,6 @@ import { listNotifications } from "@/server/listNotifications";
 import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { CancelledProcesses } from "@/components/cancelled-processes";
-import { listCancelledProcesses } from "@/server/listCancelledProcesses";
 import { requireRole } from "@/server/requireRole";
 import { projectCoverIsStored } from "@/server/projectCover";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -41,14 +39,13 @@ async function CompanyPageContent({
   }
 
   // One round trip per wave instead of eleven sequential queries.
-  const [nifVerified, projectId, listing, notifications, overview, messages, cancelled] = await Promise.all([
+  const [nifVerified, projectId, listing, notifications, overview, messages] = await Promise.all([
     companyNifIsVerified(user),
     activeSellerProjectId(user.id),
     getSellerListing(user.id),
     listNotifications(user.id),
     getSellerOverview(user.id),
     listProjectMessages(user, null),
-    listCancelledProcesses(user),
   ]);
   const [funnel, sold, own] = await Promise.all([
     sellerFunnel(user.id, projectId),
@@ -80,7 +77,6 @@ async function CompanyPageContent({
           })),
         )}
       />
-      <CancelledProcesses items={cancelled} viewer="seller" />
     </>
   );
 }

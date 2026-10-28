@@ -8,8 +8,6 @@ import { investorCopy } from "@/lib/investor-copy";
 import { loadInvestorDesk } from "@/server/investorDesk";
 import { listNotifications } from "@/server/listNotifications";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
-import { CancelledProcesses } from "@/components/cancelled-processes";
-import { listCancelledProcesses } from "@/server/listCancelledProcesses";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -19,10 +17,9 @@ export const metadata: Metadata = {
 
 async function InvestorHomePageContent() {
   const user = await requireRole("investor");
-  const [notifications, sectors, cancelled, desk] = await Promise.all([
+  const [notifications, sectors, desk] = await Promise.all([
     listNotifications(user.id),
     listPublishedSectors(),
-    listCancelledProcesses(user),
     loadInvestorDesk(user.id, user.email),
   ]);
 
@@ -46,7 +43,6 @@ async function InvestorHomePageContent() {
           })),
         )}
       />
-      <CancelledProcesses items={cancelled} viewer="investor" />
     </>
   );
 }
