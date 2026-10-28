@@ -306,7 +306,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           {desk === "chat" ? (
             <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
-                <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.questionsPanel}</h3>
+                <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.replyPanel}</h3>
                 <div className="mt-4 flex flex-1 flex-col">
                   <ProjectThread
                     viewer="seller"
