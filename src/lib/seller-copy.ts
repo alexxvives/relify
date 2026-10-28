@@ -28,7 +28,7 @@ export const sellerCopy = {
   financeCostIntro: "Ejercicio con desglose de gasto más reciente.",
   financeCostHint: "Solo ejercicios con desglose de gasto.",
   financeCostYear: "Ejercicio",
-  questionsPanel: "Chat",
+  questionsPanel: "Chat/Documentos",
   replyPanel: "Chat",
   replyField: "Escribe un mensaje",
   chatSend: "Enviar",
