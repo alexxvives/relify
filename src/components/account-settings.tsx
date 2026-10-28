@@ -1,5 +1,6 @@
 "use client";
 
+import { NewPasswordField } from "@/components/new-password-field";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -190,14 +191,14 @@ export function AccountSettings({
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
-        <form action={changePassword} className="mt-4 grid min-w-0 items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
-          <SecretField name="newPassword" label={authCopy.passwordNew} autoComplete="new-password" minLength={8} maxLength={128} />
+          <NewPasswordField name="newPassword" label={authCopy.passwordNew} />
           <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
           <button
             type="submit"
             disabled={passwordPending}
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60 lg:mt-7"
           >
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </button>
@@ -213,7 +214,7 @@ export function AccountSettings({
       <section className="rounded-2xl border border-[#f0c2c2] bg-white p-5">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
-        <form action={deleteAccount} className="mt-4 grid min-w-0 items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
           <label className="flex flex-col gap-2 text-sm font-medium">
             {authCopy.deleteConfirmLabel}

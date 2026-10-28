@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 import { signUpAction, type SignUpState } from "@/app/registro/actions";
 import { ArrowRight } from "lucide-react";
-import { authSubmitClassName, EmailField, PasswordField } from "@/components/auth-field";
+import { NewPasswordField } from "@/components/new-password-field";
+import { authSubmitClassName, EmailField } from "@/components/auth-field";
 import { authCopy } from "@/lib/auth-copy";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { Stepper } from "@/components/arc/stepper/stepper";
@@ -79,12 +80,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
       </div>
       <input type="hidden" name="signupRole" value={role} />
       <EmailField />
-      <PasswordField
-        autoComplete="new-password"
-        minLength={8}
-        maxLength={128}
-        placeholder={authCopy.passwordPlaceholder}
-      />
+      <NewPasswordField name="password" label={authCopy.passwordLabel} placeholder={authCopy.passwordPlaceholder} />
       {localMessage || state?.message ? (
         <p role="alert" className="text-sm text-destructive">
           {localMessage ?? state?.message}
