@@ -37,10 +37,11 @@ export interface BlogGridProps {
   className?: string;
 }
 
+const ALL = "Todo";
 const smooth = motionTokens.spring.smooth;
 const morph = motionTokens.spring.morph;
 const standard = [...motionTokens.ease.standard] as [number, number, number, number];
-const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+const dateFormat = new Intl.DateTimeFormat("es-ES", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 const formatDate = (iso: string) => dateFormat.format(new Date(`${iso}T00:00:00Z`));
 
 function useControllable<T>(value: T | undefined, initial: T, onChange?: (next: T) => void) {
@@ -88,17 +89,17 @@ function Byline({ post }: { post: BlogPost }) {
   return <div className={styles.byline}>
     {post.author.avatar ? <img className={styles.avatar} src={post.author.avatar} alt="" width={24} height={24} loading="lazy" /> : <span className={styles.avatar} aria-hidden="true" />}
     <span className={styles.authorName}>{post.author.name}</span>
-    <span className={styles.readTime}>{post.readTime} min read</span>
+    <span className={styles.readTime}>{post.readTime} min de lectura</span>
   </div>;
 }
 
 export function BlogGrid({
-  title = "Journal",
-  description = "Product news, design notes and engineering deep dives from the team.",
+  title = "Diario",
+  description = "",
   posts = blogPosts,
   categories = blogCategories,
   category: categoryProp,
-  defaultCategory = "All",
+  defaultCategory = ALL,
   onCategoryChange,
   page: pageProp,
   defaultPage = 1,
@@ -121,7 +122,7 @@ export function BlogGrid({
   const lastOpened = useRef<string | null>(null);
 
   const sorted = [...posts].sort((a, b) => b.date.localeCompare(a.date));
-  const filtered = category === "All" ? sorted : sorted.filter(post => post.category === category);
+  const filtered = category === ALL ? sorted : sorted.filter(post => post.category === category);
   const featured = showFeatured && filtered.length > 1 ? (filtered.find(post => post.featured) ?? filtered[0]) : null;
   const rest = featured ? filtered.filter(post => post !== featured) : filtered;
   const pageCount = Math.max(1, Math.ceil(rest.length / pageSize));
@@ -185,7 +186,7 @@ export function BlogGrid({
   /** Fades a piece of the index or reader in on its own, so the shared image is never dimmed by a fading parent mid morph. */
   const enterFade = (on: boolean) => ({ initial: on ? { opacity: 0 } : false as const, animate: { opacity: 1 }, transition: { duration: motionTokens.duration.standard, ease: standard } });
   const back = returning !== null;
-  const tabs = ["All", ...categories];
+  const tabs = [ALL, ...categories];
   const pageKey = `${category}-${safePage}`;
 
   return <section ref={rootRef} className={[styles.root, className].filter(Boolean).join(" ")} aria-label={title}>
@@ -193,13 +194,13 @@ export function BlogGrid({
       <div className={styles.inner}>
         <AnimatePresence mode="popLayout" initial={false}>
           {reading ? <motion.article key="reader" className={styles.reader} exit={{ opacity: 0, transition: { duration: motionTokens.duration.exit, ease: standard } }} aria-labelledby={`${uid}-reader-title`}>
-            <motion.button type="button" className={styles.back} onClick={close} autoFocus {...enterFade(true)}><ArrowLeft size={16} aria-hidden="true" />All posts</motion.button>
+            <motion.button type="button" className={styles.back} onClick={close} autoFocus {...enterFade(true)}><ArrowLeft size={16} aria-hidden="true" />Todos los artículos</motion.button>
             <motion.header className={styles.readerHead} {...enterFade(true)}>
               <Meta post={reading} />
               <h2 id={`${uid}-reader-title`} className={styles.readerTitle}>{reading.title}</h2>
               <Byline post={reading} />
             </motion.header>
-            {reading.image && <motion.div layoutId={reduced ? undefined : `${uid}-image-${reading.id}`} transition={morph} className={styles.readerImage} {...(reduced ? enterFade(true) : {})}>
+            {reading.image && <motion.div layoutId={reduced ? undefined : `${uid}-image-${reading.id}`} className={styles.readerImage} {...(reduced ? enterFade(true) : { transition: morph })}>
               <img className={styles.image} src={reading.image.src} alt={reading.image.alt} />
             </motion.div>}
             <motion.div className={styles.readerBody} initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...smooth, delay: reduced ? 0 : .12 }}>
@@ -212,7 +213,7 @@ export function BlogGrid({
               {description && <p className={styles.description}>{description}</p>}
             </motion.header>
 
-            <motion.div className={styles.filters} role="group" aria-label="Filter by category" {...enterFade(back)}>
+            <motion.div className={styles.filters} role="group" aria-label="Filtrar por categoría" {...enterFade(back)}>
               {tabs.map(tab => <button key={tab} type="button" className={styles.filter} aria-pressed={tab === category} onClick={() => setCategory(tab)}>
                 {tab === category && <motion.span layoutId={`${uid}-filter`} className={styles.filterHighlight} transition={reduced ? { duration: 0 } : morph} />}
                 <span>{tab}</span>
@@ -236,15 +237,15 @@ export function BlogGrid({
             </AnimatePresence>
 
             <AnimatePresence initial={back}>
-            {pageCount > 1 && <motion.nav key="pagination" className={styles.pagination} aria-label="Pagination" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: motionTokens.duration.exit, ease: standard } }} transition={{ duration: motionTokens.duration.standard, ease: standard }}>
-              <button type="button" className={styles.pageStep} onClick={() => setPage(safePage - 1)} disabled={safePage === 1} aria-label="Previous page"><ChevronLeft size={16} aria-hidden="true" /><span>Previous</span></button>
+            {pageCount > 1 && <motion.nav key="pagination" className={styles.pagination} aria-label="Paginación" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: motionTokens.duration.exit, ease: standard } }} transition={{ duration: motionTokens.duration.standard, ease: standard }}>
+              <button type="button" className={styles.pageStep} onClick={() => setPage(safePage - 1)} disabled={safePage === 1} aria-label="Página anterior"><ChevronLeft size={16} aria-hidden="true" /><span>Anterior</span></button>
               <div className={styles.pageNumbers}>
-                {Array.from({ length: pageCount }, (_, index) => index + 1).map(number => <button key={number} type="button" className={styles.pageNumber} aria-current={number === safePage ? "page" : undefined} aria-label={`Page ${number}`} onClick={() => setPage(number)}>
+                {Array.from({ length: pageCount }, (_, index) => index + 1).map(number => <button key={number} type="button" className={styles.pageNumber} aria-current={number === safePage ? "page" : undefined} aria-label={`Página ${number}`} onClick={() => setPage(number)}>
                   {number === safePage && <motion.span layoutId={`${uid}-page`} className={styles.pageHighlight} transition={reduced ? { duration: 0 } : morph} />}
                   <span>{number}</span>
                 </button>)}
               </div>
-              <button type="button" className={styles.pageStep} onClick={() => setPage(safePage + 1)} disabled={safePage === pageCount} aria-label="Next page"><span>Next</span><ChevronRight size={16} aria-hidden="true" /></button>
+              <button type="button" className={styles.pageStep} onClick={() => setPage(safePage + 1)} disabled={safePage === pageCount} aria-label="Página siguiente"><span>Siguiente</span><ChevronRight size={16} aria-hidden="true" /></button>
             </motion.nav>}
             </AnimatePresence>
             </AutoHeight>

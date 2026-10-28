@@ -43,9 +43,9 @@ type Bezier = [number, number, number, number];
 const enter = [...motionTokens.ease.enter] as Bezier;
 const standard = [...motionTokens.ease.standard] as Bezier;
 const MESSAGES = {
-  empty: "Enter your email address",
-  format: "Enter an email like name@company.com",
-  failed: "That didn't go through. Your email is kept, so try again.",
+  empty: "Escribe tu email",
+  format: "Escribe un email como nombre@empresa.es",
+  failed: "No se ha podido guardar. Tu email sigue aquí: vuelve a intentarlo.",
 };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** How far each issue behind the front one peeks out above it. */
@@ -82,7 +82,7 @@ function IssueCard({ issue, name, to }: { issue: NewsletterIssue; name: string; 
     </header>
     <p className={styles.issueMeta}>
       <span className={styles.issueDate}>{issue.date}</span>
-      {to && <><span aria-hidden="true">&middot;</span><span className={styles.recipient}>To <span className={styles.recipientEmail}>{to}</span></span></>}
+      {to && <><span aria-hidden="true">&middot;</span><span className={styles.recipient}>Para <span className={styles.recipientEmail}>{to}</span></span></>}
     </p>
     <h3 className={styles.subject}>{issue.subject}</h3>
     <ul className={styles.stories}>
@@ -171,8 +171,8 @@ export const NewsletterSignup = forwardRef<HTMLElement, NewsletterSignupProps>(f
   variant = "inline",
   title,
   description,
-  placeholder = "you@company.com",
-  buttonLabel = "Subscribe",
+  placeholder = "nombre@empresa.es",
+  buttonLabel = "Suscribirme",
   privacyNote = newsletterCopy.privacy,
   privacyLink = newsletterCopy.privacyLink,
   readers = newsletterReaders,
@@ -241,18 +241,18 @@ export const NewsletterSignup = forwardRef<HTMLElement, NewsletterSignupProps>(f
   const labelKey = done ? "done" : sending ? "sending" : problem?.kind === "failed" ? "retry" : "idle";
   const labels: Record<string, ReactNode> = {
     idle: <>{buttonLabel}<ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" /></>,
-    retry: <>Try again<ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" /></>,
-    sending: <><span className={styles.spinner} aria-hidden="true" />Subscribing</>,
-    done: <><span className={styles.check} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><motion.path d="M5 12.5l4.5 4.5L19 7.5" initial={reduced ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: reduced ? 0 : .34, ease: enter, delay: .12 }} /></svg></span>Subscribed</>,
+    retry: <>Reintentar<ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" /></>,
+    sending: <><span className={styles.spinner} aria-hidden="true" />Guardando</>,
+    done: <><span className={styles.check} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><motion.path d="M5 12.5l4.5 4.5L19 7.5" initial={reduced ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: reduced ? 0 : .34, ease: enter, delay: .12 }} /></svg></span>Suscrito</>,
   };
 
-  const doneText = "Check your inbox to confirm.";
+  const doneText = "Te hemos apuntado.";
   const note = <>{privacyNote}{privacyLink && <> <a className={styles.link} href={privacyLink.href}>{privacyLink.label}</a></>}</>;
   // Plain copies of the note and the confirmation, used only to reserve the line's height.
-  const measures = [<>{privacyNote}{privacyLink && ` ${privacyLink.label}`}</>, `${doneText} Use a different email`, MESSAGES.empty, MESSAGES.format, MESSAGES.failed];
+  const measures = [<>{privacyNote}{privacyLink && ` ${privacyLink.label}`}</>, `${doneText} Usar otro email`, MESSAGES.empty, MESSAGES.format, MESSAGES.failed];
   const form = <form className={styles.form} onSubmit={submit} noValidate aria-label={title ?? copy.title}>
     <motion.div ref={pill} className={styles.pill} data-invalid={problem ? "" : undefined} data-done={done ? "" : undefined}>
-      <label htmlFor={`${id}-email`} className={styles.srOnly}>Email address</label>
+      <label htmlFor={`${id}-email`} className={styles.srOnly}>Email</label>
       <input
         ref={input}
         id={`${id}-email`}
@@ -283,7 +283,7 @@ export const NewsletterSignup = forwardRef<HTMLElement, NewsletterSignupProps>(f
         transition={motionTokens.spring.snappy}
       >
         <span className={styles.labels}>
-          {Object.keys(labels).map(key => <span key={key} className={styles.sizer} aria-hidden="true">{key === "done" ? <><span className={styles.check} />Subscribed</> : labels[key]}</span>)}
+          {Object.keys(labels).map(key => <span key={key} className={styles.sizer} aria-hidden="true">{key === "done" ? <><span className={styles.check} />Suscrito</> : labels[key]}</span>)}
           <AnimatePresence initial={false} mode="popLayout">
             <motion.span key={labelKey} className={styles.label} initial={reduced ? fadeIn : swapIn} animate={swapShown} exit={reduced ? fadeOut : swapOut} transition={{ duration: reduced ? motionTokens.duration.instant : motionTokens.duration.standard, ease: enter }}>
               {labels[labelKey]}
@@ -298,7 +298,7 @@ export const NewsletterSignup = forwardRef<HTMLElement, NewsletterSignupProps>(f
       <Swap id={problem ? `problem-${problem.text}` : done ? "done" : "note"} reduced={reduced} className={styles.messageLive} live="polite">
         <p id={messageId} className={styles.note} data-tone={problem ? "error" : done ? "success" : undefined} role={problem ? "alert" : undefined}>
           {problem?.text ?? (done
-            ? <>{doneText}<span className={styles.srOnly}> The link went to {sentTo}.</span> <button ref={again} type="button" className={styles.textButton} onClick={reset}>Use a different email</button></>
+            ? <>{doneText}<span className={styles.srOnly}> Guardado: {sentTo}.</span> <button ref={again} type="button" className={styles.textButton} onClick={reset}>Usar otro email</button></>
             : note)}
         </p>
       </Swap>

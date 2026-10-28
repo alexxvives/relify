@@ -8,12 +8,12 @@ export const blogCopy = {
   minutes: "min de lectura",
   related: "Sigue en Relify",
   newsletterTitle: "Una nota al mes",
-  newsletterBody: "Cuando el boletín esté conectado, avisaremos de una nota nueva. Hoy no guardamos el correo.",
+  newsletterBody: "Déjanos tu email y te avisaremos cuando salga una nota nueva en el diario.",
   newsletterPlaceholder: "tu@empresa.com",
   newsletterButton: "Apuntarme",
   newsletterInvalid: "Escribe un correo como nombre@empresa.com",
   newsletterOffline: "El boletín todavía no está conectado. No hemos guardado el correo.",
-  newsletterPrivacy: "Sin envíos por ahora. El correo no se almacena.",
+  newsletterPrivacy: "Guardamos solo tu email para avisarte de notas nuevas.",
 } as const;
 
 export type BlogLane = "guide" | "deal";
