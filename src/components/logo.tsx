@@ -10,8 +10,8 @@ export function Logo({ size = "md", tone = "dark" }: { size?: LogoSize; tone?: "
     <Image
       src={tone === "light" ? "/brand/full-logo-white.svg" : "/brand/full-logo.svg"}
       alt=""
-      width={294}
-      height={107}
+      width={276}
+      height={100}
       unoptimized
       className={`${height} w-auto`}
     />
