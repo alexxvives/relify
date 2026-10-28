@@ -12,8 +12,8 @@ export function ContactForm() {
     <ArcScope>
       <ContactSection
         variant="form"
-        title="Hablemos"
-        description="Cuéntanos qué necesitas sobre vender, comprar o asesorar una empresa. Una persona del equipo de Relify lee cada mensaje."
+        title="Escríbenos"
+        description="Elige el tema y cuéntanos tu caso. Guardamos tu mensaje y te respondemos al email que indiques."
         topics={topics}
         email={shellCopy.helpEmail}
         onSubmit={(message) => sendContactMessage(message)}

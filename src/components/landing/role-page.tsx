@@ -147,6 +147,7 @@ export function RolePage(props: RolePageProps) {
           </div>
         </section>
 
+        <div id="preguntas" className="scroll-mt-24">
         <ArcScope>
         <FaqSection
           variant="accordion"
@@ -157,6 +158,7 @@ export function RolePage(props: RolePageProps) {
           className="releva-faq"
         />
         </ArcScope>
+        </div>
 
         <section className="px-5 pb-20 sm:px-6 lg:px-8">
           <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[2rem] bg-[#12343a]">
