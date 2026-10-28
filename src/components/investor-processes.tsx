@@ -13,7 +13,6 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { DeskToggles } from "@/components/desk-toggles";
-import { advisorHintHireInvestor, advisorHintLater, reachedQa } from "@/lib/advisor-hint";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { companyCopy } from "@/lib/company-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -25,6 +24,7 @@ import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/server/investorDesk";
 import { Briefcase, ChevronDown, FileSignature, Send, ShieldCheck } from "lucide-react";
 import type { InvestorFunnel } from "@/server/activityFunnel";
+import { reachedQa } from "@/lib/advisor-hint";
 import { ActivityTiles, share } from "@/components/activity-tiles";
 
 const processTabs = [
@@ -65,25 +65,35 @@ function ProcessConversation({
 
   return (
     <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-      <DeskToggles
-        label={item.codename}
-        controls={deskId}
-        tabs={processTabs.map((entry) => (entry.id === "chat" ? { ...entry, count: unread } : entry))}
-        value={tab}
-        onChange={changeTab}
-        disabled={[...(item.nda ? [] : (["chat", "meetings"] as const)), ...(item.advisorHired ? [] : (["advisor"] as const))]}
-        hints={{
-          ...(item.nda
-            ? {}
-            : {
-                chat: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
-                meetings: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
-              }),
-          ...(item.advisorHired
-            ? {}
-            : { advisor: reachedQa(item.steps) ? advisorHintHireInvestor : advisorHintLater }),
-        }}
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <DeskToggles
+          label={item.codename}
+          controls={deskId}
+          tabs={processTabs
+            .filter((entry) => entry.id !== "advisor" || item.advisorHired)
+            .map((entry) => (entry.id === "chat" ? { ...entry, count: unread } : entry))}
+          value={tab}
+          onChange={changeTab}
+          disabled={item.nda ? [] : (["chat", "meetings"] as const)}
+          hints={{
+            ...(item.nda
+              ? {}
+              : {
+                  chat: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
+                  meetings: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
+                }),
+          }}
+        />
+        {/* Alex (t51): hiring an asesor opens at Q&A, so the button lives next to the panel toggles then. */}
+        {!item.advisorHired && wantsAdvisor(item.steps) ? (
+          <Link
+            href={`/asesoramiento?empresa=${item.slug}`}
+            className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+          >
+            {engagementCopy.contactAdvisor}
+          </Link>
+        ) : null}
+      </div>
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (
         <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -215,14 +225,6 @@ export function InvestorProcesses({
                     }),
                   }}
                 />
-                {wantsAdvisor(item.steps) ? (
-                  <Link
-                    href={`/asesoramiento?empresa=${item.slug}`}
-                    className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-                  >
-                    {engagementCopy.contactAdvisor}
-                  </Link>
-                ) : null}
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {item.contract ? <ContractStage contract={item.contract} /> : null}

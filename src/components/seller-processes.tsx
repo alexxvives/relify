@@ -17,7 +17,6 @@ import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import { DeskToggles } from "@/components/desk-toggles";
-import { advisorHintHireSeller, advisorHintLater, reachedQa } from "@/lib/advisor-hint";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import { unreadCount } from "@/lib/project-message";
@@ -248,15 +247,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
             contractNext={thread.contract?.next ?? null}
           />
-          {/* Alex (t50): the advisor nudge closes the "Qué sigue" line instead of sitting under it. */}
-          {wantsAdvisor(thread.steps) ? (
-            <Link
-              href={`/mi-empresa/servicios?empresa=${thread.slug}`}
-              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-            >
-              {engagementCopy.contactAdvisor}
-            </Link>
-          ) : null}
         </div>
         {(thread.contract && thread.contract.stage !== "signed") || !expandable ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -291,13 +281,20 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             tabs={[
               { id: "chat", label: sellerCopy.questionsPanel, count: unread },
               { id: "meetings", label: sellerCopy.meetingsHeading },
-              { id: "advisor", label: "Asesor" },
+              ...(thread.advisorHired ? [{ id: "advisor" as const, label: "Asesor" }] : []),
             ]}
             value={desk}
             onChange={changeDesk}
-            disabled={thread.advisorHired ? [] : ["advisor"]}
-            hints={thread.advisorHired ? {} : { advisor: reachedQa(thread.steps) ? advisorHintHireSeller : advisorHintLater }}
           />
+          {/* Alex (t51): hiring an asesor opens at Q&A, so the button lives next to the panel toggles then. */}
+          {!thread.advisorHired && wantsAdvisor(thread.steps) ? (
+            <Link
+              href={`/mi-empresa/servicios?empresa=${thread.slug}`}
+              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+            >
+              {engagementCopy.contactAdvisor}
+            </Link>
+          ) : null}
           {/* Alex (t50): "Ver ficha" and "Cancelar proceso" sit at the far right of the panel toggles
               (with the signed-contract record, when there is one); they wrap under the toggles on narrow cards. */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
