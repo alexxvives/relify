@@ -23,6 +23,7 @@ export default function EmpresasPage() {
         "Compradores con plan y perfil completo",
       ]}
       stat={{ value: "0 €", label: "por publicar tu primera empresa" }}
+      publishMorph
       featuresTitle="Preparación, visibilidad y el proceso en un solo panel"
       features={[
         {

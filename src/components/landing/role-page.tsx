@@ -4,6 +4,7 @@ import { ArcScope } from "@/components/arc/arc-scope";
 import { FaqSection } from "@/components/arc/blocks/faq-section/faq-section";
 import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
 import { PublicSite } from "@/components/public-site";
+import { PublishMorph } from "@/components/landing/publish-morph";
 import { AiImageTag } from "@/components/project-photo";
 
 const featureTones = [
@@ -25,6 +26,8 @@ export type RolePageProps = {
   cta: { href: string; label: string };
   highlights: string[];
   stat: { value: string; label: string };
+  /** Empresas only: the stat card shows the ficha going from "lista para publicar" to "publicada". */
+  publishMorph?: boolean;
   featuresTitle: string;
   features: { title: string; body: string }[];
   productTitle: string;
@@ -42,7 +45,7 @@ export type RolePageProps = {
  * highlights, feature cards, product screenshot band, steps, FAQ and a closing CTA.
  */
 export function RolePage(props: RolePageProps) {
-  const { kicker, title, lead, photo, photoAlt, image, imageAlt, cta, highlights, stat } = props;
+  const { kicker, title, lead, photo, photoAlt, image, imageAlt, cta, highlights, stat, publishMorph } = props;
   return (
     <PublicSite>
       <main className="overflow-x-clip bg-public-paper text-public-ink">
@@ -89,6 +92,7 @@ export function RolePage(props: RolePageProps) {
             <div className="absolute bottom-3 left-3 rounded-2xl border border-white/60 bg-white/90 px-4 py-3 shadow-[0_16px_40px_-24px_rgba(18,52,58,0.6)] backdrop-blur sm:top-6 sm:right-[-1rem] sm:bottom-auto sm:left-auto">
               <p className="text-2xl font-semibold tracking-tight tabular-nums text-public-ink">{stat.value}</p>
               <p className="text-xs text-public-muted">{stat.label}</p>
+              {publishMorph ? <PublishMorph /> : null}
             </div>
           </div>
         </section>
