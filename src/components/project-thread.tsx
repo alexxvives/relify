@@ -194,7 +194,6 @@ export function ProjectThread({
                 <MessagesSquare className="size-5" aria-hidden />
               </span>
               <p className="text-sm font-medium text-[#1c2740]">Aún no hay mensajes</p>
-              <p className="text-sm text-[#667085]">{sellerCopy.threadEmpty}</p>
             </div>
           ) : (
             <ol className="flex flex-col gap-4">
