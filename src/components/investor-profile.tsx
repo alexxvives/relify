@@ -292,7 +292,7 @@ export function InvestorProfile({
           {investorCopy.sectorsLabel}
           <SectorField value={sectors} onChange={setSectors} />
         </div>
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid gap-4">
         <div id="aporte" className="flex scroll-mt-8 flex-col gap-2 text-sm">
           <span className="flex items-center gap-2">
             <label htmlFor="investor-contribution">{investorCopy.contributionTitle}</label>
