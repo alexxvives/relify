@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { ApproveButton, UnpublishButton, VerifiedToggle } from "@/components/admin-controls";
+import { StatusPillToggle } from "@/components/admin-controls";
 import { VerifiedBadge } from "@/components/project-photo";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -152,52 +152,36 @@ const sortOptions: { key: SortKey; label: string }[] = [
   { key: "askingPriceCents", label: companyCopy.askingPriceLabel },
 ];
 
-function CompanyActions({ project }: { project: AdminCompanyRow }) {
-  return (
-    <div className="flex flex-wrap items-center justify-end gap-2">
-      {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
-      {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
-      <VerifiedToggle target="project" id={project.id} verified={project.verified} />
-    </div>
-  );
-}
-
 /** Marketplace-style card (unblurred for admin) linking to the admin company page, plus admin status and actions. */
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
+  const since = project.sabiPending && project.sabiRequestedAt
+    ? new Date(project.sabiRequestedAt).toLocaleString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
+  const ring = project.sabiPending
+    ? "border-[#e5484d] bg-[#fff5f5] shadow-[0_0_0_3px_rgba(229,72,77,0.18),0_0_18px_rgba(229,72,77,0.25)]"
+    : project.isNew
+      ? adminNewRing
+      : "border-transparent";
+
   return (
-    <div className={`flex h-full flex-col gap-3 rounded-2xl border p-2 ${project.isNew ? adminNewRing : "border-transparent"}`}>
+    <div
+      data-sabi-pending={project.sabiPending ? "true" : undefined}
+      title={project.sabiPending ? `${adminCopy.sabiPendingBadge}${since ? ` · ${adminCopy.sabiPendingSince} ${since}` : ""}` : undefined}
+      className={`flex h-full flex-col gap-2 rounded-2xl border p-2 ${ring}`}
+    >
       <div className="relative">
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
-        <span
-          className={`pointer-events-none absolute top-3 right-3 z-10 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${statusTone[project.status]}`}
-        >
-          {projectStatus(project.status)}
-        </span>
+        <div className="absolute top-3 right-3 z-10">
+          <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 px-1">
-        {project.isNew ? <NewPill /> : null}
-        {project.verified ? <VerifiedBadge /> : null}
-        {project.sabiPending ? <SabiPendingPill requestedAt={project.sabiRequestedAt} /> : null}
-        <span className="min-w-0 truncate text-xs text-[#667085]">{project.ownerEmail ?? adminCopy.ownerMissing}</span>
-      </div>
-      <div className="px-1 pb-1">
-        <CompanyActions project={project} />
-      </div>
+      {project.isNew || project.verified || project.sabiPending ? (
+        <div className="flex flex-wrap items-center gap-2 px-1 pb-1">
+          {project.isNew ? <NewPill /> : null}
+          {project.verified ? <VerifiedBadge /> : null}
+          {project.sabiPending ? <span className="sr-only">{adminCopy.sabiPendingBadge}</span> : null}
+        </div>
+      ) : null}
     </div>
-  );
-}
-
-function SabiPendingPill({ requestedAt }: { requestedAt: string | null }) {
-  const since = requestedAt
-    ? new Date(requestedAt).toLocaleString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-    : null;
-
-  return (
-    <span
-      title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}
-      className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-xs font-semibold text-[#9a5b00]"
-    >
-      {adminCopy.sabiPendingBadge}
-    </span>
   );
 }
