@@ -41,6 +41,8 @@ export interface StepperProps {
   /** Announced, and shown in the compact caption, once every step is complete. */
   completeLabel?: string;
   className?: string;
+  /** `center` puts each label centered under its marker in equal columns (horizontal only). */
+  align?: "start" | "center";
 }
 
 type GlyphKind = "number" | "check" | "error";
@@ -114,7 +116,7 @@ function Marker({ number, kind, current, glyphDelay, ringDelay, reduced }: { num
 
 const statusText: Record<StepperStatus, string> = { complete: "Hecho", current: "", upcoming: "Pendiente", error: "Error" };
 
-export function Stepper({ steps, current, orientation = "horizontal", onStepSelect, details = "all", compact = false, label = "Progreso", completeLabel = "Todos los pasos hechos", className }: StepperProps) {
+export function Stepper({ steps, current, orientation = "horizontal", onStepSelect, details = "all", compact = false, label = "Progreso", completeLabel = "Todos los pasos hechos", className, align = "start" }: StepperProps) {
   const reduced = useReducedMotion() ?? false;
   const count = steps.length;
   const active = Math.min(Math.max(Math.round(current), 0), count);
@@ -148,9 +150,9 @@ export function Stepper({ steps, current, orientation = "horizontal", onStepSele
   }
 
   const Root = interactive ? "nav" : "div";
-  const classes = [styles.root, vertical ? styles.vertical : styles.horizontal, compact ? styles.compact : "", className].filter(Boolean).join(" ");
+  const classes = [styles.root, vertical ? styles.vertical : styles.horizontal, compact ? styles.compact : "", align === "center" && !vertical ? styles.centered : "", className].filter(Boolean).join(" ");
   return <Root className={classes} aria-label={label} role={interactive ? undefined : "group"}>
-    <ol className={styles.list} style={vertical ? undefined : { gridTemplateColumns: count > 1 ? `repeat(${count - 1}, minmax(0, 1fr)) auto` : "auto" }} onKeyDown={interactive ? onKeyDown : undefined}>
+    <ol className={styles.list} style={vertical ? undefined : { gridTemplateColumns: align === "center" ? `repeat(${count}, minmax(0, 1fr))` : count > 1 ? `repeat(${count - 1}, minmax(0, 1fr)) auto` : "auto" }} onKeyDown={interactive ? onKeyDown : undefined}>
       {steps.map((step, index) => {
         const isCurrent = index === active;
         const status: StepperStatus = step.error ? "error" : index < active ? "complete" : isCurrent ? "current" : "upcoming";

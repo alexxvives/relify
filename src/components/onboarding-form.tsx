@@ -146,6 +146,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
         <Stepper
           steps={stepOrder.map((item) => ({ id: item, label: stepLabel[item] }))}
           current={stepIndex}
+          align="center"
           label={authCopy.stepsLabel}
         />
       </ArcScope>

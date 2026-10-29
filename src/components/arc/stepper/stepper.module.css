@@ -72,3 +72,8 @@
   .disc, .ring, .label { transition: none; }
   .head[data-clickable]:active .disc { transform: none; }
 }
+
+/* Centered: equal columns, each label under its marker, connectors run center to center. */
+.centered.horizontal .item:not(:last-child) { padding-inline-end: 0; }
+.centered.horizontal .head { width: 100%; justify-items: center; text-align: center; }
+.centered.horizontal .connector { inset-inline: calc(50% + var(--marker) / 2 + var(--halo) + var(--space-1)) calc(-50% + var(--marker) / 2 + var(--halo) + var(--space-1)); }
