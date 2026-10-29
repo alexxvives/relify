@@ -9,6 +9,7 @@ import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { publicCardsByInvestor } from "@/server/investorProfile";
+import { readSabiStored } from "@/server/sabiImport";
 
 const projectSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const accessIdSchema = z.string().trim().min(1).max(128);
@@ -46,7 +47,27 @@ export type AdminSideAdvisor = {
 
 export type AdminPrivateFact = { key: string; label: string; value: string };
 
+export type AdminSabiPerson = { name: string; role: string; since: string | null; group: string | null };
+export type AdminSabiHolding = { name: string; country: string | null; direct: string | null; total: string | null };
+
+export type AdminSabiView = {
+  projectId: string;
+  hasCif: boolean;
+  importedAt: string | null;
+  requestedAt: string | null;
+  fileName: string | null;
+  legalForm: string | null;
+  incorporatedOn: string | null;
+  employees: number | null;
+  directors: AdminSabiPerson[];
+  shareholders: AdminSabiHolding[];
+  subsidiaries: AdminSabiHolding[];
+  auditor: string | null;
+  banks: string[];
+};
+
 export type AdminCompanyView = {
+  sabi: AdminSabiView;
   profile: InvestorProjectProfile;
   privateFacts: AdminPrivateFact[];
   status: "draft" | "pending" | "published";
@@ -103,6 +124,10 @@ export async function getAdminCompany(
       cif: true,
       address: true,
       createdAt: true,
+      sabiImportedAt: true,
+      sabiRequestedAt: true,
+      sabiFileName: true,
+      sabiData: true,
       ...investorProjectSelect,
       successFee: { select: { id: true } },
       dataRoomGrants: { select: { investorId: true } },
@@ -185,7 +210,25 @@ export async function getAdminCompany(
   const chosen = input.accessId ? project.accesses.find((access) => access.id === input.accessId) ?? null : null;
   const parties = chosen ? await sideParties(project.id, chosen) : { investor: null, advisors: [] };
 
+  const stored = readSabiStored(project.sabiData)?.report ?? null;
+  const sabi: AdminSabiView = {
+    projectId: project.id,
+    hasCif: project.cif.trim().length > 0,
+    importedAt: project.sabiImportedAt ? when.format(project.sabiImportedAt) : null,
+    requestedAt: project.sabiRequestedAt ? when.format(project.sabiRequestedAt) : null,
+    fileName: project.sabiFileName,
+    legalForm: stored?.identity.legalForm ?? null,
+    incorporatedOn: stored?.identity.incorporatedOn ?? null,
+    employees: stored?.identity.employees ?? null,
+    directors: (stored?.directors ?? []).map(({ name, role, since, group }) => ({ name, role, since, group })),
+    shareholders: (stored?.shareholders ?? []).map(({ name, country, direct, total }) => ({ name, country, direct, total })),
+    subsidiaries: (stored?.subsidiaries ?? []).map(({ name, country, direct, total }) => ({ name, country, direct, total })),
+    auditor: stored?.auditor ?? null,
+    banks: stored?.banks ?? [],
+  };
+
   return {
+    sabi,
     profile: toInvestorProject(project),
     privateFacts,
     status: project.status,

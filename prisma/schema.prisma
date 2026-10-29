@@ -238,6 +238,10 @@ model Project {
   engagements         AdvisoryEngagement[]
   financialFilings    FinancialFiling[]
   averageHeadcount    Float?               @map("average_headcount")
+  sabiRequestedAt     DateTime?            @map("sabi_requested_at")
+  sabiImportedAt      DateTime?            @map("sabi_imported_at")
+  sabiFileName        String?              @map("sabi_file_name")
+  sabiData            Json?                @map("sabi_data")
 
   @@index([ownerId])
   @@map("project")

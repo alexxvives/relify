@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { AdminSabiPanel } from "@/components/admin-sabi-panel";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
@@ -66,6 +67,7 @@ export function AdminCompany({
           {adminCopy.investorParty} · {selected.investorLabel}
         </p>
       ) : null}
+      <AdminSabiPanel sabi={view.sabi} />
       <InvestorProjectTabs
         panels={{
           company: <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />,
