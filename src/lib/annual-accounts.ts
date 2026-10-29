@@ -42,7 +42,7 @@ const balanceNames: Record<string, BalanceInputKey> = {
   patrimonioneto: "equity",
 };
 
-const modeloKeys: Record<string, PnlInputKey | "operating"> = {
+export const modeloKeys: Record<string, PnlInputKey | "operating"> = {
   "00255": "sales",
   "00258": "inventoryChange",
   "00259": "ownUse",

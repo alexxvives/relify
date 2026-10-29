@@ -13,6 +13,8 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
+      // Workers AI reads the Modelo 200 PDFs (src/server/financialExtraction.ts); no API key needed.
+      AI: bindings.ai(),
       DATABASE_URL: bindings.secret(),
       BETTER_AUTH_SECRET: bindings.secret(),
       BETTER_AUTH_URL: bindings.secret(),
