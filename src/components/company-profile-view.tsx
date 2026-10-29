@@ -193,7 +193,6 @@ export function CompanyProfile({
         <SectionTitle id="perdidas" icon={Receipt} hint={companyCopy.incomeHint}>
           {companyCopy.incomeHeading}
         </SectionTitle>
-        {project.sellerProvided ? <p className="mt-3 text-xs text-[#8b95a7]">Aportado por el vendedor</p> : null}
         <LockedFigures open={figuresOpen} kind="income" note={lockedNote} action={lockAction}>
           <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
           <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
@@ -204,7 +203,6 @@ export function CompanyProfile({
         <SectionTitle id="balance" icon={Scale} hint={companyCopy.balanceHint}>
           {companyCopy.balanceHeading}
         </SectionTitle>
-        {project.sellerProvided ? <p className="mt-3 text-xs text-[#8b95a7]">Aportado por el vendedor</p> : null}
         <LockedFigures open={figuresOpen} kind="balance" note={lockedNote} action={lockAction}>
           <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
           <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />

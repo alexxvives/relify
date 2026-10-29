@@ -42,7 +42,6 @@ const iconForHref = {
   "/mi-empresa": HouseIcon,
   "/inversor": HouseIcon,
   "/mi-empresa/detalles": Building2Icon,
-  "/mi-empresa/financieros": ReceiptIcon,
   "/mi-empresa/documentos": FilesIcon,
   "/mi-empresa/procesos": TableIcon,
   "/procesos": TableIcon,
