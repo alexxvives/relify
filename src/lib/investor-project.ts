@@ -32,6 +32,9 @@ export const investorProjectSelect = {
   opexCents: true,
   headcountRange: true,
   customerBase: true,
+  legalForm: true,
+  accountsFormat: true,
+  audited: true,
   cnaes: {
     select: {
       code: true,
@@ -72,6 +75,16 @@ export const investorProjectSelect = {
       nonCurrentLiabilitiesCents: true,
       shortTermDebtCents: true,
       equityCents: true,
+      financialResultCents: true,
+      profitBeforeTaxCents: true,
+      netResultCents: true,
+      cashFlowCents: true,
+      addedValueCents: true,
+      inventoryCents: true,
+      receivablesCents: true,
+      suppliersCents: true,
+      employees: true,
+      ratios: true,
       dataSource: true,
     },
   },
@@ -97,6 +110,15 @@ export type InvestorSlice = {
 export type InvestorCnae = {
   code: string;
   title: string;
+};
+
+export type IndicatorUnit = "percent" | "multiple" | "days" | "thousands" | "count";
+
+export type InvestorIndicatorRow = {
+  key: string;
+  label: string;
+  unit: IndicatorUnit;
+  values: Array<number | null>;
 };
 
 export type InvestorProjectProfile = {
@@ -125,6 +147,14 @@ export type InvestorProjectProfile = {
   incomeRows: InvestorStatementRow[];
   balanceYears: InvestorYearColumn[];
   balanceRows: InvestorStatementRow[];
+  /** t60 (SABI): legal form and accounts, never the name. */
+  legalForm?: string | null;
+  accountsFormat?: string | null;
+  audited?: boolean | null;
+  /** Closed-year lines below the operating result plus working-capital items; only rows with data. */
+  detailRows?: InvestorStatementRow[];
+  /** Closed-year ratios and staff; only rows with data. Same columns as balanceYears. */
+  indicatorRows?: InvestorIndicatorRow[];
 };
 
 type InvestorProjectRecord = {
@@ -141,6 +171,9 @@ type InvestorProjectRecord = {
   opexCents: number | null;
   headcountRange: string | null;
   customerBase: "business" | "consumer" | "mixed" | null;
+  legalForm?: string | null;
+  accountsFormat?: string | null;
+  audited?: boolean | null;
   cnaes: { code: string; role: "principal" | "secondary"; position: number }[];
   activitySlices: { kind: SliceKind; position: number; basisPoints: number }[];
   years: Array<{
@@ -168,6 +201,16 @@ type InvestorProjectRecord = {
     nonCurrentLiabilitiesCents: number | null;
     shortTermDebtCents: number | null;
     equityCents: number | null;
+    financialResultCents?: number | null;
+    profitBeforeTaxCents?: number | null;
+    netResultCents?: number | null;
+    cashFlowCents?: number | null;
+    addedValueCents?: number | null;
+    inventoryCents?: number | null;
+    receivablesCents?: number | null;
+    suppliersCents?: number | null;
+    employees?: number | null;
+    ratios?: unknown;
     dataSource?: string | null;
   }>;
 };
@@ -202,6 +245,53 @@ function toBalance(year: InvestorProjectRecord["years"][number]): BalanceAmounts
     shortTermDebt: year.shortTermDebtCents,
     equity: year.equityCents,
   };
+}
+
+type RecordYear = InvestorProjectRecord["years"][number];
+
+const detailLines: Array<{ key: keyof RecordYear; label: string; emphasis: boolean }> = [
+  { key: "financialResultCents", label: "Resultado financiero", emphasis: false },
+  { key: "profitBeforeTaxCents", label: "Resultado antes de impuestos", emphasis: false },
+  { key: "netResultCents", label: "Resultado del ejercicio", emphasis: true },
+  { key: "cashFlowCents", label: "Cash flow", emphasis: false },
+  { key: "addedValueCents", label: "Valor añadido", emphasis: false },
+  { key: "inventoryCents", label: "Existencias", emphasis: false },
+  { key: "receivablesCents", label: "Deudores comerciales", emphasis: false },
+  { key: "suppliersCents", label: "Acreedores comerciales", emphasis: false },
+];
+
+const indicatorLines: Array<{ key: string; label: string; unit: IndicatorUnit }> = [
+  { key: "profitMargin", label: "Margen de beneficio", unit: "percent" },
+  { key: "economicReturn", label: "Rentabilidad económica (ROA)", unit: "percent" },
+  { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "percent" },
+  { key: "returnOnCapitalEmployed", label: "Rentabilidad del capital empleado", unit: "percent" },
+  { key: "generalLiquidity", label: "Liquidez general", unit: "multiple" },
+  { key: "solvencyRatio", label: "Ratio de solvencia", unit: "multiple" },
+  { key: "indebtedness", label: "Endeudamiento", unit: "percent" },
+  { key: "solvencyCoefficient", label: "Coeficiente de solvencia", unit: "percent" },
+  { key: "gearing", label: "Apalancamiento", unit: "percent" },
+  { key: "interestCoverage", label: "Cobertura de intereses", unit: "multiple" },
+  { key: "collectionDays", label: "Periodo de cobro", unit: "days" },
+  { key: "creditDays", label: "Periodo de pago", unit: "days" },
+  { key: "staffCostToRevenue", label: "Coste de personal / ingresos", unit: "percent" },
+  { key: "averageStaffCost", label: "Coste medio por empleado", unit: "thousands" },
+  { key: "revenuePerEmployee", label: "Ingresos por empleado", unit: "thousands" },
+  { key: "profitPerEmployee", label: "Beneficio por empleado", unit: "thousands" },
+];
+
+function ratioOf(year: RecordYear, key: string): number | null {
+  const ratios = year.ratios;
+
+  if (!ratios || typeof ratios !== "object" || Array.isArray(ratios)) {
+    return null;
+  }
+
+  const value = (ratios as Record<string, unknown>)[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function withData<T extends { values: Array<number | null> }>(rows: T[]): T[] {
+  return rows.filter((row) => row.values.some((value) => value !== null));
 }
 
 function cnaeChip(code: string): InvestorCnae | null {
@@ -244,8 +334,29 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     values: balanceSource.map((year) => balanceValue(key, toBalance(year))),
   }));
 
+  const detailRows = withData(
+    detailLines.map((line) => ({
+      key: String(line.key),
+      label: line.label,
+      emphasis: line.emphasis,
+      values: balanceSource.map((year) => {
+        const value = year[line.key];
+        return typeof value === "number" ? value : null;
+      }),
+    })),
+  );
+  const indicatorRows = withData([
+    { key: "employees", label: "Empleados", unit: "count" as const, values: balanceSource.map((year) => year.employees ?? null) },
+    ...indicatorLines.map((line) => ({ ...line, values: balanceSource.map((year) => ratioOf(year, line.key)) })),
+  ]);
+
   return {
     slug: record.slug,
+    legalForm: record.legalForm ?? null,
+    accountsFormat: record.accountsFormat ?? null,
+    audited: record.audited ?? null,
+    detailRows,
+    indicatorRows,
     codename: record.codename,
     region: record.region,
     foundedYear: record.foundedYear,

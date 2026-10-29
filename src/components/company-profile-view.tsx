@@ -11,12 +11,15 @@ import {
   Tags,
   Users,
   EyeOff,
+  Gauge,
+  FileCheck2,
   IdCard,
   Mail,
   Phone,
 } from "lucide-react";
 import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
+import { IndicatorTable } from "@/components/indicator-table";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
@@ -108,6 +111,16 @@ export function CompanyProfile({
     { label: companyCopy.ebitdaMarginLabel, value: margin },
   ];
 
+  const legalFacts: { label: string; value: string }[] = (
+    [
+    project.legalForm ? { label: companyCopy.legalFormLabel, value: project.legalForm } : null,
+    project.accountsFormat ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
+    project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
+    ] as Array<{ label: string; value: string } | null>
+  ).flatMap((fact) => (fact ? [fact] : []));
+  const detailRows = project.detailRows ?? [];
+  const indicatorRows = project.indicatorRows ?? [];
+
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="descripcion-general">
@@ -132,6 +145,13 @@ export function CompanyProfile({
             value={project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
           />
         </div>
+        {legalFacts.length > 0 ? (
+          <div className="mt-4 grid gap-4 sm:grid-cols-4">
+            {legalFacts.map((fact) => (
+              <PublicFact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
+            ))}
+          </div>
+        ) : null}
         {privateFacts && privateFacts.length > 0 ? (
           <>
             <h3 className="mt-8 flex items-center gap-2 text-base font-semibold text-[#1c2740]">
@@ -239,6 +259,25 @@ export function CompanyProfile({
           <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
         </LockedFigures>
       </section>
+
+      {detailRows.length > 0 || indicatorRows.length > 0 ? (
+        <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="indicadores">
+          <SectionTitle id="indicadores" icon={Gauge} hint={companyCopy.indicatorsHint}>
+            {companyCopy.indicatorsHeading}
+          </SectionTitle>
+          <LockedFigures open={figuresOpen} kind="balance" note={lockedNote} action={lockAction}>
+            <div className="flex flex-col gap-8">
+              {indicatorRows.length > 0 ? <IndicatorTable years={project.balanceYears} rows={indicatorRows} /> : null}
+              {detailRows.length > 0 ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
+                  <FinancialTable years={project.balanceYears} rows={detailRows} />
+                </div>
+              ) : null}
+            </div>
+          </LockedFigures>
+        </section>
+      ) : null}
     </div>
   );
 }

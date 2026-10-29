@@ -64,6 +64,18 @@ export type AdminSabiView = {
   subsidiaries: AdminSabiHolding[];
   auditor: string | null;
   banks: string[];
+  /** t60: everything else SABI knows that has no ficha field. Admin-only (identifies the company). */
+  formerName: string | null;
+  status: string | null;
+  shareCapitalCents: number | null;
+  phone: string | null;
+  website: string | null;
+  lastAccountsOn: string | null;
+  accountsType: string | null;
+  globalUltimateOwner: string | null;
+  independence: string | null;
+  otherCodes: { scheme: string; codes: string }[];
+  activityDescription: string | null;
 };
 
 export type AdminCompanyView = {
@@ -225,6 +237,23 @@ export async function getAdminCompany(
     subsidiaries: (stored?.subsidiaries ?? []).map(({ name, country, direct, total }) => ({ name, country, direct, total })),
     auditor: stored?.auditor ?? null,
     banks: stored?.banks ?? [],
+    formerName: stored?.identity.formerName ?? null,
+    status: [stored?.identity.status, stored?.identity.statusDetail].filter(Boolean).join(" · ") || null,
+    shareCapitalCents: stored?.identity.shareCapitalCents ?? null,
+    phone: stored?.identity.phone ?? null,
+    website: stored?.identity.website ?? null,
+    lastAccountsOn: stored?.identity.lastAccountsOn ?? null,
+    accountsType: stored?.identity.accountsType ?? null,
+    globalUltimateOwner: stored?.identity.globalUltimateOwner ?? null,
+    independence: stored?.identity.independenceIndicator ?? null,
+    otherCodes: Object.entries(stored?.codes ?? {})
+      .filter(([scheme]) => scheme !== "cnae2009")
+      .map(([scheme, set]) => ({
+        scheme,
+        codes: [...(set?.primary ?? []), ...(set?.secondary ?? [])].map((code) => `${code.code} ${code.description}`.trim()).join(" · "),
+      }))
+      .filter((entry) => entry.codes.length > 0),
+    activityDescription: stored?.identity.activityDescription ?? null,
   };
 
   return {

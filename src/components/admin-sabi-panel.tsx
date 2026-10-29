@@ -9,6 +9,15 @@ import type { AdminSabiHolding, AdminSabiView } from "@/server/getAdminCompany";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
+const schemeLabels: Record<string, string> = {
+  cnae2025: "CNAE 2025",
+  nace: "NACE Rev. 2",
+  cae: "CAE",
+  ussic: "US SIC",
+  iae: "IAE",
+  naics: "NAICS",
+};
+
 function money(cents: number | null): string {
   return cents === null ? "—" : euro.format(cents / 100);
 }
@@ -264,6 +273,24 @@ function StoredBlock({ sabi }: { sabi: AdminSabiView }) {
         <Fact label="Empleados" value={sabi.employees === null ? null : String(sabi.employees)} />
         <Fact label="Auditor" value={sabi.auditor} />
         <Fact label="Bancos" value={sabi.banks.join(" · ") || null} />
+        <Fact label="Estado" value={sabi.status} />
+        <Fact label="Denominación anterior" value={sabi.formerName} />
+        <Fact label="Capital social" value={sabi.shareCapitalCents === null ? null : money(sabi.shareCapitalCents)} />
+        <Fact label="Teléfono" value={sabi.phone} />
+        <Fact label="Web" value={sabi.website} />
+        <Fact label="Últimas cuentas" value={sabi.lastAccountsOn ? isoDay(sabi.lastAccountsOn) : null} />
+        <Fact label="Tipo de cuentas" value={sabi.accountsType} />
+        <Fact label="Matriz última (GUO)" value={sabi.globalUltimateOwner} />
+        <Fact label="Indicador de independencia" value={sabi.independence} />
+        {sabi.otherCodes.map((entry) => (
+          <Fact key={entry.scheme} label={schemeLabels[entry.scheme] ?? entry.scheme.toUpperCase()} value={entry.codes} />
+        ))}
+        {sabi.activityDescription ? (
+          <div className="flex flex-col">
+            <dt className="text-xs text-[#5c6b78]">Descripción de actividad (SABI, solo admin)</dt>
+            <dd className="whitespace-pre-line text-[#1c2740]">{sabi.activityDescription}</dd>
+          </div>
+        ) : null}
       </dl>
       <div className="flex flex-col gap-5">
         {sabi.directors.length > 0 ? (
