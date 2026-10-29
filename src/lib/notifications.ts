@@ -211,3 +211,12 @@ export function withoutOwnCompany<T extends { title: string; body: string }>(ite
   const swap = (text: string) => text.split(name).join("tu empresa");
   return items.map((item) => ({ ...item, title: swap(item.title), body: swap(item.body) }));
 }
+
+/** Notices that announce a seller "your turn" action; while pending, the action itself is counted instead. */
+export const actionNoticeTitles: readonly string[] = ["Nuevo interés", "Oferta indicativa"];
+
+/** Bell badge: pending actions plus unread notices, without counting an action and its own notice twice. */
+export function bellCount(items: readonly { title: string; unread?: boolean }[], pendingActions = 0): number {
+  const unread = items.filter((item) => item.unread && (pendingActions === 0 || !actionNoticeTitles.includes(item.title))).length;
+  return unread + pendingActions;
+}

@@ -8,7 +8,7 @@ import { ArrowRight, Bell, ChevronRight } from "lucide-react";
 import { markNotificationsReadAction } from "@/app/(app)/cuenta/actions";
 import { NoticeText } from "@/components/notice-list";
 import { noticeIconFor } from "@/lib/notice-icons";
-import { notificationCopy, type NotificationView } from "@/lib/notifications";
+import { bellCount, notificationCopy, type NotificationView } from "@/lib/notifications";
 
 const openNoticesEvent = "Relify-open-notices";
 
@@ -27,7 +27,7 @@ export function OpenNoticeList({ label }: { label: string }) {
   );
 }
 
-export function NotificationBell({ items }: { items: NotificationView[] }) {
+export function NotificationBell({ items, pendingActions = 0, pendingHref }: { items: NotificationView[]; pendingActions?: number; pendingHref?: string }) {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
@@ -36,6 +36,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const rows = items.map((item) => ({ ...item, unread: item.unread && !seen.includes(item.id) }));
   const unread = rows.filter((item) => item.unread).length;
+  const badge = bellCount(rows, pendingActions);
 
   const markAllRead = useCallback(() => {
     const ids = items.filter((item) => item.unread).map((item) => item.id);
@@ -140,7 +141,7 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         ref={buttonRef}
         type="button"
         aria-expanded={open}
-        aria-label={unread > 0 ? `${notificationCopy.open}. ${unread}` : notificationCopy.open}
+        aria-label={badge > 0 ? `${notificationCopy.open}. ${badge}` : notificationCopy.open}
         onClick={() => {
           if (!open) {
             markAllRead();
@@ -150,8 +151,8 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
         className="group relative inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
       >
         <Bell className="nav-icon nav-motion-bell size-4" aria-hidden />
-        {unread > 0 ? (
-          <CountBadge count={unread} size="xs" ring className="absolute top-1 right-1" />
+        {badge > 0 ? (
+          <CountBadge count={badge} size="xs" ring className="absolute top-1 right-1" />
         ) : null}
       </button>
       {open
@@ -171,7 +172,19 @@ export function NotificationBell({ items }: { items: NotificationView[] }) {
               <p className="text-xs font-medium text-public-muted">{notificationCopy.caughtUp}</p>
             )}
           </div>
-          {rows.length === 0 ? (
+          {pendingActions > 0 && pendingHref ? (
+            <Link
+              href={pendingHref}
+              onClick={() => setOpen(false)}
+              className="mx-2 mt-2 flex items-center justify-between gap-3 rounded-xl bg-[#fdecea] px-3 py-2.5 text-sm font-medium text-[#b42318] hover:bg-[#fbd9d5]"
+            >
+              <span>
+                {pendingActions === 1 ? "Tienes 1 acción pendiente" : `Tienes ${pendingActions} acciones pendientes`}
+              </span>
+              <ChevronRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+          ) : null}
+          {rows.length === 0 && pendingActions === 0 ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
               <Bell className="size-5 text-public-muted" aria-hidden />
               <p className="text-sm text-public-muted">{notificationCopy.empty}</p>
