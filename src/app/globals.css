@@ -2720,3 +2720,5 @@
 .password-compact[data-open="true"] ul[aria-label] { position: absolute; top: 100%; right: 0; left: 0; z-index: 30; display: grid; gap: 4px; margin-top: 6px; padding: 10px 12px; border: 1px solid #dfe5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgb(15 23 42 / 0.12); }
 .password-compact ul[aria-label] li { font-size: 13px; }
 .password-compact [role="meter"] { margin-top: 0; }
+/* Strength meter row only once the user starts typing. */
+.password-compact:not([data-typed="true"]) div:has(> [role="meter"]) { display: none; }

@@ -32,10 +32,16 @@ const messages = {
 /** `compact` keeps the checklist out of the layout: it floats under the field only while the field is focused. */
 export function NewPasswordField({ name, label, placeholder, compact = false }: { name: string; label: string; placeholder?: string; compact?: boolean }) {
   const [focused, setFocused] = useState(false);
+  const [typed, setTyped] = useState(false);
   return (
     <div
       className={compact ? "password-compact" : undefined}
       data-open={compact && focused ? "true" : undefined}
+      data-typed={compact && typed ? "true" : undefined}
+      onInput={(event) => {
+        const target = event.target as HTMLInputElement;
+        if (target.type === "password" || target.type === "text") setTyped(target.value.length > 0);
+      }}
       onFocus={() => setFocused(true)}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
