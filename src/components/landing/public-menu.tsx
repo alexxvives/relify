@@ -44,7 +44,7 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       </Link>
       <LandingNav onDark={onDark} />
       <div className="flex items-center gap-1 sm:gap-2">
-        <Link href={signedIn ? "/cuenta" : "/entrar"} className={solidLink}>
+        <Link href={signedIn ? "/cuenta" : landingCopy.waitlistNav.href} className={solidLink}>
           {signedIn ? landingCopy.accountCta : landingCopy.signInCta}
         </Link>
       </div>
