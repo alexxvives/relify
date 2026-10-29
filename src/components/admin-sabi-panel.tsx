@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type ComponentProps } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2 } from "lucide-react";
 import { confirmSabiAction, previewSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { CompanyBanner } from "@/components/company-banner";
 import type { SabiPreview } from "@/server/sabiImport";
 import type { AdminSabiHolding, AdminSabiView } from "@/server/getAdminCompany";
 
@@ -31,7 +32,8 @@ function isoDay(iso: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-export function AdminSabiPanel({ sabi }: { sabi: AdminSabiView }) {
+/** Company banner with a compact "Subir SABI" file button in its top-right corner; preview, confirm and stored data render below it. */
+export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: Omit<ComponentProps<typeof CompanyBanner>, "children"> }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -93,63 +95,62 @@ export function AdminSabiPanel({ sabi }: { sabi: AdminSabiView }) {
   }
 
   const status = sabi.importedAt
-    ? { tone: "bg-[#e6f6f3] text-[#0f766e]", text: `Importado de SABI · ${sabi.importedAt}` }
+    ? `Importado de SABI · ${sabi.importedAt}`
     : sabi.hasCif
-      ? { tone: "bg-[#fff4e5] text-[#9a5b00]", text: "Pendiente SABI" }
-      : { tone: "bg-[#f1f3f7] text-[#5c6b78]", text: "Sin CIF todavía" };
+      ? `Pendiente SABI${sabi.requestedAt ? ` · CIF introducido el ${sabi.requestedAt}` : ""}`
+      : "Sin CIF todavía";
+  const label = pending ? "Leyendo…" : sabi.importedAt ? "Sustituir SABI" : "Subir SABI";
+  const showBelow = Boolean(error || done || preview || sabi.importedAt);
 
   return (
-    <section aria-labelledby="sabi-heading" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="sabi-heading" className="text-base font-semibold text-[#1c2740]">
-            Datos SABI
-          </h2>
-          <p className="mt-1 text-sm text-[#5c6b78]">
-            Sube el Excel exportado de SABI para rellenar la ficha. Solo lo ve el equipo de Relify.
-          </p>
-        </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.text}</span>
-      </div>
-
-      {sabi.requestedAt && !sabi.importedAt ? (
-        <p className="mt-3 text-xs text-[#5c6b78]">CIF introducido por el vendedor el {sabi.requestedAt}.</p>
+    <>
+      <CompanyBanner {...banner}>
+        <label
+          title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""}`}
+          className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
+            sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
+          }`}
+        >
+          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
+          <span>{label}</span>
+          <span className="sr-only"> ({status})</span>
+          <input
+            ref={input}
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            className="sr-only"
+            onChange={(event) => choose(event.target.files?.[0] ?? null)}
+            disabled={pending}
+          />
+        </label>
+      </CompanyBanner>
+      {showBelow ? (
+        <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
+          {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
+          {error ? (
+            <p role="alert" className="text-sm font-medium text-[#b42318]">
+              {error}
+            </p>
+          ) : null}
+          {done ? (
+            <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
+              <CheckCircle2 className="size-4" aria-hidden /> {done}
+            </p>
+          ) : null}
+          {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={pending} /> : null}
+          {sabi.importedAt && !preview ? (
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm font-medium text-[#465ab4] hover:underline">
+                <span className="group-open:hidden">Ver datos SABI importados</span>
+                <span className="hidden group-open:inline">Ocultar datos SABI</span>
+                <span className="ml-2 text-xs font-normal text-[#5c6b78]">{status}</span>
+              </summary>
+              <StoredBlock sabi={sabi} />
+            </details>
+          ) : null}
+        </section>
       ) : null}
-      {sabi.fileName ? <p className="mt-3 text-xs text-[#5c6b78]">Último archivo: {sabi.fileName}</p> : null}
-
-      <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#c9d1e0] bg-[#f7f8fb] px-4 py-4 text-sm text-[#1c2740] hover:border-[#0f766e]">
-        <FileSpreadsheet className="size-5 shrink-0 text-[#0f766e]" aria-hidden />
-        <span className="font-medium">{file ? file.name : sabi.importedAt ? "Sustituir con otro Excel de SABI" : "Elegir Excel de SABI (.xlsx)"}</span>
-        <input
-          ref={input}
-          type="file"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          className="sr-only"
-          onChange={(event) => choose(event.target.files?.[0] ?? null)}
-          disabled={pending}
-        />
-      </label>
-
-      {pending ? (
-        <p className="mt-3 inline-flex items-center gap-2 text-sm text-[#5c6b78]">
-          <Loader2 className="size-4 animate-spin" aria-hidden /> Leyendo…
-        </p>
-      ) : null}
-      {error ? (
-        <p role="alert" className="mt-3 text-sm font-medium text-[#b42318]">
-          {error}
-        </p>
-      ) : null}
-      {done ? (
-        <p role="status" className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
-          <CheckCircle2 className="size-4" aria-hidden /> {done}
-        </p>
-      ) : null}
-
-      {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={pending} /> : null}
-
-      {sabi.importedAt ? <StoredBlock sabi={sabi} /> : null}
-    </section>
+    </>
   );
 }
 

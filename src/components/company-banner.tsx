@@ -7,7 +7,7 @@ export function CompanyBanner({
   status,
   progress,
   children,
-  besideTitle,
+  cue,
   heading = "h1",
   image = null,
 }: {
@@ -16,7 +16,8 @@ export function CompanyBanner({
   status?: { label: string; live: boolean };
   progress?: ReactNode;
   children?: ReactNode;
-  besideTitle?: ReactNode;
+  /** Deal "what's next" cue, shown under the progress bar. */
+  cue?: ReactNode;
   heading?: "h1" | "p";
   /** Company or sector photo shown behind the banner; `ai` adds the AI-image label. */
   image?: { src: string; ai: boolean } | null;
@@ -53,12 +54,9 @@ export function CompanyBanner({
       />
       {children ? <div className="absolute top-6 right-6 z-10 flex items-center gap-2">{children}</div> : null}
       <div className="relative z-10 mx-auto max-w-3xl pt-2 text-center">
-        <div className={besideTitle ? "flex flex-wrap items-center justify-center gap-x-4 gap-y-3" : undefined}>
-          <Title className="releva-page-title text-6xl leading-[0.96] text-white sm:text-7xl">
-            {title}
-          </Title>
-          {besideTitle ? <div className="max-w-sm text-left">{besideTitle}</div> : null}
-        </div>
+        <Title className="releva-page-title text-6xl leading-[0.96] text-white sm:text-7xl">
+          {title}
+        </Title>
         {subtitle || status ? (
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#e7ecff]">
           {subtitle ? (
@@ -92,6 +90,7 @@ export function CompanyBanner({
         ) : null}
       </div>
       {progress ? <div className="relative z-10 mt-16 sm:mt-20">{progress}</div> : null}
+      {cue ? <div className={`relative z-10 mx-auto flex max-w-xl justify-center text-left ${progress ? "mt-6" : "mt-8"}`}>{cue}</div> : null}
     </header>
   );
 }

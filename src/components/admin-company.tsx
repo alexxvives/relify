@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AdminSabiPanel } from "@/components/admin-sabi-panel";
-import { CompanyBanner } from "@/components/company-banner";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
@@ -51,23 +50,24 @@ export function AdminCompany({
 
   const company = (
     <>
-      <CompanyBanner
-        title={view.profile.codename}
-        subtitle={view.profile.region}
-        status={{ label: statusLabel(view.status), live: view.status === "published" }}
-        besideTitle={selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null}
-        progress={
-          selected && selected.steps.length > 0 ? (
-            <DealPipeline steps={selected.steps} role="advisor" onDark hideAsideCue hideWaitingCue />
-          ) : null
-        }
+      <AdminSabiPanel
+        sabi={view.sabi}
+        banner={{
+          title: view.profile.codename,
+          subtitle: view.profile.region,
+          status: { label: statusLabel(view.status), live: view.status === "published" },
+          cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null,
+          progress:
+            selected && selected.steps.length > 0 ? (
+              <DealPipeline steps={selected.steps} role="advisor" onDark hideAsideCue hideWaitingCue />
+            ) : null,
+        }}
       />
       {selected && !view.investor ? (
         <p className="text-sm text-[#3d4a63]">
           {adminCopy.investorParty} · {selected.investorLabel}
         </p>
       ) : null}
-      <AdminSabiPanel sabi={view.sabi} />
       <InvestorProjectTabs
         panels={{
           company: <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />,
