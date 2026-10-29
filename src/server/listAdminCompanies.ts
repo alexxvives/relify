@@ -24,6 +24,9 @@ export type AdminCompanyRow = {
   shareholders: string[];
   verified: boolean;
   isNew: boolean;
+  /** CIF entered, SABI financials not imported yet. */
+  sabiPending: boolean;
+  sabiRequestedAt: string | null;
   /** Marketplace card data, unblurred for admin. */
   card: PublicProjectCard;
 };
@@ -50,6 +53,8 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
       legalName: true,
       cif: true,
       address: true,
+      sabiRequestedAt: true,
+      sabiImportedAt: true,
       owner: { select: { email: true } },
       shareholders: { select: { name: true }, orderBy: { name: "asc" } },
       headcountRange: true,
@@ -102,6 +107,8 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
     shareholders: project.shareholders.map((holder) => holder.name),
     verified: project.verifiedAt !== null,
     isNew: since ? project.createdAt > since : false,
+    sabiPending: project.cif.trim().length > 0 && project.sabiImportedAt === null,
+    sabiRequestedAt: project.sabiRequestedAt?.toISOString() ?? null,
     card,
   };
   });

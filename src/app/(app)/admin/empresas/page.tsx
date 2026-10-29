@@ -14,7 +14,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-async function AdminCompaniesPageContent() {
+async function AdminCompaniesPageContent({ searchParams }: { searchParams: Promise<{ sabi?: string }> }) {
+  const query = await searchParams;
   const user = await requireRole("admin");
   const since = await markAdminSeen(user.id, "empresas");
   const projects = await listAdminCompanies(user, since);
@@ -25,16 +26,16 @@ async function AdminCompaniesPageContent() {
 
   return (
     <>
-      <AdminCompanies projects={projects} />
+      <AdminCompanies projects={projects} sabiOnly={query.sabi === "pendiente"} />
     </>
   );
 }
 
-export default function AdminCompaniesPage() {
+export default function AdminCompaniesPage(props: { searchParams: Promise<{ sabi?: string }> }) {
   return (
     <SignedInPage title={adminCopy.companiesTitle} showTitle={false}>
       <Suspense fallback={<AdminListSkeleton kind="companies" />}>
-        <AdminCompaniesPageContent />
+        <AdminCompaniesPageContent searchParams={props.searchParams} />
       </Suspense>
     </SignedInPage>
   );

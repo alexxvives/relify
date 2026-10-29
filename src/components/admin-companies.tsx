@@ -36,13 +36,19 @@ function projectStatus(status: AdminCompanyRow["status"]): string {
   return adminCopy.statusDraft;
 }
 
-export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
+export function AdminCompanies({ projects, sabiOnly = false }: { projects: AdminCompanyRow[]; sabiOnly?: boolean }) {
   const [query, setQuery] = useState("");
+  const [sabi, setSabi] = useState(sabiOnly);
+  const sabiCount = projects.filter((project) => project.sabiPending).length;
   const [status, setStatus] = useState<CompanyStatusFilter>("all");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "codename", dir: 1 });
   const needle = query.trim().toLocaleLowerCase("es");
   const visible = projects.filter((project) => {
     if (status !== "all" && project.status !== status) {
+      return false;
+    }
+
+    if (sabi && !project.sabiPending) {
       return false;
     }
 
@@ -93,6 +99,17 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
             }}
           />
         </div>
+        <button
+          type="button"
+          aria-pressed={sabi}
+          onClick={() => {
+            setSabi((current) => !current);
+          }}
+          className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium ${sabi ? "border-[#9a5b00] bg-[#fff4e5] text-[#7a4700]" : "border-[#e7eaee] bg-white text-[#1c2740]"}`}
+        >
+          {adminCopy.sabiPendingFilter}
+          <span className={`rounded-full px-1.5 text-xs font-semibold ${sabi ? "bg-[#9a5b00] text-white" : "bg-[#f4f5f7] text-[#667085]"}`}>{sabiCount}</span>
+        </button>
       </AdminPageHeader>
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
@@ -160,11 +177,27 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
       <div className="flex flex-wrap items-center gap-2 px-1">
         {project.isNew ? <NewPill /> : null}
         {project.verified ? <VerifiedBadge /> : null}
+        {project.sabiPending ? <SabiPendingPill requestedAt={project.sabiRequestedAt} /> : null}
         <span className="min-w-0 truncate text-xs text-[#667085]">{project.ownerEmail ?? adminCopy.ownerMissing}</span>
       </div>
       <div className="px-1 pb-1">
         <CompanyActions project={project} />
       </div>
     </div>
+  );
+}
+
+function SabiPendingPill({ requestedAt }: { requestedAt: string | null }) {
+  const since = requestedAt
+    ? new Date(requestedAt).toLocaleString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  return (
+    <span
+      title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}
+      className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-xs font-semibold text-[#9a5b00]"
+    >
+      {adminCopy.sabiPendingBadge}
+    </span>
   );
 }
