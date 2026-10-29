@@ -110,8 +110,42 @@ export function UnpublishButton({ projectId }: { projectId: string }) {
   );
 }
 
-export function VerifiedToggle({ target, id, verified }: { target: "project" | "advisor"; id: string; verified: boolean }) {
+export function VerifiedToggle({
+  target,
+  id,
+  verified,
+  compact = false,
+}: {
+  target: "project" | "advisor";
+  id: string;
+  verified: boolean;
+  compact?: boolean;
+}) {
   const [state, action, pending] = useActionState(toggleVerifiedAction, null);
+
+  if (compact) {
+    return (
+      <form action={action} className="flex flex-col items-end gap-1">
+        <input type="hidden" name="target" value={target} />
+        <input type="hidden" name="id" value={id} />
+        <input type="hidden" name="verified" value={verified ? "0" : "1"} />
+        <button
+          type="submit"
+          role="switch"
+          aria-checked={verified}
+          disabled={pending}
+          title={verified ? adminCopy.unverify : adminCopy.verify}
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4ea] bg-white py-0.5 pl-0.5 pr-2 text-[11px] font-medium text-[#3d4a63] hover:border-[#9fb0c4] disabled:opacity-60"
+        >
+          <span className={`relative h-4 w-7 rounded-full transition-colors ${verified ? "bg-[#0f8a7a]" : "bg-[#c5ced8]"}`}>
+            <span className={`absolute top-0.5 size-3 rounded-full bg-white shadow transition-all ${verified ? "left-3.5" : "left-0.5"}`} />
+          </span>
+          {verified ? "Verificado" : "No verificado"}
+        </button>
+        <Note state={state} />
+      </form>
+    );
+  }
 
   return (
     <form action={action} className="flex flex-col items-start gap-2">

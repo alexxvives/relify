@@ -4,7 +4,6 @@ import { formatDecimal } from "@/lib/money";
 import { useState } from "react";
 import { VerifiedToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
-import { VerifiedBadge } from "@/components/project-photo";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
@@ -82,15 +81,7 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
               key={advisor.id}
               className={`flex flex-col gap-3 rounded-2xl border p-3 ${advisor.isNew ? adminNewRing : "border-[#e7eaee] bg-[#f8f9fb]"}`}
             >
-              {advisor.card ? (
-                <AdvisorListingCard advisor={advisor.card} natural />
-              ) : (
-                <div className="rounded-2xl border border-dashed border-[#c5ced8] bg-white p-5">
-                  <p className="text-lg font-semibold text-[#1c2740]">{advisorHeading(advisor)}</p>
-                  <p className="mt-2 text-sm text-[#667085]">{advisor.justification}</p>
-                </div>
-              )}
-              <div className="flex flex-col gap-2 px-1">
+              <div className="flex items-start justify-between gap-2 px-1">
                 <div className="flex flex-wrap items-center gap-2">
                   {advisor.isNew ? <NewPill /> : null}
                   <p className="rounded-full bg-[#e8f6ee] px-3 py-1 text-sm font-semibold text-[#17663a]">
@@ -105,14 +96,27 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
                   ) : null}
                   {advisor.breakdown ? <ScorePopover advisor={advisor} breakdown={advisor.breakdown} /> : null}
                 </div>
-                <p className="truncate text-sm text-[#667085]">
-                  {advisorHeading(advisor)} · {advisor.email}
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {advisor.verified ? <VerifiedBadge /> : null}
-                  <VerifiedToggle target="advisor" id={advisor.id} verified={advisor.verified} />
-                </div>
+                <VerifiedToggle compact target="advisor" id={advisor.id} verified={advisor.verified} />
               </div>
+              {advisor.card ? (
+                <AdvisorListingCard advisor={advisor.card} natural />
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[#c5ced8] bg-white p-5">
+                  <p className="text-lg font-semibold text-[#1c2740]">{advisorHeading(advisor)}</p>
+                  <p className="mt-2 text-sm text-[#667085]">{advisor.justification}</p>
+                </div>
+              )}
+              <details className="group px-1 text-sm">
+                <summary className="cursor-pointer list-none text-xs font-medium text-[#465ab4] hover:underline">
+                  <span className="group-open:hidden">Ver contacto</span>
+                  <span className="hidden group-open:inline">Ocultar contacto</span>
+                </summary>
+                <dl className="mt-2 grid gap-1 rounded-xl bg-white px-3 py-2 text-xs">
+                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Empresa</dt><dd className="truncate font-medium text-[#1c2740]">{advisor.businessName.trim() || "—"}</dd></div>
+                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Persona</dt><dd className="truncate font-medium text-[#1c2740]">{advisor.name.trim() || "—"}</dd></div>
+                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Correo</dt><dd className="truncate font-medium text-[#1c2740]"><a className="hover:underline" href={`mailto:${advisor.email}`}>{advisor.email}</a></dd></div>
+                </dl>
+              </details>
             </li>
           ))}
         </ul>
