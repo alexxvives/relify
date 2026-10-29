@@ -56,6 +56,7 @@ const destinations = {
     { href: "/admin/asesores", label: "Asesores", section: "Gestión" },
     { href: "/admin/facturacion", label: "Facturación", section: "Gestión" },
     { href: "/admin/mensajes", label: "Mensajes", section: "Gestión" },
+    { href: "/admin/lista-de-espera", label: "Lista de espera", section: "Gestión" },
   ],
 } as const satisfies Record<UserRoleName, readonly ShellDestination[]>;
 

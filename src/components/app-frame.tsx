@@ -58,6 +58,7 @@ const iconForHref = {
   "/admin/asesores": BriefcaseIcon,
   "/admin/facturacion": ReceiptIcon,
   "/admin/mensajes": MessageCircleMoreIcon,
+  "/admin/lista-de-espera": MailIcon,
   "/mis-servicios": BriefcaseIcon,
 };
 
