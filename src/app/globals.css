@@ -2723,6 +2723,16 @@
 /* Strength meter row only once the user starts typing. */
 .password-compact:not([data-typed="true"]) div:has(> [role="meter"]) { display: none; }
 
+/* t61: the compact new-password field looks exactly like the plain password inputs beside it (h-11, rounded-xl, #e7eaee, px-3, 16px text, teal-free focus ring). */
+.password-compact label { margin-bottom: 0.5rem; color: inherit; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; }
+.password-compact div:has(> input) { min-height: 2.75rem; height: 2.75rem; gap: 0; padding: 0 0.75rem 0 0.75rem; border: 1px solid #e7eaee; border-radius: 0.75rem; background: #fff; transition: none; }
+.password-compact div:has(> input):hover:not(:focus-within) { border-color: #e7eaee; }
+.password-compact div:has(> input):focus-within { border-color: #465ab4; box-shadow: 0 0 0 3px rgb(70 90 180 / 0.2); }
+.password-compact div:has(> input) input { height: 100%; font-size: 1rem; letter-spacing: normal; color: #2b3b4a; }
+.password-compact div:has(> input) button { width: 1rem; height: 1rem; margin-left: 0.5rem; border-radius: 0; color: #667085; }
+.password-compact div:has(> input) button:hover { background: transparent; color: #2b3b4a; }
+.password-compact div:has(> input) button svg { width: 1rem; height: 1rem; }
+
 /* t60: animated rows in the "información inicial" modal. */
 @keyframes releva-row-in {
   from { opacity: 0; transform: translateY(8px); }
