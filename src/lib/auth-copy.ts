@@ -101,6 +101,7 @@ export const authCopy = {
   backHome: "Volver",
   referralQuestion: "¿Cómo nos has conocido?",
   stepOf: "Paso",
+  stepsLabel: "Pasos para completar tu perfil",
   stepOfTotal: "de 3",
   nextStep: "Siguiente",
   previousStep: "Atrás",

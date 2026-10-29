@@ -1,5 +1,8 @@
 "use client";
 
+import { ArcScope } from "@/components/arc/arc-scope";
+import { Stepper } from "@/components/arc/stepper/stepper";
+
 import { useState } from "react";
 import { useActionState } from "react";
 import { onboardingAction, type OnboardingState } from "@/app/onboarding/actions";
@@ -139,28 +142,13 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       <input type="hidden" name="role" value={initialRole} />
       <input type="hidden" name="referralSource" value={referralSource} />
       <input type="hidden" name="plan" value={initialRole === "investor" ? plan : "none"} />
-      <ol className={withPlan ? "grid grid-cols-4 gap-2" : "grid grid-cols-3 gap-2"}>
-        {stepOrder.map((item, index) => {
-          const current = index === stepIndex;
-          const done = index < stepIndex;
-          return (
-            <li key={item} className="flex items-center gap-2">
-              <span
-                className={
-                  current
-                    ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#465ab4] text-sm font-semibold text-white"
-                    : done
-                      ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#17663a] text-sm font-semibold text-white"
-                      : "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e7eef8] text-sm font-semibold text-[#5c6b78]"
-                }
-              >
-                {index + 1}
-              </span>
-              <span className="text-xs font-medium text-[#1c2740] sm:text-sm">{stepLabel[item]}</span>
-            </li>
-          );
-        })}
-      </ol>
+      <ArcScope className="mb-1">
+        <Stepper
+          steps={stepOrder.map((item) => ({ id: item, label: stepLabel[item] }))}
+          current={stepIndex}
+          label={authCopy.stepsLabel}
+        />
+      </ArcScope>
       <p className="sr-only">
         {authCopy.stepOf} {stepIndex + 1} de {stepOrder.length}
       </p>
