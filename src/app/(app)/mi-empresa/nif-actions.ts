@@ -25,7 +25,7 @@ export async function verifyCompanyNifAction(_state: VerifyNifState, formData: F
     return result;
   }
 
-  revalidatePath("/mi-empresa");
+  // Not "/mi-empresa": refreshing it would unmount the dialog before the seller reads the confirmation.
   revalidatePath("/mi-empresa/detalles");
   return { ok: true };
 }

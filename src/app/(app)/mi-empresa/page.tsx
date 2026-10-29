@@ -8,6 +8,7 @@ import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
+import { SabiPendingNotice } from "@/components/sabi-pending-notice";
 import { sellerFunnel } from "@/server/activityFunnel";
 import { projectSold } from "@/server/saleOutcome";
 import { getSellerOverview } from "@/server/getSellerOverview";
@@ -50,12 +51,13 @@ async function CompanyPageContent({
   const [funnel, sold, own] = await Promise.all([
     sellerFunnel(user.id, projectId),
     projectId ? projectSold(projectId) : Promise.resolve(false),
-    projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true } }) : Promise.resolve(null),
+    projectId ? prisma.project.findUnique({ where: { id: projectId }, select: { codename: true, sabiImportedAt: true } }) : Promise.resolve(null),
   ]);
 
   return (
     <>
-      {nifVerified ? null : <CompanyNifDialog />}
+      <CompanyNifDialog active={!nifVerified} />
+      {nifVerified && !own?.sabiImportedAt ? <SabiPendingNotice /> : null}
       <SellerOverview
         sold={sold}
         listing={listing?.status ?? "missing"}

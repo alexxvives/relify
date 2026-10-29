@@ -220,7 +220,11 @@ export async function saveCompanyDraft(
     const stored = writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
 
     if (existing) {
-      await tx.project.update({ where: { id: existing.id }, data: stored });
+      const firstCif = existing.cif.trim().length === 0 && writtenCif.length > 0;
+      await tx.project.update({
+        where: { id: existing.id },
+        data: firstCif ? { ...stored, sabiRequestedAt: new Date() } : stored,
+      });
       await tx.projectCnae.deleteMany({ where: { projectId } });
       await tx.activitySlice.deleteMany({ where: { projectId } });
       await tx.projectYear.deleteMany({ where: { projectId } });
@@ -234,6 +238,7 @@ export async function saveCompanyDraft(
           workingCapitalCents: 0,
           netIncomeCents: 0,
           cif: writtenCif,
+          sabiRequestedAt: writtenCif.length > 0 ? new Date() : null,
           status: "draft",
           ownerId: user.id,
         },
