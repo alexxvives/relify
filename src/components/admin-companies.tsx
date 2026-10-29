@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import Link from "next/link";
 import { ApproveButton, UnpublishButton, VerifiedToggle } from "@/components/admin-controls";
 import { VerifiedBadge } from "@/components/project-photo";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
@@ -136,15 +135,9 @@ const sortOptions: { key: SortKey; label: string }[] = [
   { key: "askingPriceCents", label: companyCopy.askingPriceLabel },
 ];
 
-const fichaClass =
-  "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#1c2740]";
-
 function CompanyActions({ project }: { project: AdminCompanyRow }) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
-      <Link href={`/admin/empresas/${project.slug}`} className={fichaClass}>
-        {adminCopy.viewCompany}
-      </Link>
       {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
       {project.status === "pending" ? <ApproveButton projectId={project.id} /> : null}
       <VerifiedToggle target="project" id={project.id} verified={project.verified} />
@@ -156,10 +149,16 @@ function CompanyActions({ project }: { project: AdminCompanyRow }) {
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
   return (
     <div className={`flex h-full flex-col gap-3 rounded-2xl border p-2 ${project.isNew ? adminNewRing : "border-transparent"}`}>
-      <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
+      <div className="relative">
+        <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
+        <span
+          className={`pointer-events-none absolute top-3 right-3 z-10 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${statusTone[project.status]}`}
+        >
+          {projectStatus(project.status)}
+        </span>
+      </div>
       <div className="flex flex-wrap items-center gap-2 px-1">
         {project.isNew ? <NewPill /> : null}
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[project.status]}`}>{projectStatus(project.status)}</span>
         {project.verified ? <VerifiedBadge /> : null}
         <span className="min-w-0 truncate text-xs text-[#667085]">{project.ownerEmail ?? adminCopy.ownerMissing}</span>
       </div>
