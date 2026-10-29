@@ -87,7 +87,7 @@ export function SellerOverview({
                 <FieldHint text={sellerCopy.financeIntro} />
               </h2>
               {series.length === 0 ? (
-                <Link href="/mi-empresa/detalles" className="text-sm font-medium text-[#2454d6] underline">
+                <Link href="/mi-empresa/financieros" className="text-sm font-medium text-[#2454d6] underline">
                   {sellerCopy.financeOpen}
                 </Link>
               ) : null}

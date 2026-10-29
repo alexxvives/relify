@@ -72,6 +72,7 @@ export const investorProjectSelect = {
       nonCurrentLiabilitiesCents: true,
       shortTermDebtCents: true,
       equityCents: true,
+      dataSource: true,
     },
   },
 } satisfies Prisma.ProjectSelect;
@@ -99,6 +100,8 @@ export type InvestorCnae = {
 };
 
 export type InvestorProjectProfile = {
+  /** Closed years come from the seller's confirmed Modelo 200 / cuentas upload. */
+  sellerProvided?: boolean;
   slug: string;
   codename: string;
   region: string;
@@ -165,6 +168,7 @@ type InvestorProjectRecord = {
     nonCurrentLiabilitiesCents: number | null;
     shortTermDebtCents: number | null;
     equityCents: number | null;
+    dataSource?: string | null;
   }>;
 };
 
@@ -268,6 +272,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     incomeRows,
     balanceYears: balanceSource.map((year) => ({ year: year.year, forecast: false })),
     balanceRows,
+    sellerProvided: years.some((year) => year.kind === "closed" && year.dataSource === "vendedor"),
   };
 }
 

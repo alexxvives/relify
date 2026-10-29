@@ -196,6 +196,27 @@ export async function saveCompanyDraft(
   await prisma.$transaction(async (tx) => {
     const projectId = existing?.id ?? randomUUID();
 
+    // Lines that only the Modelo 200 upload fills: keep them across edits of the details form.
+    const extras = new Map(
+      existing
+        ? (
+            await tx.projectYear.findMany({
+              where: { projectId },
+              select: {
+                year: true,
+                financialResultCents: true,
+                profitBeforeTaxCents: true,
+                netResultCents: true,
+                inventoryCents: true,
+                receivablesCents: true,
+                suppliersCents: true,
+                dataSource: true,
+                confirmedAt: true,
+              },
+            })
+          ).map(({ year, ...rest }) => [year, rest] as const)
+        : [],
+    );
     const stored = writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
 
     if (existing) {
@@ -247,6 +268,7 @@ export async function saveCompanyDraft(
         kind: "closed" as const,
         ...pnlData(year),
         ...balanceData(year),
+        ...(extras.get(Number(year.year)) ?? {}),
       })),
       ...(includeForecast
         ? [
