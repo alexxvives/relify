@@ -5,6 +5,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
+import { notifySabiRequest } from "@/server/notifySabiRequest";
 
 export type VerifyNifResult = { ok: true } | { ok: false; message: string };
 
@@ -65,17 +66,41 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
   const draft = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: user.id },
-        select: { id: true },
+        select: { id: true, cif: true, slug: true, legalName: true, sabiRequestedAt: true },
       })
     : null;
 
   if (draft) {
-    await prisma.project.update({ where: { id: draft.id }, data: { cif } });
+    // A new CIF (or the first one) queues the company for the SABI import.
+    const requestSabi = draft.cif !== cif || draft.sabiRequestedAt === null;
+    await prisma.project.update({
+      where: { id: draft.id },
+      data: requestSabi ? { cif, sabiRequestedAt: new Date() } : { cif },
+    });
+    if (requestSabi) {
+      await notifySabiRequest({
+        companyName: record?.legalName ?? draft.legalName,
+        cif,
+        ownerName: user.name,
+        ownerEmail: user.email,
+        slug: draft.slug,
+      });
+    }
     await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
     return { ok: true };
   }
 
+  const previous = await prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } });
   await prisma.user.update({ where: { id: user.id }, data: { pendingCif: cif } });
+  if (previous?.pendingCif !== cif) {
+    await notifySabiRequest({
+      companyName: record?.legalName ?? "",
+      cif,
+      ownerName: user.name,
+      ownerEmail: user.email,
+      slug: null,
+    });
+  }
   return { ok: true };
 }
 
