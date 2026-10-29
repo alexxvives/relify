@@ -10,6 +10,7 @@ import { activeSellerChoice, sellerCompanyCookie } from "@/lib/seller-company";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { dealPipeline, homePendingActions, processFlags } from "@/lib/deal-pipeline";
 import { deleteDataRoomBytes } from "@/server/dataRoomDisk";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 
@@ -38,8 +39,65 @@ export async function listSellerAdvisoryCompanies(
   });
 }
 
+/**
+ * "Your turn" actions per company, from the same pipeline that draws Mis procesos (dealPipeline + homePendingActions),
+ * so the company switcher, the bell and the Mis procesos list can never disagree.
+ */
+export async function sellerPendingByProject(ownerId: string): Promise<Map<string, number>> {
+  const [accesses, messages, grants, fees] = await Promise.all([
+    prisma.projectAccess.findMany({
+      where: { project: { ownerId, NOT: { cif: "" } }, cancelledAt: null },
+      select: { id: true, projectId: true, investorId: true, sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true },
+    }),
+    prisma.projectMessage.findMany({
+      where: { project: { ownerId }, kind: { in: ["question", "meeting", "offer"] } },
+      select: { projectId: true, investorId: true, kind: true },
+    }),
+    prisma.dataRoomGrant.findMany({ where: { project: { ownerId } }, select: { projectId: true, investorId: true } }),
+    prisma.successFee.findMany({ where: { project: { ownerId } }, select: { projectId: true } }),
+  ]);
+  const kinds = new Map<string, Set<string>>();
+  for (const message of messages) {
+    const key = `${message.projectId}:${message.investorId}`;
+    kinds.set(key, (kinds.get(key) ?? new Set()).add(message.kind));
+  }
+  const granted = new Set(grants.map((grant) => `${grant.projectId}:${grant.investorId}`));
+  const closed = new Set(fees.map((fee) => fee.projectId));
+  const actions = homePendingActions(
+    "seller",
+    accesses.map((access) => {
+      const key = `${access.projectId}:${access.investorId}`;
+      const thread = kinds.get(key) ?? new Set<string>();
+      return {
+        id: access.projectId,
+        who: access.investorId,
+        href: "/mi-empresa/procesos",
+        steps: dealPipeline(
+          "seller",
+          processFlags({
+            accepted: access.sellerAcceptedAt !== null,
+            nda: access.ndaAcceptedAt !== null,
+            questions: thread.has("question"),
+            meeting: thread.has("meeting"),
+            offer: thread.has("offer"),
+            loiAccepted: access.loiAcceptedAt !== null,
+            roomShared: granted.has(key),
+            passedDiligence: access.diligencePassedAt !== null,
+            closed: closed.has(access.projectId),
+          }),
+        ),
+      };
+    }),
+  );
+  const pendingBy = new Map<string, number>();
+  for (const action of actions) {
+    pendingBy.set(action.id, (pendingBy.get(action.id) ?? 0) + 1);
+  }
+  return pendingBy;
+}
+
 export async function listSellerCompanies(ownerId: string): Promise<SellerCompanyChoice[]> {
-  const [rows, prefill, waiting] = await Promise.all([
+  const [rows, prefill, pendingBy] = await Promise.all([
     prisma.project.findMany({
       where: { ownerId, NOT: { cif: "" } },
       orderBy: { createdAt: "asc" },
@@ -49,20 +107,8 @@ export async function listSellerCompanies(ownerId: string): Promise<SellerCompan
       where: { userId: ownerId },
       select: { cif: true, legalName: true },
     }),
-    prisma.projectAccess.findMany({
-      where: {
-        project: { ownerId },
-        cancelledAt: null,
-        OR: [{ sellerAcceptedAt: null }, { loiSignedAt: { not: null }, loiAcceptedAt: null }],
-      },
-      select: { projectId: true },
-    }),
+    sellerPendingByProject(ownerId),
   ]);
-  const pendingBy = new Map<string, number>();
-  for (const row of waiting) {
-    pendingBy.set(row.projectId, (pendingBy.get(row.projectId) ?? 0) + 1);
-  }
-
   return rows.map((row) => {
     const legal = row.legalName.trim();
     const fromBulletin = prefill && prefill.cif === row.cif ? prefill.legalName.trim() : "";

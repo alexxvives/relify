@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Bell, ChevronRight } from "lucide-react";
 import { markNotificationsReadAction } from "@/app/(app)/cuenta/actions";
+import { selectSellerCompanyAction } from "@/app/(app)/mi-empresa/actions";
 import { NoticeText } from "@/components/notice-list";
 import { noticeIconFor } from "@/lib/notice-icons";
 import { bellCount, notificationCopy, type NotificationView } from "@/lib/notifications";
@@ -27,7 +28,14 @@ export function OpenNoticeList({ label }: { label: string }) {
   );
 }
 
-export function NotificationBell({ items, pendingActions = 0, pendingHref }: { items: NotificationView[]; pendingActions?: number; pendingHref?: string }) {
+export type PendingGroup = { companyId: string; label: string; count: number; active: boolean };
+
+function pendingText(count: number) {
+  return count === 1 ? "1 acción pendiente" : `${count} acciones pendientes`;
+}
+
+export function NotificationBell({ items, pendingGroups = [] }: { items: NotificationView[]; pendingGroups?: PendingGroup[] }) {
+  const pendingActions = pendingGroups.reduce((sum, group) => sum + group.count, 0);
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
@@ -172,17 +180,43 @@ export function NotificationBell({ items, pendingActions = 0, pendingHref }: { i
               <p className="text-xs font-medium text-public-muted">{notificationCopy.caughtUp}</p>
             )}
           </div>
-          {pendingActions > 0 && pendingHref ? (
-            <Link
-              href={pendingHref}
-              onClick={() => setOpen(false)}
-              className="mx-2 mt-2 flex items-center justify-between gap-3 rounded-xl bg-[#fdecea] px-3 py-2.5 text-sm font-medium text-[#b42318] hover:bg-[#fbd9d5]"
-            >
-              <span>
-                {pendingActions === 1 ? "Tienes 1 acción pendiente" : `Tienes ${pendingActions} acciones pendientes`}
-              </span>
-              <ChevronRight className="size-4 shrink-0" aria-hidden />
-            </Link>
+          {pendingGroups.length > 0 ? (
+            <ul className="mx-2 mt-2 flex flex-col gap-1">
+              {pendingGroups.map((group) => (
+                <li key={group.companyId}>
+                  {group.active ? (
+                    <Link
+                      href="/mi-empresa/procesos"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center justify-between gap-3 rounded-xl bg-[#fdecea] px-3 py-2.5 text-sm font-medium text-[#b42318] hover:bg-[#fbd9d5]"
+                    >
+                      <span>
+                        Tienes {pendingText(group.count)}
+                        {pendingGroups.length > 1 ? <span className="font-normal"> en {group.label}</span> : null}
+                      </span>
+                      <ChevronRight className="size-4 shrink-0" aria-hidden />
+                    </Link>
+                  ) : (
+                    <form action={selectSellerCompanyAction}>
+                      <input type="hidden" name="projectId" value={group.companyId} />
+                      <input type="hidden" name="next" value="/mi-empresa/procesos" />
+                      <button
+                        type="submit"
+                        className="flex w-full items-center justify-between gap-3 rounded-xl bg-[#fdecea] px-3 py-2.5 text-left text-sm font-medium text-[#b42318] hover:bg-[#fbd9d5]"
+                      >
+                        <span>
+                          {pendingText(group.count)} <span className="font-normal">en {group.label}</span>
+                        </span>
+                        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold">
+                          Cambiar de empresa
+                          <ChevronRight className="size-4" aria-hidden />
+                        </span>
+                      </button>
+                    </form>
+                  )}
+                </li>
+              ))}
+            </ul>
           ) : null}
           {rows.length === 0 && pendingActions === 0 ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">

@@ -26,6 +26,7 @@ import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { Logo } from "@/components/logo";
 import { CompanySwitcher } from "@/components/company-switcher";
+import { sellerCompanyLabel } from "@/lib/seller-company";
 import { NotificationBell } from "@/components/notification-bell";
 import { AlertDot } from "@/components/ui/badge";
 import { scopeNoticesToCompany } from "@/lib/notifications";
@@ -256,8 +257,13 @@ export function AppFrame({
   // Optimistic active state: highlight the clicked item at once, before the route commits.
   const [navTarget, setNavTarget] = useState<{ href: string; from: string } | null>(null);
   const pathname = navTarget !== null && navTarget.from === routePath ? navTarget.href : routePath;
-  // Same number as the company switcher badge: "your turn" actions across all of the seller's companies.
-  const sellerPendingTotal = canManageCompanies ? companies.reduce((sum, company) => sum + (company.pending ?? 0), 0) : 0;
+  // Same numbers as the company switcher badges: "your turn" actions per company, named so other companies are clear.
+  const pendingGroups = canManageCompanies
+    ? companies
+        .filter((company) => (company.pending ?? 0) > 0)
+        .map((company) => ({ companyId: company.id, label: sellerCompanyLabel(company.legalName, company.codename), count: company.pending ?? 0, active: company.id === activeCompanyId }))
+        .sort((a, b) => Number(b.active) - Number(a.active))
+    : [];
   const activePending = (companies.find((company) => company.id === activeCompanyId)?.pending ?? 0) + processPending;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
@@ -312,7 +318,7 @@ export function AppFrame({
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
               {showPremium ? <PremiumLink onClick={closeMenu} /> : null}
-              <NotificationBell items={notifications} pendingActions={sellerPendingTotal} pendingHref={sellerPendingTotal > 0 ? "/mi-empresa/procesos" : undefined} />
+              <NotificationBell items={notifications} pendingGroups={pendingGroups} />
               <button
                 type="button"
                 onClick={closeMenu}
@@ -467,7 +473,7 @@ export function AppFrame({
           </Link>
           <div className="flex items-center gap-1">
             {showPremium ? <PremiumLink /> : null}
-            <NotificationBell items={notifications} pendingActions={sellerPendingTotal} pendingHref={sellerPendingTotal > 0 ? "/mi-empresa/procesos" : undefined} />
+            <NotificationBell items={notifications} pendingGroups={pendingGroups} />
           </div>
         </header>
         <div className="shell-content pb-28 lg:pb-[var(--layout-pad)]">
