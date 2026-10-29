@@ -1,9 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 import {
   approveProjectAction,
-  changeRoleAction,
   grantPlanAction,
   reactivateAccountAction,
   suspendAccountAction,
@@ -12,9 +11,7 @@ import {
   type AdminActionState,
 } from "@/app/(app)/admin/actions";
 import { AppToast } from "@/components/app-toast";
-import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
-import { userRoles, type UserRoleName } from "@/lib/auth-input";
 
 function Note({ state }: { state: AdminActionState }) {
   if (!state) {
@@ -88,24 +85,47 @@ function useAccountAction(actionFn: (state: AdminActionState, formData: FormData
   return { state, formAction, pending };
 }
 
-const buttonClass =
-  "inline-flex h-9 items-center rounded-full bg-[#465ab4] px-3 text-sm font-medium text-white disabled:opacity-60";
 const quietButtonClass =
   "inline-flex h-9 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740] disabled:opacity-60";
 
 const dangerButtonClass =
   "inline-flex h-8 items-center rounded-full bg-[#c0362c] px-3 text-xs font-semibold text-white hover:bg-[#a52d24] disabled:opacity-60";
 
-export function UnpublishButton({ projectId }: { projectId: string }) {
-  const [state, action, pending] = useActionState(unpublishProjectAction, null);
+/** The status pill on an admin company card: Publicada unpublishes, Pendiente publishes, each after a confirm. */
+export function StatusPillToggle({
+  projectId,
+  status,
+  label,
+  tone,
+}: {
+  projectId: string;
+  status: "published" | "pending" | "draft";
+  label: string;
+  tone: string;
+}) {
+  const [state, action, pending] = useActionState(status === "published" ? unpublishProjectAction : approveProjectAction, null);
+  const pill = `rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${tone}`;
+
+  if (status === "draft") {
+    return <span className={`pointer-events-none ${pill}`}>{label}</span>;
+  }
+
+  const question = status === "published" ? adminCopy.unpublishConfirm : adminCopy.publishConfirm;
+  const hint = status === "published" ? adminCopy.unpublish : adminCopy.approve;
 
   return (
-    <form action={action} className="flex flex-col items-start gap-2">
+    <form
+      action={action}
+      onSubmit={(event) => {
+        if (!window.confirm(question)) event.preventDefault();
+      }}
+      className="flex flex-col items-end gap-1"
+    >
       <input type="hidden" name="projectId" value={projectId} />
-      <button type="submit" disabled={pending} className={quietButtonClass}>
-        {pending ? adminCopy.unpublishing : adminCopy.unpublish}
+      <button type="submit" disabled={pending} title={hint} aria-label={`${label}: ${hint}`} className={`${pill} cursor-pointer hover:brightness-95 disabled:opacity-60`}>
+        {pending ? (status === "published" ? adminCopy.unpublishing : adminCopy.approving) : label}
       </button>
-      <Note state={state} />
+      <span className="rounded bg-white/90 px-1"><Note state={state} /></span>
     </form>
   );
 }
@@ -160,20 +180,6 @@ export function VerifiedToggle({
   );
 }
 
-export function ApproveButton({ projectId }: { projectId: string }) {
-  const [state, action, pending] = useActionState(approveProjectAction, null);
-
-  return (
-    <form action={action} className="flex flex-col items-start gap-2">
-      <input type="hidden" name="projectId" value={projectId} />
-      <button type="submit" disabled={pending} className={buttonClass}>
-        {pending ? adminCopy.approving : adminCopy.approve}
-      </button>
-      <Note state={state} />
-    </form>
-  );
-}
-
 export function SuspensionButton({ userId, suspended }: { userId: string; suspended: boolean }) {
   const { state, formAction, pending } = useAccountAction(suspended ? reactivateAccountAction : suspendAccountAction);
 
@@ -194,93 +200,51 @@ export function SuspensionButton({ userId, suspended }: { userId: string; suspen
   );
 }
 
-export function RoleForm({ userId, role }: { userId: string; role: string | null }) {
-  const { state, formAction, pending } = useAccountAction(changeRoleAction);
-  const current = isAccountRole(role) ? role : "seller";
-  const [nextRole, setNextRole] = useState<string>(current);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    if (state?.ok) {
-      dialogRef.current?.close();
-    }
-  }, [state]);
+export function PlanPicker({ userId, plan }: { userId: string; plan: "none" | "limited" | "unlimited" }) {
+  const { state, formAction, pending } = useAccountAction(grantPlanAction);
+  const [open, setOpen] = useState(false);
+  const options = ["limited", "unlimited"] as const;
 
   return (
-    <>
+    <span className="relative inline-flex flex-col items-end">
       <button
         type="button"
-        onClick={() => {
-          setNextRole(current);
-          dialogRef.current?.showModal();
-        }}
-        className="inline-flex h-8 items-center rounded-full border border-[#e7eaee] bg-white px-3 text-xs font-medium text-[#3d4a63] hover:bg-[#f6f7f9]"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={adminCopy.planChange}
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-medium text-[#1c2740] underline decoration-dotted underline-offset-2 hover:bg-[#eef1f5]"
       >
-        {adminCopy.changeRoleOpen}
+        {pending ? adminCopy.grantingPlan : adminCopy.plans[plan]}
+        <svg aria-hidden="true" viewBox="0 0 12 12" className="size-3"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
       </button>
-      <dialog
-        ref={dialogRef}
-        className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border-0 bg-white p-6 text-[#1c2740] open:block backdrop:bg-[#1c2740]/40"
-      >
-        <h2 className="text-lg font-semibold">{adminCopy.changeRoleTitle}</h2>
-        <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{adminCopy.changeRoleBody}</p>
-        <form action={formAction} className="mt-4 grid gap-4">
+      {open ? (
+        <form
+          action={(data) => {
+            setOpen(false);
+            formAction(data);
+          }}
+          role="menu"
+          className="absolute right-0 top-full z-20 mt-1 flex min-w-40 flex-col rounded-xl border border-[#e7eaee] bg-white p-1 text-left shadow-lg"
+        >
           <input type="hidden" name="userId" value={userId} />
-          <input type="hidden" name="role" value={nextRole} />
-          <FilterSelect
-            compact
-            label={adminCopy.roleLabel}
-            value={nextRole}
-            options={userRoles.map((item) => ({ value: item, label: adminCopy.accountRoles[item] }))}
-            onValueChange={setNextRole}
-          />
-          <div className="flex flex-wrap justify-end gap-2">
+          {options.map((option) => (
             <button
-              type="button"
-              onClick={() => {
-                dialogRef.current?.close();
-              }}
-              className={quietButtonClass}
+              key={option}
+              type="submit"
+              name="plan"
+              value={option}
+              role="menuitem"
+              disabled={option === plan}
+              className="rounded-lg px-3 py-2 text-left text-xs font-medium text-[#1c2740] hover:bg-[#eef1f5] disabled:text-[#98a2b3]"
             >
-              {adminCopy.changeRoleCancel}
+              {adminCopy.plans[option]}
+              {option === plan ? ` · ${adminCopy.planCurrent}` : ""}
             </button>
-            <button type="submit" disabled={pending || nextRole === current} className={buttonClass}>
-              {pending ? adminCopy.changingRole : adminCopy.changeRoleConfirm}
-            </button>
-          </div>
-          <ErrorNote state={state} />
+          ))}
         </form>
-      </dialog>
-    </>
-  );
-}
-
-export function PlanForm({ userId }: { userId: string }) {
-  const { state, formAction, pending } = useAccountAction(grantPlanAction);
-  const [plan, setPlan] = useState("limited");
-
-  return (
-    <form action={formAction} className="flex w-full flex-col items-stretch gap-2">
-      <input type="hidden" name="userId" value={userId} />
-      <input type="hidden" name="plan" value={plan} />
-      <FilterSelect
-        compact
-        label={adminCopy.grantPlan}
-        value={plan}
-        options={[
-          { value: "limited", label: adminCopy.plans.limited },
-          { value: "unlimited", label: adminCopy.plans.unlimited },
-        ]}
-        onValueChange={setPlan}
-      />
-      <button type="submit" disabled={pending} className={`${buttonClass} self-end`}>
-        {pending ? adminCopy.grantingPlan : adminCopy.grantPlan}
-      </button>
+      ) : null}
       <ErrorNote state={state} />
-    </form>
+    </span>
   );
-}
-
-function isAccountRole(role: string | null): role is UserRoleName {
-  return role === "seller" || role === "investor" || role === "advisor" || role === "admin";
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AccountToastHost, PlanForm, RoleForm, SuspensionButton } from "@/components/admin-controls";
+import { AccountToastHost, PlanPicker, SuspensionButton } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
@@ -118,22 +118,29 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
 
 const joined = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" });
 
-function accountState(account: AdminAccountRow): { label: string; tone: string } {
-  if (account.suspended) return { label: "Suspendida", tone: "bg-[#fdeeee] text-[#8d2424]" };
-  if (!account.onboarded) return { label: adminCopy.accountStatePending, tone: "bg-[#fff4d6] text-[#8a6112]" };
-  return { label: "Activa", tone: "bg-[#e7f6ef] text-[#1f6b4a]" };
+function accountState(account: AdminAccountRow): { label: string; tone: string } | null {
+  if (account.suspended) return { label: "Suspendida", tone: "text-[#8d2424]" };
+  if (!account.onboarded) return { label: adminCopy.accountStatePending, tone: "text-[#8a6112]" };
+  return null;
 }
+
+const roleTones: Record<string, string> = {
+  seller: "bg-[#e6f4f3] text-[#0f6e6a]",
+  investor: "bg-[#e8ecfa] text-[#33459a]",
+  advisor: "bg-[#f3e9fb] text-[#6b3596]",
+  admin: "bg-[#1c2740] text-white",
+};
 
 function roleLabel(role: string | null): string {
   if (role && role in adminCopy.accountRoles) return adminCopy.accountRoles[role as keyof typeof adminCopy.accountRoles];
   return "Sin rol";
 }
 
-function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
+function InfoRow({ label, children, open = false }: { label: string; children: React.ReactNode; open?: boolean }) {
   return (
     <div className="flex min-w-0 items-baseline justify-between gap-3 py-1.5 text-xs">
       <dt className="shrink-0 text-[#667085]">{label}</dt>
-      <dd className="min-w-0 truncate text-right font-medium text-[#1c2740]">{children}</dd>
+      <dd className={`min-w-0 text-right font-medium text-[#1c2740] ${open ? "" : "truncate"}`}>{children}</dd>
     </div>
   );
 }
@@ -153,26 +160,33 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
           </p>
           <p className="truncate text-xs text-[#667085]" title={account.email}>{account.email}</p>
         </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${state.tone}`}>{state.label}</span>
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleTones[account.role ?? ""] ?? "bg-[#eef1f5] text-[#475467]"}`}>
+            {roleLabel(account.role)}
+          </span>
+          {state ? (
+            <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${state.tone}`}>
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+              {state.label}
+            </span>
+          ) : null}
+        </span>
       </header>
       <dl className="mt-3 divide-y divide-[#eef1f5] border-y border-[#eef1f5]">
-        <InfoRow label="Rol">{roleLabel(account.role)}</InfoRow>
-        {account.role === "investor" ? <InfoRow label="Plan">{adminCopy.plans[account.plan]}</InfoRow> : null}
+        {account.role === "investor" ? (
+          <InfoRow label="Plan" open>{self ? adminCopy.plans[account.plan] : <PlanPicker userId={account.id} plan={account.plan} />}</InfoRow>
+        ) : null}
         <InfoRow label="Teléfono">{account.phone ?? "—"}</InfoRow>
         <InfoRow label="Alta">{joined.format(new Date(account.createdAt))}</InfoRow>
         <InfoRow label={adminCopy.referralSourceLabel}>{account.onboarded ? (account.referralSource ?? adminCopy.referralSourceEmpty) : "—"}</InfoRow>
       </dl>
       {self ? (
         <p className="mt-auto pt-3 text-xs text-[#667085]">
-          {adminCopy.ownSuspend} {adminCopy.ownRole}
+          {adminCopy.ownSuspend}
         </p>
       ) : (
-        <div className="mt-auto flex flex-col items-stretch gap-2 pt-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <RoleForm userId={account.id} role={account.role} />
-            <SuspensionButton userId={account.id} suspended={account.suspended} />
-          </div>
-          {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
+        <div className="mt-auto flex justify-center pt-3">
+          <SuspensionButton userId={account.id} suspended={account.suspended} />
         </div>
       )}
     </article>
