@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { investorProjectSelect, toInvestorProject } from "./investor-project";
 
 const investorKeys = [
+  "accountsFormat",
   "activitySlices",
   "adjustedEbitdaCents",
   "askingPriceCents",
+  "audited",
   "cnaes",
   "codename",
   "customerBase",
@@ -12,6 +14,7 @@ const investorKeys = [
   "ebitdaCents",
   "foundedYear",
   "headcountRange",
+  "legalForm",
   "opexCents",
   "region",
   "revenueCents",
