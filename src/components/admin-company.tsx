@@ -68,7 +68,7 @@ export function AdminCompany({
       ) : null}
       <InvestorProjectTabs
         panels={{
-          company: <CompanyProfile project={view.profile} figuresOpen />,
+          company: <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />,
           questions: selected ? <ChatPanel messages={chat} /> : <EmptyPanel text={adminCopy.processNone} />,
           meetings: selected ? <MeetingPanel messages={meetings} today={today} /> : <EmptyPanel text={adminCopy.processNone} />,
         }}

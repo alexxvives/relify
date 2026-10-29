@@ -19,6 +19,8 @@ const when = new Intl.DateTimeFormat("es-ES", {
   timeZone: "Europe/Madrid",
 });
 
+const day = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" });
+
 export type AdminCompanyMessage = {
   id: string;
   kind: "question" | "meeting" | "offer";
@@ -42,8 +44,11 @@ export type AdminSideAdvisor = {
   services: string;
 };
 
+export type AdminPrivateFact = { key: string; label: string; value: string };
+
 export type AdminCompanyView = {
   profile: InvestorProjectProfile;
+  privateFacts: AdminPrivateFact[];
   status: "draft" | "pending" | "published";
   accesses: AdminCompanyAccess[];
   selectedId: string | null;
@@ -94,6 +99,10 @@ export async function getAdminCompany(
       id: true,
       status: true,
       ownerId: true,
+      legalName: true,
+      cif: true,
+      address: true,
+      createdAt: true,
       ...investorProjectSelect,
       successFee: { select: { id: true } },
       dataRoomGrants: { select: { investorId: true } },
@@ -123,10 +132,21 @@ export async function getAdminCompany(
   const owner = project.ownerId
     ? await prisma.user.findUnique({
         where: { id: project.ownerId },
-        select: { name: true, lastName: true },
+        select: { name: true, lastName: true, email: true, phone: true, nationalId: true },
       })
     : null;
   const sellerName = owner ? personName(owner.name, owner.lastName) : "";
+  const missing = adminCopy.privateMissing;
+  const privateFacts: AdminPrivateFact[] = [
+    { key: "legal", label: "Razón social", value: project.legalName.trim() || missing },
+    { key: "cif", label: "CIF", value: project.cif.trim() || missing },
+    { key: "address", label: "Domicilio", value: project.address.trim() || missing },
+    { key: "owner", label: "Titular", value: sellerName || missing },
+    { key: "email", label: "Correo del titular", value: owner?.email ?? missing },
+    { key: "phone", label: "Teléfono", value: owner?.phone?.trim() || missing },
+    { key: "nid", label: "DNI/NIE del titular", value: owner?.nationalId?.trim() || missing },
+    { key: "created", label: "Alta en Relify", value: day.format(project.createdAt) },
+  ];
   const closed = project.successFee !== null;
   const accesses = project.accesses.map((access) => {
     const accepted = access.sellerAcceptedAt !== null || access.ndaAcceptedAt !== null;
@@ -167,6 +187,7 @@ export async function getAdminCompany(
 
   return {
     profile: toInvestorProject(project),
+    privateFacts,
     status: project.status,
     accesses,
     selectedId: selected?.id ?? null,

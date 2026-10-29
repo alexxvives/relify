@@ -11,6 +11,9 @@ import {
   Tags,
   Users,
   EyeOff,
+  IdCard,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
@@ -55,6 +58,17 @@ export function SectionTitle({
   );
 }
 
+const privateIcons: Record<string, typeof Building2> = {
+  legal: Building2,
+  cif: Receipt,
+  address: Map,
+  owner: Users,
+  email: Mail,
+  phone: Phone,
+  nid: IdCard,
+  created: CalendarDays,
+};
+
 function PublicFact({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: string }) {
   return (
     <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3">
@@ -63,7 +77,7 @@ function PublicFact({ icon: Icon, label, value }: { icon: typeof Building2; labe
       </span>
       <span className="min-w-0">
         <span className="mb-1 block text-sm text-[#64748b]">{label}</span>
-        <span className="block text-base font-semibold text-[#2b3b4a]">{value}</span>
+        <span className="block break-words text-base font-semibold text-[#2b3b4a]">{value}</span>
       </span>
     </div>
   );
@@ -74,8 +88,12 @@ export function CompanyProfile({
   figuresOpen = true,
   lockedNote = companyCopy.figuresLocked,
   lockAction = null,
+  privateFacts = null,
+  privateHeading = "",
 }: {
   project: InvestorProjectProfile;
+  privateFacts?: { key: string; label: string; value: string }[] | null;
+  privateHeading?: string;
   figuresOpen?: boolean;
   lockedNote?: string;
   lockAction?: ReactNode;
@@ -114,6 +132,19 @@ export function CompanyProfile({
             value={project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
           />
         </div>
+        {privateFacts && privateFacts.length > 0 ? (
+          <>
+            <h3 className="mt-8 flex items-center gap-2 text-base font-semibold text-[#1c2740]">
+              <EyeOff className="size-4 text-[#465ab4]" aria-hidden />
+              {privateHeading}
+            </h3>
+            <div className="mt-4 grid gap-4 sm:grid-cols-4">
+              {privateFacts.map((fact) => (
+                <PublicFact key={fact.key} icon={privateIcons[fact.key] ?? Building2} label={fact.label} value={fact.value} />
+              ))}
+            </div>
+          </>
+        ) : null}
         <h3 className="mt-8 flex items-center gap-2 text-base font-semibold text-[#1c2740]">
           {companyCopy.descriptionLabel}
         </h3>

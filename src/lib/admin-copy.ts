@@ -43,6 +43,8 @@ export const adminCopy = {
   accountStateLabel: "Situación",
   accountStateAll: "Todas",
   accountStateActive: "Activas",
+  privateMissing: "Sin dato",
+  privateHeading: "Datos privados · solo administración",
   accountStateSuspended: "Suspendidas",
   accountStatePending: "Alta pendiente",
   activeIntro: "La barra empieza cuando la empresa acepta la solicitud.",
