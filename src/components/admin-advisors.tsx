@@ -94,7 +94,7 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
                       Score {scoreText(advisor.breakdown.rank)}
                     </p>
                   ) : null}
-                  {advisor.breakdown ? <ScorePopover advisor={advisor} breakdown={advisor.breakdown} /> : null}
+                  {advisor.breakdown ? <ScorePopover breakdown={advisor.breakdown} /> : null}
                 </div>
                 <VerifiedToggle compact target="advisor" id={advisor.id} verified={advisor.verified} />
               </div>
@@ -106,17 +106,6 @@ export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
                   <p className="mt-2 text-sm text-[#667085]">{advisor.justification}</p>
                 </div>
               )}
-              <details className="group px-1 text-sm">
-                <summary className="cursor-pointer list-none text-xs font-medium text-[#465ab4] hover:underline">
-                  <span className="group-open:hidden">Ver contacto</span>
-                  <span className="hidden group-open:inline">Ocultar contacto</span>
-                </summary>
-                <dl className="mt-2 grid gap-1 rounded-xl bg-white px-3 py-2 text-xs">
-                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Empresa</dt><dd className="truncate font-medium text-[#1c2740]">{advisor.businessName.trim() || "—"}</dd></div>
-                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Persona</dt><dd className="truncate font-medium text-[#1c2740]">{advisor.name.trim() || "—"}</dd></div>
-                  <div className="flex justify-between gap-3"><dt className="text-[#667085]">Correo</dt><dd className="truncate font-medium text-[#1c2740]"><a className="hover:underline" href={`mailto:${advisor.email}`}>{advisor.email}</a></dd></div>
-                </dl>
-              </details>
             </li>
           ))}
         </ul>
@@ -136,7 +125,7 @@ function advisorHeading(advisor: AdminAdvisorRow): string {
   return business.length > 0 ? business : person;
 }
 
-function ScorePopover({ advisor, breakdown }: { advisor: AdminAdvisorRow; breakdown: AdvisorScoreBreakdown }) {
+function ScorePopover({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   return (
     <details className="relative">
       <summary className="cursor-pointer list-none rounded-full border border-[#c5ced8] bg-white px-3 py-1 text-sm font-medium text-[#465ab4] hover:border-[#465ab4]">
@@ -144,29 +133,88 @@ function ScorePopover({ advisor, breakdown }: { advisor: AdminAdvisorRow; breakd
       </summary>
       <div className="absolute left-0 z-20 mt-2 w-[22rem] max-w-[80vw] rounded-2xl border border-[#e7eaee] bg-white p-4 shadow-[0_18px_40px_-18px_rgba(28,39,64,0.45)]">
         <AdvisorScores breakdown={breakdown} />
-        <p className="mt-3 text-xs leading-5 text-[#3d4a63]">{advisor.justification}</p>
-        <p className="mt-2 text-xs leading-5 text-[#667085] whitespace-pre-line">{adminCopy.rankRules}</p>
+        <details className="mt-3 text-xs"><summary className="cursor-pointer text-[#465ab4]">Cómo se calcula</summary><p className="mt-2 leading-5 text-[#667085] whitespace-pre-line">{adminCopy.rankRules}</p></details>
       </div>
     </details>
   );
 }
 
+const scoreParts = [
+  { key: "cases", label: "Casos cerrados", max: 64, color: "#1c2740" },
+  { key: "services", label: "Servicios", max: 20, color: "#465ab4" },
+  { key: "description", label: "Descripción", max: 12, color: "#0f8a7a" },
+  { key: "sectors", label: "Sectores", max: 8, color: "#7fb8b0" },
+] as const;
+
 function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
-  const rows = [
-    { label: adminCopy.advisorCases, value: String(breakdown.caseCount) },
-    { label: adminCopy.advisorServices, value: String(breakdown.serviceCount) },
-    { label: adminCopy.advisorQuality, value: scoreText(breakdown.quality) },
-    { label: adminCopy.advisorReliability, value: scoreText(breakdown.reliability) },
-  ];
+  const qualityMax = scoreParts.reduce((sum, part) => sum + part.max, 0);
+  const details: Record<(typeof scoreParts)[number]["key"], string> = {
+    cases: `${breakdown.caseCount} (máx. 4)`,
+    services: `${breakdown.serviceCount} (máx. 4)`,
+    description: `${breakdown.descriptionLength} caracteres`,
+    sectors: `${breakdown.sectorCount}`,
+  };
+  const leaks = [
+    breakdown.email ? "Correo −30" : "",
+    breakdown.phone ? "Teléfono −30" : "",
+    breakdown.offPlatform ? "Contacto fuera −25" : "",
+  ].filter((item) => item.length > 0);
 
   return (
-    <dl className="grid grid-cols-2 gap-2">
-      {rows.map((row) => (
-        <div key={row.label} className="rounded-xl bg-[#f4f7ff] px-3 py-2">
-          <dt className="text-xs text-[#3d4a63]">{row.label}</dt>
-          <dd className="text-lg font-semibold tracking-tight text-[#1c2740] tabular-nums">{row.value}</dd>
+    <div className="grid gap-4">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs text-[#667085]">Ranking</p>
+          <p className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{scoreText(breakdown.rank)}</p>
         </div>
-      ))}
-    </dl>
+        <p className="text-right text-xs leading-5 text-[#667085]">
+          Nota {scoreText(breakdown.quality)} × fiabilidad {scoreText(breakdown.reliability)} %
+        </p>
+      </div>
+      <div>
+        <div className="mb-1 flex justify-between text-xs">
+          <span className="font-medium text-[#1c2740]">{adminCopy.advisorQuality}</span>
+          <span className="tabular-nums text-[#667085]">{scoreText(breakdown.quality)} / {qualityMax}</span>
+        </div>
+        <div className="flex h-3 overflow-hidden rounded-full bg-[#eef1f5]" role="img" aria-label={`${adminCopy.advisorQuality} ${scoreText(breakdown.quality)} de ${qualityMax}`}>
+          {scoreParts.map((part) => (
+            <span key={part.key} style={{ width: `${(breakdown[part.key] / qualityMax) * 100}%`, background: part.color }} />
+          ))}
+        </div>
+        <ul className="mt-3 grid gap-2">
+          {scoreParts.map((part) => (
+            <li key={part.key} className="grid grid-cols-[7rem_1fr_3.5rem] items-center gap-2 text-xs">
+              <span className="flex items-center gap-1.5 text-[#3d4a63]">
+                <span aria-hidden="true" className="size-2 rounded-full" style={{ background: part.color }} />
+                {part.label}
+              </span>
+              <span className="h-1.5 overflow-hidden rounded-full bg-[#eef1f5]" title={details[part.key]}>
+                <span className="block h-full rounded-full" style={{ width: `${(breakdown[part.key] / part.max) * 100}%`, background: part.color }} />
+              </span>
+              <span className="text-right tabular-nums text-[#1c2740]">{scoreText(breakdown[part.key])}/{part.max}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <div className="mb-1 flex justify-between text-xs">
+          <span className="font-medium text-[#1c2740]">{adminCopy.advisorReliability}</span>
+          <span className="tabular-nums text-[#667085]">{scoreText(breakdown.reliability)} / 100</span>
+        </div>
+        <div className="h-3 overflow-hidden rounded-full bg-[#eef1f5]">
+          <span
+            className="block h-full rounded-full"
+            style={{ width: `${Math.max(0, Math.min(100, breakdown.reliability))}%`, background: breakdown.reliability >= 100 ? "#0f8a7a" : "#c0362c" }}
+          />
+        </div>
+        {leaks.length > 0 ? (
+          <p className="mt-2 flex flex-wrap gap-1.5">
+            {leaks.map((leak) => (
+              <span key={leak} className="rounded-full bg-[#fdeeee] px-2 py-0.5 text-[11px] font-medium text-[#8d2424]">{leak}</span>
+            ))}
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }
