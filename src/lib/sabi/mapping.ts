@@ -1,8 +1,6 @@
 import type { HeadcountRangeId } from "../company-profile";
+import type { SabiRatioKey } from "./labels";
 import type { SabiReport, SabiYear } from "./parse";
-
-/** Postgres INTEGER bounds: the ficha stores euro cents in 32-bit columns. */
-const maxCents = 2_147_483_647;
 
 /** How many closed years go into the ficha (the full series stays in the import record). */
 export const sabiFichaYears = 5;
@@ -36,9 +34,13 @@ export type SabiYearData = {
   currentLiabilitiesCents: number | null;
   shortTermDebtCents: number | null;
   suppliersCents: number | null;
+  cashFlowCents: number | null;
+  addedValueCents: number | null;
 };
 
-export type SabiMappedYear = { year: number; data: SabiYearData; ebitdaCents: number | null; employees: number | null };
+export type SabiRatios = Partial<Record<SabiRatioKey, number>>;
+
+export type SabiMappedYear = { year: number; data: SabiYearData; ebitdaCents: number | null; employees: number | null; ratios: SabiRatios | null };
 
 export type SabiProjectUpdate = {
   legalName: string | null;
@@ -51,6 +53,17 @@ export type SabiProjectUpdate = {
   headcountRange: HeadcountRangeId | null;
   principalCnae: string | null;
   secondaryCnaes: string[];
+  /** t60: lines that exist in the ficha but the first import left empty. */
+  legalForm: string | null;
+  accountsFormat: string | null;
+  audited: boolean | null;
+  region: string | null;
+  opexCents: number | null;
+  netDebtCents: number | null;
+  workingCapitalCents: number | null;
+  /** Shareholder names (admin-only) and, when SABI gives a clean split, the anonymous capital donut. */
+  shareholderNames: string[];
+  capitalBasisPoints: number[] | null;
 };
 
 export type SabiMapping = { years: SabiMappedYear[]; project: SabiProjectUpdate; warnings: string[] };
@@ -129,6 +142,8 @@ export function mapSabiYear(year: SabiYear): { data: SabiYearData; ebitdaCents: 
       currentLiabilitiesCents: currentLiabilities ?? null,
       shortTermDebtCents: money.financialDebt ?? null,
       suppliersCents: money.tradeCreditors ?? null,
+      cashFlowCents: money.cashFlow ?? null,
+      addedValueCents: money.addedValue ?? null,
     },
   };
 }
@@ -157,8 +172,42 @@ export function headcountRangeFor(employees: number | null): HeadcountRangeId | 
   return "band_over_50";
 }
 
-function fits(value: number | null): boolean {
-  return value === null || Math.abs(value) <= maxCents;
+function ratiosOf(year: SabiYear): SabiRatios | null {
+  const entries = Object.entries(year.ratios).filter((entry): entry is [SabiRatioKey, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]));
+  return entries.length > 0 ? (Object.fromEntries(entries) as SabiRatios) : null;
+}
+
+function titleCase(value: string): string {
+  return value.toLocaleLowerCase("es-ES").replace(/(^|[\s-])(\p{L})/gu, (_, gap: string, letter: string) => gap + letter.toLocaleUpperCase("es-ES"));
+}
+
+/** "Pendiente de tratamiento · PYME PGC 2007" → "PYME PGC 2007": the filing status is SABI's, not the company's. */
+export function accountsFormatOf(basis: string | null): string | null {
+  const parts = (basis ?? "").split("·").map((part) => part.trim()).filter((part) => part && !/pendiente|tratamiento/i.test(part));
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function percentOf(value: string | null): number | null {
+  const match = /^\s*(\d{1,3}(?:,\d+)?)\s*$/.exec(value ?? "");
+  return match ? Number(match[1]!.replace(",", ".")) : null;
+}
+
+/** Only an exact, fully numeric split that adds up to 100 % becomes the capital donut. */
+export function capitalSplit(report: SabiReport): number[] | null {
+  const holders = report.shareholders;
+
+  if (holders.length === 0) {
+    return null;
+  }
+
+  const percents = holders.map((holder) => percentOf(holder.direct ?? holder.total));
+
+  if (percents.some((value) => value === null || value <= 0)) {
+    return null;
+  }
+
+  const points = (percents as number[]).map((value) => Math.round(value * 100)).sort((a, b) => b - a);
+  return points.reduce((sum, value) => sum + value, 0) === 10_000 ? points : null;
 }
 
 function composeAddress(report: SabiReport): string | null {
@@ -176,23 +225,20 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
 
   for (const year of closed) {
     const mapped = mapSabiYear(year);
-    const overflow = Object.entries(mapped.data).filter(([, value]) => !fits(value));
-
-    if (overflow.length > 0 || !fits(mapped.ebitdaCents)) {
-      warnings.push(`En ${year.year} hay cifras por encima de 21,4 M€ que la ficha no puede guardar; se dejan en blanco.`);
-
-      for (const [key] of overflow) {
-        (mapped.data as Record<string, number | null>)[key] = null;
-      }
-    }
-
-    years.push({ year: year.year, data: mapped.data, ebitdaCents: fits(mapped.ebitdaCents) ? mapped.ebitdaCents : null, employees: year.employees });
+    years.push({ year: year.year, data: mapped.data, ebitdaCents: mapped.ebitdaCents, employees: year.employees, ratios: ratiosOf(year) });
   }
 
   const latest = years[0] ?? null;
   const cnae = report.codes.cnae2009;
   const founded = report.identity.incorporatedOn ? Number(report.identity.incorporatedOn.slice(0, 4)) : null;
   const employees = report.identity.employees ?? latest?.employees ?? null;
+  const data = latest?.data ?? null;
+  const source = closed[0] ?? null;
+  const opex = data ? [data.suppliesCents, data.staffCostsCents, data.otherOperatingCostsCents].filter((value): value is number => value !== null) : [];
+  const debt = data && (data.longTermDebtCents !== null || data.shortTermDebtCents !== null) ? (data.longTermDebtCents ?? 0) + (data.shortTermDebtCents ?? 0) : null;
+  const working =
+    source?.money.workingCapital ??
+    (data?.currentAssetsCents != null && data.currentLiabilitiesCents != null ? data.currentAssetsCents - data.currentLiabilitiesCents : null);
 
   return {
     years,
@@ -208,6 +254,15 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
       headcountRange: headcountRangeFor(employees),
       principalCnae: cnae?.primary[0]?.code ?? null,
       secondaryCnaes: [...(cnae?.primary.slice(1) ?? []), ...(cnae?.secondary ?? [])].map((code) => code.code),
+      legalForm: report.identity.legalForm,
+      accountsFormat: accountsFormatOf(source?.basis ?? null),
+      audited: report.auditor ? true : null,
+      region: report.identity.province ? titleCase(report.identity.province) : null,
+      opexCents: opex.length > 0 ? Math.abs(opex.reduce((sum, value) => sum + value, 0)) : null,
+      netDebtCents: debt !== null ? debt - (data?.cashCents ?? 0) : null,
+      workingCapitalCents: working,
+      shareholderNames: [...new Set(report.shareholders.map((holder) => holder.name.trim()).filter(Boolean))],
+      capitalBasisPoints: capitalSplit(report),
     },
   };
 }

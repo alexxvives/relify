@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import * as z from "zod";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { isCnaeCode } from "@/lib/cnae-2009";
 import { mapSabiReport, type SabiMapping } from "@/lib/sabi/mapping";
 import { parseSabiWorkbook, type SabiReport } from "@/lib/sabi/parse";
@@ -45,7 +45,19 @@ export type SabiImportResult<T> = { ok: true; value: T } | { ok: false; code: Sa
 /** What we keep from the file: everything SABI gives, admin-only. */
 export type SabiStored = { version: 1; report: SabiReport; importedById: string };
 
-type Loaded = { project: { id: string; cif: string; legalName: string; address: string; foundedYear: number | null }; report: SabiReport; mapping: SabiMapping; warnings: string[]; sellerYears: Set<number> };
+type Loaded = {
+  project: {
+    id: string;
+    cif: string;
+    legalName: string;
+    address: string;
+    foundedYear: number | null;
+    region: string;
+    opexCents: number | null;
+    netDebtCents: number | null;
+    workingCapitalCents: number | null;
+    _count: { shareholders: number; activitySlices: number };
+  }; report: SabiReport; mapping: SabiMapping; warnings: string[]; sellerYears: Set<number> };
 
 async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Promise<SabiImportResult<Loaded>> {
   // Server-side guard: only admins import SABI, whatever the UI shows.
@@ -69,7 +81,19 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
 
   const project = await prisma.project.findUnique({
     where: { id: id.data },
-    select: { id: true, cif: true, legalName: true, address: true, foundedYear: true, years: { select: { year: true, kind: true, dataSource: true } } },
+    select: {
+      id: true,
+      cif: true,
+      legalName: true,
+      address: true,
+      foundedYear: true,
+      region: true,
+      opexCents: true,
+      netDebtCents: true,
+      workingCapitalCents: true,
+      years: { select: { year: true, kind: true, dataSource: true } },
+      _count: { select: { shareholders: true, activitySlices: { where: { kind: "capital" } } } },
+    },
   });
 
   if (!project) {
@@ -104,8 +128,7 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
     warnings.push(`Líneas del archivo que no se usan: ${parsed.report.unmappedLabels.slice(0, 8).join(", ")}${parsed.report.unmappedLabels.length > 8 ? "…" : ""}.`);
   }
 
-  const { id: pid, cif, legalName, address, foundedYear } = project;
-  return { ok: true, value: { project: { id: pid, cif, legalName, address, foundedYear }, report: parsed.report, mapping, warnings, sellerYears } };
+  return { ok: true, value: { project, report: parsed.report, mapping, warnings, sellerYears } };
 }
 
 export async function previewSabiImport(user: CurrentUser, projectId: string, bytes: Uint8Array, fileName: string): Promise<SabiImportResult<SabiPreview>> {
@@ -168,7 +191,14 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
     await tx.projectYear.deleteMany({ where: { projectId: project.id, kind: "closed", dataSource: "sabi" } });
 
     for (const year of mapping.years) {
-      const data = { kind: "closed" as const, ...year.data, dataSource: "sabi", confirmedAt: now };
+      const data = {
+        kind: "closed" as const,
+        ...year.data,
+        employees: year.employees,
+        ratios: year.ratios === null ? Prisma.DbNull : (year.ratios as Prisma.InputJsonValue),
+        dataSource: "sabi",
+        confirmedAt: now,
+      };
       await tx.projectYear.upsert({
         where: { projectId_year: { projectId: project.id, year: year.year } },
         create: { id: randomUUID(), projectId: project.id, year: year.year, ...data },
@@ -199,8 +229,26 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
         ...(useFigures && figures.ebitdaCents !== null ? { ebitdaCents: figures.ebitdaCents } : {}),
         ...(useFigures && figures.netIncomeCents !== null ? { netIncomeCents: figures.netIncomeCents } : {}),
         ...(useFigures && figures.averageHeadcount !== null ? { averageHeadcount: figures.averageHeadcount } : {}),
+        // t60: every remaining ficha line SABI can answer. Seller-entered values win where they exist.
+        ...(useFigures && project.opexCents === null && figures.opexCents !== null ? { opexCents: figures.opexCents } : {}),
+        ...(useFigures && figures.netDebtCents !== null ? { netDebtCents: figures.netDebtCents } : {}),
+        ...(useFigures && figures.workingCapitalCents !== null ? { workingCapitalCents: figures.workingCapitalCents } : {}),
+        ...(project.region.trim() === "" && figures.region ? { region: figures.region } : {}),
+        legalForm: figures.legalForm,
+        accountsFormat: figures.accountsFormat,
+        audited: figures.audited,
       },
     });
+
+    if (project._count.shareholders === 0 && figures.shareholderNames.length > 0) {
+      await tx.shareholder.createMany({ data: figures.shareholderNames.map((name) => ({ id: randomUUID(), projectId: project.id, name: name.slice(0, 200) })) });
+    }
+
+    if (project._count.activitySlices === 0 && figures.capitalBasisPoints) {
+      await tx.activitySlice.createMany({
+        data: figures.capitalBasisPoints.map((basisPoints, index) => ({ id: randomUUID(), projectId: project.id, kind: "capital" as const, position: index + 1, basisPoints })),
+      });
+    }
 
     const hasCnae = await tx.projectCnae.count({ where: { projectId: project.id } });
     const codes = [figures.principalCnae, ...figures.secondaryCnaes].filter((code): code is string => code !== null && isCnaeCode(code));

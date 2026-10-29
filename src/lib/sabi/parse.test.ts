@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { syntheticRows, syntheticWorkbook, zip } from "./__fixtures__/synthetic";
-import { mapSabiReport } from "./mapping";
+import { accountsFormatOf, capitalSplit, mapSabiReport } from "./mapping";
 import { parseSabiNumber, parseSabiWorkbook } from "./parse";
 
 async function report() {
@@ -113,11 +113,38 @@ describe("mapSabiReport", () => {
     });
   });
 
-  it("blanks figures that do not fit the ficha columns", async () => {
+  it("keeps figures above 21,4 M€ now that money columns are BIGINT", async () => {
     const parsed = await report();
     parsed.years[0]!.money.sales = 3_000_000_000;
     const mapping = mapSabiReport(parsed);
-    expect(mapping.years[0]?.data.salesCents).toBeNull();
-    expect(mapping.warnings[0]).toContain("21,4 M€");
+    expect(mapping.years[0]?.data.salesCents).toBe(3_000_000_000);
+    expect(mapping.warnings).toEqual([]);
+  });
+
+  it("fills the remaining ficha lines SABI can answer", async () => {
+    const parsed = await report();
+    const { project, years } = mapSabiReport(parsed);
+    const data = years[0]!.data;
+    expect(project.legalForm).toBe(parsed.identity.legalForm);
+    expect(project.audited).toBe(parsed.auditor ? true : null);
+    expect(project.shareholderNames).toEqual(parsed.shareholders.map((holder) => holder.name));
+    expect(project.opexCents).toBe(Math.abs((data.suppliesCents ?? 0) + (data.staffCostsCents ?? 0) + (data.otherOperatingCostsCents ?? 0)));
+    expect(years[0]!.employees).toBe(parsed.years[0]!.employees);
+  });
+});
+
+describe("SABI helpers", () => {
+  it("drops SABI's own filing status from the accounts format", () => {
+    expect(accountsFormatOf("Pendiente de tratamiento · PYME PGC 2007")).toBe("PYME PGC 2007");
+    expect(accountsFormatOf("Abreviado PGC 2007")).toBe("Abreviado PGC 2007");
+    expect(accountsFormatOf(null)).toBeNull();
+  });
+
+  it("only turns a clean 100 % shareholder split into the capital donut", async () => {
+    const parsed = await report();
+    const holder = { name: "A", country: null, type: "I", total: null, infoDate: null };
+    expect(capitalSplit({ ...parsed, shareholders: [{ ...holder, direct: "60,00" }, { ...holder, direct: "40,00" }] })).toEqual([6000, 4000]);
+    expect(capitalSplit({ ...parsed, shareholders: [{ ...holder, direct: ">50,00" }, { ...holder, direct: "8,10" }] })).toBeNull();
+    expect(capitalSplit({ ...parsed, shareholders: [{ ...holder, direct: "60,00" }] })).toBeNull();
   });
 });
