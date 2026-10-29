@@ -4,7 +4,6 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
-  Clock3,
   LoaderCircle,
   LockKeyhole,
   Shuffle,
@@ -16,6 +15,7 @@ import {
 } from "@/app/(app)/mi-empresa/nif-actions";
 import { companyCopy } from "@/lib/company-copy";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
+import { FilledCheckIcon, WaitClockIcon } from "@/components/nif-ready-icons";
 
 const FILL_MS = 2200;
 
@@ -125,26 +125,25 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
         {phase === "done" ? (
           <div role="status" aria-live="polite" className="py-2">
             <div className="flex flex-col items-center text-center">
-              <span className="releva-check-pop flex size-16 items-center justify-center rounded-full bg-[#0f766e] text-white">
+              <span className="relative flex size-16">
+                <span className="releva-ripple" aria-hidden />
+              <span className="releva-check-pop relative flex size-16 items-center justify-center rounded-full bg-[#0f766e] text-white">
                 <Check className="releva-check-draw size-9" strokeWidth={3} aria-hidden />
+              </span>
               </span>
               <h2 className="mt-5 text-2xl font-semibold tracking-tight">{companyCopy.nifReadyTitle}</h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-[#5c6b78]">{companyCopy.nifReadyBody}</p>
             </div>
             <ol className="mt-6 grid gap-3">
-              <li className="flex items-start gap-3 rounded-2xl border border-[#cfe8e4] bg-[#f0faf8] p-4">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#0f766e] text-white">
-                  <Check className="size-4" strokeWidth={3} aria-hidden />
-                </span>
+              <li className="releva-row-in flex items-start gap-3 rounded-2xl border border-[#cfe8e4] bg-[#f0faf8] p-4" style={{ animationDelay: "350ms" }}>
+                <FilledCheckIcon delayMs={550} />
                 <span>
                   <span className="block text-sm font-semibold">{companyCopy.nifReadyBasics}</span>
                   <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">{companyCopy.nifReadyBasicsBody}</span>
                 </span>
               </li>
-              <li className="flex items-start gap-3 rounded-2xl border border-[#e1e6ee] bg-[#f7f8fb] p-4">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-white">
-                  <Clock3 className="size-4" aria-hidden />
-                </span>
+              <li className="releva-row-in flex items-start gap-3 rounded-2xl border border-[#e1e6ee] bg-[#f7f8fb] p-4" style={{ animationDelay: "650ms" }}>
+                <WaitClockIcon />
                 <span>
                   <span className="block text-sm font-semibold">{companyCopy.nifReadyFinancials}</span>
                   <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">{companyCopy.nifReadyFinancialsBody}</span>

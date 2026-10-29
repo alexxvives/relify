@@ -2722,3 +2722,83 @@
 .password-compact [role="meter"] { margin-top: 0; }
 /* Strength meter row only once the user starts typing. */
 .password-compact:not([data-typed="true"]) div:has(> [role="meter"]) { display: none; }
+
+/* t60: animated rows in the "información inicial" modal. */
+@keyframes releva-row-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes releva-clock-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes releva-clock-fill {
+  0% { stroke-dashoffset: 100; }
+  70%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes releva-ripple {
+  from { transform: scale(1); opacity: 0.45; }
+  to { transform: scale(1.7); opacity: 0; }
+}
+
+.releva-row-in {
+  animation: releva-row-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.releva-row-check {
+  animation: releva-check-pop 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.releva-row-check-path {
+  stroke-dasharray: 24;
+  animation: releva-check-draw 360ms ease-out both;
+}
+
+.releva-clock-hour,
+.releva-clock-minute {
+  transform-origin: 12px 12px;
+  transform-box: view-box;
+}
+
+.releva-clock-minute {
+  animation: releva-clock-spin 2s linear infinite;
+}
+
+.releva-clock-hour {
+  animation: releva-clock-spin 24s linear infinite;
+}
+
+.releva-clock-ring {
+  stroke-dasharray: 100;
+  animation: releva-clock-fill 4s ease-in-out infinite;
+}
+
+.releva-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #2fc4b2;
+  animation: releva-ripple 900ms 300ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .releva-row-in,
+  .releva-row-check,
+  .releva-row-check-path,
+  .releva-clock-hour,
+  .releva-clock-minute,
+  .releva-ripple {
+    animation: none;
+  }
+
+  .releva-ripple {
+    display: none;
+  }
+
+  .releva-clock-ring {
+    animation: none;
+    stroke-dashoffset: 30;
+  }
+}
