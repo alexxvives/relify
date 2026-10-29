@@ -1864,7 +1864,7 @@ function PublicFicha({
       <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
         {companyCopy.fichaFieldsTitle}
       </span>
-      <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
             <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
@@ -1912,22 +1912,68 @@ function PublicFicha({
               }}
               className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
             >
-              <ImagePlus className="size-4" aria-hidden />
-              {companyCopy.cardPhotos}
+              <ImagePlus className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{companyCopy.cardPhotos}</span>
             </button>
-            {shown ? (
-              <button
-                type="button"
-                aria-label={companyCopy.cardPhotos}
-                onClick={() => {
-                  setFocusOpen(true);
-                }}
-                className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-[#e7eaee]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={shown} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
-              </button>
-            ) : null}
+            {(() => {
+              const uploaded = photos.length > 0 ? photos : storedCover ? [storedCover] : [];
+              if (uploaded.length === 0) {
+                return shown ? (
+                  <button
+                    type="button"
+                    aria-label={companyCopy.cardPhotos}
+                    onClick={() => {
+                      setFocusOpen(true);
+                    }}
+                    className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-[#e7eaee]"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={shown} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
+                  </button>
+                ) : null;
+              }
+              return (
+                <ul className="mr-1.5 flex shrink-0 items-center gap-2">
+                  {uploaded.map((photo, index) => (
+                    <li key={`${index}-${photo.slice(-24)}`} className="relative size-11 shrink-0">
+                      <button
+                        type="button"
+                        aria-pressed={index === active}
+                        aria-label={`${companyCopy.cardPhotos} ${index + 1}`}
+                        onClick={() => {
+                          setActive(index);
+                          setFocusOpen(true);
+                        }}
+                        className={
+                          index === active
+                            ? "size-11 overflow-hidden rounded-xl border-2 border-[#465ab4]"
+                            : "size-11 overflow-hidden rounded-xl border border-[#e7eaee]"
+                        }
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={companyCopy.cardPhotosRemove}
+                        onClick={() => {
+                          if (photos.length === 0) {
+                            setCoverHidden(true);
+                            void deleteProjectCoverAction();
+                            onListed(Boolean(imageSrc));
+                            return;
+                          }
+                          storePhotos(photos.filter((_, itemIndex) => itemIndex !== index));
+                        }}
+                        className="absolute -top-1.5 -right-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#c0362c] text-white shadow-sm"
+                      >
+                        <X className="size-3" aria-hidden />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
           </div>
           <input
             ref={fileRef}
@@ -1946,43 +1992,6 @@ function PublicFicha({
             <p role="alert" className="text-sm text-[#c0362c]">
               {photoMessage}
             </p>
-          ) : null}
-          {(photos.length > 0 ? photos : storedCover ? [storedCover] : []).length > 0 ? (
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {(photos.length > 0 ? photos : storedCover ? [storedCover] : []).map((photo, index) => (
-                <li key={`${index}-${photo.slice(-24)}`} className="relative">
-                  <button
-                    type="button"
-                    aria-pressed={index === active}
-                    onClick={() => setActive(index)}
-                    className={
-                      index === active
-                        ? "aspect-square w-full overflow-hidden rounded-xl border-2 border-[#465ab4]"
-                        : "aspect-square w-full overflow-hidden rounded-xl border border-[#e7eaee]"
-                    }
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photo} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={companyCopy.cardPhotosRemove}
-                    onClick={() => {
-                      if (photos.length === 0) {
-                        setCoverHidden(true);
-                        void deleteProjectCoverAction();
-                        onListed(Boolean(imageSrc));
-                        return;
-                      }
-                      storePhotos(photos.filter((_, itemIndex) => itemIndex !== index));
-                    }}
-                    className="absolute -top-1.5 -right-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#c0362c] text-white"
-                  >
-                    <X className="size-3" aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
           ) : null}
           {focusOpen && shown ? (
             <button
