@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { ArcScope } from "@/components/arc/arc-scope";
 import { createPasswordRules, PasswordStrength } from "@/components/arc/password-strength/password-strength";
 
@@ -8,11 +10,11 @@ const rules = createPasswordRules({
   minLength: 8,
   labels: {
     length: (min) => `Al menos ${min} caracteres`,
-    case: "Mayúsculas y minúsculas",
+    case: "",
     number: "Al menos un número",
     symbol: "Al menos un símbolo",
   },
-});
+}).filter((rule) => rule.id !== "case");
 
 const messages = {
   levels: { tooShort: "Muy corta", weak: "Débil", fair: "Aceptable", good: "Buena", strong: "Fuerte" },
@@ -27,8 +29,18 @@ const messages = {
   summary: ({ label, met, total }: { label: string; met: number; total: number }) => `Seguridad: ${label}. ${met} de ${total} requisitos cumplidos.`,
 };
 
-export function NewPasswordField({ name, label, placeholder }: { name: string; label: string; placeholder?: string }) {
+/** `compact` keeps the checklist out of the layout: it floats under the field only while the field is focused. */
+export function NewPasswordField({ name, label, placeholder, compact = false }: { name: string; label: string; placeholder?: string; compact?: boolean }) {
+  const [focused, setFocused] = useState(false);
   return (
+    <div
+      className={compact ? "password-compact" : undefined}
+      data-open={compact && focused ? "true" : undefined}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
     <ArcScope>
       <PasswordStrength
         name={name}
@@ -41,5 +53,6 @@ export function NewPasswordField({ name, label, placeholder }: { name: string; l
         messages={messages}
       />
     </ArcScope>
+    </div>
   );
 }
