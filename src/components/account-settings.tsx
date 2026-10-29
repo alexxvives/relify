@@ -193,7 +193,7 @@ export function AccountSettings({
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
         <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
-          <NewPasswordField name="newPassword" label={authCopy.passwordNew} />
+          <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
           <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
           <button
             type="submit"

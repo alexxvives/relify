@@ -2713,3 +2713,10 @@
     top: 46.2%;
   }
 }
+
+/* Profile password change: the checklist floats under the field while it is focused instead of growing the row. */
+.password-compact { position: relative; }
+.password-compact ul[aria-label] { display: none; }
+.password-compact[data-open="true"] ul[aria-label] { position: absolute; top: 100%; right: 0; left: 0; z-index: 30; display: grid; gap: 4px; margin-top: 6px; padding: 10px 12px; border: 1px solid #dfe5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgb(15 23 42 / 0.12); }
+.password-compact ul[aria-label] li { font-size: 13px; }
+.password-compact [role="meter"] { margin-top: 0; }
