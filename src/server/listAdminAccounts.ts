@@ -11,6 +11,8 @@ export type AdminAccountRow = {
   suspended: boolean;
   plan: "none" | "limited" | "unlimited";
   referralSource: string | null;
+  phone: string | null;
+  createdAt: string;
   isNew: boolean;
 };
 
@@ -31,6 +33,7 @@ export async function listAdminAccounts(user: CurrentUser, since?: Date): Promis
       suspendedAt: true,
       referralSource: true,
       createdAt: true,
+      phone: true,
       billingCustomer: { select: { plan: true } },
     },
   });
@@ -44,6 +47,8 @@ export async function listAdminAccounts(user: CurrentUser, since?: Date): Promis
     suspended: account.suspendedAt !== null,
     plan: account.billingCustomer?.plan ?? "none",
     referralSource: referralSourceLabel(account.referralSource),
+    phone: account.phone,
+    createdAt: account.createdAt.toISOString(),
     isNew: since ? account.createdAt > since : false,
   }));
 }

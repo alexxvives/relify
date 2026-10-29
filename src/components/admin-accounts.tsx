@@ -116,48 +116,61 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
   );
 }
 
-function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
+const joined = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" });
+
+function accountState(account: AdminAccountRow): { label: string; tone: string } {
+  if (account.suspended) return { label: "Suspendida", tone: "bg-[#fdeeee] text-[#8d2424]" };
+  if (!account.onboarded) return { label: adminCopy.accountStatePending, tone: "bg-[#fff4d6] text-[#8a6112]" };
+  return { label: "Activa", tone: "bg-[#e7f6ef] text-[#1f6b4a]" };
+}
+
+function roleLabel(role: string | null): string {
+  if (role && role in adminCopy.accountRoles) return adminCopy.accountRoles[role as keyof typeof adminCopy.accountRoles];
+  return "Sin rol";
+}
+
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <article className={`flex w-full flex-col gap-3 rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
-      <div className="flex min-w-0 items-start gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
+    <div className="flex min-w-0 items-baseline justify-between gap-3 py-1.5 text-xs">
+      <dt className="shrink-0 text-[#667085]">{label}</dt>
+      <dd className="min-w-0 truncate text-right font-medium text-[#1c2740]">{children}</dd>
+    </div>
+  );
+}
+
+function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
+  const state = accountState(account);
+  return (
+    <article className={`flex w-full flex-col rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
+      <header className="flex min-w-0 items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[#1c2740]">
-            <span className="truncate">{account.name}</span>
+            <span className="truncate" title={account.name}>{account.name}</span>
             {account.isNew ? <NewPill /> : null}
           </p>
           <p className="truncate text-xs text-[#667085]" title={account.email}>{account.email}</p>
-          {account.onboarded ? (
-            <p className="mt-1 text-xs text-[#667085]">
-              {adminCopy.referralSourceLabel}:{" "}
-              <span className="font-medium text-[#3d4a63]">
-                {account.referralSource ?? adminCopy.referralSourceEmpty}
-              </span>
-            </p>
-          ) : null}
-          <ul className="mt-2 flex flex-wrap gap-1.5 empty:hidden">
-            {account.suspended ? (
-              <li className="rounded-full bg-[#fdeeee] px-2.5 py-1 text-xs font-medium text-[#8d2424]">{adminCopy.suspendedBadge}</li>
-            ) : null}
-            {account.role === "investor" ? (
-              <li className="rounded-full bg-[#fff4e8] px-2.5 py-1 text-xs font-medium text-[#9a4a08]">
-                {adminCopy.plans[account.plan]}
-              </li>
-            ) : null}
-          </ul>
         </div>
-      </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${state.tone}`}>{state.label}</span>
+      </header>
+      <dl className="mt-3 divide-y divide-[#eef1f5] border-y border-[#eef1f5]">
+        <InfoRow label="Rol">{roleLabel(account.role)}</InfoRow>
+        {account.role === "investor" ? <InfoRow label="Plan">{adminCopy.plans[account.plan]}</InfoRow> : null}
+        <InfoRow label="Teléfono">{account.phone ?? "—"}</InfoRow>
+        <InfoRow label="Alta">{joined.format(new Date(account.createdAt))}</InfoRow>
+        <InfoRow label={adminCopy.referralSourceLabel}>{account.onboarded ? (account.referralSource ?? adminCopy.referralSourceEmpty) : "—"}</InfoRow>
+      </dl>
       {self ? (
-        <p className="mt-auto text-xs text-[#667085]">
+        <p className="mt-auto pt-3 text-xs text-[#667085]">
           {adminCopy.ownSuspend} {adminCopy.ownRole}
         </p>
       ) : (
-        <div className="mt-auto flex flex-col items-stretch gap-2">
+        <div className="mt-auto flex flex-col items-stretch gap-2 pt-3">
           <div className="flex flex-wrap items-center gap-2">
-            <SuspensionButton userId={account.id} suspended={account.suspended} />
             <RoleForm userId={account.id} role={account.role} />
+            <SuspensionButton userId={account.id} suspended={account.suspended} />
           </div>
           {account.role === "investor" ? <PlanForm userId={account.id} /> : null}
         </div>
