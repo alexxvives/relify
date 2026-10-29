@@ -609,31 +609,51 @@ export function AdminListSkeleton({ kind }: { kind: "advisors" | "accounts" | "c
   }
 
   if (kind === "companies") {
+    // Mirrors AdminCompanies: header (title + search + status), sort chips, then marketplace cards with admin actions.
     return (
       <Shell>
-        <AdminToolbar />
-        <div className="grid gap-4">
-          {[0, 1, 2].map((index) => (
-            <Card key={index}>
-              <div className="flex items-start justify-between">
-                <B className="h-6 w-56" />
-                <B className="h-8 w-64 rounded-full" />
-              </div>
-              <div className="mt-4 grid items-stretch gap-4 lg:grid-cols-2 lg:gap-0">
-                <div className="flex flex-col gap-3 lg:pr-6">
-                  {[0, 1, 2, 3].map((row) => (
-                    <B key={row} className="h-5 w-full" />
-                  ))}
-                </div>
-                <div className="grid h-full grid-cols-2 content-stretch gap-3 lg:pl-6">
-                  {[0, 1, 2, 3].map((cell) => (
-                    <B key={cell} className="h-14 w-full rounded-xl" />
-                  ))}
-                </div>
-              </div>
-            </Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Bare className="h-9 w-36" />
+          <div className="flex gap-2">
+            <Bare className="h-10 w-52 rounded-full" />
+            <Bare className="h-10 w-44 rounded-full" />
+          </div>
+        </div>
+        <div className="-mt-3 flex flex-wrap items-center gap-2">
+          <Bare className="h-4 w-14" />
+          {[0, 1, 2, 3, 4].map((chip) => (
+            <Bare key={chip} className="h-7 w-24 rounded-full" />
           ))}
         </div>
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {Array.from({ length: 6 }, (_, index) => (
+            <li key={index} className="flex flex-col gap-3 p-2">
+              <div className="overflow-hidden rounded-2xl bg-white">
+                <B className="h-[6.75rem] w-full rounded-none" />
+                <div className="relative px-3.5 pb-4">
+                  <B className="-mt-7 size-16 rounded-2xl border-4 border-white" />
+                  <div className="mt-3 flex flex-col gap-2">
+                    <B className="h-3 w-full" />
+                    <B className="h-3 w-4/5" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-[#e7eaee]">
+                    {[0, 1, 2, 3].map((cell) => (
+                      <div key={cell} className="flex flex-col items-center gap-2 py-3">
+                        <B className="h-3 w-16" />
+                        <B className="h-4 w-14" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Bare className="mx-1 h-3 w-40" />
+              <div className="flex justify-end gap-2 px-1">
+                <Bare className="h-9 w-28 rounded-full" />
+                <Bare className="h-9 w-32 rounded-full" />
+              </div>
+            </li>
+          ))}
+        </ul>
       </Shell>
     );
   }
