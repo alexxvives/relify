@@ -77,14 +77,11 @@ export function AdminConnections({ connections }: { connections: AdminConnection
                     {connection.codename}
                     {connection.isNew ? <NewPill /> : null}
                   </h2>
-                  <p className="mt-1 text-sm text-[#667085]">
-                    {connection.region}
-                    {connection.soldPriceCents !== null ? (
-                      <span className="ml-2 font-semibold text-[#0d5c38]">
-                        {adminCopy.soldPrice}: {formatEur(connection.soldPriceCents)}
-                      </span>
-                    ) : null}
-                  </p>
+                  {connection.soldPriceCents !== null ? (
+                    <p className="mt-1 text-sm font-semibold text-[#0d5c38]">
+                      {adminCopy.soldPrice}: {formatEur(connection.soldPriceCents)}
+                    </p>
+                  ) : null}
                 </div>
                 <DealWaitingCue cue={{ action: watchingCue(connection.steps) }} />
                 </div>
