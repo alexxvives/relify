@@ -60,15 +60,6 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
                 </ul>
               </section>
               <div className="flex w-full flex-col items-center justify-center lg:absolute lg:top-1/2 lg:left-[78%] lg:w-[min(30rem,46%)] lg:-translate-x-1/2 lg:-translate-y-1/2">
-                <p className="mb-4 text-center text-[15px] text-[#7d8fa1]">
-                  {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
-                  <Link
-                    href={signingUp ? "/entrar" : "/registro"}
-                    className="whitespace-nowrap font-medium text-[#14998a] hover:text-[#0f8578]"
-                  >
-                    {signingUp ? authCopy.signIn : authCopy.signUp} →
-                  </Link>
-                </p>
                 <section className="w-full rounded-[1.75rem] border border-white/80 bg-white/95 px-8 py-9 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-9 sm:py-10">
                   <h2 className="text-center text-3xl font-semibold tracking-tight text-[#16324f]">
                     {signingUp ? authCopy.signUpCardTitle : authCopy.signInCardTitle}
@@ -77,6 +68,15 @@ export function AuthScreen({ mode, intent = null }: { mode: AuthMode; intent?: S
                     {signingUp ? authCopy.signUpIntro : authCopy.signInIntro}
                   </p>
                   <div className="mt-8">{signingUp ? <SignUpForm intent={intent} /> : <SignInForm />}</div>
+                  <p className="mt-5 text-center text-[15px] text-[#7d8fa1]">
+                    {signingUp ? authCopy.haveAccount : authCopy.needAccount}{" "}
+                    <Link
+                      href={signingUp ? "/entrar" : "/registro"}
+                      className="whitespace-nowrap font-medium text-[#14998a] hover:text-[#0f8578]"
+                    >
+                      {signingUp ? authCopy.signIn : authCopy.signUp} →
+                    </Link>
+                  </p>
                 </section>
               </div>
             </div>
