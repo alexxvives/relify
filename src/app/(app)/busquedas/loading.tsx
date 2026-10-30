@@ -1,5 +1,6 @@
-import { ShellSkeleton } from "@/components/shell-skeleton";
+import { NoteSkeleton } from "@/components/shell-skeleton";
+import { investorCopy } from "@/lib/investor-copy";
 
 export default function Loading() {
-  return <ShellSkeleton />;
+  return <NoteSkeleton title={investorCopy.searchesTitle} />;
 }

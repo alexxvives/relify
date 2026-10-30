@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ProcessesSkeleton } from "@/components/page-skeletons";
+import { SaleSkeleton } from "@/components/page-skeletons";
 import { SellerSaleCompleted } from "@/components/sale-completed";
 import { SignedInPage } from "@/components/signed-in-page";
 import { requireRole } from "@/server/requireRole";
@@ -25,7 +25,7 @@ async function SaleContent() {
 export default function SalePage() {
   return (
     <SignedInPage title="Venta cerrada">
-      <Suspense fallback={<ProcessesSkeleton />}>
+      <Suspense fallback={<SaleSkeleton />}>
         <SaleContent />
       </Suspense>
     </SignedInPage>

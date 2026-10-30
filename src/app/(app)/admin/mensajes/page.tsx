@@ -64,7 +64,7 @@ async function Inbox() {
 export default function AdminMessagesPage() {
   return (
     <SignedInPage title="Mensajes">
-      <Suspense fallback={<AdminListSkeleton kind="connections" />}>
+      <Suspense fallback={<AdminListSkeleton kind="messages" />}>
         <Inbox />
       </Suspense>
     </SignedInPage>

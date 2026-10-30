@@ -10,7 +10,10 @@ import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/server/getAccountNationalId";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { investorGazeAvatar, loadInvestorDraft } from "@/server/investorProfile";
+import {
+  investorGazeAvatar,
+  loadInvestorDraft,
+} from "@/server/investorProfile";
 
 export const metadata: Metadata = {
   title: authCopy.accountTitle,
@@ -29,7 +32,10 @@ async function AccountPageContent() {
   }
 
   const nationalId = await getAccountNationalId(user.id);
-  const investorDraft = user.role === "investor" ? await loadInvestorDraft(user.id, user.email) : null;
+  const investorDraft =
+    user.role === "investor"
+      ? await loadInvestorDraft(user.id, user.email)
+      : null;
 
   const agreement = user.termsAcceptedAt ? (
     <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} />
@@ -64,10 +70,12 @@ async function AccountPageContent() {
   );
 }
 
-export default function AccountPage() {
+export default async function AccountPage() {
+  // Session lookup is request-cached; it only picks which skeleton (buyers get the profile card).
+  const role = (await getCurrentUser())?.role;
   return (
     <SignedInPage title={authCopy.accountTitle}>
-      <Suspense fallback={<AccountSkeleton />}>
+      <Suspense fallback={<AccountSkeleton buyer={role === "investor"} />}>
         <AccountPageContent />
       </Suspense>
     </SignedInPage>

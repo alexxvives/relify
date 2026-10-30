@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { sellerFunnel } from "@/server/activityFunnel";
-import { ProcessesSkeleton } from "@/components/page-skeletons";
+import { SellerProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerProcesses } from "@/components/seller-processes";
@@ -55,7 +55,7 @@ async function ProcessesPageContent() {
 export default function ProcessesPage() {
   return (
     <SignedInPage title={sellerCopy.processesTitle}>
-      <Suspense fallback={<ProcessesSkeleton />}>
+      <Suspense fallback={<SellerProcessesSkeleton />}>
         <ProcessesPageContent />
       </Suspense>
     </SignedInPage>

@@ -1,5 +1,6 @@
-import { ShellSkeleton } from "@/components/shell-skeleton";
+import { TrendsSkeleton } from "@/components/shell-skeleton";
+import { sellerCopy } from "@/lib/seller-copy";
 
 export default function Loading() {
-  return <ShellSkeleton />;
+  return <TrendsSkeleton title={sellerCopy.trendsTitle} />;
 }

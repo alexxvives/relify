@@ -6,28 +6,67 @@ import type { ReactNode } from "react";
  */
 
 function B({ className }: { className: string }) {
-  return <div aria-hidden className={`animate-pulse bg-[#e9edf2] motion-reduce:animate-none ${className.includes("rounded") ? "" : "rounded-lg "}${className}`} />;
+  return (
+    <div
+      aria-hidden
+      className={`animate-pulse bg-[#e9edf2] motion-reduce:animate-none ${className.includes("rounded") ? "" : "rounded-lg "}${className}`}
+    />
+  );
 }
 
 /** Bone that sits straight on the grey page background, so it needs more contrast. */
 function Bare({ className }: { className: string }) {
-  return <div aria-hidden className={`animate-pulse bg-[#d5dce5] motion-reduce:animate-none ${className.includes("rounded") ? "" : "rounded-lg "}${className}`} />;
-}
-
-function Card({ children, className = "" }: { children?: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${className}`}>{children}</div>;
-}
-
-function Shell({ children, label = "Cargando" }: { children: ReactNode; label?: string }) {
   return (
-    <div role="status" aria-live="polite" aria-busy="true" className="flex min-w-0 flex-col gap-6">
+    <div
+      aria-hidden
+      className={`animate-pulse bg-[#d5dce5] motion-reduce:animate-none ${className.includes("rounded") ? "" : "rounded-lg "}${className}`}
+    />
+  );
+}
+
+function Card({
+  children,
+  className = "",
+}: {
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Shell({
+  children,
+  label = "Cargando",
+}: {
+  children: ReactNode;
+  label?: string;
+}) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="flex min-w-0 flex-col gap-6"
+    >
       <span className="sr-only">{label}</span>
       {children}
     </div>
   );
 }
 
-function CardTitle({ width = "w-56", sub = false }: { width?: string; sub?: boolean }) {
+function CardTitle({
+  width = "w-56",
+  sub = false,
+}: {
+  width?: string;
+  sub?: boolean;
+}) {
   return (
     <div>
       <B className={`h-8 ${width}`} />
@@ -36,24 +75,15 @@ function CardTitle({ width = "w-56", sub = false }: { width?: string; sub?: bool
   );
 }
 
-function Stats({ count, cols }: { count: number; cols: string }) {
-  return (
-    <div className={`mt-4 grid gap-3 ${cols}`}>
-      {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-          <B className="h-7 w-10" />
-          <B className="mt-3 h-3.5 w-24" />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function Rows({ count, height = "h-11" }: { count: number; height?: string }) {
   return (
     <div className="mt-4 flex flex-col divide-y divide-[#eef0f3] overflow-hidden rounded-xl border border-[#e7eaee]">
       {Array.from({ length: count }, (_, index) => (
-        <div key={index} className={`flex items-center justify-between px-3 ${height}`}>
+        <div
+          key={index}
+          className={`flex items-center justify-between px-3 ${height}`}
+        >
           <B className="h-3.5 w-40" />
           <B className="size-4 rounded-full" />
         </div>
@@ -62,31 +92,55 @@ function Rows({ count, height = "h-11" }: { count: number; height?: string }) {
   );
 }
 
-function SideColumn({ notes = 3 }: { notes?: number }) {
+/** Right column of the role homes: profile/publish card (gauge + checklist), then "Acciones pendientes". */
+function SideColumn({
+  rows = 6,
+  intro = false,
+}: {
+  rows?: number;
+  intro?: boolean;
+}) {
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <Card>
         <CardTitle width="w-48" sub />
+        {intro ? <B className="mt-4 h-9 w-56 rounded-full" /> : null}
         <div className="mt-5 flex flex-col items-center">
-          <B className="h-24 w-44 rounded-t-full" />
+          <B className="h-20 w-36 rounded-t-full" />
           <B className="mt-3 h-3 w-20" />
         </div>
-        <Rows count={6} />
+        <Rows count={rows} height="h-9" />
       </Card>
       <Card>
-        <CardTitle width="w-40" />
-        <div className="mt-4 flex flex-col gap-3">
-          {Array.from({ length: notes }, (_, index) => (
-            <div key={index} className="flex gap-3 rounded-xl border border-[#eef0f3] p-3">
-              <B className="size-8 shrink-0 rounded-full" />
-              <div className="flex-1">
-                <B className="h-4 w-2/3" />
-                <B className="mt-2 h-3 w-full" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <CardTitle width="w-48" />
+        <B className="mt-3 h-3.5 w-64 max-w-full" />
       </Card>
+    </div>
+  );
+}
+
+const tileWidth =
+  "w-full @[22.5rem]:w-[calc((100%-0.75rem)/2)] @[33.75rem]:w-[calc((100%-1.5rem)/3)] @[45rem]:w-[calc((100%-2.25rem)/4)] @[56.25rem]:w-[calc((100%-3rem)/5)]";
+
+/** Same flex-wrap tiles as ActivityTiles: icon chip + number, label, bar, caption. */
+function Tiles({ count, center = true }: { count: number; center?: boolean }) {
+  return (
+    <div className="@container mt-4">
+      <div className={`flex flex-wrap gap-3 ${center ? "justify-center" : ""}`}>
+        {Array.from({ length: count }, (_, index) => (
+          <div key={index} className={`flex ${tileWidth}`}>
+            <div className="flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4">
+              <div className="flex items-center justify-between">
+                <B className="size-9 rounded-xl" />
+                <B className="h-6 w-6" />
+              </div>
+              <B className="mt-2 h-3 w-20" />
+              <B className="mt-3 h-1.5 w-full rounded-full" />
+              <B className="mt-2 h-2.5 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -106,21 +160,20 @@ function Treemap() {
   );
 }
 
-function Pending() {
-  return (
-    <Card>
-      <CardTitle width="w-60" />
-      <B className="mt-3 h-4 w-72 max-w-full" />
-    </Card>
-  );
-}
-
-function HomeGrid({ children, notes }: { children: ReactNode; notes?: number }) {
+function HomeGrid({
+  children,
+  rows,
+  intro,
+}: {
+  children: ReactNode;
+  rows?: number;
+  intro?: boolean;
+}) {
   return (
     <Shell>
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
-        <div className="flex min-w-0 flex-col gap-6">{children}</div>
-        <SideColumn notes={notes} />
+        <div className="flex min-w-0 flex-col gap-6 self-start">{children}</div>
+        <SideColumn rows={rows} intro={intro} />
       </div>
     </Shell>
   );
@@ -128,11 +181,10 @@ function HomeGrid({ children, notes }: { children: ReactNode; notes?: number }) 
 
 export function InvestorHomeSkeleton() {
   return (
-    <HomeGrid>
-      <Pending />
+    <HomeGrid rows={6}>
       <Card>
         <CardTitle width="w-64" sub />
-        <Stats count={4} cols="grid-cols-2 lg:grid-cols-4" />
+        <Tiles count={4} center={false} />
       </Card>
       <Treemap />
     </HomeGrid>
@@ -141,31 +193,21 @@ export function InvestorHomeSkeleton() {
 
 export function SellerHomeSkeleton() {
   return (
-    <HomeGrid>
-      <Pending />
+    <HomeGrid rows={8} intro>
       <Card>
-        <CardTitle width="w-72" />
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {[0, 1].map((index) => (
-            <div key={index}>
-              <B className="h-4 w-28" />
-              <B className="mt-3 h-40 w-full rounded-xl" />
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {[0, 1, 2].map((index) => (
-            <div key={index} className="rounded-2xl border border-[#e7eaee] p-4">
-              <B className="h-4 w-20" />
-              <B className="mx-auto mt-4 size-24 rounded-full" />
-              <B className="mt-4 h-3 w-24" />
-            </div>
-          ))}
-        </div>
+        <CardTitle width="w-64" sub />
+        <Tiles count={5} />
       </Card>
       <Card>
         <CardTitle width="w-64" />
-        <Stats count={3} cols="grid-cols-3" />
+        <B className="mt-5 h-3 w-40" />
+        <div className="mt-4 flex h-44 items-end justify-around gap-6 px-6">
+          {[40, 70, 30, 55, 85].map((height, index) => (
+            <div key={index} className="w-10" style={{ height: `${height}%` }}>
+              <B className="h-full w-full rounded-md" />
+            </div>
+          ))}
+        </div>
       </Card>
     </HomeGrid>
   );
@@ -173,38 +215,37 @@ export function SellerHomeSkeleton() {
 
 export function AdvisorHomeSkeleton() {
   return (
-    <HomeGrid notes={1}>
-      <Pending />
+    <HomeGrid rows={4}>
       <Card>
-        <CardTitle width="w-52" />
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[0, 1, 2, 3].map((index) => (
-            <div key={index} className="rounded-2xl border border-[#e7eaee] px-3 py-4">
-              <B className="h-7 w-8" />
-              <B className="mt-3 h-3.5 w-20" />
-            </div>
-          ))}
-        </div>
+        <CardTitle width="w-64" />
+        <Tiles count={5} />
       </Card>
       <Treemap />
     </HomeGrid>
   );
 }
 
-function Donut() {
+/** Admin home breakdown card: title + total, then label/value rows with a bar each. */
+function BarsCard({ rows }: { rows: number }) {
   return (
     <Card>
       <div className="flex items-start justify-between">
         <B className="h-7 w-44" />
-        <B className="h-8 w-10" />
-      </div>
-      <div className="mt-4 flex items-center gap-8">
-        <B className="size-32 shrink-0 rounded-full" />
-        <div className="flex flex-1 flex-col gap-3">
-          {[0, 1, 2, 3].map((index) => (
-            <B key={index} className="h-3.5 w-full" />
-          ))}
+        <div className="flex flex-col items-end gap-1">
+          <B className="h-3 w-8" />
+          <B className="h-6 w-8" />
         </div>
+      </div>
+      <div className="mt-4 flex flex-col gap-4">
+        {Array.from({ length: rows }, (_, index) => (
+          <div key={index}>
+            <div className="flex justify-between">
+              <B className="h-3 w-24" />
+              <B className="h-3 w-12" />
+            </div>
+            <B className="mt-2 h-1.5 w-full rounded-full" />
+          </div>
+        ))}
       </div>
     </Card>
   );
@@ -222,10 +263,11 @@ export function AdminHomeSkeleton() {
         </div>
       </Card>
       <div className="grid gap-6 xl:grid-cols-2">
-        {[0, 1, 2, 3].map((index) => (
-          <Donut key={index} />
+        {[4, 2, 3, 3].map((rows, index) => (
+          <BarsCard key={index} rows={rows} />
         ))}
       </div>
+      <Treemap />
     </Shell>
   );
 }
@@ -239,20 +281,24 @@ function Field() {
   );
 }
 
+/** Mirrors MarketCard: 16/7 photo, sector tile straddling its bottom edge, two text lines, 2x2 figures. */
 function MarketCardBone() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-      <B className="aspect-[7/4] w-full rounded-none" />
-      <div className="p-5">
-        <div className="overflow-hidden rounded-xl border border-[#e7eaee]">
-          <div className="flex flex-col items-center gap-2 bg-[#f4f6fb] px-4 py-4">
-            <B className="h-3 w-24" />
-            <B className="h-8 w-40" />
-          </div>
-          {[0, 1, 2].map((index) => (
-            <div key={index} className="flex items-center justify-between border-t border-[#e7eaee] px-4 py-3">
-              <B className="h-3.5 w-24" />
-              <B className="h-4 w-16" />
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e4e8ef] bg-white">
+      <div className="relative">
+        <Bare className="aspect-[16/7] max-h-52 w-full rounded-none" />
+        <div className="absolute bottom-0 left-4 size-20 translate-y-1/2 rounded-2xl border-[3px] border-white bg-[#eef1f5]" />
+      </div>
+      <div className="flex flex-col px-4 pt-3 pb-4">
+        <B className="ml-28 h-3.5 w-1/2" />
+        <B className="mt-2 ml-28 h-3 w-1/3" />
+        <B className="mt-6 h-3 w-full" />
+        <B className="mt-2 h-3 w-4/5" />
+        <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4]">
+          {[0, 1, 2, 3].map((cell) => (
+            <div key={cell} className="flex flex-col items-center gap-2 py-3">
+              <B className="h-3 w-16" />
+              <B className="h-4 w-14" />
             </div>
           ))}
         </div>
@@ -261,21 +307,40 @@ function MarketCardBone() {
   );
 }
 
-export function MarketSkeleton({ heading = true, cards = 6 }: { heading?: boolean; cards?: number }) {
+export function MarketSkeleton({
+  heading = true,
+  cards = 6,
+}: {
+  heading?: boolean;
+  cards?: number;
+}) {
   return (
     <Shell>
       <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-        {heading ? <Bare className="h-9 w-40" /> : <span />}
+        {heading ? (
+          <Bare className="h-9 w-40" />
+        ) : (
+          <span className="hidden sm:block" />
+        )}
         <Bare className="h-7 w-32 justify-self-center rounded-full" />
       </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))] lg:items-end">
-          {[0, 1, 2, 3, 4].map((index) => (
-            <Field key={index} />
+        <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+            <Field />
+          </div>
+          {[0, 1, 2].map((index) => (
+            <div
+              key={index}
+              className={index === 2 ? "" : "col-span-2 sm:col-span-1"}
+            >
+              <Field />
+            </div>
           ))}
+          <B className="size-11 rounded-xl" />
         </div>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3 min-[2100px]:grid-cols-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-5">
         {Array.from({ length: cards }, (_, index) => (
           <MarketCardBone key={index} />
         ))}
@@ -307,33 +372,102 @@ function Stepper() {
   );
 }
 
+function SummaryCard({ tiles }: { tiles: number }) {
+  return (
+    <Card>
+      <CardTitle width="w-56" sub={tiles === 5} />
+      <Tiles count={tiles} />
+    </Card>
+  );
+}
+
+/** Buyer /procesos: activity summary (4 tiles), then one row per process. */
 export function ProcessesSkeleton() {
   return (
     <Shell>
-      <Tabs />
+      <SummaryCard tiles={4} />
+      {[0, 1].map((index) => (
+        <div
+          key={index}
+          className="-mt-3 flex items-center justify-between rounded-xl bg-white px-3 py-3"
+        >
+          <div className="flex gap-3">
+            <B className="h-4 w-12" />
+            <B className="h-4 w-20 rounded-full" />
+            <B className="h-4 w-40" />
+          </div>
+          <B className="h-4 w-44" />
+        </div>
+      ))}
+    </Shell>
+  );
+}
+
+/** Seller /mi-empresa/procesos: summary (5 tiles), pending actions + meetings, active processes. */
+export function SellerProcessesSkeleton() {
+  return (
+    <Shell>
+      <SummaryCard tiles={5} />
+      <div className="grid gap-4 md:grid-cols-2">
+        {[0, 1].map((index) => (
+          <Card key={index}>
+            <B className="h-5 w-56" />
+            <B className="mt-3 h-3.5 w-48" />
+            <B className="mt-2 h-3 w-full" />
+          </Card>
+        ))}
+      </div>
+      <Bare className="h-4 w-36" />
       <Card>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <B className="h-6 w-40" />
-            <B className="mt-2 h-4 w-80 max-w-full" />
+        <B className="h-4 w-56" />
+        <B className="mt-3 h-3 w-80 max-w-full" />
+      </Card>
+    </Shell>
+  );
+}
+
+/** Closed deal (comprador /inversor/compra, vendedor /mi-empresa/venta): hero, 4 figures, signed docs, next steps. */
+export function SaleSkeleton() {
+  return (
+    <Shell>
+      <Bare className="h-48 w-full rounded-3xl" />
+      <div className="-mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => (
+          <div
+            key={index}
+            className="flex gap-3 rounded-2xl border border-[#e7eaee] bg-white p-4"
+          >
+            <B className="size-10 shrink-0 rounded-xl" />
+            <div className="flex-1">
+              <B className="h-3 w-20" />
+              <B className="mt-2 h-5 w-24" />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <B className="h-9 w-32 rounded-full" />
-            <B className="h-9 w-24 rounded-full" />
-          </div>
-        </div>
-        <Stepper />
-        <div className="mt-6">
-          <Tabs count={3} />
-        </div>
-        <div className="mt-4 grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <B className="h-[360px] w-full rounded-2xl" />
-          <div className="flex flex-col gap-4">
-            <B className="h-40 w-full rounded-2xl" />
-            <B className="h-32 w-full rounded-2xl" />
-          </div>
+        ))}
+      </div>
+      <Card>
+        <B className="h-5 w-48" />
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((index) => (
+            <B key={index} className="h-14 w-full rounded-xl" />
+          ))}
         </div>
       </Card>
+      <Bare className="h-5 w-36" />
+      <div className="-mt-2 grid gap-3 md:grid-cols-2">
+        {[0, 1, 2, 3].map((index) => (
+          <div
+            key={index}
+            className="flex gap-3 rounded-xl border border-[#e7eaee] bg-white p-4"
+          >
+            <B className="size-9 shrink-0 rounded-full" />
+            <div className="flex-1">
+              <B className="h-4 w-40" />
+              <B className="mt-2 h-3 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
     </Shell>
   );
 }
@@ -355,43 +489,79 @@ export function AdvisorBoardsSkeleton() {
   );
 }
 
+/** Mirrors the advisor listing card: navy header (name, rating, sector chips), service rows, centred action. */
+function AdvisorCardBone({ rank = false }: { rank?: boolean }) {
+  return (
+    <div
+      className={rank ? "rounded-2xl border border-[#e7eaee] bg-white p-3" : ""}
+    >
+      {rank ? (
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex gap-2">
+            <B className="h-6 w-24 rounded-full" />
+            <B className="h-6 w-16" />
+          </div>
+          <B className="h-6 w-20" />
+        </div>
+      ) : null}
+      <div className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+        <div className="bg-[#d5dce5] p-4">
+          <div className="flex justify-between">
+            <div className="h-4 w-48 rounded-lg bg-[#c4ccd8]" />
+            <div className="h-8 w-20 rounded-lg bg-[#c4ccd8]" />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <div className="h-5 w-32 rounded-full bg-[#c4ccd8]" />
+            <div className="h-5 w-28 rounded-full bg-[#c4ccd8]" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 p-4">
+          {[0, 1, 2].map((row) => (
+            <div key={row} className="flex justify-between">
+              <B className="h-3.5 w-40" />
+              <B className="h-3.5 w-24" />
+            </div>
+          ))}
+          <B className="mt-2 h-8 w-32 self-center rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AdvisorySkeleton() {
   return (
     <Shell>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
-        <B className="h-4 w-20" />
-        <div className="mt-3 rounded-2xl border border-[#e7eaee] bg-white p-4">
-          <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
-            {[0, 1, 2, 3].map((index) => (
-              <Field key={index} />
-            ))}
-          </div>
-        </div>
-        <div className="mt-5 grid justify-start gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,32rem),36rem))]">
-          {[0, 1].map((index) => (
-            <div key={index} className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-              <B className="h-36 w-full rounded-none" />
-              <div className="flex flex-col gap-4 p-5">
-                <B className="h-4 w-full" />
-                <B className="h-4 w-full" />
-                <B className="h-9 w-36 self-end rounded-full" />
-              </div>
-            </div>
+      <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+        <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
+          {[0, 1, 2, 3].map((index) => (
+            <Field key={index} />
           ))}
         </div>
-      </section>
+      </div>
+      <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,26rem),1fr))]">
+        {[0, 1, 2, 3].map((index) => (
+          <AdvisorCardBone key={index} />
+        ))}
+      </div>
     </Shell>
   );
 }
 
-/** Mirrors /cuenta: profile card + agreement thumbnail, role profile, password and delete cards. */
-export function AccountSkeleton() {
+/** Mirrors /cuenta: profile card + agreement thumbnail, (buyers only) role profile, password and delete cards. */
+export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
   return (
     <Shell>
       <div className="grid items-stretch gap-6 md:grid-cols-[minmax(0,1fr)_15rem]">
         <Card>
-          <div className="grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]">
-            <B className="size-32 rounded-2xl" />
+          <div
+            className={
+              buyer
+                ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]"
+                : "grid items-start gap-5"
+            }
+          >
+            {buyer ? <B className="size-32 rounded-2xl" /> : null}
             <div className="grid gap-4 md:grid-cols-2">
               {[0, 1, 2, 3].map((index) => (
                 <Field key={index} />
@@ -413,27 +583,29 @@ export function AccountSkeleton() {
           </div>
         </div>
       </div>
-      <Card>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <B className="h-6 w-56" />
-            <B className="mt-2 h-3 w-80 max-w-full" />
-          </div>
-          <B className="h-6 w-24 rounded-full" />
-        </div>
-        <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[0, 1, 2, 3].map((index) => (
-              <Field key={index} />
-            ))}
-            <div className="sm:col-span-2">
-              <B className="h-3 w-24" />
-              <B className="mt-2 h-20 w-full rounded-xl" />
+      {buyer ? (
+        <Card>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <B className="h-6 w-56" />
+              <B className="mt-2 h-3 w-80 max-w-full" />
             </div>
+            <B className="h-6 w-24 rounded-full" />
           </div>
-          <B className="hidden h-72 rounded-2xl lg:block" />
-        </div>
-      </Card>
+          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[0, 1, 2, 3].map((index) => (
+                <Field key={index} />
+              ))}
+              <div className="sm:col-span-2">
+                <B className="h-3 w-24" />
+                <B className="mt-2 h-20 w-full rounded-xl" />
+              </div>
+            </div>
+            <B className="hidden h-72 rounded-2xl lg:block" />
+          </div>
+        </Card>
+      ) : null}
       <Card>
         <B className="h-6 w-32" />
         <B className="mt-2 h-3 w-72 max-w-full" />
@@ -528,17 +700,24 @@ export function DocumentsSkeleton() {
   return (
     <Shell>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="flex justify-end">
-          <B className="h-4 w-36" />
+        <div className="flex items-center justify-between gap-4 rounded-xl bg-[#f4f6fb] px-4 py-3">
+          <div className="flex flex-1 gap-3">
+            <B className="size-5 shrink-0" />
+            <div className="flex-1">
+              <B className="h-3 w-full" />
+              <B className="mt-2 h-3 w-2/3" />
+            </div>
+          </div>
+          <B className="h-4 w-28" />
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {Array.from({ length: 10 }, (_, index) => (
+          {Array.from({ length: 7 }, (_, index) => (
             <div
               key={index}
-              className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3"
+              className="flex h-32 flex-col items-center justify-center gap-3 rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3"
             >
-              <B className="h-12 w-16 rounded-xl" />
-              <B className="h-4 w-24" />
+              <B className="h-10 w-12 rounded-xl" />
+              <B className="h-3.5 w-24" />
               <B className="h-3 w-20" />
             </div>
           ))}
@@ -596,44 +775,85 @@ export function AdvisorServicesSkeleton() {
   );
 }
 
-function AdminToolbar({ title = "w-40", controls = 2 }: { title?: string; controls?: number }) {
+function AdminToolbar({
+  title = "w-40",
+  controls = 2,
+  sub = true,
+}: {
+  title?: string;
+  controls?: number;
+  sub?: boolean;
+}) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <Bare className={`h-9 ${title}`} />
-        <Bare className="mt-2 h-4 w-80 max-w-full" />
+        {sub ? <Bare className="mt-2 h-3.5 w-80 max-w-full" /> : null}
       </div>
       <div className="flex gap-2">
         {Array.from({ length: controls }, (_, index) => (
-          <Bare key={index} className={`h-10 rounded-xl ${index === 0 && controls > 1 ? "w-56" : "w-36"}`} />
+          <Bare
+            key={index}
+            className={`h-9 rounded-full ${index === 0 && controls > 1 ? "w-48" : "w-32"}`}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-export function AdminListSkeleton({ kind }: { kind: "advisors" | "accounts" | "companies" | "connections" }) {
-  if (kind === "accounts") {
+export function AdminListSkeleton({
+  kind,
+}: {
+  kind:
+    | "advisors"
+    | "accounts"
+    | "companies"
+    | "connections"
+    | "waitlist"
+    | "messages";
+}) {
+  if (kind === "messages") {
+    // /admin/mensajes: real h1 comes from SignedInPage; two labelled sections (contacto, suscriptores).
     return (
       <Shell>
-        <AdminToolbar title="w-32" controls={3} />
-        <div className="grid gap-3">
-          {Array.from({ length: 6 }, (_, index) => (
-            <div key={index} className="grid items-start gap-4 rounded-2xl border border-[#e7eaee] bg-white p-5 sm:grid-cols-2">
-              <div className="flex gap-3">
-                <B className="size-9 shrink-0 rounded-full" />
+        {[0, 1].map((index) => (
+          <div key={index} className="flex flex-col gap-3">
+            <Bare className="h-4 w-40" />
+            <Card>
+              <Rows count={3} />
+            </Card>
+          </div>
+        ))}
+      </Shell>
+    );
+  }
+
+  if (kind === "accounts") {
+    // Mirrors AdminAccounts: title + search + two filters, then a 3-up grid of compact account cards.
+    return (
+      <Shell>
+        <AdminToolbar title="w-32" controls={3} sub={false} />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 9 }, (_, index) => (
+            <Card key={index} className="!p-3">
+              <div className="flex items-start gap-3">
+                <B className="size-8 shrink-0 rounded-full" />
                 <div className="flex-1">
-                  <B className="h-4 w-48" />
-                  <B className="mt-2 h-3 w-56" />
-                  <B className="mt-2 h-4 w-28 rounded-full" />
+                  <B className="h-3.5 w-32" />
+                  <B className="mt-2 h-3 w-40" />
                 </div>
+                <B className="h-5 w-14 rounded-full" />
               </div>
-              <div className="flex justify-end gap-2">
-                <B className="h-9 w-24 rounded-full" />
-                <B className="h-9 w-28 rounded-xl" />
-                <B className="h-9 w-24 rounded-full" />
+              <div className="mt-4 flex flex-col gap-2.5">
+                {[0, 1, 2].map((row) => (
+                  <div key={row} className="flex justify-between">
+                    <B className="h-3 w-20" />
+                    <B className="h-3 w-16" />
+                  </div>
+                ))}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </Shell>
@@ -641,48 +861,24 @@ export function AdminListSkeleton({ kind }: { kind: "advisors" | "accounts" | "c
   }
 
   if (kind === "companies") {
-    // Mirrors AdminCompanies: header (title + search + status), sort chips, then marketplace cards with admin actions.
+    // Mirrors AdminCompanies: header (title + search + filters), sort chips, then marketplace cards with the legal line centred under each.
     return (
       <Shell>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Bare className="h-9 w-36" />
-          <div className="flex gap-2">
-            <Bare className="h-10 w-52 rounded-full" />
-            <Bare className="h-10 w-44 rounded-full" />
-          </div>
-        </div>
+        <AdminToolbar title="w-36" controls={3} sub={false} />
         <div className="-mt-3 flex flex-wrap items-center gap-2">
           <Bare className="h-4 w-14" />
-          {[0, 1, 2, 3, 4].map((chip) => (
+          {[0, 1, 2, 3, 4, 5].map((chip) => (
             <Bare key={chip} className="h-7 w-24 rounded-full" />
           ))}
         </div>
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-5">
           {Array.from({ length: 6 }, (_, index) => (
-            <li key={index} className="flex flex-col gap-3 p-2">
-              <div className="overflow-hidden rounded-2xl bg-white">
-                <B className="h-[6.75rem] w-full rounded-none" />
-                <div className="relative px-3.5 pb-4">
-                  <B className="-mt-7 size-16 rounded-2xl border-4 border-white" />
-                  <div className="mt-3 flex flex-col gap-2">
-                    <B className="h-3 w-full" />
-                    <B className="h-3 w-4/5" />
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-[#e7eaee]">
-                    {[0, 1, 2, 3].map((cell) => (
-                      <div key={cell} className="flex flex-col items-center gap-2 py-3">
-                        <B className="h-3 w-16" />
-                        <B className="h-4 w-14" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <Bare className="mx-1 h-3 w-40" />
-              <div className="flex justify-end gap-2 px-1">
-                <Bare className="h-9 w-28 rounded-full" />
-                <Bare className="h-9 w-32 rounded-full" />
-              </div>
+            <li
+              key={index}
+              className="flex flex-col gap-2 rounded-2xl border-2 border-[#e7eaee] p-1.5"
+            >
+              <MarketCardBone />
+              <Bare className="mx-auto mb-1 h-3 w-48" />
             </li>
           ))}
         </ul>
@@ -705,26 +901,26 @@ export function AdminListSkeleton({ kind }: { kind: "advisors" | "accounts" | "c
     );
   }
 
+  if (kind === "waitlist") {
+    return (
+      <Shell>
+        <AdminToolbar title="w-44" controls={2} />
+        <Card>
+          <Rows count={4} />
+        </Card>
+      </Shell>
+    );
+  }
+
+  // Advisors: ranking header over the same navy listing card the buyers see, two per row.
   return (
     <Shell>
-      <AdminToolbar />
-      {[0, 1].map((index) => (
-        <Card key={index} className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex-1">
-            <B className="h-6 w-72" />
-            <B className="mt-2 h-3 w-48" />
-            <div className="mt-3 flex gap-2">
-              <B className="h-6 w-24 rounded-full" />
-              <B className="h-6 w-40 rounded-full" />
-            </div>
-          </div>
-          <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[28rem]">
-            {[0, 1, 2, 3].map((cell) => (
-              <B key={cell} className="h-14 w-full rounded-xl" />
-            ))}
-          </div>
-        </Card>
-      ))}
+      <AdminToolbar controls={2} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        {[0, 1, 2, 3].map((index) => (
+          <AdvisorCardBone key={index} rank />
+        ))}
+      </div>
     </Shell>
   );
 }
@@ -739,7 +935,8 @@ export function AdminBillingSkeleton() {
               <B className="h-6 w-40" />
               <B className="h-6 w-20" />
             </div>
-            {index === 0 ? <B className="mt-4 h-40 w-full rounded-xl" /> : <B className="mt-4 h-4 w-48" />}
+            <B className="mt-4 h-40 w-full rounded-xl" />
+            <B className="mt-3 h-3 w-28" />
           </Card>
         ))}
       </div>

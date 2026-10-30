@@ -17,7 +17,7 @@ async function Entries() {
 export default function AdminWaitlistPage() {
   return (
     <SignedInPage title="Lista de espera" showTitle={false}>
-      <Suspense fallback={<AdminListSkeleton kind="connections" />}>
+      <Suspense fallback={<AdminListSkeleton kind="waitlist" />}>
         <Entries />
       </Suspense>
     </SignedInPage>
