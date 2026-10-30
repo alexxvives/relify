@@ -91,13 +91,6 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
     setPhase(state.ok ? "done" : "form");
   }, [phase, pending, minElapsed, state]);
 
-  useEffect(() => {
-    if (phase !== "done") {
-      return;
-    }
-    router.prefetch("/mi-empresa/detalles?alta=1");
-  }, [phase, router]);
-
   const invalid = localMessage !== null || (state !== null && !state.ok);
 
   if (!active && phase === "form") {
@@ -106,7 +99,7 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
 
   return (
     <>
-      {open ? null : (
+      {open || phase === "done" ? null : (
         <button
           type="button"
           onClick={() => {
@@ -156,7 +149,9 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
               <button
                 type="button"
                 onClick={() => {
-                  router.push("/mi-empresa/detalles?alta=1");
+                  // Stay on /mi-empresa: close and let the page show the pending-financials state.
+                  setOpen(false);
+                  router.refresh();
                 }}
                 className="inline-flex h-11 items-center rounded-xl bg-[#0f766e] px-5 text-sm font-semibold text-white"
               >
