@@ -15,6 +15,9 @@ export default defineConfig({
       IMAGES: bindings.images(),
       // Workers AI reads the Modelo 200 PDFs (src/server/financialExtraction.ts); no API key needed.
       AI: bindings.ai(),
+      // Cloudflare Email Sending: SABI heads-up to info@itsrelify.com (src/server/notifySabiRequest.ts).
+      // Needs itsrelify.com onboarded in Email Sending; until then sends fail softly and are logged.
+      EMAIL: bindings.sendEmail({ allowedSenderAddresses: ["notificaciones@itsrelify.com"] }),
       DATABASE_URL: bindings.secret(),
       BETTER_AUTH_SECRET: bindings.secret(),
       BETTER_AUTH_URL: bindings.secret(),

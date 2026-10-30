@@ -14,6 +14,7 @@ describe("sabiRequestEmail", () => {
     expect(mail.subject).toBe("SABI pendiente: Cumbres <SL> (B12345678)");
     expect(mail.text).toContain("CIF: B12345678");
     expect(mail.text).toContain("ana@example.com");
+    expect(mail.text).toContain("hora de Madrid");
     expect(mail.html).toContain("Cumbres &lt;SL&gt;");
     expect(mail.html).toContain("https://example.com/admin/empresas/x");
   });
