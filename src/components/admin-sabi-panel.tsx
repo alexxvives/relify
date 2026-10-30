@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent } from "react";
-import { useRouter } from "next/navigation";
+import { sabiJobStageLabel, sabiJobStartedEvent, sabiJobUpdateEvent, type SabiJobUpdate } from "@/lib/sabi/job-events";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
@@ -37,7 +37,6 @@ function isoDay(iso: string | null): string {
 
 /** Company banner with a compact "Subir SABI" file button in its top-right corner; preview, confirm and stored data render below it. */
 export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: Omit<ComponentProps<typeof CompanyBanner>, "children"> }) {
-  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<SabiPreview | null>(null);
@@ -47,6 +46,8 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
   const [dragging, setDragging] = useState(false);
   const [stages, setStages] = useState<Partial<Record<SabiStage, number>>>({});
   const [saving, setSaving] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [serverStage, setServerStage] = useState("queued");
 
   // t67: drag-and-drop on the button and on the drop zone; clicking still opens the file picker.
   const dropProps = {
@@ -56,7 +57,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
     },
     onDragOver: (event: DragEvent) => {
       event.preventDefault();
-      event.dataTransfer.dropEffect = pending ? "none" : "copy";
+      event.dataTransfer.dropEffect = pending || saving ? "none" : "copy";
     },
     onDragLeave: (event: DragEvent) => {
       if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -67,7 +68,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       event.preventDefault();
       setDragging(false);
 
-      if (!pending) {
+      if (!(pending || saving)) {
         choose(event.dataTransfer.files?.[0] ?? null);
       }
     },
@@ -118,39 +119,69 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
     }
 
     setSaving(true);
+    setServerStage("queued");
     start(async () => {
+      // t67: the server answers at once with a job id; the import runs in the background and the
+      // admin-wide indicator polls it, so the admin can leave this page meanwhile.
       const result = await confirmSabiAction(form(file));
-      setSaving(false);
 
-      if (result.ok) {
-        setDone(result.message);
+      if (!result.ok) {
+        setSaving(false);
+        setError(result.message);
+        return;
+      }
+
+      setJobId(result.jobId);
+      window.dispatchEvent(new CustomEvent(sabiJobStartedEvent, { detail: { jobId: result.jobId } }));
+    });
+  }
+
+  useEffect(() => {
+    if (!jobId) {
+      return;
+    }
+
+    function update(event: Event) {
+      const job = (event as CustomEvent<SabiJobUpdate>).detail;
+
+      if (job.id !== jobId) {
+        return;
+      }
+
+      setServerStage(job.stage);
+
+      if (job.status === "running") {
+        return;
+      }
+
+      setSaving(false);
+      setJobId(null);
+      setStages({});
+
+      if (job.status === "done") {
+        setDone(job.message ?? "Ficha actualizada con SABI.");
         setPreview(null);
-        setStages({});
         setFile(null);
 
         if (input.current) {
           input.current.value = "";
         }
       } else {
-        setError(result.message);
+        setError(job.message ?? sabiFailureMessages.not_xlsx);
       }
-    });
-  }
-
-  // t67: refresh once the action's transition has settled. Calling router.refresh() inside it left
-  // the button on "Leyendo…" and the ficha stale until a manual reload.
-  useEffect(() => {
-    if (done) {
-      router.refresh();
     }
-  }, [done, router]);
+
+    window.addEventListener(sabiJobUpdateEvent, update);
+    return () => window.removeEventListener(sabiJobUpdateEvent, update);
+  }, [jobId]);
 
   const status = sabi.importedAt
     ? `Importado de SABI · ${sabi.importedAt}`
     : sabi.hasCif
       ? `Pendiente SABI${sabi.requestedAt ? ` · CIF introducido el ${sabi.requestedAt}` : ""}`
       : "Sin CIF todavía";
-  const label = pending ? "Leyendo…" : sabi.importedAt ? "Sustituir SABI" : "Subir SABI";
+  const busy = pending || saving;
+  const label = saving ? "Importando…" : pending ? "Leyendo…" : sabi.importedAt ? "Sustituir SABI" : "Subir SABI";
 
   return (
     <>
@@ -162,7 +193,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             dragging ? "border-[#7fd6cc] bg-[#0f766e]/60 ring-2 ring-[#7fd6cc]" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
           }`}
         >
-          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
+          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
           <span>{label}</span>
           <span className="sr-only"> ({status})</span>
           <input
@@ -171,7 +202,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
             onChange={(event) => choose(event.target.files?.[0] ?? null)}
-            disabled={pending}
+            disabled={busy}
           />
         </label>
       </CompanyBanner>
@@ -181,10 +212,10 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             {...dropProps}
             role="button"
             tabIndex={0}
-            aria-disabled={pending}
-            onClick={() => (pending ? undefined : input.current?.click())}
+            aria-disabled={busy}
+            onClick={() => (busy ? undefined : input.current?.click())}
             onKeyDown={(event) => {
-              if (!pending && (event.key === "Enter" || event.key === " ")) {
+              if (!busy && (event.key === "Enter" || event.key === " ")) {
                 event.preventDefault();
                 input.current?.click();
               }
@@ -198,7 +229,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             <span className="text-xs">o haz clic para elegirlo · máx. {Math.round(sabiMaxBytes / 1024 / 1024)} MB</span>
           </div>
         )}
-        {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving} parsing={pending && !saving} /> : null}
+        {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
         {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
         {error ? (
           <p role="alert" className="text-sm font-medium text-[#b42318]">
@@ -210,7 +241,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             <CheckCircle2 className="size-4" aria-hidden /> {done}
           </p>
         ) : null}
-        {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={pending} /> : null}
+        {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
         {sabi.importedAt && !preview ? (
           <details className="group">
             <summary className="cursor-pointer list-none text-sm font-medium text-[#465ab4] hover:underline">
@@ -249,7 +280,7 @@ function stageCount(stage: SabiStage, count: number): string {
 }
 
 /** t67: the sections already read from the file, then "Guardando…" while the import runs. */
-function SabiProgress({ stages, saving, parsing }: { stages: Partial<Record<SabiStage, number>>; saving: boolean; parsing: boolean }) {
+function SabiProgress({ stages, saving, parsing }: { stages: Partial<Record<SabiStage, number>>; saving: string | null; parsing: boolean }) {
   const next = sabiStages.find((stage) => stages[stage] === undefined);
 
   return (
@@ -268,6 +299,7 @@ function SabiProgress({ stages, saving, parsing }: { stages: Partial<Record<Sabi
       {saving ? (
         <li className="inline-flex items-center gap-1.5 font-medium text-[#1c2740]">
           <Loader2 className="size-4 animate-spin" aria-hidden /> Guardando…
+          {saving !== "Guardando…" ? <span className="text-xs font-normal text-[#5c6b78]">(servidor: {saving})</span> : null}
         </li>
       ) : null}
     </ol>

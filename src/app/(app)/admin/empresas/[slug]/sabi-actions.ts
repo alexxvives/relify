@@ -1,37 +1,20 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireRole } from "@/server/requireRole";
-import { sabiFailureMessages } from "@/lib/sabi/failures";
-import { confirmSabiImport } from "@/server/sabiImport";
+import { getCurrentUser } from "@/server/getCurrentUser";
+import { listSabiJobs, startSabiImportJob, type SabiJobStart, type SabiJobView } from "@/server/sabiJobs";
 
-export type SabiConfirmState = { ok: true; message: string } | { ok: false; message: string };
+export type SabiConfirmState = SabiJobStart;
 
-const failures = sabiFailureMessages;
-
-function readInput(formData: FormData): { projectId: string; file: File | null } {
-  const projectId = formData.get("projectId");
-  const file = formData.get("file");
-  return { projectId: typeof projectId === "string" ? projectId : "", file: file instanceof File && file.size > 0 ? file : null };
-}
-
+/** t67: starts the import as a background job and returns at once; the admin layout polls its progress. */
 export async function confirmSabiAction(formData: FormData): Promise<SabiConfirmState> {
   const user = await requireRole("admin");
-  const { projectId, file } = readInput(formData);
+  const projectId = formData.get("projectId");
+  const file = formData.get("file");
+  return startSabiImportJob(user, typeof projectId === "string" ? projectId : "", file instanceof File ? file : null);
+}
 
-  if (!file) {
-    return { ok: false, message: failures.empty };
-  }
-
-  const result = await confirmSabiImport(user, projectId, new Uint8Array(await file.arrayBuffer()), file.name);
-
-  if (!result.ok) {
-    return { ok: false, message: failures[result.code] };
-  }
-
-  revalidatePath("/admin/empresas", "layout");
-  revalidatePath("/mi-empresa");
-  revalidatePath("/proyectos");
-  revalidatePath("/mercado");
-  return { ok: true, message: `Ficha actualizada con SABI (${result.value.years.join(", ")}).` };
+export async function sabiJobsAction(): Promise<SabiJobView[]> {
+  const user = await getCurrentUser();
+  return user ? listSabiJobs(user) : [];
 }

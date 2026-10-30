@@ -3,7 +3,7 @@ import * as z from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { isCnaeCode } from "@/lib/cnae-2009";
 import { mapSabiReport, sabiCompanyDetail, sabiExtraOf, sabiYearDetail, type SabiMapping } from "@/lib/sabi/mapping";
-import { parseSabiWorkbook, type SabiReport } from "@/lib/sabi/parse";
+import { parseSabiWorkbook, parseSabiWorkbookStaged, type SabiReport, type SabiStageEvent } from "@/lib/sabi/parse";
 import { sabiMaxBytes, type SabiImportFailure } from "@/lib/sabi/failures";
 import { sabiPreviewWarnings } from "@/lib/sabi/preview";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -36,7 +36,7 @@ type Loaded = {
     _count: { shareholders: number; activitySlices: number; cnaes: number };
   }; report: SabiReport; mapping: SabiMapping; warnings: string[]; sellerYears: Set<number> };
 
-async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Promise<SabiImportResult<Loaded>> {
+async function load(user: CurrentUser, projectId: string, bytes: Uint8Array, onStage?: (event: SabiStageEvent) => Promise<void>): Promise<SabiImportResult<Loaded>> {
   // Server-side guard: only admins import SABI, whatever the UI shows.
   if (!user.onboarded || user.role !== "admin") {
     return { ok: false, code: "forbidden" };
@@ -77,7 +77,7 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
     return { ok: false, code: "not_found" };
   }
 
-  const parsed = await parseSabiWorkbook(bytes);
+  const parsed = onStage ? await parseSabiWorkbookStaged(bytes, onStage) : await parseSabiWorkbook(bytes);
 
   if (!parsed.ok) {
     return { ok: false, code: parsed.code };
@@ -92,9 +92,15 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
   return { ok: true, value: { project, report: parsed.report, mapping, warnings, sellerYears } };
 }
 
-export async function confirmSabiImport(user: CurrentUser, projectId: string, bytes: Uint8Array, fileName: string): Promise<SabiImportResult<{ years: number[] }>> {
+export async function confirmSabiImport(
+  user: CurrentUser,
+  projectId: string,
+  bytes: Uint8Array,
+  fileName: string,
+  onStage?: (event: SabiStageEvent | { stage: "saving"; count: number }) => Promise<void>,
+): Promise<SabiImportResult<{ years: number[] }>> {
   // Parse again on confirm: never trust a preview round-tripped through the browser.
-  const loaded = await load(user, projectId, bytes);
+  const loaded = await load(user, projectId, bytes, onStage);
 
   if (!loaded.ok) {
     return loaded;
@@ -199,6 +205,7 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
     );
   }
 
+  await onStage?.({ stage: "saving", count: writes.length });
   await prisma.$transaction(writes);
 
   return { ok: true, value: { years: mapping.years.map((year) => year.year) } };

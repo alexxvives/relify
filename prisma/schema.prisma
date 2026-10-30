@@ -872,3 +872,22 @@ model FinancialFiling {
   @@index([projectId])
   @@map("financial_filing")
 }
+
+/// t67: a SABI import running in the background (after the confirm response), polled by the admin UI.
+model SabiImportJob {
+  id         String    @id
+  projectId  String    @map("project_id")
+  userId     String    @map("user_id")
+  fileName   String    @map("file_name")
+  /// running | done | failed
+  status     String    @default("running")
+  /// Last section reached (read, general, balance, results, ratios, directors, shareholders, saving).
+  stage      String    @default("queued")
+  error      String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
+  finishedAt DateTime? @map("finished_at")
+
+  @@index([userId, createdAt])
+  @@map("sabi_import_job")
+}
