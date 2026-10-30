@@ -384,44 +384,76 @@ export function AdvisorySkeleton() {
   );
 }
 
-function FormCard({ fields = 6, title = true }: { fields?: number; title?: boolean }) {
-  return (
-    <Card>
-      {title ? (
-        <div className="flex items-start justify-between">
-          <CardTitle width="w-60" sub />
-          <B className="h-7 w-28 rounded-full" />
-        </div>
-      ) : null}
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        {Array.from({ length: fields }, (_, index) => (
-          <Field key={index} />
-        ))}
-      </div>
-    </Card>
-  );
-}
-
+/** Mirrors /cuenta: profile card + agreement thumbnail, role profile, password and delete cards. */
 export function AccountSkeleton() {
   return (
     <Shell>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <Card className="flex gap-5">
-          <B className="size-28 shrink-0 rounded-2xl" />
-          <div className="grid flex-1 gap-4 md:grid-cols-2">
+      <div className="grid items-stretch gap-6 md:grid-cols-[minmax(0,1fr)_15rem]">
+        <Card>
+          <div className="grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]">
+            <B className="size-32 rounded-2xl" />
+            <div className="grid gap-4 md:grid-cols-2">
+              {[0, 1, 2, 3].map((index) => (
+                <Field key={index} />
+              ))}
+            </div>
+          </div>
+        </Card>
+        <div className="mx-auto flex w-full max-w-60 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white md:mx-0 md:max-w-none">
+          <div className="flex-1 space-y-2 p-4">
+            <B className="h-3 w-16" />
+            <B className="h-3 w-3/4" />
+            <B className="h-10 w-full" />
+            <B className="h-2 w-full" />
+            <B className="h-2 w-5/6" />
+          </div>
+          <div className="flex items-center gap-2 border-t border-[#e7eaee] px-4 py-3">
+            <B className="size-4 rounded" />
+            <B className="h-3 w-28" />
+          </div>
+        </div>
+      </div>
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <B className="h-6 w-56" />
+            <B className="mt-2 h-3 w-80 max-w-full" />
+          </div>
+          <B className="h-6 w-24 rounded-full" />
+        </div>
+        <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
+          <div className="grid gap-4 sm:grid-cols-2">
             {[0, 1, 2, 3].map((index) => (
               <Field key={index} />
             ))}
+            <div className="sm:col-span-2">
+              <B className="h-3 w-24" />
+              <B className="mt-2 h-20 w-full rounded-xl" />
+            </div>
           </div>
-        </Card>
-        <Card>
-          <B className="h-4 w-40" />
-          <B className="mt-3 h-3 w-full" />
-          <B className="mt-2 h-3 w-2/3" />
-          <B className="mt-6 h-9 w-full rounded-full" />
-        </Card>
+          <B className="hidden h-72 rounded-2xl lg:block" />
+        </div>
+      </Card>
+      <Card>
+        <B className="h-6 w-32" />
+        <B className="mt-2 h-3 w-72 max-w-full" />
+        <div className="mt-4 grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+          {[0, 1, 2].map((index) => (
+            <Field key={index} />
+          ))}
+          <B className="h-10 w-40 rounded-xl" />
+        </div>
+      </Card>
+      <div className="rounded-2xl border border-[#f1d4d1] bg-white p-5">
+        <B className="h-6 w-40" />
+        <B className="mt-2 h-3 w-96 max-w-full" />
+        <div className="mt-4 grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          {[0, 1].map((index) => (
+            <Field key={index} />
+          ))}
+          <B className="h-10 w-36 rounded-xl" />
+        </div>
       </div>
-      <FormCard fields={8} />
     </Shell>
   );
 }
