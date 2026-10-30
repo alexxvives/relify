@@ -4,7 +4,6 @@ import { CountBars, type DonutPalette } from "@/components/admin-charts";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { CountBadge } from "@/components/ui/badge";
 import { adminCopy } from "@/lib/admin-copy";
-import { formatEur } from "@/lib/money";
 import type { AdminDashboard } from "@/server/getAdminDashboard";
 import { Card } from "@/components/ui/form";
 
@@ -60,7 +59,6 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           total={overview.published + overview.drafts + overview.pending}
           palette="orange"
           rows={listings}
-          aside={overview.publishedAskingCents > 0 ? formatEur(overview.publishedAskingCents) : undefined}
         />
         <ChartLink
           href="/admin/facturacion"
