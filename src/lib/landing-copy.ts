@@ -203,6 +203,10 @@ export const landingCopy = {
       kicker: "Compradores",
       intro: "Región, facturación, EBITDA y precio en cada ficha. La razón social se queda fuera.",
       catalog: "Ver el catálogo",
+      boardLabel: "Fichas publicadas",
+      multipleLabel: "Precio / EBITDA",
+      multipleShort: "veces EBITDA",
+      openCard: "Ver fichas como esta",
     },
     process: {
       id: "vender",
