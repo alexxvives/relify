@@ -17,20 +17,40 @@ import { Button, Input } from "@/components/ui/form";
 const dialogClass =
   "fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40";
 
-function AddCompanyButton({ prominent, onOpen }: { prominent: boolean; onOpen: () => void }) {
+function AddCompanyButton({ onOpen }: { onOpen: () => void }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      className={
-        prominent
-          ? "flex h-12 w-full items-center gap-2 rounded-xl border border-dashed border-public-line bg-public-paper px-3 text-sm font-medium text-public-ink hover:bg-public-sand"
-          : "inline-flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-public-clay hover:bg-public-sand"
-      }
+      className="inline-flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-medium text-public-clay hover:bg-public-sand"
     >
       <PlusIcon size={16} aria-hidden />
       {sellerCopy.addCompany}
     </button>
+  );
+}
+
+/** Compact "Añadir empresa" beside the bell when the seller has no company yet; label as tooltip. */
+export function AddCompanyIconButton() {
+  const ref = useRef<HTMLDialogElement>(null);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => ref.current?.showModal()}
+        aria-label={sellerCopy.addCompany}
+        className="group/add relative inline-flex size-10 items-center justify-center rounded-full text-public-clay hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+      >
+        <PlusIcon size={18} aria-hidden />
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute top-full left-1/2 z-30 mt-1 -translate-x-1/2 rounded-md bg-[#1c2740] px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover/add:opacity-100 group-focus-visible/add:opacity-100"
+        >
+          {sellerCopy.addCompany}
+        </span>
+      </button>
+      <AddCompanyDialog dialogRef={ref} />
+    </>
   );
 }
 
@@ -174,12 +194,8 @@ export function CompanySwitcher({
   }, []);
 
   if (!current) {
-    return (
-      <>
-        <AddCompanyButton prominent onOpen={openAdd} />
-        <AddCompanyDialog dialogRef={addDialogRef} />
-      </>
-    );
+    // No company yet: the shell shows AddCompanyIconButton beside the bell instead.
+    return null;
   }
 
   const currentLabel = sellerCompanyLabel(current.legalName, current.codename);
@@ -255,7 +271,7 @@ export function CompanySwitcher({
             })}
           </div>
           <div className="border-t border-public-line p-1">
-            <AddCompanyButton prominent={false} onOpen={openAdd} />
+            <AddCompanyButton onOpen={openAdd} />
           </div>
         </div>
       ) : null}

@@ -25,7 +25,7 @@ import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { Logo } from "@/components/logo";
-import { CompanySwitcher } from "@/components/company-switcher";
+import { AddCompanyIconButton, CompanySwitcher } from "@/components/company-switcher";
 import { sellerCompanyLabel } from "@/lib/seller-company";
 import { NotificationBell } from "@/components/notification-bell";
 import { AlertDot } from "@/components/ui/badge";
@@ -317,6 +317,7 @@ export function AppFrame({
               <Logo tone="light" />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
+              {canManageCompanies && companies.length === 0 ? <AddCompanyIconButton /> : null}
               {showPremium ? <PremiumLink onClick={closeMenu} /> : null}
               <NotificationBell items={notifications} pendingGroups={pendingGroups} />
               <button
@@ -330,7 +331,7 @@ export function AppFrame({
             </div>
           </div>
           {/* Row 2: the active company spans the full sidebar width. */}
-          {canManageCompanies ? (
+          {canManageCompanies && companies.length > 0 ? (
             <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} unreadElsewhere={unreadElsewhere} />
           ) : null}
         </div>
@@ -472,6 +473,7 @@ export function AppFrame({
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
+            {canManageCompanies && companies.length === 0 ? <AddCompanyIconButton /> : null}
             {showPremium ? <PremiumLink /> : null}
             <NotificationBell items={notifications} pendingGroups={pendingGroups} />
           </div>
