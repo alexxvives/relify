@@ -218,7 +218,7 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
             </div>
             <ul className="mt-6 grid gap-3 md:grid-cols-3">
               {notes.map((note) => (
-                <li key={note.title} className="rounded-2xl bg-[#f7f8fb] p-4">
+                <li key={note.title} className="flex flex-col items-center rounded-2xl bg-[#f7f8fb] p-4 text-center">
                   <note.icon className="size-5 text-[#3d34b8]" aria-hidden />
                   <p className="mt-3 text-sm font-medium">{note.title}</p>
                   <p className="mt-1 text-xs leading-5 text-[#5c6b78]">
