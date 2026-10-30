@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Pagination, usePageParam } from "@/components/pagination";
 import { ArrowUpDown, Check } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
-import { MarketCard } from "@/components/market-card";
+import { MarketCard, marketGridClass } from "@/components/market-card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { HeartIcon } from "@/components/ui/heart";
 import { marketCopy } from "@/lib/market-copy";
@@ -155,7 +155,7 @@ export function MarketBrowser({
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3 min-[2100px]:grid-cols-4">
+        <div className={marketGridClass}>
           {visible.map((project) => {
             return (
               <MarketCard

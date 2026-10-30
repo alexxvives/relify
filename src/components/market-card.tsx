@@ -36,6 +36,10 @@ import {
   type SectorImageKey,
 } from "@/lib/sector-image";
 
+/** Shared marketplace grid: as many ≥21rem columns as fit, so cards never get cramped at any width. */
+export const marketGridClass =
+  "grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-5";
+
 type SectorStyle = {
   icon: LucideIcon;
   tile: string;
@@ -127,15 +131,35 @@ const recoveryClass = {
   high: "bg-[#fdecec] text-[#b42318]",
 } as const;
 
-/** "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price. */
-export function RoiChip({ years }: { years: number }) {
+/**
+ * "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price.
+ * `fit` lets the chip shorten to "ROI 3,2 a" (and "3,2 a" in very narrow cells) via the nearest
+ * `@container`, so it never wraps under the price.
+ */
+export function RoiChip({ years, fit = false }: { years: number; fit?: boolean }) {
   const value = formatDecimal(years);
+  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`;
+  const tone = recoveryClass[recoveryTone(years)];
+  if (!fit) {
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${tone}`}
+        title={title}
+      >
+        ROI {value} años
+      </span>
+    );
+  }
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${recoveryClass[recoveryTone(years)]}`}
-      title="Años para recuperar el precio de venta con el EBITDA"
+      className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap tabular-nums @[9.5rem]:px-2 @[9.5rem]:text-xs ${tone}`}
+      title={title}
     >
-      ROI {value} años
+      <span className="hidden @[7rem]:inline">ROI&nbsp;</span>
+      {value}
+      <span className="hidden @[11rem]:inline">&nbsp;años</span>
+      <span className="@[11rem]:hidden">&nbsp;a</span>
+      <span className="sr-only"> de ROI</span>
     </span>
   );
 }
@@ -233,7 +257,7 @@ export function MarketCard({
           </div>
           {/* Location, size and age ride on the photo, so the body only carries the deal. */}
           {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". */}
-          <ul className="absolute right-2.5 bottom-2.5 left-[6.75rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
+          <ul className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
             {photoTags.slice(0, 2).map((tag) => (
               <li
                 key={tag.key}
@@ -269,7 +293,7 @@ export function MarketCard({
         </div>
         {/* Sector badge straddles the photo's bottom edge, bottom-left. */}
         <div
-          className={`pointer-events-none absolute bottom-0 left-4 z-[6] flex w-[5.5rem] translate-y-1/2 flex-col items-center gap-1 rounded-2xl border-[3px] border-white px-1.5 pt-2.5 pb-2 shadow-[0_6px_16px_-8px_rgba(28,39,64,0.45)] ${style.tile}`}
+          className={`pointer-events-none absolute bottom-0 left-4 z-[6] flex w-24 translate-y-1/2 flex-col items-center gap-1 rounded-2xl border-[3px] border-white px-1 pt-2.5 pb-2 shadow-[0_6px_16px_-8px_rgba(28,39,64,0.45)] ${style.tile}`}
           title={sectorName ?? undefined}
         >
           <Icon
@@ -278,7 +302,8 @@ export function MarketCard({
             aria-hidden
           />
           <span
-            className={`line-clamp-2 w-full text-center text-[11px] leading-[13px] font-semibold break-words ${style.ink}`}
+            lang="es"
+            className={`line-clamp-2 w-full text-center text-[11px] leading-[13px] font-semibold [overflow-wrap:normal] hyphens-auto ${style.ink}`}
           >
             {sectorName ?? "Empresa"}
           </span>
@@ -305,7 +330,7 @@ export function MarketCard({
 
       <div className="flex flex-1 flex-col px-5 pb-5">
         {/* The CNAE line starts right of the sector badge that hangs from the photo. */}
-        <div className="mt-3 flex min-h-11 items-start gap-2 pl-[6.25rem]">
+        <div className="mt-3 flex min-h-11 items-start gap-2 pl-[6.75rem]">
           {project.cnaeCode ? (
             <p
               className="line-clamp-2 min-h-10 min-w-0 flex-1 text-xs leading-5 text-[#3d4a63]"
@@ -315,7 +340,7 @@ export function MarketCard({
                   : undefined
               }
             >
-              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold text-[#1c2740] tabular-nums">
+              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
                 CNAE {project.cnaeCode}
               </span>
               {project.cnaeTitle}
@@ -358,7 +383,7 @@ export function MarketCard({
             value={formatCardEur(project.askingPriceCents)}
             edge="both"
             strong
-            note={years === null ? null : <RoiChip years={years} />}
+            note={years === null ? null : <RoiChip years={years} fit />}
           />
         </dl>
       </div>
@@ -398,12 +423,14 @@ function Figure({
           : "";
   return (
     <div
-      className={`min-w-0 border-[#eceff4] px-3.5 py-3 text-center ${border}`}
+      className={`@container min-w-0 border-[#eceff4] px-2.5 py-3 text-center ${border}`}
     >
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 flex flex-wrap items-baseline justify-center gap-x-1.5 text-[#1c2740]">
+      <dd
+        className={`mt-0.5 flex items-baseline justify-center gap-x-1.5 text-[#1c2740] ${note ? "flex-nowrap" : "flex-wrap"}`}
+      >
         <span
-          className={`${strong ? "text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}
+          className={`${strong ? "text-base @[9.5rem]:text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}
         >
           {value}
         </span>

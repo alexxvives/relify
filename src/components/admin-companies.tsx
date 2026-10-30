@@ -7,7 +7,7 @@ import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
-import { MarketCard } from "@/components/market-card";
+import { MarketCard, marketGridClass } from "@/components/market-card";
 import type { AdminCompanyRow } from "@/server/listAdminCompanies";
 import { adminNewRing } from "@/components/admin-new";
 
@@ -128,7 +128,7 @@ export function AdminCompanies({ projects, sabiOnly = false }: { projects: Admin
               </button>
             ))}
           </div>
-          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <ul className={marketGridClass}>
             {sorted.map((project) => (
               <li key={project.id}>
                 <CompanyCard project={project} />
