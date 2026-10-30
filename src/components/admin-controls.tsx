@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState, useSyncExternalStore } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { RotateCcw, UserX } from "lucide-react";
 import {
   approveProjectAction,
   grantPlanAction,
@@ -180,23 +181,71 @@ export function VerifiedToggle({
   );
 }
 
-export function SuspensionButton({ userId, suspended }: { userId: string; suspended: boolean }) {
+/**
+ * Quiet corner action on an account card: an icon that shows on card hover or keyboard focus
+ * (always on touch screens), opening a small confirm before suspending or reactivating.
+ * The parent card must be `relative group/account`.
+ */
+export function SuspensionButton({ userId, name, suspended }: { userId: string; name: string; suspended: boolean }) {
   const { state, formAction, pending } = useAccountAction(suspended ? reactivateAccountAction : suspendAccountAction);
+  const [confirming, setConfirming] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const label = suspended ? adminCopy.reactivate : adminCopy.suspend;
+  const Icon = suspended ? RotateCcw : UserX;
+
+  useEffect(() => {
+    if (!confirming) return;
+    function onPointer(event: PointerEvent) {
+      if (root.current && !root.current.contains(event.target as Node)) setConfirming(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setConfirming(false);
+    }
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [confirming]);
 
   return (
-    <form action={formAction}>
-      <input type="hidden" name="userId" value={userId} />
-      <button type="submit" disabled={pending} className={suspended ? quietButtonClass : dangerButtonClass}>
-        {pending
-          ? suspended
-            ? adminCopy.reactivating
-            : adminCopy.suspending
-          : suspended
-            ? adminCopy.reactivate
-            : adminCopy.suspend}
+    <div ref={root} className="absolute -top-3 -right-3 z-10 flex flex-col items-end">
+      <button
+        type="button"
+        aria-label={`${label}: ${name}`}
+        title={label}
+        aria-expanded={confirming}
+        onClick={() => setConfirming((value) => !value)}
+        className={`inline-flex size-8 items-center justify-center rounded-full border bg-white shadow-sm transition-opacity focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2fc4b2] group-hover/account:opacity-100 group-focus-within/account:opacity-100 [@media(hover:none)]:opacity-100 ${
+          confirming ? "opacity-100" : "opacity-0"
+        } ${suspended ? "border-[#dfe4ea] text-[#0f6e6a] hover:bg-[#e6f4f3]" : "border-[#f1d4d1] text-[#c0362c] hover:bg-[#fdecec]"}`}
+      >
+        <Icon className="size-4" aria-hidden />
       </button>
+      {confirming ? (
+        <form
+          action={(data) => {
+            setConfirming(false);
+            formAction(data);
+          }}
+          className="mt-1.5 w-60 rounded-xl border border-[#e7eaee] bg-white p-3 text-left shadow-lg"
+        >
+          <input type="hidden" name="userId" value={userId} />
+          <p className="text-sm font-semibold text-[#1c2740]">{suspended ? adminCopy.reactivateConfirmTitle : adminCopy.suspendConfirmTitle}</p>
+          <p className="mt-1 text-xs leading-5 text-[#667085]">{suspended ? adminCopy.reactivateConfirmBody : adminCopy.suspendConfirmBody}</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button type="button" onClick={() => setConfirming(false)} className="inline-flex h-8 items-center rounded-full px-3 text-xs font-medium text-[#3d4a63] hover:bg-[#eef1f5]">
+              {adminCopy.cancel}
+            </button>
+            <button type="submit" disabled={pending} className={suspended ? quietButtonClass.replace("h-9", "h-8").replace("text-sm", "text-xs") : dangerButtonClass}>
+              {pending ? (suspended ? adminCopy.reactivating : adminCopy.suspending) : suspended ? adminCopy.reactivate : adminCopy.suspendShort}
+            </button>
+          </div>
+        </form>
+      ) : null}
       <ErrorNote state={state} />
-    </form>
+    </div>
   );
 }
 

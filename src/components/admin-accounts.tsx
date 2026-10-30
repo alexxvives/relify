@@ -148,7 +148,7 @@ function InfoRow({ label, children, open = false }: { label: string; children: R
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   const state = accountState(account);
   return (
-    <article className={`flex w-full flex-col rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
+    <article className={`group/account relative flex w-full flex-col rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
       <header className="flex min-w-0 items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}
@@ -180,15 +180,7 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
         <InfoRow label="Alta">{joined.format(new Date(account.createdAt))}</InfoRow>
         <InfoRow label={adminCopy.referralSourceLabel}>{account.onboarded ? (account.referralSource ?? adminCopy.referralSourceEmpty) : "—"}</InfoRow>
       </dl>
-      {self ? (
-        <p className="mt-auto pt-3 text-xs text-[#667085]">
-          {adminCopy.ownSuspend}
-        </p>
-      ) : (
-        <div className="mt-auto flex justify-center pt-3">
-          <SuspensionButton userId={account.id} suspended={account.suspended} />
-        </div>
-      )}
+      {self ? null : <SuspensionButton userId={account.id} name={account.name} suspended={account.suspended} />}
     </article>
   );
 }
