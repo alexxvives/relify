@@ -43,6 +43,13 @@ export type AdminSideAdvisor = {
   id: string;
   label: string;
   hiredBy: string;
+  role: "investor" | "seller";
+  person: string;
+  business: string;
+  email: string;
+  verified: boolean;
+  status: string;
+  since: string;
   sectors: string[];
   services: string;
 };
@@ -288,7 +295,13 @@ async function sideParties(
     investor: { name: string; lastName: string | null; email: string };
   },
 ): Promise<Pick<AdminCompanyView, "investor" | "advisors">> {
-  const [cards, engagements] = await Promise.all([
+  const advisorSelect = {
+    name: true,
+    lastName: true,
+    email: true,
+    advisorProfile: { select: { businessName: true, sectors: true, verifiedAt: true } },
+  } as const;
+  const [cards, engagements, mandates] = await Promise.all([
     publicCardsByInvestor([{ id: chosen.investorId, email: chosen.investor.email }]),
     prisma.advisoryEngagement.findMany({
       where: {
@@ -302,43 +315,75 @@ async function sideParties(
         id: true,
         client: true,
         services: true,
-        advisor: {
-          select: {
-            name: true,
-            lastName: true,
-            advisorProfile: { select: { businessName: true, sectors: true } },
-          },
-        },
+        createdAt: true,
+        claimedAt: true,
+        depositPaidAt: true,
+        closedAt: true,
+        advisorId: true,
+        advisor: { select: advisorSelect },
       },
+    }),
+    prisma.saleMandate.findMany({
+      where: { projectId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, advisorId: true, createdAt: true, advisor: { select: advisorSelect } },
     }),
   ]);
   const investorName = personName(chosen.investor.name, chosen.investor.lastName);
-  const advisors = engagements.flatMap((row) => {
+  const sideAdvisor = (
+    id: string,
+    role: "investor" | "seller",
+    advisor: { name: string; lastName: string | null; email: string; advisorProfile: { businessName: string; sectors: string[]; verifiedAt: Date | null } | null },
+    status: string,
+    since: Date,
+    services: string,
+  ): AdminSideAdvisor => {
+    const person = personName(advisor.name, advisor.lastName);
+    const business = advisor.advisorProfile?.businessName.trim() ?? "";
+
+    return {
+      id,
+      label: advisorLabel(business, person),
+      hiredBy: role === "investor" ? adminCopy.advisorForInvestor : adminCopy.advisorForSeller,
+      role,
+      person,
+      business,
+      email: advisor.email,
+      verified: Boolean(advisor.advisorProfile?.verifiedAt),
+      status,
+      since: since.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" }),
+      sectors: (advisor.advisorProfile?.sectors ?? []).map((sector) => advisorSectorName(sector)),
+      services,
+    };
+  };
+  const fromEngagements = engagements.flatMap((row) => {
     if (!row.advisor) {
       return [];
     }
 
-    const name = personName(row.advisor.name, row.advisor.lastName);
-    const business = row.advisor.advisorProfile?.businessName.trim() ?? "";
-    const label = advisorLabel(business, name);
+    const status = row.closedAt
+      ? adminCopy.advisorStatusClosed
+      : row.depositPaidAt
+        ? adminCopy.advisorStatusPaid
+        : row.claimedAt
+          ? adminCopy.advisorStatusClaimed
+          : adminCopy.advisorStatusAssigned;
+    const services = row.services.map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id).join(", ");
 
-    return [
-      {
-        id: row.id,
-        label,
-        hiredBy: row.client === "investor" ? adminCopy.advisorForInvestor : adminCopy.advisorForSeller,
-        sectors: (row.advisor.advisorProfile?.sectors ?? []).map((sector) => advisorSectorName(sector)),
-        services: row.services.map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id).join(", "),
-      },
-    ];
+    return [sideAdvisor(row.id, row.client === "investor" ? "investor" : "seller", row.advisor, status, row.createdAt, services)];
   });
+  const engagedSellerAdvisors = new Set(engagements.filter((row) => row.client === "seller").map((row) => row.advisorId));
+  const fromMandates = mandates
+    .filter((row) => !engagedSellerAdvisors.has(row.advisorId))
+    .map((row) => sideAdvisor(row.id, "seller", row.advisor, adminCopy.advisorStatusMandate, row.createdAt, ""));
+  const advisors = [...fromEngagements, ...fromMandates];
 
   return {
     investor: {
       label: investorName.length > 0 ? investorName : adminCopy.investorParty,
       profile: cards.get(chosen.investorId) ?? null,
     },
-    advisors: advisors.sort((left, right) => Number(left.hiredBy !== adminCopy.advisorForInvestor) - Number(right.hiredBy !== adminCopy.advisorForInvestor)),
+    advisors: advisors.sort((left, right) => Number(left.role !== "investor") - Number(right.role !== "investor")),
   };
 }
 

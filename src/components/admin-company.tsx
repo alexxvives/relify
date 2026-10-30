@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Mail } from "lucide-react";
 import { AdminSabiPanel } from "@/components/admin-sabi-panel";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
@@ -102,26 +102,66 @@ export function AdminCompany({
 }
 
 function AdvisorSideCard({ advisor }: { advisor: AdminSideAdvisor }) {
+  const buyerSide = advisor.role === "investor";
+  const title = advisor.business.length > 0 ? advisor.business : advisor.label;
+  const subtitle = advisor.business.length > 0 && advisor.person.length > 0 ? advisor.person : null;
+
   return (
     <article className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white text-[#1c2740] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.35)]">
       <div className="bg-[#1c2740] px-6 py-4">
-        <p className="text-xs font-semibold text-white/70">Asesor</p>
-        <h2 className="mt-2 text-lg font-semibold text-white">{advisor.label}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <p className="whitespace-nowrap text-xs font-semibold text-white/70">{adminCopy.advisorHeading}</p>
+          <span
+            className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
+              buyerSide ? "bg-[#14b8a6] text-[#0b2b29]" : "bg-white text-[#1c2740]"
+            }`}
+          >
+            {adminCopy.advisorHiredByLabel}: {buyerSide ? adminCopy.advisorRoleInvestor : adminCopy.advisorRoleSeller}
+          </span>
+        </div>
+        <h2 className="mt-2 flex items-center gap-1.5 text-lg font-semibold text-white">
+          <span className="min-w-0 truncate">{title}</span>
+          {advisor.verified ? <BadgeCheck className="size-4 shrink-0 text-[#5eead4]" aria-label={adminCopy.advisorVerified} /> : null}
+        </h2>
+        {subtitle ? <p className="text-sm text-white/80">{subtitle}</p> : null}
       </div>
-      <div className="px-6 py-5">
-        <p className="text-sm text-[#5c6b78]">{advisor.hiredBy}</p>
-        {advisor.services.length > 0 ? <p className="mt-3 text-sm font-medium text-[#1c2740]">{advisor.services}</p> : null}
+      <dl className="grid gap-3 px-6 py-5 text-sm">
+        <AdvisorFact label={adminCopy.advisorStatusLabel} value={`${advisor.status} · ${adminCopy.advisorSince} ${advisor.since}`} />
+        <div className="min-w-0">
+          <dt className="text-xs font-medium text-[#5c6b78]">{adminCopy.advisorContact}</dt>
+          <dd className="mt-0.5">
+            <a href={`mailto:${advisor.email}`} className="inline-flex max-w-full items-center gap-1.5 font-medium text-[#3d34b8] hover:underline">
+              <Mail className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{advisor.email}</span>
+            </a>
+          </dd>
+        </div>
+        {advisor.services.length > 0 ? <AdvisorFact label={adminCopy.advisorServices} value={advisor.services} /> : null}
         {advisor.sectors.length > 0 ? (
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {advisor.sectors.map((sector) => (
-              <li key={sector} className="rounded-full bg-[#f4f7ff] px-3 py-1 text-xs text-[#1c2740]">
-                {sector}
-              </li>
-            ))}
-          </ul>
+          <div>
+            <dt className="text-xs font-medium text-[#5c6b78]">{adminCopy.advisorSectors}</dt>
+            <dd>
+              <ul className="mt-1.5 flex flex-wrap gap-2">
+                {advisor.sectors.map((sector) => (
+                  <li key={sector} className="rounded-full bg-[#f4f7ff] px-3 py-1 text-xs text-[#1c2740]">
+                    {sector}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
         ) : null}
-      </div>
+      </dl>
     </article>
+  );
+}
+
+function AdvisorFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs font-medium text-[#5c6b78]">{label}</dt>
+      <dd className="mt-0.5 font-medium text-[#1c2740]">{value}</dd>
+    </div>
   );
 }
 
