@@ -1,11 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition, type ComponentProps } from "react";
+import { useEffect, useRef, useState, useTransition, type ComponentProps } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2 } from "lucide-react";
-import { confirmSabiAction, previewSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
+import { mapSabiReport } from "@/lib/sabi/mapping";
+import { parseSabiWorkbook } from "@/lib/sabi/parse";
+import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { CompanyBanner } from "@/components/company-banner";
-import type { SabiPreview } from "@/server/sabiImport";
 import type { AdminSabiHolding, AdminSabiView } from "@/server/getAdminCompany";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
@@ -59,14 +62,21 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       return;
     }
 
+    // t67: the file is read in the browser (no upload, no server round trip) for the preview.
     start(async () => {
-      const result = await previewSabiAction(form(chosen));
-
-      if (result.ok) {
-        setPreview(result.preview);
-      } else {
-        setError(result.message);
+      if (chosen.size > sabiMaxBytes) {
+        setError(sabiFailureMessages.too_large);
+        return;
       }
+
+      const parsed = await parseSabiWorkbook(new Uint8Array(await chosen.arrayBuffer()));
+
+      if (!parsed.ok) {
+        setError(sabiFailureMessages[parsed.code]);
+        return;
+      }
+
+      setPreview(buildSabiPreview(parsed.report, mapSabiReport(parsed.report), sabi.previewTarget, chosen.name));
     });
   }
 
@@ -86,13 +96,19 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
         if (input.current) {
           input.current.value = "";
         }
-
-        router.refresh();
       } else {
         setError(result.message);
       }
     });
   }
+
+  // t67: refresh once the action's transition has settled. Calling router.refresh() inside it left
+  // the button on "Leyendo…" and the ficha stale until a manual reload.
+  useEffect(() => {
+    if (done) {
+      router.refresh();
+    }
+  }, [done, router]);
 
   const status = sabi.importedAt
     ? `Importado de SABI · ${sabi.importedAt}`

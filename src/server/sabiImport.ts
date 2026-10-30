@@ -4,41 +4,17 @@ import { Prisma } from "@/generated/prisma/client";
 import { isCnaeCode } from "@/lib/cnae-2009";
 import { mapSabiReport, sabiCompanyDetail, sabiExtraOf, sabiYearDetail, type SabiMapping } from "@/lib/sabi/mapping";
 import { parseSabiWorkbook, type SabiReport } from "@/lib/sabi/parse";
+import { sabiMaxBytes, type SabiImportFailure } from "@/lib/sabi/failures";
+import { sabiPreviewWarnings } from "@/lib/sabi/preview";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
 const projectIdSchema = z.string().trim().min(1).max(128);
-const maxBytes = 10 * 1024 * 1024;
+const maxBytes = sabiMaxBytes;
 
-export type SabiPreviewYear = {
-  year: number;
-  months: number | null;
-  salesCents: number | null;
-  ebitdaCents: number | null;
-  netResultCents: number | null;
-  totalAssetsCents: number | null;
-  equityCents: number | null;
-  employees: number | null;
-  replacesSeller: boolean;
-};
+export type { SabiPreview, SabiPreviewYear } from "@/lib/sabi/preview";
 
-export type SabiPreview = {
-  fileName: string;
-  legalName: string | null;
-  cif: string | null;
-  legalForm: string | null;
-  address: string | null;
-  incorporatedOn: string | null;
-  employees: number | null;
-  cnae: string | null;
-  yearsInFile: number;
-  years: SabiPreviewYear[];
-  directors: number;
-  shareholders: number;
-  warnings: string[];
-};
-
-export type SabiImportFailure = "forbidden" | "not_found" | "empty" | "too_large" | "not_xlsx" | "no_financials";
+export type { SabiImportFailure } from "@/lib/sabi/failures";
 
 export type SabiImportResult<T> = { ok: true; value: T } | { ok: false; code: SabiImportFailure };
 
@@ -56,7 +32,8 @@ type Loaded = {
     opexCents: number | null;
     netDebtCents: number | null;
     workingCapitalCents: number | null;
-    _count: { shareholders: number; activitySlices: number };
+    years: { year: number; kind: string; dataSource: string | null }[];
+    _count: { shareholders: number; activitySlices: number; cnaes: number };
   }; report: SabiReport; mapping: SabiMapping; warnings: string[]; sellerYears: Set<number> };
 
 async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Promise<SabiImportResult<Loaded>> {
@@ -92,7 +69,7 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
       netDebtCents: true,
       workingCapitalCents: true,
       years: { select: { year: true, kind: true, dataSource: true } },
-      _count: { select: { shareholders: true, activitySlices: { where: { kind: "capital" } } } },
+      _count: { select: { shareholders: true, activitySlices: { where: { kind: "capital" } }, cnaes: true } },
     },
   });
 
@@ -107,71 +84,12 @@ async function load(user: CurrentUser, projectId: string, bytes: Uint8Array): Pr
   }
 
   const mapping = mapSabiReport(parsed.report);
-  const warnings = [...parsed.report.warnings, ...mapping.warnings];
-  const fileCif = parsed.report.identity.cif;
-  const projectCif = project.cif.trim().toUpperCase();
-
-  if (fileCif && projectCif && fileCif !== projectCif) {
-    warnings.unshift(`El CIF del archivo (${fileCif}) no coincide con el de la empresa (${projectCif}).`);
-  }
-
-  const imported = new Set(mapping.years.map((year) => year.year));
-  const sellerYears = new Set(
-    project.years.filter((year) => year.kind === "closed" && year.dataSource !== "sabi" && imported.has(year.year)).map((year) => year.year),
-  );
-
-  if (sellerYears.size > 0) {
-    warnings.push(`Se sustituyen las cifras que ya había para ${[...sellerYears].sort().join(", ")}.`);
-  }
-
-  if (parsed.report.unmappedLabels.length > 0) {
-    warnings.push(`Líneas del archivo que no se usan: ${parsed.report.unmappedLabels.slice(0, 8).join(", ")}${parsed.report.unmappedLabels.length > 8 ? "…" : ""}.`);
-  }
+  const { warnings, sellerYears } = sabiPreviewWarnings(parsed.report, mapping, {
+    cif: project.cif,
+    sellerClosedYears: project.years.filter((year) => year.kind === "closed" && year.dataSource !== "sabi").map((year) => year.year),
+  });
 
   return { ok: true, value: { project, report: parsed.report, mapping, warnings, sellerYears } };
-}
-
-export async function previewSabiImport(user: CurrentUser, projectId: string, bytes: Uint8Array, fileName: string): Promise<SabiImportResult<SabiPreview>> {
-  const loaded = await load(user, projectId, bytes);
-
-  if (!loaded.ok) {
-    return loaded;
-  }
-
-  const { report, mapping, warnings, sellerYears } = loaded.value;
-  const byYear = new Map(report.years.map((year) => [year.year, year]));
-
-  return {
-    ok: true,
-    value: {
-      fileName: fileName.slice(0, 200),
-      legalName: report.identity.legalName,
-      cif: report.identity.cif,
-      legalForm: report.identity.legalForm,
-      address: mapping.project.address,
-      incorporatedOn: report.identity.incorporatedOn,
-      employees: report.identity.employees,
-      cnae: report.codes.cnae2009?.primary[0] ? `${report.codes.cnae2009.primary[0].code} · ${report.codes.cnae2009.primary[0].description}` : null,
-      yearsInFile: report.years.length,
-      years: mapping.years.map((year) => {
-        const source = byYear.get(year.year);
-        return {
-          year: year.year,
-          months: source?.months ?? null,
-          salesCents: year.data.salesCents,
-          ebitdaCents: year.ebitdaCents,
-          netResultCents: year.data.netResultCents,
-          totalAssetsCents: source?.money.totalAssets ?? null,
-          equityCents: year.data.equityCents,
-          employees: year.employees,
-          replacesSeller: sellerYears.has(year.year),
-        };
-      }),
-      directors: report.directors.length,
-      shareholders: report.shareholders.length,
-      warnings,
-    },
-  };
 }
 
 export async function confirmSabiImport(user: CurrentUser, projectId: string, bytes: Uint8Array, fileName: string): Promise<SabiImportResult<{ years: number[] }>> {
@@ -184,17 +102,32 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
 
   const { project, report, mapping } = loaded.value;
   const now = new Date();
-  const stored: SabiStored = { version: 1, report, importedById: user.id };
+  // t67: sabi_extra keeps the raw sheet; don't store it twice.
+  const stored: SabiStored = { version: 1, report: { ...report, sheet: [] }, importedById: user.id };
   const source = new Map(report.years.map((year) => [year.year, year]));
   const company = sabiCompanyDetail(report);
   const json = (value: unknown) => value as Prisma.InputJsonValue;
+  const importedYears = mapping.years.map((year) => year.year);
 
-  await prisma.$transaction(async (tx) => {
-    // Replacing an earlier import: drop its closed years first; forecasts stay.
-    await tx.projectYear.deleteMany({ where: { projectId: project.id, kind: "closed", dataSource: "sabi" } });
+  // t67: everything known up front, so the write is one batched transaction (one round trip on
+  // Neon) instead of an interactive one with a query per year.
+  const remainingClosed = project.years.filter((year) => year.kind === "closed" && year.dataSource !== "sabi" && !importedYears.includes(year.year)).map((year) => year.year);
+  const latestImported = Math.max(-Infinity, ...importedYears);
+  const latestOther = Math.max(-Infinity, ...remainingClosed);
+  const useFigures = importedYears.length > 0 && latestImported >= latestOther;
+  const figures = mapping.project;
+  const codes = [...new Set([figures.principalCnae, ...figures.secondaryCnaes].filter((code): code is string => code !== null && isCnaeCode(code)))];
 
-    for (const year of mapping.years) {
-      const data = {
+  const writes: Prisma.PrismaPromise<unknown>[] = [
+    // Replacing an earlier import: drop its closed years (and any row for an imported year); other forecasts stay.
+    prisma.projectYear.deleteMany({
+      where: { projectId: project.id, OR: [{ kind: "closed", dataSource: "sabi" }, { year: { in: importedYears } }] },
+    }),
+    prisma.projectYear.createMany({
+      data: mapping.years.map((year) => ({
+        id: randomUUID(),
+        projectId: project.id,
+        year: year.year,
         kind: "closed" as const,
         ...year.data,
         employees: year.employees,
@@ -202,23 +135,9 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
         ...(source.get(year.year) ? sabiYearDetail(source.get(year.year)!) : {}),
         dataSource: "sabi",
         confirmedAt: now,
-      };
-      await tx.projectYear.upsert({
-        where: { projectId_year: { projectId: project.id, year: year.year } },
-        create: { id: randomUUID(), projectId: project.id, year: year.year, ...data },
-        update: data,
-      });
-    }
-
-    const latestClosed = await tx.projectYear.findFirst({
-      where: { projectId: project.id, kind: "closed" },
-      orderBy: { year: "desc" },
-      select: { dataSource: true },
-    });
-    const figures = mapping.project;
-    const useFigures = latestClosed?.dataSource === "sabi";
-
-    await tx.project.update({
+      })),
+    }),
+    prisma.project.update({
       where: { id: project.id },
       data: {
         sabiImportedAt: now,
@@ -249,35 +168,38 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
         subsidiaries: json(company.subsidiaries),
         banks: json(company.banks),
         audits: json(company.audits),
-        sabiExtra: json(sabiExtraOf(report, mapping.years.map((year) => year.year))),
+        sabiExtra: json(sabiExtraOf(report, importedYears)),
       },
-    });
+    }),
+  ];
 
-    if (project._count.shareholders === 0 && figures.shareholderNames.length > 0) {
-      await tx.shareholder.createMany({ data: figures.shareholderNames.map((name) => ({ id: randomUUID(), projectId: project.id, name: name.slice(0, 200) })) });
-    }
+  if (project._count.shareholders === 0 && figures.shareholderNames.length > 0) {
+    writes.push(prisma.shareholder.createMany({ data: figures.shareholderNames.map((name) => ({ id: randomUUID(), projectId: project.id, name: name.slice(0, 200) })) }));
+  }
 
-    if (project._count.activitySlices === 0 && figures.capitalBasisPoints) {
-      await tx.activitySlice.createMany({
+  if (project._count.activitySlices === 0 && figures.capitalBasisPoints) {
+    writes.push(
+      prisma.activitySlice.createMany({
         data: figures.capitalBasisPoints.map((basisPoints, index) => ({ id: randomUUID(), projectId: project.id, kind: "capital" as const, position: index + 1, basisPoints })),
-      });
-    }
+      }),
+    );
+  }
 
-    const hasCnae = await tx.projectCnae.count({ where: { projectId: project.id } });
-    const codes = [figures.principalCnae, ...figures.secondaryCnaes].filter((code): code is string => code !== null && isCnaeCode(code));
-
-    if (hasCnae === 0 && codes.length > 0) {
-      await tx.projectCnae.createMany({
-        data: [...new Set(codes)].map((code, position) => ({
+  if (project._count.cnaes === 0 && codes.length > 0) {
+    writes.push(
+      prisma.projectCnae.createMany({
+        data: codes.map((code, position) => ({
           id: randomUUID(),
           projectId: project.id,
           code,
           role: position === 0 ? ("principal" as const) : ("secondary" as const),
           position: position === 0 ? 1 : position,
         })),
-      });
-    }
-  });
+      }),
+    );
+  }
+
+  await prisma.$transaction(writes);
 
   return { ok: true, value: { years: mapping.years.map((year) => year.year) } };
 }

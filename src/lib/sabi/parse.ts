@@ -858,10 +858,22 @@ function parseAudits(grid: SheetGrid): SabiAudit[] {
   return audits;
 }
 
+/** t67: the raw sheet is a fallback copy, capped so one odd export cannot bloat the row. */
+export const sabiSheetMaxRows = 2000;
+export const sabiSheetMaxCellChars = 500;
+
 function sheetRows(grid: SheetGrid): SabiSheetRow[] {
   return rowNumbers(grid)
-    .map((row): SabiSheetRow => [row, rowCells(grid, row).map(([column, cell]): [number, string] => [column, cell.text]).filter(([, text]) => text.trim() !== "")])
-    .filter(([, cells]) => cells.length > 0);
+    .map(
+      (row): SabiSheetRow => [
+        row,
+        rowCells(grid, row)
+          .map(([column, cell]): [number, string] => [column, cell.text.slice(0, sabiSheetMaxCellChars)])
+          .filter(([, text]) => text.trim() !== ""),
+      ],
+    )
+    .filter(([, cells]) => cells.length > 0)
+    .slice(0, sabiSheetMaxRows);
 }
 
 const cifPattern = /^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/;

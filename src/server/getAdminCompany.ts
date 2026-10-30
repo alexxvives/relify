@@ -1,3 +1,4 @@
+import type { SabiPreviewTarget } from "@/lib/sabi/preview";
 import { sabiExtraOf, sabiFichaYears, type SabiExtra } from "@/lib/sabi/mapping";
 import type { SabiAudit } from "@/lib/sabi/parse";
 import * as z from "zod";
@@ -62,6 +63,8 @@ export type AdminSabiHolding = { name: string; country: string | null; direct: s
 export type AdminSabiView = {
   projectId: string;
   hasCif: boolean;
+  /** t67: the browser builds the SABI preview itself; these feed its CIF and "replaces" warnings. */
+  previewTarget: SabiPreviewTarget;
   importedAt: string | null;
   requestedAt: string | null;
   fileName: string | null;
@@ -242,6 +245,10 @@ export async function getAdminCompany(
   const sabi: AdminSabiView = {
     projectId: project.id,
     hasCif: project.cif.trim().length > 0,
+    previewTarget: {
+      cif: project.cif,
+      sellerClosedYears: project.years.filter((year) => year.kind === "closed" && year.dataSource !== "sabi").map((year) => year.year),
+    },
     importedAt: project.sabiImportedAt ? when.format(project.sabiImportedAt) : null,
     requestedAt: project.sabiRequestedAt ? when.format(project.sabiRequestedAt) : null,
     fileName: project.sabiFileName,

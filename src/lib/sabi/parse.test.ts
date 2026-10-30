@@ -108,8 +108,8 @@ describe("mapSabiReport", () => {
       ebitdaCents: 4_000_000,
       netIncomeCents: 2_100_000,
       headcountRange: "band_11_20",
-      principalCnae: "6920",
-      secondaryCnaes: ["8299"],
+      principalCnae: "69.20",
+      secondaryCnaes: ["82.99"],
     });
   });
 

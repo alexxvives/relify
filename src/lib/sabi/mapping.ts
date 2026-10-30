@@ -194,6 +194,12 @@ function percentOf(value: string | null): number | null {
 }
 
 /** Only an exact, fully numeric split that adds up to 100 % becomes the capital donut. */
+/** t67: SABI prints CNAE-2009 as "7490"; the catalog (and project_cnae) uses "74.90". */
+export function cnaeCatalogCode(code: string): string {
+  const digits = code.trim();
+  return /^\d{4}$/.test(digits) ? `${digits.slice(0, 2)}.${digits.slice(2)}` : digits;
+}
+
 export function capitalSplit(report: SabiReport): number[] | null {
   const holders = report.shareholders;
 
@@ -253,8 +259,8 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
       netIncomeCents: latest?.data.netResultCents ?? null,
       averageHeadcount: latest?.employees ?? employees,
       headcountRange: headcountRangeFor(employees),
-      principalCnae: cnae?.primary[0]?.code ?? null,
-      secondaryCnaes: [...(cnae?.primary.slice(1) ?? []), ...(cnae?.secondary ?? [])].map((code) => code.code),
+      principalCnae: cnae?.primary[0] ? cnaeCatalogCode(cnae.primary[0].code) : null,
+      secondaryCnaes: [...(cnae?.primary.slice(1) ?? []), ...(cnae?.secondary ?? [])].map((code) => cnaeCatalogCode(code.code)),
       legalForm: report.identity.legalForm,
       accountsFormat: accountsFormatOf(source?.basis ?? null),
       audited: report.auditor ? true : null,
