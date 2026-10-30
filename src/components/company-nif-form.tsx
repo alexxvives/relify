@@ -3,11 +3,13 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Check,
   LoaderCircle,
   LockKeyhole,
   Shuffle,
   Sparkles,
+  X,
 } from "lucide-react";
 import {
   verifyCompanyNifAction,
@@ -170,7 +172,7 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
           >
             {phase === "filling" ? (
               <LoaderCircle
-                className="size-14 animate-spin text-[#3d34b8]"
+                className="size-14 animate-spin text-[#0f766e]"
                 aria-hidden
               />
             ) : (
@@ -197,30 +199,33 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
           <>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight">
+                <span className="inline-flex items-center rounded-full bg-[#e6f4f1] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
+                  {companyCopy.setupNifStep}
+                </span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
                   {companyCopy.nifTitle}
                 </h2>
-                <p className="mt-1 text-xs font-medium text-[#5c6b78]">
-                  {companyCopy.setupNifStep}
-                </p>
-                <p className="mt-2 text-sm text-[#5c6b78]">
+                <p className="mt-1.5 text-sm leading-6 text-[#5c6b78]">
                   {companyCopy.nifIntro}
                 </p>
               </div>
               <form method="dialog">
                 <button
                   type="submit"
-                  className="text-sm font-medium text-[#5c6b78]"
+                  aria-label="Cerrar"
+                  className="-mt-1 -mr-1 flex size-9 items-center justify-center rounded-full text-[#5c6b78] transition hover:bg-[#f1f4f8] hover:text-[#1c2740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e]"
                 >
-                  Cerrar
+                  <X className="size-5" aria-hidden />
                 </button>
               </form>
             </div>
-            <ul className="mt-6 grid gap-3 md:grid-cols-3">
+            <ul className="mt-6 grid gap-3 sm:grid-cols-3">
               {notes.map((note) => (
-                <li key={note.title} className="flex flex-col items-center rounded-2xl bg-[#f7f8fb] p-4 text-center">
-                  <note.icon className="size-5 text-[#3d34b8]" aria-hidden />
-                  <p className="mt-3 text-sm font-medium">{note.title}</p>
+                <li key={note.title} className="flex flex-col items-center rounded-2xl border border-[#e7eaee] bg-[#f8fafc] px-4 py-4 text-center sm:py-5">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-white text-[#0f766e] shadow-[0_1px_2px_rgba(28,39,64,0.08)] ring-1 ring-[#e1e6ee]">
+                    <note.icon className="size-5" aria-hidden />
+                  </span>
+                  <p className="mt-3 text-sm font-semibold text-[#1c2740]">{note.title}</p>
                   <p className="mt-1 text-xs leading-5 text-[#5c6b78]">
                     {note.body}
                   </p>
@@ -229,7 +234,7 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
             </ul>
             <form
               action={action}
-              className="mt-6"
+              className="mt-6 border-t border-[#eef1f5] pt-6"
               onSubmit={(event) => {
                 if (!isValidSpanishCif(nif)) {
                   event.preventDefault();
@@ -251,38 +256,42 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
               >
                 {companyCopy.nifLabel}
               </label>
-              <input
-                id="company-nif"
-                name="nif"
-                value={nif}
-                autoComplete="off"
-                required
-                aria-invalid={invalid}
-                onChange={(event) => {
-                  setNif(event.target.value.toUpperCase());
-                  setLocalMessage(null);
-                }}
-                className={
-                  invalid
-                    ? "releva-shake mt-2 h-12 w-full rounded-xl border-2 border-[#c0362c] bg-[#fff6f6] px-3 text-sm outline-none"
-                    : "mt-2 h-12 w-full rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm outline-none focus-visible:border-[#5c4de0]"
-                }
-                key={attempt}
-              />
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                <input
+                  id="company-nif"
+                  name="nif"
+                  value={nif}
+                  autoComplete="off"
+                  spellCheck={false}
+                  required
+                  maxLength={12}
+                  placeholder="B12345678"
+                  aria-invalid={invalid}
+                  onChange={(event) => {
+                    setNif(event.target.value.toUpperCase());
+                    setLocalMessage(null);
+                  }}
+                  className={
+                    invalid
+                      ? "releva-shake h-12 w-full min-w-0 shrink-0 rounded-xl sm:w-auto sm:flex-1 border-2 border-[#c0362c] bg-[#fff6f6] px-4 text-base tracking-wider outline-none"
+                      : "h-12 w-full min-w-0 shrink-0 rounded-xl sm:w-auto sm:flex-1 border border-[#d5dbe3] bg-white px-4 text-base tracking-wider outline-none transition placeholder:text-[#a3adb8] focus-visible:border-[#0f766e] focus-visible:ring-4 focus-visible:ring-[#0f766e]/15"
+                  }
+                  key={attempt}
+                />
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1c2740] px-5 text-sm font-semibold text-white transition hover:bg-[#28375a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:opacity-60"
+                >
+                  {pending ? companyCopy.nifPending : companyCopy.nifSubmit}
+                  <ArrowRight className="size-4" aria-hidden />
+                </button>
+              </div>
               {localMessage || (state && !state.ok) ? (
                 <p role="alert" className="mt-2 text-sm text-[#c0362c]">
                   {localMessage ?? (state && !state.ok ? state.message : "")}
                 </p>
               ) : null}
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="inline-flex h-11 items-center rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60"
-                >
-                  {pending ? companyCopy.nifPending : companyCopy.nifSubmit}
-                </button>
-              </div>
             </form>
           </>
         )}
