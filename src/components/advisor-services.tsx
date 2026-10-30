@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { compactButtonClass } from "@/components/ui/compact-button";
 import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
@@ -17,6 +16,7 @@ import {
 } from "@/lib/advisor-profile";
 import { advisorSectorName, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
+import { Button, Card, Input, Textarea } from "@/components/ui/form";
 
 type PanelId = "corporate" | "services" | "documents";
 
@@ -293,7 +293,7 @@ export function AdvisorServices({
   return (
     <div className="flex flex-col gap-4">
       <AppToast message={savedNote} pulse={savedPulse} />
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.corporateTitle}</h2>
@@ -302,10 +302,10 @@ export function AdvisorServices({
           <div className="flex items-center gap-2">
             <Chip done={profile.corporateComplete} editing={editing === "corporate"} />
             {editing === "corporate" ? null : (
-              <button type="button" onClick={() => open("corporate")} className={compactButtonClass}>
+              <Button type="button" onClick={() => open("corporate")} tone="outline" size="sm">
                 <Pencil className="size-3.5" aria-hidden />
                 {advisorCopy.edit}
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -314,37 +314,35 @@ export function AdvisorServices({
             <div className="grid gap-4 md:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.businessName}
-                <input value={businessName} onChange={(event) => setBusinessName(event.target.value)} className={fieldClass} />
+                <Input value={businessName} onChange={(event) => setBusinessName(event.target.value)} />
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.nif}
-                <input
+                <Input
                   value={nif}
                   onChange={(event) => setNif(event.target.value.toUpperCase())}
                   aria-invalid={nifMessage !== null}
-                  className={fieldClass}
                 />
                 {nifMessage ? <span className="text-sm font-normal text-red-700">{nifMessage}</span> : null}
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.postalCode}
-                <input
+                <Input
                   inputMode="numeric"
                   maxLength={5}
                   value={postalCode}
                   onChange={(event) => setPostalCode(event.target.value.replace(/\D/g, "").slice(0, 5))}
-                  className={fieldClass}
                 />
               </label>
             </div>
             <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
               {advisorCopy.description}
-              <textarea
+              <Textarea
                 value={description}
                 maxLength={1000}
                 placeholder={advisorCopy.descriptionPlaceholder}
                 onChange={(event) => setDescription(event.target.value)}
-                className="min-h-28 rounded-xl border border-[#e7eaee] px-3 py-3 pr-16 pb-7 text-sm font-normal text-[#2b3b4a] outline-none focus-visible:border-[#5c4de0]"
+                className="min-h-28 pr-16 pb-7 text-sm font-normal"
               />
               <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
                 {description.length} / 1000
@@ -418,7 +416,7 @@ export function AdvisorServices({
             </div>
           </dl>
         )}
-      </section>
+      </Card>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
@@ -498,7 +496,7 @@ export function AdvisorServices({
       </aside>
       </div>
 
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.dealsTitle}</h2>
         <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.dealsBody}</p>
         {closes.length === 0 ? (
@@ -522,7 +520,7 @@ export function AdvisorServices({
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
       <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
         <PanelHeading
@@ -577,15 +575,15 @@ function PanelHeading({
       <div className="flex items-center gap-2">
         <Chip done={done} editing={editing} />
         {editing ? null : (
-          <button
+          <Button
             type="button"
             disabled={disabled}
             onClick={onEdit}
-            className={compactButtonClass}
-          >
+            tone="outline" size="sm"
+>
             <Pencil className="size-3.5" aria-hidden />
             {advisorCopy.edit}
-          </button>
+          </Button>
         )}
       </div>
     </div>

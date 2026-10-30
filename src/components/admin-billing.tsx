@@ -4,6 +4,7 @@ import { useState } from "react";
 import { donutPalettes, type DonutPalette } from "@/components/admin-charts";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminBilling, BillingBook, BillingEntry } from "@/server/getAdminBilling";
+import { Card } from "@/components/ui/form";
 
 const bookPalette: Record<string, DonutPalette> = {
   subscriptions: "blue",
@@ -28,7 +29,7 @@ function BillingSource({ book }: { book: BillingBook }) {
   const color = donutPalettes[bookPalette[book.id] ?? "blue"][0];
 
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-xl font-semibold text-[#1c2740]">{book.title}</h2>
         <p className="shrink-0 text-right text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{book.total}</p>
@@ -64,7 +65,7 @@ function BillingSource({ book }: { book: BillingBook }) {
           ) : null}
         </>
       )}
-    </section>
+    </Card>
   );
 }
 

@@ -36,6 +36,7 @@ import {
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur } from "@/lib/money";
+import { Card } from "@/components/ui/form";
 
 function moneyOrUnavailable(cents: number | null): string {
   return cents === null ? companyCopy.unavailable : formatEur(cents);
@@ -123,7 +124,7 @@ export function CompanyProfile({
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="descripcion-general">
+      <Card className="p-6" aria-labelledby="descripcion-general">
         <SectionTitle id="descripcion-general" icon={Building2} hint={companyCopy.generalHint}>
           {companyCopy.generalHeading}
         </SectionTitle>
@@ -169,9 +170,9 @@ export function CompanyProfile({
           {companyCopy.descriptionLabel}
         </h3>
         <p className="mt-2 leading-7">{project.description ?? companyCopy.unavailable}</p>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="sectores">
+      <Card className="p-6" aria-labelledby="sectores">
         <SectionTitle id="sectores" icon={Tags} hint={companyCopy.sectorsHint}>
           {companyCopy.sectorsHeading}
         </SectionTitle>
@@ -201,9 +202,9 @@ export function CompanyProfile({
             )}
           </div>
         </div>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="metricas">
+      <Card className="p-6" aria-labelledby="metricas">
         <SectionTitle id="metricas" icon={Receipt} hint={companyCopy.metricsHint}>
           {companyCopy.metricsHeading}
         </SectionTitle>
@@ -218,9 +219,9 @@ export function CompanyProfile({
             </div>
           ))}
         </dl>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="estructura">
+      <Card className="p-6" aria-labelledby="estructura">
         <SectionTitle id="estructura" icon={PieChart} hint={companyCopy.structureHint}>
           {companyCopy.structureHeading}
         </SectionTitle>
@@ -238,9 +239,9 @@ export function CompanyProfile({
             )}
           </div>
         </LockedFigures>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="perdidas">
+      <Card className="p-6" aria-labelledby="perdidas">
         <SectionTitle id="perdidas" icon={Receipt} hint={companyCopy.incomeHint}>
           {companyCopy.incomeHeading}
         </SectionTitle>
@@ -248,9 +249,9 @@ export function CompanyProfile({
           <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
           <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
         </LockedFigures>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="balance">
+      <Card className="p-6" aria-labelledby="balance">
         <SectionTitle id="balance" icon={Scale} hint={companyCopy.balanceHint}>
           {companyCopy.balanceHeading}
         </SectionTitle>
@@ -258,10 +259,10 @@ export function CompanyProfile({
           <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
           <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
         </LockedFigures>
-      </section>
+      </Card>
 
       {detailRows.length > 0 || indicatorRows.length > 0 ? (
-        <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="indicadores">
+        <Card className="p-6" aria-labelledby="indicadores">
           <SectionTitle id="indicadores" icon={Gauge} hint={companyCopy.indicatorsHint}>
             {companyCopy.indicatorsHeading}
           </SectionTitle>
@@ -276,7 +277,7 @@ export function CompanyProfile({
               ) : null}
             </div>
           </LockedFigures>
-        </section>
+        </Card>
       ) : null}
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { MarketCard } from "@/components/market-card";
-import { compactButtonClass } from "@/components/ui/compact-button";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
@@ -70,9 +69,7 @@ import {
   type PnlAmounts,
   type SliceKind,
 } from "@/lib/company-profile";
-
-const fieldClassName =
-  "h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
+import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -189,7 +186,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-6 rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card id={id} className="scroll-mt-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -217,30 +214,30 @@ function Panel({
             </span>
           )}
           {open ? (
-            <button
+            <KitButton
               type="button"
               aria-expanded="true"
               onClick={onCollapse}
-              className={compactButtonClass}
-            >
+              tone="outline" size="sm"
+>
               <ChevronUp className="size-4" aria-hidden />
               {companyCopy.collapsePanel}
-            </button>
+            </KitButton>
           ) : (
-            <button
+            <KitButton
               type="button"
               aria-expanded="false"
               onClick={onEdit}
-              className={compactButtonClass}
-            >
+              tone="outline" size="sm"
+>
               <Pencil className="size-3.5" aria-hidden />
               {companyCopy.editPanel}
-            </button>
+            </KitButton>
           )}
         </div>
       </div>
       <div className={open ? "mt-4" : "hidden"}>{children}</div>
-    </section>
+    </Card>
   );
 }
 
@@ -671,7 +668,7 @@ function PercentRows({
           <label className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
             {draftSliceLabel(kind, index + 1)}
             <span className="relative block">
-              <input
+              <Input
                 name={name}
                 inputMode="decimal"
                 value={value}
@@ -681,7 +678,7 @@ function PercentRows({
                   onChange(values.map((current, currentIndex) => (currentIndex === index ? next : current)));
                 }}
                 style={mark ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
-                className={`${fieldClassName} pr-8`}
+                className={`pr-8`}
               />
               <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#64748b]" aria-hidden>
                 %
@@ -1271,39 +1268,35 @@ export function CompanyDraftForm({
       >
         <div className="grid gap-6 md:grid-cols-2">
           <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
-            <input
+            <Input
               name="legalName"
               value={legalName}
               onChange={(event) => setLegalName(event.target.value)}
-              className={fieldClassName}
             />
           </Fact>
           <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
-            <input
+            <Input
               name="cif"
               value={nif}
               spellCheck={false}
               autoCapitalize="characters"
               onChange={(event) => setNif(event.target.value.toUpperCase())}
-              className={fieldClassName}
             />
           </Fact>
           <Fact icon={MapPin} label={companyCopy.addressLabel}>
-            <input
+            <Input
               name="address"
               value={address}
               onChange={(event) => setAddress(event.target.value)}
-              className={fieldClassName}
             />
           </Fact>
           <input type="hidden" name="region" value={region} />
           <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel}>
-            <input
+            <Input
               name="foundedYear"
               inputMode="numeric"
               value={foundedYear}
               onChange={(event) => setFoundedYear(keepYear(event.target.value))}
-              className={fieldClassName}
             />
           </Fact>
           <Fact icon={Handshake} label={companyCopy.saleReasonLabel} required>
@@ -1340,14 +1333,13 @@ export function CompanyDraftForm({
             {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : null}
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
-          <textarea
+          <Textarea
             name="description"
             rows={4}
             maxLength={descriptionMaxLength}
             placeholder={`${companyCopy.descriptionPlaceholder} (máx. ${descriptionMaxLength} caracteres)`}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="rounded-xl border border-[#e7eaee] bg-white px-3 py-2 text-base outline-none focus-visible:border-[#465ab4]"
             aria-label={companyCopy.descriptionLabel}
           />
           <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
@@ -1882,13 +1874,13 @@ function PublicFicha({
             <FieldHint text={companyCopy.codenameHint} />
           </span>
           <div className="flex items-center gap-2">
-            <input
+            <Input
               id="project-codename"
               name="codename"
               required
               readOnly
               value={codename}
-              className={`${fieldClassName} min-w-0 flex-1 bg-[#f7f8fb] text-[#1c2740]`}
+              className={`min-w-0 flex-1 bg-[#f7f8fb] text-[#1c2740]`}
             />
             <button
               type="button"

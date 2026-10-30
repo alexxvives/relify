@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/form";
 
 const unsavedCopy = {
   title: "Tienes cambios sin guardar",
@@ -111,25 +112,25 @@ export function UnsavedChangesGuard({
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{unsavedCopy.body}</p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
+          <Button
             type="button"
             onClick={() => {
               setHref(null);
             }}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
-          >
+            tone="outline" className="text-sm"
+>
             {unsavedCopy.stay}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => {
               setHref(null);
               router.push(next);
             }}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e7eaee] px-4 text-sm font-medium text-[#1c2740]"
-          >
+            tone="outline" className="text-sm"
+>
             {unsavedCopy.discard}
-          </button>
+          </Button>
           {onSave ? (
             <button
               type="button"

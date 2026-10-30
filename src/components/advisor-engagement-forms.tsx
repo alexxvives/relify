@@ -16,6 +16,7 @@ import {
 } from "@/app/(app)/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
+import { Button, Card, Input } from "@/components/ui/form";
 
 function AdvisorSubscriptionStep({ engagementId, disabled }: { engagementId: string; disabled: boolean }) {
   const [state, action, pending] = useActionState(startInboxCheckoutAction, null);
@@ -26,13 +27,13 @@ function AdvisorSubscriptionStep({ engagementId, disabled }: { engagementId: str
       <p className="mt-1 text-sm leading-6 text-[#475569]">{engagementCopy.subscriptionBody}</p>
       <form action={action} className="mt-3 flex justify-center">
         <input type="hidden" name="engagementId" value={engagementId} />
-        <button
+        <Button
           type="submit"
           disabled={pending || disabled}
-          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-        >
+          className="rounded-full text-sm"
+>
           {pending ? engagementCopy.subscriptionStarting : engagementCopy.subscriptionStart}
-        </button>
+        </Button>
       </form>
       {state && !state.ok ? (
         <p role="alert" className="mt-2 text-center text-sm text-red-700">
@@ -99,13 +100,13 @@ export function AdvisorDepositForm({
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
         <form action={action} className={subscriptionActive ? "" : "hidden"}>
           <input type="hidden" name="engagementId" value={engagementId} />
-          <button
+          <Button
             type="submit"
             disabled={pending || declining}
-            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-          >
+            className="rounded-full text-sm"
+>
             {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
-          </button>
+          </Button>
         </form>
         <button
           type="button"
@@ -275,13 +276,13 @@ function AdvisorNdaDialog({
         </div>
         <div className="flex justify-end border-t border-[#eef0f3] px-5 py-4">
           <input type="hidden" name="engagementId" value={engagementId} />
-          <button
+          <Button
             type="submit"
             disabled={pending}
-            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-          >
+            className="rounded-full text-sm"
+>
             {pending ? engagementCopy.ndaPending : engagementCopy.ndaSign}
-          </button>
+          </Button>
         </div>
         {state && !state.ok ? (
           <p role="alert" className="px-5 pb-4 text-sm text-red-700">
@@ -299,7 +300,7 @@ export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; t
   const [needsSignature, setNeedsSignature] = useState(false);
 
   return (
-    <section id="nda" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card id="nda">
       <p className="text-xs font-semibold text-[#b42318]">Tu turno</p>
       <h2 className="mt-1 text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.ndaTitle}</h2>
       <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.ndaInvestorNote}</p>
@@ -329,20 +330,20 @@ export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; t
           }}
         />
         {needsSignature ? <p className="text-sm text-[#c0362c]">{platformTermsCopy.signRequired}</p> : null}
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-        >
+          className="rounded-full text-sm"
+>
           {pending ? engagementCopy.ndaPending : engagementCopy.ndaSign}
-        </button>
+        </Button>
         {state ? (
           <p className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-red-700"} role={state.ok ? "status" : "alert"}>
             {state.message}
           </p>
         ) : null}
       </form>
-    </section>
+    </Card>
   );
 }
 
@@ -358,7 +359,7 @@ export function AdvisorCloseForm({
   const [state, action, pending] = useActionState(closeEngagementAction, null);
 
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card>
       <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.closeJob}</h2>
       <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.closeJobHint}</p>
       {closed ? (
@@ -370,12 +371,11 @@ export function AdvisorCloseForm({
         <form action={action} className="mt-4 flex flex-col items-start gap-2">
           <label className="text-sm">
             {engagementCopy.chargedLabel}
-            <input
+            <Input
               name="price"
               required
               inputMode="decimal"
               onChange={keepEuro}
-              className="mt-1 h-11 rounded-xl border border-[#d0d5dd] px-3"
             />
           </label>
           <input type="hidden" name="engagementId" value={engagementId} />
@@ -389,7 +389,7 @@ export function AdvisorCloseForm({
           ) : null}
         </form>
       )}
-    </section>
+    </Card>
   );
 }
 

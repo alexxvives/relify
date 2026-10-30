@@ -6,6 +6,7 @@ import { CountBadge } from "@/components/ui/badge";
 import { adminCopy } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/money";
 import type { AdminDashboard } from "@/server/getAdminDashboard";
+import { Card } from "@/components/ui/form";
 
 const cardClass = "block rounded-2xl border border-[#e7eaee] bg-white p-5 hover:border-[#465ab4]";
 
@@ -39,7 +40,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
         <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
           {activity.map((item) => (
@@ -48,7 +49,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={accounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
@@ -69,14 +70,14 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
           rows={plans}
         />
       </div>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <h2 className="text-2xl font-semibold text-[#1c2740]">
           <Link href="/admin/empresas" className="hover:text-[#465ab4]">
             {adminCopy.sectorsTitle}
           </Link>
         </h2>
         <SectorTreemap sectors={overview.sectors} empty={adminCopy.sectorsEmpty} />
-      </section>
+      </Card>
     </div>
   );
 }

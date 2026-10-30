@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/form";
 
 export function OptionSelect({
   name,
@@ -98,13 +99,13 @@ export function OptionSelect({
         <div className={`absolute z-30 mt-1 overflow-hidden rounded-xl border border-[#e6e9f0] bg-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)] ${menuClassName}`}>
           {searchable ? (
             <div className="border-b border-[#eef0f3] p-2">
-              <input
+              <Input
                 ref={searchRef}
                 value={query}
                 placeholder={searchPlaceholder}
                 aria-label={searchPlaceholder}
                 onChange={(event) => setQuery(event.target.value)}
-                className="h-10 w-full rounded-lg border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#465ab4]"
+                size="sm"
               />
             </div>
           ) : null}

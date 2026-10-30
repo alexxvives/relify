@@ -12,6 +12,7 @@ import {
   type ContractActionState,
 } from "@/app/(app)/procesos/contract-actions";
 import { contractStatusLabel, type ContractStage as Stage, type ContractView } from "@/lib/sale-contract";
+import { Button, Input, Textarea } from "@/components/ui/form";
 
 const stageOrder: { id: Stage; label: string }[] = [
   { id: "upload", label: "Subir contrato" },
@@ -278,12 +279,12 @@ function UploadForm({ accessId, first }: { accessId: string; first: boolean }) {
       </label>
       <label className="flex flex-col gap-1 text-sm text-[#3d4a63]">
         Precio final acordado (€)
-        <input
+        <Input
           name="price"
           inputMode="decimal"
           required
           placeholder="Por ejemplo: 1.250.000"
-          className="h-11 max-w-xs rounded-xl border border-[#d5dbe3] px-3 text-base text-[#1c2740]"
+          className="max-w-xs"
         />
         <span className="text-xs text-[#5c6b78]">La comisión de cierre se calcula sobre este precio.</span>
       </label>
@@ -309,15 +310,15 @@ function ReviewForm({ contractId }: { contractId: string }) {
       {asking ? (
         <label className="flex flex-col gap-1 text-sm text-[#3d4a63]">
           ¿Qué hay que cambiar? Se enviará al vendedor por el chat.
-          <textarea name="comment" required minLength={3} maxLength={2000} rows={3} className="rounded-xl border border-[#d5dbe3] px-3 py-2 text-base text-[#1c2740]" />
+          <Textarea name="comment" required minLength={3} maxLength={2000} rows={3} />
         </label>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
         {asking ? (
           <>
-            <button type="submit" name="decision" value="changes" disabled={pending} className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-base font-semibold text-white disabled:opacity-60">
+            <Button type="submit" name="decision" value="changes" disabled={pending} className="rounded-full px-5 font-semibold">
               {pending ? "Enviando…" : "Enviar cambios"}
-            </button>
+            </Button>
             <button type="button" onClick={() => setAsking(false)} className="text-sm font-medium text-[#5c6b78]">
               Cancelar
             </button>
@@ -403,9 +404,9 @@ function SignContractDialog({ contractId, href, fileName, price, onClose }: { co
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
           {state && !state.ok ? <Feedback state={state} /> : null}
-          <button type="submit" disabled={pending} className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-base font-semibold text-white disabled:opacity-60">
+          <Button type="submit" disabled={pending} className="rounded-full px-5 font-semibold">
             {pending ? "Firmando…" : "Firmar"}
-          </button>
+          </Button>
         </div>
       </form>
     </dialog>

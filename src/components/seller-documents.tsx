@@ -30,6 +30,7 @@ export type DocumentAdvisor = {
 
 type ShareScope = { kind: "file"; fileId: string } | { kind: "folder"; folder: string } | { kind: "room" };
 import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
+import { Button, Input } from "@/components/ui/form";
 
 function ActionNote({ state, saved }: { state: DataRoomActionState; saved: string }) {
   if (!state) {
@@ -429,7 +430,7 @@ function FolderCard({
         <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-4">
           <input type="hidden" name="from" value={name} />
           <FolderOpenIcon size={40} className="text-[#d5dbe3]" aria-hidden />
-          <input
+          <Input
             name="name"
             required
             maxLength={40}
@@ -438,26 +439,26 @@ function FolderCard({
             onChange={(event) => {
               setValue(event.target.value);
             }}
-            className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
+            size="sm" className="text-center"
           />
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setValue(name);
                 setEditing(false);
               }}
-              className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
-            >
+              tone="outline" size="sm" className="text-xs"
+>
               {sellerCopy.meetingsCancel}
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={pending || value.trim() === name}
-              className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
-            >
+              size="sm" className="text-xs"
+>
               {sellerCopy.folderRename}
-            </button>
+            </Button>
           </div>
           <ActionNote state={state} saved={sellerCopy.folderRenamed} />
         </form>
@@ -524,7 +525,7 @@ function FileCard({
       {editing ? (
         <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-3">
           <input type="hidden" name="fileId" value={file.id} />
-          <input
+          <Input
             name="name"
             required
             maxLength={120}
@@ -533,26 +534,26 @@ function FileCard({
             onChange={(event) => {
               setValue(event.target.value);
             }}
-            className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
+            size="sm" className="text-center"
           />
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setValue(file.fileName);
                 setEditing(false);
               }}
-              className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
-            >
+              tone="outline" size="sm" className="text-xs"
+>
               {sellerCopy.meetingsCancel}
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={pending || value.trim() === file.fileName}
-              className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
-            >
+              size="sm" className="text-xs"
+>
               {sellerCopy.folderRename}
-            </button>
+            </Button>
           </div>
           <ActionNote state={state} saved={sellerCopy.folderRenamed} />
         </form>
@@ -643,32 +644,32 @@ export function SellerDocuments({
           <li>
             {namingFolder ? (
               <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
-                <input
+                <Input
                   name="name"
                   required
                   maxLength={40}
                   autoFocus
                   aria-label={sellerCopy.folderName}
                   placeholder={sellerCopy.folderName}
-                  className="h-10 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-center text-sm"
+                  size="sm" className="text-center"
                 />
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setNamingFolder(false);
                     }}
-                    className="inline-flex h-8 items-center rounded-full border border-[#e1e6ee] px-3 text-xs font-medium"
-                  >
+                    tone="outline" size="sm" className="text-xs"
+>
                     {sellerCopy.meetingsCancel}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={createPending}
-                    className="inline-flex h-8 items-center rounded-full bg-[#465ab4] px-3 text-xs font-medium text-white disabled:opacity-60"
-                  >
+                    size="sm" className="text-xs"
+>
                     {sellerCopy.folderCreate}
-                  </button>
+                  </Button>
                 </div>
                 <ActionNote state={createState} saved={sellerCopy.folderSaved} />
               </form>

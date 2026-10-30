@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@/components/ui/form";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { Stepper } from "@/components/arc/stepper/stepper";
 
@@ -26,10 +27,6 @@ const stepLabel: Record<OnboardingStep, string> = {
   plan: billingCopy.onboardingPlanStep,
 };
 
-const fieldClass =
-  "h-12 rounded-xl border border-[#d9e2f2] bg-[#eef3ff] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
-const invalidFieldClass =
-  "releva-shake h-12 rounded-xl border-2 border-[#c0362c] bg-[#fff6f6] px-3 text-sm outline-none";
 
 export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole | "" }) {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(onboardingAction, null);
@@ -157,7 +154,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
             {authCopy.fullNameLabel}
-            <input
+            <Input
               key={invalidField === "name" ? `name-${attempt}` : "name"}
               type="text"
               autoComplete="name"
@@ -173,7 +170,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
                   setLocalMessage(null);
                 }
               }}
-              className={invalidField === "name" ? invalidFieldClass : fieldClass}
+              className={invalidField === "name" ? "releva-shake border-2" : ""}
             />
             {invalidField === "name" && localMessage ? (
               <span role="alert" className="text-sm font-normal text-[#c0362c]">
@@ -183,7 +180,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
           </label>
           <label className="flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
             {authCopy.nationalIdLabel}
-            <input
+            <Input
               key={invalidField === "nationalId" ? `id-${attempt}` : "id"}
               type="text"
               autoComplete="off"
@@ -199,7 +196,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
                   setLocalMessage(null);
                 }
               }}
-              className={invalidField === "nationalId" ? invalidFieldClass : fieldClass}
+              className={invalidField === "nationalId" ? "releva-shake border-2" : ""}
             />
             {invalidField === "nationalId" && localMessage ? (
               <span role="alert" className="text-sm font-normal text-[#c0362c]">

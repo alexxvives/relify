@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { ListAnotherCompany } from "@/components/company-switcher";
 import { shortNickname } from "@/lib/nickname";
 import type { ProcessFile } from "@/lib/deal-pipeline";
+import { Card } from "@/components/ui/form";
 
 export type SaleFigures = { price: string; fee: string; feeNote: string; date: string };
 
@@ -85,7 +86,7 @@ function SignedDocuments({ contractHref, loiHref, ndaHref }: { contractHref: str
   ].filter((doc): doc is { href: string; label: string } => doc.href !== null);
   if (docs.length === 0) return null;
   return (
-    <section aria-labelledby="signed-docs" className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card aria-labelledby="signed-docs">
       <h2 id="signed-docs" className="text-lg font-semibold text-[#1c2740]">Documentos firmados</h2>
       <ul className="mt-3 grid gap-3 sm:grid-cols-3">
         {docs.map((doc) => (
@@ -99,7 +100,7 @@ function SignedDocuments({ contractHref, loiHref, ndaHref }: { contractHref: str
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
 

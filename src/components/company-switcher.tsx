@@ -12,6 +12,7 @@ import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyA
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
 import { sellerCopy } from "@/lib/seller-copy";
+import { Button, Input } from "@/components/ui/form";
 
 const dialogClass =
   "fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#e7eaee] bg-white p-6 text-[#2b3b4a] shadow-[0_24px_80px_-32px_rgba(28,39,64,0.55)] open:block backdrop:bg-[#1c2740]/40";
@@ -66,12 +67,11 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
         </div>
         <label className="mt-4 block text-sm font-medium text-[#1c2740]" htmlFor="nueva-empresa-cif">
           {sellerCopy.addCompanyCif}
-          <input
+          <Input
             id="nueva-empresa-cif"
             name="cif"
             required
             autoComplete="off"
-            className="mt-1 h-11 w-full rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm"
           />
         </label>
         {state ? (
@@ -89,13 +89,13 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
           >
             {sellerCopy.closeDocument}
           </button>
-          <button
+          <Button
             type="submit"
             disabled={pending}
-            className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-          >
+            className="rounded-full text-sm"
+>
             {pending ? sellerCopy.addCompanyPending : sellerCopy.addCompanySubmit}
-          </button>
+          </Button>
         </div>
       </form>
     </dialog>

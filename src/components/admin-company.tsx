@@ -11,6 +11,7 @@ import { watchingCue } from "@/lib/deal-pipeline";
 import { meetingIsPast, readMeeting } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AdminCompanyMessage, AdminCompanyView, AdminSideAdvisor } from "@/server/getAdminCompany";
+import { Card } from "@/components/ui/form";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -179,7 +180,7 @@ function ChatPanel({ messages }: { messages: AdminCompanyMessage[] }) {
   }
 
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card>
       <ol className="flex flex-col gap-3">
         {messages.map((message) => (
           <li key={message.id} className="max-w-3xl rounded-2xl border border-[#e6e9f0] bg-[#f4f7ff] px-4 py-3">
@@ -193,7 +194,7 @@ function ChatPanel({ messages }: { messages: AdminCompanyMessage[] }) {
           </li>
         ))}
       </ol>
-    </section>
+    </Card>
   );
 }
 
@@ -203,7 +204,7 @@ function MeetingPanel({ messages, today }: { messages: AdminCompanyMessage[]; to
   }
 
   return (
-    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card>
       <ul className="flex flex-col gap-2">
         {messages.map((message) => {
           const slot = readMeeting(message.body);
@@ -234,6 +235,6 @@ function MeetingPanel({ messages, today }: { messages: AdminCompanyMessage[]; to
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }

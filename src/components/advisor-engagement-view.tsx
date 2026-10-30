@@ -9,6 +9,7 @@ import { FloatingInvestorCard } from "@/components/floating-investor-card";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorEngagementPage } from "@/server/advisoryEngagement";
+import { Card } from "@/components/ui/form";
 
 function lockNote(engagement: AdvisorEngagementPage): string {
   if (!engagement.deposit.paid) {
@@ -60,7 +61,7 @@ export function AdvisorEngagementView({
             <CompanyProfile project={engagement.profile} figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
           ) : null}
           {engagement.view === "investor" ? (
-            <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+            <Card>
               <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.documentsTitle}</h2>
               {engagement.documents.length === 0 ? (
                 <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.documentsEmpty}</p>
@@ -75,10 +76,10 @@ export function AdvisorEngagementView({
                   ))}
                 </ul>
               )}
-            </section>
+            </Card>
           ) : null}
           {engagement.view === "seller" ? (
-            <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+            <Card>
               <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
               <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.processNote}</p>
               {engagement.folders.length === 0 && !engagement.processOpened ? (
@@ -113,7 +114,7 @@ export function AdvisorEngagementView({
               ) : (
                 <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.processClosed}</p>
               )}
-            </section>
+            </Card>
           ) : null}
           {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned /> : null}
           {engagement.deposit.paid ? (

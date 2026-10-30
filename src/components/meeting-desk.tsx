@@ -7,6 +7,7 @@ import { meetingBody, meetingIsPast, readMeeting } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { MessageActionState } from "@/components/project-thread";
+import { Textarea } from "@/components/ui/form";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const weekdays = ["L", "M", "X", "J", "V", "S", "D"];
@@ -377,13 +378,13 @@ function SlotForm({
       </div>
       <label className="text-sm font-medium text-[#1c2740]">
         {sellerCopy.meetingsDescription}
-        <textarea
+        <Textarea
           value={text}
           maxLength={2000}
           onChange={(event) => {
             setText(event.target.value);
           }}
-          className="mt-1 min-h-20 w-full rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-3 py-2 text-sm"
+          className="mt-1 min-h-20 text-sm"
         />
       </label>
       <div className="rounded-2xl bg-[#f7f8fb] px-4 py-3">

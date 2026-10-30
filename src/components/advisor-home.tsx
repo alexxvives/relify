@@ -9,6 +9,7 @@ import type { AdvisorHomeDesk, AdvisorStep } from "@/lib/engagement";
 import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
 import type { IndustrySector } from "@/lib/cnae-section";
+import { Card } from "@/components/ui/form";
 
 const stepLabel: Record<AdvisorStep, string> = {
   request: advisorCopy.stepRequest,
@@ -56,7 +57,7 @@ export function AdvisorHome({
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <Card>
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
           <ActivityTiles
             tiles={desk.steps.map((step) => ({
@@ -69,15 +70,15 @@ export function AdvisorHome({
               href: step.href,
             }))}
           />
-        </section>
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        </Card>
+        <Card>
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.sectorsTitle}</h2>
           <SectorTreemap sectors={sectors} empty={advisorCopy.sectorsEmpty} />
-        </section>
+        </Card>
       </div>
       <div className="relative w-full xl:min-h-full">
         <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <Card>
           <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
             {advisorCopy.profileTitle}
           </h2>
@@ -107,7 +108,7 @@ export function AdvisorHome({
               );
             })}
           </ul>
-        </section>
+        </Card>
         <PendingActions side items={pending} empty={advisorCopy.pendingEmpty} />
         </div>
       </div>

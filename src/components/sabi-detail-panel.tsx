@@ -3,7 +3,6 @@
 import { useActionState, useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, FileSpreadsheet } from "lucide-react";
 import { saveSabiDetailAction, type SabiDetailState } from "@/app/(app)/mi-empresa/sabi-detail-actions";
-import { compactButtonClass } from "@/components/ui/compact-button";
 import { Button } from "@/components/ui/button";
 import {
   sabiCompanyDetailFields,
@@ -15,6 +14,7 @@ import {
 } from "@/lib/sabi/detail-fields";
 import { keepSignedEuro } from "@/lib/numeric-input";
 import type { SabiDetailForm } from "@/server/sabiDetail";
+import { Button as KitButton, Card } from "@/components/ui/form";
 
 const inputClass =
   "h-10 w-full rounded-lg border border-[#d9dee5] bg-white px-3 text-sm text-[#2b3b4a] outline-none transition-colors focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20 disabled:bg-[#f6f7f9]";
@@ -52,7 +52,7 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
   const filled = Object.values(values).filter((value) => value.trim() !== "").length;
 
   return (
-    <section id="panel-sabi-detail" className="scroll-mt-6 rounded-2xl border border-[#e7eaee] bg-white p-5">
+    <Card id="panel-sabi-detail" className="scroll-mt-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sabiDetailCopy.title}</h2>
@@ -65,10 +65,10 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
               {sabiDetailCopy.fromSabi} · {filled}
             </span>
           ) : null}
-          <button type="button" aria-expanded={open} onClick={() => setOpen((current) => !current)} className={compactButtonClass}>
+          <KitButton type="button" aria-expanded={open} onClick={() => setOpen((current) => !current)} tone="outline" size="sm">
             {open ? <ChevronUp className="size-4" aria-hidden /> : <ChevronDown className="size-4" aria-hidden />}
             {open ? "Plegar" : "Ver y editar"}
-          </button>
+          </KitButton>
         </div>
       </div>
 
@@ -167,6 +167,6 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
           </div>
         )}
       </div>
-    </section>
+    </Card>
   );
 }

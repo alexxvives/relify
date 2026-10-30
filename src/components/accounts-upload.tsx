@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { compactButtonClass } from "@/components/ui/compact-button";
 import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
 import { companyCopy } from "@/lib/company-copy";
+import { Button } from "@/components/ui/form";
 
 export function AccountsUpload({
   onApply,
@@ -95,13 +95,13 @@ export function AccountsUpload({
           </p>
         ) : null}
         <div className="mt-4 flex justify-end">
-          <button
+          <Button
             type="button"
             onClick={closeDialog}
-            className={compactButtonClass}
-          >
+            tone="outline" size="sm"
+>
             {companyCopy.accountsClose}
-          </button>
+          </Button>
         </div>
       </dialog>
     </div>

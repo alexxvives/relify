@@ -25,6 +25,7 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy, upcomingMeetingsTitle } from "@/lib/seller-copy";
+import { Card } from "@/components/ui/form";
 
 function SellerPending({
   item,
@@ -236,7 +237,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
+    <Card className="flex flex-col gap-4">
       <div>
         <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
@@ -360,7 +361,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           </div>
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }
 
@@ -388,7 +389,7 @@ export function SellerProcesses({
       <div className="flex flex-col gap-4">
           <SellerActivitySummary funnel={funnel} />
           <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-2">
-            <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
+            <Card>
               <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length)}</h2>
               {pendingMatches.length > 0 ? (
                 <ul className="mt-4 flex flex-col gap-2">
@@ -404,14 +405,14 @@ export function SellerProcesses({
                   <p className="mt-2 text-sm leading-6 text-[#667085]">{sellerCopy.pendingBody}</p>
                 </div>
               )}
-            </section>
-            <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
+            </Card>
+            <Card>
               <h2 className="text-lg font-semibold">{upcomingMeetingsTitle(0)}</h2>
               <div className="mt-4">
                 <p className="text-sm font-semibold">{sellerCopy.meetingsEmpty}</p>
                 <p className="mt-2 text-sm leading-6 text-[#667085]">{sellerCopy.meetingsEmptyBody}</p>
               </div>
-            </section>
+            </Card>
           </div>
       </div>
       <h2 className="mt-6 mb-3 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2>

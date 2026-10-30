@@ -26,6 +26,7 @@ import { Briefcase, ChevronDown, FileSignature, Send, ShieldCheck } from "lucide
 import type { InvestorFunnel } from "@/server/activityFunnel";
 import { reachedQa } from "@/lib/advisor-hint";
 import { ActivityTiles, share } from "@/components/activity-tiles";
+import { Card } from "@/components/ui/form";
 
 const processTabs = [
   { id: "chat", label: sellerCopy.questionsPanel },
@@ -179,7 +180,7 @@ export function InvestorProcesses({
   return (
     <div>
       <LiveRefresh />
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5" aria-labelledby="processes-summary">
+      <Card  aria-labelledby="processes-summary">
           <h2 id="processes-summary" className="text-lg font-semibold">{sellerCopy.activitySummary}</h2>
           <ActivityTiles
             tiles={[
@@ -194,12 +195,12 @@ export function InvestorProcesses({
               <CancelledList items={cancelled} />
             </div>
           ) : null}
-        </section>
+        </Card>
       {items.length > 0 ? <h2 className="mt-6 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
       <ul className="mt-3 flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
-          <section className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white px-5 py-5">
+          <Card className="flex flex-col gap-4">
             <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:gap-4">
               <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                 <h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>
@@ -255,7 +256,7 @@ export function InvestorProcesses({
               diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
             <ProcessConversation item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
-          </section>
+          </Card>
         </li>
       ))}
       {closed.map((item) =>

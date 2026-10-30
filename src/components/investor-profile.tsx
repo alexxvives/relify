@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { compactButtonClass } from "@/components/ui/compact-button";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User, X } from "lucide-react";
 import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/(app)/inversor/perfil/actions";
 import { AppToast } from "@/components/app-toast";
@@ -20,6 +19,7 @@ import {
   investorTicketBands,
 } from "@/lib/investor-profile";
 import { keepDigits } from "@/lib/numeric-input";
+import { Button, Card, Input, Textarea } from "@/components/ui/form";
 
 function Chip({ done }: { done: boolean }) {
   return (
@@ -58,7 +58,6 @@ function Fact({
   );
 }
 
-const fieldClass = "h-11 w-full rounded-xl border border-[#e7eaee] px-3";
 
 export function InvestorProfile({
   displayName,
@@ -172,7 +171,7 @@ export function InvestorProfile({
   }, [city, contribution, draftKey, investorType, province, savedPhoto, sectors, stake, thesis, ticket]);
 
   const professional = publicOnly ? null : (
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             {investorCopy.professionalTitle}
@@ -180,36 +179,35 @@ export function InvestorProfile({
           </h2>
           <div className="flex items-center gap-2">
             <Chip done={professionalDone} />
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setEditingProfessional((current) => !current);
               }}
-              className={compactButtonClass}
-            >
+              tone="outline" size="sm"
+>
               <Pencil className="size-3.5" aria-hidden />
               {editingProfessional ? investorCopy.save : investorCopy.edit}
-            </button>
+            </Button>
           </div>
         </div>
         {editingProfessional ? (
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalName}
-              <input value={tradeName} onChange={(event) => setTradeName(event.target.value)} className={fieldClass} />
+              <Input value={tradeName} onChange={(event) => setTradeName(event.target.value)} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalNif}
-              <input value={nif} onChange={(event) => setNif(event.target.value)} className={fieldClass} />
+              <Input value={nif} onChange={(event) => setNif(event.target.value)} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalPostal}
-              <input
+              <Input
                 inputMode="numeric"
                 maxLength={5}
                 value={postal}
                 onChange={(event) => setPostal(keepDigits(event.target.value, 5))}
-                className={fieldClass}
               />
             </label>
           </div>
@@ -220,7 +218,7 @@ export function InvestorProfile({
             <Fact icon={MapPin} label={investorCopy.professionalPostal} value={postal.trim().length > 0 ? postal : investorCopy.investorTypeEmpty} />
           </div>
         )}
-      </section>
+      </Card>
   );
 
   return (
@@ -248,11 +246,11 @@ export function InvestorProfile({
           <div className="mt-2 grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.cityLabel}
-              <input value={city} onChange={(event) => setCity(event.target.value)} className={fieldClass} />
+              <Input value={city} onChange={(event) => setCity(event.target.value)} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.provinceLabel}
-              <input value={province} onChange={(event) => setProvince(event.target.value)} className={fieldClass} />
+              <Input value={province} onChange={(event) => setProvince(event.target.value)} />
             </label>
           </div>
         </fieldset>
@@ -298,17 +296,16 @@ export function InvestorProfile({
             <label htmlFor="investor-contribution">{investorCopy.contributionTitle}</label>
             <FieldHint text={investorCopy.contributionHint} />
           </span>
-          <textarea
+          <Textarea
             id="investor-contribution"
             value={contribution}
             onChange={(event) => setContribution(event.target.value)}
             rows={4}
-            className="rounded-xl border border-[#e7eaee] px-3 py-2"
           />
         </div>
         <label className="flex flex-col gap-2 text-sm">
           {investorCopy.searchLabel}
-          <textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} className="rounded-xl border border-[#e7eaee] px-3 py-2" />
+          <Textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} />
         </label>
         </div>
         </div>
@@ -530,7 +527,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
   return (
     <div ref={rootRef} className="flex flex-col gap-2">
       <div className="relative">
-      <input
+      <Input
         value={query}
         placeholder={investorCopy.sectorsSearch}
         onMouseDown={() => {
@@ -543,12 +540,11 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
           setQuery(event.target.value);
           setOpen(true);
         }}
-        className={fieldClass}
       />
       {open ? (
         <ul className="absolute top-full z-30 mt-1 max-h-96 w-full overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
           <li className="border-b border-[#e7eaee] px-2 py-2">
-            <input
+            <Input
               value={custom}
               placeholder={investorCopy.sectorsCustom}
               aria-label={investorCopy.sectorsCustom}
@@ -561,7 +557,7 @@ function SectorField({ value, onChange }: { value: string; onChange: (value: str
                   addCustom();
                 }
               }}
-              className="h-9 w-full rounded-lg border border-[#e7eaee] px-3 text-sm"
+              size="sm"
             />
           </li>
           {choices.map((label) => (

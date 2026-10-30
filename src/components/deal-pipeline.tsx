@@ -20,6 +20,7 @@ import { attachmentNames } from "@/lib/meeting";
 import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import { stepCue, type DealStep, type DealViewer, type ProcessFile } from "@/lib/deal-pipeline";
+import { Button } from "@/components/ui/form";
 
 const loiReadyEvent = "Relify-loi-ready";
 
@@ -602,13 +603,13 @@ function ProcessSignDialog({
               <input type="hidden" name="body" value={agreement} />
             </>
           ) : null}
-          <button
+          <Button
             type="submit"
             disabled={pending}
-            className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
-          >
+            className="h-10 rounded-full text-sm font-semibold"
+>
             {pending ? "Firmando…" : submitLabel}
-          </button>
+          </Button>
         </div>
         <SignError state={state} />
       </form>
@@ -652,13 +653,13 @@ function AcceptLoiDialog({ accessId, onClose }: { accessId: string; body: string
       </div>
       <form action={formAction} className="flex shrink-0 items-center justify-end border-t border-[#e6e9f0] bg-white px-4 py-3">
         <input type="hidden" name="accessId" value={accessId} />
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
-        >
+          className="h-10 rounded-full text-sm font-semibold"
+>
           {pending ? "Aceptando…" : "Aceptar carta"}
-        </button>
+        </Button>
       </form>
       {state && !state.ok ? (
         <p className="mt-2 px-1 text-sm text-red-700" role="alert">

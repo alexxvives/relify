@@ -11,6 +11,7 @@ import {
 import { AppToast } from "@/components/app-toast";
 import { billingCopy } from "@/lib/billing-copy";
 import type { SubscriptionDesk } from "@/server/subscriptionDesk";
+import { Button, Card, Input } from "@/components/ui/form";
 
 function Note({ state }: { state: SubscriptionActionState }) {
   if (!state) {
@@ -49,10 +50,10 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
         </section>
       ) : null}
       {desk.kind === "granted" ? (
-        <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
+        <Card className="p-6">
           <p className="text-lg font-semibold text-[#1c2740]">{desk.planLabel}</p>
           <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{billingCopy.grantedPlan}</p>
-        </section>
+        </Card>
       ) : null}
       {desk.kind === "stripe" ? (
         <>
@@ -91,34 +92,33 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
             </div>
           </section>
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
+            <Card className="p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.cardLabel}</h3>
               <div className="mt-5 flex flex-col items-center">
                 <PaymentCard brand={desk.cardBrand} last4={desk.cardLast4} expires={desk.cardExpires} />
                 <form action={cardAction} className="mt-5 flex flex-col items-center gap-2">
-                  <button
+                  <Button
                     type="submit"
                     disabled={cardPending}
-                    className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:opacity-60"
-                  >
+                    className="rounded-full text-sm"
+>
                     {cardPending ? billingCopy.changingCard : billingCopy.changeCard}
-                  </button>
+                  </Button>
                   <Note state={cardState} />
                 </form>
               </div>
-            </section>
-            <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
+            </Card>
+            <Card className="p-6">
               <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.billingEmail}</h3>
               <p className="mt-2 text-sm leading-6 text-[#5c6b78]">Las facturas se envían a este correo.</p>
               <form action={emailAction} className="mt-4 flex flex-col gap-3">
-                <input
+                <Input
                   name="email"
                   type="email"
                   required
                   maxLength={160}
                   defaultValue={desk.email}
                   aria-label={billingCopy.billingEmail}
-                  className="h-11 rounded-xl border border-[#e7eaee] px-3"
                 />
                 <button
                   type="submit"
@@ -129,9 +129,9 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </button>
                 <Note state={emailState} />
               </form>
-            </section>
+            </Card>
           </div>
-          <section className="rounded-2xl border border-[#e7eaee] bg-white p-6">
+          <Card className="p-6">
             <h3 className="text-base font-semibold text-[#1c2740]">{billingCopy.invoicesTitle}</h3>
             {desk.invoices.length === 0 ? <p className="mt-3 text-sm text-[#5c6b78]">{billingCopy.invoicesEmpty}</p> : null}
             {desk.invoices.length > 0 ? (
@@ -175,7 +175,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                 </table>
               </div>
             ) : null}
-          </section>
+          </Card>
           <div className="flex flex-wrap items-start justify-center gap-3">
             <Link href="/premium" className="inline-flex h-11 items-center rounded-full bg-[#465ab4] px-5 text-sm font-medium text-white">
               {billingCopy.changePlan}

@@ -10,6 +10,7 @@ import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
 import { listSellerAdvisoryCompanies } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
+import { Card } from "@/components/ui/form";
 
 export const metadata: Metadata = {
   title: sellerCopy.servicesTitle,
@@ -36,7 +37,7 @@ async function SellerServicesPageContent({
 
   return (
     <>
-      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6">
+      <Card className="p-6">
         <AdvisoryPicker
           key={selectedEngagementCompany(companies, query.empresa) || "empresa"}
           layout="cards"
@@ -44,7 +45,7 @@ async function SellerServicesPageContent({
           companies={companies}
           initialCompany={selectedEngagementCompany(companies, query.empresa)}
         />
-      </section>
+      </Card>
     </>
   );
 }

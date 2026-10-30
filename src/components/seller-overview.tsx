@@ -15,6 +15,7 @@ import { filledSellerPanels, type SellerFocusPanel, type SellerPanelFlags } from
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { SellerCostYear, SellerMix, SellerYearPoint } from "@/server/getSellerOverview";
+import { Card } from "@/components/ui/form";
 
 const panelSteps = [
   { key: "identity", label: sellerCopy.panelIdentity },
@@ -99,7 +100,7 @@ export function SellerOverview({
         </div>
         <div className="relative w-full xl:min-h-full">
           <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
-          <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <Card>
             <h2
               className={
                 sold
@@ -164,7 +165,7 @@ export function SellerOverview({
                 )}
               </li>
             </ul>
-          </section>
+          </Card>
           <PendingActions side items={pending} empty={sellerCopy.pendingEmpty} />
           </div>
         </div>

@@ -7,6 +7,7 @@ import type { DataRoomFileView } from "@/lib/data-room";
 import { investorCopy } from "@/lib/investor-copy";
 import { listDataRoom } from "@/server/listDataRoom";
 import { requireRole } from "@/server/requireRole";
+import { Card } from "@/components/ui/form";
 
 export const metadata: Metadata = {
   title: investorCopy.dataroomTitle,
@@ -29,7 +30,7 @@ export default async function DataroomPage() {
     <SignedInPage title={investorCopy.dataroomTitle}>
       <div className="flex flex-col gap-4">
         {room.rooms.map((item) => (
-          <section key={item.slug} className="rounded-2xl border border-[#e6e9f0] bg-white p-6">
+          <Card key={item.slug} className="p-6">
             <h2 className="text-lg font-semibold">
               <Link href={`/proyectos/${item.slug}`} className="hover:underline">
                 {item.codename}
@@ -43,7 +44,7 @@ export default async function DataroomPage() {
                 <FolderFileTree label={item.codename} nodes={roomNodes(item.files)} />
               </div>
             )}
-          </section>
+          </Card>
         ))}
       </div>
     </SignedInPage>

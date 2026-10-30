@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { readAnnualAccountsAction, type AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
 import { verifyCompanyNifAction, type VerifyNifState } from "@/app/(app)/mi-empresa/nif-actions";
 import { companyCopy } from "@/lib/company-copy";
+import { Input } from "@/components/ui/form";
 
 export function CompanySetup({
   cif,
@@ -76,7 +77,7 @@ export function CompanySetup({
           <label className="mt-4 block text-sm font-medium" htmlFor="setup-nif">
             {companyCopy.nifLabel}
           </label>
-          <input
+          <Input
             id="setup-nif"
             name="nif"
             value={nif}
@@ -85,7 +86,7 @@ export function CompanySetup({
             onChange={(event) => {
               setNif(event.target.value);
             }}
-            className="mt-2 h-12 w-full rounded-xl border border-[#e1e6ee] bg-[#f4f7ff] px-3 text-sm outline-none focus-visible:border-[#5c4de0]"
+            className="mt-2"
           />
           {nifState && !nifState.ok ? <p className="mt-2 text-sm text-red-700">{nifState.message}</p> : null}
           <div className="mt-4 flex justify-end gap-2">

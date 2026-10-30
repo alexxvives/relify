@@ -3,7 +3,6 @@
 import { NewPasswordField } from "@/components/new-password-field";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
 import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/(app)/cuenta/actions";
 import { AppToast } from "@/components/app-toast";
 import { PhoneField } from "@/components/phone-field";
@@ -11,9 +10,7 @@ import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
 import { accountDisplayName } from "@/lib/auth-input";
 import { readStoredPhone } from "@/lib/phone-countries";
-
-const fieldClassName =
-  "h-11 w-full rounded-xl border border-[#e7eaee] bg-white px-3 text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20";
+import { Button, Card, Field, Input, PasswordInput } from "@/components/ui/form";
 
 export function AccountSettings({
   name: initialName,
@@ -109,38 +106,36 @@ export function AccountSettings({
     <div className="flex flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
       <div className={agreement ? "grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] items-stretch" : ""}>
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
           <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
           {photo}
           <div className="grid gap-4 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.fullNameLabel}
-              <input
+              <Input
                 name="fullName"
                 autoComplete="name"
                 required
                 maxLength={161}
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                className={fieldClassName}
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.nationalIdLabel}
-              <input
+              <Input
                 name="nationalId"
                 autoComplete="off"
                 required
                 maxLength={12}
                 value={nationalId}
                 onChange={(event) => setNationalId(event.target.value.toUpperCase())}
-                className={fieldClassName}
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.emailFieldLabel}
-              <input
+              <Input
                 name="email"
                 type="email"
                 autoComplete="email"
@@ -148,7 +143,6 @@ export function AccountSettings({
                 maxLength={160}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className={fieldClassName}
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
@@ -170,17 +164,16 @@ export function AccountSettings({
           ) : null}
           {dirty ? (
             <div className="flex justify-end">
-              <button
+              <Button
                 type="submit"
                 disabled={profilePending}
-                className="inline-flex h-11 items-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60"
-              >
+>
                 {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
-              </button>
+              </Button>
             </div>
           ) : null}
         </form>
-      </section>
+      </Card>
       {agreement ? (
         <div className="mx-auto flex w-full max-w-60 md:mx-0 md:max-w-none">{agreement}</div>
       ) : null}
@@ -188,20 +181,20 @@ export function AccountSettings({
 
       {middle}
 
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <Card>
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
         <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
           <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
           <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
-          <button
+          <Button
             type="submit"
             disabled={passwordPending}
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#465ab4] px-4 text-base font-medium text-white disabled:opacity-60 lg:mt-7"
-          >
+            className="lg:mt-7"
+>
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
-          </button>
+          </Button>
           <AppToast message={passwordState?.saved ? passwordState.message : null} />
           {passwordState && !passwordState.saved ? (
             <p role="alert" className="text-sm text-[#c0362c] lg:col-span-4">
@@ -209,31 +202,31 @@ export function AccountSettings({
             </p>
           ) : null}
         </form>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-[#f0c2c2] bg-white p-5">
+      <Card tone="danger">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
         <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
           <label className="flex flex-col gap-2 text-sm font-medium">
             {authCopy.deleteConfirmLabel}
-            <input name="confirm" autoComplete="off" required className={fieldClassName} />
+            <Input name="confirm" autoComplete="off" required />
           </label>
-          <button
+          <Button
             type="submit"
             disabled={deletePending}
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-[#c0362c] px-4 text-base font-medium text-white disabled:opacity-60"
-          >
+            tone="danger"
+>
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
-          </button>
+          </Button>
           {deleteState ? (
             <p role="alert" className="text-sm text-[#c0362c] lg:col-span-3">
               {deleteState.message}
             </p>
           ) : null}
         </form>
-      </section>
+      </Card>
     </div>
   );
 }
@@ -251,32 +244,17 @@ function SecretField({
   minLength?: number;
   maxLength?: number;
 }) {
-  const [visible, setVisible] = useState(false);
-
   return (
-    <label className="flex flex-col gap-2 text-sm font-medium">
-      {label}
-      <span className="relative">
-        <input
-          name={name}
-          type={visible ? "text" : "password"}
-          autoComplete={autoComplete}
-          required
-          minLength={minLength}
-          maxLength={maxLength}
-          className={`${fieldClassName} pr-11`}
-        />
-        <button
-          type="button"
-          aria-label={visible ? authCopy.hidePassword : authCopy.showPassword}
-          onClick={() => {
-            setVisible((current) => !current);
-          }}
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-[#667085] hover:text-[#2b3b4a]"
-        >
-          {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
-        </button>
-      </span>
-    </label>
+    <Field label={label}>
+      <PasswordInput
+        name={name}
+        autoComplete={autoComplete}
+        required
+        minLength={minLength}
+        maxLength={maxLength}
+        showLabel={authCopy.showPassword}
+        hideLabel={authCopy.hidePassword}
+      />
+    </Field>
   );
 }

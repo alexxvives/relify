@@ -6,6 +6,7 @@ import { AgreementSheet } from "@/components/agreement-sheet";
 import { FilePreviewDialog } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { accessCopy } from "@/lib/access-copy";
+import { Card } from "@/components/ui/form";
 
 const buttonClassName =
   "inline-flex h-11 items-center justify-center rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60";
@@ -44,7 +45,7 @@ function SignedLoi({ accessId }: { accessId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white p-6" aria-labelledby="carta-intenciones">
+    <Card className="p-6" aria-labelledby="carta-intenciones">
       <h2 id="carta-intenciones" className="text-xl font-semibold">
         {accessCopy.loiHeading}
       </h2>
@@ -70,7 +71,7 @@ function SignedLoi({ accessId }: { accessId: string }) {
           setOpen(false);
         }}
       />
-    </section>
+    </Card>
   );
 }
 

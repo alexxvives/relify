@@ -16,9 +16,8 @@ import {
   type RevenueBandId,
 } from "@/lib/market-filters";
 import type { PublicProjectCard } from "@/lib/public-project";
+import { Input } from "@/components/ui/form";
 
-const fieldClassName =
-  "h-11 w-full rounded-xl border border-[#e1e6ee] bg-white px-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25";
 
 function isMarketSort(value: string): value is MarketSort {
   return marketSorts.some((sort) => sort === value);
@@ -103,14 +102,13 @@ export function MarketBrowser({
         <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
           <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
             {marketCopy.searchLabel}
-            <input
+            <Input
               type="search"
               value={query}
               placeholder={marketCopy.searchPlaceholder}
               onChange={(event) => {
                 setQuery(event.target.value);
               }}
-              className={fieldClassName}
             />
           </label>
           <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-1">
