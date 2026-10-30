@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { StatusPillToggle } from "@/components/admin-controls";
-import { VerifiedBadge } from "@/components/project-photo";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
 import { MarketCard } from "@/components/market-card";
 import type { AdminCompanyRow } from "@/server/listAdminCompanies";
-import { NewPill, adminNewRing } from "@/components/admin-new";
+import { adminNewRing } from "@/components/admin-new";
 
 type CompanyStatusFilter = "all" | "published" | "pending" | "draft";
 
@@ -167,7 +166,7 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
     <div
       data-sabi-pending={project.sabiPending ? "true" : undefined}
       title={project.sabiPending ? `${adminCopy.sabiPendingBadge}${since ? ` · ${adminCopy.sabiPendingSince} ${since}` : ""}` : undefined}
-      className={`flex h-full flex-col gap-2 rounded-2xl border p-2 ${ring}`}
+      className={`h-full rounded-2xl border p-2 ${ring}`}
     >
       <div className="relative">
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
@@ -175,13 +174,7 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
           <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
         </div>
       </div>
-      {project.isNew || project.verified || project.sabiPending ? (
-        <div className="flex flex-wrap items-center gap-2 px-1 pb-1">
-          {project.isNew ? <NewPill /> : null}
-          {project.verified ? <VerifiedBadge /> : null}
-          {project.sabiPending ? <span className="sr-only">{adminCopy.sabiPendingBadge}</span> : null}
-        </div>
-      ) : null}
+      {project.sabiPending ? <span className="sr-only">{adminCopy.sabiPendingBadge}</span> : null}
     </div>
   );
 }
