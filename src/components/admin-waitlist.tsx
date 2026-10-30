@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Download } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, ListChecks } from "lucide-react";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
+import { EmptySkeleton } from "@/components/ui/empty-skeleton";
 import { waitlistCsv } from "@/lib/waitlist-csv";
 import type { AdminWaitlistRow } from "@/server/listWaitlist";
 
@@ -74,7 +75,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
         </button>
       </AdminPageHeader>
       {entries.length === 0 ? (
-        <p className="text-sm text-[#667085]">Todavía no se ha apuntado nadie a la lista de espera.</p>
+        <EmptySkeleton icon={ListChecks} variant="rows" rows={4} title="Nadie en la lista de espera" text="Cada persona que se apunte aparecerá aquí con su correo, perfil y fecha, lista para exportar en CSV." />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white">
           <table className="w-full min-w-[44rem] text-left text-sm">

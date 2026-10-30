@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { Mail, MessageSquare } from "lucide-react";
 import { AdminListSkeleton } from "@/components/page-skeletons";
+import { EmptySkeleton } from "@/components/ui/empty-skeleton";
 import { SignedInPage } from "@/components/signed-in-page";
 import { listPublicInbox } from "@/server/publicInbox";
 import { requireRole } from "@/server/requireRole";
@@ -20,7 +22,7 @@ async function Inbox() {
           Contacto <span className="ml-1 text-sm font-normal text-muted-foreground">{messages.length}</span>
         </h2>
         {messages.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Todavía no ha llegado ningún mensaje desde /contacto.</p>
+          <EmptySkeleton icon={MessageSquare} title="Sin mensajes de contacto" text="Aquí aparecerá cada mensaje que llegue desde el formulario de /contacto, con su remitente, tema y fecha." />
         ) : (
           <ul className="mt-4 flex flex-col gap-3">
             {messages.map((item) => (
@@ -43,7 +45,7 @@ async function Inbox() {
           Suscriptores del diario <span className="ml-1 text-sm font-normal text-muted-foreground">{subscribers.length}</span>
         </h2>
         {subscribers.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Nadie se ha suscrito todavía.</p>
+          <EmptySkeleton icon={Mail} variant="rows" title="Sin suscriptores todavía" text="Cuando alguien se apunte al diario, verás aquí su correo y la fecha de alta." />
         ) : (
           <ul className="mt-4 divide-y divide-border rounded-2xl border border-border bg-card">
             {subscribers.map((item) => (
