@@ -136,7 +136,13 @@ const recoveryClass = {
  * `fit` lets the chip shorten to "ROI 3,2 a" (and "3,2 a" in very narrow cells) via the nearest
  * `@container`, so it never wraps under the price.
  */
-export function RoiChip({ years, fit = false }: { years: number; fit?: boolean }) {
+export function RoiChip({
+  years,
+  fit = false,
+}: {
+  years: number;
+  fit?: boolean;
+}) {
   const value = formatDecimal(years);
   const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`;
   const tone = recoveryClass[recoveryTone(years)];
@@ -186,12 +192,15 @@ export function MarketCard({
   actions,
   muted = false,
   href: hrefOverride,
+  hidePhotoTags = false,
 }: {
   project: PublicProjectCard;
   actions?: ReactNode;
   muted?: boolean;
   /** Admin reuses the card but links to its own company page. */
   href?: string;
+  /** Admin grid drops the location/size/age chips on the photo. */
+  hidePhotoTags?: boolean;
 }) {
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
@@ -257,39 +266,41 @@ export function MarketCard({
           </div>
           {/* Location, size and age ride on the photo, so the body only carries the deal. */}
           {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". */}
-          <ul className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
-            {photoTags.slice(0, 2).map((tag) => (
-              <li
-                key={tag.key}
-                className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
-                title={tag.text}
-              >
-                <tag.icon
-                  className="size-3 shrink-0 text-[#5c6b78]"
-                  aria-hidden
-                />
-                <span className="truncate">{tag.text}</span>
-              </li>
-            ))}
-            {photoTags.length > 2 ? (
-              <li
-                className="inline-flex shrink-0 items-center rounded-full bg-white/90 px-1.5 py-px text-[11px] font-semibold text-[#1c2740] shadow-sm backdrop-blur-sm"
-                title={photoTags
-                  .slice(2)
-                  .map((tag) => tag.text)
-                  .join(" · ")}
-              >
-                +{photoTags.length - 2}
-                <span className="sr-only">
-                  :{" "}
-                  {photoTags
+          {hidePhotoTags ? null : (
+            <ul className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
+              {photoTags.slice(0, 2).map((tag) => (
+                <li
+                  key={tag.key}
+                  className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+                  title={tag.text}
+                >
+                  <tag.icon
+                    className="size-3 shrink-0 text-[#5c6b78]"
+                    aria-hidden
+                  />
+                  <span className="truncate">{tag.text}</span>
+                </li>
+              ))}
+              {photoTags.length > 2 ? (
+                <li
+                  className="inline-flex shrink-0 items-center rounded-full bg-white/90 px-1.5 py-px text-[11px] font-semibold text-[#1c2740] shadow-sm backdrop-blur-sm"
+                  title={photoTags
                     .slice(2)
                     .map((tag) => tag.text)
-                    .join(", ")}
-                </span>
-              </li>
-            ) : null}
-          </ul>
+                    .join(" · ")}
+                >
+                  +{photoTags.length - 2}
+                  <span className="sr-only">
+                    :{" "}
+                    {photoTags
+                      .slice(2)
+                      .map((tag) => tag.text)
+                      .join(", ")}
+                  </span>
+                </li>
+              ) : null}
+            </ul>
+          )}
         </div>
         {/* Sector badge straddles the photo's bottom edge, bottom-left. */}
         <div

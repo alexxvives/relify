@@ -170,12 +170,12 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
       className={`h-full rounded-2xl border p-2 ${ring}`}
     >
       <div className="relative">
-        <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} />
+        <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} hidePhotoTags />
         <div className="absolute top-3 right-3 z-10">
           <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
         </div>
       </div>
-      <p className="mt-2 truncate px-1 text-xs text-[#5c6b78]" title={project.legalName || undefined}>
+      <p className="mt-2 truncate px-1 text-center text-xs text-[#5c6b78]" title={project.legalName || undefined}>
         <span className="font-semibold text-[#1c2740]">{project.legalName || "Razón social pendiente"}</span>
         {project.cif ? <span> · {project.cif}</span> : null}
       </p>
