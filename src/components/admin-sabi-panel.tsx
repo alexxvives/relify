@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ComponentProps } from "react";
+import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
@@ -44,6 +44,32 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [dragging, setDragging] = useState(false);
+
+  // t67: drag-and-drop on the button and on the drop zone; clicking still opens the file picker.
+  const dropProps = {
+    onDragEnter: (event: DragEvent) => {
+      event.preventDefault();
+      setDragging(true);
+    },
+    onDragOver: (event: DragEvent) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = pending ? "none" : "copy";
+    },
+    onDragLeave: (event: DragEvent) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+        setDragging(false);
+      }
+    },
+    onDrop: (event: DragEvent) => {
+      event.preventDefault();
+      setDragging(false);
+
+      if (!pending) {
+        choose(event.dataTransfer.files?.[0] ?? null);
+      }
+    },
+  };
 
   function form(chosen: File): FormData {
     const data = new FormData();
@@ -116,15 +142,15 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       ? `Pendiente SABI${sabi.requestedAt ? ` · CIF introducido el ${sabi.requestedAt}` : ""}`
       : "Sin CIF todavía";
   const label = pending ? "Leyendo…" : sabi.importedAt ? "Sustituir SABI" : "Subir SABI";
-  const showBelow = Boolean(error || done || preview || sabi.importedAt);
 
   return (
     <>
       <CompanyBanner {...banner}>
         <label
+          {...dropProps}
           title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""}`}
           className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
-            sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
+            dragging ? "border-[#7fd6cc] bg-[#0f766e]/60 ring-2 ring-[#7fd6cc]" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
           }`}
         >
           {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
@@ -140,32 +166,52 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
           />
         </label>
       </CompanyBanner>
-      {showBelow ? (
-        <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
-          {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
-          {error ? (
-            <p role="alert" className="text-sm font-medium text-[#b42318]">
-              {error}
-            </p>
-          ) : null}
-          {done ? (
-            <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
-              <CheckCircle2 className="size-4" aria-hidden /> {done}
-            </p>
-          ) : null}
-          {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={pending} /> : null}
-          {sabi.importedAt && !preview ? (
-            <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-medium text-[#465ab4] hover:underline">
-                <span className="group-open:hidden">Ver datos SABI importados</span>
-                <span className="hidden group-open:inline">Ocultar datos SABI</span>
-                <span className="ml-2 text-xs font-normal text-[#5c6b78]">{status}</span>
-              </summary>
-              <StoredBlock sabi={sabi} />
-            </details>
-          ) : null}
-        </section>
-      ) : null}
+      <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
+        {preview ? null : (
+          <div
+            {...dropProps}
+            role="button"
+            tabIndex={0}
+            aria-disabled={pending}
+            onClick={() => (pending ? undefined : input.current?.click())}
+            onKeyDown={(event) => {
+              if (!pending && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                input.current?.click();
+              }
+            }}
+            className={`mb-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-4 py-5 text-center text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2] ${
+              dragging ? "border-[#2fc4b2] bg-[#e6f6f3] text-[#0f766e]" : "border-[#d5dbe3] text-[#5c6b78] hover:border-[#7fd6cc] hover:bg-[#f4fbfa]"
+            }`}
+          >
+            <UploadCloud className="size-6 text-[#0f766e]" aria-hidden />
+            <span className="font-medium text-[#1c2740]">{dragging ? "Suelta el archivo para leerlo" : "Arrastra aquí el Excel de SABI (.xlsx)"}</span>
+            <span className="text-xs">o haz clic para elegirlo · máx. {Math.round(sabiMaxBytes / 1024 / 1024)} MB</span>
+          </div>
+        )}
+        {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm font-medium text-[#b42318]">
+            {error}
+          </p>
+        ) : null}
+        {done ? (
+          <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
+            <CheckCircle2 className="size-4" aria-hidden /> {done}
+          </p>
+        ) : null}
+        {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={pending} /> : null}
+        {sabi.importedAt && !preview ? (
+          <details className="group">
+            <summary className="cursor-pointer list-none text-sm font-medium text-[#465ab4] hover:underline">
+              <span className="group-open:hidden">Ver datos SABI importados</span>
+              <span className="hidden group-open:inline">Ocultar datos SABI</span>
+              <span className="ml-2 text-xs font-normal text-[#5c6b78]">{status}</span>
+            </summary>
+            <StoredBlock sabi={sabi} />
+          </details>
+        ) : null}
+      </section>
     </>
   );
 }
