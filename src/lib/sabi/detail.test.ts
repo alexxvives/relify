@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ProjectScalarFieldEnum, ProjectYearScalarFieldEnum } from "../../generated/prisma/internal/prismaNamespaceBrowser";
 import { syntheticRows, syntheticWorkbook } from "./__fixtures__/synthetic";
 import { sabiYearDetailFields } from "./detail-fields";
 import { sabiMoneyLabels, type SabiMoneyKey } from "./labels";
@@ -73,5 +74,15 @@ describe("t62: nothing from SABI is dropped", () => {
     const texts = extra.sheet.flatMap(([, cells]) => cells.map(([, text]) => text));
     expect(texts).toContain("No hay datos bursátiles para esta empresa.");
     expect(sabiExtraOf(parsed, mapSabiReport(parsed).years.map((year) => year.year)).olderYears).toHaveLength(0);
+  });
+});
+
+describe("SABI detail keys are real columns", () => {
+  it("every company and year detail key exists on the Prisma models", async () => {
+    const parsed = await report();
+    const projectCols = new Set<string>(Object.values(ProjectScalarFieldEnum));
+    const yearCols = new Set<string>(Object.values(ProjectYearScalarFieldEnum));
+    expect(Object.keys(sabiCompanyDetail(parsed)).filter((key) => !projectCols.has(key))).toEqual([]);
+    expect(Object.keys(sabiYearDetail(parsed.years[0]!)).filter((key) => !yearCols.has(key))).toEqual([]);
   });
 });

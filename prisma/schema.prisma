@@ -270,6 +270,7 @@ model Project {
   groupCompanyCount                  Int?      @map("group_company_count")
   shareholderCount                   Int?      @map("shareholder_count")
   subsidiaryCount                    Int?      @map("subsidiary_count")
+  activityDescription                String?   @map("activity_description")
   activityCodes                      Json?     @map("activity_codes")
   directors                          Json?     @map("directors")
   shareholdings                      Json?     @map("shareholdings")
