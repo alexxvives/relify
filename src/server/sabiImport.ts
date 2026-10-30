@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import * as z from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { isCnaeCode } from "@/lib/cnae-2009";
-import { mapSabiReport, type SabiMapping } from "@/lib/sabi/mapping";
+import { mapSabiReport, sabiCompanyDetail, sabiExtraOf, sabiYearDetail, type SabiMapping } from "@/lib/sabi/mapping";
 import { parseSabiWorkbook, type SabiReport } from "@/lib/sabi/parse";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -185,6 +185,9 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
   const { project, report, mapping } = loaded.value;
   const now = new Date();
   const stored: SabiStored = { version: 1, report, importedById: user.id };
+  const source = new Map(report.years.map((year) => [year.year, year]));
+  const company = sabiCompanyDetail(report);
+  const json = (value: unknown) => value as Prisma.InputJsonValue;
 
   await prisma.$transaction(async (tx) => {
     // Replacing an earlier import: drop its closed years first; forecasts stay.
@@ -196,6 +199,7 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
         ...year.data,
         employees: year.employees,
         ratios: year.ratios === null ? Prisma.DbNull : (year.ratios as Prisma.InputJsonValue),
+        ...(source.get(year.year) ? sabiYearDetail(source.get(year.year)!) : {}),
         dataSource: "sabi",
         confirmedAt: now,
       };
@@ -237,6 +241,15 @@ export async function confirmSabiImport(user: CurrentUser, projectId: string, by
         legalForm: figures.legalForm,
         accountsFormat: figures.accountsFormat,
         audited: figures.audited,
+        // t62: every SABI datum gets a column; the rest goes to sabi_extra.
+        ...company,
+        activityCodes: json(company.activityCodes),
+        directors: json(company.directors),
+        shareholdings: json(company.shareholdings),
+        subsidiaries: json(company.subsidiaries),
+        banks: json(company.banks),
+        audits: json(company.audits),
+        sabiExtra: json(sabiExtraOf(report, mapping.years.map((year) => year.year))),
       },
     });
 

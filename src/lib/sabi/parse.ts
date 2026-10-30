@@ -43,6 +43,10 @@ export type SabiIdentity = {
   subsidiaryCount: number | null;
   employees: number | null;
   activityDescription: string | null;
+  /** "Empresa privada" line under the name. */
+  companyType: string | null;
+  /** "Empresas en el grupo corporativo". */
+  groupCompanyCount: number | null;
 };
 
 export type SabiYear = {
@@ -58,7 +62,29 @@ export type SabiYear = {
   employees: number | null;
 };
 
-export type SabiPerson = { name: string; role: string; since: string | null; department: string | null; group: string | null };
+export type SabiPerson = {
+  name: string;
+  role: string;
+  since: string | null;
+  department: string | null;
+  group: string | null;
+  /** Every other column of the row (e.g. "Fuente"), keyed by its header as printed. */
+  extra?: Record<string, string>;
+};
+
+/** "Estado auditoría por año": one block per filed year. */
+export type SabiAudit = {
+  year: number;
+  closingOn: string | null;
+  opinion: string | null;
+  auditorName: string | null;
+  auditorCode: string | null;
+  /** Every label/value pair in the block, as printed. */
+  fields: Record<string, string>;
+};
+
+/** Raw non-empty cells of the sheet: [row, [[column, text], …]]. Lets the admin see anything the parser has no field for. */
+export type SabiSheetRow = [number, Array<[number, string]>];
 
 export type SabiHolding = {
   name: string;
@@ -68,6 +94,8 @@ export type SabiHolding = {
   direct: string | null;
   total: string | null;
   infoDate: string | null;
+  /** Remaining columns (Fuente, Variación, Ingreso operacional, Empleados, Nivel, Estatus…), keyed by header. */
+  extra?: Record<string, string>;
 };
 
 export type SabiReport = {
@@ -79,6 +107,9 @@ export type SabiReport = {
   subsidiaries: SabiHolding[];
   auditor: string | null;
   banks: string[];
+  audits?: SabiAudit[];
+  /** The whole sheet, so nothing in the file is lost. */
+  sheet?: SabiSheetRow[];
   /** Human-readable notes for the admin preview (Spanish). */
   warnings: string[];
   /** Labels inside financial tables that the parser does not map. */
@@ -178,6 +209,8 @@ function emptyIdentity(): SabiIdentity {
     subsidiaryCount: null,
     employees: null,
     activityDescription: null,
+    companyType: null,
+    groupCompanyCount: null,
   };
 }
 
@@ -247,6 +280,8 @@ function parseIdentity(grid: SheetGrid, firstTableRow: number): SabiIdentity {
   identity.shareholderCount = shareholders === null ? null : Math.round(shareholders);
   const subsidiaries = number("num. participadas");
   identity.subsidiaryCount = subsidiaries === null ? null : Math.round(subsidiaries);
+  const group = number("empresas en el grupo corporativo");
+  identity.groupCompanyCount = group === null ? null : Math.round(group);
   const employees = number("numero de empleados");
   identity.employees = employees === null ? null : Math.round(employees);
 
@@ -258,6 +293,10 @@ function parseIdentity(grid: SheetGrid, firstTableRow: number): SabiIdentity {
 
     if (first.startsWith("El Global Ultimate Owner de esta participada es ")) {
       identity.globalUltimateOwner = textOrNull(first.slice("El Global Ultimate Owner de esta participada es ".length));
+    }
+
+    if (identity.companyType === null && /^empresa (privada|publica)|^(private|public)(ly)? (company|listed)/.test(label)) {
+      identity.companyType = textOrNull(first);
     }
 
     if (label === "informacion de contacto") {
@@ -576,6 +615,7 @@ function parsePeople(grid: SheetGrid): SabiPerson[] {
   let group: string | null = null;
   let nameColumn: number | null = null;
   let departmentColumn: number | null = null;
+  let headers: Array<[number, string]> = [];
 
   for (const row of rows) {
     const cells = rowCells(grid, row);
@@ -601,6 +641,7 @@ function parsePeople(grid: SheetGrid): SabiPerson[] {
     if (header && cells.some(([, cell]) => normalizeLabel(cell.text).startsWith("titulo original"))) {
       nameColumn = header[0];
       departmentColumn = cells.find(([, cell]) => /^(departamento|comite)$/.test(normalizeLabel(cell.text)))?.[0] ?? null;
+      headers = cells.map(([column, cell]) => [column, cell.text.replace(/\s+/g, " ").trim()]);
       continue;
     }
 
@@ -617,7 +658,24 @@ function parsePeople(grid: SheetGrid): SabiPerson[] {
       continue;
     }
 
+    const extra: Record<string, string> = {};
+
+    for (const [column, title] of headers) {
+      const normalized = normalizeLabel(title);
+
+      if (column === nameColumn || column === departmentColumn || column === roleCell?.[0] || normalized.startsWith("titulo original")) {
+        continue;
+      }
+
+      const value = textOrNull(cellText(grid.get(row)?.get(column)));
+
+      if (value && title) {
+        extra[title] = value;
+      }
+    }
+
     people.push({
+      ...(Object.keys(extra).length > 0 ? { extra } : {}),
       name,
       role: roleText.replace(/\s*\(desde\s[^)]*\)\s*$/, "") || "—",
       since: since ? parseSabiDate({ text: since[1] ?? "", number: null }) : null,
@@ -633,6 +691,7 @@ function parseHoldings(grid: SheetGrid, nameHeader: string): SabiHolding[] {
   const holdings: SabiHolding[] = [];
   const rows = rowNumbers(grid);
   let header: Map<string, number> | null = null;
+  let titles: Array<[number, string]> = [];
 
   for (const row of rows) {
     const cells = rowCells(grid, row);
@@ -642,6 +701,7 @@ function parseHoldings(grid: SheetGrid, nameHeader: string): SabiHolding[] {
 
       if (hit) {
         header = new Map(cells.map(([column, cell]) => [normalizeLabel(cell.text.split("\n")[0] ?? ""), column]));
+        titles = cells.map(([column, cell]) => [column, cell.text.replace(/(\p{L})-\s*(\p{Ll})/gu, "$1$2").replace(/\s+/g, " ").trim()]);
       }
 
       continue;
@@ -684,7 +744,23 @@ function parseHoldings(grid: SheetGrid, nameHeader: string): SabiHolding[] {
     };
     const dateColumn = header.get("fecha de la info.");
 
+    const known = new Set(["pais", "tipo", "directo (%)", "total (%)", "fecha de la info.", nameHeader]);
+    const extra: Record<string, string> = {};
+
+    for (const [column, title] of titles) {
+      if (known.has(normalizeLabel(title)) || column === nameColumn) {
+        continue;
+      }
+
+      const value = textOrNull(cellText(grid.get(row)?.get(column)));
+
+      if (value && title) {
+        extra[title] = value;
+      }
+    }
+
     holdings.push({
+      ...(Object.keys(extra).length > 0 ? { extra } : {}),
       name,
       country: pick("pais"),
       type: pick("tipo"),
@@ -726,6 +802,66 @@ function parseAuditAndBanks(grid: SheetGrid): { auditor: string | null; banks: s
   }
 
   return { auditor, banks };
+}
+
+function parseAudits(grid: SheetGrid): SabiAudit[] {
+  const audits: SabiAudit[] = [];
+  let current: SabiAudit | null = null;
+
+  for (const row of rowNumbers(grid)) {
+    const first = cellText(grid.get(row)?.get(1)).trim();
+    const opened = /^(\d{4})\s+cuenta:?$/i.exec(first.replace(/\u00a0/g, " "));
+
+    if (opened) {
+      current = { year: Number(opened[1]), closingOn: null, opinion: null, auditorName: null, auditorCode: null, fields: {} };
+      audits.push(current);
+      continue;
+    }
+
+    if (first) {
+      current = null;
+      continue;
+    }
+
+    if (!current) {
+      continue;
+    }
+
+    const cells = rowCells(grid, row);
+    const labelCell = cells[0];
+    const valueCell = cells[1];
+
+    if (!labelCell || !valueCell) {
+      continue;
+    }
+
+    const label = normalizeLabel(labelCell[1].text);
+    const value = textOrNull(valueCell[1].text);
+
+    if (!value) {
+      continue;
+    }
+
+    current.fields[labelCell[1].text.replace(/:\s*$/, "").trim()] = value;
+
+    if (label === "fecha de cierre") {
+      current.closingOn = parseSabiDate(valueCell[1]);
+    } else if (label === "opinion auditores") {
+      current.opinion = value;
+    } else if (label === "nombre del auditor") {
+      current.auditorName = value;
+    } else if (label === "codigo de auditor") {
+      current.auditorCode = value;
+    }
+  }
+
+  return audits;
+}
+
+function sheetRows(grid: SheetGrid): SabiSheetRow[] {
+  return rowNumbers(grid)
+    .map((row): SabiSheetRow => [row, rowCells(grid, row).map(([column, cell]): [number, string] => [column, cell.text]).filter(([, text]) => text.trim() !== "")])
+    .filter(([, cells]) => cells.length > 0);
 }
 
 const cifPattern = /^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/;
@@ -791,6 +927,8 @@ export function parseSabiGrid(grid: SheetGrid): SabiParseResult {
     subsidiaries: parseHoldings(grid, "nombre participada"),
     auditor,
     banks,
+    audits: parseAudits(grid),
+    sheet: sheetRows(grid),
     warnings: [...tables.warnings],
     unmappedLabels: [...tables.unmapped],
   };

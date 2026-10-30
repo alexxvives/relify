@@ -1,4 +1,5 @@
 import type { HeadcountRangeId } from "../company-profile";
+import { sabiYearDetailFields, type SabiYearDetailColumn } from "./detail-fields";
 import type { SabiRatioKey } from "./labels";
 import type { SabiReport, SabiYear } from "./parse";
 
@@ -264,5 +265,113 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
       shareholderNames: [...new Set(report.shareholders.map((holder) => holder.name.trim()).filter(Boolean))],
       capitalBasisPoints: capitalSplit(report),
     },
+  };
+}
+
+/** t62: SABI lines with their own ProjectYear column (on top of the ficha lines above). */
+export type SabiYearDetail = Record<SabiYearDetailColumn, number | null> & {
+  closingOn: string | null;
+  months: number | null;
+  accountingBasis: string | null;
+};
+
+export function sabiYearDetail(year: SabiYear): SabiYearDetail {
+  const detail = Object.fromEntries(sabiYearDetailFields.map((field) => [field.column, year.money[field.sabi] ?? null])) as Record<SabiYearDetailColumn, number | null>;
+  return { ...detail, closingOn: year.closingOn || null, months: year.months, accountingBasis: year.basis };
+}
+
+/** t62: identity data with its own Project column, plus the lists stored as JSON. */
+export type SabiCompanyDetail = {
+  formerName: string | null;
+  legalFormDetail: string | null;
+  companyType: string | null;
+  shareCapitalCents: number | null;
+  incorporatedOn: string | null;
+  companyStatus: string | null;
+  companyStatusDetail: string | null;
+  accountsType: string | null;
+  lastAccountsOn: string | null;
+  yearsAvailable: number | null;
+  auditorName: string | null;
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
+  province: string | null;
+  country: string | null;
+  phone: string | null;
+  website: string | null;
+  president: string | null;
+  executiveDirector: string | null;
+  globalUltimateOwner: string | null;
+  independenceIndicator: string | null;
+  groupCompanyCount: number | null;
+  shareholderCount: number | null;
+  subsidiaryCount: number | null;
+  activityDescription: string | null;
+  activityCodes: SabiReport["codes"];
+  directors: SabiReport["directors"];
+  shareholdings: SabiReport["shareholders"];
+  subsidiaries: SabiReport["subsidiaries"];
+  banks: string[];
+  audits: NonNullable<SabiReport["audits"]>;
+};
+
+export function sabiCompanyDetail(report: SabiReport): SabiCompanyDetail {
+  const identity = report.identity;
+  return {
+    formerName: identity.formerName,
+    legalFormDetail: identity.legalFormDetail,
+    companyType: identity.companyType ?? null,
+    shareCapitalCents: identity.shareCapitalCents,
+    incorporatedOn: identity.incorporatedOn,
+    companyStatus: identity.status,
+    companyStatusDetail: identity.statusDetail,
+    accountsType: identity.accountsType,
+    lastAccountsOn: identity.lastAccountsOn,
+    yearsAvailable: identity.yearsAvailable,
+    auditorName: report.auditor,
+    street: identity.street,
+    postalCode: identity.postalCode,
+    city: identity.city,
+    province: identity.province,
+    country: identity.country,
+    phone: identity.phone,
+    website: identity.website,
+    president: identity.president,
+    executiveDirector: identity.executiveDirector,
+    globalUltimateOwner: identity.globalUltimateOwner,
+    independenceIndicator: identity.independenceIndicator,
+    groupCompanyCount: identity.groupCompanyCount ?? null,
+    shareholderCount: identity.shareholderCount,
+    subsidiaryCount: identity.subsidiaryCount,
+    activityDescription: identity.activityDescription,
+    activityCodes: report.codes,
+    directors: report.directors,
+    shareholdings: report.shareholders,
+    subsidiaries: report.subsidiaries,
+    banks: report.banks,
+    audits: report.audits ?? [],
+  };
+}
+
+/** Catch-all: everything in the file that has no column (older years, unread lines, the raw sheet). */
+export type SabiExtra = {
+  version: 1;
+  /** Years beyond the ficha window, complete (money, ratios, employees). */
+  olderYears: SabiYear[];
+  unmappedLabels: string[];
+  warnings: string[];
+  /** Every non-empty cell of the sheet. */
+  sheet: NonNullable<SabiReport["sheet"]>;
+};
+
+export function sabiExtraOf(report: SabiReport, mappedYears: number[]): SabiExtra {
+  const kept = new Set(mappedYears);
+  return {
+    version: 1,
+    olderYears: report.years.filter((year) => !kept.has(year.year)),
+    unmappedLabels: report.unmappedLabels,
+    warnings: report.warnings,
+    sheet: report.sheet ?? [],
   };
 }
