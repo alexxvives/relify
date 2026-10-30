@@ -269,9 +269,6 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
                 }
                 key={attempt}
               />
-              <p className="mt-2 text-xs leading-5 text-[#667085]">
-                {companyCopy.nifHint}
-              </p>
               {localMessage || (state && !state.ok) ? (
                 <p role="alert" className="mt-2 text-sm text-[#c0362c]">
                   {localMessage ?? (state && !state.ok ? state.message : "")}

@@ -201,7 +201,6 @@ export const companyCopy = {
   nifLabel: "NIF de la empresa",
   nifRequired: "El NIF es obligatorio.",
   nifInvalid: "La letra o el dígito de control no coincide. Revísalo.",
-  nifHint: "Comprobamos el dígito de control del NIF. Si cuadra, buscamos la sociedad en el BORME.",
   nifSubmit: "Verificar NIF",
   nifPending: "Verificando…",
   nifFailed: "No se ha podido guardar el NIF.",
