@@ -82,11 +82,14 @@ describe("toPublicAdvisorCard", () => {
     }
 
     expect(advisorReliability([])).toBe(100);
-    expect(advisorReliability(["Te escribo a irene@example.com"])).toBe(70);
-    expect(advisorReliability(["612345678"])).toBe(70);
-    expect(advisorReliability(["Mi móvil es 612 345 678"])).toBe(45);
-    expect(advisorReliability(["Seguimos por WhatsApp"])).toBe(75);
-    expect(advisorReliability(["irene@example.com y luego por WhatsApp al 612345678"])).toBe(15);
+    expect(advisorReliability(["Te escribo a irene@example.com"])).toBe(83);
+    expect(advisorReliability(["612345678"])).toBe(83);
+    expect(advisorReliability(["Mi móvil es 612 345 678"])).toBe(83);
+    expect(advisorReliability(["Seguimos por WhatsApp"])).toBe(90);
+    expect(advisorReliability(["irene@example.com y luego por WhatsApp al 612345678"])).toBe(83);
+    // one slip among many clean messages barely moves the score; repeating it sinks it
+    expect(advisorReliability(["irene@example.com", ...Array.from({ length: 19 }, () => "Hola")])).toBe(96);
+    expect(advisorReliability(Array.from({ length: 20 }, () => "irene@example.com"))).toBe(20);
     expect(advisorQuality(proven)).toBeGreaterThan(advisorQuality(leaky));
     expect(advisorRank(proven, 40)).toBeLessThan(advisorRank(leaky, 100));
 
@@ -100,9 +103,12 @@ describe("toPublicAdvisorCard", () => {
     expect(advisorMessageLeavesPlatform("Hola, me interesan estos servicios: Due Diligence.")).toBe(false);
 
     const breakdown = advisorScoreBreakdown(proven, ["irene@example.com"]);
-    expect(breakdown.cases).toBe(16);
+    expect(breakdown.cases).toBe(14);
     expect(breakdown.email).toBe(true);
-    expect(breakdown.reliability).toBe(70);
+    expect(breakdown.emailMessages).toBe(1);
+    expect(breakdown.reliability).toBe(83);
+    expect(breakdown.rank).toBe(Math.round(breakdown.quality * 83) / 100);
+    expect(advisorScoreBreakdown({ ...proven, verified: true }, []).quality - advisorScoreBreakdown({ ...proven, verified: false }, []).quality).toBe(15);
     expect(advisorRankJustification(1, 2, breakdown)).toContain("Puesto 1 de 2");
     expect(advisorRankJustification(1, 2, breakdown)).toContain("un correo");
   });

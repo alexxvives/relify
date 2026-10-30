@@ -1,14 +1,14 @@
 "use client";
 
 import { formatDecimal } from "@/lib/money";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { VerifiedToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { AdvisorListingCard } from "@/components/advisor-listing-card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { advisorSectorName } from "@/lib/advisor-sectors";
-import type { AdvisorScoreBreakdown } from "@/lib/advisor-directory";
+import { scoreMax, type AdvisorScoreBreakdown } from "@/lib/advisor-directory";
 import type { AdminAdvisorRow } from "@/server/listAdminAdvisors";
 import { NewPill, adminNewRing } from "@/components/admin-new";
 
@@ -126,50 +126,94 @@ function advisorHeading(advisor: AdminAdvisorRow): string {
 }
 
 function ScorePopover({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const panelId = useId();
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const onPointer = (event: PointerEvent) => {
+      if (root.current && event.target instanceof Node && !root.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <details className="relative">
-      <summary className="cursor-pointer list-none rounded-full border border-[#c5ced8] bg-white px-3 py-1 text-sm font-medium text-[#465ab4] hover:border-[#465ab4]">
-        Ver score
-      </summary>
-      <div className="absolute left-0 z-20 mt-2 w-[22rem] max-w-[80vw] rounded-2xl border border-[#e7eaee] bg-white p-4 shadow-[0_18px_40px_-18px_rgba(28,39,64,0.45)]">
-        <AdvisorScores breakdown={breakdown} />
-        <details className="mt-3 text-xs"><summary className="cursor-pointer text-[#465ab4]">Cómo se calcula</summary><p className="mt-2 leading-5 text-[#667085] whitespace-pre-line">{adminCopy.rankRules}</p></details>
-      </div>
-    </details>
+    <div ref={root} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((value) => !value)}
+        className="rounded-full border border-[#c5ced8] bg-white px-3 py-1 text-sm font-medium text-[#465ab4] hover:border-[#465ab4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4]"
+      >
+        {adminCopy.scoreOpen}
+      </button>
+      {open ? (
+        <div
+          id={panelId}
+          role="dialog"
+          aria-label={adminCopy.advisorRank}
+          className="absolute left-0 z-20 mt-2 w-[24rem] max-w-[86vw] rounded-2xl border border-[#e7eaee] bg-white p-4 shadow-[0_18px_40px_-18px_rgba(28,39,64,0.45)]"
+        >
+          <AdvisorScores breakdown={breakdown} />
+          <details className="mt-3 text-xs">
+            <summary className="cursor-pointer text-[#465ab4]">{adminCopy.scoreHow}</summary>
+            <p className="mt-2 leading-5 whitespace-pre-line text-[#667085]">{adminCopy.rankRules}</p>
+          </details>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
 const scoreParts = [
-  { key: "cases", label: "Casos cerrados", max: 64, color: "#1c2740" },
-  { key: "services", label: "Servicios", max: 20, color: "#465ab4" },
-  { key: "description", label: "Descripción", max: 12, color: "#0f8a7a" },
-  { key: "sectors", label: "Sectores", max: 8, color: "#7fb8b0" },
+  { key: "cases", label: "Casos cerrados", max: scoreMax.cases, color: "#1c2740" },
+  { key: "verified", label: "Verificado", max: scoreMax.verified, color: "#0f8a7a" },
+  { key: "services", label: "Servicios", max: scoreMax.services, color: "#465ab4" },
+  { key: "description", label: "Descripción", max: scoreMax.description, color: "#14b8a6" },
+  { key: "sectors", label: "Sectores", max: scoreMax.sectors, color: "#7fb8b0" },
 ] as const;
 
 function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
   const qualityMax = scoreParts.reduce((sum, part) => sum + part.max, 0);
   const details: Record<(typeof scoreParts)[number]["key"], string> = {
-    cases: `${breakdown.caseCount} (máx. 4)`,
+    cases: `${breakdown.caseCount} casos`,
+    verified: breakdown.isVerified ? "Sí" : "No",
     services: `${breakdown.serviceCount} (máx. 4)`,
     description: `${breakdown.descriptionLength} caracteres`,
     sectors: `${breakdown.sectorCount}`,
   };
   const leaks = [
-    breakdown.email ? "Correo −30" : "",
-    breakdown.phone ? "Teléfono −30" : "",
-    breakdown.offPlatform ? "Contacto fuera −25" : "",
+    breakdown.emailMessages > 0 ? `Correo en ${breakdown.emailMessages}` : "",
+    breakdown.phoneMessages > 0 ? `Teléfono en ${breakdown.phoneMessages}` : "",
+    breakdown.offPlatformMessages > 0 ? `Pista fuera en ${breakdown.offPlatformMessages}` : "",
   ].filter((item) => item.length > 0);
 
   return (
     <div className="grid gap-4">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs text-[#667085]">Ranking</p>
-          <p className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{scoreText(breakdown.rank)}</p>
-        </div>
-        <p className="text-right text-xs leading-5 text-[#667085]">
-          Nota {scoreText(breakdown.quality)} × fiabilidad {scoreText(breakdown.reliability)} %
-        </p>
+      <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-1.5 text-center" aria-label={adminCopy.scoreFormula}>
+        <ScoreTile label={adminCopy.advisorQuality} value={scoreText(breakdown.quality)} />
+        <span aria-hidden="true" className="text-lg text-[#667085]">×</span>
+        <ScoreTile label={adminCopy.advisorReliability} value={`${scoreText(breakdown.reliability)} %`} />
+        <span aria-hidden="true" className="text-lg text-[#667085]">=</span>
+        <ScoreTile label={adminCopy.advisorRank} value={scoreText(breakdown.rank)} strong />
       </div>
       <div>
         <div className="mb-1 flex justify-between text-xs">
@@ -183,8 +227,8 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
         </div>
         <ul className="mt-3 grid gap-2">
           {scoreParts.map((part) => (
-            <li key={part.key} className="grid grid-cols-[7rem_1fr_3.5rem] items-center gap-2 text-xs">
-              <span className="flex items-center gap-1.5 text-[#3d4a63]">
+            <li key={part.key} className="grid grid-cols-[8rem_1fr_3.5rem] items-center gap-2 text-xs">
+              <span className="flex items-center gap-1.5 whitespace-nowrap text-[#3d4a63]">
                 <span aria-hidden="true" className="size-2 rounded-full" style={{ background: part.color }} />
                 {part.label}
               </span>
@@ -204,9 +248,12 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
         <div className="h-3 overflow-hidden rounded-full bg-[#eef1f5]">
           <span
             className="block h-full rounded-full"
-            style={{ width: `${Math.max(0, Math.min(100, breakdown.reliability))}%`, background: breakdown.reliability >= 100 ? "#0f8a7a" : "#c0362c" }}
+            style={{ width: `${Math.max(0, Math.min(100, breakdown.reliability))}%`, background: breakdown.reliability >= 90 ? "#0f8a7a" : breakdown.reliability >= 60 ? "#c98a12" : "#c0362c" }}
           />
         </div>
+        <p className="mt-2 text-xs text-[#667085]">
+          {breakdown.messageCount === 0 ? adminCopy.scoreNoMessages : `${breakdown.messageCount} ${adminCopy.scoreMessages}`}
+        </p>
         {leaks.length > 0 ? (
           <p className="mt-2 flex flex-wrap gap-1.5">
             {leaks.map((leak) => (
@@ -215,6 +262,15 @@ function AdvisorScores({ breakdown }: { breakdown: AdvisorScoreBreakdown }) {
           </p>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function ScoreTile({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`rounded-xl px-2 py-2 ${strong ? "bg-[#1c2740] text-white" : "bg-[#f4f7ff] text-[#1c2740]"}`}>
+      <p className={`text-[11px] ${strong ? "text-white/70" : "text-[#667085]"}`}>{label}</p>
+      <p className="text-xl font-semibold tabular-nums">{value}</p>
     </div>
   );
 }

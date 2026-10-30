@@ -124,32 +124,54 @@ export function advisorMessageLeavesPlatform(text: string): boolean {
   return leak.email || leak.phone || leak.offPlatform;
 }
 
+/** Pseudo clean messages added to every advisor so one slip in a short chat does not sink them. */
+export const reliabilityPrior = 5;
+export const leakWeights = { email: 1, phone: 1, offPlatform: 0.6 } as const;
+/** Points for 0, 1, 2, 3, 4 and 5+ verified closes: each extra close is worth less. */
+export const casePoints = [0, 14, 24, 31, 36, 40] as const;
+export const scoreMax = { cases: 40, verified: 15, services: 20, description: 15, sectors: 10 } as const;
+
+type ReliabilityParts = {
+  reliability: number;
+  messageCount: number;
+  emailMessages: number;
+  phoneMessages: number;
+  offPlatformMessages: number;
+};
+
+function reliabilityParts(bodies: readonly string[]): ReliabilityParts {
+  let penalty = 0;
+  let emailMessages = 0;
+  let phoneMessages = 0;
+  let offPlatformMessages = 0;
+
+  for (const body of bodies) {
+    const leak = advisorContactLeak(body);
+    emailMessages += Number(leak.email);
+    phoneMessages += Number(leak.phone);
+    offPlatformMessages += Number(leak.offPlatform);
+    penalty += Math.min(1, Number(leak.email) * leakWeights.email + Number(leak.phone) * leakWeights.phone + Number(leak.offPlatform) * leakWeights.offPlatform);
+  }
+
+  const reliability = Math.round(Math.max(0, 100 * (1 - penalty / (bodies.length + reliabilityPrior))));
+
+  return { reliability, messageCount: bodies.length, emailMessages, phoneMessages, offPlatformMessages };
+}
+
+/**
+ * Share of the advisor's chat messages that stay on the platform, as 0-100.
+ * Each message costs up to 1 (email 1, phone 1, off-platform hint 0.6, capped at 1),
+ * divided by the message count plus {@link reliabilityPrior} clean pseudo messages.
+ */
 export function advisorReliability(bodies: readonly string[]): number {
-  if (bodies.length === 0) {
-    return 100;
-  }
-
-  const leak = advisorContactLeak(bodies.join("\n"));
-  let score = 100;
-
-  if (leak.email) {
-    score -= 30;
-  }
-
-  if (leak.phone) {
-    score -= 30;
-  }
-
-  if (leak.offPlatform) {
-    score -= 25;
-  }
-
-  return Math.max(0, score);
+  return reliabilityParts(bodies).reliability;
 }
 
 export type AdvisorScoreBreakdown = {
   cases: number;
   caseCount: number;
+  verified: number;
+  isVerified: boolean;
   services: number;
   serviceCount: number;
   description: number;
@@ -158,28 +180,47 @@ export type AdvisorScoreBreakdown = {
   sectorCount: number;
   quality: number;
   reliability: number;
+  messageCount: number;
+  emailMessages: number;
+  phoneMessages: number;
+  offPlatformMessages: number;
   email: boolean;
   phone: boolean;
   offPlatform: boolean;
   rank: number;
 };
 
+function sectorPoints(count: number): number {
+  if (count === 0) {
+    return 0;
+  }
+
+  if (count <= 3) {
+    return 10;
+  }
+
+  return count <= 6 ? 6 : 3;
+}
+
 export function advisorScoreBreakdown(card: PublicAdvisorCard, bodies: readonly string[]): AdvisorScoreBreakdown {
   const caseCount = card.cases.length;
   const serviceCount = card.services.length;
   const descriptionLength = card.description.length;
   const sectorCount = card.sectors.length;
-  const cases = Math.min(caseCount, 4) * 16;
+  const isVerified = card.verified === true;
+  const cases = casePoints[Math.min(caseCount, casePoints.length - 1)] ?? 0;
+  const verified = isVerified ? scoreMax.verified : 0;
   const services = Math.min(serviceCount, 4) * 5;
-  const description = descriptionLength >= 180 ? 12 : descriptionLength >= 50 ? 8 : 0;
-  const sectors = sectorCount === 0 ? 0 : sectorCount <= 3 ? 8 : 3;
-  const quality = cases + services + description + sectors;
-  const leak = advisorContactLeak(bodies.join("\n"));
-  const reliability = advisorReliability(bodies);
+  const description = descriptionLength >= 180 ? 15 : descriptionLength >= 50 ? 9 : 0;
+  const sectors = sectorPoints(sectorCount);
+  const quality = cases + verified + services + description + sectors;
+  const parts = reliabilityParts(bodies);
 
   return {
     cases,
     caseCount,
+    verified,
+    isVerified,
     services,
     serviceCount,
     description,
@@ -187,11 +228,11 @@ export function advisorScoreBreakdown(card: PublicAdvisorCard, bodies: readonly 
     sectors,
     sectorCount,
     quality,
-    reliability,
-    email: leak.email,
-    phone: leak.phone,
-    offPlatform: leak.offPlatform,
-    rank: quality * (reliability / 100),
+    ...parts,
+    email: parts.emailMessages > 0,
+    phone: parts.phoneMessages > 0,
+    offPlatform: parts.offPlatformMessages > 0,
+    rank: Math.round(quality * parts.reliability) / 100,
   };
 }
 
@@ -213,20 +254,22 @@ function scoreLabel(value: number): string {
 
 export function advisorRankJustification(place: number, total: number, breakdown: AdvisorScoreBreakdown): string {
   const leaks = [
-    breakdown.email ? "un correo" : "",
-    breakdown.phone ? "un teléfono" : "",
-    breakdown.offPlatform ? "una pista para seguir fuera" : "",
+    breakdown.emailMessages > 0 ? `un correo en ${breakdown.emailMessages} ${breakdown.emailMessages === 1 ? "mensaje" : "mensajes"}` : "",
+    breakdown.phoneMessages > 0 ? `un teléfono en ${breakdown.phoneMessages} ${breakdown.phoneMessages === 1 ? "mensaje" : "mensajes"}` : "",
+    breakdown.offPlatformMessages > 0
+      ? `una pista para seguir fuera en ${breakdown.offPlatformMessages} ${breakdown.offPlatformMessages === 1 ? "mensaje" : "mensajes"}`
+      : "",
   ].filter((item) => item.length > 0);
   const reliability =
     leaks.length === 0
       ? "La fiabilidad es 100 porque sus mensajes no sacan el contacto de la plataforma."
-      : `La fiabilidad baja a ${scoreLabel(breakdown.reliability)} porque en sus mensajes aparece ${spanishList(leaks)}.`;
+      : `La fiabilidad es ${scoreLabel(breakdown.reliability)} de 100: de ${breakdown.messageCount} mensajes aparece ${spanishList(leaks)}.`;
 
-  return `Puesto ${place} de ${total}. La nota de ficha es ${scoreLabel(breakdown.quality)}: ${scoreLabel(breakdown.cases)} por ${breakdown.caseCount} casos cerrados, ${scoreLabel(breakdown.services)} por ${breakdown.serviceCount} servicios, ${scoreLabel(breakdown.description)} por la descripción y ${scoreLabel(breakdown.sectors)} por ${breakdown.sectorCount} sectores. ${reliability} El ranking es ${scoreLabel(breakdown.rank)}: esa nota multiplicada por la fiabilidad.`;
+  return `Puesto ${place} de ${total}. La nota de ficha es ${scoreLabel(breakdown.quality)} de 100: ${scoreLabel(breakdown.cases)} por ${breakdown.caseCount} casos cerrados, ${scoreLabel(breakdown.verified)} por verificación, ${scoreLabel(breakdown.services)} por ${breakdown.serviceCount} servicios, ${scoreLabel(breakdown.description)} por la descripción y ${scoreLabel(breakdown.sectors)} por ${breakdown.sectorCount} sectores. ${reliability} El ranking es ${scoreLabel(breakdown.rank)}: esa nota multiplicada por la fiabilidad.`;
 }
 
 export function advisorRank(card: PublicAdvisorCard, reliability: number): number {
-  return advisorQuality(card) * (reliability / 100);
+  return Math.round(advisorQuality(card) * reliability) / 100;
 }
 
 function startingPrice(card: PublicAdvisorCard): number {
