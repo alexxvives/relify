@@ -40,7 +40,7 @@ export function AdminCompanies({ projects, sabiOnly = false }: { projects: Admin
   const [sabi, setSabi] = useState(sabiOnly);
   const sabiCount = projects.filter((project) => project.sabiPending).length;
   const [status, setStatus] = useState<CompanyStatusFilter>("all");
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "codename", dir: 1 });
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "createdMs", dir: -1 });
   const needle = query.trim().toLocaleLowerCase("es");
   const visible = projects.filter((project) => {
     if (status !== "all" && project.status !== status) {
@@ -141,9 +141,10 @@ export function AdminCompanies({ projects, sabiOnly = false }: { projects: Admin
   );
 }
 
-type SortKey = "codename" | "status" | "revenueCents" | "ebitdaCents" | "askingPriceCents";
+type SortKey = "createdMs" | "codename" | "status" | "revenueCents" | "ebitdaCents" | "askingPriceCents";
 
 const sortOptions: { key: SortKey; label: string }[] = [
+  { key: "createdMs", label: "Alta" },
   { key: "codename", label: "Empresa" },
   { key: "status", label: "Estado" },
   { key: "revenueCents", label: companyCopy.revenueLabel },
@@ -174,6 +175,10 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
           <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
         </div>
       </div>
+      <p className="mt-2 truncate px-1 text-xs text-[#5c6b78]" title={project.legalName || undefined}>
+        <span className="font-semibold text-[#1c2740]">{project.legalName || "Razón social pendiente"}</span>
+        {project.cif ? <span> · {project.cif}</span> : null}
+      </p>
       {project.sabiPending ? <span className="sr-only">{adminCopy.sabiPendingBadge}</span> : null}
     </div>
   );

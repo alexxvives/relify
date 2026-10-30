@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { materializePendingCompanies } from "@/server/sellerCompany";
 import { SellerHomeSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { CompanyNifDialog } from "@/components/company-nif-form";
@@ -37,6 +38,9 @@ async function CompanyPageContent({
   if (typeof query.session_id === "string" && query.session_id !== "") {
     await fulfillCheckout(query.session_id, user.id);
   }
+
+  // A CIF verified before verify created the company: turn it into the draft now.
+  await materializePendingCompanies(user.id);
 
   // One round trip per wave instead of eleven sequential queries.
   const [nifVerified, projectId, listing, notifications, overview, messages] = await Promise.all([

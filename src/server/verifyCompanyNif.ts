@@ -4,7 +4,7 @@ import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 import { prisma } from "@/server/db";
-import { activeSellerProjectId } from "@/server/sellerCompany";
+import { activeSellerProjectId, createFirstSellerCompany } from "@/server/sellerCompany";
 import { notifySabiRequest } from "@/server/notifySabiRequest";
 
 export type VerifyNifResult = { ok: true } | { ok: false; message: string };
@@ -90,17 +90,15 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
     return { ok: true };
   }
 
-  const previous = await prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } });
-  await prisma.user.update({ where: { id: user.id }, data: { pendingCif: cif } });
-  if (previous?.pendingCif !== cif) {
-    await notifySabiRequest({
-      companyName: record?.legalName ?? "",
-      cif,
-      ownerName: user.name,
-      ownerEmail: user.email,
-      slug: null,
-    });
-  }
+  // No draft yet: create the company now so it is visible to admins from the first minute.
+  const created = await createFirstSellerCompany(user.id, cif);
+  await notifySabiRequest({
+    companyName: record?.legalName ?? "",
+    cif,
+    ownerName: user.name,
+    ownerEmail: user.email,
+    slug: created.slug,
+  });
   return { ok: true };
 }
 

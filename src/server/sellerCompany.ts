@@ -195,6 +195,77 @@ async function unusedSlug(codename: string): Promise<string> {
   return slug;
 }
 
+/** A blank draft owned by the seller, already carrying the CIF and queued for the SABI import. */
+async function createDraftProject(ownerId: string, cif: string): Promise<{ id: string; slug: string }> {
+  const codename = await uniqueCodename();
+  const id = randomUUID();
+  const slug = await unusedSlug(codename);
+  await prisma.project.create({
+    data: {
+      id,
+      slug,
+      codename,
+      region: "",
+      revenueCents: 0,
+      ebitdaCents: 0,
+      adjustedEbitdaCents: 0,
+      askingPriceCents: 0,
+      netDebtCents: 0,
+      workingCapitalCents: 0,
+      netIncomeCents: 0,
+      // Empty so the registry prefill still fills the draft form.
+      legalName: "",
+      cif,
+      address: "",
+      status: "draft",
+      ownerId,
+      sabiRequestedAt: new Date(),
+    },
+  });
+  return { id, slug };
+}
+
+/**
+ * First CIF of a seller with no draft yet: create the company right away so admins see it
+ * (before, it lived only in user.pendingCif until the first draft save).
+ */
+export async function createFirstSellerCompany(ownerId: string, cif: string): Promise<{ id: string; slug: string }> {
+  const project = await createDraftProject(ownerId, cif);
+  await rememberCompany(project.id);
+  await prisma.user.update({ where: { id: ownerId }, data: { pendingCif: null } });
+  return project;
+}
+
+/**
+ * Self-heal for sellers who verified a CIF before companies were created on verify:
+ * a pending CIF with no project becomes a draft. Safe to call from any request (no cookie);
+ * the conditional update on pendingCif keeps two concurrent calls from creating twins.
+ */
+export async function materializePendingCompanies(ownerId?: string): Promise<number> {
+  const users = await prisma.user.findMany({
+    where: {
+      ...(ownerId ? { id: ownerId } : {}),
+      role: "seller",
+      pendingCif: { not: null },
+      NOT: { pendingCif: "" },
+      projects: { none: {} },
+    },
+    select: { id: true, pendingCif: true },
+    take: 50,
+  });
+  let created = 0;
+  for (const user of users) {
+    const cif = user.pendingCif ?? "";
+    const claimed = await prisma.user.updateMany({ where: { id: user.id, pendingCif: cif }, data: { pendingCif: null } });
+    if (claimed.count !== 1) {
+      continue;
+    }
+    await createDraftProject(user.id, cif);
+    created += 1;
+  }
+  return created;
+}
+
 function prefillData(record: RegistryCompany) {
   return {
     cif: record.cif,

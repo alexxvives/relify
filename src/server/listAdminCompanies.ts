@@ -1,5 +1,6 @@
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { materializePendingCompanies } from "@/server/sellerCompany";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { cnaeTitle } from "@/lib/cnae-2009";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
@@ -18,8 +19,10 @@ export type AdminCompanyRow = {
   ebitdaCents: number;
   adjustedEbitdaCents: number;
   ownerEmail: string | null;
+  /** Project razón social, or the registry prefill's while the seller has not saved the draft yet. */
   legalName: string;
   cif: string;
+  createdMs: number;
   address: string;
   shareholders: string[];
   verified: boolean;
@@ -35,6 +38,9 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
+
+  // Sellers who verified a CIF before verify created the company still have it only on the user row.
+  await materializePendingCompanies();
 
   const projects = await prisma.project.findMany({
     orderBy: { createdAt: "desc" },
@@ -55,7 +61,7 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
       address: true,
       sabiRequestedAt: true,
       sabiImportedAt: true,
-      owner: { select: { email: true } },
+      owner: { select: { email: true, registryPrefill: { select: { cif: true, legalName: true } } } },
       shareholders: { select: { name: true }, orderBy: { name: "asc" } },
       headcountRange: true,
       foundedYear: true,
@@ -101,8 +107,11 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
     ebitdaCents: project.ebitdaCents,
     adjustedEbitdaCents: project.adjustedEbitdaCents,
     ownerEmail: project.owner?.email ?? null,
-    legalName: project.legalName,
+    legalName:
+      project.legalName.trim() ||
+      (project.owner?.registryPrefill && project.owner.registryPrefill.cif === project.cif ? project.owner.registryPrefill.legalName : ""),
     cif: project.cif,
+    createdMs: project.createdAt.getTime(),
     address: project.address,
     shareholders: project.shareholders.map((holder) => holder.name),
     verified: project.verifiedAt !== null,
