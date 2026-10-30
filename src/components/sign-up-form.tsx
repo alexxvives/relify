@@ -67,7 +67,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
         })}
       </div>
       <input type="hidden" name="signupRole" value={role} />
-      <EmailField />
+      <EmailField look="arc" />
       <NewPasswordField name="password" label={authCopy.passwordLabel} placeholder={authCopy.passwordPlaceholder} />
       {localMessage || state?.message ? (
         <p role="alert" className="text-sm text-destructive">
