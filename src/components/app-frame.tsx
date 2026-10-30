@@ -145,6 +145,8 @@ function SideLink({
   alert,
   count,
   pending = 0,
+  countLabel = "procesos",
+  pendingLabel = "acciones pendientes",
 }: {
   href: string;
   label: string;
@@ -154,6 +156,9 @@ function SideLink({
   alert: boolean;
   count: number | null;
   pending?: number;
+  /** Screen-reader nouns for the two bubbles (admin totals vs. process counts). */
+  countLabel?: string;
+  pendingLabel?: string;
 }) {
   const iconRef = useRef<HouseIconHandle>(null);
 
@@ -183,8 +188,8 @@ function SideLink({
       {pending > 0 && (count === null || count === 0) ? (
         <span
           className="shell-badge inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#d92d20] px-1.5 text-xs font-semibold text-white"
-          aria-label={`${pending} acciones pendientes`}
-          title={`${pending} acciones pendientes`}
+          aria-label={`${pending} ${pendingLabel}`}
+          title={`${pending} ${pendingLabel}`}
         >
           {pending > 99 ? "99+" : pending}
         </span>
@@ -195,7 +200,7 @@ function SideLink({
         <span className="shell-badge relative inline-flex shrink-0">
           <span
             className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#2fc4b2] px-2 text-sm font-semibold text-[#0f1b24]"
-            aria-label={`${count} procesos`}
+            aria-label={`${count} ${countLabel}`}
           >
             {count > 99 ? "99+" : count}
           </span>
@@ -203,8 +208,8 @@ function SideLink({
             // Pending actions ride on the count circle as one red bubble (no separate dot beside it).
             <span
               className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d92d20] px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-[#1a1f2e]"
-              aria-label={`${pending} acciones pendientes`}
-              title={`${pending} acciones pendientes`}
+              aria-label={`${pending} ${pendingLabel}`}
+              title={`${pending} ${pendingLabel}`}
             >
               {pending > 99 ? "99+" : pending}
             </span>
@@ -245,7 +250,8 @@ export function AppFrame({
   processPending?: number;
   encargoCount?: number;
   /** Extra sidebar bubbles by href (admin: new items since last visit). */
-  navCounts?: Record<string, number>;
+  /** Admin sidebar: total per page plus a red bubble (SABI pending, or new since last visit). */
+  navCounts?: Record<string, { total: number; alert: number; alertLabel: string }>;
   children: ReactNode;
 }) {
   // Multi-company sellers: the bell and menu dots only cover the selected company.
@@ -381,8 +387,19 @@ export function AppFrame({
                     closeMenu();
                   }}
                   alert={alert}
-                  pending={item.href === "/mi-empresa/procesos" || item.href === "/procesos" ? activePending : 0}
-                  count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (selected ? null : (navCounts[item.href] ?? null))}
+                  pending={
+                    item.href === "/mi-empresa/procesos" || item.href === "/procesos"
+                      ? activePending
+                      : navCounts[item.href]
+                        ? // "New since last visit" clears on the page itself; SABI pending stays until imported.
+                          item.href !== "/admin/empresas" && selected
+                          ? 0
+                          : navCounts[item.href].alert
+                        : 0
+                  }
+                  pendingLabel={navCounts[item.href]?.alertLabel}
+                  countLabel={navCounts[item.href] ? "en total" : undefined}
+                  count={processHrefs.has(item.href) ? processCount : item.href === "/mandatos/encargos" ? encargoCount : (navCounts[item.href]?.total ?? null)}
                 />
                 </div>
                 )}

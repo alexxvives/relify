@@ -28,20 +28,30 @@ export async function markAdminSeen(adminId: string, page: AdminSeenPage): Promi
   return previous?.seenAt ?? defaultSince();
 }
 
-/** Sidebar bubbles: items created since the admin last opened each page. */
-export async function adminNewCounts(adminId: string): Promise<Record<string, number>> {
+export type AdminNavCount = { total: number; alert: number; alertLabel: string };
+
+/**
+ * Sidebar bubbles: a total per page, plus a red bubble. Empresas: CIFs waiting for the SABI import
+ * (stays until imported). Cuentas, Asesores, Conexiones: created since the admin last opened the page
+ * (cleared on visit, stored per admin in AdminSeen).
+ */
+export async function adminNavCounts(adminId: string): Promise<Record<string, AdminNavCount>> {
   const seen = await seenMap(adminId);
   const since = (page: AdminSeenPage) => seen.get(page) ?? defaultSince();
-  const [empresas, cuentas, asesores, conexiones] = await Promise.all([
-    prisma.project.count({ where: { createdAt: { gt: since("empresas") } } }),
+  const [companies, sabiPending, accounts, newAccounts, advisors, newAdvisors, accesses, newAccesses] = await Promise.all([
+    prisma.project.count(),
+    prisma.project.count({ where: { NOT: { cif: "" }, sabiImportedAt: null } }),
+    prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gt: since("cuentas") } } }),
+    prisma.user.count({ where: { role: "advisor" } }),
     prisma.user.count({ where: { role: "advisor", createdAt: { gt: since("asesores") } } }),
+    prisma.projectAccess.count(),
     prisma.projectAccess.count({ where: { requestedAt: { gt: since("conexiones") } } }),
   ]);
   return {
-    "/admin/empresas": empresas,
-    "/admin/cuentas": cuentas,
-    "/admin/asesores": asesores,
-    "/admin/conexiones": conexiones,
+    "/admin/empresas": { total: companies, alert: sabiPending, alertLabel: "pendientes de SABI" },
+    "/admin/cuentas": { total: accounts, alert: newAccounts, alertLabel: "nuevas desde tu última visita" },
+    "/admin/asesores": { total: advisors, alert: newAdvisors, alertLabel: "nuevos desde tu última visita" },
+    "/admin/conexiones": { total: accesses, alert: newAccesses, alertLabel: "nuevas desde tu última visita" },
   };
 }

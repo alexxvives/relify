@@ -7,7 +7,7 @@ import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } f
 import { hasCompletedPurchase, projectSold } from "@/server/saleOutcome";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { listNotifications } from "@/server/listNotifications";
-import { adminNewCounts } from "@/server/adminSeen";
+import { adminNavCounts, type AdminNavCount } from "@/server/adminSeen";
 import { menuEncargoCount, menuProcessCount } from "@/server/menuProcessCount";
 import { activeSellerProjectId, listSellerCompanies } from "@/server/sellerCompany";
 import { loadInvestorDesk } from "@/server/investorDesk";
@@ -38,7 +38,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       ? activeSellerProjectId(user.id).then((id) => (id ? projectSold(id) : false))
       : Promise.resolve(false),
     menuEncargoCount(user),
-    user.role === "admin" ? adminNewCounts(user.id) : Promise.resolve({} as Record<string, number>),
+    user.role === "admin" ? adminNavCounts(user.id) : Promise.resolve({} as Record<string, AdminNavCount>),
     // Buyer: same "your turn" actions as the Inicio list, as a red bubble on Mis procesos.
     user.role === "investor"
       ? loadInvestorDesk(user.id, user.email).then(
