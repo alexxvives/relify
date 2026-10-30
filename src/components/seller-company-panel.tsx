@@ -8,7 +8,6 @@ export function SellerCompanyPanel({
   draft,
   cif,
   focus = null,
-  promptSetup = false,
   reviewPending = false,
   coverSrc = null,
   sabiDetail = null,
@@ -16,7 +15,6 @@ export function SellerCompanyPanel({
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
-  promptSetup?: boolean;
   reviewPending?: boolean;
   coverSrc?: string | null;
   sabiDetail?: SabiDetailForm | null;
@@ -28,7 +26,6 @@ export function SellerCompanyPanel({
         draft={draft}
         cif={cif}
         focus={focus}
-        promptSetup={promptSetup}
         reviewPending={reviewPending}
         coverSrc={coverSrc}
         financeExtra={sabiDetail ? <SabiDetailPanel detail={sabiDetail} /> : null}

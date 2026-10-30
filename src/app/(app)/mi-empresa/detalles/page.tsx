@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 async function CompanyDetailsPageContent({
   searchParams,
 }: {
-  searchParams: Promise<{ seccion?: string; alta?: string; session_id?: string }>;
+  searchParams: Promise<{ seccion?: string; session_id?: string }>;
 }) {
   const query = await searchParams;
   const focus = query.seccion && isSellerFocusPanel(query.seccion) ? query.seccion : null;
@@ -55,7 +55,6 @@ async function CompanyDetailsPageContent({
         draft={draft}
         cif={cif}
         focus={focus}
-        promptSetup={query.alta === "1"}
         reviewPending={listing?.status === "pending"}
         coverSrc={coverSrc}
         sabiDetail={sabiDetail}

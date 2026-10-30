@@ -8,10 +8,7 @@ import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/component
 import { useRouter } from "next/navigation";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { AnnualAccountsState } from "@/app/(app)/mi-empresa/accounts-actions";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
-import { AccountsUpload } from "@/components/accounts-upload";
-import { CompanySetup } from "@/components/company-setup";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -788,7 +785,6 @@ export function CompanyDraftForm({
   draft,
   cif,
   focus = null,
-  promptSetup = false,
   reviewPending = false,
   coverSrc = null,
   financeExtra = null,
@@ -796,7 +792,6 @@ export function CompanyDraftForm({
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
-  promptSetup?: boolean;
   reviewPending?: boolean;
   coverSrc?: string | null;
   /** t62: SABI detail block, rendered under the balance sheet. */
@@ -861,7 +856,6 @@ export function CompanyDraftForm({
   );
 
   const [closedAfterSave, setClosedAfterSave] = useState("");
-  const [setupOpen, setSetupOpen] = useState(promptSetup);
   const [saveTarget, setSaveTarget] = useState("");
   const [rejectedSave, setRejectedSave] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -1062,69 +1056,6 @@ export function CompanyDraftForm({
     });
   }
 
-  function applyAccounts(result: Extract<AnnualAccountsState, { ok: true }>) {
-    if (result.revenue.length > 0) {
-      setRevenue(result.revenue);
-    }
-
-    if (result.ebitda.length > 0) {
-      setEbitda(result.ebitda);
-    }
-
-    setSaveClosed("");
-    setOpenIncome(true);
-
-    if (result.statements.some((statement) => Object.keys(statement.balance).length > 0)) {
-      setSaveClosed("");
-      setOpenBalance(true);
-    }
-
-    setClosedYears((current) => {
-      const next: CompanyDraftInput["closedYears"] = [{ ...current[0] }, { ...current[1] }, { ...current[2] }];
-      const used = new Set<number>();
-
-      for (const statement of result.statements) {
-        const yearText = String(statement.year);
-        let index = next.findIndex((year, item) => !used.has(item) && year.year === yearText);
-
-        if (index < 0) {
-          index = next.findIndex((year, item) => !used.has(item) && year.sales.trim() === "");
-        }
-
-        if (index < 0) {
-          index = next.findIndex((_, item) => !used.has(item));
-        }
-
-        if (index !== 0 && index !== 1 && index !== 2) {
-          continue;
-        }
-
-        used.add(index);
-        const slot = { ...next[index], year: yearText };
-
-        for (const key of pnlInputKeys) {
-          const value = statement.pnl[key];
-
-          if (value !== undefined) {
-            slot[key] = value;
-          }
-        }
-
-        for (const key of balanceInputKeys) {
-          const value = statement.balance[key];
-
-          if (value !== undefined) {
-            slot[key] = value;
-          }
-        }
-
-        next[index] = slot;
-      }
-
-      return next;
-    });
-  }
-
   function incomeCell(key: IncomeDisplayKey, year: ForecastYearInput, index: number | "forecast", locked: boolean) {
     if (locked) {
       return <span className="block py-1.5 text-right text-sm text-[#98a2b3]">—</span>;
@@ -1230,15 +1161,6 @@ export function CompanyDraftForm({
 
   return (
     <>
-    {setupOpen ? (
-      <CompanySetup
-        cif={cif}
-        onApply={applyAccounts}
-        onClose={() => {
-          setSetupOpen(false);
-        }}
-      />
-    ) : null}
     <form ref={formRef} action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <UnsavedChangesGuard dirty={formDirty} onSave={saveAndLeave} />
       <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
@@ -1252,7 +1174,6 @@ export function CompanyDraftForm({
           value={tab}
           onChange={setTab}
         />
-        <AccountsUpload onApply={applyAccounts} compact />
       </div>
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
       <Panel
