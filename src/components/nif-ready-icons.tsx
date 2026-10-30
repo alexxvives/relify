@@ -14,19 +14,35 @@ export function FilledCheckIcon({ delayMs = 0 }: { delayMs?: number }) {
   );
 }
 
-/** A clock whose hand sweeps while a ring fills: "en 24 h" at a glance. */
+/**
+ * "en 24 h" at a glance: a ring fills while the minute hand makes one turn, then fades and starts again.
+ * One SVG, hands pivot on the true centre (20,20) of the view box, so nothing wobbles or clips.
+ */
 export function WaitClockIcon() {
   return (
-    <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-white" aria-hidden>
-      <svg viewBox="0 0 32 32" className="absolute inset-0 size-10 -rotate-90">
-        <circle cx="16" cy="16" r="14.5" fill="none" stroke="#2fc4b2" strokeOpacity="0.25" strokeWidth="3" />
-        <circle className="releva-clock-ring" cx="16" cy="16" r="14.5" fill="none" stroke="#2fc4b2" strokeWidth="3" strokeLinecap="round" pathLength={100} />
-      </svg>
-      <svg viewBox="0 0 24 24" className="relative size-5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
-        <circle cx="12" cy="12" r="9" />
-        <line className="releva-clock-hour" x1="12" y1="12" x2="12" y2="8" />
-        <line className="releva-clock-minute" x1="12" y1="12" x2="12" y2="5.5" />
-      </svg>
-    </span>
+    <svg viewBox="0 0 40 40" className="size-10 shrink-0" aria-hidden>
+      <circle cx="20" cy="20" r="20" fill="#1c2740" />
+      <circle cx="20" cy="20" r="16.5" fill="none" stroke="#2fc4b2" strokeOpacity="0.22" strokeWidth="2.5" />
+      <circle
+        className="releva-clock-ring"
+        cx="20"
+        cy="20"
+        r="16.5"
+        fill="none"
+        stroke="#2fc4b2"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        pathLength={100}
+        transform="rotate(-90 20 20)"
+      />
+      <circle cx="20" cy="20" r="9.5" fill="none" stroke="#ffffff" strokeWidth="2" />
+      <g className="releva-clock-hand releva-clock-hour">
+        <line x1="20" y1="20" x2="20" y2="15" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+      </g>
+      <g className="releva-clock-hand releva-clock-minute">
+        <line x1="20" y1="20" x2="20" y2="12.5" stroke="#2fc4b2" strokeWidth="1.8" strokeLinecap="round" />
+      </g>
+      <circle cx="20" cy="20" r="1.6" fill="#ffffff" />
+    </svg>
   );
 }

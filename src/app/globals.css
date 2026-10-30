@@ -2744,8 +2744,10 @@
 }
 
 @keyframes releva-clock-fill {
-  0% { stroke-dashoffset: 100; }
-  70%, 100% { stroke-dashoffset: 0; }
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  84% { stroke-dashoffset: 0; opacity: 1; }
+  96% { stroke-dashoffset: 0; opacity: 0; }
+  100% { stroke-dashoffset: 100; opacity: 0; }
 }
 
 @keyframes releva-ripple {
@@ -2766,23 +2768,24 @@
   animation: releva-check-draw 360ms ease-out both;
 }
 
-.releva-clock-hour,
-.releva-clock-minute {
-  transform-origin: 12px 12px;
+.releva-clock-hand {
   transform-box: view-box;
+  transform-origin: 20px 20px;
+  will-change: transform;
 }
 
 .releva-clock-minute {
-  animation: releva-clock-spin 2s linear infinite;
+  animation: releva-clock-spin 6s linear infinite;
 }
 
 .releva-clock-hour {
-  animation: releva-clock-spin 24s linear infinite;
+  animation: releva-clock-spin 72s linear infinite;
 }
 
 .releva-clock-ring {
   stroke-dasharray: 100;
-  animation: releva-clock-fill 4s ease-in-out infinite;
+  stroke-dashoffset: 100;
+  animation: releva-clock-fill 6s linear infinite;
 }
 
 .releva-ripple {
@@ -2799,6 +2802,7 @@
   .releva-row-check-path,
   .releva-clock-hour,
   .releva-clock-minute,
+  .releva-clock-ring,
   .releva-ripple {
     animation: none;
   }
