@@ -208,8 +208,7 @@ export const companyCopy = {
   nifConfidential: "Información confidencial",
   nifConfidentialBody: "En ningún caso se compartirá el NIF de la compañía con terceros.",
   nifAutofill: "Autorellenamos tus datos",
-  nifAutofillBody:
-    "Con tu NIF rellenamos la razón social y, si el registro mercantil los tiene, el domicilio, la provincia y el CNAE.",
+  nifAutofillBody: "Con tu NIF rellenamos la información básica de tu empresa.",
   nifAlias: "Nombre aleatorio",
   nifAliasBody: "Para la empresa, con el fin de preservar su confidencialidad.",
   nifSaved: "NIF guardado de forma confidencial.",
