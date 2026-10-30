@@ -41,7 +41,7 @@ export function PlatformTermsForm() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-11 w-fit items-center rounded-full bg-[#1c2740] px-5 text-sm font-medium text-white disabled:opacity-60"
+        className="inline-flex h-11 w-fit items-center self-center rounded-full bg-[#1c2740] px-5 text-sm font-medium text-white disabled:opacity-60"
       >
         {pending ? platformTermsCopy.pending : platformTermsCopy.accept}
       </button>
