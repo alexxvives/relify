@@ -1,4 +1,6 @@
 import { CompanyDraftForm } from "@/components/company-draft-form";
+import { SabiDetailPanel } from "@/components/sabi-detail-panel";
+import type { SabiDetailForm } from "@/server/sabiDetail";
 import type { CompanyDraftInput } from "@/lib/company-draft";
 import type { SellerFocusPanel } from "@/lib/company-profile";
 
@@ -9,6 +11,7 @@ export function SellerCompanyPanel({
   promptSetup = false,
   reviewPending = false,
   coverSrc = null,
+  sabiDetail = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -16,6 +19,7 @@ export function SellerCompanyPanel({
   promptSetup?: boolean;
   reviewPending?: boolean;
   coverSrc?: string | null;
+  sabiDetail?: SabiDetailForm | null;
 }) {
   return (
     <>
@@ -27,6 +31,7 @@ export function SellerCompanyPanel({
         promptSetup={promptSetup}
         reviewPending={reviewPending}
         coverSrc={coverSrc}
+        financeExtra={sabiDetail ? <SabiDetailPanel detail={sabiDetail} /> : null}
       />
     </>
   );

@@ -28,6 +28,7 @@ import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@
 import { projectImageSrc } from "@/lib/project-image";
 import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
+import { notInSabiCopy, notInSabiIncomeKeys } from "@/lib/sabi/detail-fields";
 import { marketCopy } from "@/lib/market-copy";
 import { keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
 import {
@@ -793,6 +794,7 @@ export function CompanyDraftForm({
   promptSetup = false,
   reviewPending = false,
   coverSrc = null,
+  financeExtra = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -800,6 +802,8 @@ export function CompanyDraftForm({
   promptSetup?: boolean;
   reviewPending?: boolean;
   coverSrc?: string | null;
+  /** t62: SABI detail block, rendered under the balance sheet. */
+  financeExtra?: ReactNode;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1176,10 +1180,11 @@ export function CompanyDraftForm({
     headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
     revenueGrowth: salesGrowth(closedYears),
   });
-  const dealNote =
+  const dealNote = `${
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
-      : companyCopy.euroHint;
+      : companyCopy.euroHint
+  }\n\n${notInSabiCopy.dealHint}`;
   // Same banner the investor sees on the ficha: own photo first, else the sector reference photo.
   const ownBanner = coverSrc ?? projectImageSrc(projectSlug(codename));
   const previewBanner = ownBanner
@@ -1530,6 +1535,11 @@ export function CompanyDraftForm({
                       className={`sticky left-0 z-10 min-w-56 border-b border-[#eef0f3] px-3 py-2 text-left ${rowBg} ${emphasis ? "font-semibold text-[#145c32]" : "font-medium text-[#2b3b4a]"}`}
                     >
                       {incomeLabels[key]}
+                      {(notInSabiIncomeKeys as readonly string[]).includes(key) ? (
+                        <span title={notInSabiCopy.hint} className="ml-2 inline-flex rounded-full bg-[#f1f3f6] px-2 py-0.5 align-middle text-[11px] font-medium text-[#64748b]">
+                          {notInSabiCopy.badge}
+                        </span>
+                      ) : null}
                     </th>
                     {closedYears.map((year, index) => (
                       <td key={`${key}-${index}`} className={`border-b border-[#eef0f3] px-2 py-1.5 ${rowBg}`}>
@@ -1630,6 +1640,7 @@ export function CompanyDraftForm({
         </div>
         <SaveButton id="balance" pending={pending} pendingId={saveTarget} rejected={panelRejected("balance")} shake={attempt} dirty={balanceDirty} onChoose={chooseSave} />
       </Panel>
+      {financeExtra}
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>

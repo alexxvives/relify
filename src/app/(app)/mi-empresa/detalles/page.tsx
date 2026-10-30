@@ -7,6 +7,7 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
+import { getSabiDetail } from "@/server/sabiDetail";
 import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { getSellerListing } from "@/server/publishSellerProject";
@@ -44,6 +45,7 @@ async function CompanyDetailsPageContent({
     getSellerListing(user.id),
     activeSellerProjectId(user.id),
   ]);
+  const sabiDetail = projectId ? await getSabiDetail(projectId) : null;
   const coverVersion = projectId && projectCoverIsStored(projectId) ? projectCoverVersion(projectId) : null;
   const coverSrc = listing && coverVersion ? projectCoverHref(listing.slug, coverVersion) : null;
 
@@ -56,6 +58,7 @@ async function CompanyDetailsPageContent({
         promptSetup={query.alta === "1"}
         reviewPending={listing?.status === "pending"}
         coverSrc={coverSrc}
+        sabiDetail={sabiDetail}
       />
     </>
   );
