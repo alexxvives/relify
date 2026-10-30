@@ -1,3 +1,5 @@
+import { sabiExtraOf, sabiFichaYears, type SabiExtra } from "@/lib/sabi/mapping";
+import type { SabiAudit } from "@/lib/sabi/parse";
 import * as z from "zod";
 import { advisoryServices } from "@/lib/advisory";
 import { adminCopy } from "@/lib/admin-copy";
@@ -76,6 +78,12 @@ export type AdminSabiView = {
   independence: string | null;
   otherCodes: { scheme: string; codes: string }[];
   activityDescription: string | null;
+  /** t62 */
+  companyType: string | null;
+  groupCompanyCount: number | null;
+  audits: SabiAudit[];
+  /** Catch-all: older years, unread lines and the raw sheet. */
+  extra: SabiExtra | null;
 };
 
 export type AdminCompanyView = {
@@ -140,6 +148,7 @@ export async function getAdminCompany(
       sabiRequestedAt: true,
       sabiFileName: true,
       sabiData: true,
+      sabiExtra: true,
       ...investorProjectSelect,
       successFee: { select: { id: true } },
       dataRoomGrants: { select: { investorId: true } },
@@ -254,6 +263,10 @@ export async function getAdminCompany(
       }))
       .filter((entry) => entry.codes.length > 0),
     activityDescription: stored?.identity.activityDescription ?? null,
+    companyType: stored?.identity.companyType ?? null,
+    groupCompanyCount: stored?.identity.groupCompanyCount ?? null,
+    audits: stored?.audits ?? [],
+    extra: (project.sabiExtra as SabiExtra | null) ?? (stored ? sabiExtraOf(stored, stored.years.slice(0, sabiFichaYears).map((year) => year.year)) : null),
   };
 
   return {
