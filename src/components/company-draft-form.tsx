@@ -1184,7 +1184,7 @@ export function CompanyDraftForm({
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
       : companyCopy.euroHint
-  }\n\n${notInSabiCopy.dealHint}`;
+  } ${notInSabiCopy.dealHint}`;
   // Same banner the investor sees on the ficha: own photo first, else the sector reference photo.
   const ownBanner = coverSrc ?? projectImageSrc(projectSlug(codename));
   const previewBanner = ownBanner
