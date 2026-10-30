@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, BadgeCheck, Mail } from "lucide-react";
 import { AdminSabiPanel } from "@/components/admin-sabi-panel";
 import { CompanyProfile } from "@/components/company-profile-view";
+import { SabiDetailPanel } from "@/components/sabi-detail-panel";
+import { SabiRegistryCards } from "@/components/sabi-registry-cards";
+import { sabiRegistryIsEmpty } from "@/lib/sabi/registry";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { InvestorPublicCard } from "@/components/investor-public-card";
@@ -71,7 +74,13 @@ export function AdminCompany({
       ) : null}
       <InvestorProjectTabs
         panels={{
-          company: <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />,
+          company: (
+            <div className="flex flex-col gap-4">
+              <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />
+              {view.sabiDetail ? <SabiDetailPanel detail={view.sabiDetail} readOnly /> : null}
+              {view.sabiRegistry && !sabiRegistryIsEmpty(view.sabiRegistry) ? <SabiRegistryCards registry={view.sabiRegistry} /> : null}
+            </div>
+          ),
           questions: selected ? <ChatPanel messages={chat} /> : <EmptyPanel text={adminCopy.processNone} />,
           meetings: selected ? <MeetingPanel messages={meetings} today={today} /> : <EmptyPanel text={adminCopy.processNone} />,
         }}

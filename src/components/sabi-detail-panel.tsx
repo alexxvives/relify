@@ -67,7 +67,7 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
           ) : null}
           <KitButton type="button" aria-expanded={open} onClick={() => setOpen((current) => !current)} tone="outline" size="sm">
             {open ? <ChevronUp className="size-4" aria-hidden /> : <ChevronDown className="size-4" aria-hidden />}
-            {open ? "Plegar" : "Ver y editar"}
+            {open ? "Plegar" : readOnly ? "Ver" : "Ver y editar"}
           </KitButton>
         </div>
       </div>

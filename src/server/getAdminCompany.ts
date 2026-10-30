@@ -13,6 +13,8 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { publicCardsByInvestor } from "@/server/investorProfile";
 import { readSabiStored } from "@/server/sabiImport";
+import { getSabiDetail, type SabiDetailForm } from "@/server/sabiDetail";
+import { getSabiRegistry, type SabiRegistry } from "@/server/sabiRegistry";
 
 const projectSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const accessIdSchema = z.string().trim().min(1).max(128);
@@ -98,6 +100,8 @@ export type AdminSabiView = {
 
 export type AdminCompanyView = {
   sabi: AdminSabiView;
+  sabiDetail: SabiDetailForm | null;
+  sabiRegistry: SabiRegistry | null;
   profile: InvestorProjectProfile;
   privateFacts: AdminPrivateFact[];
   status: "draft" | "pending" | "published";
@@ -239,7 +243,11 @@ export async function getAdminCompany(
   });
   const selected = accesses.find((access) => access.id === input.accessId) ?? accesses[0] ?? null;
   const chosen = input.accessId ? project.accesses.find((access) => access.id === input.accessId) ?? null : null;
-  const parties = chosen ? await sideParties(project.id, chosen) : { investor: null, advisors: [] };
+  const [parties, sabiDetail, sabiRegistry] = await Promise.all([
+    chosen ? sideParties(project.id, chosen) : Promise.resolve({ investor: null, advisors: [] }),
+    getSabiDetail(project.id),
+    getSabiRegistry(project.id),
+  ]);
 
   const stored = readSabiStored(project.sabiData)?.report ?? null;
   const sabi: AdminSabiView = {
@@ -285,6 +293,8 @@ export async function getAdminCompany(
 
   return {
     sabi,
+    sabiDetail,
+    sabiRegistry,
     profile: toInvestorProject(project),
     privateFacts,
     status: project.status,

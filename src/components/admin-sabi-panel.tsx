@@ -9,7 +9,7 @@ import { mapSabiReport } from "@/lib/sabi/mapping";
 import { parseSabiWorkbook } from "@/lib/sabi/parse";
 import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { CompanyBanner } from "@/components/company-banner";
-import type { AdminSabiHolding, AdminSabiView } from "@/server/getAdminCompany";
+import type { AdminSabiView } from "@/server/getAdminCompany";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
@@ -258,29 +258,6 @@ function Fact({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function Holdings({ title, rows }: { title: string; rows: AdminSabiHolding[] }) {
-  if (rows.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-[#1c2740]">{title}</h3>
-      <ul className="mt-2 flex flex-col gap-1 text-sm text-[#1c2740]">
-        {rows.map((row, index) => (
-          <li key={`${row.name}-${index}`} className="flex justify-between gap-3">
-            <span>
-              {row.name}
-              {row.country ? <span className="text-[#5c6b78]"> · {row.country}</span> : null}
-            </span>
-            <span className="tabular-nums text-[#5c6b78]">{row.direct ?? row.total ?? "—"} %</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function StoredBlock({ sabi }: { sabi: AdminSabiView }) {
   return (
     <div className="mt-6 grid gap-6 border-t border-[#eef0f4] pt-5 md:grid-cols-2">
@@ -309,27 +286,6 @@ function StoredBlock({ sabi }: { sabi: AdminSabiView }) {
           </div>
         ) : null}
       </dl>
-      <div className="flex flex-col gap-5">
-        {sabi.directors.length > 0 ? (
-          <div>
-            <h3 className="text-sm font-semibold text-[#1c2740]">Administradores y directivos</h3>
-            <ul className="mt-2 flex flex-col gap-1 text-sm text-[#1c2740]">
-              {sabi.directors.map((person, index) => (
-                <li key={`${person.name}-${index}`}>
-                  {person.name}
-                  <span className="text-[#5c6b78]">
-                    {" "}
-                    · {person.role}
-                    {person.since ? ` desde ${isoDay(person.since)}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        <Holdings title="Accionistas" rows={sabi.shareholders} />
-        <Holdings title="Participadas" rows={sabi.subsidiaries} />
-      </div>
       <ExtraBlock sabi={sabi} />
     </div>
   );
@@ -357,31 +313,7 @@ function ExtraBlock({ sabi }: { sabi: AdminSabiView }) {
         <Fact label="Tipo de empresa" value={sabi.companyType} />
         <Fact label="Empresas en el grupo corporativo" value={sabi.groupCompanyCount === null ? null : String(sabi.groupCompanyCount)} />
       </dl>
-      {sabi.audits.length > 0 ? (
-        <details className="rounded-xl border border-[#e7eaee] p-3 text-sm">
-          <summary className="cursor-pointer font-semibold text-[#1c2740]">Estado de auditoría por año ({sabi.audits.length})</summary>
-          <table className="mt-2 w-full text-left text-sm">
-            <thead className="text-xs text-[#5c6b78]">
-              <tr>
-                <th className="py-1 pr-3">Año</th>
-                <th className="py-1 pr-3">Cierre</th>
-                <th className="py-1 pr-3">Opinión</th>
-                <th className="py-1">Auditor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sabi.audits.map((audit) => (
-                <tr key={audit.year} className="border-t border-[#eef0f4]">
-                  <td className="py-1 pr-3 tabular-nums">{audit.year}</td>
-                  <td className="py-1 pr-3">{isoDay(audit.closingOn)}</td>
-                  <td className="py-1 pr-3">{audit.opinion ?? "—"}</td>
-                  <td className="py-1">{[audit.auditorName, audit.auditorCode].filter(Boolean).join(" · ") || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </details>
-      ) : null}
+      <p className="text-xs text-[#5c6b78]">Administradores, accionistas, participadas, auditorías, bancos y códigos: ver «Registro mercantil y grupo (SABI)» en la ficha.</p>
       {extra ? (
         <details className="rounded-xl border border-[#e7eaee] p-3 text-sm">
           <summary className="cursor-pointer font-semibold text-[#1c2740]">
