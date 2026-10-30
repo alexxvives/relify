@@ -56,7 +56,8 @@ async function CompanyPageContent({
 
   return (
     <>
-      <CompanyNifDialog active={!nifVerified} />
+      {/* The NIF step waits for the Relify agreement (PlatformTermsDialog in the shell); accepting it redirects back here. */}
+      {user.termsAccepted ? <CompanyNifDialog active={!nifVerified} /> : null}
       {nifVerified && !own?.sabiImportedAt ? <SabiPendingNotice /> : null}
       <SellerOverview
         sold={sold}
