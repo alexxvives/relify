@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SabiPendingOverlay } from "@/components/sabi-pending-notice";
 import { Check, Circle } from "lucide-react";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import type { SellerFunnel } from "@/server/activityFunnel";
@@ -50,8 +51,11 @@ export function SellerOverview({
   costYears,
   pending,
   sold = false,
+  financialsPending = false,
 }: {
   sold?: boolean;
+  /** CIF verified, SABI financials not imported yet: the charts area shows the 24 h overlay. */
+  financialsPending?: boolean;
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
   hasPhoto?: boolean;
@@ -88,7 +92,14 @@ export function SellerOverview({
                 <FieldHint text={sellerCopy.financeIntro} />
               </h2>
             </div>
-            {series.length === 0 ? (
+            {financialsPending ? (
+              <div className="relative mt-3 min-h-64">
+                <div aria-hidden className="pointer-events-none select-none">
+                  <FinanceChartsPlaceholder />
+                </div>
+                <SabiPendingOverlay />
+              </div>
+            ) : series.length === 0 ? (
               <>
                 <p className="mt-1 text-sm text-[#667085]">{sellerCopy.financeEmpty}</p>
                 <FinanceChartsPlaceholder />

@@ -8,7 +8,6 @@ import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { prisma } from "@/server/db";
-import { SabiPendingNotice } from "@/components/sabi-pending-notice";
 import { sellerFunnel } from "@/server/activityFunnel";
 import { projectSold } from "@/server/saleOutcome";
 import { getSellerOverview } from "@/server/getSellerOverview";
@@ -58,9 +57,9 @@ async function CompanyPageContent({
     <>
       {/* The NIF step waits for the Relify agreement (PlatformTermsDialog in the shell); accepting it redirects back here. */}
       {user.termsAccepted ? <CompanyNifDialog active={!nifVerified} /> : null}
-      {nifVerified && !own?.sabiImportedAt ? <SabiPendingNotice /> : null}
       <SellerOverview
         sold={sold}
+        financialsPending={nifVerified && !own?.sabiImportedAt}
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
