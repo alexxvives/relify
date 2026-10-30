@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
@@ -51,6 +52,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       : Promise.resolve(0),
   ]);
 
+  const rail = (await cookies()).get("relify_rail")?.value === "1";
   const destinations = destinationsForRole(user.role);
   if (user.role === "seller" && sold) {
     destinations.push(saleClosedDestination);
@@ -74,6 +76,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       processPending={buyerPending}
       encargoCount={encargoCount}
       navCounts={adminCounts}
+      initialRail={rail}
     >
       {children}
       {user.termsAccepted || user.role === "admin" ? null : <PlatformTermsDialog />}

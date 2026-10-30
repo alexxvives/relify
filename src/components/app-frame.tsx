@@ -134,6 +134,8 @@ function subscribeReady() {
   return () => undefined;
 }
 
+const railCookie = "relify_rail";
+
 const processHrefs = new Set(["/procesos", "/mi-empresa/procesos", "/mandatos/venta"]);
 
 function SideLink({
@@ -230,6 +232,7 @@ export function AppFrame({
   processPending = 0,
   encargoCount = 0,
   navCounts = {},
+  initialRail = false,
   children,
 }: {
   name: string;
@@ -246,6 +249,8 @@ export function AppFrame({
   encargoCount?: number;
   /** Extra sidebar bubbles by href (admin: new items since last visit). */
   navCounts?: Record<string, number>;
+  /** Desktop sidebar starts as an icons-only rail (remembered in the `relify_rail` cookie). */
+  initialRail?: boolean;
   children: ReactNode;
 }) {
   // Multi-company sellers: the bell and menu dots only cover the selected company.
@@ -266,6 +271,15 @@ export function AppFrame({
     : [];
   const activePending = (companies.find((company) => company.id === activeCompanyId)?.pending ?? 0) + processPending;
   const [open, setOpen] = useState(false);
+  const [rail, setRail] = useState(initialRail);
+
+  function toggleRail() {
+    setRail((current) => {
+      const next = !current;
+      document.cookie = `${railCookie}=${next ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
+      return next;
+    });
+  }
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
 
   function toggleSection(section: string) {
@@ -301,7 +315,7 @@ export function AppFrame({
   }
 
   return (
-    <div className="shell min-h-screen bg-public-paper font-public text-public-ink">
+    <div data-rail={rail ? "true" : "false"} className="shell min-h-screen bg-public-paper font-public text-public-ink">
       {open ? (
         <button type="button" aria-label={shellCopy.menuClose} className="shell-backdrop" onClick={closeMenu} />
       ) : null}
@@ -312,13 +326,27 @@ export function AppFrame({
       >
         <div className="shell-head relative z-20 flex flex-col gap-3 px-4 pt-5 pb-2">
           {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
-          <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="shell-head-row flex min-w-0 items-center justify-between gap-2">
             <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
-              <Logo tone="light" />
+              <span className="shell-logo-full">
+                <Logo tone="light" />
+              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG brand mark */}
+              <img src="/brand/mark.svg" alt="" width={36} height={36} className="shell-logo-mark size-9 brightness-0 invert" />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
               {showPremium ? <PremiumLink onClick={closeMenu} /> : null}
               <NotificationBell items={notifications} pendingGroups={pendingGroups} />
+              <button
+                type="button"
+                onClick={toggleRail}
+                aria-pressed={rail}
+                aria-label={rail ? shellCopy.railExpand : shellCopy.railCollapse}
+                title={rail ? shellCopy.railExpand : shellCopy.railCollapse}
+                className="hidden size-10 items-center justify-center rounded-full text-[#d6dbe6] hover:bg-[#262d40] focus-visible:outline-2 focus-visible:outline-[#2fc4b2] lg:inline-flex"
+              >
+                <PanelLeftIcon size={18} aria-hidden />
+              </button>
               <button
                 type="button"
                 onClick={closeMenu}
@@ -331,7 +359,9 @@ export function AppFrame({
           </div>
           {/* Row 2: the active company spans the full sidebar width. */}
           {canManageCompanies ? (
+            <div className="shell-full">
             <CompanySwitcher companies={companies} activeId={activeCompanyId} notices={notifications} unreadElsewhere={unreadElsewhere} />
+            </div>
           ) : null}
         </div>
         <nav aria-label={shellCopy.navLabel} className="shell-nav flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-3">
@@ -340,7 +370,8 @@ export function AppFrame({
             const previous = navItems[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
             const sectionId = item.section ? `nav-section-${item.section.replace(/\W+/g, "-")}` : undefined;
-            const hidden = item.section !== undefined && collapsed.has(item.section) && !selected;
+            // The icon rail has no section headers, so it always lists every destination.
+            const hidden = !rail && item.section !== undefined && collapsed.has(item.section) && !selected;
             const seenIds = new Set(seen.split(",").filter((id) => id.length > 0));
             const alert =
               ready &&

@@ -3,6 +3,8 @@ import type { UserRoleName } from "@/lib/auth-input";
 export const shellCopy = {
   menuOpen: "Abrir menú",
   menuClose: "Cerrar menú",
+  railCollapse: "Contraer menú",
+  railExpand: "Expandir menú",
   navLabel: "Secciones",
   accountLabel: "Cuenta",
   viewProfile: "Ver perfil",
