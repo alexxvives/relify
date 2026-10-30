@@ -133,7 +133,7 @@ const roleTones: Record<string, string> = {
 
 function roleLabel(role: string | null): string {
   if (role && role in adminCopy.accountRoles) return adminCopy.accountRoles[role as keyof typeof adminCopy.accountRoles];
-  return "Sin rol";
+  return adminCopy.roles.none;
 }
 
 function InfoRow({ label, children, open = false }: { label: string; children: React.ReactNode; open?: boolean }) {

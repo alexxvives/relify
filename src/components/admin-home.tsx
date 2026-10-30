@@ -12,7 +12,10 @@ const cardClass = "block rounded-2xl border border-[#e7eaee] bg-white p-5 hover:
 export function AdminHome({ overview }: { overview: AdminDashboard }) {
   const accounts = overview.roles.reduce((sum, row) => sum + row.count, 0);
   const finished = Math.max(accounts - overview.unfinished, 0);
-  const roles = overview.roles.map((row) => ({
+  // Admin seats are staff, not users of the marketplace: left out of "Cuentas por rol".
+  const userRoles = overview.roles.filter((row) => row.role !== "admin");
+  const userAccounts = userRoles.reduce((sum, row) => sum + row.count, 0);
+  const roles = userRoles.map((row) => ({
     label: adminCopy.roles[row.role],
     value: row.count,
   }));
@@ -50,7 +53,7 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
         </ul>
       </Card>
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={accounts} palette="blue" rows={roles} />
+        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={userAccounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
         <ChartLink
           href="/admin/empresas"

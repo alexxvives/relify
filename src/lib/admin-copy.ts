@@ -196,7 +196,8 @@ export const adminCopy = {
     investor: "Compradores",
     advisor: "Asesores",
     admin: "Administración",
-    none: "Sin rol",
+    // Signed up but never picked a role: onboarding unfinished.
+    none: "Alta pendiente",
   },
   plans: {
     none: "Sin plan",
