@@ -6,7 +6,7 @@ import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, UploadCloud } fr
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
-import { parseSabiWorkbook } from "@/lib/sabi/parse";
+import { parseSabiWorkbookStaged, sabiStages, type SabiStage } from "@/lib/sabi/parse";
 import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { CompanyBanner } from "@/components/company-banner";
 import type { AdminSabiView } from "@/server/getAdminCompany";
@@ -45,6 +45,8 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
   const [done, setDone] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [dragging, setDragging] = useState(false);
+  const [stages, setStages] = useState<Partial<Record<SabiStage, number>>>({});
+  const [saving, setSaving] = useState(false);
 
   // t67: drag-and-drop on the button and on the drop zone; clicking still opens the file picker.
   const dropProps = {
@@ -83,6 +85,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
     setPreview(null);
     setError(null);
     setDone(null);
+    setStages({});
 
     if (!chosen) {
       return;
@@ -95,7 +98,10 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
         return;
       }
 
-      const parsed = await parseSabiWorkbook(new Uint8Array(await chosen.arrayBuffer()));
+      // t67: each section is reported as soon as it is parsed.
+      const parsed = await parseSabiWorkbookStaged(new Uint8Array(await chosen.arrayBuffer()), ({ stage, count }) => {
+        setStages((current) => ({ ...current, [stage]: count }));
+      });
 
       if (!parsed.ok) {
         setError(sabiFailureMessages[parsed.code]);
@@ -111,12 +117,15 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       return;
     }
 
+    setSaving(true);
     start(async () => {
       const result = await confirmSabiAction(form(file));
+      setSaving(false);
 
       if (result.ok) {
         setDone(result.message);
         setPreview(null);
+        setStages({});
         setFile(null);
 
         if (input.current) {
@@ -189,6 +198,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             <span className="text-xs">o haz clic para elegirlo · máx. {Math.round(sabiMaxBytes / 1024 / 1024)} MB</span>
           </div>
         )}
+        {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving} parsing={pending && !saving} /> : null}
         {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
         {error ? (
           <p role="alert" className="text-sm font-medium text-[#b42318]">
@@ -213,6 +223,54 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
         ) : null}
       </section>
     </>
+  );
+}
+
+const stageLabels: Record<SabiStage, string> = {
+  read: "Archivo",
+  general: "Datos generales",
+  balance: "Balance",
+  results: "Cuenta de resultados",
+  ratios: "Ratios",
+  directors: "Administradores",
+  shareholders: "Accionistas",
+};
+
+function stageCount(stage: SabiStage, count: number): string {
+  if (stage === "read") {
+    return `${count} filas`;
+  }
+
+  if (stage === "directors" || stage === "shareholders") {
+    return String(count);
+  }
+
+  return `${count} datos`;
+}
+
+/** t67: the sections already read from the file, then "Guardando…" while the import runs. */
+function SabiProgress({ stages, saving, parsing }: { stages: Partial<Record<SabiStage, number>>; saving: boolean; parsing: boolean }) {
+  const next = sabiStages.find((stage) => stages[stage] === undefined);
+
+  return (
+    <ol aria-label="Progreso de lectura SABI" aria-live="polite" className="mb-4 flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
+      {sabiStages.map((stage) => {
+        const count = stages[stage];
+        const active = parsing && stage === next;
+        return (
+          <li key={stage} className={`inline-flex items-center gap-1.5 ${count !== undefined ? "text-[#0f766e]" : active ? "text-[#1c2740]" : "text-[#9aa5b1]"}`}>
+            {count !== undefined ? <CheckCircle2 className="size-4" aria-hidden /> : active ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <span className="size-4 rounded-full border border-current" aria-hidden />}
+            {stageLabels[stage]}
+            {count !== undefined ? <span className="text-xs text-[#5c6b78]">({stageCount(stage, count)})</span> : null}
+          </li>
+        );
+      })}
+      {saving ? (
+        <li className="inline-flex items-center gap-1.5 font-medium text-[#1c2740]">
+          <Loader2 className="size-4 animate-spin" aria-hidden /> Guardando…
+        </li>
+      ) : null}
+    </ol>
   );
 }
 

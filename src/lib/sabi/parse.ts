@@ -4,6 +4,7 @@ import {
   normalizeLabel,
   ratioIndex,
   tableHeadings,
+  sabiMoneyLabels,
   type SabiMoneyKey,
   type SabiRatioKey,
 } from "./labels";
@@ -912,7 +913,19 @@ function validate(report: SabiReport): void {
   }
 }
 
-export function parseSabiGrid(grid: SheetGrid): SabiParseResult {
+/** t67: the sections reported while a file is read, in order. */
+export const sabiStages = ["read", "general", "balance", "results", "ratios", "directors", "shareholders"] as const;
+export type SabiStage = (typeof sabiStages)[number];
+export type SabiStageEvent = { stage: SabiStage; count: number };
+
+const balanceKeys = new Set<string>(Object.keys(sabiMoneyLabels).slice(Object.keys(sabiMoneyLabels).indexOf("fixedAssets")));
+
+function countValues(years: SabiYear[], pick: (year: SabiYear) => Record<string, number | null | undefined>, keep: (key: string) => boolean): number {
+  return years.reduce((total, year) => total + Object.entries(pick(year)).filter(([key, value]) => keep(key) && value !== null && value !== undefined).length, 0);
+}
+
+/** The parse, one section at a time; each yield reports a finished section and how many values it found. */
+function* gridSteps(grid: SheetGrid): Generator<SabiStageEvent, SabiParseResult> {
   const rows = rowNumbers(grid);
   const firstTableRow = rows.find((row) => isTableHeader(grid, row));
 
@@ -920,23 +933,33 @@ export function parseSabiGrid(grid: SheetGrid): SabiParseResult {
     return { ok: false, code: "no_financials" };
   }
 
+  const identity = parseIdentity(grid, firstTableRow);
+  const codes = parseCodes(grid, firstTableRow);
+  yield { stage: "general", count: Object.values(identity).filter((value) => value !== null && value !== "").length };
   const tables = parseTables(grid);
 
   if (tables.years.size === 0) {
     return { ok: false, code: "no_financials" };
   }
 
-  const identity = parseIdentity(grid, firstTableRow);
   const years = [...tables.years.values()].sort((left, right) => right.year - left.year);
+  yield { stage: "balance", count: countValues(years, (year) => year.money, (key) => balanceKeys.has(key)) };
+  yield { stage: "results", count: countValues(years, (year) => year.money, (key) => !balanceKeys.has(key)) };
+  yield { stage: "ratios", count: countValues(years, (year) => year.ratios, () => true) };
   identity.employees ??= years[0]?.employees ?? null;
+  const directors = parsePeople(grid);
+  yield { stage: "directors", count: directors.length };
+  const shareholders = parseHoldings(grid, "nombre del accionista");
+  const subsidiaries = parseHoldings(grid, "nombre participada");
+  yield { stage: "shareholders", count: shareholders.length };
   const { auditor, banks } = parseAuditAndBanks(grid);
   const report: SabiReport = {
     identity,
-    codes: parseCodes(grid, firstTableRow),
+    codes,
     years,
-    directors: parsePeople(grid),
-    shareholders: parseHoldings(grid, "nombre del accionista"),
-    subsidiaries: parseHoldings(grid, "nombre participada"),
+    directors,
+    shareholders,
+    subsidiaries,
     auditor,
     banks,
     audits: parseAudits(grid),
@@ -946,6 +969,47 @@ export function parseSabiGrid(grid: SheetGrid): SabiParseResult {
   };
   validate(report);
   return { ok: true, report };
+}
+
+export function parseSabiGrid(grid: SheetGrid): SabiParseResult {
+  const steps = gridSteps(grid);
+
+  for (;;) {
+    const step = steps.next();
+
+    if (step.done) {
+      return step.value;
+    }
+  }
+}
+
+/** Like parseSabiWorkbook, but reports each section as it finishes and yields to the event loop in between so a UI can paint. */
+export async function parseSabiWorkbookStaged(bytes: Uint8Array, onStage: (event: SabiStageEvent) => void | Promise<void>): Promise<SabiParseResult> {
+  let grid: SheetGrid;
+
+  try {
+    grid = await readFirstSheet(bytes);
+  } catch (error) {
+    if (error instanceof XlsxError) {
+      return { ok: false, code: "not_xlsx" };
+    }
+
+    throw error;
+  }
+
+  await onStage({ stage: "read", count: grid.size });
+  const steps = gridSteps(grid);
+
+  for (;;) {
+    const step = steps.next();
+
+    if (step.done) {
+      return step.value;
+    }
+
+    await onStage(step.value);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
 }
 
 export async function parseSabiWorkbook(bytes: Uint8Array): Promise<SabiParseResult> {
