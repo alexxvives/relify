@@ -3,7 +3,7 @@ import { ArrowLeft, BadgeCheck, Mail } from "lucide-react";
 import { AdminSabiPanel } from "@/components/admin-sabi-panel";
 import { CompanyProfile } from "@/components/company-profile-view";
 import { SabiDetailPanel } from "@/components/sabi-detail-panel";
-import { SabiRegistryCards } from "@/components/sabi-registry-cards";
+import { SabiInsights } from "@/components/sabi-insights";
 import { sabiRegistryIsEmpty } from "@/lib/sabi/registry";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
@@ -78,7 +78,7 @@ export function AdminCompany({
             <div className="flex flex-col gap-4">
               <CompanyProfile project={view.profile} figuresOpen privateFacts={view.privateFacts} privateHeading={adminCopy.privateHeading} />
               {view.sabiDetail ? <SabiDetailPanel detail={view.sabiDetail} readOnly /> : null}
-              {view.sabiRegistry && !sabiRegistryIsEmpty(view.sabiRegistry) ? <SabiRegistryCards registry={view.sabiRegistry} /> : null}
+              {view.sabiRegistry && !sabiRegistryIsEmpty(view.sabiRegistry) ? <SabiInsights registry={view.sabiRegistry} /> : null}
             </div>
           ),
           questions: selected ? <ChatPanel messages={chat} /> : <EmptyPanel text={adminCopy.processNone} />,
