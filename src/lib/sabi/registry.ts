@@ -1,3 +1,4 @@
+import type { SabiYear } from "@/lib/sabi/insights";
 import type { SabiAudit, SabiCodeScheme, SabiCodeSet, SabiHolding, SabiPerson } from "@/lib/sabi/parse";
 
 /** t67: the SABI lists stored as JSON columns (directors, holdings, audits, banks, codes), read back for the ficha. */
@@ -8,6 +9,8 @@ export type SabiRegistry = {
   audits: SabiAudit[];
   banks: string[];
   activityCodes: Partial<Record<SabiCodeScheme, SabiCodeSet>>;
+  /** t68: SABI-imported years, oldest first (filled by the server loader). */
+  years: SabiYear[];
 };
 
 function list<T>(value: unknown): T[] {
@@ -22,12 +25,13 @@ export function readSabiRegistry(row: { directors: unknown; shareholdings: unkno
     audits: list<SabiAudit>(row.audits).filter((audit) => typeof audit?.year === "number"),
     banks: list<unknown>(row.banks).filter((bank): bank is string => typeof bank === "string"),
     activityCodes: row.activityCodes && typeof row.activityCodes === "object" && !Array.isArray(row.activityCodes) ? (row.activityCodes as SabiRegistry["activityCodes"]) : {},
+    years: [],
   };
 }
 
 export function sabiRegistryIsEmpty(registry: SabiRegistry): boolean {
   return (
-    registry.directors.length + registry.shareholdings.length + registry.subsidiaries.length + registry.audits.length + registry.banks.length === 0 &&
+    registry.directors.length + registry.shareholdings.length + registry.subsidiaries.length + registry.audits.length + registry.banks.length + registry.years.length === 0 &&
     Object.keys(registry.activityCodes).length === 0
   );
 }

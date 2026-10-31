@@ -105,6 +105,8 @@ export type InvestorStatementRow = {
 export type InvestorSlice = {
   label: string;
   basisPoints: number;
+  /** t68: optional label override (e.g. "> 50 %" for SABI lower bounds). */
+  detail?: string;
 };
 
 export type InvestorCnae = {

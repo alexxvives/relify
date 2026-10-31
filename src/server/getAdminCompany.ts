@@ -14,6 +14,7 @@ import { prisma } from "@/server/db";
 import { publicCardsByInvestor } from "@/server/investorProfile";
 import { readSabiStored } from "@/server/sabiImport";
 import { getSabiDetail, type SabiDetailForm } from "@/server/sabiDetail";
+import { sabiOwnershipSlices } from "@/lib/sabi/insights";
 import { getSabiRegistry, type SabiRegistry } from "@/server/sabiRegistry";
 
 const projectSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
@@ -295,7 +296,7 @@ export async function getAdminCompany(
     sabi,
     sabiDetail,
     sabiRegistry,
-    profile: toInvestorProject(project),
+    profile: withSabiCapital(toInvestorProject(project), sabiRegistry),
     privateFacts,
     status: project.status,
     accesses,
@@ -434,4 +435,13 @@ function withoutAttachments(body: string): string {
     .filter((line) => !line.startsWith("Adjunto: "))
     .join("\n")
     .trim();
+}
+
+/** t68: when the seller never filled the capital split, the ficha's capital pie falls back to SABI's shareholders. */
+function withSabiCapital(profile: InvestorProjectProfile, registry: SabiRegistry | null): InvestorProjectProfile {
+  if (profile.capital.length > 0 || !registry) {
+    return profile;
+  }
+
+  return { ...profile, capital: sabiOwnershipSlices(registry.shareholdings) };
 }

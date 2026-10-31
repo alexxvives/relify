@@ -16,14 +16,14 @@ export function ShareDonut({
   palette,
 }: {
   title: string;
-  slices: { label: string; basisPoints: number }[];
+  slices: { label: string; basisPoints: number; detail?: string }[];
   palette: SliceKind;
 }) {
   const colors = palettes[palette];
   const [active, setActive] = useState<number | null>(null);
   const rings = slices.map((slice, index) => ({
     label: slice.label,
-    detail: formatBasisPoints(slice.basisPoints),
+    detail: slice.detail ?? formatBasisPoints(slice.basisPoints),
     length: slice.basisPoints / 100,
     offset: slices.slice(0, index).reduce((sum, item) => sum + item.basisPoints / 100, 0),
     color: colors[index % colors.length] ?? "#465ab4",
