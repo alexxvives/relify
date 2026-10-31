@@ -13,15 +13,6 @@ import type { AdminSabiView } from "@/server/getAdminCompany";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
-const schemeLabels: Record<string, string> = {
-  cnae2025: "CNAE 2025",
-  nace: "NACE Rev. 2",
-  cae: "CAE",
-  ussic: "US SIC",
-  iae: "IAE",
-  naics: "NAICS",
-};
-
 function money(cents: number | null): string {
   return cents === null ? "—" : euro.format(cents / 100);
 }
@@ -242,16 +233,6 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
           </p>
         ) : null}
         {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
-        {sabi.importedAt && !preview ? (
-          <details className="group">
-            <summary className="cursor-pointer list-none text-sm font-medium text-[#465ab4] hover:underline">
-              <span className="group-open:hidden">Ver datos SABI importados</span>
-              <span className="hidden group-open:inline">Ocultar datos SABI</span>
-              <span className="ml-2 text-xs font-normal text-[#5c6b78]">{status}</span>
-            </summary>
-            <StoredBlock sabi={sabi} />
-          </details>
-        ) : null}
       </section>
     </>
   );
@@ -390,108 +371,6 @@ function Fact({ label, value }: { label: string; value: string | null }) {
     <div className="flex flex-col">
       <dt className="text-xs text-[#5c6b78]">{label}</dt>
       <dd className="font-medium text-[#1c2740]">{value || "—"}</dd>
-    </div>
-  );
-}
-
-function StoredBlock({ sabi }: { sabi: AdminSabiView }) {
-  return (
-    <div className="mt-6 grid gap-6 border-t border-[#eef0f4] pt-5 md:grid-cols-2">
-      <dl className="grid gap-y-2 text-sm">
-        <Fact label="Forma jurídica" value={sabi.legalForm} />
-        <Fact label="Constitución" value={isoDay(sabi.incorporatedOn)} />
-        <Fact label="Empleados" value={sabi.employees === null ? null : String(sabi.employees)} />
-        <Fact label="Auditor" value={sabi.auditor} />
-        <Fact label="Bancos" value={sabi.banks.join(" · ") || null} />
-        <Fact label="Estado" value={sabi.status} />
-        <Fact label="Denominación anterior" value={sabi.formerName} />
-        <Fact label="Capital social" value={sabi.shareCapitalCents === null ? null : money(sabi.shareCapitalCents)} />
-        <Fact label="Teléfono" value={sabi.phone} />
-        <Fact label="Web" value={sabi.website} />
-        <Fact label="Últimas cuentas" value={sabi.lastAccountsOn ? isoDay(sabi.lastAccountsOn) : null} />
-        <Fact label="Tipo de cuentas" value={sabi.accountsType} />
-        <Fact label="Matriz última (GUO)" value={sabi.globalUltimateOwner} />
-        <Fact label="Indicador de independencia" value={sabi.independence} />
-        {sabi.otherCodes.map((entry) => (
-          <Fact key={entry.scheme} label={schemeLabels[entry.scheme] ?? entry.scheme.toUpperCase()} value={entry.codes} />
-        ))}
-        {sabi.activityDescription ? (
-          <div className="flex flex-col">
-            <dt className="text-xs text-[#5c6b78]">Descripción de actividad (SABI, solo admin)</dt>
-            <dd className="whitespace-pre-line text-[#1c2740]">{sabi.activityDescription}</dd>
-          </div>
-        ) : null}
-      </dl>
-      <ExtraBlock sabi={sabi} />
-    </div>
-  );
-}
-
-function columnName(index: number): string {
-  let name = "";
-  let n = index;
-
-  while (n > 0) {
-    const rem = (n - 1) % 26;
-    name = String.fromCharCode(65 + rem) + name;
-    n = Math.floor((n - 1) / 26);
-  }
-
-  return name;
-}
-
-/** t62: everything in the file without its own column, so nothing from SABI is lost. */
-function ExtraBlock({ sabi }: { sabi: AdminSabiView }) {
-  const extra = sabi.extra;
-  return (
-    <div className="flex flex-col gap-4 md:col-span-2">
-      <dl className="grid gap-y-2 text-sm sm:grid-cols-2">
-        <Fact label="Tipo de empresa" value={sabi.companyType} />
-        <Fact label="Empresas en el grupo corporativo" value={sabi.groupCompanyCount === null ? null : String(sabi.groupCompanyCount)} />
-      </dl>
-      <p className="text-xs text-[#5c6b78]">Administradores, accionistas, participadas, auditorías, bancos y códigos: ver «Registro mercantil y grupo (SABI)» en la ficha.</p>
-      {extra ? (
-        <details className="rounded-xl border border-[#e7eaee] p-3 text-sm">
-          <summary className="cursor-pointer font-semibold text-[#1c2740]">
-            Resto del archivo SABI (sabi_extra) · {extra.olderYears.length} ejercicios anteriores · {extra.sheet.length} filas
-          </summary>
-          {extra.unmappedLabels.length > 0 ? (
-            <p className="mt-2 text-[#5c6b78]">Líneas sin campo propio: {extra.unmappedLabels.join(" · ")}</p>
-          ) : null}
-          {extra.olderYears.length > 0 ? (
-            <div className="mt-3">
-              <h4 className="text-xs font-semibold text-[#5c6b78]">Ejercicios fuera de la ficha</h4>
-              <ul className="mt-1 flex flex-col gap-1">
-                {extra.olderYears.map((year) => (
-                  <li key={year.year} className="tabular-nums">
-                    {year.year}: ingresos {money(year.money.operatingRevenue ?? year.money.sales ?? null)} · resultado {money(year.money.netResult ?? null)} · activo{" "}
-                    {money(year.money.totalAssets ?? null)} · {year.employees ?? "—"} empleados
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <div className="mt-3 max-h-[28rem] overflow-auto rounded-lg border border-[#eef0f4]">
-            <table className="w-full text-left text-xs">
-              <tbody>
-                {extra.sheet.map(([row, cells]) => (
-                  <tr key={row} className="border-t border-[#eef0f4] align-top">
-                    <th className="sticky left-0 bg-[#f6f7f9] px-2 py-1 font-medium text-[#5c6b78] tabular-nums">{row}</th>
-                    <td className="px-2 py-1 text-[#1c2740]">
-                      {cells.map(([column, text]) => (
-                        <span key={column} className="mr-3 inline-block whitespace-pre-line">
-                          <span className="text-[#98a2b3]">{columnName(column)} </span>
-                          {text}
-                        </span>
-                      ))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      ) : null}
     </div>
   );
 }

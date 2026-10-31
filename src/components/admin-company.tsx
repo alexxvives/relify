@@ -55,7 +55,7 @@ export function AdminCompany({
   const company = (
     <>
       <AdminSabiPanel
-        sabi={view.sabi}
+        sabi={{ ...view.sabi, extra: null }}
         banner={{
           title: view.profile.codename,
           subtitle: view.profile.region,
