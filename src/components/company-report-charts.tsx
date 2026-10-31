@@ -1,10 +1,7 @@
 "use client";
 
-import { Building2, Landmark, ShieldCheck, Tags, Users } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { FieldHint } from "@/components/field-hint";
-import { ShareDonut } from "@/components/share-donut";
-import { Card } from "@/components/ui/form";
 import { tooltipBubble } from "@/components/ui/info-hint";
 import { formatCompactEur } from "@/lib/money";
 import {
@@ -13,30 +10,27 @@ import {
   netDebtCents,
   netDebtToEbitda,
   pnlWaterfall,
-  sabiOwnershipSlices,
   yearOverYear,
   type SabiYear,
   type WaterfallStep,
 } from "@/lib/sabi/insights";
+import type { HealthSignal } from "@/lib/company-report";
 import type { SabiHolding, SabiPerson } from "@/lib/sabi/parse";
-import type { SabiRegistry } from "@/lib/sabi/registry";
 
-/** t68: the SABI import as charts first (trends, balance, P&L bridge, ratios, ownership, people), tables behind "Ver tabla". */
-export const sabiInsightsCopy = {
-  title: "Análisis SABI",
-  intro: "Cuentas depositadas y registro mercantil importados de SABI. Pasa el ratón (o toca) los iconos ⓘ para ver qué significa cada dato y cómo se calcula.",
+/** t69: chart and registry building blocks for the company report (was the t68 "Análisis SABI" panel). */
+export const reportChartsCopy = {
   showTable: "Ver tabla",
   hideTable: "Ocultar tabla",
-  noData: "Sin datos en el informe SABI.",
+  noData: "Sin datos.",
 };
 
-const navy = "#1c2740";
-const teal = "#0f766e";
-const tealMid = "#2fc4b2";
-const tealLight = "#7fd6cc";
-const loss = "#c23b3b";
+export const navy = "#1c2740";
+export const teal = "#0f766e";
+export const tealMid = "#2fc4b2";
+export const tealLight = "#7fd6cc";
+export const loss = "#c23b3b";
 
-const schemeLabels: Record<string, string> = {
+export const schemeLabels: Record<string, string> = {
   cnae2009: "CNAE 2009",
   cnae2025: "CNAE 2025",
   nace: "NACE Rev. 2",
@@ -50,9 +44,9 @@ const decimal = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minim
 const decimal2 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
 const integer = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-type Unit = "eur" | "pct" | "x" | "days" | "keur" | "people";
+export type Unit = "eur" | "pct" | "x" | "days" | "keur" | "people";
 
-function formatValue(value: number, unit: Unit): string {
+export function formatValue(value: number, unit: Unit): string {
   switch (unit) {
     case "eur":
       return formatCompactEur(value);
@@ -90,7 +84,7 @@ function formatDelta(delta: number, previous: number, unit: Unit): string {
   return `${sign}${decimal.format((delta / Math.abs(previous)) * 100)} %`;
 }
 
-function isoDay(iso: string | null | undefined): string {
+export function isoDay(iso: string | null | undefined): string {
   if (!iso) {
     return "—";
   }
@@ -99,13 +93,13 @@ function isoDay(iso: string | null | undefined): string {
   return day ? `${day}/${month}/${year}` : iso;
 }
 
-function yearLabel(year: SabiYear): string {
+export function yearLabel(year: SabiYear): string {
   return year.months !== null && year.months !== 12 ? `${year.year} (${year.months} m)` : String(year.year);
 }
 
 /* ---------- shared bits ---------- */
 
-function ChartBox({ title, hint, legend, table, children }: { title: string; hint?: string; legend?: ReactNode; table?: ReactNode; children: ReactNode }) {
+export function ChartBox({ title, hint, legend, table, children }: { title: string; hint?: string; legend?: ReactNode; table?: ReactNode; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-4">
@@ -123,7 +117,7 @@ function ChartBox({ title, hint, legend, table, children }: { title: string; hin
             aria-expanded={open}
             className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
           >
-            {open ? sabiInsightsCopy.hideTable : sabiInsightsCopy.showTable}
+            {open ? reportChartsCopy.hideTable : reportChartsCopy.showTable}
           </button>
         ) : null}
       </div>
@@ -134,7 +128,7 @@ function ChartBox({ title, hint, legend, table, children }: { title: string; hin
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+export function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className="size-2.5 rounded-sm" style={{ backgroundColor: color }} aria-hidden />
@@ -151,7 +145,7 @@ function Tip({ text }: { text: string }) {
   );
 }
 
-function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: string; unit: Unit; values: Array<number | null> }[] }) {
+export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: string; unit: Unit; values: Array<number | null> }[] }) {
   return (
     <table className="w-full min-w-[28rem] text-left text-xs">
       <thead className="bg-[#f7f8fb] text-[#5c6b78]">
@@ -182,9 +176,9 @@ function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: string; 
 
 /* ---------- charts ---------- */
 
-type Series = { label: string; color: string; values: Array<number | null> };
+export type Series = { label: string; color: string; values: Array<number | null> };
 
-function ColumnBars({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
+export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
   const all = series.flatMap((item) => item.values).filter((value): value is number => value !== null);
   const max = Math.max(0, ...all);
   const min = Math.min(0, ...all);
@@ -241,7 +235,7 @@ function clampFor(unit: Unit, value: number): number {
   return unit === "pct" ? Math.max(-pctLimit, Math.min(pctLimit, value)) : value;
 }
 
-function LineChart({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
+export function LineChart({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
   const all = series.flatMap((item) => item.values).filter((value): value is number => value !== null).map((value) => clampFor(unit, value));
   const max = Math.max(0, ...all);
   const min = Math.min(0, ...all);
@@ -297,7 +291,7 @@ function LineChart({ years, series, unit }: { years: SabiYear[]; series: Series[
   );
 }
 
-function BalanceStacks({ years }: { years: SabiYear[] }) {
+export function BalanceStacks({ years }: { years: SabiYear[] }) {
   const usable = years.filter((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0);
   const max = Math.max(...usable.map((year) => year.totalAssetsCents!), 1);
   const segment = (label: string, color: string, value: number | null, year: SabiYear) =>
@@ -358,7 +352,7 @@ function waterfallBars(steps: WaterfallStep[]) {
   return bars;
 }
 
-function Waterfall({ year }: { year: SabiYear }) {
+export function Waterfall({ year }: { year: SabiYear }) {
   const bars = waterfallBars(pnlWaterfall(year));
   const points = bars.flatMap((bar) => [bar.from, bar.to]);
   const max = Math.max(0, ...points);
@@ -400,7 +394,7 @@ function Waterfall({ year }: { year: SabiYear }) {
   );
 }
 
-function Sparkline({ values, color, unit }: { values: Array<number | null>; color: string; unit: Unit }) {
+export function Sparkline({ values, color, unit }: { values: Array<number | null>; color: string; unit: Unit }) {
   const present = values.map((value, index) => ({ value: value === null ? null : clampFor(unit, value), index })).filter((point): point is { value: number; index: number } => point.value !== null);
   if (present.length < 2) {
     return null;
@@ -420,9 +414,9 @@ function Sparkline({ values, color, unit }: { values: Array<number | null>; colo
   );
 }
 
-type Metric = { key: string; label: string; unit: Unit; better: "up" | "down" | "none"; hint: string; values: Array<number | null> };
+export type Metric = { key: string; label: string; unit: Unit; better: "up" | "down" | "none"; hint: string; values: Array<number | null> };
 
-function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }) {
+export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }) {
   const lastIndex = metric.values.findLastIndex((value) => value !== null);
   const value = lastIndex >= 0 ? metric.values[lastIndex]! : null;
   const change = yearOverYear(metric.values);
@@ -459,7 +453,7 @@ function ratio(years: SabiYear[], key: string): Array<number | null> {
   return years.map((year) => year.ratios[key] ?? null);
 }
 
-function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
+export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
   const field = (pick: (year: SabiYear) => number | null) => years.map(pick);
   const kpis: Metric[] = [
     { key: "revenue", label: "Ingresos de explotación", unit: "eur", better: "up", values: field((year) => year.revenueCents), hint: "Todo lo que la empresa ingresa por su actividad (ventas y otros ingresos de explotación) en el ejercicio. La variación es el cambio en % frente al año anterior." },
@@ -492,7 +486,7 @@ function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
 
 /* ---------- registry sections ---------- */
 
-function Section({ icon, title, count, hint, children }: { icon: ReactNode; title: string; count?: number; hint?: string; children: ReactNode }) {
+export function Section({ icon, title, count, hint, children }: { icon: ReactNode; title: string; count?: number; hint?: string; children: ReactNode }) {
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-4">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1c2740]">
@@ -506,7 +500,7 @@ function Section({ icon, title, count, hint, children }: { icon: ReactNode; titl
   );
 }
 
-function Toggle({ label, children }: { label: string; children: ReactNode }) {
+export function Toggle({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="mt-3">
@@ -518,14 +512,14 @@ function Toggle({ label, children }: { label: string; children: ReactNode }) {
         aria-expanded={open}
         className="rounded-lg px-2 py-1 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
       >
-        {open ? sabiInsightsCopy.hideTable : label}
+        {open ? reportChartsCopy.hideTable : label}
       </button>
       {open ? <div className="mt-2 overflow-x-auto rounded-lg border border-[#eef0f4]">{children}</div> : null}
     </div>
   );
 }
 
-function HoldingTable({ rows }: { rows: SabiHolding[] }) {
+export function HoldingTable({ rows }: { rows: SabiHolding[] }) {
   return (
     <table className="w-full min-w-[30rem] text-left text-xs">
       <thead className="bg-[#f7f8fb] text-[#5c6b78]">
@@ -564,7 +558,7 @@ function initials(name: string): string {
     .join("");
 }
 
-function People({ directors }: { directors: SabiPerson[] }) {
+export function People({ directors }: { directors: SabiPerson[] }) {
   const people = new Map<string, { name: string; roles: string[]; since: string | null; group: string | null }>();
   for (const person of directors) {
     const entry = people.get(person.name) ?? { name: person.name, roles: [], since: person.since, group: person.group };
@@ -607,265 +601,42 @@ function People({ directors }: { directors: SabiPerson[] }) {
   );
 }
 
-function Empty() {
-  return <p className="text-sm text-[#5c6b78]">{sabiInsightsCopy.noData}</p>;
+export function Empty({ text = reportChartsCopy.noData }: { text?: string }) {
+  return <p className="text-sm text-[#5c6b78]">{text}</p>;
 }
 
-/* ---------- main ---------- */
+const levelColors = { good: "#2fa58f", warn: "#e3a63b", bad: "#d25454" } as const;
+const levelText = { good: "Bien", warn: "Vigilar", bad: "Riesgo" } as const;
+const levelChip = { good: "bg-[#e6f4f2] text-[#0f5f59]", warn: "bg-[#fdf3e1] text-[#8a5a0b]", bad: "bg-[#fdecec] text-[#a12f2f]" } as const;
 
-export function SabiInsights({ registry }: { registry: SabiRegistry }) {
-  const years = registry.years;
-  const latest = [...years].reverse().find((year) => pnlWaterfall(year).length > 0) ?? null;
-  const { kpis, debt } = metrics(years);
-  const trend: Series[] = [
-    { label: "Ingresos de explotación", color: navy, values: years.map((year) => year.revenueCents) },
-    { label: "EBITDA", color: teal, values: years.map((year) => year.ebitdaCents) },
-    { label: "Resultado del ejercicio", color: tealLight, values: years.map((year) => year.netResultCents) },
-  ].filter((item) => item.values.some((value) => value !== null));
-  const margins: Series[] = [
-    { label: "Margen EBITDA", color: teal, values: years.map((year) => marginPercent(year.ebitdaCents, year.revenueCents)) },
-    { label: "Margen neto", color: navy, values: years.map((year) => marginPercent(year.netResultCents, year.revenueCents)) },
-  ].filter((item) => item.values.some((value) => value !== null));
-  const employees = years.map((year) => year.employees);
-  const hasBalance = years.some((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0);
-  const ownership = sabiOwnershipSlices(registry.shareholdings);
-  const schemes = Object.entries(registry.activityCodes).filter(([, set]) => set && set.primary.length + set.secondary.length > 0);
+/** Traffic-light gauge: coloured zones on a track, a marker at the value and the plain-language reading below. */
+export function SignalGauge({ signal }: { signal: HealthSignal }) {
+  const span = signal.max - signal.min || 1;
+  const pos = (value: number) => Math.min(100, Math.max(0, ((value - signal.min) / span) * 100));
+  const ends = signal.zones.map((zone) => (zone.upTo === Infinity ? 100 : pos(zone.upTo)));
+  const zones = signal.zones.map((zone, index) => ({ level: zone.level, width: Math.max(ends[index]! - (index > 0 ? ends[index - 1]! : 0), 0) }));
 
   return (
-    <Card id="panel-sabi-registry" className="scroll-mt-6">
-      <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sabiInsightsCopy.title}</h2>
-      <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{sabiInsightsCopy.intro}</p>
-
-      <div className="mt-5 flex flex-col gap-4">
-        {kpis.length > 0 ? (
-          <div>
-            <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Indicadores clave</h3>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              {kpis.map((metric) => (
-                <KpiTile key={metric.key} metric={metric} years={years} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {trend.length > 0 || margins.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {trend.length > 0 ? (
-              <ChartBox
-                title="Evolución de ingresos y resultados"
-                hint={"Ingresos de explotación, EBITDA (resultado antes de amortizaciones, intereses e impuestos) y resultado final de cada ejercicio depositado. Las barras rojas o por debajo de la línea son pérdidas."}
-                legend={trend.map((item) => (
-                  <LegendDot key={item.label} color={item.color} label={item.label} />
-                ))}
-                table={<YearTable years={years} rows={trend.map((item) => ({ label: item.label, unit: "eur", values: item.values }))} />}
-              >
-                <ColumnBars years={years} series={trend} unit="eur" />
-              </ChartBox>
-            ) : null}
-            {margins.length > 0 ? (
-              <ChartBox
-                title="Márgenes"
-                hint={"Margen EBITDA = EBITDA ÷ ingresos de explotación.\nMargen neto = resultado del ejercicio ÷ ingresos de explotación.\nIndican cuánto de cada euro vendido se convierte en beneficio."}
-                legend={margins.map((item) => (
-                  <LegendDot key={item.label} color={item.color} label={item.label} />
-                ))}
-                table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values }))} />}
-              >
-                <LineChart years={years} series={margins} unit="pct" />
-              </ChartBox>
-            ) : null}
-          </div>
-        ) : null}
-
-        {hasBalance || latest ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {hasBalance ? (
-              <ChartBox
-                title="Estructura del balance"
-                hint={"Para cada año, la barra izquierda es lo que la empresa tiene (activo) y la derecha cómo se financia (patrimonio neto y deudas). Ambas suman lo mismo."}
-                legend={[
-                  <LegendDot key="anc" color={navy} label="Activo no corriente" />,
-                  <LegendDot key="ac" color="#5b6b8c" label="Activo corriente" />,
-                  <LegendDot key="pn" color={teal} label="Patrimonio neto" />,
-                  <LegendDot key="pnc" color={tealMid} label="Pasivo no corriente" />,
-                  <LegendDot key="pc" color={tealLight} label="Pasivo corriente" />,
-                ]}
-                table={
-                  <YearTable
-                    years={years}
-                    rows={[
-                      { label: "Activo no corriente", unit: "eur", values: years.map((year) => year.nonCurrentAssetsCents) },
-                      { label: "Activo corriente", unit: "eur", values: years.map((year) => year.currentAssetsCents) },
-                      { label: "Total activo", unit: "eur", values: years.map((year) => year.totalAssetsCents) },
-                      { label: "Patrimonio neto", unit: "eur", values: years.map((year) => year.equityCents) },
-                      { label: "Pasivo no corriente", unit: "eur", values: years.map((year) => year.nonCurrentLiabilitiesCents) },
-                      { label: "Pasivo corriente", unit: "eur", values: years.map((year) => year.currentLiabilitiesCents) },
-                    ]}
-                  />
-                }
-              >
-                <BalanceStacks years={years} />
-              </ChartBox>
-            ) : null}
-            {latest ? (
-              <ChartBox
-                title={`De ingresos a resultado · ${yearLabel(latest)}`}
-                hint={"Cascada de la cuenta de resultados del último ejercicio: parte de los ingresos y resta cada gasto hasta llegar al resultado final. Los subtotales (EBITDA, EBIT, resultado antes de impuestos) son los publicados por SABI."}
-                table={
-                  <table className="w-full text-left text-xs">
-                    <tbody>
-                      {pnlWaterfall(latest).map((step) => (
-                        <tr key={step.label} className="border-t border-[#eef0f4] text-[#1c2740] first:border-t-0">
-                          <td className={`px-3 py-1.5 ${step.kind === "delta" ? "" : "font-semibold"}`}>{step.label}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums">{formatCompactEur(step.value)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                }
-              >
-                <Waterfall year={latest} />
-              </ChartBox>
-            ) : null}
-          </div>
-        ) : null}
-
-        {debt.length > 0 ? (
-          <div>
-            <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Deuda y liquidez</h3>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4 2xl:grid-cols-5">
-              {debt.map((metric) => (
-                <KpiTile key={metric.key} metric={metric} years={years} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {employees.some((value) => value !== null) ? (
-            <ChartBox
-              title="Empleados"
-              hint="Plantilla media declarada en las cuentas de cada ejercicio."
-              table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}
-            >
-              <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
-            </ChartBox>
-          ) : null}
-          <Section
-            icon={<Users className="size-4 text-[#0f766e]" aria-hidden />}
-            title="Accionistas"
-            count={registry.shareholdings.length}
-            hint={"Reparto del capital según SABI. \u201c> 50 %\u201d significa que SABI solo publica que supera el 50 %; el resto agrupa a los accionistas sin porcentaje publicado. El tipo es el código de SABI tal cual."}
-          >
-            {registry.shareholdings.length === 0 ? (
-              <Empty />
-            ) : (
-              <>
-                {ownership.length > 0 ? (
-                  <div className="[&>section]:h-auto">
-                    <ShareDonut title="Reparto del capital" slices={ownership} palette="capital" />
-                  </div>
-                ) : null}
-                <ul className="mt-3 flex flex-wrap gap-1.5">
-                  {registry.shareholdings.map((holder, index) => (
-                    <li key={`${holder.name}-${index}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#f4f6f9] px-2.5 py-1 text-xs text-[#1c2740]">
-                      <span className="truncate">{holder.name}</span>
-                      {holder.type ? <span className="rounded bg-white px-1 text-[10px] font-semibold text-[#5c6b78]">{holder.type}</span> : null}
-                      {holder.direct ?? holder.total ? <span className="font-medium tabular-nums text-[#0f5f59]">{holder.direct ?? holder.total} %</span> : null}
-                    </li>
-                  ))}
-                </ul>
-                <Toggle label={sabiInsightsCopy.showTable}>
-                  <HoldingTable rows={registry.shareholdings} />
-                </Toggle>
-              </>
-            )}
-          </Section>
-        </div>
-
-        <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={new Set(registry.directors.map((person) => person.name)).size}>
-          {registry.directors.length === 0 ? <Empty /> : <People directors={registry.directors} />}
-        </Section>
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Section icon={<Building2 className="size-4 text-[#0f766e]" aria-hidden />} title="Participadas" count={registry.subsidiaries.length} hint="Sociedades en las que la empresa tiene participación, con el % directo y total publicado por SABI.">
-            {registry.subsidiaries.length === 0 ? (
-              <Empty />
-            ) : (
-              <>
-                <ul className="flex flex-col gap-2">
-                  {registry.subsidiaries.map((holding, index) => (
-                    <li key={`${holding.name}-${index}`} className="flex items-center justify-between gap-2 rounded-lg bg-[#f7f8fb] px-3 py-2">
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-[#1c2740]">{holding.name}</span>
-                        <span className="text-[11px] text-[#5c6b78]">{[holding.country, holding.type].filter(Boolean).join(" · ") || "—"}</span>
-                      </span>
-                      {holding.direct ?? holding.total ? (
-                        <span className="shrink-0 rounded-full bg-[#e6f4f2] px-2 py-0.5 text-xs font-semibold text-[#0f5f59] tabular-nums">{holding.direct ?? holding.total} %</span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-                <Toggle label={sabiInsightsCopy.showTable}>
-                  <HoldingTable rows={registry.subsidiaries} />
-                </Toggle>
-              </>
-            )}
-          </Section>
-          <Section icon={<ShieldCheck className="size-4 text-[#0f766e]" aria-hidden />} title="Auditoría por ejercicio" count={registry.audits.length}>
-            {registry.audits.length === 0 ? (
-              <Empty />
-            ) : (
-              <ol className="relative ml-1.5 border-l border-[#d5dbe3]">
-                {[...registry.audits]
-                  .sort((a, b) => b.year - a.year)
-                  .map((audit) => (
-                    <li key={audit.year} className="relative pb-3 pl-4 last:pb-0">
-                      <span className="absolute top-1 -left-[5px] size-2.5 rounded-full bg-[#0f766e]" aria-hidden />
-                      <p className="text-sm font-medium text-[#1c2740] tabular-nums">
-                        {audit.year} <span className="text-xs font-normal text-[#5c6b78]">· cierre {isoDay(audit.closingOn)}</span>
-                      </p>
-                      <p className="text-xs text-[#5c6b78]">{[audit.opinion, audit.auditorName, audit.auditorCode].filter(Boolean).join(" · ") || "Sin datos de auditoría"}</p>
-                    </li>
-                  ))}
-              </ol>
-            )}
-          </Section>
-          <Section icon={<Landmark className="size-4 text-[#0f766e]" aria-hidden />} title="Bancos" count={registry.banks.length}>
-            {registry.banks.length === 0 ? (
-              <Empty />
-            ) : (
-              <ul className="flex flex-wrap gap-1.5">
-                {registry.banks.map((bank) => (
-                  <li key={bank} className="rounded-lg bg-[#f7f8fb] px-2.5 py-1.5 text-xs font-medium text-[#1c2740]">
-                    {bank}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
-        </div>
-
-        {schemes.length > 0 ? (
-          <Section icon={<Tags className="size-4 text-[#0f766e]" aria-hidden />} title="Códigos de actividad">
-            <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              {schemes.map(([scheme, set]) => (
-                <div key={scheme} className="min-w-0">
-                  <dt className="text-xs font-medium text-[#5c6b78]">{schemeLabels[scheme] ?? scheme.toUpperCase()}</dt>
-                  <dd className="text-[#1c2740]">
-                    {[...set!.primary.map((code) => ({ ...code, main: true })), ...set!.secondary.map((code) => ({ ...code, main: false }))].map((code, index) => (
-                      <span key={`${code.code}-${index}`} className="block">
-                        <span className="font-medium tabular-nums">{code.code}</span> {code.description}
-                        {code.main ? <span className="ml-1 text-xs text-[#0f766e]">principal</span> : null}
-                      </span>
-                    ))}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </Section>
-        ) : null}
+    <section className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-4">
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
+          {signal.label}
+          <FieldHint text={`${signal.hint}\n${signal.scale}`} wide />
+        </h3>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${levelChip[signal.level]}`}>{levelText[signal.level]}</span>
       </div>
-    </Card>
+      <p className="mt-2 text-2xl font-semibold text-[#1c2740] tabular-nums">
+        {signal.display} <span className="text-xs font-normal text-[#8b95a7]">{signal.year}</span>
+      </p>
+      <div className="relative mt-3 h-2.5" role="img" aria-label={`${signal.label}: ${signal.display}. ${signal.scale}`}>
+        <div className="absolute inset-0 flex overflow-hidden rounded-full">
+          {zones.map((zone, index) => (
+            <span key={index} className="h-full" style={{ width: `${zone.width}%`, backgroundColor: levelColors[zone.level], opacity: zone.level === signal.level ? 1 : 0.35 }} />
+          ))}
+        </div>
+        <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow" style={{ left: `${pos(signal.value)}%`, backgroundColor: levelColors[signal.level] }} aria-hidden />
+      </div>
+      <p className="mt-3 text-sm leading-6 text-[#3d4a63]">{signal.reading}</p>
+    </section>
   );
 }
