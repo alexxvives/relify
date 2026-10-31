@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { cnaeTitle } from "./cnae-2009";
+import { toSabiYear, type SabiYear } from "./sabi/insights";
 import { balanceLabels, incomeLabels } from "./company-copy";
 import {
   anonymousSliceLabel,
@@ -86,6 +87,12 @@ export const investorProjectSelect = {
       employees: true,
       ratios: true,
       dataSource: true,
+      months: true,
+      operatingRevenueCents: true,
+      ebitdaCents: true,
+      ebitCents: true,
+      totalAssetsCents: true,
+      workingCapitalCents: true,
     },
   },
 } satisfies Prisma.ProjectSelect;
@@ -157,6 +164,8 @@ export type InvestorProjectProfile = {
   detailRows?: InvestorStatementRow[];
   /** Closed-year ratios and staff; only rows with data. Same columns as balanceYears. */
   indicatorRows?: InvestorIndicatorRow[];
+  /** t69: closed years as plain numbers for the visual report (same data as the tables above, oldest first). */
+  reportYears?: SabiYear[];
 };
 
 type InvestorProjectRecord = {
@@ -214,6 +223,12 @@ type InvestorProjectRecord = {
     employees?: number | null;
     ratios?: unknown;
     dataSource?: string | null;
+    months?: number | null;
+    operatingRevenueCents?: number | bigint | null;
+    ebitdaCents?: number | bigint | null;
+    ebitCents?: number | bigint | null;
+    totalAssetsCents?: number | bigint | null;
+    workingCapitalCents?: number | bigint | null;
   }>;
 };
 
@@ -316,6 +331,44 @@ function slicesFor(record: InvestorProjectRecord, kind: SliceKind): InvestorSlic
     }));
 }
 
+/** One closed year for the report: SABI subtotals when published, otherwise the same figures the tables compute. */
+function reportYear(year: RecordYear): SabiYear {
+  const base = toSabiYear({
+    year: year.year,
+    months: year.months ?? null,
+    employees: year.employees ?? null,
+    ratios: year.ratios,
+    salesCents: year.salesCents,
+    operatingRevenueCents: year.operatingRevenueCents ?? null,
+    suppliesCents: year.suppliesCents,
+    staffCostsCents: year.staffCostsCents,
+    ebitdaCents: year.ebitdaCents ?? null,
+    ebitCents: year.ebitCents ?? null,
+    financialResultCents: year.financialResultCents ?? null,
+    profitBeforeTaxCents: year.profitBeforeTaxCents ?? null,
+    netResultCents: year.netResultCents ?? null,
+    totalAssetsCents: year.totalAssetsCents ?? null,
+    nonCurrentAssetsCents: year.nonCurrentAssetsCents,
+    currentAssetsCents: year.currentAssetsCents,
+    cashCents: year.cashCents,
+    equityCents: year.equityCents,
+    nonCurrentLiabilitiesCents: year.nonCurrentLiabilitiesCents,
+    currentLiabilitiesCents: year.currentLiabilitiesCents,
+    longTermDebtCents: year.longTermDebtCents,
+    shortTermDebtCents: year.shortTermDebtCents,
+    workingCapitalCents: year.workingCapitalCents ?? null,
+  });
+  const pnl = toPnl(year);
+  const balance = toBalance(year);
+  const finite = (value: number | null) => (value === null || !Number.isFinite(value) ? null : value);
+  return {
+    ...base,
+    ebitdaCents: base.ebitdaCents ?? finite(incomeValue("ebitda", pnl)),
+    ebitCents: base.ebitCents ?? finite(incomeValue("operatingResult", pnl)),
+    totalAssetsCents: base.totalAssetsCents ?? finite(balanceValue("totalAssets", balance)),
+  };
+}
+
 export function toInvestorProject(record: InvestorProjectRecord): InvestorProjectProfile {
   const principal = record.cnaes
     .filter((cnae) => cnae.role === "principal")
@@ -352,7 +405,10 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     ...indicatorLines.map((line) => ({ ...line, values: balanceSource.map((year) => ratioOf(year, line.key)) })),
   ]);
 
+  const reportYears = balanceSource.map((year) => reportYear(year));
+
   return {
+    reportYears,
     slug: record.slug,
     legalForm: record.legalForm ?? null,
     accountsFormat: record.accountsFormat ?? null,
