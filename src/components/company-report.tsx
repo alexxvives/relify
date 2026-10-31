@@ -40,17 +40,9 @@ import {
   Toggle,
   Waterfall,
   YearTable,
-  metrics,
-  navy,
-  reportChartsCopy,
-  schemeLabels,
-  teal,
-  tealLight,
-  tealMid,
-  yearLabel,
-  isoDay,
-  type Series,
 } from "@/components/company-report-charts";
+import { isoDay, metrics, navy, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel } from "@/lib/report-format";
+import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
 import { IndicatorTable } from "@/components/indicator-table";
