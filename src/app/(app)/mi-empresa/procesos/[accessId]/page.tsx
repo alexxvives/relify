@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { CompanyBanner } from "@/components/company-banner";
-import { CompanyProfile } from "@/components/company-profile-view";
+import { CompanyReport } from "@/components/company-report";
 import { FloatingInvestorCard } from "@/components/floating-investor-card";
 import { SignedInPage } from "@/components/signed-in-page";
 import { requireRole } from "@/server/requireRole";
@@ -32,7 +32,7 @@ export default async function SellerProcessFichaPage({ params }: { params: Promi
         <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-6">
           <div className="flex min-w-0 flex-col gap-6">
             <CompanyBanner title={ficha.company.codename} subtitle={ficha.company.region} />
-            <CompanyProfile project={ficha.company} figuresOpen />
+            <CompanyReport project={ficha.company} role="buyer" figuresOpen />
           </div>
           <aside className="mt-6 xl:sticky xl:top-6 xl:mt-0">
             <FloatingInvestorCard name={ficha.buyerLabel} profile={ficha.buyerCard} />

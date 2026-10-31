@@ -2,7 +2,7 @@ import { AdvisorCloseForm, AdvisorDepositForm, AdvisorNdaForm } from "@/componen
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
 import { AppToast } from "@/components/app-toast";
 import { CompanyBanner } from "@/components/company-banner";
-import { CompanyProfile } from "@/components/company-profile-view";
+import { CompanyReport } from "@/components/company-report";
 import { ContractStage } from "@/components/contract-stage";
 import { DealPipeline } from "@/components/deal-pipeline";
 import { FloatingInvestorCard } from "@/components/floating-investor-card";
@@ -58,7 +58,7 @@ export function AdvisorEngagementView({
           {engagement.contract ? <ContractStage contract={engagement.contract} /> : null}
           {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.profile ? (
-            <CompanyProfile project={engagement.profile} figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
+            <CompanyReport project={engagement.profile} role="buyer" figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
           ) : null}
           {engagement.view === "investor" ? (
             <Card>

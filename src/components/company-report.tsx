@@ -1,0 +1,807 @@
+import { cloneElement, isValidElement, type ReactNode } from "react";
+import {
+  Briefcase,
+  Building2,
+  ChevronDown,
+  CircleAlert,
+  CircleCheck,
+  EyeOff,
+  FileSpreadsheet,
+  HandCoins,
+  Landmark,
+  LineChart as LineChartIcon,
+  PieChart,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+  Tags,
+  TrendingUp,
+  Users,
+  Map,
+  CalendarDays,
+  Receipt,
+  Mail,
+  Phone,
+  IdCard,
+  FileCheck2,
+} from "lucide-react";
+import {
+  BalanceStacks,
+  ChartBox,
+  ColumnBars,
+  Empty,
+  HoldingTable,
+  KpiTile,
+  LegendDot,
+  LineChart,
+  People,
+  Section,
+  SignalGauge,
+  Toggle,
+  Waterfall,
+  YearTable,
+  metrics,
+  navy,
+  reportChartsCopy,
+  schemeLabels,
+  teal,
+  tealLight,
+  tealMid,
+  yearLabel,
+  isoDay,
+  type Series,
+} from "@/components/company-report-charts";
+import { FieldHint } from "@/components/field-hint";
+import { FinancialTable } from "@/components/financial-table";
+import { IndicatorTable } from "@/components/indicator-table";
+import { RoiChip } from "@/components/market-card";
+import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
+import { ShareDonut } from "@/components/share-donut";
+import { companyCopy } from "@/lib/company-copy";
+import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
+import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
+import { compactEur, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
+import {
+  figureVeilBalance,
+  figureVeilCapital,
+  figureVeilChartBalance,
+  figureVeilChartIncome,
+  figureVeilClient,
+  figureVeilProduct,
+} from "@/lib/figure-veil";
+import type { InvestorProjectProfile } from "@/lib/investor-project";
+import { formatEur, recoveryYears } from "@/lib/money";
+import { marginPercent, pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
+import type { SabiRegistry } from "@/lib/sabi/registry";
+
+/**
+ * t69: the single company report every role reads (admin, seller preview, buyer, advisor). One ordered story:
+ * summary → business → numbers → health → ownership → team → deal → raw detail. Figures stay behind the
+ * existing lock for buyers; registry identities (people, shareholders, banks) only reach admin and seller.
+ */
+export const companyReportCopy = {
+  nav: "Ir a",
+  summary: "Resumen",
+  summaryHint: "Lo esencial de un vistazo. Las frases y alertas salen solo de las cuentas que hay en la ficha.",
+  business: "Negocio",
+  evolution: "Evolución financiera",
+  evolutionHint: "Cómo han ido ingresos y resultados año a año. Pasa el ratón (o toca) cada barra o punto para ver la cifra.",
+  profitability: "Rentabilidad",
+  profitabilityHint: "Cuánto beneficio saca la empresa de lo que vende, de lo que tiene y del dinero de los socios.",
+  health: "Solidez financiera",
+  healthHint: "Semáforos de deuda y liquidez: verde es holgado, ámbar conviene revisarlo y rojo es una señal de riesgo. Cada ⓘ explica el cálculo y los umbrales.",
+  healthAll: "Ver todos los indicadores de deuda y liquidez",
+  balance: "Balance",
+  balanceHint: "Lo que tiene la empresa (activo) frente a cómo lo financia (fondos propios y deudas).",
+  ownership: "Propiedad y gobierno",
+  ownershipHint: "Quién es dueño de la empresa y quién la dirige.",
+  team: "Equipo",
+  deal: "Operación de venta",
+  dealHint: "Precio pedido y lo que supone frente a lo que genera la empresa.",
+  detail: "Detalle de cuentas",
+  detailHint: "Todas las cifras en tabla, para quien quiera revisarlas línea a línea.",
+  highlights: "Puntos fuertes y a vigilar",
+  noYears: "Aún no hay ejercicios cerrados en la ficha.",
+};
+
+const privateIcons: Record<string, typeof Building2> = {
+  legal: Building2,
+  cif: Receipt,
+  address: Map,
+  owner: Users,
+  email: Mail,
+  phone: Phone,
+  nid: IdCard,
+  created: CalendarDays,
+};
+
+type VeilKind = "mix" | "capital" | "income" | "balance";
+
+function ReportSection({
+  id,
+  icon: Icon,
+  title,
+  intro,
+  aside,
+  open = true,
+  children,
+}: {
+  id: string;
+  icon: typeof Building2;
+  title: string;
+  intro?: string;
+  aside?: string;
+  open?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details open={open} id={id} className="group scroll-mt-24 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:px-6 [&::-webkit-details-marker]:hidden">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
+          <Icon className="size-5" aria-hidden />
+        </span>
+        <h2 className="min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
+        {aside ? <span className="hidden truncate text-sm text-[#5c6b78] sm:block">{aside}</span> : null}
+        <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
+        {intro ? <p className="mb-4 max-w-3xl text-sm leading-6 text-[#5c6b78]">{intro}</p> : null}
+        {children}
+      </div>
+    </details>
+  );
+}
+
+function LockedFigures({ open, kind, note, action = null, children }: { open: boolean; kind: VeilKind; note: string; action?: ReactNode; children: ReactNode }) {
+  if (open) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="relative">
+      <div className="pointer-events-none select-none blur-md" aria-hidden>
+        <FigureVeil kind={kind} />
+      </div>
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="pointer-events-auto z-10 flex flex-col items-center gap-3 px-6 text-center">
+          <EyeOff className="size-5 text-[#0f766e]" aria-hidden />
+          <p className="max-w-md rounded-2xl bg-white/85 px-4 py-3 text-sm font-medium text-[#1c2740]">{note}</p>
+          {isValidElement(action) ? cloneElement(action) : action}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FigureVeil({ kind }: { kind: VeilKind }) {
+  if (kind === "mix") {
+    return (
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+        <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
+        <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />
+      </div>
+    );
+  }
+
+  if (kind === "capital") {
+    return <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />;
+  }
+
+  const chart = kind === "income" ? figureVeilChartIncome() : figureVeilChartBalance();
+  if (kind === "income") {
+    return <ProfileIncomeChart years={chart.years} rows={chart.rows} />;
+  }
+
+  const balance = figureVeilBalance();
+  return (
+    <div>
+      <FinancialTable years={balance.years} rows={balance.rows} />
+      <ProfileBalanceChart years={chart.years} rows={chart.rows} />
+    </div>
+  );
+}
+
+function Kpi({ label, value, hint, sub, tone = "ink" }: { label: string; value: string; hint: string; sub?: ReactNode; tone?: "ink" | "loss" }) {
+  return (
+    <div className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-3 sm:p-4">
+      <div className="flex items-start justify-between gap-1">
+        <span className="text-xs leading-4 font-medium text-[#5c6b78]">{label}</span>
+        <FieldHint text={hint} align="end" wide />
+      </div>
+      <span className={`mt-1.5 text-lg font-semibold tabular-nums sm:text-xl ${tone === "loss" ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>{value}</span>
+      {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
+    </div>
+  );
+}
+
+function Fact({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 items-start gap-3 rounded-xl bg-[#f7f8fb] p-3">
+      <Icon className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-hidden />
+      <span className="min-w-0">
+        <span className="block text-xs text-[#5c6b78]">{label}</span>
+        <span className="block text-sm font-semibold break-words text-[#1c2740]">{value}</span>
+      </span>
+    </div>
+  );
+}
+
+function saleReasonText(reason: string | null): string {
+  return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : companyCopy.unavailable;
+}
+
+function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): { year: SabiYear; value: number } | null {
+  for (let index = years.length - 1; index >= 0; index -= 1) {
+    const value = pick(years[index]!);
+    if (value !== null) {
+      return { year: years[index]!, value };
+    }
+  }
+
+  return null;
+}
+
+/** Registry blocks (identities): ownership list, directors, subsidiaries, audits, banks and activity codes. */
+export function RegistryOverview({ registry, showDonut = true }: { registry: SabiRegistry; showDonut?: boolean }) {
+  const ownership = sabiOwnershipSlices(registry.shareholdings);
+  const directors = new Set(registry.directors.map((person) => person.name)).size;
+  return (
+    <div className="flex flex-col gap-4">
+      {registry.shareholdings.length > 0 ? (
+        <Section
+          icon={<Users className="size-4 text-[#0f766e]" aria-hidden />}
+          title="Accionistas registrados"
+          count={registry.shareholdings.length}
+          hint={"Según el registro (SABI). \u201c> 50 %\u201d significa que solo se publica que supera el 50 %. El tipo es el código del registro tal cual."}
+        >
+          {showDonut && ownership.length > 0 ? (
+            <div className="mb-3 max-w-md [&>section]:h-auto">
+              <ShareDonut title="Reparto del capital" slices={ownership} palette="capital" />
+            </div>
+          ) : null}
+          <ul className="flex flex-wrap gap-1.5">
+            {registry.shareholdings.map((holder, index) => (
+              <li key={`${holder.name}-${index}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#f4f6f9] px-2.5 py-1 text-xs text-[#1c2740]">
+                <span className="truncate">{holder.name}</span>
+                {holder.type ? <span className="rounded bg-white px-1 text-[10px] font-semibold text-[#5c6b78]">{holder.type}</span> : null}
+                {(holder.direct ?? holder.total) ? <span className="font-medium text-[#0f5f59] tabular-nums">{holder.direct ?? holder.total} %</span> : null}
+              </li>
+            ))}
+          </ul>
+          <Toggle label={reportChartsCopy.showTable}>
+            <HoldingTable rows={registry.shareholdings} />
+          </Toggle>
+        </Section>
+      ) : null}
+      {directors > 0 ? (
+        <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors}>
+          <People directors={registry.directors} />
+        </Section>
+      ) : null}
+      {registry.subsidiaries.length > 0 ? (
+        <Section icon={<Building2 className="size-4 text-[#0f766e]" aria-hidden />} title="Participadas" count={registry.subsidiaries.length} hint="Sociedades en las que la empresa tiene participación, con el % directo y total publicado en el registro.">
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {registry.subsidiaries.map((holding, index) => (
+              <li key={`${holding.name}-${index}`} className="flex items-center justify-between gap-2 rounded-lg bg-[#f7f8fb] px-3 py-2">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-[#1c2740]">{holding.name}</span>
+                  <span className="text-[11px] text-[#5c6b78]">{[holding.country, holding.type].filter(Boolean).join(" · ") || "—"}</span>
+                </span>
+                {(holding.direct ?? holding.total) ? <span className="shrink-0 rounded-full bg-[#e6f4f2] px-2 py-0.5 text-xs font-semibold text-[#0f5f59] tabular-nums">{holding.direct ?? holding.total} %</span> : null}
+              </li>
+            ))}
+          </ul>
+          <Toggle label={reportChartsCopy.showTable}>
+            <HoldingTable rows={registry.subsidiaries} />
+          </Toggle>
+        </Section>
+      ) : null}
+      <RegistryRecords registry={registry} />
+    </div>
+  );
+}
+
+function RegistryRecords({ registry }: { registry: SabiRegistry }) {
+  const schemes = Object.entries(registry.activityCodes).filter(([, set]) => set && set.primary.length + set.secondary.length > 0);
+  if (registry.audits.length === 0 && registry.banks.length === 0 && schemes.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {registry.audits.length > 0 ? (
+        <Section icon={<ShieldCheck className="size-4 text-[#0f766e]" aria-hidden />} title="Auditoría por ejercicio" count={registry.audits.length}>
+          <ol className="relative ml-1.5 border-l border-[#d5dbe3]">
+            {[...registry.audits]
+              .sort((a, b) => b.year - a.year)
+              .map((audit) => (
+                <li key={audit.year} className="relative pb-3 pl-4 last:pb-0">
+                  <span className="absolute top-1 -left-[5px] size-2.5 rounded-full bg-[#0f766e]" aria-hidden />
+                  <p className="text-sm font-medium text-[#1c2740] tabular-nums">
+                    {audit.year} <span className="text-xs font-normal text-[#5c6b78]">· cierre {isoDay(audit.closingOn)}</span>
+                  </p>
+                  <p className="text-xs text-[#5c6b78]">{[audit.opinion, audit.auditorName, audit.auditorCode].filter(Boolean).join(" · ") || "Sin datos de auditoría"}</p>
+                </li>
+              ))}
+          </ol>
+        </Section>
+      ) : null}
+      {registry.banks.length > 0 ? (
+        <Section icon={<Landmark className="size-4 text-[#0f766e]" aria-hidden />} title="Bancos" count={registry.banks.length}>
+          <ul className="flex flex-wrap gap-1.5">
+            {registry.banks.map((bank) => (
+              <li key={bank} className="rounded-lg bg-[#f7f8fb] px-2.5 py-1.5 text-xs font-medium text-[#1c2740]">
+                {bank}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+      {schemes.length > 0 ? (
+        <Section icon={<Tags className="size-4 text-[#0f766e]" aria-hidden />} title="Códigos de actividad">
+          <dl className="flex flex-col gap-3 text-sm">
+            {schemes.map(([scheme, set]) => (
+              <div key={scheme} className="min-w-0">
+                <dt className="text-xs font-medium text-[#5c6b78]">{schemeLabels[scheme] ?? scheme.toUpperCase()}</dt>
+                <dd className="text-[#1c2740]">
+                  {[...set!.primary.map((code) => ({ ...code, main: true })), ...set!.secondary.map((code) => ({ ...code, main: false }))].map((code, index) => (
+                    <span key={`${code.code}-${index}`} className="block">
+                      <span className="font-medium tabular-nums">{code.code}</span> {code.description}
+                      {code.main ? <span className="ml-1 text-xs text-[#0f766e]">principal</span> : null}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Section>
+      ) : null}
+    </div>
+  );
+}
+
+export function CompanyReport({
+  project,
+  role,
+  figuresOpen = true,
+  lockedNote = companyCopy.figuresLocked,
+  lockAction = null,
+  registry: fullRegistry = null,
+  privateFacts = null,
+  privateHeading = "",
+  adminDetail = null,
+}: {
+  project: InvestorProjectProfile;
+  role: ReportRole;
+  figuresOpen?: boolean;
+  lockedNote?: string;
+  lockAction?: ReactNode;
+  registry?: SabiRegistry | null;
+  privateFacts?: { key: string; label: string; value: string }[] | null;
+  privateHeading?: string;
+  adminDetail?: ReactNode;
+}) {
+  const registry = registryForRole(fullRegistry, role);
+  const facts = role === "admin" ? privateFacts : null;
+  const years = (project.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
+  const hasYears = years.length > 0;
+  const lock = (kind: VeilKind, children: ReactNode) => (
+    <LockedFigures open={figuresOpen} kind={kind} note={lockedNote} action={lockAction}>
+      {children}
+    </LockedFigures>
+  );
+
+  const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
+  const lastEmployees = lastValue(years, (year) => year.employees);
+  const age = project.foundedYear !== null ? new Date().getFullYear() - project.foundedYear : null;
+  const summary = figuresOpen ? reportSummary(years) : [];
+  const flags = figuresOpen ? reportFlags(years) : [];
+  const signals = healthSignals(years);
+  const { kpis, debt } = metrics(years);
+  const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
+  const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
+  const latest = [...years].reverse().find((year) => pnlWaterfall(year).length > 0) ?? null;
+  const trend: Series[] = [
+    { label: "Ingresos", color: navy, values: years.map((year) => year.revenueCents) },
+    { label: "EBITDA", color: teal, values: years.map((year) => year.ebitdaCents) },
+    { label: "Resultado del ejercicio", color: tealLight, values: years.map((year) => year.netResultCents) },
+  ].filter((item) => item.values.some((value) => value !== null));
+  const margins: Series[] = [
+    { label: "Margen EBITDA", color: teal, values: years.map((year) => marginPercent(year.ebitdaCents, year.revenueCents)) },
+    { label: "Margen neto", color: navy, values: years.map((year) => marginPercent(year.netResultCents, year.revenueCents)) },
+  ].filter((item) => item.values.some((value) => value !== null));
+  const hasBalanceYears = years.some((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0);
+  const latestBalance = lastValue(years, (year) => (year.totalAssetsCents !== null && year.totalAssetsCents > 0 ? year.totalAssetsCents : null));
+  const employees = years.map((year) => year.employees);
+  const ownership = registry ? sabiOwnershipSlices(registry.shareholdings) : [];
+  const capital = ownership.length > 0 ? ownership : project.capital;
+  const governance = registry && (registry.shareholdings.length > 0 || registry.directors.length > 0 || registry.subsidiaries.length > 0);
+  const detailRows = project.detailRows ?? [];
+  const indicatorRows = project.indicatorRows ?? [];
+  const legalFacts = [
+    project.legalForm ? { label: companyCopy.legalFormLabel, value: project.legalForm } : null,
+    project.accountsFormat ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
+    project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
+  ].flatMap((fact) => (fact ? [fact] : []));
+  const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
+  const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
+
+  const sections = [
+    { id: "resumen", label: companyReportCopy.summary },
+    { id: "negocio", label: companyReportCopy.business },
+    { id: "evolucion", label: companyReportCopy.evolution },
+    profitability.length > 0 ? { id: "rentabilidad", label: companyReportCopy.profitability } : null,
+    signals.length > 0 || debt.length > 0 ? { id: "solidez", label: companyReportCopy.health } : null,
+    { id: "balance", label: companyReportCopy.balance },
+    capital.length > 0 || governance ? { id: "propiedad", label: companyReportCopy.ownership } : null,
+    { id: "equipo", label: companyReportCopy.team },
+    { id: "operacion", label: companyReportCopy.deal },
+    { id: "detalle", label: companyReportCopy.detail },
+  ].flatMap((item) => (item ? [item] : []));
+
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <nav aria-label={companyReportCopy.nav} className="sticky top-0 z-20 -mx-1 overflow-x-auto bg-[#f5f7fa]/90 px-1 py-2 backdrop-blur">
+        <ul className="flex w-max gap-1.5">
+          {sections.map((item) => (
+            <li key={item.id}>
+              <a href={`#${item.id}`} className="inline-flex rounded-full border border-[#e1e5eb] bg-white px-3 py-1.5 text-xs font-medium whitespace-nowrap text-[#1c2740] hover:border-[#2fc4b2] hover:text-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
+          <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={<span>Margen {margin}</span>} />
+          <Kpi label={companyCopy.askingPriceLabel} value={compactEur(project.askingPriceCents)} hint={`Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.`} sub={multiple !== null ? <RoiChip years={multiple} /> : null} />
+          <Kpi
+            label={lastEmployees ? "Empleados" : companyCopy.workersLabel}
+            value={lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
+            hint={lastEmployees ? "Plantilla media declarada en las últimas cuentas." : "Tramo de plantilla indicado por el vendedor."}
+            sub={age !== null ? <span>{age} años de actividad (desde {project.foundedYear})</span> : null}
+          />
+        </div>
+        {facts && facts.length > 0 ? (
+          <div className="mt-4 rounded-xl border border-dashed border-[#c9d0da] bg-[#fafbfc] p-4">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1c2740]">
+              <EyeOff className="size-4 text-[#0f766e]" aria-hidden />
+              {privateHeading}
+            </h3>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {facts.map((fact) => (
+                <Fact key={fact.key} icon={privateIcons[fact.key] ?? Building2} label={fact.label} value={fact.value} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {summary.length > 0 || flags.length > 0 ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            {summary.length > 0 ? (
+              <div className="rounded-xl bg-[#f3faf9] p-4">
+                <h3 className="text-sm font-semibold text-[#1c2740]">En pocas palabras</h3>
+                <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-6 text-[#3d4a63]">
+                  {summary.map((line) => (
+                    <li key={line} className="flex gap-2">
+                      <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0f766e]" aria-hidden />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {flags.length > 0 ? (
+              <div className="rounded-xl border border-[#e7eaee] p-4">
+                <h3 className="text-sm font-semibold text-[#1c2740]">{companyReportCopy.highlights}</h3>
+                <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+                  {flags.map((flag) => (
+                    <li key={flag.text} className="flex items-start gap-2 text-[#1c2740]">
+                      {flag.level === "good" ? <CircleCheck className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-label="A favor" /> : <CircleAlert className="mt-0.5 size-4 shrink-0 text-[#c27c0e]" aria-label="A vigilar" />}
+                      {flag.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {!figuresOpen ? (
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-[#f7f8fb] px-4 py-3 text-sm text-[#3d4a63]">
+            <EyeOff className="size-4 shrink-0 text-[#0f766e]" aria-hidden />
+            {lockedNote}
+          </p>
+        ) : null}
+      </ReportSection>
+
+      <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
+        <p className="max-w-3xl leading-7 text-[#1c2740]">{project.description ?? companyCopy.unavailable}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} />
+          <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={project.foundedYear === null ? companyCopy.unavailable : String(project.foundedYear)} />
+          {legalFacts.map((fact) => (
+            <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
+          ))}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
+          {project.principalCnae ? (
+            <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
+              {project.principalCnae.code} · {project.principalCnae.title}
+            </span>
+          ) : (
+            <span className="text-sm text-[#8b95a7]">{companyCopy.unavailable}</span>
+          )}
+          {project.secondaryCnaes.map((cnae) => (
+            <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+              {cnae.code} · {cnae.title}
+            </span>
+          ))}
+        </div>
+        <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
+          Qué vende y a quién
+          <FieldHint text={companyCopy.structureHint} wide />
+        </h3>
+        {lock(
+          "mix",
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+            <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
+            {project.customerBase === "consumer" ? (
+              <section className="flex h-full flex-col gap-3 rounded-xl bg-[#f4f7ff] p-4">
+                <h3 className="text-sm font-semibold text-[#1c2740]">{companyCopy.chartClient}</h3>
+                <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.customerConsumerPublic}</p>
+              </section>
+            ) : (
+              <ShareDonut title={companyCopy.chartClient} slices={project.clients} palette="client" />
+            )}
+          </div>,
+        )}
+      </ReportSection>
+
+      <ReportSection id="evolucion" icon={TrendingUp} title={companyReportCopy.evolution} intro={companyReportCopy.evolutionHint}>
+        {lock(
+          "income",
+          hasYears && trend.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ChartBox
+                  title="Ingresos y resultados"
+                  hint="Ingresos, EBITDA (resultado antes de amortizaciones, intereses e impuestos) y resultado final de cada ejercicio. Por debajo de la línea son pérdidas."
+                  legend={trend.map((item) => (
+                    <LegendDot key={item.label} color={item.color} label={item.label} />
+                  ))}
+                  table={<YearTable years={years} rows={trend.map((item) => ({ label: item.label, unit: "eur", values: item.values }))} />}
+                >
+                  <ColumnBars years={years} series={trend} unit="eur" />
+                </ChartBox>
+                {margins.length > 0 ? (
+                  <ChartBox
+                    title="Márgenes"
+                    hint={"Margen EBITDA = EBITDA ÷ ingresos.\nMargen neto = resultado del ejercicio ÷ ingresos.\nCuánto de cada euro vendido se convierte en beneficio."}
+                    legend={margins.map((item) => (
+                      <LegendDot key={item.label} color={item.color} label={item.label} />
+                    ))}
+                    table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values }))} />}
+                  >
+                    <LineChart years={years} series={margins} unit="pct" />
+                  </ChartBox>
+                ) : null}
+              </div>
+              {latest ? (
+                <ChartBox
+                  title={`De ingresos a resultado · ${yearLabel(latest)}`}
+                  hint="Cascada del último ejercicio: parte de los ingresos y resta cada gasto hasta llegar al resultado final."
+                >
+                  <Waterfall year={latest} />
+                </ChartBox>
+              ) : null}
+            </div>
+          ) : project.incomeYears.length > 0 ? (
+            <ProfileIncomeChart years={project.incomeYears} rows={project.incomeRows} />
+          ) : (
+            <Empty text={companyReportCopy.noYears} />
+          ),
+        )}
+      </ReportSection>
+
+      {profitability.length > 0 ? (
+        <ReportSection id="rentabilidad" icon={LineChartIcon} title={companyReportCopy.profitability} intro={companyReportCopy.profitabilityHint}>
+          {lock(
+            "balance",
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              {profitability.map((metric) => (
+                <KpiTile key={metric.key} metric={metric} years={years} />
+              ))}
+            </div>,
+          )}
+        </ReportSection>
+      ) : null}
+
+      {signals.length > 0 || debt.length > 0 ? (
+        <ReportSection id="solidez" icon={ShieldCheck} title={companyReportCopy.health} intro={companyReportCopy.healthHint}>
+          {lock(
+            "balance",
+            <div className="flex flex-col gap-4">
+              {signals.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {signals.map((signal) => (
+                    <SignalGauge key={signal.key} signal={signal} />
+                  ))}
+                </div>
+              ) : null}
+              {debt.length > 0 ? (
+                <details className="group/all rounded-xl border border-[#e7eaee]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-[#0f766e] [&::-webkit-details-marker]:hidden">
+                    {companyReportCopy.healthAll}
+                    <ChevronDown className="size-4 transition-transform group-open/all:rotate-180" aria-hidden />
+                  </summary>
+                  <div className="grid grid-cols-2 gap-2 border-t border-[#eef0f4] p-3 md:grid-cols-3 xl:grid-cols-4">
+                    {debt.map((metric) => (
+                      <KpiTile key={metric.key} metric={metric} years={years} />
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+            </div>,
+          )}
+        </ReportSection>
+      ) : null}
+
+      <ReportSection id="balance" icon={Scale} title={companyReportCopy.balance} intro={companyReportCopy.balanceHint}>
+        {lock(
+          "balance",
+          hasBalanceYears ? (
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <ChartBox
+                title="Estructura del balance"
+                hint="Para cada año, la barra izquierda es lo que la empresa tiene (activo) y la derecha cómo se financia. Ambas suman lo mismo."
+                legend={[
+                  <LegendDot key="anc" color={navy} label="Activo no corriente" />,
+                  <LegendDot key="ac" color="#5b6b8c" label="Activo corriente" />,
+                  <LegendDot key="pn" color={teal} label="Patrimonio neto" />,
+                  <LegendDot key="pnc" color={tealMid} label="Pasivo no corriente" />,
+                  <LegendDot key="pc" color={tealLight} label="Pasivo corriente" />,
+                ]}
+              >
+                <BalanceStacks years={years} />
+              </ChartBox>
+              {latestBalance ? <BalanceReading year={latestBalance.year} /> : null}
+            </div>
+          ) : project.balanceYears.length > 0 ? (
+            <ProfileBalanceChart years={project.balanceYears} rows={project.balanceRows} />
+          ) : (
+            <Empty text={companyReportCopy.noYears} />
+          ),
+        )}
+      </ReportSection>
+
+      {capital.length > 0 || governance ? (
+        <ReportSection id="propiedad" icon={PieChart} title={companyReportCopy.ownership} intro={companyReportCopy.ownershipHint}>
+          <div className="flex flex-col gap-4">
+            {capital.length > 0 ? lock("capital", <div className="max-w-md [&>section]:h-auto"><ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" /></div>) : null}
+            {registry ? <RegistryOverview registry={{ ...registry, audits: [], banks: [], activityCodes: {} }} showDonut={false} /> : null}
+          </div>
+        </ReportSection>
+      ) : null}
+
+      <ReportSection id="equipo" icon={Users} title={companyReportCopy.team} aside={project.headcountRange ? headcountLabels[project.headcountRange] : undefined}>
+        {employees.some((value) => value !== null) || staff.length > 0 ? (
+          lock(
+            "balance",
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              {employees.some((value) => value !== null) ? (
+                <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
+                  <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
+                </ChartBox>
+              ) : null}
+              {staff.length > 0 ? (
+                <div className="grid grid-cols-2 content-start gap-2 xl:grid-cols-1">
+                  {staff.map((metric) => (
+                    <KpiTile key={metric.key} metric={metric} years={years} />
+                  ))}
+                </div>
+              ) : null}
+            </div>,
+          )
+        ) : (
+          <Fact icon={Users} label={companyCopy.workersLabel} value={project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable} />
+        )}
+      </ReportSection>
+
+      <ReportSection id="operacion" icon={HandCoins} title={companyReportCopy.deal} intro={companyReportCopy.dealHint}>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <Kpi label={companyCopy.askingPriceLabel} value={formatEur(project.askingPriceCents)} hint="Precio que pide el vendedor por la empresa." />
+          <Kpi
+            label="Múltiplo de EBITDA"
+            value={multiple !== null ? `${multiple.toLocaleString("es-ES", { maximumFractionDigits: 1 })}x` : companyCopy.unavailable}
+            hint="Precio ÷ EBITDA: cuántos años del EBITDA actual equivale el precio. También son los años para recuperar la inversión si el EBITDA se mantuviera."
+            sub={multiple !== null ? <RoiChip years={multiple} /> : null}
+          />
+          <Kpi label="Rentabilidad sobre el precio" value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : companyCopy.unavailable} hint="EBITDA ÷ precio × 100: lo que el negocio genera cada año por cada 100 € pagados, antes de impuestos e intereses." />
+          <Kpi label={companyCopy.saleReasonLabel} value={saleReasonText(project.saleReason)} hint="Motivo de venta indicado por el vendedor." />
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} />
+          <Fact icon={Receipt} label={companyCopy.adjustedEbitdaLabel} value={`${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}`} />
+          <Fact icon={Receipt} label={companyCopy.opexLabel} value={project.opexCents === null ? companyCopy.unavailable : formatEur(project.opexCents)} />
+        </div>
+      </ReportSection>
+
+      <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} open={false}>
+        <div className="flex flex-col gap-6">
+          {figuresOpen ? (
+            <>
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.incomeHeading}</h3>
+                <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
+              </div>
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.balanceHeading}</h3>
+                <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
+              </div>
+              {indicatorRows.length > 0 ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Ratios</h3>
+                  <IndicatorTable years={project.balanceYears} rows={indicatorRows} />
+                </div>
+              ) : null}
+              {detailRows.length > 0 ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
+                  <FinancialTable years={project.balanceYears} rows={detailRows} />
+                </div>
+              ) : null}
+            </>
+          ) : (
+            lock("balance", null)
+          )}
+          {registry ? <RegistryRecords registry={registry} /> : null}
+          {role === "admin" ? adminDetail : null}
+        </div>
+      </ReportSection>
+    </div>
+  );
+}
+
+function BalanceReading({ year }: { year: SabiYear }) {
+  const total = year.totalAssetsCents!;
+  const share = (value: number | null) => (value === null ? null : (value / total) * 100);
+  const rows = [
+    { label: "Total activo", value: total, pct: null as number | null, hint: "Todo lo que tiene la empresa: inmuebles, maquinaria, existencias, clientes pendientes de cobro y caja." },
+    { label: "Fondos propios", value: year.equityCents, pct: share(year.equityCents), hint: "Lo que pertenece a los socios (capital + beneficios acumulados)." },
+    { label: "Deudas a largo plazo", value: year.nonCurrentLiabilitiesCents, pct: share(year.nonCurrentLiabilitiesCents), hint: "Pasivo no corriente: deudas a devolver en más de un año." },
+    { label: "Deudas a corto plazo", value: year.currentLiabilitiesCents, pct: share(year.currentLiabilitiesCents), hint: "Pasivo corriente: proveedores, bancos y otras deudas a menos de un año." },
+    { label: "Caja", value: year.cashCents, pct: share(year.cashCents), hint: "Efectivo y saldos en bancos al cierre." },
+  ];
+  return (
+    <section className="rounded-xl border border-[#e7eaee] bg-white p-4">
+      <h3 className="text-sm font-semibold text-[#1c2740]">Cierre {yearLabel(year)}</h3>
+      <dl className="mt-3 flex flex-col gap-2.5">
+        {rows.map((row) =>
+          row.value === null ? null : (
+            <div key={row.label}>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <dt className="flex items-center gap-1 text-[#5c6b78]">
+                  {row.label}
+                  <FieldHint text={row.hint} wide />
+                </dt>
+                <dd className={`font-semibold tabular-nums ${row.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>
+                  {compactEur(row.value)}
+                  {row.pct !== null ? <span className="ml-1 text-xs font-normal text-[#8b95a7]">{row.pct.toLocaleString("es-ES", { maximumFractionDigits: 0 })} %</span> : null}
+                </dd>
+              </div>
+              {row.pct !== null ? (
+                <div className="mt-1 h-1.5 rounded-full bg-[#eef0f4]">
+                  <div className="h-full rounded-full bg-[#2fc4b2]" style={{ width: `${Math.max(0, Math.min(100, row.pct))}%` }} />
+                </div>
+              ) : null}
+            </div>
+          ),
+        )}
+      </dl>
+    </section>
+  );
+}

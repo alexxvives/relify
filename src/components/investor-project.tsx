@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CompanyBanner } from "@/components/company-banner";
-import { CompanyProfile } from "@/components/company-profile-view";
+import { CompanyReport } from "@/components/company-report";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
@@ -134,8 +134,9 @@ export function InvestorProject({
           company: (
             <div className="grid min-w-0 gap-6">
               <div className="flex min-w-0 flex-col gap-6">
-                <CompanyProfile
+                <CompanyReport
                   project={project}
+                  role="buyer"
                   figuresOpen={access === "accepted"}
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}

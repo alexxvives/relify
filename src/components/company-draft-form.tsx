@@ -12,7 +12,8 @@ import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftActio
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
-import { CompanyProfile } from "@/components/company-profile-view";
+import { CompanyReport } from "@/components/company-report";
+import type { SabiYear } from "@/lib/sabi/insights";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { SellerTabs } from "@/components/seller-tabs";
@@ -788,6 +789,7 @@ export function CompanyDraftForm({
   reviewPending = false,
   coverSrc = null,
   financeExtra = null,
+  reportYears = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -796,6 +798,8 @@ export function CompanyDraftForm({
   coverSrc?: string | null;
   /** t62: SABI detail block, rendered under the balance sheet. */
   financeExtra?: ReactNode;
+  /** t69: imported closed years, so the buyer preview shows the same report charts buyers will see. */
+  reportYears?: SabiYear[] | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1643,7 +1647,7 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyProfile project={investorPreview} figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
+          <CompanyReport project={reportYears && reportYears.length > 0 ? { ...investorPreview, reportYears } : investorPreview} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
         </div>
         <SaveButton id="deal" pending={pending} pendingId={saveTarget} rejected={panelRejected("deal")} shake={attempt} dirty={dealDirty} onChoose={chooseSave} />
       </Panel>
