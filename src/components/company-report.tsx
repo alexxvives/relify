@@ -537,7 +537,8 @@ export function CompanyReport({
   const indicatorRows = project.indicatorRows ?? [];
   const legalFacts = [
     project.legalForm ? { label: companyCopy.legalFormLabel, value: project.legalForm } : null,
-    project.accountsFormat ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
+    // t71: the accounts format (e.g. "Abreviado PGC 2007") says little to a buyer; admin only.
+    project.accountsFormat && role === "admin" ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
     project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
   ].flatMap((fact) => (fact ? [fact] : []));
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
