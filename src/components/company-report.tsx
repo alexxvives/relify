@@ -544,7 +544,7 @@ export function CompanyReport({
   const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
   const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
   const composition = balanceComposition(years);
-  const checks = diligenceChecks(years, fullRegistry?.audits ?? []);
+  const checks = diligenceChecks(years, fullRegistry?.audits ?? [], project.audited === true);
   const deal = dealReading(project, years.length > 0);
 
   const sections = [

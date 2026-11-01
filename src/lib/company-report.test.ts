@@ -104,3 +104,11 @@ describe("diligenceChecks", () => {
     expect(checks.find((check) => check.key === "information")!.value).not.toContain("X");
   });
 });
+
+describe("diligenceChecks audit source", () => {
+  it("says the seller declares an audit when the registry has no report", () => {
+    const info = diligenceChecks([year({})], [], true).find((check) => check.key === "information")!;
+    expect(info.value).toContain("según el vendedor");
+    expect(info.text).toContain("pedir la opinión");
+  });
+});

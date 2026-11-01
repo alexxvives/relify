@@ -378,7 +378,7 @@ export function operatingWorkingCapital(year: SabiYear): number | null {
  * Checks a buyer or accountant runs first, computed only from the filed accounts (and the audit opinion when the
  * registry has one). Approximations say so in their text. Nothing is shown for a check without data.
  */
-export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"] = []): DiligenceCheck[] {
+export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"] = [], sellerSaysAudited = false): DiligenceCheck[] {
   const checks: DiligenceCheck[] = [];
   const closed = years.filter((year) => year.revenueCents !== null || year.totalAssetsCents !== null);
   const last = closed[closed.length - 1];
@@ -393,11 +393,15 @@ export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"
   checks.push({
     key: "information",
     label: "Calidad de la información",
-    value: `${closed.length} ejercicio${closed.length === 1 ? "" : "s"}${audit?.opinion ? ` · auditoría ${audit.year}: ${audit.opinion}` : " · sin auditoría registrada"}`,
+    value: `${closed.length} ejercicio${closed.length === 1 ? "" : "s"}${audit?.opinion ? ` · auditoría ${audit.year}: ${audit.opinion}` : sellerSaysAudited ? " · auditada según el vendedor" : " · sin auditoría registrada"}`,
     level: short.length > 0 || !audit ? "warn" : "good",
     text: [
       short.length > 0 ? `Ejercicio${short.length > 1 ? "s" : ""} de duración distinta a 12 meses (${short.map((year) => `${year.year}: ${year.months} meses`).join(", ")}): no son comparables sin anualizar.` : null,
-      audit ? null : "No consta informe de auditoría: las cifras no están verificadas por un tercero.",
+      audit
+        ? null
+        : sellerSaysAudited
+          ? "El vendedor indica que las cuentas están auditadas, pero el registro no publica el informe: pedir la opinión del auditor."
+          : "No consta informe de auditoría: las cifras no están verificadas por un tercero.",
     ]
       .filter(Boolean)
       .join(" ") || "Cuentas depositadas y auditadas.",
