@@ -25,6 +25,14 @@ describe("renderEmail", () => {
   });
 
   it("refuses non-http links", () => {
-    expect(() => renderEmail("x", { preheader: "", title: "", paragraphs: [], reason: "", cta: { label: "x", url: "javascript:alert(1)" } })).toThrow();
+    expect(() =>
+      renderEmail("x", {
+        preheader: "",
+        title: "",
+        paragraphs: [],
+        reason: "",
+        cta: { label: "x", url: "javascript:alert(1)" },
+      }),
+    ).toThrow();
   });
 });

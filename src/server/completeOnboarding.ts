@@ -1,15 +1,25 @@
 import { headers } from "next/headers";
 import { authCopy } from "@/lib/auth-copy";
-import { readUserRole, storedPhone, type OnboardingInput, type UserRoleName } from "@/lib/auth-input";
+import {
+  readUserRole,
+  storedPhone,
+  type OnboardingInput,
+  type UserRoleName,
+} from "@/lib/auth-input";
 import { normalizeCif } from "@/lib/spanish-cif";
 import { auth } from "@/server/auth";
 import { prisma } from "@/server/db";
+import { readSiteUrl } from "@/lib/env";
+import { welcomeEmail } from "@/lib/email/messages";
+import { sendMail } from "@/server/mailer";
 
 export type CompleteOnboardingResult =
   | { ok: true; role: UserRoleName | null }
   | { ok: false; code: "signed_out" | "save_failed"; message: string };
 
-export async function completeOnboarding(input: OnboardingInput): Promise<CompleteOnboardingResult> {
+export async function completeOnboarding(
+  input: OnboardingInput,
+): Promise<CompleteOnboardingResult> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -45,7 +55,24 @@ export async function completeOnboarding(input: OnboardingInput): Promise<Comple
       },
     });
   } catch {
-    return { ok: false, code: "save_failed", message: authCopy.onboardingFailed };
+    return {
+      ok: false,
+      code: "save_failed",
+      message: authCopy.onboardingFailed,
+    };
+  }
+
+  // t73b: welcome email, once (the onboardedAt guard above stops repeats). Never blocks onboarding.
+  if (
+    input.role === "seller" ||
+    input.role === "investor" ||
+    input.role === "advisor"
+  ) {
+    await sendMail({
+      to: session.user.email,
+      tag: `welcome-${input.role}`,
+      ...welcomeEmail(input.role, input.name.trim(), readSiteUrl()),
+    });
   }
 
   return { ok: true, role: input.role };

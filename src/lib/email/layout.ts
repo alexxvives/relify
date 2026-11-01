@@ -29,7 +29,8 @@ const teal = "#0f766e";
 const tealBright = "#2fc4b2";
 const ink = "#3d4a63";
 const muted = "#8b95a7";
-const font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const font =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 export function escapeHtml(value: string): string {
   return value
@@ -49,15 +50,22 @@ function safeUrl(url: string): string {
   return parsed.toString();
 }
 
-export function renderEmail(subject: string, content: EmailContent): RenderedEmail {
-  const cta = content.cta ? { label: content.cta.label, url: safeUrl(content.cta.url) } : null;
+export function renderEmail(
+  subject: string,
+  content: EmailContent,
+): RenderedEmail {
+  const cta = content.cta
+    ? { label: content.cta.label, url: safeUrl(content.cta.url) }
+    : null;
   const rows = content.rows ?? [];
 
   const text = [
     content.title,
     "",
     ...content.paragraphs.flatMap((paragraph) => [paragraph, ""]),
-    ...(rows.length ? [...rows.map((row) => `${row.label}: ${row.value}`), ""] : []),
+    ...(rows.length
+      ? [...rows.map((row) => `${row.label}: ${row.value}`), ""]
+      : []),
     ...(cta ? [`${cta.label}: ${cta.url}`, ""] : []),
     ...(content.note ? [content.note, ""] : []),
     "—",
@@ -66,7 +74,10 @@ export function renderEmail(subject: string, content: EmailContent): RenderedEma
   ].join("\n");
 
   const paragraphs = content.paragraphs
-    .map((paragraph) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${ink}">${escapeHtml(paragraph)}</p>`)
+    .map(
+      (paragraph) =>
+        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${ink}">${escapeHtml(paragraph)}</p>`,
+    )
     .join("");
   const table = rows.length
     ? `<tr><td class="px" style="padding:4px 36px 8px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e1e6ee;border-radius:12px;border-collapse:separate;font-size:14px;color:${navy}">${rows
