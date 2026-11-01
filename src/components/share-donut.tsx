@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { companyCopy } from "@/lib/company-copy";
 import { formatBasisPoints, type SliceKind } from "@/lib/company-profile";
 
 const palettes: Record<SliceKind, readonly string[]> = {
@@ -14,7 +13,9 @@ export function ShareDonut({
   title,
   slices,
   palette,
+  emptyText = "Sin datos: el vendedor aún no ha indicado este reparto.",
 }: {
+  emptyText?: string;
   title: string;
   slices: { label: string; basisPoints: number; detail?: string }[];
   palette: SliceKind;
@@ -33,7 +34,23 @@ export function ShareDonut({
     <section className="@container flex h-full min-h-40 flex-col rounded-xl bg-[#f4f7ff] p-4">
       <h3 className="text-sm font-semibold text-[#1c2740]">{title}</h3>
       {slices.length === 0 ? (
-        <p className="mt-3 text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-4 py-2 @[24rem]:flex-row @[24rem]:items-center">
+          <svg viewBox="0 0 42 42" className="size-28 shrink-0" role="img" aria-label={`${title}: sin datos`}>
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#e3e7ed" strokeWidth="6" strokeDasharray="4 1.2" />
+            <text x="21" y="22.6" textAnchor="middle" className="fill-[#8b95a7] text-[4.2px] font-semibold">
+              Sin datos
+            </text>
+          </svg>
+          <ul className="flex w-full min-w-0 flex-col gap-1.5 text-xs text-[#8b95a7]" aria-hidden>
+            {[72, 54, 38].map((width) => (
+              <li key={width} className="flex items-center gap-2 px-2">
+                <span className="size-2.5 shrink-0 rounded-full bg-[#e3e7ed]" />
+                <span className="h-2 rounded-full bg-[#eef0f4]" style={{ width: `${width}%` }} />
+              </li>
+            ))}
+            <li className="px-2 pt-1 leading-5">{emptyText}</li>
+          </ul>
+        </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col items-center gap-4 py-2 @[24rem]:flex-row @[24rem]:items-center">
           <div className="flex shrink-0 items-center justify-center">
