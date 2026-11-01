@@ -385,19 +385,20 @@ export function RegistryOverview({ registry, showDonut = true, lead = null }: { 
         </Section>
       ) : null}
       {registry.subsidiaries.length > 0 ? (
-        <Section icon={<Building2 className="size-4 text-[#0f766e]" aria-hidden />} title="Participadas" count={registry.subsidiaries.length} hint="Sociedades en las que la empresa tiene participación, con el % directo y total publicado en el registro.">
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {registry.subsidiaries.map((holding, index) => (
-              <li key={`${holding.name}-${index}`} className="flex items-center justify-between gap-2 rounded-lg bg-[#f7f8fb] px-3 py-2">
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-[#1c2740]">{holding.name}</span>
-                  <span className="text-[11px] text-[#5c6b78]">{[holding.country, holding.type].filter(Boolean).join(" · ") || "—"}</span>
+        <Section icon={<Building2 className="size-4 text-[#0f766e]" aria-hidden />} title="Participadas" count={registry.subsidiaries.length} hint={"Sociedades en las que la empresa tiene participación, con el % directo y total publicado en el registro.\nPara el comprador importan por el perímetro (qué entra en la compra), si las cuentas son individuales o consolidadas y los préstamos o garantías entre sociedades del grupo."}>
+          {/* t71: compact list (first 3); the full detail stays one click away. */}
+          <ul className="divide-y divide-[#eef0f4] text-sm">
+            {registry.subsidiaries.slice(0, 3).map((holding, index) => (
+              <li key={`${holding.name}-${index}`} className="flex items-center justify-between gap-2 py-1.5">
+                <span className="min-w-0 truncate text-[#1c2740]">
+                  {holding.name}
+                  {holding.country ? <span className="ml-1.5 text-[11px] text-[#8b95a7]">{holding.country}</span> : null}
                 </span>
-                {(holding.direct ?? holding.total) ? <span className="shrink-0 rounded-full bg-[#e6f4f2] px-2 py-0.5 text-xs font-semibold text-[#0f5f59] tabular-nums">{holding.direct ?? holding.total} %</span> : null}
+                {(holding.direct ?? holding.total) ? <span className="shrink-0 text-xs font-semibold text-[#0f5f59] tabular-nums">{holding.direct ?? holding.total} %</span> : null}
               </li>
             ))}
           </ul>
-          <Toggle label={reportChartsCopy.showTable}>
+          <Toggle label={registry.subsidiaries.length > 3 ? `Ver las ${registry.subsidiaries.length} participadas` : "Ver detalle"}>
             <HoldingTable rows={registry.subsidiaries} />
           </Toggle>
         </Section>
