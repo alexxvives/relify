@@ -1,5 +1,9 @@
 import type { SabiPreviewTarget } from "@/lib/sabi/preview";
-import { sabiExtraOf, sabiFichaYears, type SabiExtra } from "@/lib/sabi/mapping";
+import {
+  sabiExtraOf,
+  sabiFichaYears,
+  type SabiExtra,
+} from "@/lib/sabi/mapping";
 import type { SabiAudit } from "@/lib/sabi/parse";
 import * as z from "zod";
 import { advisoryServices } from "@/lib/advisory";
@@ -7,7 +11,11 @@ import { adminCopy } from "@/lib/admin-copy";
 import { advisorSectorName } from "@/lib/advisor-sectors";
 import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
-import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
+import {
+  investorProjectSelect,
+  toInvestorProject,
+  type InvestorProjectProfile,
+} from "@/lib/investor-project";
 import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -26,7 +34,10 @@ const when = new Intl.DateTimeFormat("es-ES", {
   timeZone: "Europe/Madrid",
 });
 
-const day = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" });
+const day = new Intl.DateTimeFormat("es-ES", {
+  dateStyle: "medium",
+  timeZone: "Europe/Madrid",
+});
 
 export type AdminCompanyMessage = {
   id: string;
@@ -60,8 +71,18 @@ export type AdminSideAdvisor = {
 
 export type AdminPrivateFact = { key: string; label: string; value: string };
 
-export type AdminSabiPerson = { name: string; role: string; since: string | null; group: string | null };
-export type AdminSabiHolding = { name: string; country: string | null; direct: string | null; total: string | null };
+export type AdminSabiPerson = {
+  name: string;
+  role: string;
+  since: string | null;
+  group: string | null;
+};
+export type AdminSabiHolding = {
+  name: string;
+  country: string | null;
+  direct: string | null;
+  total: string | null;
+};
 
 export type AdminSabiView = {
   projectId: string;
@@ -112,7 +133,10 @@ export type AdminCompanyView = {
   advisors: AdminSideAdvisor[];
 };
 
-export async function getAdminCompanyByAccess(user: CurrentUser, accessId: string): Promise<AdminCompanyView | null> {
+export async function getAdminCompanyByAccess(
+  user: CurrentUser,
+  accessId: string,
+): Promise<AdminCompanyView | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -132,7 +156,10 @@ export async function getAdminCompanyByAccess(user: CurrentUser, accessId: strin
     return null;
   }
 
-  return getAdminCompany(user, { slug: access.project.slug, accessId: parsed.data });
+  return getAdminCompany(user, {
+    slug: access.project.slug,
+    accessId: parsed.data,
+  });
 }
 
 export async function getAdminCompany(
@@ -181,7 +208,14 @@ export async function getAdminCompany(
       },
       messages: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, investorId: true, author: true, kind: true, body: true, createdAt: true },
+        select: {
+          id: true,
+          investorId: true,
+          author: true,
+          kind: true,
+          body: true,
+          createdAt: true,
+        },
       },
     },
   });
@@ -193,41 +227,78 @@ export async function getAdminCompany(
   const owner = project.ownerId
     ? await prisma.user.findUnique({
         where: { id: project.ownerId },
-        select: { name: true, lastName: true, email: true, phone: true, nationalId: true },
+        select: {
+          name: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          nationalId: true,
+        },
       })
     : null;
   const sellerName = owner ? personName(owner.name, owner.lastName) : "";
   const missing = adminCopy.privateMissing;
   const privateFacts: AdminPrivateFact[] = [
-    { key: "legal", label: "Razón social", value: project.legalName.trim() || missing },
+    {
+      key: "legal",
+      label: "Razón social",
+      value: project.legalName.trim() || missing,
+    },
     { key: "cif", label: "CIF", value: project.cif.trim() || missing },
-    { key: "address", label: "Domicilio", value: project.address.trim() || missing },
+    {
+      key: "address",
+      label: "Domicilio",
+      value: project.address.trim() || missing,
+    },
     { key: "owner", label: "Titular", value: sellerName || missing },
-    { key: "email", label: "Correo del titular", value: owner?.email ?? missing },
+    {
+      key: "email",
+      label: "Correo del titular",
+      value: owner?.email ?? missing,
+    },
     { key: "phone", label: "Teléfono", value: owner?.phone?.trim() || missing },
-    { key: "nid", label: "DNI/NIE del titular", value: owner?.nationalId?.trim() || missing },
-    { key: "created", label: "Alta en Relify", value: day.format(project.createdAt) },
+    {
+      key: "nid",
+      label: "DNI/NIE del titular",
+      value: owner?.nationalId?.trim() || missing,
+    },
+    {
+      key: "created",
+      label: "Alta en Relify",
+      value: day.format(project.createdAt),
+    },
   ];
   const closed = project.successFee !== null;
   const accesses = project.accesses.map((access) => {
-    const accepted = access.sellerAcceptedAt !== null || access.ndaAcceptedAt !== null;
-    const messages = project.messages.filter((message) => message.investorId === access.investorId);
-    const investorName = personName(access.investor.name, access.investor.lastName);
+    const accepted =
+      access.sellerAcceptedAt !== null || access.ndaAcceptedAt !== null;
+    const messages = project.messages.filter(
+      (message) => message.investorId === access.investorId,
+    );
+    const investorName = personName(
+      access.investor.name,
+      access.investor.lastName,
+    );
 
     return {
       id: access.id,
-      investorLabel: investorName.length > 0 ? investorName : adminCopy.investorParty,
+      investorLabel:
+        investorName.length > 0 ? investorName : adminCopy.investorParty,
       steps: accepted
         ? dealPipeline(
             "advisor",
             processFlags({
               accepted: true,
               nda: access.ndaAcceptedAt !== null,
-              questions: messages.some((message) => message.kind === "question"),
+              questions: messages.some(
+                (message) => message.kind === "question",
+              ),
               meeting: messages.some((message) => message.kind === "meeting"),
               offer: messages.some((message) => message.kind === "offer"),
               loiAccepted: access.loiAcceptedAt !== null,
-              roomShared: project.dataRoomGrants.some((grant) => grant.investorId === access.investorId),
+              roomShared: project.dataRoomGrants.some(
+                (grant) => grant.investorId === access.investorId,
+              ),
               passedDiligence: access.diligencePassedAt !== null,
               closed,
             }),
@@ -236,16 +307,29 @@ export async function getAdminCompany(
       messages: messages.map((message) => ({
         id: message.id,
         kind: message.kind,
-        body: message.kind === "meeting" ? message.body : withoutAttachments(message.body),
-        authorLabel: message.author === "seller" ? sellerParty(sellerName) : investorParty(investorName),
+        body:
+          message.kind === "meeting"
+            ? message.body
+            : withoutAttachments(message.body),
+        authorLabel:
+          message.author === "seller"
+            ? sellerParty(sellerName)
+            : investorParty(investorName),
         createdAt: when.format(message.createdAt),
       })),
     };
   });
-  const selected = accesses.find((access) => access.id === input.accessId) ?? accesses[0] ?? null;
-  const chosen = input.accessId ? project.accesses.find((access) => access.id === input.accessId) ?? null : null;
+  const selected =
+    accesses.find((access) => access.id === input.accessId) ??
+    accesses[0] ??
+    null;
+  const chosen = input.accessId
+    ? (project.accesses.find((access) => access.id === input.accessId) ?? null)
+    : null;
   const [parties, sabiDetail, sabiRegistry] = await Promise.all([
-    chosen ? sideParties(project.id, chosen) : Promise.resolve({ investor: null, advisors: [] }),
+    chosen
+      ? sideParties(project.id, chosen)
+      : Promise.resolve({ investor: null, advisors: [] }),
     getSabiDetail(project.id),
     getSabiRegistry(project.id),
   ]);
@@ -256,21 +340,36 @@ export async function getAdminCompany(
     hasCif: project.cif.trim().length > 0,
     previewTarget: {
       cif: project.cif,
-      sellerClosedYears: project.years.filter((year) => year.kind === "closed" && year.dataSource !== "sabi").map((year) => year.year),
+      sellerClosedYears: project.years
+        .filter((year) => year.kind === "closed" && year.dataSource !== "sabi")
+        .map((year) => year.year),
     },
-    importedAt: project.sabiImportedAt ? when.format(project.sabiImportedAt) : null,
-    requestedAt: project.sabiRequestedAt ? when.format(project.sabiRequestedAt) : null,
+    importedAt: project.sabiImportedAt
+      ? when.format(project.sabiImportedAt)
+      : null,
+    requestedAt: project.sabiRequestedAt
+      ? when.format(project.sabiRequestedAt)
+      : null,
     fileName: project.sabiFileName,
     legalForm: stored?.identity.legalForm ?? null,
     incorporatedOn: stored?.identity.incorporatedOn ?? null,
     employees: stored?.identity.employees ?? null,
-    directors: (stored?.directors ?? []).map(({ name, role, since, group }) => ({ name, role, since, group })),
-    shareholders: (stored?.shareholders ?? []).map(({ name, country, direct, total }) => ({ name, country, direct, total })),
-    subsidiaries: (stored?.subsidiaries ?? []).map(({ name, country, direct, total }) => ({ name, country, direct, total })),
+    directors: (stored?.directors ?? []).map(
+      ({ name, role, since, group }) => ({ name, role, since, group }),
+    ),
+    shareholders: (stored?.shareholders ?? []).map(
+      ({ name, country, direct, total }) => ({ name, country, direct, total }),
+    ),
+    subsidiaries: (stored?.subsidiaries ?? []).map(
+      ({ name, country, direct, total }) => ({ name, country, direct, total }),
+    ),
     auditor: stored?.auditor ?? null,
     banks: stored?.banks ?? [],
     formerName: stored?.identity.formerName ?? null,
-    status: [stored?.identity.status, stored?.identity.statusDetail].filter(Boolean).join(" · ") || null,
+    status:
+      [stored?.identity.status, stored?.identity.statusDetail]
+        .filter(Boolean)
+        .join(" · ") || null,
     shareCapitalCents: stored?.identity.shareCapitalCents ?? null,
     phone: stored?.identity.phone ?? null,
     website: stored?.identity.website ?? null,
@@ -282,14 +381,23 @@ export async function getAdminCompany(
       .filter(([scheme]) => scheme !== "cnae2009")
       .map(([scheme, set]) => ({
         scheme,
-        codes: [...(set?.primary ?? []), ...(set?.secondary ?? [])].map((code) => `${code.code} ${code.description}`.trim()).join(" · "),
+        codes: [...(set?.primary ?? []), ...(set?.secondary ?? [])]
+          .map((code) => `${code.code} ${code.description}`.trim())
+          .join(" · "),
       }))
       .filter((entry) => entry.codes.length > 0),
     activityDescription: stored?.identity.activityDescription ?? null,
     companyType: stored?.identity.companyType ?? null,
     groupCompanyCount: stored?.identity.groupCompanyCount ?? null,
     audits: stored?.audits ?? [],
-    extra: (project.sabiExtra as SabiExtra | null) ?? (stored ? sabiExtraOf(stored, stored.years.slice(0, sabiFichaYears).map((year) => year.year)) : null),
+    extra:
+      (project.sabiExtra as SabiExtra | null) ??
+      (stored
+        ? sabiExtraOf(
+            stored,
+            stored.years.slice(0, sabiFichaYears).map((year) => year.year),
+          )
+        : null),
   };
 
   return {
@@ -317,16 +425,23 @@ async function sideParties(
     name: true,
     lastName: true,
     email: true,
-    advisorProfile: { select: { businessName: true, sectors: true, verifiedAt: true } },
+    advisorProfile: {
+      select: { businessName: true, sectors: true, verifiedAt: true },
+    },
   } as const;
   const [cards, engagements, mandates] = await Promise.all([
-    publicCardsByInvestor([{ id: chosen.investorId, email: chosen.investor.email }]),
+    publicCardsByInvestor([
+      { id: chosen.investorId, email: chosen.investor.email },
+    ]),
     prisma.advisoryEngagement.findMany({
       where: {
         projectId,
         declinedAt: null,
         advisorId: { not: null },
-        OR: [{ client: "seller" }, { client: "investor", requesterId: chosen.investorId }],
+        OR: [
+          { client: "seller" },
+          { client: "investor", requesterId: chosen.investorId },
+        ],
       },
       orderBy: { createdAt: "asc" },
       select: {
@@ -344,14 +459,31 @@ async function sideParties(
     prisma.saleMandate.findMany({
       where: { projectId },
       orderBy: { createdAt: "asc" },
-      select: { id: true, advisorId: true, createdAt: true, advisor: { select: advisorSelect } },
+      select: {
+        id: true,
+        advisorId: true,
+        createdAt: true,
+        advisor: { select: advisorSelect },
+      },
     }),
   ]);
-  const investorName = personName(chosen.investor.name, chosen.investor.lastName);
+  const investorName = personName(
+    chosen.investor.name,
+    chosen.investor.lastName,
+  );
   const sideAdvisor = (
     id: string,
     role: "investor" | "seller",
-    advisor: { name: string; lastName: string | null; email: string; advisorProfile: { businessName: string; sectors: string[]; verifiedAt: Date | null } | null },
+    advisor: {
+      name: string;
+      lastName: string | null;
+      email: string;
+      advisorProfile: {
+        businessName: string;
+        sectors: string[];
+        verifiedAt: Date | null;
+      } | null;
+    },
     status: string,
     since: Date,
     services: string,
@@ -362,15 +494,25 @@ async function sideParties(
     return {
       id,
       label: advisorLabel(business, person),
-      hiredBy: role === "investor" ? adminCopy.advisorForInvestor : adminCopy.advisorForSeller,
+      hiredBy:
+        role === "investor"
+          ? adminCopy.advisorForInvestor
+          : adminCopy.advisorForSeller,
       role,
       person,
       business,
       email: advisor.email,
       verified: Boolean(advisor.advisorProfile?.verifiedAt),
       status,
-      since: since.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" }),
-      sectors: (advisor.advisorProfile?.sectors ?? []).map((sector) => advisorSectorName(sector)),
+      since: since.toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "Europe/Madrid",
+      }),
+      sectors: (advisor.advisorProfile?.sectors ?? []).map((sector) =>
+        advisorSectorName(sector),
+      ),
       services,
     };
   };
@@ -386,14 +528,41 @@ async function sideParties(
         : row.claimedAt
           ? adminCopy.advisorStatusClaimed
           : adminCopy.advisorStatusAssigned;
-    const services = row.services.map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id).join(", ");
+    const services = row.services
+      .map(
+        (id) =>
+          advisoryServices.find((service) => service.id === id)?.title ?? id,
+      )
+      .join(", ");
 
-    return [sideAdvisor(row.id, row.client === "investor" ? "investor" : "seller", row.advisor, status, row.createdAt, services)];
+    return [
+      sideAdvisor(
+        row.id,
+        row.client === "investor" ? "investor" : "seller",
+        row.advisor,
+        status,
+        row.createdAt,
+        services,
+      ),
+    ];
   });
-  const engagedSellerAdvisors = new Set(engagements.filter((row) => row.client === "seller").map((row) => row.advisorId));
+  const engagedSellerAdvisors = new Set(
+    engagements
+      .filter((row) => row.client === "seller")
+      .map((row) => row.advisorId),
+  );
   const fromMandates = mandates
     .filter((row) => !engagedSellerAdvisors.has(row.advisorId))
-    .map((row) => sideAdvisor(row.id, "seller", row.advisor, adminCopy.advisorStatusMandate, row.createdAt, ""));
+    .map((row) =>
+      sideAdvisor(
+        row.id,
+        "seller",
+        row.advisor,
+        adminCopy.advisorStatusMandate,
+        row.createdAt,
+        "",
+      ),
+    );
   const advisors = [...fromEngagements, ...fromMandates];
 
   return {
@@ -401,7 +570,10 @@ async function sideParties(
       label: investorName.length > 0 ? investorName : adminCopy.investorParty,
       profile: cards.get(chosen.investorId) ?? null,
     },
-    advisors: advisors.sort((left, right) => Number(left.role !== "investor") - Number(right.role !== "investor")),
+    advisors: advisors.sort(
+      (left, right) =>
+        Number(left.role !== "investor") - Number(right.role !== "investor"),
+    ),
   };
 }
 
@@ -422,11 +594,15 @@ function advisorLabel(business: string, name: string): string {
 }
 
 function sellerParty(name: string): string {
-  return name.length > 0 ? `${name} · ${adminCopy.sellerParty}` : adminCopy.sellerParty;
+  return name.length > 0
+    ? `${name} · ${adminCopy.sellerParty}`
+    : adminCopy.sellerParty;
 }
 
 function investorParty(name: string): string {
-  return name.length > 0 ? `${name} · ${adminCopy.investorParty}` : adminCopy.investorParty;
+  return name.length > 0
+    ? `${name} · ${adminCopy.investorParty}`
+    : adminCopy.investorParty;
 }
 
 function withoutAttachments(body: string): string {
@@ -438,7 +614,10 @@ function withoutAttachments(body: string): string {
 }
 
 /** t68: when the seller never filled the capital split, the ficha's capital pie falls back to SABI's shareholders. */
-function withSabiCapital(profile: InvestorProjectProfile, registry: SabiRegistry | null): InvestorProjectProfile {
+function withSabiCapital(
+  profile: InvestorProjectProfile,
+  registry: SabiRegistry | null,
+): InvestorProjectProfile {
   if (profile.capital.length > 0 || !registry) {
     return profile;
   }

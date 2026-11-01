@@ -10,9 +10,15 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { stripeMode } from "@/server/stripe";
 
-export type InvestorPlanCount = { plan: "none" | "limited" | "unlimited"; count: number };
+export type InvestorPlanCount = {
+  plan: "none" | "limited" | "unlimited";
+  count: number;
+};
 
-const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" });
+const when = new Intl.DateTimeFormat("es-ES", {
+  dateStyle: "medium",
+  timeZone: "Europe/Madrid",
+});
 
 export type BillingEntry = {
   id: string;
@@ -34,8 +40,12 @@ export type BillingBook = {
 export async function countInvestorPlans(): Promise<InvestorPlanCount[]> {
   const [investors, limited, unlimited] = await Promise.all([
     prisma.user.count({ where: { role: "investor" } }),
-    prisma.billingCustomer.count({ where: { plan: "limited", user: { role: "investor" } } }),
-    prisma.billingCustomer.count({ where: { plan: "unlimited", user: { role: "investor" } } }),
+    prisma.billingCustomer.count({
+      where: { plan: "limited", user: { role: "investor" } },
+    }),
+    prisma.billingCustomer.count({
+      where: { plan: "unlimited", user: { role: "investor" } },
+    }),
   ]);
 
   return [
@@ -65,61 +75,74 @@ function stamp(value: Date | null): string | null {
   return value ? value.toISOString() : null;
 }
 
-export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling | null> {
+export async function getAdminBilling(
+  user: CurrentUser,
+): Promise<AdminBilling | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
 
-  const [plans, listings, fees, engagements, deposits, customers] = await Promise.all([
-    countInvestorPlans(),
-    prisma.listingPayment.findMany({
-      orderBy: { createdAt: "desc" },
-      select: { id: true, createdAt: true, project: { select: { codename: true } }, user: { select: { email: true } } },
-    }),
-    prisma.successFee.findMany({
-      orderBy: { recordedAt: "desc" },
-      select: {
-        id: true,
-        recordedAt: true,
-        closedPriceCents: true,
-        buyerNetCents: true,
-        buyerVatCents: true,
-        sellerNetCents: true,
-        sellerVatCents: true,
-        project: { select: { codename: true } },
-      },
-    }),
-    prisma.advisoryEngagement.findMany({
-      where: { platformNetCents: { not: null } },
-      orderBy: { closedAt: "desc" },
-      select: {
-        id: true,
-        closedAt: true,
-        chargedCents: true,
-        platformNetCents: true,
-        platformVatCents: true,
-        project: { select: { codename: true } },
-      },
-    }),
-    prisma.advisoryEngagement.findMany({
-      where: { depositPaidAt: { not: null } },
-      orderBy: { depositPaidAt: "desc" },
-      select: { id: true, depositPaidAt: true, depositCents: true, project: { select: { codename: true } } },
-    }),
-    prisma.billingCustomer.findMany({
-      where: { OR: [{ plan: { not: "none" } }, { advisorInbox: true }] },
-      select: {
-        userId: true,
-        plan: true,
-        stripeSubscriptionId: true,
-        periodStart: true,
-        periodEnd: true,
-        advisorInbox: true,
-        advisorSubscriptionId: true,
-        user: { select: { email: true } },
-      },
-    }),
-  ]);
+  const [plans, listings, fees, engagements, deposits, customers] =
+    await Promise.all([
+      countInvestorPlans(),
+      prisma.listingPayment.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          createdAt: true,
+          project: { select: { codename: true } },
+          user: { select: { email: true } },
+        },
+      }),
+      prisma.successFee.findMany({
+        orderBy: { recordedAt: "desc" },
+        select: {
+          id: true,
+          recordedAt: true,
+          closedPriceCents: true,
+          buyerNetCents: true,
+          buyerVatCents: true,
+          sellerNetCents: true,
+          sellerVatCents: true,
+          project: { select: { codename: true } },
+        },
+      }),
+      prisma.advisoryEngagement.findMany({
+        where: { platformNetCents: { not: null } },
+        orderBy: { closedAt: "desc" },
+        select: {
+          id: true,
+          closedAt: true,
+          chargedCents: true,
+          platformNetCents: true,
+          platformVatCents: true,
+          project: { select: { codename: true } },
+        },
+      }),
+      prisma.advisoryEngagement.findMany({
+        where: { depositPaidAt: { not: null } },
+        orderBy: { depositPaidAt: "desc" },
+        select: {
+          id: true,
+          depositPaidAt: true,
+          depositCents: true,
+          project: { select: { codename: true } },
+        },
+      }),
+      prisma.billingCustomer.findMany({
+        where: { OR: [{ plan: { not: "none" } }, { advisorInbox: true }] },
+        select: {
+          userId: true,
+          plan: true,
+          stripeSubscriptionId: true,
+          periodStart: true,
+          periodEnd: true,
+          advisorInbox: true,
+          advisorSubscriptionId: true,
+          user: { select: { email: true } },
+        },
+      }),
+    ]);
   const listingGross = grossCents(SELLER_LISTING_NET_CENTS);
   const listingTotal = listings.length * listingGross;
   const depositTotal = deposits.reduce((sum, row) => sum + row.depositCents, 0);
@@ -182,7 +205,10 @@ export async function getAdminBilling(user: CurrentUser): Promise<AdminBilling |
   });
   const closeTotal = closeRows.reduce((sum, row) => sum + row.cents, 0);
   const advisorTotal = advisorRows.reduce((sum, row) => sum + row.cents, 0);
-  const subscriptionTotal = subscriptionRows.reduce((sum, row) => sum + row.cents, 0);
+  const subscriptionTotal = subscriptionRows.reduce(
+    (sum, row) => sum + row.cents,
+    0,
+  );
   const books: BillingBook[] = [
     {
       id: "subscriptions",

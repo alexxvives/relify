@@ -12,7 +12,9 @@ function isSectorId(id: string): id is AdvisorSectorId {
   return advisorSectors.some((sector) => sector.id === id);
 }
 
-export async function getAdvisorProfile(userId: string): Promise<AdvisorProfileView> {
+export async function getAdvisorProfile(
+  userId: string,
+): Promise<AdvisorProfileView> {
   const row = await prisma.advisorProfile.findUnique({
     where: { userId },
   });

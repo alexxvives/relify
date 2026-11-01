@@ -1,5 +1,12 @@
 import { sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles, processFlags, type DealStep, type ProcessFile, withContractAccepted } from "@/lib/deal-pipeline";
+import {
+  dealPipeline,
+  investorProcessFiles,
+  processFlags,
+  type DealStep,
+  type ProcessFile,
+  withContractAccepted,
+} from "@/lib/deal-pipeline";
 import { companyCopy } from "@/lib/company-copy";
 import { investorCopy } from "@/lib/investor-copy";
 import { investorProfileChecks } from "@/lib/demo-profile";
@@ -51,10 +58,15 @@ export type InvestorDesk = {
 };
 
 function personName(name: string, lastName: string | null): string {
-  return [name, lastName ?? ""].filter((part) => part.trim().length > 0).join(" ");
+  return [name, lastName ?? ""]
+    .filter((part) => part.trim().length > 0)
+    .join(" ");
 }
 
-function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date | null }): { stage: string; open: boolean } {
+function stageFor(access: {
+  sellerAcceptedAt: Date | null;
+  ndaAcceptedAt: Date | null;
+}): { stage: string; open: boolean } {
   if (access.ndaAcceptedAt) {
     return { stage: investorCopy.stageNda, open: false };
   }
@@ -66,52 +78,87 @@ function stageFor(access: { sellerAcceptedAt: Date | null; ndaAcceptedAt: Date |
   return { stage: investorCopy.stageWaiting, open: true };
 }
 
-export async function loadInvestorDesk(userId: string, email: string): Promise<InvestorDesk> {
-  const [accesses, favorites, questions, meetings, hired, draft] = await Promise.all([
-    prisma.projectAccess.findMany({
-      where: { investorId: userId, cancelledAt: null, project: { status: "published" } },
-      select: {
-        id: true,
-        sellerAcceptedAt: true,
-        ndaAcceptedAt: true,
-        loiAcceptedAt: true,
-        diligencePassedAt: true,
-        investorReadAt: true,
-        project: {
-          select: {
-            id: true,
-            slug: true,
-            codename: true,
-            region: true,
-            askingPriceCents: true,
-            successFee: { select: { id: true, closedPriceCents: true, buyerNetCents: true, buyerVatCents: true, recordedAt: true } },
-            owner: { select: { name: true, lastName: true } },
-            dataRoomGrants: {
-              where: { investorId: userId },
-              select: { id: true },
-            },
-            messages: {
-              where: { investorId: userId },
-              select: { id: true, author: true, kind: true, body: true, createdAt: true },
-              orderBy: { createdAt: "asc" },
+export async function loadInvestorDesk(
+  userId: string,
+  email: string,
+): Promise<InvestorDesk> {
+  const [accesses, favorites, questions, meetings, hired, draft] =
+    await Promise.all([
+      prisma.projectAccess.findMany({
+        where: {
+          investorId: userId,
+          cancelledAt: null,
+          project: { status: "published" },
+        },
+        select: {
+          id: true,
+          sellerAcceptedAt: true,
+          ndaAcceptedAt: true,
+          loiAcceptedAt: true,
+          diligencePassedAt: true,
+          investorReadAt: true,
+          project: {
+            select: {
+              id: true,
+              slug: true,
+              codename: true,
+              region: true,
+              askingPriceCents: true,
+              successFee: {
+                select: {
+                  id: true,
+                  closedPriceCents: true,
+                  buyerNetCents: true,
+                  buyerVatCents: true,
+                  recordedAt: true,
+                },
+              },
+              owner: { select: { name: true, lastName: true } },
+              dataRoomGrants: {
+                where: { investorId: userId },
+                select: { id: true },
+              },
+              messages: {
+                where: { investorId: userId },
+                select: {
+                  id: true,
+                  author: true,
+                  kind: true,
+                  body: true,
+                  createdAt: true,
+                },
+                orderBy: { createdAt: "asc" },
+              },
             },
           },
         },
-      },
-      orderBy: { requestedAt: "desc" },
-    }),
-    prisma.projectFavorite.count({ where: { investorId: userId } }),
-    prisma.projectMessage.count({ where: { investorId: userId, author: "investor", kind: "question" } }),
-    prisma.projectMessage.count({ where: { investorId: userId, kind: "meeting" } }),
-    prisma.advisoryEngagement.findMany({
-      where: { requesterId: userId, advisorId: { not: null }, depositPaidAt: { not: null }, declinedAt: null },
-      select: { projectId: true },
-    }),
-    loadInvestorDraft(userId, email),
-  ]);
+        orderBy: { requestedAt: "desc" },
+      }),
+      prisma.projectFavorite.count({ where: { investorId: userId } }),
+      prisma.projectMessage.count({
+        where: { investorId: userId, author: "investor", kind: "question" },
+      }),
+      prisma.projectMessage.count({
+        where: { investorId: userId, kind: "meeting" },
+      }),
+      prisma.advisoryEngagement.findMany({
+        where: {
+          requesterId: userId,
+          advisorId: { not: null },
+          depositPaidAt: { not: null },
+          declinedAt: null,
+        },
+        select: { projectId: true },
+      }),
+      loadInvestorDraft(userId, email),
+    ]);
   const hiredProjects = new Set(hired.map((row) => row.projectId));
   const sharedIds = accesses
-    .filter((access) => access.ndaAcceptedAt !== null && access.project.dataRoomGrants.length > 0)
+    .filter(
+      (access) =>
+        access.ndaAcceptedAt !== null &&
+        access.project.dataRoomGrants.length > 0,
+    )
     .map((access) => access.project.id);
   // One round of independent lookups: each extra await is a full round trip to the database.
   const [sharedFiles, shareRows, contracts] = await Promise.all([
@@ -143,8 +190,15 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
   const processes = accesses.map((access) => {
     const stage = stageFor(access);
     const granted = access.project.dataRoomGrants.length > 0;
-    const projectFiles = sharedFiles.filter((file) => file.projectId === access.project.id);
-    const visible = sharedFileIds({ files: projectFiles, investorId: userId, granted, shares: shareRows });
+    const projectFiles = sharedFiles.filter(
+      (file) => file.projectId === access.project.id,
+    );
+    const visible = sharedFileIds({
+      files: projectFiles,
+      investorId: userId,
+      granted,
+      shares: shareRows,
+    });
     const documents = investorProcessFiles({
       ndaAcceptedAt: access.ndaAcceptedAt,
       granted,
@@ -172,9 +226,15 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
         processFlags({
           accepted: access.sellerAcceptedAt !== null,
           nda: access.ndaAcceptedAt !== null,
-          questions: access.project.messages.some((message) => message.kind === "question"),
-          meeting: access.project.messages.some((message) => message.kind === "meeting"),
-          offer: access.project.messages.some((message) => message.kind === "offer"),
+          questions: access.project.messages.some(
+            (message) => message.kind === "question",
+          ),
+          meeting: access.project.messages.some(
+            (message) => message.kind === "meeting",
+          ),
+          offer: access.project.messages.some(
+            (message) => message.kind === "offer",
+          ),
           loiAccepted: access.loiAcceptedAt !== null,
           roomShared: granted,
           passedDiligence: access.diligencePassedAt !== null,
@@ -193,7 +253,12 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
       ),
       documents,
       documentsNote,
-      partyName: access.project.owner ? personName(access.project.owner.name, access.project.owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
+      partyName: access.project.owner
+        ? personName(
+            access.project.owner.name,
+            access.project.owner.lastName,
+          ) || companyCopy.companyParty
+        : companyCopy.companyParty,
       advisorHired: hiredProjects.has(access.project.id),
       contract: null as ContractView | null,
       lastReadAt: access.investorReadAt?.toISOString() ?? null,
@@ -202,13 +267,20 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
   });
   for (const card of processes) {
     card.contract = contracts.get(card.accessId) ?? null;
-    card.steps = withContractAccepted(card.steps, card.contract?.stage === "signing");
-    const fee = accesses.find((access) => access.id === card.accessId)?.project.successFee ?? null;
+    card.steps = withContractAccepted(
+      card.steps,
+      card.contract?.stage === "signing",
+    );
+    const fee =
+      accesses.find((access) => access.id === card.accessId)?.project
+        .successFee ?? null;
     card.closed = buyerClosed(fee, card.contract?.stage === "signed");
   }
 
   return {
-    pending: processes.filter((process) => process.open && process.closed === null),
+    pending: processes.filter(
+      (process) => process.open && process.closed === null,
+    ),
     processes,
     favorites,
     interests: accesses.length,
@@ -218,13 +290,24 @@ export async function loadInvestorDesk(userId: string, email: string): Promise<I
   };
 }
 
-export type CancelledProcess = { accessId: string; slug: string; codename: string; cancelledAt: string };
+export type CancelledProcess = {
+  accessId: string;
+  slug: string;
+  codename: string;
+  cancelledAt: string;
+};
 
 /** Processes the buyer (or seller) closed; kept reachable from the summary so nothing silently disappears. */
-export async function listCancelledProcesses(userId: string): Promise<CancelledProcess[]> {
+export async function listCancelledProcesses(
+  userId: string,
+): Promise<CancelledProcess[]> {
   const rows = await prisma.projectAccess.findMany({
     where: { investorId: userId, cancelledAt: { not: null } },
-    select: { id: true, cancelledAt: true, project: { select: { slug: true, codename: true } } },
+    select: {
+      id: true,
+      cancelledAt: true,
+      project: { select: { slug: true, codename: true } },
+    },
     orderBy: { cancelledAt: "desc" },
     take: 50,
   });

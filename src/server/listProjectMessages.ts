@@ -1,8 +1,20 @@
 import { filesWithBytes, sharedFileIds } from "@/lib/data-room";
-import { dealPipeline, investorProcessFiles, processFlags, withContractAccepted } from "@/lib/deal-pipeline";
+import {
+  dealPipeline,
+  investorProcessFiles,
+  processFlags,
+  withContractAccepted,
+} from "@/lib/deal-pipeline";
 import { ndaAccessGate } from "@/lib/project-access";
 import { companyCopy } from "@/lib/company-copy";
-import { labelAccesses, personName, toThreadMessage, type MessageCounts, type SellerThread, type SellerThreadStage } from "@/lib/project-message";
+import {
+  labelAccesses,
+  personName,
+  toThreadMessage,
+  type MessageCounts,
+  type SellerThread,
+  type SellerThreadStage,
+} from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { contractStageOpen, contractViews } from "@/server/saleContract";
@@ -17,22 +29,42 @@ export type MessageList = {
   counts: MessageCounts;
 };
 
-const emptyCounts: MessageCounts = { accepted: 0, questionsIn: 0, questionsOut: 0, meetings: 0 };
+const emptyCounts: MessageCounts = {
+  accepted: 0,
+  questionsIn: 0,
+  questionsOut: 0,
+  meetings: 0,
+};
 
 function countsFor(
-  messages: { author: "seller" | "investor"; kind: "question" | "meeting" | "offer" }[],
+  messages: {
+    author: "seller" | "investor";
+    kind: "question" | "meeting" | "offer";
+  }[],
   accepted: number,
 ): MessageCounts {
   return {
     accepted,
-    questionsIn: messages.filter((message) => message.author === "investor" && message.kind === "question").length,
-    questionsOut: messages.filter((message) => message.author === "seller" && message.kind === "question").length,
+    questionsIn: messages.filter(
+      (message) => message.author === "investor" && message.kind === "question",
+    ).length,
+    questionsOut: messages.filter(
+      (message) => message.author === "seller" && message.kind === "question",
+    ).length,
     meetings: messages.filter((message) => message.kind === "meeting").length,
   };
 }
 
-export async function listProjectMessages(user: CurrentUser, slug: string | null): Promise<MessageList> {
-  if (!user.onboarded || user.role === "advisor" || user.role === "admin" || user.role === null) {
+export async function listProjectMessages(
+  user: CurrentUser,
+  slug: string | null,
+): Promise<MessageList> {
+  if (
+    !user.onboarded ||
+    user.role === "advisor" ||
+    user.role === "admin" ||
+    user.role === null
+  ) {
     return { viewer: "none", threads: [], counts: emptyCounts };
   }
 
@@ -45,63 +77,90 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         })
       : [];
     const ids = projects.map((project) => project.id);
-    const codenameById = new Map(projects.map((project) => [project.id, project.codename]));
-    const slugById = new Map(projects.map((project) => [project.id, project.slug]));
+    const codenameById = new Map(
+      projects.map((project) => [project.id, project.codename]),
+    );
+    const slugById = new Map(
+      projects.map((project) => [project.id, project.slug]),
+    );
 
     if (ids.length === 0) {
       return { viewer: "seller", threads: [], counts: emptyCounts };
     }
 
-    const [accesses, messages, files, grants, shares, fees, hired] = await Promise.all([
-      prisma.projectAccess.findMany({
-        where: { projectId: { in: ids }, cancelledAt: null },
-        select: {
-          id: true,
-          investorId: true,
-          projectId: true,
-          requestedAt: true,
-          sellerAcceptedAt: true,
-          ndaAcceptedAt: true,
-          loiAcceptedAt: true,
-          diligencePassedAt: true,
-          sellerReadAt: true,
-        },
-        orderBy: { requestedAt: "asc" },
-      }),
-      prisma.projectMessage.findMany({
-        where: { projectId: { in: ids } },
-        select: { id: true, projectId: true, investorId: true, author: true, kind: true, body: true, createdAt: true },
-        orderBy: { createdAt: "asc" },
-      }),
-      prisma.dataRoomFile.findMany({
-        where: { projectId: { in: ids } },
-        select: { id: true, projectId: true, folder: true, fileName: true },
-        orderBy: { createdAt: "asc" },
-      }),
-      prisma.dataRoomGrant.findMany({
-        where: { projectId: { in: ids } },
-        select: { projectId: true, investorId: true },
-      }),
-      prisma.dataRoomFileShare.findMany({
-        where: { file: { projectId: { in: ids } } },
-        select: { fileId: true, investorId: true },
-      }),
-      prisma.successFee.findMany({
-        where: { projectId: { in: ids } },
-        select: { projectId: true },
-      }),
-      prisma.advisoryEngagement.findMany({
-        where: { projectId: { in: ids }, advisorId: { not: null }, depositPaidAt: { not: null }, declinedAt: null },
-        select: { projectId: true },
-      }),
-    ]);
+    const [accesses, messages, files, grants, shares, fees, hired] =
+      await Promise.all([
+        prisma.projectAccess.findMany({
+          where: { projectId: { in: ids }, cancelledAt: null },
+          select: {
+            id: true,
+            investorId: true,
+            projectId: true,
+            requestedAt: true,
+            sellerAcceptedAt: true,
+            ndaAcceptedAt: true,
+            loiAcceptedAt: true,
+            diligencePassedAt: true,
+            sellerReadAt: true,
+          },
+          orderBy: { requestedAt: "asc" },
+        }),
+        prisma.projectMessage.findMany({
+          where: { projectId: { in: ids } },
+          select: {
+            id: true,
+            projectId: true,
+            investorId: true,
+            author: true,
+            kind: true,
+            body: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "asc" },
+        }),
+        prisma.dataRoomFile.findMany({
+          where: { projectId: { in: ids } },
+          select: { id: true, projectId: true, folder: true, fileName: true },
+          orderBy: { createdAt: "asc" },
+        }),
+        prisma.dataRoomGrant.findMany({
+          where: { projectId: { in: ids } },
+          select: { projectId: true, investorId: true },
+        }),
+        prisma.dataRoomFileShare.findMany({
+          where: { file: { projectId: { in: ids } } },
+          select: { fileId: true, investorId: true },
+        }),
+        prisma.successFee.findMany({
+          where: { projectId: { in: ids } },
+          select: { projectId: true },
+        }),
+        prisma.advisoryEngagement.findMany({
+          where: {
+            projectId: { in: ids },
+            advisorId: { not: null },
+            depositPaidAt: { not: null },
+            declinedAt: null,
+          },
+          select: { projectId: true },
+        }),
+      ]);
     const labeled = labelAccesses(accesses);
-    const open = labeled.filter((access) => access.sellerAcceptedAt !== null && access.ndaAcceptedAt !== null);
-    const openKey = new Set(open.map((access) => `${access.projectId}:${access.investorId}`));
-    const visibleMessages = messages.filter((message) => openKey.has(`${message.projectId}:${message.investorId}`));
+    const open = labeled.filter(
+      (access) =>
+        access.sellerAcceptedAt !== null && access.ndaAcceptedAt !== null,
+    );
+    const openKey = new Set(
+      open.map((access) => `${access.projectId}:${access.investorId}`),
+    );
+    const visibleMessages = messages.filter((message) =>
+      openKey.has(`${message.projectId}:${message.investorId}`),
+    );
     const closedProjects = new Set(fees.map((fee) => fee.projectId));
     const hiredProjects = new Set(hired.map((row) => row.projectId));
-    const investorIds = [...new Set(labeled.map((access) => access.investorId))];
+    const investorIds = [
+      ...new Set(labeled.map((access) => access.investorId)),
+    ];
     const people =
       investorIds.length === 0
         ? []
@@ -109,13 +168,29 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
             where: { id: { in: investorIds } },
             select: { id: true, email: true, name: true, lastName: true },
           });
-    const nameById = new Map(people.map((person) => [person.id, personName(person.name, person.lastName)]));
-    const profileById = await publicCardsByInvestor(people.map((person) => ({ id: person.id, email: person.email })));
+    const nameById = new Map(
+      people.map((person) => [
+        person.id,
+        personName(person.name, person.lastName),
+      ]),
+    );
+    const profileById = await publicCardsByInvestor(
+      people.map((person) => ({ id: person.id, email: person.email })),
+    );
     const threads = labeled.map((access) => {
-      const stage: SellerThreadStage = access.sellerAcceptedAt === null ? "pending" : access.ndaAcceptedAt === null ? "nda" : "open";
+      const stage: SellerThreadStage =
+        access.sellerAcceptedAt === null
+          ? "pending"
+          : access.ndaAcceptedAt === null
+            ? "nda"
+            : "open";
       const threadMessages =
         stage === "open"
-          ? visibleMessages.filter((message) => message.projectId === access.projectId && message.investorId === access.investorId)
+          ? visibleMessages.filter(
+              (message) =>
+                message.projectId === access.projectId &&
+                message.investorId === access.investorId,
+            )
           : [];
 
       const profile = profileById.get(access.investorId) ?? null;
@@ -128,7 +203,10 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         label: nameById.get(access.investorId) || access.label,
         stage,
         profile,
-        partyName: stage === "open" ? nameById.get(access.investorId) || sellerCopy.investorParty : sellerCopy.investorParty,
+        partyName:
+          stage === "open"
+            ? nameById.get(access.investorId) || sellerCopy.investorParty
+            : sellerCopy.investorParty,
         messages: threadMessages.map((message) =>
           toThreadMessage({
             id: message.id,
@@ -144,11 +222,19 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
           processFlags({
             accepted: access.sellerAcceptedAt !== null,
             nda: access.ndaAcceptedAt !== null,
-            questions: threadMessages.some((message) => message.kind === "question"),
-            meeting: threadMessages.some((message) => message.kind === "meeting"),
+            questions: threadMessages.some(
+              (message) => message.kind === "question",
+            ),
+            meeting: threadMessages.some(
+              (message) => message.kind === "meeting",
+            ),
             offer: threadMessages.some((message) => message.kind === "offer"),
             loiAccepted: access.loiAcceptedAt !== null,
-            roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+            roomShared: grants.some(
+              (grant) =>
+                grant.projectId === access.projectId &&
+                grant.investorId === access.investorId,
+            ),
             passedDiligence: access.diligencePassedAt !== null,
             closed: closedProjects.has(access.projectId),
           }),
@@ -164,9 +250,15 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
                     fileName: file.fileName,
                     stored: dataRoomFileIsStored(file.id),
                     visible: sharedFileIds({
-                      files: files.filter((item) => item.projectId === access.projectId),
+                      files: files.filter(
+                        (item) => item.projectId === access.projectId,
+                      ),
                       investorId: access.investorId,
-                      granted: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+                      granted: grants.some(
+                        (grant) =>
+                          grant.projectId === access.projectId &&
+                          grant.investorId === access.investorId,
+                      ),
                       shares,
                     }).has(file.id),
                   })),
@@ -184,7 +276,11 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         open: contractStageOpen({
           loiAccepted: access.loiAcceptedAt !== null,
           passedDiligence: access.diligencePassedAt !== null,
-          roomShared: grants.some((grant) => grant.projectId === access.projectId && grant.investorId === access.investorId),
+          roomShared: grants.some(
+            (grant) =>
+              grant.projectId === access.projectId &&
+              grant.investorId === access.investorId,
+          ),
         }),
       })),
     );
@@ -193,7 +289,14 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
       viewer: "seller",
       threads: threads.map((thread) => {
         const contract = contracts.get(thread.accessId) ?? null;
-        return { ...thread, steps: withContractAccepted(thread.steps, contract?.stage === "signing"), contract };
+        return {
+          ...thread,
+          steps: withContractAccepted(
+            thread.steps,
+            contract?.stage === "signing",
+          ),
+          contract,
+        };
       }),
       counts: countsFor(visibleMessages, open.length),
     };
@@ -209,11 +312,21 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   });
   const storedAccess = project
     ? await prisma.projectAccess.findUnique({
-        where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true, cancelledAt: true, id: true },
+        where: {
+          projectId_investorId: { projectId: project.id, investorId: user.id },
+        },
+        select: {
+          sellerAcceptedAt: true,
+          ndaAcceptedAt: true,
+          loiAcceptedAt: true,
+          diligencePassedAt: true,
+          cancelledAt: true,
+          id: true,
+        },
       })
     : null;
-  const access = storedAccess && storedAccess.cancelledAt === null ? storedAccess : null;
+  const access =
+    storedAccess && storedAccess.cancelledAt === null ? storedAccess : null;
   const gate = ndaAccessGate({
     onboarded: user.onboarded,
     role: user.role,
@@ -228,11 +341,19 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
   const [messages, grant, fee, shareRows, owner] = await Promise.all([
     prisma.projectMessage.findMany({
       where: { projectId: project.id, investorId: user.id },
-      select: { id: true, author: true, kind: true, body: true, createdAt: true },
+      select: {
+        id: true,
+        author: true,
+        kind: true,
+        body: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "asc" },
     }),
     prisma.dataRoomGrant.findUnique({
-      where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
+      where: {
+        projectId_investorId: { projectId: project.id, investorId: user.id },
+      },
       select: { id: true },
     }),
     prisma.successFee.findUnique({
@@ -284,7 +405,9 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         label: project.codename,
         stage: "open",
         profile: null,
-        partyName: owner ? personName(owner.name, owner.lastName) || companyCopy.companyParty : companyCopy.companyParty,
+        partyName: owner
+          ? personName(owner.name, owner.lastName) || companyCopy.companyParty
+          : companyCopy.companyParty,
         messages: messages.map((message) =>
           toThreadMessage({
             id: message.id,
@@ -298,14 +421,22 @@ export async function listProjectMessages(user: CurrentUser, slug: string | null
         steps: dealPipeline(
           "investor",
           processFlags({
-            accepted: access?.sellerAcceptedAt !== null && access?.sellerAcceptedAt !== undefined,
-            nda: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
+            accepted:
+              access?.sellerAcceptedAt !== null &&
+              access?.sellerAcceptedAt !== undefined,
+            nda:
+              access?.ndaAcceptedAt !== null &&
+              access?.ndaAcceptedAt !== undefined,
             questions: messages.some((message) => message.kind === "question"),
             meeting: messages.some((message) => message.kind === "meeting"),
             offer: messages.some((message) => message.kind === "offer"),
-            loiAccepted: access?.loiAcceptedAt !== null && access?.loiAcceptedAt !== undefined,
+            loiAccepted:
+              access?.loiAcceptedAt !== null &&
+              access?.loiAcceptedAt !== undefined,
             roomShared: grant !== null,
-            passedDiligence: access?.diligencePassedAt !== null && access?.diligencePassedAt !== undefined,
+            passedDiligence:
+              access?.diligencePassedAt !== null &&
+              access?.diligencePassedAt !== undefined,
             closed: fee !== null,
           }),
         ),

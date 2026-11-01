@@ -10,12 +10,21 @@ export async function recordNotification(input: {
   href: string | null;
 }): Promise<void> {
   const existing = await prisma.notification.findFirst({
-    where: { userId: input.userId, title: input.title, body: input.body, href: input.href, readAt: null },
+    where: {
+      userId: input.userId,
+      title: input.title,
+      body: input.body,
+      href: input.href,
+      readAt: null,
+    },
     select: { id: true },
   });
 
   if (existing) {
-    await prisma.notification.update({ where: { id: existing.id }, data: { createdAt: new Date() } });
+    await prisma.notification.update({
+      where: { id: existing.id },
+      data: { createdAt: new Date() },
+    });
     return;
   }
 

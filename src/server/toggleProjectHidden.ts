@@ -2,18 +2,31 @@ import { randomUUID } from "node:crypto";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
-export type HiddenResult = { ok: true; hidden: boolean } | { ok: false; message: string };
+export type HiddenResult =
+  { ok: true; hidden: boolean } | { ok: false; message: string };
 
 /** Hides or shows one published company in this investor's Mercado. Idempotent for the target state. */
-export async function setProjectHidden(user: CurrentUser, slug: string, hidden: boolean): Promise<HiddenResult> {
+export async function setProjectHidden(
+  user: CurrentUser,
+  slug: string,
+  hidden: boolean,
+): Promise<HiddenResult> {
   if (user.role !== "investor") {
-    return { ok: false, message: "Solo los compradores pueden ocultar empresas." };
+    return {
+      ok: false,
+      message: "Solo los compradores pueden ocultar empresas.",
+    };
   }
-  const project = await prisma.project.findFirst({ where: { slug }, select: { id: true } });
+  const project = await prisma.project.findFirst({
+    where: { slug },
+    select: { id: true },
+  });
   if (!project) {
     return { ok: false, message: "No hemos encontrado esa empresa." };
   }
-  const key = { projectId_investorId: { projectId: project.id, investorId: user.id } };
+  const key = {
+    projectId_investorId: { projectId: project.id, investorId: user.id },
+  };
   if (hidden) {
     await prisma.projectHidden.upsert({
       where: key,
@@ -21,7 +34,9 @@ export async function setProjectHidden(user: CurrentUser, slug: string, hidden: 
       update: {},
     });
   } else {
-    await prisma.projectHidden.deleteMany({ where: { projectId: project.id, investorId: user.id } });
+    await prisma.projectHidden.deleteMany({
+      where: { projectId: project.id, investorId: user.id },
+    });
   }
   return { ok: true, hidden };
 }

@@ -12,18 +12,31 @@ export const nationalIdCopy = {
  * the signing form then sends `nationalId`, which is validated and saved here.
  * Returns an error message, or null when the account has a valid id.
  */
-export async function ensureNationalId(userId: string, value: FormDataEntryValue | null): Promise<string | null> {
-  const row = await prisma.user.findUnique({ where: { id: userId }, select: { nationalId: true } });
+export async function ensureNationalId(
+  userId: string,
+  value: FormDataEntryValue | null,
+): Promise<string | null> {
+  const row = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { nationalId: true },
+  });
 
   if (row?.nationalId) {
     return null;
   }
 
-  const parsed = nationalIdSchema.safeParse(typeof value === "string" ? value : "");
+  const parsed = nationalIdSchema.safeParse(
+    typeof value === "string" ? value : "",
+  );
   if (!parsed.success) {
-    return parsed.error.issues[0]?.message === "invalid" ? nationalIdCopy.invalid : nationalIdCopy.required;
+    return parsed.error.issues[0]?.message === "invalid"
+      ? nationalIdCopy.invalid
+      : nationalIdCopy.required;
   }
 
-  await prisma.user.update({ where: { id: userId }, data: { nationalId: normalizeCif(parsed.data) } });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { nationalId: normalizeCif(parsed.data) },
+  });
   return null;
 }

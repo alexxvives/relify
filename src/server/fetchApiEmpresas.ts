@@ -9,7 +9,9 @@ import { normalizeCif } from "../lib/spanish-cif";
 function baseUrl(): string {
   const custom = process.env.APIEMPRESAS_BASE_URL?.trim() ?? "";
 
-  return custom.length > 0 ? custom.replace(/\/+$/, "") : apiEmpresasDefaultBaseUrl;
+  return custom.length > 0
+    ? custom.replace(/\/+$/, "")
+    : apiEmpresasDefaultBaseUrl;
 }
 
 async function readBody(response: Response): Promise<unknown> {
@@ -21,22 +23,33 @@ async function readBody(response: Response): Promise<unknown> {
 }
 
 function errorCode(body: unknown): string {
-  if (body && typeof body === "object" && "code" in body && typeof body.code === "string") {
+  if (
+    body &&
+    typeof body === "object" &&
+    "code" in body &&
+    typeof body.code === "string"
+  ) {
     return body.code;
   }
 
   return "";
 }
 
-export async function fetchApiEmpresas(rawCif: string, apiKey: string): Promise<ApiEmpresasFetch> {
+export async function fetchApiEmpresas(
+  rawCif: string,
+  apiKey: string,
+): Promise<ApiEmpresasFetch> {
   const cif = normalizeCif(rawCif);
 
   try {
-    const response = await fetch(`${baseUrl()}/companies?cif=${encodeURIComponent(cif)}`, {
-      headers: { Accept: "application/json", "X-API-KEY": apiKey },
-      signal: AbortSignal.timeout(8_000),
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${baseUrl()}/companies?cif=${encodeURIComponent(cif)}`,
+      {
+        headers: { Accept: "application/json", "X-API-KEY": apiKey },
+        signal: AbortSignal.timeout(8_000),
+        cache: "no-store",
+      },
+    );
     const body = await readBody(response);
 
     if (response.status === 401 || response.status === 403) {
@@ -44,10 +57,17 @@ export async function fetchApiEmpresas(rawCif: string, apiKey: string): Promise<
     }
 
     if (response.status === 429) {
-      return { ok: false, code: errorCode(body) === "QUOTA_EXCEEDED" ? "quota" : "rate" };
+      return {
+        ok: false,
+        code: errorCode(body) === "QUOTA_EXCEEDED" ? "quota" : "rate",
+      };
     }
 
-    if (response.status === 404 || response.status === 400 || response.status === 422) {
+    if (
+      response.status === 404 ||
+      response.status === 400 ||
+      response.status === 422
+    ) {
       return { ok: true, record: null };
     }
 

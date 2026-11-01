@@ -1,7 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { accessCopy } from "@/lib/access-copy";
-import { accessRequestedNotice, incomingAccessNotice } from "@/lib/notifications";
-import { accessMessage, requestAccessOutcome, type ProjectAccessInput } from "@/lib/project-access";
+import {
+  accessRequestedNotice,
+  incomingAccessNotice,
+} from "@/lib/notifications";
+import {
+  accessMessage,
+  requestAccessOutcome,
+  type ProjectAccessInput,
+} from "@/lib/project-access";
 import { buyerMatchSlot } from "@/server/buyerPlan";
 import { buyerProfileComplete } from "@/server/investorProfile";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -10,14 +17,24 @@ import { recordNotification } from "@/server/recordNotification";
 
 export type ProjectAccessResult = { ok: true } | { ok: false; message: string };
 
-export async function requestProjectAccess(user: CurrentUser, input: ProjectAccessInput): Promise<ProjectAccessResult> {
+export async function requestProjectAccess(
+  user: CurrentUser,
+  input: ProjectAccessInput,
+): Promise<ProjectAccessResult> {
   if (!(await buyerProfileComplete(user.id, user.email))) {
     return { ok: false, message: accessCopy.profileRequired };
   }
 
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
-    select: { id: true, status: true, codename: true, ownerId: true, slug: true, successFee: { select: { id: true } } },
+    select: {
+      id: true,
+      status: true,
+      codename: true,
+      ownerId: true,
+      slug: true,
+      successFee: { select: { id: true } },
+    },
   });
 
   if (project?.successFee) {
@@ -26,7 +43,9 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
 
   const existing = project
     ? await prisma.projectAccess.findUnique({
-        where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
+        where: {
+          projectId_investorId: { projectId: project.id, investorId: user.id },
+        },
         select: { id: true, cancelledAt: true },
       })
     : null;
@@ -34,7 +53,13 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
   if (existing?.cancelledAt && project) {
     const slot = await buyerMatchSlot(user.id);
     if (!slot.ok) {
-      return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
+      return {
+        ok: false,
+        message:
+          slot.code === "plan"
+            ? accessCopy.planRequired
+            : accessCopy.matchLimit,
+      };
     }
     // A reconnect after a cancel is a fresh process: drop the previous run's
     // chat/LOI messages and data-room access so no stale state leaks back in.
@@ -42,19 +67,21 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
     await prisma.$transaction([
       prisma.projectMessage.deleteMany({ where: scope }),
       prisma.dataRoomGrant.deleteMany({ where: scope }),
-      prisma.dataRoomFileShare.deleteMany({ where: { investorId: user.id, file: { projectId: project.id } } }),
+      prisma.dataRoomFileShare.deleteMany({
+        where: { investorId: user.id, file: { projectId: project.id } },
+      }),
       prisma.projectAccess.update({
-      where: { id: existing.id },
-      data: {
-        cancelledAt: null,
-        cancelledBy: null,
-        sellerAcceptedAt: null,
-        ndaAcceptedAt: null,
-        loiAcceptedAt: null,
-        diligencePassedAt: null,
-        ndaSignature: null,
-        requestedAt: new Date(),
-      },
+        where: { id: existing.id },
+        data: {
+          cancelledAt: null,
+          cancelledBy: null,
+          sellerAcceptedAt: null,
+          ndaAcceptedAt: null,
+          loiAcceptedAt: null,
+          diligencePassedAt: null,
+          ndaSignature: null,
+          requestedAt: new Date(),
+        },
       }),
     ]);
     const href = `/proyectos/${project.slug}`;
@@ -62,7 +89,11 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
     await recordNotification({ userId: user.id, ...investorNotice, href });
     if (project.ownerId && project.ownerId !== user.id) {
       const sellerNotice = incomingAccessNotice(project.codename);
-      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa/procesos" });
+      await recordNotification({
+        userId: project.ownerId,
+        ...sellerNotice,
+        href: "/mi-empresa/procesos",
+      });
     }
     return { ok: true };
   }
@@ -75,14 +106,23 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
   });
 
   if (!outcome.ok || !project) {
-    return { ok: false, message: accessMessage(outcome.ok ? "missing" : outcome.code) };
+    return {
+      ok: false,
+      message: accessMessage(outcome.ok ? "missing" : outcome.code),
+    };
   }
 
   if (outcome.insert) {
     const slot = await buyerMatchSlot(user.id);
 
     if (!slot.ok) {
-      return { ok: false, message: slot.code === "plan" ? accessCopy.planRequired : accessCopy.matchLimit };
+      return {
+        ok: false,
+        message:
+          slot.code === "plan"
+            ? accessCopy.planRequired
+            : accessCopy.matchLimit,
+      };
     }
 
     await prisma.projectAccess.create({
@@ -102,8 +142,13 @@ export async function requestProjectAccess(user: CurrentUser, input: ProjectAcce
         select: { role: true },
       });
       const sellerNotice = incomingAccessNotice(project.codename);
-      const ownerHref = owner?.role === "advisor" ? "/mandatos/venta" : "/mi-empresa/procesos";
-      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: ownerHref });
+      const ownerHref =
+        owner?.role === "advisor" ? "/mandatos/venta" : "/mi-empresa/procesos";
+      await recordNotification({
+        userId: project.ownerId,
+        ...sellerNotice,
+        href: ownerHref,
+      });
     }
   }
 

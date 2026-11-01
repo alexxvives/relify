@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { billingCopy } from "@/lib/billing-copy";
 import { eurosToCents } from "@/lib/company-draft";
-import { clientCompanySlug, type ClientCompanyInput } from "@/lib/client-company";
+import {
+  clientCompanySlug,
+  type ClientCompanyInput,
+} from "@/lib/client-company";
 import { normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -13,7 +16,9 @@ async function unusedSlug(codename: string): Promise<string> {
   let slug = base;
   let suffix = 2;
 
-  while (await prisma.project.findUnique({ where: { slug }, select: { id: true } })) {
+  while (
+    await prisma.project.findUnique({ where: { slug }, select: { id: true } })
+  ) {
     slug = `${base}-${suffix}`;
     suffix += 1;
   }
@@ -21,7 +26,10 @@ async function unusedSlug(codename: string): Promise<string> {
   return slug;
 }
 
-export async function createClientCompany(user: CurrentUser, input: ClientCompanyInput): Promise<ClientCompanyResult> {
+export async function createClientCompany(
+  user: CurrentUser,
+  input: ClientCompanyInput,
+): Promise<ClientCompanyResult> {
   if (!user.onboarded || user.role !== "advisor") {
     return { ok: false, message: billingCopy.publishForbidden };
   }

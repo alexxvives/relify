@@ -1,14 +1,25 @@
 import { randomUUID } from "node:crypto";
-import { advisoryCopy, advisoryServices, type AdvisoryQuoteInput } from "@/lib/advisory";
+import {
+  advisoryCopy,
+  advisoryServices,
+  type AdvisoryQuoteInput,
+} from "@/lib/advisory";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { advisorIsPublic, createEngagement, engagementProject } from "@/server/advisoryEngagement";
+import {
+  advisorIsPublic,
+  createEngagement,
+  engagementProject,
+} from "@/server/advisoryEngagement";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
 
 export type AdvisoryQuoteResult = { ok: true } | { ok: false; message: string };
 
-export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuoteInput): Promise<AdvisoryQuoteResult> {
+export async function submitAdvisoryQuote(
+  user: CurrentUser,
+  input: AdvisoryQuoteInput,
+): Promise<AdvisoryQuoteResult> {
   if (!user.onboarded || (user.role !== "investor" && user.role !== "seller")) {
     return { ok: false, message: advisoryCopy.forbidden };
   }
@@ -43,7 +54,11 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
   if (input.advisorId && project) {
     if (project.client === "investor") {
       const access = await prisma.projectAccess.findFirst({
-        where: { projectId: project.projectId, investorId: user.id, ndaAcceptedAt: { not: null } },
+        where: {
+          projectId: project.projectId,
+          investorId: user.id,
+          ndaAcceptedAt: { not: null },
+        },
         select: { id: true },
       });
 
@@ -70,7 +85,10 @@ export async function submitAdvisoryQuote(user: CurrentUser, input: AdvisoryQuot
     });
   } else if (!input.advisorId) {
     const names = input.services
-      .map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id)
+      .map(
+        (id) =>
+          advisoryServices.find((service) => service.id === id)?.title ?? id,
+      )
       .join(", ");
     const place = project ? project.codename : "Sin empresa";
     const admins = await prisma.user.findMany({

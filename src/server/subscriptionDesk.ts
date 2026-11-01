@@ -61,13 +61,18 @@ function planLabel(plan: string): string {
   return billingCopy.freeName;
 }
 
-function cardLabel(method: Stripe.PaymentMethod | string | null): { label: string; brand: string; last4: string; expires: string } | null {
+function cardLabel(
+  method: Stripe.PaymentMethod | string | null,
+): { label: string; brand: string; last4: string; expires: string } | null {
   if (!method || typeof method === "string" || !method.card) {
     return null;
   }
 
   const brand = method.card.brand;
-  const name = brand.length > 0 ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Tarjeta";
+  const name =
+    brand.length > 0
+      ? brand.charAt(0).toUpperCase() + brand.slice(1)
+      : "Tarjeta";
   const month = String(method.card.exp_month).padStart(2, "0");
   return {
     label: `${name} ···· ${method.card.last4}`,
@@ -108,11 +113,15 @@ function amountLabel(item: Stripe.SubscriptionItem | undefined): string | null {
   }
 
   const interval = item?.price.recurring?.interval;
-  const period = interval === "year" ? "año" : interval === "month" ? "mes" : null;
+  const period =
+    interval === "year" ? "año" : interval === "month" ? "mes" : null;
   return period ? `${formatEur(cents)}/${period}` : formatEur(cents);
 }
 
-export async function loadSubscriptionDesk(userId: string, email: string): Promise<SubscriptionDesk> {
+export async function loadSubscriptionDesk(
+  userId: string,
+  email: string,
+): Promise<SubscriptionDesk> {
   const row = await prisma.billingCustomer.findUnique({
     where: { userId },
     select: { plan: true, stripeCustomerId: true, stripeSubscriptionId: true },
@@ -133,13 +142,19 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
   }
 
   try {
-    const subscription = await stripe.subscriptions.retrieve(row.stripeSubscriptionId, {
-      expand: ["default_payment_method"],
-    });
+    const subscription = await stripe.subscriptions.retrieve(
+      row.stripeSubscriptionId,
+      {
+        expand: ["default_payment_method"],
+      },
+    );
     const item = subscription.items.data[0];
     const renews = item ? longDate(item.current_period_end) : "";
     const started = item ? longDate(item.current_period_start) : "";
-    const listed = await stripe.invoices.list({ customer: row.stripeCustomerId, limit: 12 });
+    const listed = await stripe.invoices.list({
+      customer: row.stripeCustomerId,
+      limit: 12,
+    });
     const customer = await stripe.customers.retrieve(row.stripeCustomerId);
     const billingEmail = customer.deleted ? email : (customer.email ?? email);
     const card = cardLabel(subscription.default_payment_method);
@@ -164,7 +179,8 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
           return [];
         }
 
-        const cents = invoice.amount_paid > 0 ? invoice.amount_paid : invoice.amount_due;
+        const cents =
+          invoice.amount_paid > 0 ? invoice.amount_paid : invoice.amount_due;
         return [
           {
             id: invoice.id,
@@ -183,7 +199,13 @@ export async function loadSubscriptionDesk(userId: string, email: string): Promi
   }
 }
 
-async function ownedSubscription(userId: string): Promise<{ stripe: NonNullable<ReturnType<typeof stripeClient>>; customerId: string; subscriptionId: string } | null> {
+async function ownedSubscription(
+  userId: string,
+): Promise<{
+  stripe: NonNullable<ReturnType<typeof stripeClient>>;
+  customerId: string;
+  subscriptionId: string;
+} | null> {
   const stripe = stripeClient();
   const row = await prisma.billingCustomer.findUnique({
     where: { userId },
@@ -194,10 +216,17 @@ async function ownedSubscription(userId: string): Promise<{ stripe: NonNullable<
     return null;
   }
 
-  return { stripe, customerId: row.stripeCustomerId, subscriptionId: row.stripeSubscriptionId };
+  return {
+    stripe,
+    customerId: row.stripeCustomerId,
+    subscriptionId: row.stripeSubscriptionId,
+  };
 }
 
-export async function setSubscriptionCancel(user: CurrentUser, cancel: boolean): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function setSubscriptionCancel(
+  user: CurrentUser,
+  cancel: boolean,
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const owned = await ownedSubscription(user.id);
 
   if (!owned) {
@@ -205,7 +234,10 @@ export async function setSubscriptionCancel(user: CurrentUser, cancel: boolean):
   }
 
   try {
-    const updated = await owned.stripe.subscriptions.update(owned.subscriptionId, { cancel_at_period_end: cancel });
+    const updated = await owned.stripe.subscriptions.update(
+      owned.subscriptionId,
+      { cancel_at_period_end: cancel },
+    );
     await syncSubscription(updated);
     return { ok: true };
   } catch {
@@ -214,7 +246,10 @@ export async function setSubscriptionCancel(user: CurrentUser, cancel: boolean):
 }
 
 /** Switches an active buyer subscription between plans in place; Stripe prorates the difference on the next invoice. */
-export async function changeSubscriptionPlan(user: CurrentUser, plan: "limited" | "unlimited"): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function changeSubscriptionPlan(
+  user: CurrentUser,
+  plan: "limited" | "unlimited",
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const owned = await ownedSubscription(user.id);
 
   if (!owned) {
@@ -222,10 +257,16 @@ export async function changeSubscriptionPlan(user: CurrentUser, plan: "limited" 
   }
 
   try {
-    const current = await owned.stripe.subscriptions.retrieve(owned.subscriptionId);
+    const current = await owned.stripe.subscriptions.retrieve(
+      owned.subscriptionId,
+    );
     const item = current.items.data[0];
 
-    if (!item || current.metadata.kind !== "buyer_plan" || current.status !== "active") {
+    if (
+      !item ||
+      current.metadata.kind !== "buyer_plan" ||
+      current.status !== "active"
+    ) {
       return { ok: false, message: billingCopy.stripeFailed };
     }
 
@@ -233,14 +274,33 @@ export async function changeSubscriptionPlan(user: CurrentUser, plan: "limited" 
       return { ok: true };
     }
 
-    const product = typeof item.price.product === "string" ? item.price.product : item.price.product.id;
-    await owned.stripe.products.update(product, { name: plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados" });
-    const updated = await owned.stripe.subscriptions.update(owned.subscriptionId, {
-      items: [{ id: item.id, price_data: { currency: "eur", product, unit_amount: grossCents(planNetCents(plan)), recurring: { interval: "month" } } }],
-      metadata: { ...current.metadata, plan },
-      proration_behavior: "create_prorations",
-      cancel_at_period_end: false,
+    const product =
+      typeof item.price.product === "string"
+        ? item.price.product
+        : item.price.product.id;
+    await owned.stripe.products.update(product, {
+      name:
+        plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados",
     });
+    const updated = await owned.stripe.subscriptions.update(
+      owned.subscriptionId,
+      {
+        items: [
+          {
+            id: item.id,
+            price_data: {
+              currency: "eur",
+              product,
+              unit_amount: grossCents(planNetCents(plan)),
+              recurring: { interval: "month" },
+            },
+          },
+        ],
+        metadata: { ...current.metadata, plan },
+        proration_behavior: "create_prorations",
+        cancel_at_period_end: false,
+      },
+    );
     await syncSubscription(updated);
     return { ok: true };
   } catch {
@@ -248,7 +308,10 @@ export async function changeSubscriptionPlan(user: CurrentUser, plan: "limited" 
   }
 }
 
-export async function updateBillingEmail(user: CurrentUser, email: string): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function updateBillingEmail(
+  user: CurrentUser,
+  email: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const parsed = emailSchema.safeParse(email);
   const owned = await ownedSubscription(user.id);
 
@@ -257,14 +320,18 @@ export async function updateBillingEmail(user: CurrentUser, email: string): Prom
   }
 
   try {
-    await owned.stripe.customers.update(owned.customerId, { email: parsed.data });
+    await owned.stripe.customers.update(owned.customerId, {
+      email: parsed.data,
+    });
     return { ok: true };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }
 }
 
-export async function startCardSetup(user: CurrentUser): Promise<{ ok: true; url: string } | { ok: false; message: string }> {
+export async function startCardSetup(
+  user: CurrentUser,
+): Promise<{ ok: true; url: string } | { ok: false; message: string }> {
   const owned = await ownedSubscription(user.id);
 
   if (!owned) {
@@ -295,7 +362,10 @@ export async function startCardSetup(user: CurrentUser): Promise<{ ok: true; url
   }
 }
 
-export async function applyCardSetup(userId: string, sessionId: string): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function applyCardSetup(
+  userId: string,
+  sessionId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const owned = await ownedSubscription(userId);
 
   if (!owned || !sessionId.startsWith("cs_")) {
@@ -303,10 +373,16 @@ export async function applyCardSetup(userId: string, sessionId: string): Promise
   }
 
   try {
-    const session = await owned.stripe.checkout.sessions.retrieve(sessionId, { expand: ["setup_intent"] });
+    const session = await owned.stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["setup_intent"],
+    });
     const intent = session.setup_intent;
 
-    if (!intent || typeof intent === "string" || session.client_reference_id !== userId) {
+    if (
+      !intent ||
+      typeof intent === "string" ||
+      session.client_reference_id !== userId
+    ) {
       return { ok: false, message: billingCopy.stripeFailed };
     }
 
@@ -320,7 +396,9 @@ export async function applyCardSetup(userId: string, sessionId: string): Promise
     await owned.stripe.customers.update(owned.customerId, {
       invoice_settings: { default_payment_method: paymentMethod },
     });
-    await owned.stripe.subscriptions.update(owned.subscriptionId, { default_payment_method: paymentMethod });
+    await owned.stripe.subscriptions.update(owned.subscriptionId, {
+      default_payment_method: paymentMethod,
+    });
     return { ok: true };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };

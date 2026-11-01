@@ -1,4 +1,10 @@
-import { advisorReliability, casesForVerifiedCloses, sortPublicAdvisors, toPublicAdvisorCard, type PublicAdvisorCard } from "@/lib/advisor-directory";
+import {
+  advisorReliability,
+  casesForVerifiedCloses,
+  sortPublicAdvisors,
+  toPublicAdvisorCard,
+  type PublicAdvisorCard,
+} from "@/lib/advisor-directory";
 import { verifiedCloseCounts } from "@/server/advisoryEngagement";
 import { prisma } from "@/server/db";
 
@@ -54,5 +60,7 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
     bodies.set(advisorId, current);
   }
 
-  return sortPublicAdvisors(cards, "recommended", (id) => advisorReliability(bodies.get(id) ?? []));
+  return sortPublicAdvisors(cards, "recommended", (id) =>
+    advisorReliability(bodies.get(id) ?? []),
+  );
 }

@@ -1,12 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { dataRoomMessage, grantDataRoomOutcome, type GrantDataRoomInput } from "@/lib/data-room";
+import {
+  dataRoomMessage,
+  grantDataRoomOutcome,
+  type GrantDataRoomInput,
+} from "@/lib/data-room";
 import { dataRoomSharedNotice } from "@/lib/notifications";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
 import type { DataRoomWriteResult } from "@/server/storeDataRoomFile";
 
-export async function grantDataRoomAccess(user: CurrentUser, input: GrantDataRoomInput): Promise<DataRoomWriteResult> {
+export async function grantDataRoomAccess(
+  user: CurrentUser,
+  input: GrantDataRoomInput,
+): Promise<DataRoomWriteResult> {
   const access = await prisma.projectAccess.findUnique({
     where: { id: input.accessId },
     select: {
@@ -19,7 +26,12 @@ export async function grantDataRoomAccess(user: CurrentUser, input: GrantDataRoo
     access === null
       ? null
       : await prisma.dataRoomGrant.findUnique({
-          where: { projectId_investorId: { projectId: access.project.id, investorId: access.investorId } },
+          where: {
+            projectId_investorId: {
+              projectId: access.project.id,
+              investorId: access.investorId,
+            },
+          },
           select: { id: true },
         });
   const outcome = grantDataRoomOutcome({
@@ -31,7 +43,10 @@ export async function grantDataRoomAccess(user: CurrentUser, input: GrantDataRoo
   });
 
   if (!outcome.ok || !access) {
-    return { ok: false, message: dataRoomMessage(outcome.ok ? "missing" : outcome.code) };
+    return {
+      ok: false,
+      message: dataRoomMessage(outcome.ok ? "missing" : outcome.code),
+    };
   }
 
   if (outcome.insert) {

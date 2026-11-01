@@ -7,7 +7,9 @@ export async function listInvestorNdaCompanies(
     where: { investorId, ndaAcceptedAt: { not: null } },
     orderBy: { requestedAt: "desc" },
     select: {
-      project: { select: { slug: true, codename: true, region: true, status: true } },
+      project: {
+        select: { slug: true, codename: true, region: true, status: true },
+      },
     },
   });
 

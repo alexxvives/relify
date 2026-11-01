@@ -1,14 +1,23 @@
 import { investorProfileIsComplete } from "@/lib/investor-profile-complete";
 import { createHash } from "node:crypto";
-import type { InvestorProfileDraft, PublicInvestorCard } from "@/lib/demo-profile";
+import type {
+  InvestorProfileDraft,
+  PublicInvestorCard,
+} from "@/lib/demo-profile";
 import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
 import { gazeAvatarUrl, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
-import { investorPhotoSchema, type InvestorProfileInput } from "@/lib/investor-profile";
+import {
+  investorPhotoSchema,
+  type InvestorProfileInput,
+} from "@/lib/investor-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
 export function investorGazeAvatar(userId: string): string {
-  const seed = createHash("sha256").update(`Relify-investor:${userId}`).digest("hex").slice(0, 16);
+  const seed = createHash("sha256")
+    .update(`Relify-investor:${userId}`)
+    .digest("hex")
+    .slice(0, 16);
   return gazeAvatarUrl(seed);
 }
 
@@ -48,7 +57,10 @@ function draftFromRow(row: {
   };
 }
 
-export async function loadInvestorDraft(userId: string, email: string): Promise<InvestorProfileDraft> {
+export async function loadInvestorDraft(
+  userId: string,
+  email: string,
+): Promise<InvestorProfileDraft> {
   const row = await prisma.investorProfile.findUnique({
     where: { userId },
     select: {
@@ -118,14 +130,29 @@ export async function publicCardsByInvestor(
     const draft = row ? draftFromRow(row) : demoInvestorProfile(person.email);
     const card = draft ? publicCardFromDraft(draft) : null;
     const stored = uploadedInvestorPhoto(card?.photo.trim() ?? "");
-    cards.set(person.id, card ? { ...card, photo: stored.length > 0 ? stored : investorGazeAvatar(person.id) } : null);
+    cards.set(
+      person.id,
+      card
+        ? {
+            ...card,
+            photo: stored.length > 0 ? stored : investorGazeAvatar(person.id),
+          }
+        : null,
+    );
   }
 
   return cards;
 }
 
-export async function saveInvestorPhoto(user: CurrentUser, photo: string): Promise<{ ok: true } | { ok: false }> {
-  if (user.role !== "investor" || !user.onboarded || !investorPhotoSchema.safeParse(photo).success) {
+export async function saveInvestorPhoto(
+  user: CurrentUser,
+  photo: string,
+): Promise<{ ok: true } | { ok: false }> {
+  if (
+    user.role !== "investor" ||
+    !user.onboarded ||
+    !investorPhotoSchema.safeParse(photo).success
+  ) {
     return { ok: false };
   }
 
@@ -138,7 +165,10 @@ export async function saveInvestorPhoto(user: CurrentUser, photo: string): Promi
   return { ok: true };
 }
 
-export async function saveInvestorProfile(user: CurrentUser, input: InvestorProfileInput): Promise<{ ok: true } | { ok: false }> {
+export async function saveInvestorProfile(
+  user: CurrentUser,
+  input: InvestorProfileInput,
+): Promise<{ ok: true } | { ok: false }> {
   if (user.role !== "investor" || !user.onboarded) {
     return { ok: false };
   }
@@ -173,6 +203,9 @@ export async function saveInvestorProfile(user: CurrentUser, input: InvestorProf
   return { ok: true };
 }
 
-export async function buyerProfileComplete(userId: string, email: string): Promise<boolean> {
+export async function buyerProfileComplete(
+  userId: string,
+  email: string,
+): Promise<boolean> {
   return investorProfileIsComplete(await loadInvestorDraft(userId, email));
 }

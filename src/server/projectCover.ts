@@ -15,7 +15,9 @@ const extensions = {
 type CoverType = keyof typeof extensions;
 
 function isCoverType(value: string): value is CoverType {
-  return value === "image/jpeg" || value === "image/png" || value === "image/webp";
+  return (
+    value === "image/jpeg" || value === "image/png" || value === "image/webp"
+  );
 }
 
 function coverPath(id: string, extension: string): string | null {
@@ -26,12 +28,17 @@ function coverPath(id: string, extension: string): string | null {
   return path.join(root, `${id}.${extension}`);
 }
 
-export function findProjectCover(id: string): { filePath: string; type: CoverType } | null {
+export function findProjectCover(
+  id: string,
+): { filePath: string; type: CoverType } | null {
   if (!idPattern.test(id)) {
     return null;
   }
 
-  for (const [type, extension] of Object.entries(extensions) as [CoverType, string][]) {
+  for (const [type, extension] of Object.entries(extensions) as [
+    CoverType,
+    string,
+  ][]) {
     const target = coverPath(id, extension);
 
     if (target && existsSync(target)) {
@@ -60,8 +67,16 @@ export function projectCoverHref(slug: string, version: string): string {
   return `/portadas/${slug}?v=${version}`;
 }
 
-export async function writeProjectCover(id: string, type: string, bytes: Uint8Array): Promise<boolean> {
-  if (!isCoverType(type) || bytes.byteLength === 0 || bytes.byteLength > byteLimit) {
+export async function writeProjectCover(
+  id: string,
+  type: string,
+  bytes: Uint8Array,
+): Promise<boolean> {
+  if (
+    !isCoverType(type) ||
+    bytes.byteLength === 0 ||
+    bytes.byteLength > byteLimit
+  ) {
     return false;
   }
 
@@ -114,7 +129,9 @@ export async function deleteProjectCover(id: string): Promise<void> {
   }
 }
 
-export async function readProjectCover(id: string): Promise<{ bytes: Buffer; type: CoverType } | null> {
+export async function readProjectCover(
+  id: string,
+): Promise<{ bytes: Buffer; type: CoverType } | null> {
   const found = findProjectCover(id);
 
   if (!found) {

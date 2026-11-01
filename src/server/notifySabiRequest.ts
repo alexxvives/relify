@@ -15,7 +15,8 @@ type SendEmailBinding = {
 async function emailBinding(): Promise<SendEmailBinding | null> {
   try {
     const workers = await import("cloudflare:workers");
-    const binding = (workers.env as Record<string, unknown>).EMAIL as SendEmailBinding | undefined;
+    const binding = (workers.env as Record<string, unknown>).EMAIL as
+      SendEmailBinding | undefined;
     return binding && typeof binding.send === "function" ? binding : null;
   } catch {
     return null;
@@ -39,17 +40,33 @@ export async function notifySabiRequest(input: {
   slug: string | null;
 }): Promise<"sent" | "skipped" | "failed"> {
   const base = readSiteUrl();
-  const adminUrl = new URL(input.slug ? `/admin/empresas/${input.slug}` : "/admin/empresas?sabi=pendiente", base).toString();
+  const adminUrl = new URL(
+    input.slug
+      ? `/admin/empresas/${input.slug}`
+      : "/admin/empresas?sabi=pendiente",
+    base,
+  ).toString();
   const mail = sabiRequestEmail({ ...input, adminUrl });
 
   const binding = await emailBinding();
   if (binding) {
     try {
-      await binding.send({ to: mail.to, from: SABI_NOTIFY_FROM, subject: mail.subject, html: mail.html, text: mail.text });
+      await binding.send({
+        to: mail.to,
+        from: SABI_NOTIFY_FROM,
+        subject: mail.subject,
+        html: mail.html,
+        text: mail.text,
+      });
       return "sent";
     } catch (error) {
-      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "unknown";
-      console.warn(`[sabi-notify] email binding failed (${code}); trying webhook`);
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "unknown";
+      console.warn(
+        `[sabi-notify] email binding failed (${code}); trying webhook`,
+      );
     }
   }
 

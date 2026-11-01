@@ -12,19 +12,26 @@ import {
   type CompanyDraftInput,
   type ForecastYearInput,
 } from "@/lib/company-draft";
-import { descriptionContainsSecret, parsePercentToBasisPoints, type SliceKind } from "@/lib/company-profile";
+import {
+  descriptionContainsSecret,
+  parsePercentToBasisPoints,
+  type SliceKind,
+} from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
-export type SaveCompanyDraftResult = { ok: true } | { ok: false; message: string };
+export type SaveCompanyDraftResult =
+  { ok: true } | { ok: false; message: string };
 
 async function unusedSlug(codename: string): Promise<string> {
   const base = projectSlug(codename);
   let slug = base;
   let suffix = 2;
 
-  while (await prisma.project.findUnique({ where: { slug }, select: { id: true } })) {
+  while (
+    await prisma.project.findUnique({ where: { slug }, select: { id: true } })
+  ) {
     slug = `${base}-${suffix}`;
     suffix += 1;
   }
@@ -64,7 +71,9 @@ function pnlData(year: ForecastYearInput | ClosedYearInput) {
     grantIncomeCents: optionalEurosToCents(year.grantIncome),
     provisionSurplusCents: optionalEurosToCents(year.provisionSurplus),
     assetImpairmentCents: optionalEurosToCents(year.assetImpairment),
-    subsidiaryControlLossCents: optionalEurosToCents(year.subsidiaryControlLoss),
+    subsidiaryControlLossCents: optionalEurosToCents(
+      year.subsidiaryControlLoss,
+    ),
     negativeDifferenceCents: optionalEurosToCents(year.negativeDifference),
     otherResultsCents: optionalEurosToCents(year.otherResults),
     amortizationCents: optionalEurosToCents(year.amortization),
@@ -78,7 +87,9 @@ function balanceData(year: ClosedYearInput) {
     nonCurrentAssetsCents: optionalEurosToCents(year.nonCurrentAssets),
     currentLiabilitiesCents: optionalEurosToCents(year.currentLiabilities),
     longTermDebtCents: optionalEurosToCents(year.longTermDebt),
-    nonCurrentLiabilitiesCents: optionalEurosToCents(year.nonCurrentLiabilities),
+    nonCurrentLiabilitiesCents: optionalEurosToCents(
+      year.nonCurrentLiabilities,
+    ),
     shortTermDebtCents: optionalEurosToCents(year.shortTermDebt),
     equityCents: optionalEurosToCents(year.equity),
   };
@@ -108,7 +119,9 @@ export async function saveCompanyDraft(
   const products = basisPointsFor(input.productPercents);
   const clientValues =
     input.customerBase === "consumer"
-      ? input.clientPercents.map((value) => value.trim()).filter((value) => value.length > 0)
+      ? input.clientPercents
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
       : input.clientPercents;
   const clients = basisPointsFor(clientValues);
 
@@ -120,23 +133,31 @@ export async function saveCompanyDraft(
   const [existing, account, ownedCount] = await Promise.all([
     activeId
       ? prisma.project.findFirst({
-      where: { id: activeId, ownerId: user.id },
-      select: {
-        id: true,
-        legalName: true,
-        codename: true,
-        cif: true,
-        address: true,
-        shareholders: { select: { name: true } },
-        dataRoomFiles: { select: { fileName: true } },
-      },
-    })
+          where: { id: activeId, ownerId: user.id },
+          select: {
+            id: true,
+            legalName: true,
+            codename: true,
+            cif: true,
+            address: true,
+            shareholders: { select: { name: true } },
+            dataRoomFiles: { select: { fileName: true } },
+          },
+        })
       : null,
-    prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { pendingCif: true },
+    }),
     prisma.project.count({ where: { ownerId: user.id } }),
   ]);
   const pendingCif = account?.pendingCif?.trim() ?? "";
-  const keptCif = existing && existing.cif.trim().length > 0 ? existing.cif : ownedCount <= 1 ? pendingCif : "";
+  const keptCif =
+    existing && existing.cif.trim().length > 0
+      ? existing.cif
+      : ownedCount <= 1
+        ? pendingCif
+        : "";
   const writtenCif = cif.length > 0 ? cif : keptCif;
 
   const secrets = [
@@ -150,17 +171,26 @@ export async function saveCompanyDraft(
     ...(existing?.dataRoomFiles.map((file) => file.fileName) ?? []),
   ];
 
-  if (input.description !== "" && descriptionContainsSecret(input.description, secrets)) {
+  if (
+    input.description !== "" &&
+    descriptionContainsSecret(input.description, secrets)
+  ) {
     return { ok: false, message: companyCopy.descriptionPrivate };
   }
 
   // The nickname is generated, not typed: a change is kept only when it is
   // another free curated name (the "Generar otro" button); anything else keeps the stored one.
   const requested = input.codename.trim();
-  const acceptable = isCuratedNickname(requested) && (await codenameIsFree(requested, existing?.id));
+  const acceptable =
+    isCuratedNickname(requested) &&
+    (await codenameIsFree(requested, existing?.id));
   const codename = existing
-    ? requested === existing.codename || acceptable ? requested : existing.codename
-    : acceptable ? requested : await uniqueCodename();
+    ? requested === existing.codename || acceptable
+      ? requested
+      : existing.codename
+    : acceptable
+      ? requested
+      : await uniqueCodename();
 
   const profile = {
     legalName: input.legalName,
@@ -182,7 +212,13 @@ export async function saveCompanyDraft(
   const cnaes = [
     ...(input.principalCnae === ""
       ? []
-      : [{ code: input.principalCnae, role: "principal" as const, position: 1 }]),
+      : [
+          {
+            code: input.principalCnae,
+            role: "principal" as const,
+            position: 1,
+          },
+        ]),
     ...input.secondaryCnaes.map((code, index) => ({
       code,
       role: "secondary" as const,
@@ -217,10 +253,12 @@ export async function saveCompanyDraft(
           ).map(({ year, ...rest }) => [year, rest] as const)
         : [],
     );
-    const stored = writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
+    const stored =
+      writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
 
     if (existing) {
-      const firstCif = existing.cif.trim().length === 0 && writtenCif.length > 0;
+      const firstCif =
+        existing.cif.trim().length === 0 && writtenCif.length > 0;
       await tx.project.update({
         where: { id: existing.id },
         data: firstCif ? { ...stored, sabiRequestedAt: new Date() } : stored,
@@ -246,7 +284,10 @@ export async function saveCompanyDraft(
     }
 
     if (pendingCif.length > 0 && writtenCif.length > 0) {
-      await tx.user.update({ where: { id: user.id }, data: { pendingCif: null } });
+      await tx.user.update({
+        where: { id: user.id },
+        data: { pendingCif: null },
+      });
     }
 
     if (cnaes.length > 0) {

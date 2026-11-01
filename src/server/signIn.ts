@@ -1,7 +1,11 @@
 import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { authCopy } from "@/lib/auth-copy";
-import { readUserRole, type SignInInput, type UserRoleName } from "@/lib/auth-input";
+import {
+  readUserRole,
+  type SignInInput,
+  type UserRoleName,
+} from "@/lib/auth-input";
 import { auth } from "@/server/auth";
 import { authFailureMessage } from "@/server/auth-failure";
 import { prisma } from "@/server/db";
@@ -52,6 +56,9 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
     } else {
       console.error("[signIn] failed", { email: input.email, code }, error);
     }
-    return { ok: false, message: authFailureMessage(error, authCopy.signInFailed) };
+    return {
+      ok: false,
+      message: authFailureMessage(error, authCopy.signInFailed),
+    };
   }
 }

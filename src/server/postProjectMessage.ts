@@ -26,11 +26,19 @@ export async function postInvestorMessage(
 ): Promise<MessageWriteResult> {
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
-    select: { id: true, status: true, codename: true, ownerId: true, slug: true },
+    select: {
+      id: true,
+      status: true,
+      codename: true,
+      ownerId: true,
+      slug: true,
+    },
   });
   const access = project
     ? await prisma.projectAccess.findUnique({
-        where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
+        where: {
+          projectId_investorId: { projectId: project.id, investorId: user.id },
+        },
         select: { id: true, ndaAcceptedAt: true, sellerAcceptedAt: true },
       })
     : null;
@@ -42,7 +50,10 @@ export async function postInvestorMessage(
   });
 
   if (!gate.ok || !project || !access) {
-    return { ok: false, message: accessMessage(gate.ok ? "missing" : gate.code) };
+    return {
+      ok: false,
+      message: accessMessage(gate.ok ? "missing" : gate.code),
+    };
   }
 
   if (access.sellerAcceptedAt === null) {
@@ -50,7 +61,8 @@ export async function postInvestorMessage(
   }
 
   // A letter of intent is signed: the drawn signature is stored with it and the PDF is kept.
-  const loiSignature = input.kind === "offer" ? signatureJpeg(signatureValue) : null;
+  const loiSignature =
+    input.kind === "offer" ? signatureJpeg(signatureValue) : null;
   if (input.kind === "offer" && !loiSignature) {
     return { ok: false, message: platformTermsCopy.signRequired };
   }
@@ -68,14 +80,21 @@ export async function postInvestorMessage(
   if (loiSignature) {
     await prisma.projectAccess.update({
       where: { id: access.id },
-      data: { loiSignature: signatureBytes(loiSignature), loiSignedAt: new Date() },
+      data: {
+        loiSignature: signatureBytes(loiSignature),
+        loiSignedAt: new Date(),
+      },
     });
     await storeSignedDocumentQuietly("loi", access.id);
   }
   if (project.ownerId && project.ownerId !== user.id) {
     await recordNotification({
       userId: project.ownerId,
-      ...investorNoticeFor(input.kind, project.codename, personName(user.name, user.lastName)),
+      ...investorNoticeFor(
+        input.kind,
+        project.codename,
+        personName(user.name, user.lastName),
+      ),
       href: "/mi-empresa/procesos",
     });
   }
@@ -83,14 +102,19 @@ export async function postInvestorMessage(
   return { ok: true };
 }
 
-export async function postSellerMessage(user: CurrentUser, input: SellerMessageInput): Promise<MessageWriteResult> {
+export async function postSellerMessage(
+  user: CurrentUser,
+  input: SellerMessageInput,
+): Promise<MessageWriteResult> {
   const access = await prisma.projectAccess.findUnique({
     where: { id: input.accessId },
     select: {
       investorId: true,
       ndaAcceptedAt: true,
       sellerAcceptedAt: true,
-      project: { select: { id: true, ownerId: true, codename: true, slug: true } },
+      project: {
+        select: { id: true, ownerId: true, codename: true, slug: true },
+      },
     },
   });
   const outcome = sellerReplyGate({
@@ -102,7 +126,10 @@ export async function postSellerMessage(user: CurrentUser, input: SellerMessageI
   });
 
   if (!outcome.ok || !access) {
-    return { ok: false, message: messageFailure(outcome.ok ? "missing" : outcome.code, "seller") };
+    return {
+      ok: false,
+      message: messageFailure(outcome.ok ? "missing" : outcome.code, "seller"),
+    };
   }
 
   await prisma.projectMessage.create({

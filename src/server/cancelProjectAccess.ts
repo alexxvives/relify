@@ -7,7 +7,10 @@ import { recordNotification } from "@/server/recordNotification";
 
 export type CancelAccessResult = { ok: true } | { ok: false; message: string };
 
-export async function cancelProjectAccess(user: CurrentUser, accessId: string): Promise<CancelAccessResult> {
+export async function cancelProjectAccess(
+  user: CurrentUser,
+  accessId: string,
+): Promise<CancelAccessResult> {
   if (!user.onboarded || (user.role !== "investor" && user.role !== "seller")) {
     return { ok: false, message: accessCopy.cancelFailed };
   }
@@ -19,7 +22,15 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
       investorId: true,
       sellerAcceptedAt: true,
       investor: { select: { name: true, lastName: true } },
-      project: { select: { id: true, ownerId: true, codename: true, slug: true, successFee: { select: { id: true } } } },
+      project: {
+        select: {
+          id: true,
+          ownerId: true,
+          codename: true,
+          slug: true,
+          successFee: { select: { id: true } },
+        },
+      },
     },
   });
 
@@ -36,7 +47,10 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
 
   await prisma.projectAccess.update({
     where: { id: access.id },
-    data: { cancelledAt: new Date(), cancelledBy: seller ? "seller" : "investor" },
+    data: {
+      cancelledAt: new Date(),
+      cancelledBy: seller ? "seller" : "investor",
+    },
   });
 
   const self = processCancelledNotice(access.project.codename, "self");
@@ -51,12 +65,16 @@ export async function cancelProjectAccess(user: CurrentUser, accessId: string): 
     const other = processCancelledNotice(
       access.project.codename,
       seller ? "seller" : "investor",
-      access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
+      access.sellerAcceptedAt
+        ? personName(access.investor.name, access.investor.lastName)
+        : null,
     );
     await recordNotification({
       userId: otherId,
       ...other,
-      href: seller ? `/proyectos/${access.project.slug}` : "/mi-empresa/procesos",
+      href: seller
+        ? `/proyectos/${access.project.slug}`
+        : "/mi-empresa/procesos",
     });
   }
 

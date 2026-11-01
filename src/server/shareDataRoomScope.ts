@@ -6,7 +6,8 @@ import { shareAdvisorDocuments } from "@/server/advisoryEngagement";
 import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
 import type { DataRoomWriteResult } from "@/server/storeDataRoomFile";
 
-const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const idPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function shareDataRoomScope(
   user: CurrentUser,
@@ -19,7 +20,10 @@ export async function shareDataRoomScope(
     shared: boolean;
   },
 ): Promise<DataRoomWriteResult> {
-  const scope = input.scope === "file" || input.scope === "folder" || input.scope === "room" ? input.scope : null;
+  const scope =
+    input.scope === "file" || input.scope === "folder" || input.scope === "room"
+      ? input.scope
+      : null;
   const investor = input.accessId.length > 0;
   const advisor = input.engagementId.length > 0;
 
@@ -28,7 +32,10 @@ export async function shareDataRoomScope(
   }
 
   if (advisor) {
-    if (!idPattern.test(input.engagementId) || (scope === "file" && !idPattern.test(input.fileId))) {
+    if (
+      !idPattern.test(input.engagementId) ||
+      (scope === "file" && !idPattern.test(input.fileId))
+    ) {
       return { ok: false, message: sellerCopy.shareFailed };
     }
 
@@ -43,12 +50,19 @@ export async function shareDataRoomScope(
     return result.ok ? { ok: true } : { ok: false, message: result.message };
   }
 
-  if (!idPattern.test(input.accessId) || (scope === "file" && !idPattern.test(input.fileId))) {
+  if (
+    !idPattern.test(input.accessId) ||
+    (scope === "file" && !idPattern.test(input.fileId))
+  ) {
     return { ok: false, message: sellerCopy.shareFailed };
   }
 
   if (scope === "file") {
-    return setDataRoomFileShare(user, { fileId: input.fileId, accessId: input.accessId, shared: input.shared });
+    return setDataRoomFileShare(user, {
+      fileId: input.fileId,
+      accessId: input.accessId,
+      shared: input.shared,
+    });
   }
 
   const access = await prisma.projectAccess.findUnique({
@@ -70,10 +84,15 @@ export async function shareDataRoomScope(
       select: { name: true, hidden: true },
     }),
   ]);
-  const names = visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) });
+  const names = visibleFolderNames({
+    records: folderRows,
+    usedByFiles: files.map((file) => file.folder),
+  });
   const chosen =
     scope === "folder"
-      ? files.filter((file) => file.folder === input.folder && names.includes(file.folder))
+      ? files.filter(
+          (file) => file.folder === input.folder && names.includes(file.folder),
+        )
       : files.filter((file) => names.includes(file.folder));
 
   if (scope === "folder" && !names.includes(input.folder)) {
@@ -81,7 +100,11 @@ export async function shareDataRoomScope(
   }
 
   for (const file of chosen) {
-    const result = await setDataRoomFileShare(user, { fileId: file.id, accessId: input.accessId, shared: input.shared });
+    const result = await setDataRoomFileShare(user, {
+      fileId: file.id,
+      accessId: input.accessId,
+      shared: input.shared,
+    });
     if (!result.ok) {
       return result;
     }

@@ -1,12 +1,18 @@
 import type { IndustrySector } from "@/lib/cnae-section";
 import type { CurrentUser } from "@/server/getCurrentUser";
-import { countInvestorPlans, type InvestorPlanCount } from "@/server/getAdminBilling";
+import {
+  countInvestorPlans,
+  type InvestorPlanCount,
+} from "@/server/getAdminBilling";
 import { prisma } from "@/server/db";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
 
 const roleOrder = ["seller", "investor", "advisor", "admin"] as const;
 
-export type AdminRoleCount = { role: (typeof roleOrder)[number] | "none"; count: number };
+export type AdminRoleCount = {
+  role: (typeof roleOrder)[number] | "none";
+  count: number;
+};
 
 export type AdminDashboard = {
   roles: AdminRoleCount[];
@@ -23,28 +29,57 @@ export type AdminDashboard = {
   plans: InvestorPlanCount[];
   sectors: IndustrySector[];
   /** Items created since this admin last opened Inicio (red bubbles; totals stay plain text). */
-  fresh: { accesses: number; ndas: number; messages: number; favorites: number; quotes: number; accounts: number; companies: number };
+  fresh: {
+    accesses: number;
+    ndas: number;
+    messages: number;
+    favorites: number;
+    quotes: number;
+    accounts: number;
+    companies: number;
+  };
 };
 
 function roleKey(role: string | null): AdminRoleCount["role"] {
-  if (role === "seller" || role === "investor" || role === "advisor" || role === "admin") {
+  if (
+    role === "seller" ||
+    role === "investor" ||
+    role === "advisor" ||
+    role === "admin"
+  ) {
     return role;
   }
 
   return "none";
 }
 
-export async function getAdminDashboard(user: CurrentUser, since: Date = new Date()): Promise<AdminDashboard | null> {
+export async function getAdminDashboard(
+  user: CurrentUser,
+  since: Date = new Date(),
+): Promise<AdminDashboard | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
 
-  const [users, unfinished, statuses, accesses, ndas, messages, favorites, quotes, plans, sectors] = await Promise.all([
+  const [
+    users,
+    unfinished,
+    statuses,
+    accesses,
+    ndas,
+    messages,
+    favorites,
+    quotes,
+    plans,
+    sectors,
+  ] = await Promise.all([
     prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
     prisma.user.count({ where: { onboardedAt: null } }),
     prisma.project.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.projectAccess.count({ where: { cancelledAt: null } }),
-    prisma.projectAccess.count({ where: { cancelledAt: null, ndaAcceptedAt: { not: null } } }),
+    prisma.projectAccess.count({
+      where: { cancelledAt: null, ndaAcceptedAt: { not: null } },
+    }),
     prisma.projectMessage.count(),
     prisma.projectFavorite.count(),
     prisma.advisoryQuote.count(),
@@ -52,7 +87,15 @@ export async function getAdminDashboard(user: CurrentUser, since: Date = new Dat
     listPublishedSectors(),
   ]);
   const after = { gt: since };
-  const [freshAccesses, freshNdas, freshMessages, freshFavorites, freshQuotes, freshAccounts, freshCompanies] = await Promise.all([
+  const [
+    freshAccesses,
+    freshNdas,
+    freshMessages,
+    freshFavorites,
+    freshQuotes,
+    freshAccounts,
+    freshCompanies,
+  ] = await Promise.all([
     prisma.projectAccess.count({ where: { requestedAt: after } }),
     prisma.projectAccess.count({ where: { ndaAcceptedAt: after } }),
     prisma.projectMessage.count({ where: { createdAt: after } }),
@@ -68,7 +111,9 @@ export async function getAdminDashboard(user: CurrentUser, since: Date = new Dat
     roleCounts.set(key, (roleCounts.get(key) ?? 0) + row._count._all);
   }
 
-  const statusCounts = new Map(statuses.map((row) => [row.status, row._count._all]));
+  const statusCounts = new Map(
+    statuses.map((row) => [row.status, row._count._all]),
+  );
 
   return {
     roles: [
@@ -80,7 +125,10 @@ export async function getAdminDashboard(user: CurrentUser, since: Date = new Dat
     drafts: statusCounts.get("draft") ?? 0,
     pending: statusCounts.get("pending") ?? 0,
     // Same set as the "Sectores en venta" treemap (published, unsold, with a CNAE) so both totals always agree.
-    publishedAskingCents: sectors.reduce((sum, sector) => sum + (sector.revenueCents ?? 0), 0),
+    publishedAskingCents: sectors.reduce(
+      (sum, sector) => sum + (sector.revenueCents ?? 0),
+      0,
+    ),
     accesses,
     ndas,
     messages,

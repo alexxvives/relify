@@ -4,16 +4,29 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
-import { accountProfileSchema, onboardingFieldMessage, parseAccountEmail, splitAccountName } from "@/lib/auth-input";
+import {
+  accountProfileSchema,
+  onboardingFieldMessage,
+  parseAccountEmail,
+  splitAccountName,
+} from "@/lib/auth-input";
 import { auth } from "@/server/auth";
 import { authFailureMessage } from "@/server/auth-failure";
 import { getCurrentUser } from "@/server/getCurrentUser";
-import { markNotificationRead, markNotificationsRead } from "@/server/markNotificationsRead";
-import { accountEmailConfigured } from "@/server/sendAccountEmail";
+import {
+  markNotificationRead,
+  markNotificationsRead,
+} from "@/server/markNotificationsRead";
+import { takeThrottle } from "@/server/emailThrottle";
+import { mailConfigured } from "@/server/mailer";
 import { signOut } from "@/server/signOut";
 import { updateAccountProfile } from "@/server/updateAccountProfile";
 
-export type AccountFormState = { message: string; saved: boolean; emailHeld?: boolean } | null;
+export type AccountFormState = {
+  message: string;
+  saved: boolean;
+  emailHeld?: boolean;
+} | null;
 
 function readText(formData: FormData, name: string): string {
   const value = formData.get(name);
@@ -25,7 +38,10 @@ export async function signOutAction(): Promise<void> {
   redirect("/entrar");
 }
 
-export async function updateAccountAction(_state: AccountFormState, formData: FormData): Promise<AccountFormState> {
+export async function updateAccountAction(
+  _state: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -68,8 +84,12 @@ export async function updateAccountAction(_state: AccountFormState, formData: Fo
     return { message: authCopy.accountSaved, saved: true };
   }
 
-  if (!accountEmailConfigured()) {
+  if (!mailConfigured()) {
     return { message: authCopy.emailChangeHeld, saved: true, emailHeld: true };
+  }
+
+  if (!(await takeThrottle(`change-email:user:${user.id}`, 5, 60 * 60))) {
+    return { message: authCopy.forgotThrottled, saved: true, emailHeld: true };
   }
 
   try {
@@ -78,13 +98,20 @@ export async function updateAccountAction(_state: AccountFormState, formData: Fo
       headers: await headers(),
     });
   } catch (error) {
-    return { message: authFailureMessage(error, authCopy.emailChangeFailed), saved: true, emailHeld: true };
+    return {
+      message: authFailureMessage(error, authCopy.emailChangeFailed),
+      saved: true,
+      emailHeld: true,
+    };
   }
 
   return { message: authCopy.emailChangeSent, saved: true, emailHeld: true };
 }
 
-export async function changePasswordAction(_state: AccountFormState, formData: FormData): Promise<AccountFormState> {
+export async function changePasswordAction(
+  _state: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -112,13 +139,19 @@ export async function changePasswordAction(_state: AccountFormState, formData: F
       headers: await headers(),
     });
   } catch (error) {
-    return { message: authFailureMessage(error, authCopy.passwordFailed), saved: false };
+    return {
+      message: authFailureMessage(error, authCopy.passwordFailed),
+      saved: false,
+    };
   }
 
   return { message: authCopy.passwordChanged, saved: true };
 }
 
-export async function deleteAccountAction(_state: AccountFormState, formData: FormData): Promise<AccountFormState> {
+export async function deleteAccountAction(
+  _state: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -135,7 +168,10 @@ export async function deleteAccountAction(_state: AccountFormState, formData: Fo
       headers: await headers(),
     });
   } catch (error) {
-    return { message: authFailureMessage(error, authCopy.deleteFailed), saved: false };
+    return {
+      message: authFailureMessage(error, authCopy.deleteFailed),
+      saved: false,
+    };
   }
 
   redirect("/entrar");

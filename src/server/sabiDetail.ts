@@ -8,7 +8,11 @@ import {
 import { prisma } from "@/server/db";
 
 /** t62: the SABI detail block of the ficha (company identity + per-year detail lines), as form strings. */
-export type SabiDetailYear = { year: number; source: string | null; values: Record<SabiYearDetailColumn, string> };
+export type SabiDetailYear = {
+  year: number;
+  source: string | null;
+  values: Record<SabiYearDetailColumn, string>;
+};
 export type SabiDetailForm = {
   projectId: string;
   imported: boolean;
@@ -16,8 +20,12 @@ export type SabiDetailForm = {
   years: SabiDetailYear[];
 };
 
-const companySelect = Object.fromEntries(sabiCompanyDetailFields.map((field) => [field.column, true])) as Record<SabiCompanyDetailColumn, true>;
-const yearSelect = Object.fromEntries(sabiYearDetailFields.map((field) => [field.column, true])) as Record<SabiYearDetailColumn, true>;
+const companySelect = Object.fromEntries(
+  sabiCompanyDetailFields.map((field) => [field.column, true]),
+) as Record<SabiCompanyDetailColumn, true>;
+const yearSelect = Object.fromEntries(
+  sabiYearDetailFields.map((field) => [field.column, true]),
+) as Record<SabiYearDetailColumn, true>;
 
 function toInput(kind: string, value: unknown): string {
   if (value === null || value === undefined) {
@@ -31,14 +39,20 @@ function toInput(kind: string, value: unknown): string {
   return String(value);
 }
 
-export async function getSabiDetail(projectId: string): Promise<SabiDetailForm | null> {
+export async function getSabiDetail(
+  projectId: string,
+): Promise<SabiDetailForm | null> {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: {
       id: true,
       sabiImportedAt: true,
       ...companySelect,
-      years: { where: { kind: "closed" }, orderBy: { year: "desc" }, select: { year: true, dataSource: true, ...yearSelect } },
+      years: {
+        where: { kind: "closed" },
+        orderBy: { year: "desc" },
+        select: { year: true, dataSource: true, ...yearSelect },
+      },
     },
   });
 
@@ -51,13 +65,23 @@ export async function getSabiDetail(projectId: string): Promise<SabiDetailForm |
   return {
     projectId: project.id,
     imported: project.sabiImportedAt !== null,
-    company: Object.fromEntries(sabiCompanyDetailFields.map((field) => [field.column, toInput(field.kind, row[field.column])])) as Record<SabiCompanyDetailColumn, string>,
+    company: Object.fromEntries(
+      sabiCompanyDetailFields.map((field) => [
+        field.column,
+        toInput(field.kind, row[field.column]),
+      ]),
+    ) as Record<SabiCompanyDetailColumn, string>,
     years: project.years.map((year) => {
       const values = year as unknown as Record<string, unknown>;
       return {
         year: year.year,
         source: year.dataSource,
-        values: Object.fromEntries(sabiYearDetailFields.map((field) => [field.column, toInput("money", values[field.column])])) as Record<SabiYearDetailColumn, string>,
+        values: Object.fromEntries(
+          sabiYearDetailFields.map((field) => [
+            field.column,
+            toInput("money", values[field.column]),
+          ]),
+        ) as Record<SabiYearDetailColumn, string>,
       };
     }),
   };
@@ -69,7 +93,10 @@ const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 export type SabiDetailSaveResult = { ok: true } | { ok: false; field: string };
 
 /** Reads `company_<column>` and `year_<year>_<column>` fields. Blank clears the value. */
-export async function saveSabiDetail(projectId: string, formData: FormData): Promise<SabiDetailSaveResult> {
+export async function saveSabiDetail(
+  projectId: string,
+  formData: FormData,
+): Promise<SabiDetailSaveResult> {
   const read = (name: string) => {
     const value = formData.get(name);
     return typeof value === "string" ? value.trim() : null;
@@ -108,8 +135,12 @@ export async function saveSabiDetail(projectId: string, formData: FormData): Pro
     }
   }
 
-  const years = await prisma.projectYear.findMany({ where: { projectId, kind: "closed" }, select: { id: true, year: true } });
-  const updates: Array<{ id: string; data: Record<string, number | null> }> = [];
+  const years = await prisma.projectYear.findMany({
+    where: { projectId, kind: "closed" },
+    select: { id: true, year: true },
+  });
+  const updates: Array<{ id: string; data: Record<string, number | null> }> =
+    [];
 
   for (const year of years) {
     const data: Record<string, number | null> = {};
@@ -137,7 +168,12 @@ export async function saveSabiDetail(projectId: string, formData: FormData): Pro
 
   await prisma.$transaction([
     prisma.project.update({ where: { id: projectId }, data: company }),
-    ...updates.map((update) => prisma.projectYear.update({ where: { id: update.id }, data: update.data })),
+    ...updates.map((update) =>
+      prisma.projectYear.update({
+        where: { id: update.id },
+        data: update.data,
+      }),
+    ),
   ]);
 
   return { ok: true };

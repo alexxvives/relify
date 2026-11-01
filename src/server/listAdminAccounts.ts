@@ -16,7 +16,10 @@ export type AdminAccountRow = {
   isNew: boolean;
 };
 
-export async function listAdminAccounts(user: CurrentUser, since?: Date): Promise<AdminAccountRow[] | null> {
+export async function listAdminAccounts(
+  user: CurrentUser,
+  since?: Date,
+): Promise<AdminAccountRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -40,7 +43,9 @@ export async function listAdminAccounts(user: CurrentUser, since?: Date): Promis
 
   return accounts.map((account) => ({
     id: account.id,
-    name: [account.name, account.lastName].filter((part) => part && part.trim().length > 0).join(" "),
+    name: [account.name, account.lastName]
+      .filter((part) => part && part.trim().length > 0)
+      .join(" "),
     email: account.email,
     role: account.role,
     onboarded: account.onboardedAt !== null,

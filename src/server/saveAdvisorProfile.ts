@@ -20,7 +20,10 @@ async function advisorCanSave(userId: string): Promise<boolean> {
   return user?.role === "advisor" && user.onboardedAt !== null;
 }
 
-export async function saveAdvisorCorporate(userId: string, input: CorporateInput): Promise<AdvisorSaveResult> {
+export async function saveAdvisorCorporate(
+  userId: string,
+  input: CorporateInput,
+): Promise<AdvisorSaveResult> {
   if (!(await advisorCanSave(userId))) {
     return { ok: false, message: advisorCopy.forbidden };
   }
@@ -42,7 +45,10 @@ export async function saveAdvisorCorporate(userId: string, input: CorporateInput
   return { ok: true };
 }
 
-export async function saveAdvisorServices(userId: string, offers: ServiceOfferInput[]): Promise<AdvisorSaveResult> {
+export async function saveAdvisorServices(
+  userId: string,
+  offers: ServiceOfferInput[],
+): Promise<AdvisorSaveResult> {
   if (!(await advisorCanSave(userId))) {
     return { ok: false, message: advisorCopy.forbidden };
   }
@@ -62,20 +68,25 @@ export async function saveAdvisorServices(userId: string, offers: ServiceOfferIn
   return { ok: true };
 }
 
-export async function saveAdvisorDeals(userId: string, input: DealsInput): Promise<AdvisorSaveResult> {
+export async function saveAdvisorDeals(
+  userId: string,
+  input: DealsInput,
+): Promise<AdvisorSaveResult> {
   if (!(await advisorCanSave(userId))) {
     return { ok: false, message: advisorCopy.forbidden };
   }
 
   const operations = input.hasClosedOperations ? input.operations : [];
-  const closedOperations: Prisma.InputJsonValue = operations.map((operation) => ({
-    name: operation.name,
-    closingDate: operation.closingDate,
-    sectorId: operation.sectorId,
-    revenueCents: eurosToCents(operation.revenue),
-    ebitdaCents: eurosToCents(operation.ebitda),
-    enterpriseValueCents: eurosToCents(operation.enterpriseValue),
-  }));
+  const closedOperations: Prisma.InputJsonValue = operations.map(
+    (operation) => ({
+      name: operation.name,
+      closingDate: operation.closingDate,
+      sectorId: operation.sectorId,
+      revenueCents: eurosToCents(operation.revenue),
+      ebitdaCents: eurosToCents(operation.ebitda),
+      enterpriseValueCents: eurosToCents(operation.enterpriseValue),
+    }),
+  );
 
   await prisma.advisorProfile.upsert({
     where: { userId },

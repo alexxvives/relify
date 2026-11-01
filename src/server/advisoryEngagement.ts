@@ -30,7 +30,11 @@ import {
 } from "@/lib/advisor-processes";
 import { advisorDepositCents, advisorPlatformFee } from "@/lib/billing";
 import { folderNameSchema, visibleFolderNames } from "@/lib/data-room";
-import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
+import {
+  investorProjectSelect,
+  toInvestorProject,
+  type InvestorProjectProfile,
+} from "@/lib/investor-project";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
 import { figureVeilCents } from "@/lib/figure-veil";
 import { formatEur, formatWholeEur } from "@/lib/money";
@@ -38,13 +42,24 @@ import { personName } from "@/lib/project-message";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
-import { advisorPublicName, revealedInvestorName } from "@/server/engagementThread";
+import {
+  advisorPublicName,
+  revealedInvestorName,
+} from "@/server/engagementThread";
 import { publicCardsByInvestor } from "@/server/investorProfile";
-import { investorVisibleFiles, type VisibleFile } from "@/server/investorVisibleFiles";
-import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
+import {
+  investorVisibleFiles,
+  type VisibleFile,
+} from "@/server/investorVisibleFiles";
+import {
+  projectCoverHref,
+  projectCoverIsStored,
+  projectCoverVersion,
+} from "@/server/projectCover";
 import { recordNotification } from "@/server/recordNotification";
 
-export type EngagementResult = { ok: true; message?: string } | { ok: false; message: string };
+export type EngagementResult =
+  { ok: true; message?: string } | { ok: false; message: string };
 
 export type EngagementCard = {
   id: string;
@@ -115,15 +130,23 @@ export type AdvisorEngagementPage = {
 
 function serviceLabel(ids: string[]): string {
   return ids
-    .map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id)
+    .map(
+      (id) =>
+        advisoryServices.find((service) => service.id === id)?.title ?? id,
+    )
     .join(", ");
 }
 
 function clientLabel(client: EngagementClientName): string {
-  return client === "investor" ? engagementCopy.fromInvestor : engagementCopy.fromSeller;
+  return client === "investor"
+    ? engagementCopy.fromInvestor
+    : engagementCopy.fromSeller;
 }
 
-function investorPartyName(person: { name: string; lastName: string | null }): string {
+function investorPartyName(person: {
+  name: string;
+  lastName: string | null;
+}): string {
   const named = personName(person.name, person.lastName);
   return named.length > 0 ? named : engagementCopy.fromInvestor;
 }
@@ -145,21 +168,27 @@ function toCard(
     id: row.id,
     codename: row.project.codename,
     region: row.project.region,
-    clientLabel: partyName && partyName.length > 0 ? partyName : clientLabel(row.client),
+    clientLabel:
+      partyName && partyName.length > 0 ? partyName : clientLabel(row.client),
     services: serviceLabel(row.services),
     step: advisorEngagementStep({
       owned,
       closed: row.closedAt !== null && row.closedAt !== undefined,
-      depositPaid: row.depositPaidAt !== null && row.depositPaidAt !== undefined,
+      depositPaid:
+        row.depositPaidAt !== null && row.depositPaidAt !== undefined,
       hiredByInvestor: row.client === "investor",
-      ndaSigned: row.advisorNdaAcceptedAt !== null && row.advisorNdaAcceptedAt !== undefined,
+      ndaSigned:
+        row.advisorNdaAcceptedAt !== null &&
+        row.advisorNdaAcceptedAt !== undefined,
     }),
   };
 }
 
 // The advisor subscription (49 €/mes + IVA). Required to accept an encargo
 // (deposit, NDA) and to write to a client.
-export async function advisorSubscriptionActive(userId: string): Promise<boolean> {
+export async function advisorSubscriptionActive(
+  userId: string,
+): Promise<boolean> {
   return inboxPaid(userId);
 }
 
@@ -210,7 +239,11 @@ export async function createEngagement(input: {
   });
 
   if (input.advisorId) {
-    const titles = input.services.map((serviceId) => advisoryServices.find((service) => service.id === serviceId)?.title ?? serviceId);
+    const titles = input.services.map(
+      (serviceId) =>
+        advisoryServices.find((service) => service.id === serviceId)?.title ??
+        serviceId,
+    );
 
     await prisma.engagementMessage.create({
       data: {
@@ -230,7 +263,10 @@ export async function createEngagement(input: {
   }
 }
 
-export async function deleteClientEngagement(user: CurrentUser, engagementId: string): Promise<EngagementResult> {
+export async function deleteClientEngagement(
+  user: CurrentUser,
+  engagementId: string,
+): Promise<EngagementResult> {
   if (!user.onboarded || (user.role !== "investor" && user.role !== "seller")) {
     return { ok: false, message: engagementCopy.missing };
   }
@@ -251,7 +287,15 @@ export async function deleteClientEngagement(user: CurrentUser, engagementId: st
 export async function engagementProject(input: {
   slug: string;
   user: CurrentUser;
-}): Promise<{ ok: true; projectId: string; codename: string; client: EngagementClientName } | { ok: false; message: string }> {
+}): Promise<
+  | {
+      ok: true;
+      projectId: string;
+      codename: string;
+      client: EngagementClientName;
+    }
+  | { ok: false; message: string }
+> {
   const project = await prisma.project.findUnique({
     where: { slug: input.slug },
     select: { id: true, codename: true, status: true, ownerId: true },
@@ -268,7 +312,12 @@ export async function engagementProject(input: {
     return { ok: false, message: engagementCopy.projectMissing };
   }
 
-  return { ok: true, projectId: project.id, codename: project.codename, client: outcome.client };
+  return {
+    ok: true,
+    projectId: project.id,
+    codename: project.codename,
+    client: outcome.client,
+  };
 }
 
 export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
@@ -298,11 +347,16 @@ export async function listAdvisorWork(userId: string): Promise<AdvisorWork> {
           where: {
             sellerAcceptedAt: { not: null },
             cancelledAt: null,
-            OR: investorRows.map((row) => ({ projectId: row.projectId, investorId: row.requesterId })),
+            OR: investorRows.map((row) => ({
+              projectId: row.projectId,
+              investorId: row.requesterId,
+            })),
           },
           select: { projectId: true, investorId: true },
         });
-  const revealed = new Set(accepted.map((row) => `${row.projectId}:${row.investorId}`));
+  const revealed = new Set(
+    accepted.map((row) => `${row.projectId}:${row.investorId}`),
+  );
   const inbox = paid
     ? await prisma.advisoryEngagement.findMany({
         where: { advisorId: null },
@@ -367,7 +421,10 @@ export async function getAdvisorDesk(userId: string): Promise<AdvisorHomeDesk> {
   });
 }
 
-export async function claimEngagement(user: CurrentUser, id: string): Promise<EngagementResult> {
+export async function claimEngagement(
+  user: CurrentUser,
+  id: string,
+): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findUnique({
     where: { id },
     select: { id: true, advisorId: true },
@@ -414,7 +471,9 @@ function showcaseFor(
   },
   locked: boolean,
 ): AdvisorEngagementPage["showcase"] {
-  const version = projectCoverIsStored(project.id) ? projectCoverVersion(project.id) : null;
+  const version = projectCoverIsStored(project.id)
+    ? projectCoverVersion(project.id)
+    : null;
   const coverSrc = version ? projectCoverHref(project.slug, version) : null;
 
   if (locked) {
@@ -517,7 +576,9 @@ async function bannerStepsFor(row: {
       region: row.project.region,
       saleClosed: project.successFee !== null,
       accesses: project.accesses.map((access) => {
-        const thread = messages.filter((message) => message.investorId === access.investorId);
+        const thread = messages.filter(
+          (message) => message.investorId === access.investorId,
+        );
 
         return {
           investorId: access.investorId,
@@ -538,7 +599,10 @@ async function bannerStepsFor(row: {
   return board?.lanes[0]?.steps ?? [];
 }
 
-export async function getAdvisorEngagement(user: CurrentUser, id: string): Promise<AdvisorEngagementPage | null> {
+export async function getAdvisorEngagement(
+  user: CurrentUser,
+  id: string,
+): Promise<AdvisorEngagementPage | null> {
   if (!user.onboarded || user.role !== "advisor") {
     return null;
   }
@@ -556,7 +620,9 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       platformVatCents: true,
       depositPaidAt: true,
       requesterId: true,
-      requester: { select: { id: true, email: true, name: true, lastName: true } },
+      requester: {
+        select: { id: true, email: true, name: true, lastName: true },
+      },
       project: {
         select: {
           id: true,
@@ -564,11 +630,19 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
           description: true,
           foundedYear: true,
           headcountRange: true,
-          cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
+          cnaes: {
+            select: { code: true },
+            orderBy: { position: "asc" },
+            take: 1,
+          },
         },
       },
       folders: { select: { folder: true } },
-      fileShares: { select: { file: { select: { id: true, folder: true, fileName: true } } } },
+      fileShares: {
+        select: {
+          file: { select: { id: true, folder: true, fileName: true } },
+        },
+      },
     },
   });
 
@@ -576,7 +650,9 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     return null;
   }
 
-  const depositAmount = formatEur(advisorDepositCents(row.project.askingPriceCents));
+  const depositAmount = formatEur(
+    advisorDepositCents(row.project.askingPriceCents),
+  );
   const subscriptionActive = await inboxPaid(user.id);
   const companyRow = await prisma.project.findUnique({
     where: { id: row.project.id },
@@ -586,7 +662,8 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
   // Buyers stay anonymous to the advisor until the seller accepts them on this project.
   const namedClient =
     row.client === "investor"
-      ? ((await revealedInvestorName(row.project.id, row.requesterId)) ?? engagementCopy.fromInvestor)
+      ? ((await revealedInvestorName(row.project.id, row.requesterId)) ??
+        engagementCopy.fromInvestor)
       : engagementCopy.fromSeller;
   const investorCard = await investorCardFor(row.client, row.requester);
   const steps = await bannerStepsFor(row);
@@ -621,18 +698,28 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
   const access =
     row.client === "investor"
       ? await prisma.projectAccess.findUnique({
-          where: { projectId_investorId: { projectId: row.project.id, investorId: row.requesterId } },
+          where: {
+            projectId_investorId: {
+              projectId: row.project.id,
+              investorId: row.requesterId,
+            },
+          },
           select: { ndaAcceptedAt: true },
         })
       : null;
   const view = advisorCompanyView({
     hiredByInvestor: row.client === "investor",
     advisorSigned: row.advisorNdaAcceptedAt !== null,
-    investorSigned: access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
+    investorSigned:
+      access?.ndaAcceptedAt !== null && access?.ndaAcceptedAt !== undefined,
   });
-  const documents = view === "investor" ? await investorVisibleFiles(row.requesterId, row.project.id) : [];
+  const documents =
+    view === "investor"
+      ? await investorVisibleFiles(row.requesterId, row.project.id)
+      : [];
   const opened = row.folders.map((folder) => folder.folder);
-  const sharedFiles = view === "seller" ? row.fileShares.map((share) => share.file) : [];
+  const sharedFiles =
+    view === "seller" ? row.fileShares.map((share) => share.file) : [];
   const sellerFiles =
     view === "seller" && opened.length > 0
       ? await prisma.dataRoomFile.findMany({
@@ -668,7 +755,10 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
       ? [
           { label: "Facturación", value: formatEur(row.project.revenueCents) },
           { label: "EBITDA", value: formatEur(row.project.ebitdaCents) },
-          { label: "EBITDA ajustado", value: formatEur(row.project.adjustedEbitdaCents) },
+          {
+            label: "EBITDA ajustado",
+            value: formatEur(row.project.adjustedEbitdaCents),
+          },
           { label: "Precio", value: formatEur(row.project.askingPriceCents) },
         ]
       : [],
@@ -700,27 +790,47 @@ export async function getAdvisorEngagement(user: CurrentUser, id: string): Promi
     showcase: showcaseFor(row.project, !figuresOpen),
     investorCard,
     steps,
-    contract: row.client === "seller" ? await advisorContract(row.project.id) : null,
+    contract:
+      row.client === "seller" ? await advisorContract(row.project.id) : null,
     preview: null,
   };
 }
 
 /** The seller's live process furthest along (LOI accepted), as the hired seller advisor sees its contract. */
-async function advisorContract(projectId: string): Promise<ContractView | null> {
+async function advisorContract(
+  projectId: string,
+): Promise<ContractView | null> {
   const access = await prisma.projectAccess.findFirst({
     where: { projectId, cancelledAt: null, loiAcceptedAt: { not: null } },
-    orderBy: [{ diligencePassedAt: { sort: "desc", nulls: "last" } }, { loiAcceptedAt: "desc" }],
+    orderBy: [
+      { diligencePassedAt: { sort: "desc", nulls: "last" } },
+      { loiAcceptedAt: "desc" },
+    ],
     select: { id: true, investorId: true, diligencePassedAt: true },
   });
   if (!access) return null;
-  const grant = await prisma.dataRoomGrant.findFirst({ where: { projectId, investorId: access.investorId }, select: { id: true } });
+  const grant = await prisma.dataRoomGrant.findFirst({
+    where: { projectId, investorId: access.investorId },
+    select: { id: true },
+  });
   const views = await contractViews([
-    { accessId: access.id, party: "advisor", open: contractStageOpen({ loiAccepted: true, passedDiligence: access.diligencePassedAt !== null, roomShared: grant !== null }) },
+    {
+      accessId: access.id,
+      party: "advisor",
+      open: contractStageOpen({
+        loiAccepted: true,
+        passedDiligence: access.diligencePassedAt !== null,
+        roomShared: grant !== null,
+      }),
+    },
   ]);
   return views.get(access.id) ?? null;
 }
 
-export async function declineEngagement(user: CurrentUser, id: string): Promise<EngagementResult> {
+export async function declineEngagement(
+  user: CurrentUser,
+  id: string,
+): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findFirst({
     where: { id, advisorId: user.id, declinedAt: null },
     select: {
@@ -734,13 +844,17 @@ export async function declineEngagement(user: CurrentUser, id: string): Promise<
   const outcome = declineEngagementOutcome({
     isAdvisor: user.onboarded && user.role === "advisor",
     owns: row !== null,
-    depositPaid: row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
+    depositPaid:
+      row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
   });
 
   if (!outcome.ok || !row) {
     return {
       ok: false,
-      message: !outcome.ok && outcome.code === "paid" ? engagementCopy.declinePaid : engagementCopy.missing,
+      message:
+        !outcome.ok && outcome.code === "paid"
+          ? engagementCopy.declinePaid
+          : engagementCopy.missing,
     };
   }
 
@@ -758,21 +872,40 @@ export async function declineEngagement(user: CurrentUser, id: string): Promise<
   return { ok: true };
 }
 
-export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureValue: unknown): Promise<EngagementResult> {
+export async function acceptAdvisorNda(
+  user: CurrentUser,
+  id: string,
+  signatureValue: unknown,
+): Promise<EngagementResult> {
   const row = await prisma.advisoryEngagement.findFirst({
     where: { id, advisorId: user.id, declinedAt: null },
-    select: { id: true, client: true, advisorNdaAcceptedAt: true, depositPaidAt: true },
+    select: {
+      id: true,
+      client: true,
+      advisorNdaAcceptedAt: true,
+      depositPaidAt: true,
+    },
   });
   const outcome = advisorNdaOutcome({
     isAdvisor: user.onboarded && user.role === "advisor",
     hiredByInvestor: row?.client === "investor",
     ownsEngagement: row !== null,
-    alreadySigned: row?.advisorNdaAcceptedAt !== null && row?.advisorNdaAcceptedAt !== undefined,
-    depositPaid: row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
+    alreadySigned:
+      row?.advisorNdaAcceptedAt !== null &&
+      row?.advisorNdaAcceptedAt !== undefined,
+    depositPaid:
+      row?.depositPaidAt !== null && row?.depositPaidAt !== undefined,
   });
 
   if (!outcome.ok || !row) {
-    return { ok: false, message: outcome.ok ? engagementCopy.missing : outcome.code === "deposit" ? engagementCopy.depositRequired : engagementCopy.missing };
+    return {
+      ok: false,
+      message: outcome.ok
+        ? engagementCopy.missing
+        : outcome.code === "deposit"
+          ? engagementCopy.depositRequired
+          : engagementCopy.missing,
+    };
   }
 
   if (outcome.stamp && !(await inboxPaid(user.id))) {
@@ -788,7 +921,10 @@ export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureV
   if (outcome.stamp && signature) {
     await prisma.advisoryEngagement.update({
       where: { id: row.id },
-      data: { advisorNdaAcceptedAt: new Date(), advisorNdaSignature: signatureBytes(signature) },
+      data: {
+        advisorNdaAcceptedAt: new Date(),
+        advisorNdaSignature: signatureBytes(signature),
+      },
     });
     await storeSignedDocumentQuietly("advisor_nda", row.id);
   }
@@ -796,7 +932,11 @@ export async function acceptAdvisorNda(user: CurrentUser, id: string, signatureV
   return { ok: true, message: engagementCopy.ndaSigned };
 }
 
-export async function closeEngagement(user: CurrentUser, id: string, chargedCents: number): Promise<EngagementResult> {
+export async function closeEngagement(
+  user: CurrentUser,
+  id: string,
+  chargedCents: number,
+): Promise<EngagementResult> {
   if (!user.onboarded || user.role !== "advisor") {
     return { ok: false, message: engagementCopy.missing };
   }
@@ -831,7 +971,10 @@ export async function closeEngagement(user: CurrentUser, id: string, chargedCent
   return { ok: true, message: engagementCopy.feeStored };
 }
 
-async function sellerGrant(user: CurrentUser, id: string): Promise<{ id: string; projectId: string } | null> {
+async function sellerGrant(
+  user: CurrentUser,
+  id: string,
+): Promise<{ id: string; projectId: string } | null> {
   const row = await prisma.advisoryEngagement.findUnique({
     where: { id },
     select: {
@@ -857,7 +1000,12 @@ async function sellerGrant(user: CurrentUser, id: string): Promise<{ id: string;
   return allowed ? { id: row.id, projectId: row.project.id } : null;
 }
 
-export async function setAdvisorFolder(user: CurrentUser, id: string, folder: string, open: boolean): Promise<EngagementResult> {
+export async function setAdvisorFolder(
+  user: CurrentUser,
+  id: string,
+  folder: string,
+  open: boolean,
+): Promise<EngagementResult> {
   const parsed = folderNameSchema.safeParse(folder);
   const grant = await sellerGrant(user, id);
 
@@ -867,7 +1015,9 @@ export async function setAdvisorFolder(user: CurrentUser, id: string, folder: st
 
   if (open) {
     await prisma.advisorFolderOpen.upsert({
-      where: { engagementId_folder: { engagementId: grant.id, folder: parsed.data } },
+      where: {
+        engagementId_folder: { engagementId: grant.id, folder: parsed.data },
+      },
       create: { id: randomUUID(), engagementId: grant.id, folder: parsed.data },
       update: {},
     });
@@ -882,7 +1032,13 @@ export async function setAdvisorFolder(user: CurrentUser, id: string, folder: st
 
 export async function shareAdvisorDocuments(
   user: CurrentUser,
-  input: { engagementId: string; scope: "file" | "folder" | "room"; fileId: string; folder: string; shared: boolean },
+  input: {
+    engagementId: string;
+    scope: "file" | "folder" | "room";
+    fileId: string;
+    folder: string;
+    shared: boolean;
+  },
 ): Promise<EngagementResult> {
   const grant = await sellerGrant(user, input.engagementId);
 
@@ -891,11 +1047,19 @@ export async function shareAdvisorDocuments(
   }
 
   if (input.scope === "file") {
-    return shareOneAdvisorFile(grant.id, grant.projectId, input.fileId, input.shared);
+    return shareOneAdvisorFile(
+      grant.id,
+      grant.projectId,
+      input.fileId,
+      input.shared,
+    );
   }
 
   const names = await projectFolderNames(grant.projectId);
-  const targets = input.scope === "folder" ? names.filter((name) => name === input.folder) : names;
+  const targets =
+    input.scope === "folder"
+      ? names.filter((name) => name === input.folder)
+      : names;
 
   if (input.scope === "folder" && targets.length === 0) {
     return { ok: false, message: engagementCopy.missing };
@@ -909,19 +1073,29 @@ export async function shareAdvisorDocuments(
   }
 
   if (!input.shared && input.scope === "room") {
-    await prisma.advisorFileShare.deleteMany({ where: { engagementId: grant.id } });
+    await prisma.advisorFileShare.deleteMany({
+      where: { engagementId: grant.id },
+    });
   }
 
   if (!input.shared && input.scope === "folder") {
     await prisma.advisorFileShare.deleteMany({
-      where: { engagementId: grant.id, file: { folder: input.folder, projectId: grant.projectId } },
+      where: {
+        engagementId: grant.id,
+        file: { folder: input.folder, projectId: grant.projectId },
+      },
     });
   }
 
   return { ok: true };
 }
 
-async function shareOneAdvisorFile(engagementId: string, projectId: string, fileId: string, shared: boolean): Promise<EngagementResult> {
+async function shareOneAdvisorFile(
+  engagementId: string,
+  projectId: string,
+  fileId: string,
+  shared: boolean,
+): Promise<EngagementResult> {
   const file = await prisma.dataRoomFile.findFirst({
     where: { id: fileId, projectId },
     select: { id: true, folder: true },
@@ -947,7 +1121,9 @@ async function shareOneAdvisorFile(engagementId: string, projectId: string, file
     return { ok: true };
   }
 
-  await prisma.advisorFileShare.deleteMany({ where: { engagementId, fileId: file.id } });
+  await prisma.advisorFileShare.deleteMany({
+    where: { engagementId, fileId: file.id },
+  });
 
   if (open) {
     await prisma.advisorFolderOpen.delete({ where: { id: open.id } });
@@ -969,14 +1145,27 @@ async function shareOneAdvisorFile(engagementId: string, projectId: string, file
 
 async function projectFolderNames(projectId: string): Promise<string[]> {
   const [files, folderRows] = await Promise.all([
-    prisma.dataRoomFile.findMany({ where: { projectId }, select: { folder: true } }),
-    prisma.dataRoomFolder.findMany({ where: { projectId }, select: { name: true, hidden: true } }),
+    prisma.dataRoomFile.findMany({
+      where: { projectId },
+      select: { folder: true },
+    }),
+    prisma.dataRoomFolder.findMany({
+      where: { projectId },
+      select: { name: true, hidden: true },
+    }),
   ]);
 
-  return visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) });
+  return visibleFolderNames({
+    records: folderRows,
+    usedByFiles: files.map((file) => file.folder),
+  });
 }
 
-export async function setAdvisorProcess(user: CurrentUser, id: string, open: boolean): Promise<EngagementResult> {
+export async function setAdvisorProcess(
+  user: CurrentUser,
+  id: string,
+  open: boolean,
+): Promise<EngagementResult> {
   const grant = await sellerGrant(user, id);
 
   if (!grant) {
@@ -991,13 +1180,21 @@ export async function setAdvisorProcess(user: CurrentUser, id: string, open: boo
   return { ok: true };
 }
 
-export async function sellerAdvisorAccess(userId: string, projectId: string | null): Promise<SellerAdvisorAccess> {
+export async function sellerAdvisorAccess(
+  userId: string,
+  projectId: string | null,
+): Promise<SellerAdvisorAccess> {
   if (!projectId) {
     return { waiting: false, ready: [] };
   }
 
   const rows = await prisma.advisoryEngagement.findMany({
-    where: { projectId, requesterId: userId, client: "seller", declinedAt: null },
+    where: {
+      projectId,
+      requesterId: userId,
+      client: "seller",
+      declinedAt: null,
+    },
     select: {
       id: true,
       advisorId: true,
@@ -1008,8 +1205,14 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
     orderBy: { createdAt: "desc" },
   });
 
-  const advisorIds = [...new Set(rows.flatMap((row) => (row.advisorId ? [row.advisorId] : [])))];
-  const names = new Map(await Promise.all(advisorIds.map(async (id) => [id, await advisorPublicName(id)] as const)));
+  const advisorIds = [
+    ...new Set(rows.flatMap((row) => (row.advisorId ? [row.advisorId] : []))),
+  ];
+  const names = new Map(
+    await Promise.all(
+      advisorIds.map(async (id) => [id, await advisorPublicName(id)] as const),
+    ),
+  );
 
   return {
     waiting: rows.some((row) => row.advisorId === null),
@@ -1031,7 +1234,10 @@ export async function sellerAdvisorAccess(userId: string, projectId: string | nu
   };
 }
 
-export async function advisorMayReadFile(advisorId: string, fileId: string): Promise<boolean> {
+export async function advisorMayReadFile(
+  advisorId: string,
+  fileId: string,
+): Promise<boolean> {
   const file = await prisma.dataRoomFile.findUnique({
     where: { id: fileId },
     select: { id: true, folder: true, projectId: true },
@@ -1058,12 +1264,19 @@ export async function advisorMayReadFile(advisorId: string, fileId: string): Pro
       continue;
     }
 
-    if (row.client === "seller" && (row.folders.some((folder) => folder.folder === file.folder) || row.fileShares.length > 0)) {
+    if (
+      row.client === "seller" &&
+      (row.folders.some((folder) => folder.folder === file.folder) ||
+        row.fileShares.length > 0)
+    ) {
       return true;
     }
 
     if (row.client === "investor" && row.advisorNdaAcceptedAt !== null) {
-      const visible = await investorVisibleFiles(row.requesterId, file.projectId);
+      const visible = await investorVisibleFiles(
+        row.requesterId,
+        file.projectId,
+      );
 
       if (visible.some((item) => item.id === file.id)) {
         return true;
@@ -1091,7 +1304,9 @@ export type AdvisorPlatformClose = {
   clientLabel: string;
 };
 
-export async function listAdvisorPlatformCloses(advisorId: string): Promise<AdvisorPlatformClose[]> {
+export async function listAdvisorPlatformCloses(
+  advisorId: string,
+): Promise<AdvisorPlatformClose[]> {
   const rows = await prisma.advisoryEngagement.findMany({
     where: { advisorId, closedAt: { not: null }, declinedAt: null },
     orderBy: { closedAt: "desc" },
@@ -1121,7 +1336,9 @@ export async function listAdvisorPlatformCloses(advisorId: string): Promise<Advi
   });
 }
 
-async function purgeAdvisorEngagementsBeforeQa(advisorId: string): Promise<void> {
+async function purgeAdvisorEngagementsBeforeQa(
+  advisorId: string,
+): Promise<void> {
   const rows = await prisma.advisoryEngagement.findMany({
     where: { advisorId, declinedAt: null },
     select: {
@@ -1139,11 +1356,15 @@ async function purgeAdvisorEngagementsBeforeQa(advisorId: string): Promise<void>
     .filter((row) => {
       if (row.client === "investor") {
         return !row.project.accesses.some(
-          (access) => access.investorId === row.requesterId && access.ndaAcceptedAt !== null,
+          (access) =>
+            access.investorId === row.requesterId &&
+            access.ndaAcceptedAt !== null,
         );
       }
 
-      return !row.project.accesses.some((access) => access.ndaAcceptedAt !== null);
+      return !row.project.accesses.some(
+        (access) => access.ndaAcceptedAt !== null,
+      );
     })
     .map((row) => row.id);
 
@@ -1208,7 +1429,9 @@ export async function listAdvisorProjectBoards(
       select: { projectId: true, investorId: true },
     }),
   ]);
-  const grantKeys = new Set(grants.map((grant) => `${grant.projectId}:${grant.investorId}`));
+  const grantKeys = new Set(
+    grants.map((grant) => `${grant.projectId}:${grant.investorId}`),
+  );
   const snapshots: AdvisorEngagementSnapshot[] = rows.map((row) => ({
     id: row.id,
     client: row.client,
@@ -1225,7 +1448,9 @@ export async function listAdvisorProjectBoards(
     saleClosed: row.project.successFee !== null,
     accesses: row.project.accesses.map((access) => {
       const thread = messages.filter(
-        (message) => message.projectId === row.project.id && message.investorId === access.investorId,
+        (message) =>
+          message.projectId === row.project.id &&
+          message.investorId === access.investorId,
       );
 
       return {
@@ -1239,14 +1464,20 @@ export async function listAdvisorProjectBoards(
         loiAccepted: access.loiAcceptedAt !== null,
         roomShared: grantKeys.has(`${row.project.id}:${access.investorId}`),
         passedDiligence: access.diligencePassedAt !== null,
-        connectedName: access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
+        connectedName: access.sellerAcceptedAt
+          ? personName(access.investor.name, access.investor.lastName)
+          : null,
       };
     }),
   }));
 
   const split = splitAdvisorEngagements(snapshots);
-  const boards = advisorProjectBoards(scope === "awaiting" ? split.awaiting : split.active);
-  const needsNda = boards.some((board) => board.lanes.some((lane) => lane.signNdaId !== null));
+  const boards = advisorProjectBoards(
+    scope === "awaiting" ? split.awaiting : split.active,
+  );
+  const needsNda = boards.some((board) =>
+    board.lanes.some((lane) => lane.signNdaId !== null),
+  );
 
   if (!needsNda) {
     return boards;
@@ -1277,16 +1508,26 @@ export async function listAdvisorProjectBoards(
   }));
 }
 
-export async function verifiedCloseCounts(advisorIds: string[]): Promise<Map<string, number>> {
+export async function verifiedCloseCounts(
+  advisorIds: string[],
+): Promise<Map<string, number>> {
   if (advisorIds.length === 0) {
     return new Map();
   }
 
   const rows = await prisma.advisoryEngagement.groupBy({
     by: ["advisorId"],
-    where: { advisorId: { in: advisorIds }, closedAt: { not: null }, declinedAt: null },
+    where: {
+      advisorId: { in: advisorIds },
+      closedAt: { not: null },
+      declinedAt: null,
+    },
     _count: { _all: true },
   });
 
-  return new Map(rows.flatMap((row) => (row.advisorId ? [[row.advisorId, row._count._all] as const] : [])));
+  return new Map(
+    rows.flatMap((row) =>
+      row.advisorId ? [[row.advisorId, row._count._all] as const] : [],
+    ),
+  );
 }

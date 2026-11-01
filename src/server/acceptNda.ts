@@ -2,7 +2,12 @@ import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { incomingNdaNotice, ndaAcceptedNotice } from "@/lib/notifications";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
-import { accessMessage, acceptNdaOutcome, ndaAccessGate, type ProjectAccessInput } from "@/lib/project-access";
+import {
+  accessMessage,
+  acceptNdaOutcome,
+  ndaAccessGate,
+  type ProjectAccessInput,
+} from "@/lib/project-access";
 import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -16,13 +21,26 @@ export async function acceptNda(
 ): Promise<ProjectAccessResult> {
   const project = await prisma.project.findFirst({
     where: { slug: input.slug },
-    select: { id: true, status: true, codename: true, ownerId: true, slug: true },
+    select: {
+      id: true,
+      status: true,
+      codename: true,
+      ownerId: true,
+      slug: true,
+    },
   });
 
   const existing = project
     ? await prisma.projectAccess.findUnique({
-        where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
-        select: { id: true, ndaAcceptedAt: true, sellerAcceptedAt: true, cancelledAt: true },
+        where: {
+          projectId_investorId: { projectId: project.id, investorId: user.id },
+        },
+        select: {
+          id: true,
+          ndaAcceptedAt: true,
+          sellerAcceptedAt: true,
+          cancelledAt: true,
+        },
       })
     : null;
 
@@ -36,7 +54,10 @@ export async function acceptNda(
   });
 
   if (!outcome.ok || !project || !existing || existing.cancelledAt !== null) {
-    return { ok: false, message: accessMessage(outcome.ok ? "missing" : outcome.code) };
+    return {
+      ok: false,
+      message: accessMessage(outcome.ok ? "missing" : outcome.code),
+    };
   }
 
   const signature = outcome.stamp ? signatureJpeg(signatureValue) : null;
@@ -50,7 +71,10 @@ export async function acceptNda(
   if (outcome.stamp && signature) {
     await prisma.projectAccess.update({
       where: { id: existing.id },
-      data: { ndaAcceptedAt: acceptedAt, ndaSignature: signatureBytes(signature) },
+      data: {
+        ndaAcceptedAt: acceptedAt,
+        ndaSignature: signatureBytes(signature),
+      },
     });
     await storeSignedDocumentQuietly("nda", existing.id);
     const href = `/proyectos/${project.slug}`;
@@ -58,8 +82,15 @@ export async function acceptNda(
     await recordNotification({ userId: user.id, ...investorNotice, href });
 
     if (project.ownerId && project.ownerId !== user.id) {
-      const sellerNotice = incomingNdaNotice(project.codename, personName(user.name, user.lastName));
-      await recordNotification({ userId: project.ownerId, ...sellerNotice, href: "/mi-empresa/procesos" });
+      const sellerNotice = incomingNdaNotice(
+        project.codename,
+        personName(user.name, user.lastName),
+      );
+      await recordNotification({
+        userId: project.ownerId,
+        ...sellerNotice,
+        href: "/mi-empresa/procesos",
+      });
     }
   }
 

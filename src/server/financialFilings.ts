@@ -33,8 +33,18 @@ export type FilingSummary = {
   updatedAt: string;
 };
 
-export type FilingFailure = "forbidden" | "year" | "empty" | "too-large" | "type" | "unreadable" | "no-data" | "invalid" | "missing";
-export type FilingResult<T> = ({ ok: true } & T) | { ok: false; code: FilingFailure };
+export type FilingFailure =
+  | "forbidden"
+  | "year"
+  | "empty"
+  | "too-large"
+  | "type"
+  | "unreadable"
+  | "no-data"
+  | "invalid"
+  | "missing";
+export type FilingResult<T> =
+  ({ ok: true } & T) | { ok: false; code: FilingFailure };
 
 async function ownedProjectId(user: CurrentUser): Promise<string | null> {
   if (!user.onboarded || user.role !== "seller") {
@@ -47,7 +57,10 @@ async function ownedProjectId(user: CurrentUser): Promise<string | null> {
     return null;
   }
 
-  const project = await prisma.project.findFirst({ where: { id: activeId, ownerId: user.id }, select: { id: true } });
+  const project = await prisma.project.findFirst({
+    where: { id: activeId, ownerId: user.id },
+    select: { id: true },
+  });
   return project?.id ?? null;
 }
 
@@ -87,15 +100,29 @@ function toSummary(row: {
   };
 }
 
-export async function listFilings(user: CurrentUser): Promise<{ projectId: string; years: number[]; filings: FilingSummary[] } | null> {
+export async function listFilings(
+  user: CurrentUser,
+): Promise<{
+  projectId: string;
+  years: number[];
+  filings: FilingSummary[];
+} | null> {
   const projectId = await ownedProjectId(user);
 
   if (!projectId) {
     return null;
   }
 
-  const rows = await prisma.financialFiling.findMany({ where: { projectId }, select: summarySelect, orderBy: { year: "desc" } });
-  return { projectId, years: filingYears(new Date()), filings: rows.map(toSummary) };
+  const rows = await prisma.financialFiling.findMany({
+    where: { projectId },
+    select: summarySelect,
+    orderBy: { year: "desc" },
+  });
+  return {
+    projectId,
+    years: filingYears(new Date()),
+    filings: rows.map(toSummary),
+  };
 }
 
 export async function uploadFiling(
@@ -128,7 +155,9 @@ export async function uploadFiling(
     return { ok: false, code: "type" };
   }
 
-  const safeName = fileName.replace(/[\u0000-\u001f\\/]/g, "_").slice(0, 160) || `modelo-200-${year}.pdf`;
+  const safeName =
+    fileName.replace(/[\u0000-\u001f\\/]/g, "_").slice(0, 160) ||
+    `modelo-200-${year}.pdf`;
   const data = {
     kind,
     fileName: safeName,
@@ -150,15 +179,26 @@ export async function uploadFiling(
   const row = await prisma.financialFiling.update({
     where: { projectId_year: { projectId, year } },
     data: result.ok
-      ? { status: "extracted", errorCode: null, extracted: result.extraction as unknown as Prisma.InputJsonValue }
-      : { status: "failed", errorCode: result.code, extracted: emptyExtraction() as unknown as Prisma.InputJsonValue },
+      ? {
+          status: "extracted",
+          errorCode: null,
+          extracted: result.extraction as unknown as Prisma.InputJsonValue,
+        }
+      : {
+          status: "failed",
+          errorCode: result.code,
+          extracted: emptyExtraction() as unknown as Prisma.InputJsonValue,
+        },
     select: summarySelect,
   });
 
   return { ok: true, filing: toSummary(row) };
 }
 
-export async function deleteFiling(user: CurrentUser, year: number): Promise<FilingResult<object>> {
+export async function deleteFiling(
+  user: CurrentUser,
+  year: number,
+): Promise<FilingResult<object>> {
   const projectId = await ownedProjectId(user);
 
   if (!projectId) {
@@ -169,7 +209,10 @@ export async function deleteFiling(user: CurrentUser, year: number): Promise<Fil
   return { ok: true };
 }
 
-export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<FilingResult<{ filing: FilingSummary }>> {
+export async function confirmFiling(
+  user: CurrentUser,
+  raw: unknown,
+): Promise<FilingResult<{ filing: FilingSummary }>> {
   const projectId = await ownedProjectId(user);
 
   if (!projectId) {
@@ -192,7 +235,8 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
     return { ok: false, code: "missing" };
   }
 
-  const previous = (filing.extracted as FilingExtraction | null) ?? emptyExtraction();
+  const previous =
+    (filing.extracted as FilingExtraction | null) ?? emptyExtraction();
   const confirmed: FilingExtraction = {
     ...previous,
     amounts: Object.fromEntries(
@@ -206,14 +250,15 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
     cnae: { value: input.cnae || null, confidence: "alta" },
     averageHeadcount: { value: input.averageHeadcount, confidence: "alta" },
   };
-  const cents = Object.fromEntries(filingAmountKeys.map((key) => [key, storedCents(key, input.amounts[key])])) as Record<
-    FilingAmountKey,
-    number | null
-  >;
+  const cents = Object.fromEntries(
+    filingAmountKeys.map((key) => [key, storedCents(key, input.amounts[key])]),
+  ) as Record<FilingAmountKey, number | null>;
   const now = new Date();
 
   const row = await prisma.$transaction(async (tx) => {
-    const existing = await tx.projectYear.findUnique({ where: { projectId_year: { projectId, year: input.year } } });
+    const existing = await tx.projectYear.findUnique({
+      where: { projectId_year: { projectId, year: input.year } },
+    });
     const detail: PnlAmounts = {
       sales: cents.sales,
       inventoryChange: existing?.inventoryChangeCents ?? null,
@@ -233,13 +278,17 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
     // Whatever the form does not break down goes to "otros gastos de explotación", so EBITDA
     // and the resultado de explotación in the charts match the declared figures.
     let otherOperatingCosts = existing?.otherOperatingCostsCents ?? null;
-    const residual = cents.operatingResult !== null && cents.amortization !== null;
+    const residual =
+      cents.operatingResult !== null && cents.amortization !== null;
 
     if (residual) {
       const known = Object.entries(detail)
-        .filter(([key]) => key !== "amortization" && key !== "otherOperatingCosts")
+        .filter(
+          ([key]) => key !== "amortization" && key !== "otherOperatingCosts",
+        )
         .reduce((sum, [, value]) => sum + (value ?? 0), 0);
-      otherOperatingCosts = (cents.operatingResult ?? 0) - (cents.amortization ?? 0) - known;
+      otherOperatingCosts =
+        (cents.operatingResult ?? 0) - (cents.amortization ?? 0) - known;
     }
 
     const yearData = {
@@ -281,7 +330,13 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
 
     await tx.projectYear.upsert({
       where: { projectId_year: { projectId, year: input.year } },
-      create: { id: randomUUID(), projectId, year: input.year, kind: "closed", ...yearData },
+      create: {
+        id: randomUUID(),
+        projectId,
+        year: input.year,
+        kind: "closed",
+        ...yearData,
+      },
       update: { kind: "closed", ...yearData },
     });
 
@@ -298,8 +353,12 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
         data: {
           ...(cents.sales !== null ? { revenueCents: cents.sales } : {}),
           ...(ebitda !== null ? { ebitdaCents: ebitda } : {}),
-          ...(cents.netResult !== null ? { netIncomeCents: cents.netResult } : {}),
-          ...(input.averageHeadcount !== null ? { averageHeadcount: input.averageHeadcount } : {}),
+          ...(cents.netResult !== null
+            ? { netIncomeCents: cents.netResult }
+            : {}),
+          ...(input.averageHeadcount !== null
+            ? { averageHeadcount: input.averageHeadcount }
+            : {}),
         },
       });
     }
@@ -308,13 +367,25 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
       const hasCnae = await tx.projectCnae.count({ where: { projectId } });
 
       if (hasCnae === 0) {
-        await tx.projectCnae.create({ data: { id: randomUUID(), projectId, code: input.cnae, role: "principal", position: 0 } });
+        await tx.projectCnae.create({
+          data: {
+            id: randomUUID(),
+            projectId,
+            code: input.cnae,
+            role: "principal",
+            position: 0,
+          },
+        });
       }
     }
 
     return tx.financialFiling.update({
       where: { id: filing.id },
-      data: { status: "confirmed", confirmedAt: now, extracted: confirmed as unknown as Prisma.InputJsonValue },
+      data: {
+        status: "confirmed",
+        confirmedAt: now,
+        extracted: confirmed as unknown as Prisma.InputJsonValue,
+      },
       select: summarySelect,
     });
   });
@@ -323,7 +394,11 @@ export async function confirmFiling(user: CurrentUser, raw: unknown): Promise<Fi
 }
 
 /** The original document: only the owner of the company, or an admin. */
-export async function readFilingFile(user: CurrentUser, projectId: string, year: number) {
+export async function readFilingFile(
+  user: CurrentUser,
+  projectId: string,
+  year: number,
+) {
   if (!user.onboarded) {
     return null;
   }

@@ -1,4 +1,7 @@
-import { draftFromRegistry, type RegistryCompany } from "@/lib/company-registry";
+import {
+  draftFromRegistry,
+  type RegistryCompany,
+} from "@/lib/company-registry";
 import { uniqueCodename } from "@/server/uniqueCodename";
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
@@ -94,7 +97,10 @@ function registryFromPrefill(prefill: {
     description: prefill.description ?? "",
     principalCnae: prefill.principalCnae ?? "",
     secondaryCnaes: prefill.secondaryCnaes,
-    headcount: prefill.headcountRange && isHeadcountRange(prefill.headcountRange) ? prefill.headcountRange : null,
+    headcount:
+      prefill.headcountRange && isHeadcountRange(prefill.headcountRange)
+        ? prefill.headcountRange
+        : null,
     revenueCents: prefill.revenueCents,
     ebitdaCents: prefill.ebitdaCents,
     adjustedEbitdaCents: prefill.adjustedEbitdaCents,
@@ -140,7 +146,9 @@ function toClosed(year: StoredYear): ClosedYearInput {
   };
 }
 
-export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftInput | null> {
+export async function getCompanyDraft(
+  user: CurrentUser,
+): Promise<CompanyDraftInput | null> {
   if (user.role !== "seller") {
     return null;
   }
@@ -149,28 +157,30 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
   const [draft, prefill] = await Promise.all([
     activeId
       ? prisma.project.findFirst({
-    where: { id: activeId, ownerId: user.id },
-    select: {
-      cif: true,
-      legalName: true,
-      address: true,
-      codename: true,
-      region: true,
-      foundedYear: true,
-      description: true,
-      saleReason: true,
-      revenueCents: true,
-      ebitdaCents: true,
-      adjustedEbitdaCents: true,
-      askingPriceCents: true,
-      opexCents: true,
-      headcountRange: true,
-      customerBase: true,
-      cnaes: { select: { code: true, role: true, position: true } },
-      activitySlices: { select: { kind: true, position: true, basisPoints: true } },
-      years: { select: yearSelect },
-    },
-  })
+          where: { id: activeId, ownerId: user.id },
+          select: {
+            cif: true,
+            legalName: true,
+            address: true,
+            codename: true,
+            region: true,
+            foundedYear: true,
+            description: true,
+            saleReason: true,
+            revenueCents: true,
+            ebitdaCents: true,
+            adjustedEbitdaCents: true,
+            askingPriceCents: true,
+            opexCents: true,
+            headcountRange: true,
+            customerBase: true,
+            cnaes: { select: { code: true, role: true, position: true } },
+            activitySlices: {
+              select: { kind: true, position: true, basisPoints: true },
+            },
+            years: { select: yearSelect },
+          },
+        })
       : null,
     prisma.companyRegistryPrefill.findUnique({ where: { userId: user.id } }),
   ]);
@@ -180,7 +190,10 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       return null;
     }
 
-    return { ...draftFromRegistry(registryFromPrefill(prefill)), codename: await uniqueCodename() };
+    return {
+      ...draftFromRegistry(registryFromPrefill(prefill)),
+      codename: await uniqueCodename(),
+    };
   }
 
   const principal = draft.cnaes.find((cnae) => cnae.role === "principal");
@@ -198,7 +211,10 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     .sort((left, right) => left.year - right.year)
     .map(toClosed);
   const forecast = draft.years.find((year) => year.kind === "forecast");
-  const placed = placeStatementsOnWindow(closed, forecast ? toForecast(forecast) : null);
+  const placed = placeStatementsOnWindow(
+    closed,
+    forecast ? toForecast(forecast) : null,
+  );
   const result: CompanyDraftInput = {
     legalName: draft.legalName,
     address: draft.address,
@@ -206,9 +222,11 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     region: draft.region,
     foundedYear: draft.foundedYear === null ? "" : String(draft.foundedYear),
     description: draft.description ?? "",
-    saleReason: draft.saleReason && saleReasons.includes(draft.saleReason as (typeof saleReasons)[number])
-      ? (draft.saleReason as (typeof saleReasons)[number])
-      : "",
+    saleReason:
+      draft.saleReason &&
+      saleReasons.includes(draft.saleReason as (typeof saleReasons)[number])
+        ? (draft.saleReason as (typeof saleReasons)[number])
+        : "",
     principalCnae: principal?.code ?? "",
     secondaryCnaes: secondary,
     revenue: centsToEuroInput(draft.revenueCents),
@@ -219,13 +237,23 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
     capitalPercents: percents("capital"),
     productPercents: percents("product"),
     clientPercents: percents("client"),
-    customerBase: draft.customerBase && isCustomerBase(draft.customerBase) ? draft.customerBase : "",
-    headcount: draft.headcountRange && isHeadcountRange(draft.headcountRange) ? draft.headcountRange : "",
+    customerBase:
+      draft.customerBase && isCustomerBase(draft.customerBase)
+        ? draft.customerBase
+        : "",
+    headcount:
+      draft.headcountRange && isHeadcountRange(draft.headcountRange)
+        ? draft.headcountRange
+        : "",
     closedYears: placed.closedYears,
     forecastYear: placed.forecastYear,
   };
 
-  if (draft.legalName.trim().length === 0 && prefill && prefill.cif === draft.cif) {
+  if (
+    draft.legalName.trim().length === 0 &&
+    prefill &&
+    prefill.cif === draft.cif
+  ) {
     const filled = draftFromRegistry(registryFromPrefill(prefill));
     return {
       ...result,
@@ -238,7 +266,10 @@ export async function getCompanyDraft(user: CurrentUser): Promise<CompanyDraftIn
       secondaryCnaes: filled.secondaryCnaes,
       revenue: filled.revenue.length > 0 ? filled.revenue : result.revenue,
       ebitda: filled.ebitda.length > 0 ? filled.ebitda : result.ebitda,
-      adjustedEbitda: filled.adjustedEbitda.length > 0 ? filled.adjustedEbitda : result.adjustedEbitda,
+      adjustedEbitda:
+        filled.adjustedEbitda.length > 0
+          ? filled.adjustedEbitda
+          : result.adjustedEbitda,
       headcount: filled.headcount,
       closedYears: filled.closedYears,
       forecastYear: filled.forecastYear,

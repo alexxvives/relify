@@ -2,7 +2,10 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
 /** Stamps "chat opened now" for whichever side of this access the user is. Ignores anyone else. */
-export async function markThreadRead(user: CurrentUser, accessId: string): Promise<boolean> {
+export async function markThreadRead(
+  user: CurrentUser,
+  accessId: string,
+): Promise<boolean> {
   const access = await prisma.projectAccess.findUnique({
     where: { id: accessId },
     select: { investorId: true, project: { select: { ownerId: true } } },
@@ -12,11 +15,17 @@ export async function markThreadRead(user: CurrentUser, accessId: string): Promi
   }
   const now = new Date();
   if (access.investorId === user.id) {
-    await prisma.projectAccess.update({ where: { id: accessId }, data: { investorReadAt: now } });
+    await prisma.projectAccess.update({
+      where: { id: accessId },
+      data: { investorReadAt: now },
+    });
     return true;
   }
   if (access.project.ownerId === user.id) {
-    await prisma.projectAccess.update({ where: { id: accessId }, data: { sellerReadAt: now } });
+    await prisma.projectAccess.update({
+      where: { id: accessId },
+      data: { sellerReadAt: now },
+    });
     return true;
   }
   return false;

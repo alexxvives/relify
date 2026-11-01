@@ -8,9 +8,13 @@ import { deleteDataRoomBytes } from "@/server/dataRoomDisk";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import type { DataRoomWriteResult } from "@/server/storeDataRoomFile";
 
-const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const idPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function hideRelevaDraft(projectId: string, fileName: string): Promise<void> {
+async function hideRelevaDraft(
+  projectId: string,
+  fileName: string,
+): Promise<void> {
   const existing = await prisma.dataRoomFile.findFirst({
     where: { projectId, folder: relevaDraftFolder, fileName },
     select: { id: true },
@@ -25,7 +29,10 @@ async function hideRelevaDraft(projectId: string, fileName: string): Promise<voi
   });
 }
 
-export async function deleteDataRoomFile(user: CurrentUser, fileId: string): Promise<DataRoomWriteResult> {
+export async function deleteDataRoomFile(
+  user: CurrentUser,
+  fileId: string,
+): Promise<DataRoomWriteResult> {
   const draft = relevaDrafts.find((item) => item.id === fileId);
 
   if (!draft && !idPattern.test(fileId)) {
@@ -54,7 +61,10 @@ export async function deleteDataRoomFile(user: CurrentUser, fileId: string): Pro
     });
 
     if (!gate.ok || gate.audience !== "owner" || !project) {
-      return { ok: false, message: dataRoomMessage(gate.ok ? "missing" : gate.code) };
+      return {
+        ok: false,
+        message: dataRoomMessage(gate.ok ? "missing" : gate.code),
+      };
     }
 
     await hideRelevaDraft(project.id, draft.fileName);
@@ -76,7 +86,10 @@ export async function deleteDataRoomFile(user: CurrentUser, fileId: string): Pro
   });
 
   if (!gate.ok || gate.audience !== "owner" || !file) {
-    return { ok: false, message: dataRoomMessage(gate.ok ? "missing" : gate.code) };
+    return {
+      ok: false,
+      message: dataRoomMessage(gate.ok ? "missing" : gate.code),
+    };
   }
 
   await prisma.dataRoomFile.delete({ where: { id: file.id } });

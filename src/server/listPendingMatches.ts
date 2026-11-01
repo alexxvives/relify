@@ -4,11 +4,16 @@ import { prisma } from "@/server/db";
 
 export type { PendingMatch };
 
-export async function listPendingMatches(ownerId: string, projectId?: string | null): Promise<PendingMatch[]> {
+export async function listPendingMatches(
+  ownerId: string,
+  projectId?: string | null,
+): Promise<PendingMatch[]> {
   const rows = await prisma.projectAccess.findMany({
     where: {
       cancelledAt: null,
-      project: projectId ? { id: projectId, ownerId, status: "published" } : { ownerId, status: "published" },
+      project: projectId
+        ? { id: projectId, ownerId, status: "published" }
+        : { ownerId, status: "published" },
     },
     select: {
       id: true,
@@ -21,7 +26,12 @@ export async function listPendingMatches(ownerId: string, projectId?: string | n
     orderBy: { requestedAt: "asc" },
   });
   // Alex (t32): sellers see the buyer's real name from the request on.
-  const labeled = labelAccesses(rows.map((row) => ({ ...row, connectedName: personName(row.investor.name, row.investor.lastName) }))).filter((row) => row.sellerAcceptedAt === null);
+  const labeled = labelAccesses(
+    rows.map((row) => ({
+      ...row,
+      connectedName: personName(row.investor.name, row.investor.lastName),
+    })),
+  ).filter((row) => row.sellerAcceptedAt === null);
 
   return labeled.map((row) => ({
     accessId: row.id,

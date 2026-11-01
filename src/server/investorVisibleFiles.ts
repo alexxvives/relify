@@ -8,7 +8,10 @@ export type VisibleFile = {
   fileName: string;
 };
 
-export async function investorVisibleFiles(investorId: string, projectId: string): Promise<VisibleFile[]> {
+export async function investorVisibleFiles(
+  investorId: string,
+  projectId: string,
+): Promise<VisibleFile[]> {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: { status: true },
@@ -52,5 +55,7 @@ export async function investorVisibleFiles(investorId: string, projectId: string
 
   const visible = sharedFileIds({ files, investorId, granted: true, shares });
 
-  return files.filter((file) => visible.has(file.id) && dataRoomFileIsStored(file.id));
+  return files.filter(
+    (file) => visible.has(file.id) && dataRoomFileIsStored(file.id),
+  );
 }

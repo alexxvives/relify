@@ -26,19 +26,34 @@ export async function passDiligence(
       project: { select: { ownerId: true, slug: true } },
     },
   });
-  const allowed = access !== null && (access.investorId === user.id || access.project.ownerId === user.id);
+  const allowed =
+    access !== null &&
+    (access.investorId === user.id || access.project.ownerId === user.id);
 
-  if (!access || !allowed || access.sellerAcceptedAt === null || access.ndaAcceptedAt === null || access.loiAcceptedAt === null) {
+  if (
+    !access ||
+    !allowed ||
+    access.sellerAcceptedAt === null ||
+    access.ndaAcceptedAt === null ||
+    access.loiAcceptedAt === null
+  ) {
     return { ok: false, message: "No se ha podido continuar." };
   }
 
   const offer = await prisma.projectMessage.findFirst({
-    where: { projectId: access.projectId, investorId: access.investorId, kind: "offer" },
+    where: {
+      projectId: access.projectId,
+      investorId: access.investorId,
+      kind: "offer",
+    },
     select: { id: true },
   });
 
   if (!offer) {
-    return { ok: false, message: "La documentación se abre después de la carta de intenciones." };
+    return {
+      ok: false,
+      message: "La documentación se abre después de la carta de intenciones.",
+    };
   }
 
   await prisma.projectAccess.update({

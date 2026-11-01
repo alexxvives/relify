@@ -4,7 +4,12 @@ import { advisoryServices } from "@/lib/advisory";
 import type { ProcessFile } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { meetingBody, proposeMeetingChange, readMeeting, withMeetingStatus } from "@/lib/meeting";
+import {
+  meetingBody,
+  proposeMeetingChange,
+  readMeeting,
+  withMeetingStatus,
+} from "@/lib/meeting";
 import type { MessageKindName, ThreadMessageView } from "@/lib/project-message";
 import { personName } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -14,13 +19,17 @@ import { dataRoomFileIsStored } from "@/server/dataRoomDisk";
 import { investorVisibleFiles } from "@/server/investorVisibleFiles";
 import { recordNotification } from "@/server/recordNotification";
 
-export type EngagementWriteResult = { ok: true } | { ok: false; message: string };
+export type EngagementWriteResult =
+  { ok: true } | { ok: false; message: string };
 
 type Side = "client" | "advisor";
 
 function serviceLabel(ids: string[]): string {
   return ids
-    .map((id) => advisoryServices.find((service) => service.id === id)?.title ?? id)
+    .map(
+      (id) =>
+        advisoryServices.find((service) => service.id === id)?.title ?? id,
+    )
     .join(", ");
 }
 
@@ -56,8 +65,13 @@ async function sharedFiles(engagement: {
   projectId: string;
 }): Promise<ProcessFile[]> {
   if (engagement.client === "investor") {
-    const files = await investorVisibleFiles(engagement.requesterId, engagement.projectId);
-    return files.filter((file) => dataRoomFileIsStored(file.id)).map((file) => ({ ...file, stored: true, visible: true }));
+    const files = await investorVisibleFiles(
+      engagement.requesterId,
+      engagement.projectId,
+    );
+    return files
+      .filter((file) => dataRoomFileIsStored(file.id))
+      .map((file) => ({ ...file, stored: true, visible: true }));
   }
 
   const [folders, shares] = await Promise.all([
@@ -78,7 +92,10 @@ async function sharedFiles(engagement: {
           where: { projectId: engagement.projectId, folder: { in: names } },
           select: { id: true, folder: true, fileName: true },
         });
-  const byId = new Map<string, { id: string; folder: string; fileName: string }>();
+  const byId = new Map<
+    string,
+    { id: string; folder: string; fileName: string }
+  >();
 
   for (const file of folderFiles) {
     byId.set(file.id, file);
@@ -93,7 +110,10 @@ async function sharedFiles(engagement: {
     .map((file) => ({ ...file, stored: true, visible: true }));
 }
 
-async function loadSide(user: CurrentUser, engagementId: string): Promise<{
+async function loadSide(
+  user: CurrentUser,
+  engagementId: string,
+): Promise<{
   id: string;
   requesterId: string;
   advisorId: string;
@@ -129,7 +149,12 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
     return null;
   }
 
-  const side = row.requesterId === user.id ? "client" : row.advisorId === user.id ? "advisor" : null;
+  const side =
+    row.requesterId === user.id
+      ? "client"
+      : row.advisorId === user.id
+        ? "advisor"
+        : null;
 
   if (!side) {
     return null;
@@ -139,7 +164,11 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
     return null;
   }
 
-  if (side === "advisor" && (user.role !== "advisor" || (row.depositPaidAt === null && row.closedAt === null))) {
+  if (
+    side === "advisor" &&
+    (user.role !== "advisor" ||
+      (row.depositPaidAt === null && row.closedAt === null))
+  ) {
     return null;
   }
 
@@ -161,7 +190,11 @@ async function loadSide(user: CurrentUser, engagementId: string): Promise<{
 export async function advisorPublicName(advisorId: string): Promise<string> {
   const row = await prisma.user.findUnique({
     where: { id: advisorId },
-    select: { name: true, lastName: true, advisorProfile: { select: { businessName: true } } },
+    select: {
+      name: true,
+      lastName: true,
+      advisorProfile: { select: { businessName: true } },
+    },
   });
   const business = row?.advisorProfile?.businessName.trim() ?? "";
   const person = row ? personName(row.name, row.lastName).trim() : "";
@@ -169,15 +202,25 @@ export async function advisorPublicName(advisorId: string): Promise<string> {
 }
 
 /** Investor's real name for the advisor, only after the seller accepted that investor on the project; null keeps them anonymous. */
-export async function revealedInvestorName(projectId: string, investorId: string): Promise<string | null> {
+export async function revealedInvestorName(
+  projectId: string,
+  investorId: string,
+): Promise<string | null> {
   const access = await prisma.projectAccess.findUnique({
     where: { projectId_investorId: { projectId, investorId } },
-    select: { sellerAcceptedAt: true, cancelledAt: true, investor: { select: { name: true, lastName: true } } },
+    select: {
+      sellerAcceptedAt: true,
+      cancelledAt: true,
+      investor: { select: { name: true, lastName: true } },
+    },
   });
   if (!access?.sellerAcceptedAt || access.cancelledAt) {
     return null;
   }
-  const name = personName(access.investor.name, access.investor.lastName).trim();
+  const name = personName(
+    access.investor.name,
+    access.investor.lastName,
+  ).trim();
   return name || null;
 }
 
@@ -196,15 +239,25 @@ function viewOf(
   messages: ThreadMessageView[],
   documents: ProcessFile[],
 ): AdvisorContactView {
-  const clientLabel = row.client === "investor" ? engagementCopy.fromInvestor : engagementCopy.fromSeller;
+  const clientLabel =
+    row.client === "investor"
+      ? engagementCopy.fromInvestor
+      : engagementCopy.fromSeller;
 
   return {
     id: row.id,
     slug: row.slug,
-    heading: row.side === "client" ? (row.advisorName ?? engagementCopy.advisorFallback) : row.codename,
-    detail: row.side === "client" ? `${row.codename} · ${row.region}` : row.region,
+    heading:
+      row.side === "client"
+        ? (row.advisorName ?? engagementCopy.advisorFallback)
+        : row.codename,
+    detail:
+      row.side === "client" ? `${row.codename} · ${row.region}` : row.region,
     services: serviceLabel(row.services),
-    partyName: row.side === "client" ? (row.advisorName ?? engagementCopy.advisorFallback) : (row.clientName ?? clientLabel),
+    partyName:
+      row.side === "client"
+        ? (row.advisorName ?? engagementCopy.advisorFallback)
+        : (row.clientName ?? clientLabel),
     placeholder:
       row.side === "client"
         ? engagementCopy.threadPlaceholder
@@ -217,7 +270,10 @@ function viewOf(
   };
 }
 
-async function messagesFor(engagementId: string, side: Side): Promise<ThreadMessageView[]> {
+async function messagesFor(
+  engagementId: string,
+  side: Side,
+): Promise<ThreadMessageView[]> {
   const rows = await prisma.engagementMessage.findMany({
     where: { engagementId },
     orderBy: { createdAt: "asc" },
@@ -236,7 +292,9 @@ async function messagesFor(engagementId: string, side: Side): Promise<ThreadMess
   );
 }
 
-export async function listClientContacts(user: CurrentUser): Promise<AdvisorContactView[]> {
+export async function listClientContacts(
+  user: CurrentUser,
+): Promise<AdvisorContactView[]> {
   if (!user.onboarded || (user.role !== "investor" && user.role !== "seller")) {
     return [];
   }
@@ -254,7 +312,13 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
       project: { select: { codename: true, region: true, slug: true } },
       messages: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, kind: true, body: true, author: true, createdAt: true },
+        select: {
+          id: true,
+          kind: true,
+          body: true,
+          author: true,
+          createdAt: true,
+        },
       },
     },
   });
@@ -263,7 +327,9 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
   for (const row of rows) {
     const [documents, advisorName] = await Promise.all([
       sharedFiles(row),
-      row.advisorId ? advisorPublicName(row.advisorId) : Promise.resolve(engagementCopy.advisorFallback),
+      row.advisorId
+        ? advisorPublicName(row.advisorId)
+        : Promise.resolve(engagementCopy.advisorFallback),
     ]);
     contacts.push(
       viewOf(
@@ -295,7 +361,10 @@ export async function listClientContacts(user: CurrentUser): Promise<AdvisorCont
   return contacts;
 }
 
-export async function getEngagementThread(user: CurrentUser, engagementId: string): Promise<AdvisorContactView | null> {
+export async function getEngagementThread(
+  user: CurrentUser,
+  engagementId: string,
+): Promise<AdvisorContactView | null> {
   const row = await loadSide(user, engagementId);
 
   if (!row) {
@@ -305,7 +374,9 @@ export async function getEngagementThread(user: CurrentUser, engagementId: strin
   const [messages, documents, advisorName, clientName] = await Promise.all([
     messagesFor(row.id, row.side),
     sharedFiles(row),
-    row.side === "client" ? advisorPublicName(row.advisorId) : Promise.resolve(undefined),
+    row.side === "client"
+      ? advisorPublicName(row.advisorId)
+      : Promise.resolve(undefined),
     row.side === "advisor" && row.client === "investor"
       ? revealedInvestorName(row.projectId, row.requesterId)
       : Promise.resolve(null),
@@ -325,14 +396,23 @@ async function notifyOther(row: {
 
   await recordNotification({
     userId: toAdvisor ? row.advisorId : row.requesterId,
-    title: toAdvisor ? engagementCopy.threadNoticeAdvisor : engagementCopy.threadNoticeClient,
+    title: toAdvisor
+      ? engagementCopy.threadNoticeAdvisor
+      : engagementCopy.threadNoticeClient,
     body: row.codename,
-    href: toAdvisor ? `/mandatos/encargos/${row.id}` : row.client === "seller" ? "/mi-empresa/procesos" : "/procesos",
+    href: toAdvisor
+      ? `/mandatos/encargos/${row.id}`
+      : row.client === "seller"
+        ? "/mi-empresa/procesos"
+        : "/procesos",
   });
 }
 
 async function advisorSubscribed(userId: string): Promise<boolean> {
-  const row = await prisma.billingCustomer.findUnique({ where: { userId }, select: { advisorInbox: true } });
+  const row = await prisma.billingCustomer.findUnique({
+    where: { userId },
+    select: { advisorInbox: true },
+  });
   return row?.advisorInbox === true;
 }
 
@@ -413,8 +493,11 @@ export async function approveEngagementMeeting(
     return { ok: true };
   }
 
-  const proposedBy = slot.proposedBy ?? (message.author === "client" ? "investor" : "seller");
-  const authored = (proposedBy === "investor" && row.side === "client") || (proposedBy === "seller" && row.side === "advisor");
+  const proposedBy =
+    slot.proposedBy ?? (message.author === "client" ? "investor" : "seller");
+  const authored =
+    (proposedBy === "investor" && row.side === "client") ||
+    (proposedBy === "seller" && row.side === "advisor");
 
   if (authored) {
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
@@ -426,7 +509,10 @@ export async function approveEngagementMeeting(
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
   }
 
-  await prisma.engagementMessage.update({ where: { id: message.id }, data: { body: next } });
+  await prisma.engagementMessage.update({
+    where: { id: message.id },
+    data: { body: next },
+  });
   await notifyOther(row);
   return { ok: true };
 }
@@ -451,13 +537,20 @@ export async function rescheduleEngagementMeeting(
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
   }
 
-  const next = proposeMeetingChange(message.body, draft, row.side === "client" ? "investor" : "seller");
+  const next = proposeMeetingChange(
+    message.body,
+    draft,
+    row.side === "client" ? "investor" : "seller",
+  );
 
   if (!next) {
     return { ok: false, message: sellerCopy.meetingsAcceptFailed };
   }
 
-  await prisma.engagementMessage.update({ where: { id: message.id }, data: { body: next } });
+  await prisma.engagementMessage.update({
+    where: { id: message.id },
+    data: { body: next },
+  });
   await notifyOther(row);
   return { ok: true };
 }

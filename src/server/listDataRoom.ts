@@ -35,10 +35,18 @@ export type InvestorDataRoom = {
   rooms: InvestorRoom[];
 };
 
-export type DataRoomListing = OwnerDataRoom | InvestorDataRoom | { audience: "none" };
+export type DataRoomListing =
+  OwnerDataRoom | InvestorDataRoom | { audience: "none" };
 
-export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> {
-  if (!user.onboarded || user.role === "advisor" || user.role === "admin" || user.role === null) {
+export async function listDataRoom(
+  user: CurrentUser,
+): Promise<DataRoomListing> {
+  if (
+    !user.onboarded ||
+    user.role === "advisor" ||
+    user.role === "admin" ||
+    user.role === null
+  ) {
     return { audience: "none" };
   }
 
@@ -91,7 +99,9 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
     const investors = labelAccesses(
       accesses.map((access) => ({
         ...access,
-        connectedName: access.sellerAcceptedAt ? personName(access.investor.name, access.investor.lastName) : null,
+        connectedName: access.sellerAcceptedAt
+          ? personName(access.investor.name, access.investor.lastName)
+          : null,
       })),
     ).map((access) => ({
       investorId: access.investorId,
@@ -102,23 +112,35 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
 
     // Process paperwork (NDA, carta de intenciones, contrato) lives in each process's "Documentación",
     // so the platform's "Relify" folder of blank templates is no longer listed in Mis documentos.
-    const folders = visibleFolderNames({ records: folderRows, usedByFiles: files.map((file) => file.folder) }).filter(
-      (folder) => folder !== relevaDraftFolder,
-    );
-    const stored = files.filter((file) => file.folder !== relevaDraftFolder).map((file) => ({
-      ...toDataRoomFileView(file),
-      id: file.id,
-      stored: dataRoomFileIsStored(file.id),
-      viewers: fileViewerLabels({ fileId: file.id, files, investors, shares: shareRows }),
-      uploadedAt: file.createdAt.toISOString(),
-    }));
+    const folders = visibleFolderNames({
+      records: folderRows,
+      usedByFiles: files.map((file) => file.folder),
+    }).filter((folder) => folder !== relevaDraftFolder);
+    const stored = files
+      .filter((file) => file.folder !== relevaDraftFolder)
+      .map((file) => ({
+        ...toDataRoomFileView(file),
+        id: file.id,
+        stored: dataRoomFileIsStored(file.id),
+        viewers: fileViewerLabels({
+          fileId: file.id,
+          files,
+          investors,
+          shares: shareRows,
+        }),
+        uploadedAt: file.createdAt.toISOString(),
+      }));
 
     return {
       audience: "owner",
       folders,
       files: filesWithBytes(stored),
       shares: investors.map((access) =>
-        toDataRoomShareView({ id: access.accessId, label: access.label, granted: access.granted }),
+        toDataRoomShareView({
+          id: access.accessId,
+          label: access.label,
+          granted: access.granted,
+        }),
       ),
     };
   }
@@ -148,12 +170,17 @@ export async function listDataRoom(user: CurrentUser): Promise<DataRoomListing> 
           where: { investorId: user.id, projectId: { in: projectIds } },
           select: { projectId: true, ndaAcceptedAt: true },
         });
-  const acceptedAt = new Map(acceptances.map((row) => [row.projectId, row.ndaAcceptedAt]));
+  const acceptedAt = new Map(
+    acceptances.map((row) => [row.projectId, row.ndaAcceptedAt]),
+  );
   const shareRows =
     projectIds.length === 0
       ? []
       : await prisma.dataRoomFileShare.findMany({
-          where: { investorId: user.id, file: { projectId: { in: projectIds } } },
+          where: {
+            investorId: user.id,
+            file: { projectId: { in: projectIds } },
+          },
           select: { fileId: true, investorId: true },
         });
   const rooms: InvestorRoom[] = [];

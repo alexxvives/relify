@@ -1,12 +1,19 @@
 import type { RenderedEmail } from "@/lib/email/layout";
 
 /** t73b: every outgoing email leaves from this one sender on the verified itsrelify.com domain. */
-export const MAIL_FROM = { address: "notificaciones@itsrelify.com", name: "Relify" } as const;
+export const MAIL_FROM = {
+  address: "notificaciones@itsrelify.com",
+  name: "Relify",
+} as const;
 export const TEAM_INBOX = "info@itsrelify.com";
 const MAILEROO_URL = "https://smtp.maileroo.com/api/v2/emails";
 
 export type MailResult =
-  | { status: "sent"; transport: "maileroo" | "binding" | "webhook"; referenceId: string | null }
+  | {
+      status: "sent";
+      transport: "maileroo" | "binding" | "webhook";
+      referenceId: string | null;
+    }
   | { status: "skipped" | "failed"; transport: null; referenceId: null };
 
 export type OutgoingMail = RenderedEmail & {
@@ -18,14 +25,21 @@ export type OutgoingMail = RenderedEmail & {
 };
 
 type SendEmailBinding = {
-  send(message: { to: string; from: { email: string; name?: string }; subject: string; html?: string; text?: string }): Promise<unknown>;
+  send(message: {
+    to: string;
+    from: { email: string; name?: string };
+    subject: string;
+    html?: string;
+    text?: string;
+  }): Promise<unknown>;
 };
 
 /** The Worker's send_email binding (cloudflare.config.ts), absent in tests and plain Node. */
 async function emailBinding(): Promise<SendEmailBinding | null> {
   try {
     const workers = await import("cloudflare:workers");
-    const binding = (workers.env as Record<string, unknown>).EMAIL as SendEmailBinding | undefined;
+    const binding = (workers.env as Record<string, unknown>).EMAIL as
+      SendEmailBinding | undefined;
     return binding && typeof binding.send === "function" ? binding : null;
   } catch {
     return null;
@@ -45,7 +59,10 @@ function isEmail(value: string): boolean {
   return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(value) && value.length <= 254;
 }
 
-async function viaMaileroo(key: string, mail: OutgoingMail): Promise<string | null | false> {
+async function viaMaileroo(
+  key: string,
+  mail: OutgoingMail,
+): Promise<string | null | false> {
   const response = await fetch(MAILEROO_URL, {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key },
@@ -58,12 +75,24 @@ async function viaMaileroo(key: string, mail: OutgoingMail): Promise<string | nu
       plain: mail.text,
       tracking: false,
       tags: { type: mail.tag },
-      ...(mail.notice ? { headers: { "List-Unsubscribe": `<mailto:${TEAM_INBOX}?subject=Baja%20de%20avisos>` } } : {}),
+      ...(mail.notice
+        ? {
+            headers: {
+              "List-Unsubscribe": `<mailto:${TEAM_INBOX}?subject=Baja%20de%20avisos>`,
+            },
+          }
+        : {}),
     }),
   });
-  const body = (await response.json().catch(() => null)) as { success?: boolean; message?: string; data?: { reference_id?: string } } | null;
+  const body = (await response.json().catch(() => null)) as {
+    success?: boolean;
+    message?: string;
+    data?: { reference_id?: string };
+  } | null;
   if (!response.ok || !body?.success) {
-    console.warn(`[mail] maileroo rejected ${mail.tag} (${response.status}: ${body?.message ?? "no body"})`);
+    console.warn(
+      `[mail] maileroo rejected ${mail.tag} (${response.status}: ${body?.message ?? "no body"})`,
+    );
     return false;
   }
   return body.data?.reference_id ?? null;
@@ -85,7 +114,11 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
     try {
       const reference = await viaMaileroo(key, mail);
       if (reference !== false) {
-        return { status: "sent", transport: "maileroo", referenceId: reference };
+        return {
+          status: "sent",
+          transport: "maileroo",
+          referenceId: reference,
+        };
       }
     } catch {
       console.warn(`[mail] maileroo unreachable for ${mail.tag}`);
@@ -95,10 +128,19 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
   const binding = await emailBinding();
   if (binding) {
     try {
-      await binding.send({ to: mail.to, from: { email: MAIL_FROM.address, name: MAIL_FROM.name }, subject: mail.subject, html: mail.html, text: mail.text });
+      await binding.send({
+        to: mail.to,
+        from: { email: MAIL_FROM.address, name: MAIL_FROM.name },
+        subject: mail.subject,
+        html: mail.html,
+        text: mail.text,
+      });
       return { status: "sent", transport: "binding", referenceId: null };
     } catch (error) {
-      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "unknown";
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "unknown";
       console.warn(`[mail] email binding failed for ${mail.tag} (${code})`);
     }
   }
@@ -109,12 +151,19 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
       const response = await fetch(hook, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ to: mail.to, subject: mail.subject, html: mail.html, text: mail.text }),
+        body: JSON.stringify({
+          to: mail.to,
+          subject: mail.subject,
+          html: mail.html,
+          text: mail.text,
+        }),
       });
       if (response.ok) {
         return { status: "sent", transport: "webhook", referenceId: null };
       }
-      console.warn(`[mail] webhook answered ${response.status} for ${mail.tag}`);
+      console.warn(
+        `[mail] webhook answered ${response.status} for ${mail.tag}`,
+      );
     } catch {
       console.warn(`[mail] webhook unreachable for ${mail.tag}`);
     }
@@ -124,5 +173,9 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
   if (!tried) {
     console.warn(`[mail] no transport configured; skipped ${mail.tag}`);
   }
-  return { status: tried ? "failed" : "skipped", transport: null, referenceId: null };
+  return {
+    status: tried ? "failed" : "skipped",
+    transport: null,
+    referenceId: null,
+  };
 }

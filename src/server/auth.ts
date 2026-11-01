@@ -3,8 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { readServerEnv, readSiteUrl } from "@/lib/env";
 import { prisma } from "@/server/db";
-import { passwordResetEmail } from "@/lib/email/messages";
-import { sendAccountEmail } from "@/server/sendAccountEmail";
+import { passwordResetEmail, verifyEmail } from "@/lib/email/messages";
 import { sendMail } from "@/server/mailer";
 
 function createAuth() {
@@ -46,8 +45,16 @@ function createAuth() {
       ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
     },
     emailVerification: {
+      // t73b: confirm the address on signup. Not required to sign in (existing users keep working).
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      expiresIn: 60 * 60 * 24,
       sendVerificationEmail: async ({ user, url }) => {
-        await sendAccountEmail({ to: user.email, url });
+        await sendMail({
+          to: user.email,
+          tag: "verify-email",
+          ...verifyEmail(url),
+        });
       },
     },
     session: {

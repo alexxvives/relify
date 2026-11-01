@@ -4,16 +4,22 @@ import { favoriteDecision } from "@/lib/project-favorite";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
-export type FavoriteResult = { ok: true; favorited: boolean } | { ok: false; message: string };
+export type FavoriteResult =
+  { ok: true; favorited: boolean } | { ok: false; message: string };
 
-export async function toggleProjectFavorite(user: CurrentUser, slug: string): Promise<FavoriteResult> {
+export async function toggleProjectFavorite(
+  user: CurrentUser,
+  slug: string,
+): Promise<FavoriteResult> {
   const project = await prisma.project.findFirst({
     where: { slug },
     select: { id: true, status: true },
   });
   const existing = project
     ? await prisma.projectFavorite.findUnique({
-        where: { projectId_investorId: { projectId: project.id, investorId: user.id } },
+        where: {
+          projectId_investorId: { projectId: project.id, investorId: user.id },
+        },
         select: { id: true },
       })
     : null;

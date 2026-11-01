@@ -4,9 +4,16 @@ import { materializePendingCompanies } from "@/server/sellerCompany";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { cnaeTitle } from "@/lib/cnae-2009";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
-import { sectorMultiples, valuationSectorFromCnae } from "@/lib/valuation-multiples";
+import {
+  sectorMultiples,
+  valuationSectorFromCnae,
+} from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
-import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
+import {
+  projectCoverHref,
+  projectCoverIsStored,
+  projectCoverVersion,
+} from "@/server/projectCover";
 
 export type AdminCompanyRow = {
   id: string;
@@ -34,7 +41,10 @@ export type AdminCompanyRow = {
   card: PublicProjectCard;
 };
 
-export async function listAdminCompanies(user: CurrentUser, since?: Date): Promise<AdminCompanyRow[] | null> {
+export async function listAdminCompanies(
+  user: CurrentUser,
+  since?: Date,
+): Promise<AdminCompanyRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -61,7 +71,12 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
       address: true,
       sabiRequestedAt: true,
       sabiImportedAt: true,
-      owner: { select: { email: true, registryPrefill: { select: { cif: true, legalName: true } } } },
+      owner: {
+        select: {
+          email: true,
+          registryPrefill: { select: { cif: true, legalName: true } },
+        },
+      },
       shareholders: { select: { name: true }, orderBy: { name: "asc" } },
       headcountRange: true,
       foundedYear: true,
@@ -74,7 +89,9 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
   return projects.map((project) => {
     const code = project.cnaes[0]?.code ?? null;
     const sector = valuationSectorFromCnae(code ?? undefined);
-    const version = projectCoverIsStored(project.id) ? projectCoverVersion(project.id) : null;
+    const version = projectCoverIsStored(project.id)
+      ? projectCoverVersion(project.id)
+      : null;
     const card: PublicProjectCard = {
       slug: project.slug,
       codename: project.codename,
@@ -97,28 +114,32 @@ export async function listAdminCompanies(user: CurrentUser, since?: Date): Promi
     };
 
     return {
-    id: project.id,
-    slug: project.slug,
-    codename: project.codename,
-    region: project.region,
-    status: project.status,
-    askingPriceCents: project.askingPriceCents,
-    revenueCents: project.revenueCents,
-    ebitdaCents: project.ebitdaCents,
-    adjustedEbitdaCents: project.adjustedEbitdaCents,
-    ownerEmail: project.owner?.email ?? null,
-    legalName:
-      project.legalName.trim() ||
-      (project.owner?.registryPrefill && project.owner.registryPrefill.cif === project.cif ? project.owner.registryPrefill.legalName : ""),
-    cif: project.cif,
-    createdMs: project.createdAt.getTime(),
-    address: project.address,
-    shareholders: project.shareholders.map((holder) => holder.name),
-    verified: project.verifiedAt !== null,
-    isNew: since ? project.createdAt > since : false,
-    sabiPending: project.cif.trim().length > 0 && project.sabiImportedAt === null,
-    sabiRequestedAt: project.sabiRequestedAt?.toISOString() ?? null,
-    card,
-  };
+      id: project.id,
+      slug: project.slug,
+      codename: project.codename,
+      region: project.region,
+      status: project.status,
+      askingPriceCents: project.askingPriceCents,
+      revenueCents: project.revenueCents,
+      ebitdaCents: project.ebitdaCents,
+      adjustedEbitdaCents: project.adjustedEbitdaCents,
+      ownerEmail: project.owner?.email ?? null,
+      legalName:
+        project.legalName.trim() ||
+        (project.owner?.registryPrefill &&
+        project.owner.registryPrefill.cif === project.cif
+          ? project.owner.registryPrefill.legalName
+          : ""),
+      cif: project.cif,
+      createdMs: project.createdAt.getTime(),
+      address: project.address,
+      shareholders: project.shareholders.map((holder) => holder.name),
+      verified: project.verifiedAt !== null,
+      isNew: since ? project.createdAt > since : false,
+      sabiPending:
+        project.cif.trim().length > 0 && project.sabiImportedAt === null,
+      sabiRequestedAt: project.sabiRequestedAt?.toISOString() ?? null,
+      card,
+    };
   });
 }

@@ -28,12 +28,25 @@ export async function setVerified(
   const verifiedAt = verified ? new Date() : null;
   const updated =
     target === "project"
-      ? await prisma.project.updateMany({ where: { id: parsed.data }, data: { verifiedAt } })
-      : await prisma.advisorProfile.updateMany({ where: { userId: parsed.data }, data: { verifiedAt } });
+      ? await prisma.project.updateMany({
+          where: { id: parsed.data },
+          data: { verifiedAt },
+        })
+      : await prisma.advisorProfile.updateMany({
+          where: { userId: parsed.data },
+          data: { verifiedAt },
+        });
 
   if (updated.count === 0) {
-    return { ok: false, message: target === "project" ? adminCopy.missingProject : adminCopy.invalid };
+    return {
+      ok: false,
+      message:
+        target === "project" ? adminCopy.missingProject : adminCopy.invalid,
+    };
   }
 
-  return { ok: true, message: verified ? adminCopy.verifiedOn : adminCopy.verifiedOff };
+  return {
+    ok: true,
+    message: verified ? adminCopy.verifiedOn : adminCopy.verifiedOff,
+  };
 }

@@ -21,7 +21,9 @@ const companyUrl = "https://openmercantil.es/api/v1/company";
 
 export type { RegistryLookup };
 
-export async function lookupCompanyRegistry(cif: string): Promise<RegistryLookup> {
+export async function lookupCompanyRegistry(
+  cif: string,
+): Promise<RegistryLookup> {
   return createRegistryLookup({
     apiKey: process.env.APIEMPRESAS_API_KEY ?? null,
     now: () => new Date(),
@@ -35,7 +37,10 @@ export async function lookupCompanyRegistry(cif: string): Promise<RegistryLookup
   })(cif);
 }
 
-async function readCache(cif: string, source: RegistrySource): Promise<RegistryCacheEntry | null> {
+async function readCache(
+  cif: string,
+  source: RegistrySource,
+): Promise<RegistryCacheEntry | null> {
   const row = await prisma.companyRegistryCache.findUnique({
     where: { cif_source: { cif, source } },
   });
@@ -57,7 +62,10 @@ async function writeCache(
   found: boolean,
   record: RegistryCompany | null,
 ): Promise<void> {
-  const json = found && record ? (record as unknown as Prisma.InputJsonValue) : Prisma.JsonNull;
+  const json =
+    found && record
+      ? (record as unknown as Prisma.InputJsonValue)
+      : Prisma.JsonNull;
   const data = { found, record: json, fetchedAt: new Date() };
 
   await prisma.companyRegistryCache.upsert({
@@ -69,7 +77,9 @@ async function writeCache(
 
 async function lookupOpenMercantil(cif: string): Promise<RegistryLookup> {
   const normalized = normalizeCif(cif);
-  const searchPayload = await readJson(`${searchUrl}?q=${encodeURIComponent(normalized)}`);
+  const searchPayload = await readJson(
+    `${searchUrl}?q=${encodeURIComponent(normalized)}`,
+  );
 
   if (!searchPayload.ok) {
     return searchPayload;
@@ -88,16 +98,25 @@ async function lookupOpenMercantil(cif: string): Promise<RegistryLookup> {
   }
 
   if (!isCompanySlug(hit.slug)) {
-    return { ok: true, record: registryCompanyFromBorme(normalized, hit, null) };
+    return {
+      ok: true,
+      record: registryCompanyFromBorme(normalized, hit, null),
+    };
   }
 
   const companyPayload = await readJson(`${companyUrl}/${hit.slug}`);
-  const file = companyPayload.ok ? parseBormeCompany(companyPayload.payload) : null;
+  const file = companyPayload.ok
+    ? parseBormeCompany(companyPayload.payload)
+    : null;
 
   return { ok: true, record: registryCompanyFromBorme(normalized, hit, file) };
 }
 
-async function readJson(url: string): Promise<{ ok: true; payload: unknown } | { ok: false; code: "unavailable" }> {
+async function readJson(
+  url: string,
+): Promise<
+  { ok: true; payload: unknown } | { ok: false; code: "unavailable" }
+> {
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json" },

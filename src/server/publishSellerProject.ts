@@ -4,7 +4,10 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { reconcileListingPayment } from "@/server/fulfillCheckout";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { startListingCheckout, type CheckoutStart } from "@/server/startCheckout";
+import {
+  startListingCheckout,
+  type CheckoutStart,
+} from "@/server/startCheckout";
 
 export type SellerPublishResult = { ok: true } | CheckoutStart;
 
@@ -20,7 +23,13 @@ export async function getSellerListing(userId: string): Promise<{
   const project = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: userId },
-        select: { id: true, status: true, slug: true, successFee: { select: { id: true } }, listingPayment: { select: { id: true } } },
+        select: {
+          id: true,
+          status: true,
+          slug: true,
+          successFee: { select: { id: true } },
+          listingPayment: { select: { id: true } },
+        },
       })
     : null;
 
@@ -33,22 +42,32 @@ export async function getSellerListing(userId: string): Promise<{
   });
   const paid =
     project.listingPayment !== null ||
-    (project.status === "draft" && liveCompanyCount > 0 && (await reconcileListingPayment(userId, project.id)));
+    (project.status === "draft" &&
+      liveCompanyCount > 0 &&
+      (await reconcileListingPayment(userId, project.id)));
 
   return {
     status: project.status,
     slug: project.slug,
     feeRecorded: project.successFee !== null,
-    requiresPayment: project.status === "draft" && liveCompanyCount > 0 && !paid,
+    requiresPayment:
+      project.status === "draft" && liveCompanyCount > 0 && !paid,
   };
 }
 
-export async function publishSellerProject(user: CurrentUser): Promise<SellerPublishResult> {
+export async function publishSellerProject(
+  user: CurrentUser,
+): Promise<SellerPublishResult> {
   const activeId = await activeSellerProjectId(user.id);
   const project = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: user.id },
-        select: { id: true, status: true, ebitdaCents: true, listingPayment: { select: { id: true } } },
+        select: {
+          id: true,
+          status: true,
+          ebitdaCents: true,
+          listingPayment: { select: { id: true } },
+        },
       })
     : null;
   const liveCompanyCount = await prisma.project.count({
@@ -57,9 +76,11 @@ export async function publishSellerProject(user: CurrentUser): Promise<SellerPub
   const outcome = sellerPublishOutcome({
     isSeller: user.onboarded && user.role === "seller",
     ownsDraft: project !== null,
-    alreadyPublished: project?.status === "published" || project?.status === "pending",
+    alreadyPublished:
+      project?.status === "published" || project?.status === "pending",
     liveCompanyCount,
-    paid: project?.listingPayment !== null && project?.listingPayment !== undefined,
+    paid:
+      project?.listingPayment !== null && project?.listingPayment !== undefined,
   });
 
   if (project && project.ebitdaCents <= 0) {
@@ -77,7 +98,10 @@ export async function publishSellerProject(user: CurrentUser): Promise<SellerPub
 
     return {
       ok: false,
-      message: !outcome.ok && outcome.code === "missing" ? billingCopy.publishMissing : billingCopy.publishForbidden,
+      message:
+        !outcome.ok && outcome.code === "missing"
+          ? billingCopy.publishMissing
+          : billingCopy.publishForbidden,
     };
   }
 

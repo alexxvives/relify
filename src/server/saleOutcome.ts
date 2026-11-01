@@ -5,10 +5,15 @@ import { cache } from "react";
 import { prisma } from "@/server/db";
 
 /** Whether a company has a closed sale (success fee). Memoised per request. */
-export const projectSold = cache(async (projectId: string): Promise<boolean> => {
-  const fee = await prisma.successFee.findUnique({ where: { projectId }, select: { id: true } });
-  return fee !== null;
-});
+export const projectSold = cache(
+  async (projectId: string): Promise<boolean> => {
+    const fee = await prisma.successFee.findUnique({
+      where: { projectId },
+      select: { id: true },
+    });
+    return fee !== null;
+  },
+);
 
 export type SaleSummary = {
   codename: string;
@@ -26,48 +31,89 @@ export type SaleSummary = {
 };
 
 function closingDate(date: Date): string {
-  return date.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Madrid" });
+  return date.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Madrid",
+  });
 }
 
 /** Closed sale for the seller's active company, or null while it is still on the market. */
-export async function sellerSaleSummary(ownerId: string, projectId: string | null): Promise<SaleSummary | null> {
+export async function sellerSaleSummary(
+  ownerId: string,
+  projectId: string | null,
+): Promise<SaleSummary | null> {
   if (!projectId) return null;
   // Both lookups only need the ids, so run them together (one round trip instead of two).
   const [project, contract] = await Promise.all([
     prisma.project.findFirst({
       where: { id: projectId, ownerId },
-      select: { codename: true, successFee: true, createdAt: true, verifiedAt: true, _count: { select: { accesses: true } } },
+      select: {
+        codename: true,
+        successFee: true,
+        createdAt: true,
+        verifiedAt: true,
+        _count: { select: { accesses: true } },
+      },
     }),
     prisma.saleContract.findFirst({
       where: { status: "signed", access: { projectId, project: { ownerId } } },
       orderBy: { sellerSignedAt: "desc" },
-      select: { id: true, accessId: true, access: { select: { investor: { select: { name: true, lastName: true } } } } },
+      select: {
+        id: true,
+        accessId: true,
+        access: {
+          select: { investor: { select: { name: true, lastName: true } } },
+        },
+      },
     }),
   ]);
   if (!project?.successFee) return null;
   const fee = project.successFee;
   const listed = project.verifiedAt ?? project.createdAt;
-  const buyer = contract ? personName(contract.access.investor.name, contract.access.investor.lastName) : "";
+  const buyer = contract
+    ? personName(
+        contract.access.investor.name,
+        contract.access.investor.lastName,
+      )
+    : "";
   return {
     codename: shortNickname(project.codename),
     price: formatWholeEur(fee.closedPriceCents),
     fee: formatEur(fee.sellerNetCents + fee.sellerVatCents),
     feeNote: `${formatEur(fee.sellerNetCents)} + IVA`,
     date: closingDate(fee.recordedAt),
-    contractHref: contract ? `/acuerdos/contrato/${contract.id}?firmado=1` : null,
+    contractHref: contract
+      ? `/acuerdos/contrato/${contract.id}?firmado=1`
+      : null,
     ndaHref: contract ? `/acuerdos/nda/${contract.accessId}` : null,
     loiHref: contract ? `/acuerdos/loi/${contract.accessId}` : null,
     buyer: buyer.length > 0 ? buyer : "Comprador verificado",
-    daysToClose: Math.max(1, Math.round((fee.recordedAt.getTime() - listed.getTime()) / 86_400_000)),
+    daysToClose: Math.max(
+      1,
+      Math.round((fee.recordedAt.getTime() - listed.getTime()) / 86_400_000),
+    ),
     listedOn: closingDate(listed),
     interested: project._count.accesses,
   };
 }
 
-export type BuyerClosed = { won: boolean; price: string; fee: string; feeNote: string; date: string };
+export type BuyerClosed = {
+  won: boolean;
+  price: string;
+  fee: string;
+  feeNote: string;
+  date: string;
+};
 
 export function buyerClosed(
-  fee: { closedPriceCents: number; buyerNetCents: number; buyerVatCents: number; recordedAt: Date } | null,
+  fee: {
+    closedPriceCents: number;
+    buyerNetCents: number;
+    buyerVatCents: number;
+    recordedAt: Date;
+  } | null,
   won: boolean,
 ): BuyerClosed | null {
   if (!fee) return null;
@@ -96,9 +142,14 @@ export type PurchaseSummary = {
 };
 
 /** The investor's most recent completed purchase (signed contract on a project with a recorded success fee). */
-export async function buyerPurchaseSummary(investorId: string): Promise<PurchaseSummary | null> {
+export async function buyerPurchaseSummary(
+  investorId: string,
+): Promise<PurchaseSummary | null> {
   const contract = await prisma.saleContract.findFirst({
-    where: { status: "signed", access: { investorId, project: { successFee: { isNot: null } } } },
+    where: {
+      status: "signed",
+      access: { investorId, project: { successFee: { isNot: null } } },
+    },
     orderBy: { sellerSignedAt: "desc" },
     select: {
       id: true,
@@ -121,7 +172,9 @@ export async function buyerPurchaseSummary(investorId: string): Promise<Purchase
   const project = contract?.access.project;
   const fee = project?.successFee;
   if (!contract || !project || !fee) return null;
-  const seller = project.owner ? personName(project.owner.name, project.owner.lastName) : "";
+  const seller = project.owner
+    ? personName(project.owner.name, project.owner.lastName)
+    : "";
   return {
     codename: shortNickname(project.codename),
     slug: project.slug,
@@ -130,7 +183,13 @@ export async function buyerPurchaseSummary(investorId: string): Promise<Purchase
     feeNote: `${formatEur(fee.buyerNetCents)} + IVA`,
     date: closingDate(fee.recordedAt),
     seller: seller.length > 0 ? seller : "Vendedor verificado",
-    daysToClose: Math.max(1, Math.round((fee.recordedAt.getTime() - contract.access.requestedAt.getTime()) / 86_400_000)),
+    daysToClose: Math.max(
+      1,
+      Math.round(
+        (fee.recordedAt.getTime() - contract.access.requestedAt.getTime()) /
+          86_400_000,
+      ),
+    ),
     requestedOn: closingDate(contract.access.requestedAt),
     contractHref: `/acuerdos/contrato/${contract.id}?firmado=1`,
     ndaHref: `/acuerdos/nda/${contract.accessId}`,
@@ -138,9 +197,14 @@ export async function buyerPurchaseSummary(investorId: string): Promise<Purchase
   };
 }
 
-export async function hasCompletedPurchase(investorId: string): Promise<boolean> {
+export async function hasCompletedPurchase(
+  investorId: string,
+): Promise<boolean> {
   const found = await prisma.saleContract.findFirst({
-    where: { status: "signed", access: { investorId, project: { successFee: { isNot: null } } } },
+    where: {
+      status: "signed",
+      access: { investorId, project: { successFee: { isNot: null } } },
+    },
     select: { id: true },
   });
   return found !== null;

@@ -1,6 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { dataRoomMessage, dataRoomReadGate, renameDataRoomFileSchema, visibleFolderNames, type StoreDataRoomFileInput } from "@/lib/data-room";
-import { relevaDraftFolder, relevaDraftPdf, relevaDrafts } from "@/lib/releva-drafts";
+import {
+  dataRoomMessage,
+  dataRoomReadGate,
+  renameDataRoomFileSchema,
+  visibleFolderNames,
+  type StoreDataRoomFileInput,
+} from "@/lib/data-room";
+import {
+  relevaDraftFolder,
+  relevaDraftPdf,
+  relevaDrafts,
+} from "@/lib/releva-drafts";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -21,9 +31,9 @@ export async function storeDataRoomFile(
   const activeId = await activeSellerProjectId(user.id);
   const project = activeId
     ? await prisma.project.findFirst({
-    where: { id: activeId, ownerId: user.id },
-    select: { id: true, status: true },
-  })
+        where: { id: activeId, ownerId: user.id },
+        select: { id: true, status: true },
+      })
     : null;
   const gate = dataRoomReadGate({
     onboarded: user.onboarded,
@@ -35,15 +45,29 @@ export async function storeDataRoomFile(
   });
 
   if (!gate.ok || gate.audience !== "owner" || !project) {
-    return { ok: false, message: dataRoomMessage(gate.ok ? "missing" : gate.code) };
+    return {
+      ok: false,
+      message: dataRoomMessage(gate.ok ? "missing" : gate.code),
+    };
   }
 
   const [records, used] = await Promise.all([
-    prisma.dataRoomFolder.findMany({ where: { projectId: project.id }, select: { name: true, hidden: true } }),
-    prisma.dataRoomFile.findMany({ where: { projectId: project.id }, select: { folder: true } }),
+    prisma.dataRoomFolder.findMany({
+      where: { projectId: project.id },
+      select: { name: true, hidden: true },
+    }),
+    prisma.dataRoomFile.findMany({
+      where: { projectId: project.id },
+      select: { folder: true },
+    }),
   ]);
 
-  if (!visibleFolderNames({ records, usedByFiles: used.map((file) => file.folder) }).includes(input.folder)) {
+  if (
+    !visibleFolderNames({
+      records,
+      usedByFiles: used.map((file) => file.folder),
+    }).includes(input.folder)
+  ) {
     return { ok: false, message: sellerCopy.folderInvalid };
   }
 
@@ -71,11 +95,20 @@ export async function storeDataRoomFile(
   return { ok: true };
 }
 
-export async function renameDataRoomFile(user: CurrentUser, fileId: string, fileName: string): Promise<DataRoomWriteResult> {
+export async function renameDataRoomFile(
+  user: CurrentUser,
+  fileId: string,
+  fileName: string,
+): Promise<DataRoomWriteResult> {
   const parsed = renameDataRoomFileSchema.safeParse({ fileId, fileName });
 
   if (!parsed.success || !user.onboarded || user.role !== "seller") {
-    return { ok: false, message: parsed.success ? sellerCopy.documentForbidden : sellerCopy.documentInvalid };
+    return {
+      ok: false,
+      message: parsed.success
+        ? sellerCopy.documentForbidden
+        : sellerCopy.documentInvalid,
+    };
   }
 
   const draft = relevaDrafts.find((item) => item.id === parsed.data.fileId);
@@ -95,22 +128,38 @@ export async function renameDataRoomFile(user: CurrentUser, fileId: string, file
     }
 
     const existing = await prisma.dataRoomFile.findFirst({
-      where: { projectId: project.id, folder: relevaDraftFolder, fileName: draft.fileName },
+      where: {
+        projectId: project.id,
+        folder: relevaDraftFolder,
+        fileName: draft.fileName,
+      },
       select: { id: true },
     });
 
     if (!existing) {
       await prisma.dataRoomFile.create({
-        data: { id: randomUUID(), projectId: project.id, folder: relevaDraftFolder, fileName: draft.fileName },
+        data: {
+          id: randomUUID(),
+          projectId: project.id,
+          folder: relevaDraftFolder,
+          fileName: draft.fileName,
+        },
       });
     }
 
-    return storeDataRoomFile(user, { folder: relevaDraftFolder, fileName: parsed.data.fileName }, pdf.bytes);
+    return storeDataRoomFile(
+      user,
+      { folder: relevaDraftFolder, fileName: parsed.data.fileName },
+      pdf.bytes,
+    );
   }
 
   const activeId = await activeSellerProjectId(user.id);
   const file = await prisma.dataRoomFile.findFirst({
-    where: { id: parsed.data.fileId, project: { id: activeId ?? "", ownerId: user.id } },
+    where: {
+      id: parsed.data.fileId,
+      project: { id: activeId ?? "", ownerId: user.id },
+    },
     select: { id: true, project: { select: { status: true } } },
   });
   const gate = dataRoomReadGate({
@@ -123,9 +172,15 @@ export async function renameDataRoomFile(user: CurrentUser, fileId: string, file
   });
 
   if (!gate.ok || gate.audience !== "owner" || !file) {
-    return { ok: false, message: dataRoomMessage(gate.ok ? "missing" : gate.code) };
+    return {
+      ok: false,
+      message: dataRoomMessage(gate.ok ? "missing" : gate.code),
+    };
   }
 
-  await prisma.dataRoomFile.update({ where: { id: file.id }, data: { fileName: parsed.data.fileName } });
+  await prisma.dataRoomFile.update({
+    where: { id: file.id },
+    data: { fileName: parsed.data.fileName },
+  });
   return { ok: true };
 }

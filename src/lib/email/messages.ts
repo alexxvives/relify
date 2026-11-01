@@ -83,3 +83,17 @@ export function welcomeEmail(
     reason: accountReason,
   });
 }
+
+export function verifyEmail(url: string): RenderedEmail {
+  return renderEmail("Confirma tu correo en Relify", {
+    preheader: "Un clic para confirmar que este correo es tuyo.",
+    eyebrow: "Cuenta",
+    title: "Confirma tu correo",
+    paragraphs: [
+      "Pulsa el botón para confirmar que esta dirección es tuya. Así podremos avisarte de solicitudes, mensajes y cambios en tu cuenta.",
+    ],
+    cta: { label: "Confirmar correo", url },
+    note: "El enlace caduca en 24 horas. Si no has creado una cuenta en Relify, ignora este correo.",
+    reason: accountReason,
+  });
+}

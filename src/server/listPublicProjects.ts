@@ -3,9 +3,16 @@ import type { PublicProjectCard } from "@/lib/public-project";
 import { publicProjectSelect, publicProjectWhere } from "@/lib/public-project";
 import { cnaeTitle } from "@/lib/cnae-2009";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
-import { sectorMultiples, valuationSectorFromCnae } from "@/lib/valuation-multiples";
+import {
+  sectorMultiples,
+  valuationSectorFromCnae,
+} from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
-import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
+import {
+  projectCoverHref,
+  projectCoverIsStored,
+  projectCoverVersion,
+} from "@/server/projectCover";
 
 export async function listPublicProjects(): Promise<PublicProjectCard[]> {
   const rows = await prisma.project.findMany({
@@ -25,7 +32,9 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
   return rows.map((row) => {
     const code = row.cnaes[0]?.code ?? null;
     const sector = valuationSectorFromCnae(code ?? undefined);
-    const version = projectCoverIsStored(row.id) ? projectCoverVersion(row.id) : null;
+    const version = projectCoverIsStored(row.id)
+      ? projectCoverVersion(row.id)
+      : null;
 
     return {
       slug: row.slug,

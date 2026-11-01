@@ -6,7 +6,10 @@ import { recordNotification } from "@/server/recordNotification";
 
 export type AcceptBuyerResult = { ok: true } | { ok: false; message: string };
 
-export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<AcceptBuyerResult> {
+export async function acceptBuyer(
+  user: CurrentUser,
+  accessId: string,
+): Promise<AcceptBuyerResult> {
   const access = await prisma.projectAccess.findUnique({
     where: { id: accessId },
     select: {
@@ -22,9 +25,12 @@ export async function acceptBuyer(user: CurrentUser, accessId: string): Promise<
   // buyerMatchSlot), so accepting must never be blocked by the buyer's plan state afterwards.
   const buyerCanMatch = access !== null;
   const outcome = buyerAcceptOutcome({
-    isOwner: access !== null && access.project.ownerId === user.id && user.onboarded,
+    isOwner:
+      access !== null && access.project.ownerId === user.id && user.onboarded,
     requested: access !== null,
-    alreadyAccepted: access?.sellerAcceptedAt !== null && access?.sellerAcceptedAt !== undefined,
+    alreadyAccepted:
+      access?.sellerAcceptedAt !== null &&
+      access?.sellerAcceptedAt !== undefined,
     buyerCanMatch,
   });
 

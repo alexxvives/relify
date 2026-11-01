@@ -15,7 +15,10 @@ export type AdminConnectionRow = {
   soldPriceCents: number | null;
 };
 
-export async function listAdminConnections(user: CurrentUser, since?: Date): Promise<AdminConnectionRow[] | null> {
+export async function listAdminConnections(
+  user: CurrentUser,
+  since?: Date,
+): Promise<AdminConnectionRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -45,8 +48,11 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
   });
 
   return connections.map((connection) => {
-    const accepted = connection.sellerAcceptedAt !== null || connection.ndaAcceptedAt !== null;
-    const messages = connection.project.messages.filter((message) => message.investorId === connection.investorId);
+    const accepted =
+      connection.sellerAcceptedAt !== null || connection.ndaAcceptedAt !== null;
+    const messages = connection.project.messages.filter(
+      (message) => message.investorId === connection.investorId,
+    );
     const steps = accepted
       ? dealPipeline(
           "advisor",
@@ -57,7 +63,9 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
             meeting: messages.some((message) => message.kind === "meeting"),
             offer: messages.some((message) => message.kind === "offer"),
             loiAccepted: connection.loiAcceptedAt !== null,
-            roomShared: connection.project.dataRoomGrants.some((grant) => grant.investorId === connection.investorId),
+            roomShared: connection.project.dataRoomGrants.some(
+              (grant) => grant.investorId === connection.investorId,
+            ),
             passedDiligence: connection.diligencePassedAt !== null,
             closed: connection.project.successFee !== null,
           }),
@@ -74,7 +82,9 @@ export async function listAdminConnections(user: CurrentUser, since?: Date): Pro
       steps,
       isNew: since ? connection.requestedAt > since : false,
       soldPriceCents:
-        connection.project.successFee && connection.loiAcceptedAt !== null ? connection.project.successFee.closedPriceCents : null,
+        connection.project.successFee && connection.loiAcceptedAt !== null
+          ? connection.project.successFee.closedPriceCents
+          : null,
     };
   });
 }

@@ -30,10 +30,15 @@ export type AdminAdvisorRow = {
 };
 
 function personName(name: string, lastName: string | null): string {
-  return [name, lastName ?? ""].filter((part) => part.trim().length > 0).join(" ");
+  return [name, lastName ?? ""]
+    .filter((part) => part.trim().length > 0)
+    .join(" ");
 }
 
-export async function listAdminAdvisors(user: CurrentUser, since?: Date): Promise<AdminAdvisorRow[] | null> {
+export async function listAdminAdvisors(
+  user: CurrentUser,
+  since?: Date,
+): Promise<AdminAdvisorRow[] | null> {
   if (!user.onboarded || user.role !== "admin") {
     return null;
   }
@@ -101,10 +106,17 @@ export async function listAdminAdvisors(user: CurrentUser, since?: Date): Promis
 
     card.cases = casesForVerifiedCloses(closes.get(card.id) ?? 0);
     cards.push(card);
-    breakdownById.set(card.id, advisorScoreBreakdown(card, bodies.get(card.id) ?? []));
+    breakdownById.set(
+      card.id,
+      advisorScoreBreakdown(card, bodies.get(card.id) ?? []),
+    );
   }
 
-  const ranked = sortPublicAdvisors(cards, "recommended", (id) => breakdownById.get(id)?.reliability ?? 100);
+  const ranked = sortPublicAdvisors(
+    cards,
+    "recommended",
+    (id) => breakdownById.get(id)?.reliability ?? 100,
+  );
   const placeById = new Map(ranked.map((card, index) => [card.id, index + 1]));
   const total = ranked.length;
 

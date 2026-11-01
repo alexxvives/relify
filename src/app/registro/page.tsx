@@ -23,7 +23,13 @@ export default async function SignUpPage({
 
   const query = await searchParams;
   const intent =
-    query.rol === "empresa" ? "seller" : query.rol === "inversor" ? "investor" : query.rol === "asesor" ? "advisor" : null;
+    query.rol === "empresa"
+      ? "seller"
+      : query.rol === "inversor"
+        ? "investor"
+        : query.rol === "asesor"
+          ? "advisor"
+          : null;
 
   return <AuthScreen mode="sign-up" intent={intent} />;
 }

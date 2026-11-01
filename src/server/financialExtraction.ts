@@ -15,11 +15,15 @@ import {
   type FilingKind,
 } from "@/lib/financial-filing";
 
-export type ExtractionResult = { ok: true; extraction: FilingExtraction } | { ok: false; code: "unreadable" | "no-data" };
+export type ExtractionResult =
+  | { ok: true; extraction: FilingExtraction }
+  | { ok: false; code: "unreadable" | "no-data" };
 
 type AiBinding = {
   run: (model: string, input: unknown) => Promise<unknown>;
-  toMarkdown?: (files: Array<{ name: string; blob: Blob }>) => Promise<Array<{ data?: string; format?: string }>>;
+  toMarkdown?: (
+    files: Array<{ name: string; blob: Blob }>,
+  ) => Promise<Array<{ data?: string; format?: string }>>;
 };
 
 const textModel = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -35,7 +39,12 @@ async function aiBinding(): Promise<AiBinding | null> {
   }
 }
 
-export async function extractFiling(kind: FilingKind, bytes: Uint8Array, fileName: string, year: number): Promise<ExtractionResult> {
+export async function extractFiling(
+  kind: FilingKind,
+  bytes: Uint8Array,
+  fileName: string,
+  year: number,
+): Promise<ExtractionResult> {
   if (kind === "xbrl") {
     return extractXbrl(bytes, fileName, year);
   }
@@ -50,17 +59,31 @@ export async function extractFiling(kind: FilingKind, bytes: Uint8Array, fileNam
   const casillas = kind === "modelo200" ? readCasillas(text) : {};
   const model = ai ? await askModel(ai, text, kind, year) : null;
   const extraction = mergeExtractions(casillas, model);
-  return extractionHasData(extraction) ? { ok: true, extraction } : { ok: false, code: "no-data" };
+  return extractionHasData(extraction)
+    ? { ok: true, extraction }
+    : { ok: false, code: "no-data" };
 }
 
-function extractXbrl(bytes: Uint8Array, fileName: string, year: number): ExtractionResult {
+function extractXbrl(
+  bytes: Uint8Array,
+  fileName: string,
+  year: number,
+): ExtractionResult {
   const parsed = parseAnnualAccounts(bytes, fileName);
 
   if (!parsed.ok) {
-    return { ok: false, code: parsed.code === "no-sales" || parsed.code === "no-year" ? "no-data" : "unreadable" };
+    return {
+      ok: false,
+      code:
+        parsed.code === "no-sales" || parsed.code === "no-year"
+          ? "no-data"
+          : "unreadable",
+    };
   }
 
-  const statement = parsed.statements.find((item) => item.year === year) ?? parsed.statements[parsed.statements.length - 1];
+  const statement =
+    parsed.statements.find((item) => item.year === year) ??
+    parsed.statements[parsed.statements.length - 1];
 
   if (!statement) {
     return { ok: false, code: "no-data" };
@@ -73,14 +96,19 @@ function extractXbrl(bytes: Uint8Array, fileName: string, year: number): Extract
   const put = (key: FilingAmountKey, cents: number | null | undefined) => {
     if (cents !== null && cents !== undefined) {
       const euros = cents / 100;
-      extraction.amounts[key] = { value: filingCostKeys.has(key) ? Math.abs(euros) : euros, confidence: "alta" };
+      extraction.amounts[key] = {
+        value: filingCostKeys.has(key) ? Math.abs(euros) : euros,
+        confidence: "alta",
+      };
     }
   };
   put("sales", pnl.sales);
   put("supplies", pnl.supplies);
   put("staffCosts", pnl.staffCosts);
   put("amortization", pnl.amortization);
-  const full = Object.fromEntries(Object.entries(pnl).map(([key, value]) => [key, value ?? null])) as unknown as PnlAmounts;
+  const full = Object.fromEntries(
+    Object.entries(pnl).map(([key, value]) => [key, value ?? null]),
+  ) as unknown as PnlAmounts;
   put("operatingResult", operatingResultOrNull(full));
   put("nonCurrentAssets", balance.nonCurrentAssets);
   put("currentAssets", balance.currentAssets);
@@ -93,17 +121,29 @@ function extractXbrl(bytes: Uint8Array, fileName: string, year: number): Extract
 
 function operatingResultOrNull(amounts: PnlAmounts): number | null {
   try {
-    return operatingResult(new Proxy(amounts, { get: (target, key) => (key in target ? target[key as keyof PnlAmounts] : 0) }));
+    return operatingResult(
+      new Proxy(amounts, {
+        get: (target, key) =>
+          key in target ? target[key as keyof PnlAmounts] : 0,
+      }),
+    );
   } catch {
     return null;
   }
 }
 
-async function pdfText(bytes: Uint8Array, fileName: string, ai: AiBinding | null): Promise<string> {
+async function pdfText(
+  bytes: Uint8Array,
+  fileName: string,
+  ai: AiBinding | null,
+): Promise<string> {
   if (ai?.toMarkdown) {
     try {
       const [converted] = await ai.toMarkdown([
-        { name: fileName.replace(/[^\w.-]/g, "_") || "modelo200.pdf", blob: new Blob([new Uint8Array(bytes)], { type: "application/pdf" }) },
+        {
+          name: fileName.replace(/[^\w.-]/g, "_") || "modelo200.pdf",
+          blob: new Blob([new Uint8Array(bytes)], { type: "application/pdf" }),
+        },
       ]);
 
       if (converted?.data && converted.data.trim().length > 40) {
@@ -130,13 +170,16 @@ export function plainPdfText(bytes: Uint8Array): string {
     let content: string;
 
     try {
-      content = inflateSync(body, { maxOutputLength: 4 * 1024 * 1024 }).toString("latin1");
+      content = inflateSync(body, {
+        maxOutputLength: 4 * 1024 * 1024,
+      }).toString("latin1");
     } catch {
       content = body.toString("latin1");
     }
 
     const lines: string[] = [];
-    const textPattern = /\[((?:\\.|[^\]])*)\]\s*TJ|\(((?:\\.|[^)])*)\)\s*Tj|(T\*|Td|TD|ET)/g;
+    const textPattern =
+      /\[((?:\\.|[^\]])*)\]\s*TJ|\(((?:\\.|[^)])*)\)\s*Tj|(T\*|Td|TD|ET)/g;
     let piece: RegExpExecArray | null;
     let line = "";
 
@@ -147,7 +190,9 @@ export function plainPdfText(bytes: Uint8Array): string {
       } else if (piece[2] !== undefined) {
         line += unescapePdf(piece[2]);
       } else if (piece[1] !== undefined) {
-        line += [...piece[1].matchAll(/\(((?:\\.|[^)])*)\)/g)].map((part) => unescapePdf(part[1] ?? "")).join("");
+        line += [...piece[1].matchAll(/\(((?:\\.|[^)])*)\)/g)]
+          .map((part) => unescapePdf(part[1] ?? ""))
+          .join("");
       }
     }
 
@@ -161,17 +206,31 @@ export function plainPdfText(bytes: Uint8Array): string {
 function unescapePdf(value: string): string {
   return value.replace(/\\([nrtbf()\\]|\d{1,3})/g, (_, code: string) => {
     if (/^\d/.test(code)) return String.fromCharCode(parseInt(code, 8));
-    return ({ n: "\n", r: "\r", t: "\t", b: "\b", f: "\f" } as Record<string, string>)[code] ?? code;
+    return (
+      (
+        { n: "\n", r: "\r", t: "\t", b: "\b", f: "\f" } as Record<
+          string,
+          string
+        >
+      )[code] ?? code
+    );
   });
 }
 
-async function askModel(ai: AiBinding, text: string, kind: FilingKind, year: number) {
-  const fieldList = filingAmountKeys.map((key) => `- ${key}: ${filingLabels[key]}`).join("\n");
+async function askModel(
+  ai: AiBinding,
+  text: string,
+  kind: FilingKind,
+  year: number,
+) {
+  const fieldList = filingAmountKeys
+    .map((key) => `- ${key}: ${filingLabels[key]}`)
+    .join("\n");
   const system = [
     "Eres un analista contable español. Extraes cifras de documentos fiscales y contables.",
-    "Devuelve solo JSON. No inventes: si un dato no aparece, usa null y confidence \"baja\".",
+    'Devuelve solo JSON. No inventes: si un dato no aparece, usa null y confidence "baja".',
     "Importes en euros como número (sin separadores de miles). Los gastos en positivo.",
-    "confidence: \"alta\" si el importe aparece claramente con su concepto o casilla; \"media\" si lo deduces de una suma directa; \"baja\" si dudas.",
+    'confidence: "alta" si el importe aparece claramente con su concepto o casilla; "media" si lo deduces de una suma directa; "baja" si dudas.',
   ].join(" ");
   const user = [
     `Documento: ${kind === "modelo200" ? "Modelo 200 (Impuesto sobre Sociedades)" : "Cuentas anuales"}. Ejercicio esperado: ${year}.`,
@@ -195,7 +254,10 @@ async function askModel(ai: AiBinding, text: string, kind: FilingKind, year: num
       temperature: 0,
     })) as { response?: unknown };
     const body = response?.response;
-    const parsed = typeof body === "string" ? JSON.parse(body.slice(body.indexOf("{"), body.lastIndexOf("}") + 1)) : body;
+    const parsed =
+      typeof body === "string"
+        ? JSON.parse(body.slice(body.indexOf("{"), body.lastIndexOf("}") + 1))
+        : body;
     return normaliseModelOutput(parsed);
   } catch {
     return null;

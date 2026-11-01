@@ -1,4 +1,8 @@
-import { cnaeSection, groupSectorBooks, type IndustrySector } from "@/lib/cnae-section";
+import {
+  cnaeSection,
+  groupSectorBooks,
+  type IndustrySector,
+} from "@/lib/cnae-section";
 import { prisma } from "@/server/db";
 
 /**
@@ -20,10 +24,21 @@ export async function listPublishedSectors(): Promise<IndustrySector[]> {
   return groupSectorBooks(
     projects.flatMap((project) => {
       const ordered = [...project.cnaes].sort(
-        (left, right) => Number(right.role === "principal") - Number(left.role === "principal") || left.position - right.position,
+        (left, right) =>
+          Number(right.role === "principal") -
+            Number(left.role === "principal") || left.position - right.position,
       );
       const code = ordered.find((cnae) => cnaeSection(cnae.code))?.code;
-      return code ? [{ code, slug: project.slug, codename: project.codename, revenueCents: project.askingPriceCents }] : [];
+      return code
+        ? [
+            {
+              code,
+              slug: project.slug,
+              codename: project.codename,
+              revenueCents: project.askingPriceCents,
+            },
+          ]
+        : [];
     }),
   );
 }

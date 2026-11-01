@@ -29,7 +29,12 @@ export async function setDataRoomFileShare(
     access === null
       ? null
       : await prisma.dataRoomGrant.findUnique({
-          where: { projectId_investorId: { projectId: access.project.id, investorId: access.investorId } },
+          where: {
+            projectId_investorId: {
+              projectId: access.project.id,
+              investorId: access.investorId,
+            },
+          },
           select: { id: true },
         });
   const outcome = grantDataRoomOutcome({
@@ -41,19 +46,32 @@ export async function setDataRoomFileShare(
   });
 
   if (!outcome.ok || !access || !file) {
-    return { ok: false, message: dataRoomMessage(outcome.ok ? "missing" : outcome.code) };
+    return {
+      ok: false,
+      message: dataRoomMessage(outcome.ok ? "missing" : outcome.code),
+    };
   }
 
   if (input.shared) {
     await prisma.dataRoomFileShare.upsert({
-      where: { fileId_investorId: { fileId: file.id, investorId: access.investorId } },
+      where: {
+        fileId_investorId: { fileId: file.id, investorId: access.investorId },
+      },
       update: {},
-      create: { id: randomUUID(), fileId: file.id, investorId: access.investorId },
+      create: {
+        id: randomUUID(),
+        fileId: file.id,
+        investorId: access.investorId,
+      },
     });
 
     if (outcome.insert) {
       await prisma.dataRoomGrant.create({
-        data: { id: randomUUID(), projectId: access.project.id, investorId: access.investorId },
+        data: {
+          id: randomUUID(),
+          projectId: access.project.id,
+          investorId: access.investorId,
+        },
       });
       await recordNotification({
         userId: access.investorId,

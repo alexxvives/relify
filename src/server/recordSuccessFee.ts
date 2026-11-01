@@ -5,7 +5,8 @@ import { formatEur } from "@/lib/money";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
-export type RecordSaleResult = { ok: true; message: string } | { ok: false; message: string };
+export type RecordSaleResult =
+  { ok: true; message: string } | { ok: false; message: string };
 
 export async function recordSuccessFee(
   user: CurrentUser,
@@ -20,8 +21,15 @@ export async function recordSuccessFee(
   // accepted the match. Take the most advanced live process for this company.
   const winner = project
     ? await prisma.projectAccess.findFirst({
-        where: { projectId: project.id, sellerAcceptedAt: { not: null }, cancelledAt: null },
-        orderBy: [{ loiAcceptedAt: { sort: "desc", nulls: "last" } }, { sellerAcceptedAt: "desc" }],
+        where: {
+          projectId: project.id,
+          sellerAcceptedAt: { not: null },
+          cancelledAt: null,
+        },
+        orderBy: [
+          { loiAcceptedAt: { sort: "desc", nulls: "last" } },
+          { sellerAcceptedAt: "desc" },
+        ],
         select: { buyerPlanAtMatch: true },
       })
     : null;
@@ -29,7 +37,8 @@ export async function recordSuccessFee(
     buyerPlanAtMatch: winner?.buyerPlanAtMatch ?? null,
     isOwner: project !== null && user.onboarded,
     published: project?.status === "published",
-    alreadyRecorded: project?.successFee !== null && project?.successFee !== undefined,
+    alreadyRecorded:
+      project?.successFee !== null && project?.successFee !== undefined,
     closedPriceCents,
   });
 

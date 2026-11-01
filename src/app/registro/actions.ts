@@ -3,7 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
-import { signUpFieldMessage, signUpSchema, type SignUpInput } from "@/lib/auth-input";
+import {
+  signUpFieldMessage,
+  signUpSchema,
+  type SignUpInput,
+} from "@/lib/auth-input";
+import { clientIp, takeThrottle } from "@/server/emailThrottle";
 import { signUp } from "@/server/signUp";
 
 export type SignUpState = { message: string } | null;
@@ -21,7 +26,10 @@ function readSignUpForm(formData: FormData): SignUpInput | { message: string } {
   return parsed.data;
 }
 
-export async function signUpAction(_state: SignUpState, formData: FormData): Promise<SignUpState> {
+export async function signUpAction(
+  _state: SignUpState,
+  formData: FormData,
+): Promise<SignUpState> {
   const input = readSignUpForm(formData);
 
   if ("message" in input) {
@@ -31,6 +39,11 @@ export async function signUpAction(_state: SignUpState, formData: FormData): Pro
   const role = formData.get("signupRole");
   if (role !== "seller" && role !== "investor" && role !== "advisor") {
     return { message: authCopy.signupRoleRequired };
+  }
+
+  // Each signup sends a confirmation email: cap per IP so the form cannot be used to spam.
+  if (!(await takeThrottle(`signup:ip:${await clientIp()}`, 10, 60 * 60))) {
+    return { message: authCopy.forgotThrottled };
   }
 
   const result = await signUp(input);

@@ -1,6 +1,10 @@
 import { cache } from "react";
 import { headers } from "next/headers";
-import { accountDisplayName, readUserRole, type UserRoleName } from "@/lib/auth-input";
+import {
+  accountDisplayName,
+  readUserRole,
+  type UserRoleName,
+} from "@/lib/auth-input";
 import { auth } from "@/server/auth";
 import { prisma } from "@/server/db";
 
@@ -36,7 +40,17 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const stored = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, lastName: true, phone: true, email: true, role: true, onboardedAt: true, termsAcceptedAt: true, suspendedAt: true, nationalId: true },
+    select: {
+      name: true,
+      lastName: true,
+      phone: true,
+      email: true,
+      role: true,
+      onboardedAt: true,
+      termsAcceptedAt: true,
+      suspendedAt: true,
+      nationalId: true,
+    },
   });
 
   if (!stored || stored.suspendedAt !== null) {

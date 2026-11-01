@@ -6,9 +6,12 @@ import { recordNotification } from "@/server/recordNotification";
 import { stripeClient } from "@/server/stripe";
 import type Stripe from "stripe";
 
-export type FulfillResult = { ok: true; kind?: "advisor_inbox" } | { ok: false; message: string };
+export type FulfillResult =
+  { ok: true; kind?: "advisor_inbox" } | { ok: false; message: string };
 
-function planFromMetadata(metadata: Stripe.Metadata | null): "limited" | "unlimited" | null {
+function planFromMetadata(
+  metadata: Stripe.Metadata | null,
+): "limited" | "unlimited" | null {
   const plan = metadata?.plan;
 
   if (plan === "limited" || plan === "unlimited") {
@@ -18,7 +21,9 @@ function planFromMetadata(metadata: Stripe.Metadata | null): "limited" | "unlimi
   return null;
 }
 
-function periodOf(subscription: Stripe.Subscription): { start: Date; end: Date } | null {
+function periodOf(
+  subscription: Stripe.Subscription,
+): { start: Date; end: Date } | null {
   const item = subscription.items.data[0];
 
   if (!item) {
@@ -31,8 +36,13 @@ function periodOf(subscription: Stripe.Subscription): { start: Date; end: Date }
   };
 }
 
-async function applyAdvisorInbox(userId: string, customerId: string, subscription: Stripe.Subscription): Promise<void> {
-  const active = subscription.status === "active" || subscription.status === "trialing";
+async function applyAdvisorInbox(
+  userId: string,
+  customerId: string,
+  subscription: Stripe.Subscription,
+): Promise<void> {
+  const active =
+    subscription.status === "active" || subscription.status === "trialing";
 
   await prisma.billingCustomer.upsert({
     where: { userId },
@@ -50,8 +60,15 @@ async function applyAdvisorInbox(userId: string, customerId: string, subscriptio
   });
 }
 
-async function applySubscription(userId: string, customerId: string, subscription: Stripe.Subscription): Promise<void> {
-  const plan = subscription.status === "active" ? planFromMetadata(subscription.metadata) : null;
+async function applySubscription(
+  userId: string,
+  customerId: string,
+  subscription: Stripe.Subscription,
+): Promise<void> {
+  const plan =
+    subscription.status === "active"
+      ? planFromMetadata(subscription.metadata)
+      : null;
   const period = periodOf(subscription);
 
   await prisma.billingCustomer.upsert({
@@ -108,21 +125,29 @@ async function applyListing(
   }
 }
 
-export async function fulfillCheckout(sessionId: string, expectedUserId?: string): Promise<FulfillResult> {
+export async function fulfillCheckout(
+  sessionId: string,
+  expectedUserId?: string,
+): Promise<FulfillResult> {
   const stripe = stripeClient();
 
   if (stripe === null || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["subscription"],
+  });
   const userId = session.metadata?.userId ?? session.client_reference_id ?? "";
 
   if (expectedUserId !== undefined && userId !== expectedUserId) {
     return { ok: false, message: billingCopy.unpaid };
   }
 
-  const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+  const customerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id;
 
   if (!customerId || userId === "") {
     return { ok: false, message: billingCopy.unpaid };
@@ -131,11 +156,18 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
   if (session.mode === "subscription") {
     const subscription = session.subscription;
 
-    if (session.status !== "complete" || !subscription || typeof subscription === "string") {
+    if (
+      session.status !== "complete" ||
+      !subscription ||
+      typeof subscription === "string"
+    ) {
       return { ok: false, message: billingCopy.unpaid };
     }
 
-    if (session.metadata?.kind === "advisor_inbox" || subscription.metadata.kind === "advisor_inbox") {
+    if (
+      session.metadata?.kind === "advisor_inbox" ||
+      subscription.metadata.kind === "advisor_inbox"
+    ) {
       await applyAdvisorInbox(userId, customerId, subscription);
       return { ok: true, kind: "advisor_inbox" };
     }
@@ -156,11 +188,20 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
       return { ok: false, message: billingCopy.unpaid };
     }
 
-    await applyListing(userId, projectId, session.id, session.metadata?.intent ?? "publish");
+    await applyListing(
+      userId,
+      projectId,
+      session.id,
+      session.metadata?.intent ?? "publish",
+    );
     return { ok: true };
   }
 
-  if (session.mode === "payment" && session.payment_status === "paid" && session.metadata?.kind === "advisor_deposit") {
+  if (
+    session.mode === "payment" &&
+    session.payment_status === "paid" &&
+    session.metadata?.kind === "advisor_deposit"
+  ) {
     const engagementId = session.metadata.engagementId ?? "";
 
     if (engagementId === "") {
@@ -169,13 +210,19 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
 
     const applied = await applyAdvisorDeposit(userId, engagementId, session);
 
-    return applied ? { ok: true } : { ok: false, message: engagementCopy.depositFailed };
+    return applied
+      ? { ok: true }
+      : { ok: false, message: engagementCopy.depositFailed };
   }
 
   return { ok: false, message: billingCopy.unpaid };
 }
 
-async function applyAdvisorDeposit(userId: string, engagementId: string, session: Stripe.Checkout.Session): Promise<boolean> {
+async function applyAdvisorDeposit(
+  userId: string,
+  engagementId: string,
+  session: Stripe.Checkout.Session,
+): Promise<boolean> {
   const row = await prisma.advisoryEngagement.findFirst({
     where: { id: engagementId, advisorId: userId },
     select: {
@@ -188,7 +235,11 @@ async function applyAdvisorDeposit(userId: string, engagementId: string, session
     },
   });
 
-  if (!row || row.declinedAt || session.amount_total !== advisorDepositCents(row.project.askingPriceCents)) {
+  if (
+    !row ||
+    row.declinedAt ||
+    session.amount_total !== advisorDepositCents(row.project.askingPriceCents)
+  ) {
     return false;
   }
 
@@ -214,10 +265,15 @@ async function applyAdvisorDeposit(userId: string, engagementId: string, session
   return true;
 }
 
-export async function syncSubscription(subscription: Stripe.Subscription): Promise<void> {
+export async function syncSubscription(
+  subscription: Stripe.Subscription,
+): Promise<void> {
   if (subscription.metadata.kind === "advisor_inbox") {
     const userId = subscription.metadata.userId;
-    const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+    const customerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer.id;
 
     if (!userId) {
       const existing = await prisma.billingCustomer.findUnique({
@@ -229,7 +285,11 @@ export async function syncSubscription(subscription: Stripe.Subscription): Promi
         return;
       }
 
-      await applyAdvisorInbox(existing.userId, existing.stripeCustomerId, subscription);
+      await applyAdvisorInbox(
+        existing.userId,
+        existing.stripeCustomerId,
+        subscription,
+      );
       return;
     }
 
@@ -249,26 +309,43 @@ export async function syncSubscription(subscription: Stripe.Subscription): Promi
       return;
     }
 
-    await applySubscription(existing.userId, existing.stripeCustomerId, subscription);
+    await applySubscription(
+      existing.userId,
+      existing.stripeCustomerId,
+      subscription,
+    );
     return;
   }
 
-  const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
   await applySubscription(userId, customerId, subscription);
 }
 
 // Fallback when the Stripe return URL never ran (e.g. user returned on another host) and no
 // webhook delivered: look for a paid listing checkout for this project and apply it.
-export async function reconcileListingPayment(userId: string, projectId: string): Promise<boolean> {
+export async function reconcileListingPayment(
+  userId: string,
+  projectId: string,
+): Promise<boolean> {
   const stripe = stripeClient();
-  const billing = await prisma.billingCustomer.findUnique({ where: { userId }, select: { stripeCustomerId: true } });
+  const billing = await prisma.billingCustomer.findUnique({
+    where: { userId },
+    select: { stripeCustomerId: true },
+  });
 
   if (stripe === null || !billing?.stripeCustomerId) {
     return false;
   }
 
   try {
-    const sessions = await stripe.checkout.sessions.list({ customer: billing.stripeCustomerId, status: "complete", limit: 50 });
+    const sessions = await stripe.checkout.sessions.list({
+      customer: billing.stripeCustomerId,
+      status: "complete",
+      limit: 50,
+    });
     const paid = sessions.data.find(
       (session) =>
         session.payment_status === "paid" &&

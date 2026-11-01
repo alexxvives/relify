@@ -61,41 +61,43 @@ export async function getSellerOverview(ownerId: string): Promise<{
   const activeId = await activeSellerProjectId(ownerId);
   const project = activeId
     ? await prisma.project.findFirst({
-    where: { id: activeId, ownerId },
-    select: {
-      legalName: true,
-      cif: true,
-      description: true,
-      saleReason: true,
-      askingPriceCents: true,
-      customerBase: true,
-      headcountRange: true,
-      cnaes: { select: { role: true, code: true } },
-      activitySlices: { select: { kind: true, position: true, basisPoints: true } },
-      years: {
+        where: { id: activeId, ownerId },
         select: {
-          year: true,
-          kind: true,
-          salesCents: true,
-          inventoryChangeCents: true,
-          ownUseCents: true,
-          suppliesCents: true,
-          otherOperatingIncomeCents: true,
-          staffCostsCents: true,
-          otherOperatingCostsCents: true,
-          grantIncomeCents: true,
-          provisionSurplusCents: true,
-          assetImpairmentCents: true,
-          subsidiaryControlLossCents: true,
-          negativeDifferenceCents: true,
-          otherResultsCents: true,
-          amortizationCents: true,
-          currentAssetsCents: true,
-          equityCents: true,
+          legalName: true,
+          cif: true,
+          description: true,
+          saleReason: true,
+          askingPriceCents: true,
+          customerBase: true,
+          headcountRange: true,
+          cnaes: { select: { role: true, code: true } },
+          activitySlices: {
+            select: { kind: true, position: true, basisPoints: true },
+          },
+          years: {
+            select: {
+              year: true,
+              kind: true,
+              salesCents: true,
+              inventoryChangeCents: true,
+              ownUseCents: true,
+              suppliesCents: true,
+              otherOperatingIncomeCents: true,
+              staffCostsCents: true,
+              otherOperatingCostsCents: true,
+              grantIncomeCents: true,
+              provisionSurplusCents: true,
+              assetImpairmentCents: true,
+              subsidiaryControlLossCents: true,
+              negativeDifferenceCents: true,
+              otherResultsCents: true,
+              amortizationCents: true,
+              currentAssetsCents: true,
+              equityCents: true,
+            },
+          },
         },
-      },
-    },
-  })
+      })
     : null;
 
   if (!project) {
@@ -115,13 +117,17 @@ export async function getSellerOverview(ownerId: string): Promise<{
       equity: year.equityCents === null ? "" : "1",
     })),
     headcount: project.headcountRange ?? "",
-    capitalPercents: project.activitySlices.filter((slice) => slice.kind === "capital").map(() => "1"),
+    capitalPercents: project.activitySlices
+      .filter((slice) => slice.kind === "capital")
+      .map(() => "1"),
     askingPrice: centsToEuroInput(project.askingPriceCents),
     saleReason: project.saleReason ?? "",
   });
   const series: SellerYearPoint[] = [];
 
-  for (const year of [...project.years].sort((left, right) => left.year - right.year)) {
+  for (const year of [...project.years].sort(
+    (left, right) => left.year - right.year,
+  )) {
     if (year.salesCents === null && year.kind !== "forecast") {
       continue;
     }
@@ -129,7 +135,8 @@ export async function getSellerOverview(ownerId: string): Promise<{
     series.push({
       year: year.year,
       salesCents: year.salesCents,
-      ebitdaCents: year.salesCents === null ? null : statementEbitda(pnlAmounts(year)),
+      ebitdaCents:
+        year.salesCents === null ? null : statementEbitda(pnlAmounts(year)),
       forecast: year.kind === "forecast",
     });
   }
@@ -167,7 +174,9 @@ function mixGroups(
         basisPoints: slice.basisPoints,
       }));
 
-    return group.length === 0 ? [] : [{ kind, title: mixTitle[kind], slices: group }];
+    return group.length === 0
+      ? []
+      : [{ kind, title: mixTitle[kind], slices: group }];
   });
 }
 
@@ -181,15 +190,24 @@ function costYears(
     amortizationCents: number | null;
   }[],
 ): SellerCostYear[] {
-  const closed = [...years].filter((year) => year.kind === "closed").sort((left, right) => right.year - left.year);
+  const closed = [...years]
+    .filter((year) => year.kind === "closed")
+    .sort((left, right) => right.year - left.year);
 
   return closed.flatMap((year) => {
     const slices = [
       { label: incomeLabels.supplies, cents: year.suppliesCents },
       { label: incomeLabels.staffCosts, cents: year.staffCostsCents },
-      { label: incomeLabels.otherOperatingCosts, cents: year.otherOperatingCostsCents },
+      {
+        label: incomeLabels.otherOperatingCosts,
+        cents: year.otherOperatingCostsCents,
+      },
       { label: incomeLabels.amortization, cents: year.amortizationCents },
-    ].flatMap((item) => (item.cents === null || item.cents === 0 ? [] : [{ label: item.label, cents: Math.abs(item.cents) }]));
+    ].flatMap((item) =>
+      item.cents === null || item.cents === 0
+        ? []
+        : [{ label: item.label, cents: Math.abs(item.cents) }],
+    );
 
     return slices.length === 0 ? [] : [{ year: year.year, slices }];
   });

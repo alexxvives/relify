@@ -8,7 +8,12 @@ export async function readDataRoomFileDownload(
   user: CurrentUser,
   fileId: string,
 ): Promise<{ fileName: string; bytes: Buffer } | null> {
-  if (!user.onboarded || (user.role !== "seller" && user.role !== "investor" && user.role !== "advisor")) {
+  if (
+    !user.onboarded ||
+    (user.role !== "seller" &&
+      user.role !== "investor" &&
+      user.role !== "advisor")
+  ) {
     return null;
   }
 
@@ -49,11 +54,21 @@ export async function readDataRoomFileDownload(
   if (!owns) {
     const [access, grant, share] = await Promise.all([
       prisma.projectAccess.findUnique({
-        where: { projectId_investorId: { projectId: file.project.id, investorId: user.id } },
+        where: {
+          projectId_investorId: {
+            projectId: file.project.id,
+            investorId: user.id,
+          },
+        },
         select: { ndaAcceptedAt: true },
       }),
       prisma.dataRoomGrant.findUnique({
-        where: { projectId_investorId: { projectId: file.project.id, investorId: user.id } },
+        where: {
+          projectId_investorId: {
+            projectId: file.project.id,
+            investorId: user.id,
+          },
+        },
         select: { id: true },
       }),
       prisma.dataRoomFileShare.findUnique({

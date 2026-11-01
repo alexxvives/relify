@@ -5,7 +5,9 @@ import { prisma } from "@/server/db";
 
 export type WaitlistResult = { ok: true } | { ok: false; message: string };
 
-export async function joinWaitlist(input: WaitlistInput): Promise<WaitlistResult> {
+export async function joinWaitlist(
+  input: WaitlistInput,
+): Promise<WaitlistResult> {
   try {
     await prisma.waitlistEntry.create({
       data: {
@@ -17,7 +19,10 @@ export async function joinWaitlist(input: WaitlistInput): Promise<WaitlistResult
       },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
       return { ok: false, message: waitlistCopy.taken };
     }
 

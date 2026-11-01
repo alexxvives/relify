@@ -5,9 +5,13 @@ import { prisma } from "@/server/db";
 
 const projectIdSchema = z.string().trim().min(1).max(128);
 
-export type AdminMutation = { ok: true; message: string } | { ok: false; message: string };
+export type AdminMutation =
+  { ok: true; message: string } | { ok: false; message: string };
 
-export async function unpublishProject(user: CurrentUser, projectId: string): Promise<AdminMutation> {
+export async function unpublishProject(
+  user: CurrentUser,
+  projectId: string,
+): Promise<AdminMutation> {
   if (!user.onboarded || user.role !== "admin") {
     return { ok: false, message: adminCopy.forbidden };
   }

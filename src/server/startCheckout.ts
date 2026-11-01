@@ -1,12 +1,23 @@
 import { requestOrigin } from "@/server/requestOrigin";
-import { ADVISOR_INBOX_NET_CENTS, SELLER_LISTING_NET_CENTS, advisorDepositCents, grossCents, planNetCents } from "@/lib/billing";
+import {
+  ADVISOR_INBOX_NET_CENTS,
+  SELLER_LISTING_NET_CENTS,
+  advisorDepositCents,
+  grossCents,
+  planNetCents,
+} from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
-import { integrationLabel, spanishIvaRate, stripeClient } from "@/server/stripe";
+import {
+  integrationLabel,
+  spanishIvaRate,
+  stripeClient,
+} from "@/server/stripe";
 
-export type CheckoutStart = { ok: true; url: string } | { ok: false; message: string };
+export type CheckoutStart =
+  { ok: true; url: string } | { ok: false; message: string };
 
 function isStripeCustomerId(id: string): boolean {
   return id.startsWith("cus_");
@@ -26,7 +37,9 @@ async function customerId(user: CurrentUser): Promise<string | null> {
 
   if (existing && isStripeCustomerId(existing.stripeCustomerId)) {
     try {
-      const customer = await stripe.customers.retrieve(existing.stripeCustomerId);
+      const customer = await stripe.customers.retrieve(
+        existing.stripeCustomerId,
+      );
 
       if (!customer.deleted) {
         return existing.stripeCustomerId;
@@ -93,36 +106,41 @@ export async function startBuyerCheckout(
   const origin = await requestOrigin();
 
   try {
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer,
-    client_reference_id: user.id,
-    locale: "es",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: grossCents(planNetCents(plan)),
-          recurring: { interval: "month" },
-          product_data: {
-            name: plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados",
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer,
+      client_reference_id: user.id,
+      locale: "es",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: grossCents(planNetCents(plan)),
+            recurring: { interval: "month" },
+            product_data: {
+              name:
+                plan === "limited"
+                  ? "Relify 3 matches"
+                  : "Relify matches ilimitados",
+            },
           },
         },
+      ],
+      metadata: { kind: "buyer_plan", plan, userId: user.id },
+      subscription_data: {
+        metadata: { kind: "buyer_plan", plan, userId: user.id },
       },
-    ],
-    metadata: { kind: "buyer_plan", plan, userId: user.id },
-    subscription_data: { metadata: { kind: "buyer_plan", plan, userId: user.id } },
-    success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}${options.cancelPath ?? "/premium"}`,
-    integration_identifier: integrationLabel("Relify_buyer"),
-  });
+      success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}${options.cancelPath ?? "/premium"}`,
+      integration_identifier: integrationLabel("Relify_buyer"),
+    });
 
-  if (!session.url) {
-    return { ok: false, message: billingCopy.stripeFailed };
-  }
+    if (!session.url) {
+      return { ok: false, message: billingCopy.stripeFailed };
+    }
 
-  return { ok: true, url: session.url };
+    return { ok: true, url: session.url };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }
@@ -150,40 +168,48 @@ export async function startListingCheckout(
   const ivaRate = await spanishIvaRate(stripe);
 
   try {
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer,
-    client_reference_id: user.id,
-    locale: "es",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: ivaRate === null ? grossCents(SELLER_LISTING_NET_CENTS) : SELLER_LISTING_NET_CENTS,
-          product_data: { name: "Relify empresa adicional" },
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer,
+      client_reference_id: user.id,
+      locale: "es",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount:
+              ivaRate === null
+                ? grossCents(SELLER_LISTING_NET_CENTS)
+                : SELLER_LISTING_NET_CENTS,
+            product_data: { name: "Relify empresa adicional" },
+          },
+          ...(ivaRate === null ? {} : { tax_rates: [ivaRate] }),
         },
-        ...(ivaRate === null ? {} : { tax_rates: [ivaRate] }),
-      },
-    ],
-    metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
-    success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}${successPath}`,
-    integration_identifier: integrationLabel("Relify_listing"),
-  });
+      ],
+      metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
+      success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}${successPath}`,
+      integration_identifier: integrationLabel("Relify_listing"),
+    });
 
-  if (!session.url) {
-    return { ok: false, message: billingCopy.stripeFailed };
-  }
+    if (!session.url) {
+      return { ok: false, message: billingCopy.stripeFailed };
+    }
 
-  return { ok: true, url: session.url };
+    return { ok: true, url: session.url };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }
 }
 
-export async function startAdvisorInboxCheckout(user: CurrentUser, returnPath = "/mandatos/encargos"): Promise<CheckoutStart> {
-  const back = /^\/mandatos\/encargos(\/[A-Za-z0-9_-]+)?$/.test(returnPath) ? returnPath : "/mandatos/encargos";
+export async function startAdvisorInboxCheckout(
+  user: CurrentUser,
+  returnPath = "/mandatos/encargos",
+): Promise<CheckoutStart> {
+  const back = /^\/mandatos\/encargos(\/[A-Za-z0-9_-]+)?$/.test(returnPath)
+    ? returnPath
+    : "/mandatos/encargos";
   const stripe = stripeClient();
 
   if (stripe === null || user.role !== "advisor") {
@@ -225,7 +251,9 @@ export async function startAdvisorInboxCheckout(user: CurrentUser, returnPath = 
         },
       ],
       metadata: { kind: "advisor_inbox", userId: user.id },
-      subscription_data: { metadata: { kind: "advisor_inbox", userId: user.id } },
+      subscription_data: {
+        metadata: { kind: "advisor_inbox", userId: user.id },
+      },
       success_url: `${origin}${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${back}`,
       integration_identifier: integrationLabel("Relify_inbox"),
@@ -241,7 +269,10 @@ export async function startAdvisorInboxCheckout(user: CurrentUser, returnPath = 
   }
 }
 
-export async function startAdvisorDepositCheckout(user: CurrentUser, engagementId: string): Promise<CheckoutStart> {
+export async function startAdvisorDepositCheckout(
+  user: CurrentUser,
+  engagementId: string,
+): Promise<CheckoutStart> {
   const stripe = stripeClient();
 
   if (stripe === null || user.role !== "advisor") {
@@ -262,7 +293,10 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
     return { ok: false, message: engagementCopy.missing };
   }
 
-  const subscription = await prisma.billingCustomer.findUnique({ where: { userId: user.id }, select: { advisorInbox: true } });
+  const subscription = await prisma.billingCustomer.findUnique({
+    where: { userId: user.id },
+    select: { advisorInbox: true },
+  });
 
   if (subscription?.advisorInbox !== true) {
     return { ok: false, message: engagementCopy.subscriptionRequired };
@@ -297,7 +331,11 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
           },
         },
       ],
-      metadata: { kind: "advisor_deposit", userId: user.id, engagementId: row.id },
+      metadata: {
+        kind: "advisor_deposit",
+        userId: user.id,
+        engagementId: row.id,
+      },
       success_url: `${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: back,
       integration_identifier: integrationLabel("Relify_deposit"),
@@ -312,4 +350,3 @@ export async function startAdvisorDepositCheckout(user: CurrentUser, engagementI
     return { ok: false, message: billingCopy.stripeFailed };
   }
 }
-

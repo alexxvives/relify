@@ -10,7 +10,11 @@ import { activeSellerChoice, sellerCompanyCookie } from "@/lib/seller-company";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
-import { dealPipeline, homePendingActions, processFlags } from "@/lib/deal-pipeline";
+import {
+  dealPipeline,
+  homePendingActions,
+  processFlags,
+} from "@/lib/deal-pipeline";
 import { deleteDataRoomBytes } from "@/server/dataRoomDisk";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 
@@ -43,25 +47,46 @@ export async function listSellerAdvisoryCompanies(
  * "Your turn" actions per company, from the same pipeline that draws Mis procesos (dealPipeline + homePendingActions),
  * so the company switcher, the bell and the Mis procesos list can never disagree.
  */
-export async function sellerPendingByProject(ownerId: string): Promise<Map<string, number>> {
+export async function sellerPendingByProject(
+  ownerId: string,
+): Promise<Map<string, number>> {
   const [accesses, messages, grants, fees] = await Promise.all([
     prisma.projectAccess.findMany({
       where: { project: { ownerId, NOT: { cif: "" } }, cancelledAt: null },
-      select: { id: true, projectId: true, investorId: true, sellerAcceptedAt: true, ndaAcceptedAt: true, loiAcceptedAt: true, diligencePassedAt: true },
+      select: {
+        id: true,
+        projectId: true,
+        investorId: true,
+        sellerAcceptedAt: true,
+        ndaAcceptedAt: true,
+        loiAcceptedAt: true,
+        diligencePassedAt: true,
+      },
     }),
     prisma.projectMessage.findMany({
-      where: { project: { ownerId }, kind: { in: ["question", "meeting", "offer"] } },
+      where: {
+        project: { ownerId },
+        kind: { in: ["question", "meeting", "offer"] },
+      },
       select: { projectId: true, investorId: true, kind: true },
     }),
-    prisma.dataRoomGrant.findMany({ where: { project: { ownerId } }, select: { projectId: true, investorId: true } }),
-    prisma.successFee.findMany({ where: { project: { ownerId } }, select: { projectId: true } }),
+    prisma.dataRoomGrant.findMany({
+      where: { project: { ownerId } },
+      select: { projectId: true, investorId: true },
+    }),
+    prisma.successFee.findMany({
+      where: { project: { ownerId } },
+      select: { projectId: true },
+    }),
   ]);
   const kinds = new Map<string, Set<string>>();
   for (const message of messages) {
     const key = `${message.projectId}:${message.investorId}`;
     kinds.set(key, (kinds.get(key) ?? new Set()).add(message.kind));
   }
-  const granted = new Set(grants.map((grant) => `${grant.projectId}:${grant.investorId}`));
+  const granted = new Set(
+    grants.map((grant) => `${grant.projectId}:${grant.investorId}`),
+  );
   const closed = new Set(fees.map((fee) => fee.projectId));
   const actions = homePendingActions(
     "seller",
@@ -96,7 +121,9 @@ export async function sellerPendingByProject(ownerId: string): Promise<Map<strin
   return pendingBy;
 }
 
-export async function listSellerCompanies(ownerId: string): Promise<SellerCompanyChoice[]> {
+export async function listSellerCompanies(
+  ownerId: string,
+): Promise<SellerCompanyChoice[]> {
   const [rows, prefill, pendingBy] = await Promise.all([
     prisma.project.findMany({
       where: { ownerId, NOT: { cif: "" } },
@@ -111,22 +138,33 @@ export async function listSellerCompanies(ownerId: string): Promise<SellerCompan
   ]);
   return rows.map((row) => {
     const legal = row.legalName.trim();
-    const fromBulletin = prefill && prefill.cif === row.cif ? prefill.legalName.trim() : "";
+    const fromBulletin =
+      prefill && prefill.cif === row.cif ? prefill.legalName.trim() : "";
 
     return {
       id: row.id,
       codename: row.codename,
       pending: pendingBy.get(row.id) ?? 0,
-      legalName: legal.length > 0 ? row.legalName : fromBulletin.length > 0 ? fromBulletin : row.codename,
+      legalName:
+        legal.length > 0
+          ? row.legalName
+          : fromBulletin.length > 0
+            ? fromBulletin
+            : row.codename,
     };
   });
 }
 
-export async function sellerProcessScope(ownerId: string): Promise<{ codename: string; elsewhere: string | null }> {
+export async function sellerProcessScope(
+  ownerId: string,
+): Promise<{ codename: string; elsewhere: string | null }> {
   const projectId = await activeSellerProjectId(ownerId);
   const [current, others] = await Promise.all([
     projectId
-      ? prisma.project.findFirst({ where: { id: projectId, ownerId }, select: { codename: true } })
+      ? prisma.project.findFirst({
+          where: { id: projectId, ownerId },
+          select: { codename: true },
+        })
       : Promise.resolve(null),
     prisma.project.findMany({
       where: {
@@ -152,7 +190,9 @@ export async function sellerProcessScope(ownerId: string): Promise<{ codename: s
  */
 export const activeSellerProjectId = cache(resolveActiveSellerProjectId);
 
-async function resolveActiveSellerProjectId(ownerId: string): Promise<string | null> {
+async function resolveActiveSellerProjectId(
+  ownerId: string,
+): Promise<string | null> {
   const companies = await prisma.project.findMany({
     where: { ownerId },
     orderBy: { createdAt: "asc" },
@@ -168,7 +208,10 @@ async function rememberCompany(projectId: string): Promise<void> {
   jar.set(sellerCompanyCookie, projectId, cookieOptions);
 }
 
-export async function selectSellerCompany(ownerId: string, projectId: string): Promise<boolean> {
+export async function selectSellerCompany(
+  ownerId: string,
+  projectId: string,
+): Promise<boolean> {
   const owned = await prisma.project.findFirst({
     where: { id: projectId, ownerId },
     select: { id: true },
@@ -187,7 +230,9 @@ async function unusedSlug(codename: string): Promise<string> {
   let slug = base;
   let suffix = 2;
 
-  while (await prisma.project.findUnique({ where: { slug }, select: { id: true } })) {
+  while (
+    await prisma.project.findUnique({ where: { slug }, select: { id: true } })
+  ) {
     slug = `${base}-${suffix}`;
     suffix += 1;
   }
@@ -196,7 +241,10 @@ async function unusedSlug(codename: string): Promise<string> {
 }
 
 /** A blank draft owned by the seller, already carrying the CIF and queued for the SABI import. */
-async function createDraftProject(ownerId: string, cif: string): Promise<{ id: string; slug: string }> {
+async function createDraftProject(
+  ownerId: string,
+  cif: string,
+): Promise<{ id: string; slug: string }> {
   const codename = await uniqueCodename();
   const id = randomUUID();
   const slug = await unusedSlug(codename);
@@ -229,10 +277,16 @@ async function createDraftProject(ownerId: string, cif: string): Promise<{ id: s
  * First CIF of a seller with no draft yet: create the company right away so admins see it
  * (before, it lived only in user.pendingCif until the first draft save).
  */
-export async function createFirstSellerCompany(ownerId: string, cif: string): Promise<{ id: string; slug: string }> {
+export async function createFirstSellerCompany(
+  ownerId: string,
+  cif: string,
+): Promise<{ id: string; slug: string }> {
   const project = await createDraftProject(ownerId, cif);
   await rememberCompany(project.id);
-  await prisma.user.update({ where: { id: ownerId }, data: { pendingCif: null } });
+  await prisma.user.update({
+    where: { id: ownerId },
+    data: { pendingCif: null },
+  });
   return project;
 }
 
@@ -241,7 +295,9 @@ export async function createFirstSellerCompany(ownerId: string, cif: string): Pr
  * a pending CIF with no project becomes a draft. Safe to call from any request (no cookie);
  * the conditional update on pendingCif keeps two concurrent calls from creating twins.
  */
-export async function materializePendingCompanies(ownerId?: string): Promise<number> {
+export async function materializePendingCompanies(
+  ownerId?: string,
+): Promise<number> {
   const users = await prisma.user.findMany({
     where: {
       ...(ownerId ? { id: ownerId } : {}),
@@ -256,7 +312,10 @@ export async function materializePendingCompanies(ownerId?: string): Promise<num
   let created = 0;
   for (const user of users) {
     const cif = user.pendingCif ?? "";
-    const claimed = await prisma.user.updateMany({ where: { id: user.id, pendingCif: cif }, data: { pendingCif: null } });
+    const claimed = await prisma.user.updateMany({
+      where: { id: user.id, pendingCif: cif },
+      data: { pendingCif: null },
+    });
     if (claimed.count !== 1) {
       continue;
     }
@@ -288,7 +347,10 @@ function prefillData(record: RegistryCompany) {
 export async function addSellerCompany(
   user: CurrentUser,
   rawNif: string,
-): Promise<{ ok: true; projectId: string; needsPayment: boolean } | { ok: false; message: string }> {
+): Promise<
+  | { ok: true; projectId: string; needsPayment: boolean }
+  | { ok: false; message: string }
+> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: companyCopy.nifNotSeller };
   }
@@ -319,7 +381,9 @@ export async function addSellerCompany(
       update: data,
     });
   } else {
-    await prisma.companyRegistryPrefill.deleteMany({ where: { userId: user.id } });
+    await prisma.companyRegistryPrefill.deleteMany({
+      where: { userId: user.id },
+    });
   }
 
   const existing = await prisma.project.findFirst({
@@ -329,7 +393,10 @@ export async function addSellerCompany(
 
   if (existing) {
     await rememberCompany(existing.id);
-    await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { pendingCif: null },
+    });
     return { ok: true, projectId: existing.id, needsPayment: false };
   }
 
@@ -353,7 +420,10 @@ export async function addSellerCompany(
       where: { id: blank.id },
       data: {
         cif,
-        ...(blank.legalName.trim().length === 0 && blank.codename === "Proyecto nuevo" ? { codename } : {}),
+        ...(blank.legalName.trim().length === 0 &&
+        blank.codename === "Proyecto nuevo"
+          ? { codename }
+          : {}),
       },
     });
     await rememberCompany(blank.id);
@@ -382,7 +452,10 @@ export async function addSellerCompany(
     await rememberCompany(projectId);
   }
 
-  await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { pendingCif: null },
+  });
   return { ok: true, projectId, needsPayment };
 }
 

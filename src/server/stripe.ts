@@ -77,8 +77,14 @@ export async function spanishIvaRate(stripe: Stripe): Promise<string | null> {
   }
 
   try {
-    const rates = await stripe.taxRates.list({ active: true, inclusive: false, limit: 100 });
-    const existing = rates.data.find((rate) => rate.metadata?.relify === "iva21" && rate.percentage === 21);
+    const rates = await stripe.taxRates.list({
+      active: true,
+      inclusive: false,
+      limit: 100,
+    });
+    const existing = rates.data.find(
+      (rate) => rate.metadata?.relify === "iva21" && rate.percentage === 21,
+    );
     const rate =
       existing ??
       (await stripe.taxRates.create({

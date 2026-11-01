@@ -1,9 +1,19 @@
-import { maxAnnualAccountsBytes, parseAnnualAccounts, type AnnualAccountsParse } from "@/lib/annual-accounts";
+import {
+  maxAnnualAccountsBytes,
+  parseAnnualAccounts,
+  type AnnualAccountsParse,
+} from "@/lib/annual-accounts";
 import type { CurrentUser } from "@/server/getCurrentUser";
 
-export type AnnualAccountsRead = AnnualAccountsParse | { ok: false; code: "forbidden" | "empty" | "too-large" };
+export type AnnualAccountsRead =
+  | AnnualAccountsParse
+  | { ok: false; code: "forbidden" | "empty" | "too-large" };
 
-export async function readAnnualAccounts(user: CurrentUser, bytes: Uint8Array, fileName: string): Promise<AnnualAccountsRead> {
+export async function readAnnualAccounts(
+  user: CurrentUser,
+  bytes: Uint8Array,
+  fileName: string,
+): Promise<AnnualAccountsRead> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, code: "forbidden" };
   }

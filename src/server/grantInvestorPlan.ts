@@ -10,9 +10,14 @@ const inputSchema = z.object({
 
 const grantDays = 30;
 
-export type AdminMutation = { ok: true; message: string } | { ok: false; message: string };
+export type AdminMutation =
+  { ok: true; message: string } | { ok: false; message: string };
 
-export async function grantInvestorPlan(user: CurrentUser, userId: string, plan: string): Promise<AdminMutation> {
+export async function grantInvestorPlan(
+  user: CurrentUser,
+  userId: string,
+  plan: string,
+): Promise<AdminMutation> {
   if (!user.onboarded || user.role !== "admin") {
     return { ok: false, message: adminCopy.forbidden };
   }
@@ -25,7 +30,11 @@ export async function grantInvestorPlan(user: CurrentUser, userId: string, plan:
 
   const account = await prisma.user.findUnique({
     where: { id: parsed.data.userId },
-    select: { id: true, role: true, billingCustomer: { select: { stripeCustomerId: true } } },
+    select: {
+      id: true,
+      role: true,
+      billingCustomer: { select: { stripeCustomerId: true } },
+    },
   });
 
   if (!account) {

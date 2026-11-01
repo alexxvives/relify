@@ -4,12 +4,18 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 import { readServerEnv } from "@/lib/env";
 import { type AppPrismaClient, withNumberCents } from "./numberCents";
-import { getRequestContext, isInsideUnifiedScope } from "vinext/shims/unified-request-context";
+import {
+  getRequestContext,
+  isInsideUnifiedScope,
+} from "vinext/shims/unified-request-context";
 
 const globalForPrisma = globalThis as unknown as { prisma?: AppPrismaClient };
 
 function onWorkers(): boolean {
-  return typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+  return (
+    typeof navigator !== "undefined" &&
+    navigator.userAgent === "Cloudflare-Workers"
+  );
 }
 
 function isLocalDatabase(url: string): boolean {

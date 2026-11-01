@@ -4,7 +4,10 @@ import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { lookupCompanyRegistry } from "@/server/lookupCompanyRegistry";
 import { prisma } from "@/server/db";
-import { activeSellerProjectId, createFirstSellerCompany } from "@/server/sellerCompany";
+import {
+  activeSellerProjectId,
+  createFirstSellerCompany,
+} from "@/server/sellerCompany";
 import { notifySabiRequest } from "@/server/notifySabiRequest";
 
 export type VerifyNifResult = { ok: true } | { ok: false; message: string };
@@ -28,7 +31,10 @@ function prefillData(record: RegistryCompany) {
   };
 }
 
-export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promise<VerifyNifResult> {
+export async function verifyCompanyNif(
+  user: CurrentUser,
+  rawNif: string,
+): Promise<VerifyNifResult> {
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: companyCopy.nifNotSeller };
   }
@@ -59,14 +65,22 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
       update: data,
     });
   } else {
-    await prisma.companyRegistryPrefill.deleteMany({ where: { userId: user.id } });
+    await prisma.companyRegistryPrefill.deleteMany({
+      where: { userId: user.id },
+    });
   }
 
   const activeId = await activeSellerProjectId(user.id);
   const draft = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: user.id },
-        select: { id: true, cif: true, slug: true, legalName: true, sabiRequestedAt: true },
+        select: {
+          id: true,
+          cif: true,
+          slug: true,
+          legalName: true,
+          sabiRequestedAt: true,
+        },
       })
     : null;
 
@@ -86,7 +100,10 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
         slug: draft.slug,
       });
     }
-    await prisma.user.update({ where: { id: user.id }, data: { pendingCif: null } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { pendingCif: null },
+    });
     return { ok: true };
   }
 
@@ -102,7 +119,9 @@ export async function verifyCompanyNif(user: CurrentUser, rawNif: string): Promi
   return { ok: true };
 }
 
-export async function companyNifIsVerified(user: CurrentUser): Promise<boolean> {
+export async function companyNifIsVerified(
+  user: CurrentUser,
+): Promise<boolean> {
   if (user.role !== "seller") {
     return false;
   }
@@ -113,7 +132,10 @@ export async function companyNifIsVerified(user: CurrentUser): Promise<boolean> 
       orderBy: { createdAt: "desc" },
       select: { cif: true },
     }),
-    prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { pendingCif: true },
+    }),
   ]);
   const stored = owned?.cif.trim() ?? "";
   const pending = account?.pendingCif?.trim() ?? "";
@@ -130,7 +152,10 @@ export async function getSellerCif(user: CurrentUser): Promise<string> {
           select: { cif: true },
         })
       : null,
-    prisma.user.findUnique({ where: { id: user.id }, select: { pendingCif: true } }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { pendingCif: true },
+    }),
   ]);
   const stored = owned?.cif.trim() ?? "";
 
@@ -141,7 +166,9 @@ export async function getSellerCif(user: CurrentUser): Promise<string> {
   return account?.pendingCif?.trim() ?? "";
 }
 
-export async function sellerHasRegistryPrefill(user: CurrentUser): Promise<boolean> {
+export async function sellerHasRegistryPrefill(
+  user: CurrentUser,
+): Promise<boolean> {
   const row = await prisma.companyRegistryPrefill.findUnique({
     where: { userId: user.id },
     select: { userId: true },

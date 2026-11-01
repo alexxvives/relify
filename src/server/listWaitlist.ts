@@ -12,16 +12,27 @@ export type AdminWaitlistRow = {
   createdAt: string;
 };
 
-const roleLabels: Record<string, string> = Object.fromEntries(waitlistCopy.roles.map((role) => [role.id, role.label]));
+const roleLabels: Record<string, string> = Object.fromEntries(
+  waitlistCopy.roles.map((role) => [role.id, role.label]),
+);
 
-export async function listWaitlist(user: CurrentUser): Promise<AdminWaitlistRow[]> {
+export async function listWaitlist(
+  user: CurrentUser,
+): Promise<AdminWaitlistRow[]> {
   if (!user.onboarded || user.role !== "admin") {
     return [];
   }
 
   const entries = await prisma.waitlistEntry.findMany({
     orderBy: { createdAt: "desc" },
-    select: { id: true, name: true, email: true, role: true, city: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      city: true,
+      createdAt: true,
+    },
   });
 
   return entries.map((entry) => ({
