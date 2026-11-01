@@ -140,7 +140,7 @@ function ReportSection({
         <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open/section:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
-        {intro ? <p className="mb-4 max-w-3xl text-sm leading-6 text-[#5c6b78]">{intro}</p> : null}
+        {intro ? <p className="mb-4 text-sm leading-6 text-[#5c6b78]">{intro}</p> : null}
         {children}
       </div>
     </details>
@@ -863,7 +863,7 @@ export function CompanyReport({
                   ))}
                 </div>
               ) : null}
-              {teamSentence ? <p className="max-w-3xl text-sm leading-6 text-[#3d4a63]">{teamSentence}</p> : null}
+              {teamSentence ? <p className="text-sm leading-6 text-[#3d4a63]">{teamSentence}</p> : null}
               <div className="grid gap-4 lg:grid-cols-2">
                 {employees.some((value) => value !== null) ? (
                   <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
@@ -938,7 +938,7 @@ export function CompanyReport({
           />
           {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
-        <p className="mt-4 max-w-3xl text-xs leading-5 text-[#5c6b78]">
+        <p className="mt-4 text-xs leading-5 text-[#5c6b78]">
           El registro mercantil (SABI) solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.
         </p>
       </ReportSection>
