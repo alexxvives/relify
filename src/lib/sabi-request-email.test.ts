@@ -20,7 +20,7 @@ describe("sabiRequestEmail", () => {
   });
 
   it("falls back when the registry has no name", () => {
-    expect(sabiRequestEmail({ companyName: " ", cif: "B1", ownerName: "", ownerEmail: "a@b.c", adminUrl: "u" }).subject).toContain(
+    expect(sabiRequestEmail({ companyName: " ", cif: "B1", ownerName: "", ownerEmail: "a@b.c", adminUrl: "https://example.com/u" }).subject).toContain(
       "Empresa sin razón social",
     );
   });
