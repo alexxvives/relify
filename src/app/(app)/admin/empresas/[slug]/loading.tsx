@@ -1,5 +1,5 @@
-import { DetailSkeleton } from "@/components/shell-skeleton";
+import { AdminCompanySkeleton } from "@/components/page-skeletons";
 
 export default function Loading() {
-  return <DetailSkeleton />;
+  return <AdminCompanySkeleton />;
 }

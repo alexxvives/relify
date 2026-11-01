@@ -943,3 +943,64 @@ export function AdminBillingSkeleton() {
     </Shell>
   );
 }
+
+/**
+ * t73: /admin/empresas/[slug] while loading. Mirrors the real page: back link, navy banner with the
+ * SABI pill (and drop hint) top-right, the tabs row, the sticky section-nav pill bar and the
+ * collapsible report sections (icon square, title, chevron, KPI grid).
+ */
+export function AdminCompanySkeleton() {
+  const bone = "rounded-lg bg-[#e9edf2]";
+  const section = "rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]";
+  return (
+    <div className="flex w-full animate-pulse flex-col gap-6 motion-reduce:animate-none" role="status" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Cargando…</span>
+      <div className={`h-4 w-40 ${bone}`} />
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-[#1c2740] px-6 py-[4.625rem] sm:px-8 sm:py-[5.125rem]">
+        <div className="absolute top-6 right-6 flex flex-col items-center gap-1">
+          <div className="h-10 w-44 rounded-full bg-white/20" />
+          <div className="hidden h-3 w-36 rounded bg-white/10 sm:block" />
+        </div>
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 pt-2">
+          <div className="h-14 w-3/4 rounded-xl bg-white/20 sm:h-16" />
+          <div className="flex gap-4">
+            <div className="h-4 w-24 rounded bg-white/15" />
+            <div className="h-4 w-24 rounded bg-white/15" />
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-1 border-b border-[#e6e9f0] pb-2">
+        {[28, 24, 24].map((w, i) => (
+          <div key={i} className={`h-8 ${bone}`} style={{ width: `${w * 0.25}rem` }} />
+        ))}
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="sticky top-0 z-20 py-2">
+          <div className="flex items-center gap-1 overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white p-1.5">
+            {Array.from({ length: 11 }, (_, i) => (
+              <div key={i} className={`h-9 shrink-0 rounded-xl ${i === 0 ? "bg-[#1c2740]/80" : "bg-[#eef0f4]"}`} style={{ width: `${5.5 + (i % 3)}rem` }} />
+            ))}
+          </div>
+        </div>
+        {Array.from({ length: 3 }, (_, s) => (
+          <div key={s} className={section}>
+            <div className="flex items-center gap-3 px-4 py-4 sm:px-6">
+              <div className="size-9 shrink-0 rounded-xl bg-[#e6f4f2]" />
+              <div className={`h-5 w-48 ${bone}`} />
+              <div className="ml-auto size-5 rounded bg-[#eef0f4]" />
+            </div>
+            <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
+              <div className={`mb-4 h-3 w-2/3 ${bone}`} />
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <div key={i} className="h-24 rounded-xl border border-[#eef0f4] bg-[#fafbfc]" />
+                ))}
+              </div>
+              {s === 1 ? <div className="mt-4 h-56 rounded-xl border border-[#eef0f4] bg-[#fafbfc]" /> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
