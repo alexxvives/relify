@@ -4,10 +4,19 @@ import { formatEur } from "@/lib/money";
 export function FinancialTable({
   years,
   rows,
+  trend = false,
+  shareOf,
 }: {
   years: { year: number; forecast: boolean }[];
   rows: { key: string; label: string; emphasis: boolean; values: Array<number | null> }[];
+  /** t70: adds a sparkline column so the eye reads the direction of each row. */
+  trend?: boolean;
+  /** t70: row whose last closed value is the 100 % base for a "% sobre" column with a mini bar. */
+  shareOf?: { key: string; label: string };
 }) {
+  const baseRow = shareOf ? rows.find((row) => row.key === shareOf.key) : undefined;
+  const baseIndex = baseRow ? lastClosedIndex(years, baseRow.values) : -1;
+  const base = baseIndex >= 0 ? baseRow!.values[baseIndex]! : null;
   if (years.length === 0) {
     return <p className="text-sm text-[#8b95a7]">{companyCopy.unavailable}</p>;
   }
@@ -26,6 +35,12 @@ export function FinancialTable({
                 {year.forecast ? `${companyCopy.forecastMark} ${year.year}` : year.year}
               </th>
             ))}
+            {trend ? <th className="px-3 py-3 text-center font-medium">Tendencia</th> : null}
+            {base !== null ? (
+              <th className="px-3 py-3 text-left font-medium whitespace-nowrap">
+                % s/ {shareOf!.label} {years[baseIndex]?.year}
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -42,6 +57,12 @@ export function FinancialTable({
                   </td>
                 );
               })}
+              {trend ? (
+                <td className="px-3 py-2 text-center">
+                  <MiniTrend values={row.values} />
+                </td>
+              ) : null}
+              {base !== null ? <ShareCell value={row.values[baseIndex] ?? null} base={base} /> : null}
             </tr>
           ))}
         </tbody>
@@ -66,4 +87,57 @@ function amountClass(emphasis: boolean, forecast: boolean, value: number | null)
   }
 
   return parts.join(" ");
+}
+
+function lastClosedIndex(years: { forecast: boolean }[], values: Array<number | null>): number {
+  for (let index = values.length - 1; index >= 0; index -= 1) {
+    const value = values[index];
+    if (years[index]?.forecast !== true && value !== null && value !== undefined && value > 0) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+/** Plain SVG sparkline, no hooks, so the table stays server-renderable. */
+function MiniTrend({ values }: { values: Array<number | null> }) {
+  const points = values.flatMap((value, index) => (value === null ? [] : [{ index, value }]));
+  if (points.length < 2) {
+    return <span className="text-[#c3c9d3]">—</span>;
+  }
+  const min = Math.min(0, ...points.map((point) => point.value));
+  const max = Math.max(0, ...points.map((point) => point.value));
+  const span = max - min || 1;
+  const width = 64;
+  const height = 20;
+  const x = (index: number) => (values.length === 1 ? width / 2 : (index / (values.length - 1)) * (width - 4) + 2);
+  const y = (value: number) => height - 2 - ((value - min) / span) * (height - 4);
+  const first = points[0]!.value;
+  const last = points[points.length - 1]!.value;
+  const color = last >= first ? "#0f766e" : "#a12f2f";
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="inline-block h-5 w-16" aria-label={last >= first ? "Sube" : "Baja"} role="img">
+      {min < 0 ? <line x1="0" x2={width} y1={y(0)} y2={y(0)} stroke="#e3e7ed" strokeWidth="1" /> : null}
+      <polyline points={points.map((point) => `${x(point.index)},${y(point.value)}`).join(" ")} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={x(points[points.length - 1]!.index)} cy={y(last)} r="1.8" fill={color} />
+    </svg>
+  );
+}
+
+function ShareCell({ value, base }: { value: number | null; base: number }) {
+  if (value === null) {
+    return <td className="px-3 py-2 text-[#c3c9d3]">—</td>;
+  }
+  const pct = (value / base) * 100;
+  const width = Math.min(100, Math.abs(pct));
+  return (
+    <td className="px-3 py-2">
+      <span className="flex items-center gap-2">
+        <span className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[#eef0f4]">
+          <span className={`block h-full rounded-full ${pct < 0 ? "bg-[#d98080]" : "bg-[#2fc4b2]"}`} style={{ width: `${width}%` }} />
+        </span>
+        <span className={`text-xs tabular-nums ${pct < 0 ? "text-[#a12f2f]" : "text-[#3d4a63]"}`}>{pct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %</span>
+      </span>
+    </td>
+  );
 }

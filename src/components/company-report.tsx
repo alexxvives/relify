@@ -542,6 +542,7 @@ export function CompanyReport({
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
   const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
   const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
+  const composition = balanceComposition(years);
   const deal = dealReading(project, years.length > 0);
 
   const sections = [
@@ -919,11 +920,12 @@ export function CompanyReport({
             <>
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.incomeHeading}</h3>
-                <FinancialTable years={project.incomeYears} rows={project.incomeRows} />
+                <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend shareOf={{ key: "sales", label: "ventas" }} />
               </div>
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.balanceHeading}</h3>
-                <FinancialTable years={project.balanceYears} rows={project.balanceRows} />
+                {composition ? <BalanceComposition reading={composition} /> : null}
+                <FinancialTable years={project.balanceYears} rows={project.balanceRows} trend shareOf={{ key: "totalAssets", label: "activo" }} />
               </div>
               {indicatorRows.length > 0 ? (
                 <div>
@@ -934,7 +936,7 @@ export function CompanyReport({
               {detailRows.length > 0 ? (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
-                  <FinancialTable years={project.balanceYears} rows={detailRows} />
+                  <FinancialTable years={project.balanceYears} rows={detailRows} trend />
                 </div>
               ) : null}
             </>
@@ -945,6 +947,61 @@ export function CompanyReport({
           {role === "admin" ? adminDetail : null}
         </div>
       </ReportSection>
+    </div>
+  );
+}
+
+type Composition = { year: SabiYear; assets: { label: string; value: number; color: string }[]; funding: { label: string; value: number; color: string }[] };
+
+/** t70: last closed balance as two 100 % bars (what it owns vs how it is funded). Null without a usable balance. */
+function balanceComposition(years: SabiYear[]): Composition | null {
+  const year = [...years].reverse().find((item) => item.totalAssetsCents !== null && item.totalAssetsCents > 0);
+  if (!year) {
+    return null;
+  }
+  const keep = (parts: { label: string; value: number | null; color: string }[]) => parts.flatMap((part) => (part.value !== null && part.value !== 0 ? [{ ...part, value: part.value }] : []));
+  const cash = year.cashCents ?? null;
+  const currentNoCash = year.currentAssetsCents !== null ? year.currentAssetsCents - (cash ?? 0) : null;
+  const assets = keep([
+    { label: "Activo no corriente", value: year.nonCurrentAssetsCents, color: navy },
+    { label: "Activo corriente (sin caja)", value: currentNoCash, color: "#5b6b8c" },
+    { label: "Caja", value: cash, color: "#9aa6bd" },
+  ]);
+  const funding = keep([
+    { label: "Patrimonio neto", value: year.equityCents, color: teal },
+    { label: "Pasivo no corriente", value: year.nonCurrentLiabilitiesCents, color: tealMid },
+    { label: "Pasivo corriente", value: year.currentLiabilitiesCents, color: tealLight },
+  ]);
+  return assets.length > 0 && funding.length > 0 ? { year, assets, funding } : null;
+}
+
+function BalanceComposition({ reading }: { reading: Composition }) {
+  const bar = (title: string, parts: Composition["assets"]) => {
+    const total = parts.reduce((sum, part) => sum + Math.abs(part.value), 0) || 1;
+    return (
+      <div>
+        <p className="mb-1 text-xs font-medium text-[#5c6b78]">{title}</p>
+        <div className="flex h-5 w-full overflow-hidden rounded-md bg-[#eef0f4]">
+          {parts.map((part) => (
+            <span key={part.label} className="h-full" style={{ width: `${(Math.abs(part.value) / total) * 100}%`, backgroundColor: part.value < 0 ? "#d98080" : part.color }} title={`${part.label}: ${formatEur(part.value)}`} />
+          ))}
+        </div>
+        <ul className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#5c6b78]">
+          {parts.map((part) => (
+            <li key={part.label} className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full" style={{ backgroundColor: part.value < 0 ? "#d98080" : part.color }} />
+              {part.label} <span className={`font-semibold tabular-nums ${part.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>{((part.value / total) * 100).toLocaleString("es-ES", { maximumFractionDigits: 0 })} %</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+  return (
+    <div className="mb-3 grid gap-3 rounded-xl border border-[#e7eaee] bg-white p-3 sm:grid-cols-2">
+      <p className="text-xs text-[#5c6b78] sm:col-span-2">Composición del balance al cierre de {yearLabel(reading.year)}: qué tiene la empresa y cómo lo financia.</p>
+      {bar("Qué tiene (activo)", reading.assets)}
+      {bar("Cómo se financia (patrimonio y pasivo)", reading.funding)}
     </div>
   );
 }
