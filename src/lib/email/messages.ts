@@ -1,4 +1,4 @@
-import { renderEmail, type RenderedEmail } from "@/lib/email/layout";
+import { renderEmail, type RenderedEmail } from "./layout";
 
 /**
  * t73b: every transactional email Relify sends, in Spanish. Builders take only what the
