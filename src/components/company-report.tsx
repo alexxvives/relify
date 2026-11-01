@@ -254,12 +254,14 @@ function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): 
 }
 
 /** Registry blocks (identities): ownership list, directors, subsidiaries, audits, banks and activity codes. */
-export function RegistryOverview({ registry, showDonut = true }: { registry: SabiRegistry; showDonut?: boolean }) {
+export function RegistryOverview({ registry, showDonut = true, lead = null }: { registry: SabiRegistry; showDonut?: boolean; lead?: ReactNode }) {
   const ownership = sabiOwnershipSlices(registry.shareholdings);
   const directors = new Set(registry.directors.map((person) => person.name)).size;
   return (
     <div className="flex flex-col gap-4">
       {registry.shareholdings.length > 0 ? (
+        <div className={lead ? "grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] [&>section]:h-auto" : "contents"}>
+        {lead}
         <Section
           icon={<Users className="size-4 text-[#0f766e]" aria-hidden />}
           title="Accionistas registrados"
@@ -284,6 +286,7 @@ export function RegistryOverview({ registry, showDonut = true }: { registry: Sab
             <HoldingTable rows={registry.shareholdings} />
           </Toggle>
         </Section>
+        </div>
       ) : null}
       {directors > 0 ? (
         <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors}>
@@ -702,8 +705,14 @@ export function CompanyReport({
       {capital.length > 0 || governance ? (
         <ReportSection id="propiedad" icon={PieChart} title={companyReportCopy.ownership} intro={companyReportCopy.ownershipHint}>
           <div className="flex flex-col gap-4">
-            {capital.length > 0 ? lock("capital", <div className="max-w-md [&>section]:h-auto"><ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" /></div>) : null}
-            {registry ? <RegistryOverview registry={{ ...registry, audits: [], banks: [], activityCodes: {} }} showDonut={false} /> : null}
+            {capital.length > 0 && !(registry && registry.shareholdings.length > 0) ? lock("capital", <div className="[&>section]:h-auto"><ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" /></div>) : null}
+            {registry ? (
+              <RegistryOverview
+                registry={{ ...registry, audits: [], banks: [], activityCodes: {} }}
+                showDonut={false}
+                lead={capital.length > 0 && registry.shareholdings.length > 0 ? lock("capital", <ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" />) : null}
+              />
+            ) : null}
           </div>
         </ReportSection>
       ) : null}
