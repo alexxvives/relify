@@ -41,7 +41,7 @@ import {
   Waterfall,
   YearTable,
 } from "@/components/company-report-charts";
-import { isoDay, metrics, navy, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel } from "@/lib/report-format";
+import { formatValue, isoDay, metrics, navy, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
 import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
 import { FinancialTable } from "@/components/financial-table";
@@ -238,6 +238,27 @@ function businessAbout(project: InvestorProjectProfile, registryActivity: string
   return null;
 }
 
+/** t70: one plain sentence about the last year with headcount data. Only real values; null when there is nothing to say. */
+function teamSummary(years: SabiYear[], staff: Metric[]): string | null {
+  const index = years.findLastIndex((year) => year.employees !== null && year.employees > 0);
+  if (index < 0) {
+    return null;
+  }
+  const at = (key: string) => staff.find((metric) => metric.key === key)?.values[index] ?? null;
+  const parts = [`En ${yearLabel(years[index]!)} la empresa tenía ${formatValue(years[index]!.employees!, "people")} empleados de media`];
+  const revenue = at("revenuePerEmployee");
+  const cost = at("averageStaffCost");
+  const share = at("staffCostToRevenue");
+  if (revenue !== null) {
+    parts.push(`cada uno generaba ${formatValue(revenue, "keur")} de ingresos`);
+  }
+  if (cost !== null) {
+    parts.push(`y costaba ${formatValue(cost, "keur")}`);
+  }
+  const sentence = `${parts.join(", ").replace(", y costaba", " y costaba")}.`;
+  return share !== null ? `${sentence} Los gastos de personal suponían el ${formatValue(share, "pct")} de los ingresos.` : sentence;
+}
+
 function saleReasonText(reason: string | null): string {
   return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : companyCopy.unavailable;
 }
@@ -419,6 +440,16 @@ export function CompanyReport({
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
+  const employees = years.map((year) => year.employees);
+  const employeesMetric: Metric = { key: "employees", label: "Empleados", unit: "people", better: "none", values: employees, hint: "Plantilla media declarada en las cuentas del ejercicio.\nFuente: cuentas anuales (SABI)." };
+  const teamTiles = [employeesMetric, ...["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].flatMap((key) => staff.filter((metric) => metric.key === key))].filter((metric) =>
+    metric.values.some((value) => value !== null),
+  );
+  const productivity: Series[] = [
+    { label: "Ingresos por empleado", color: navy, values: staff.find((metric) => metric.key === "revenuePerEmployee")?.values ?? [] },
+    { label: "Coste por empleado", color: teal, values: staff.find((metric) => metric.key === "averageStaffCost")?.values ?? [] },
+  ].filter((item) => item.values.some((value) => value !== null));
+  const teamSentence = teamSummary(years, staff);
   const latest = [...years].reverse().find((year) => pnlWaterfall(year).length > 0) ?? null;
   const trend: Series[] = [
     { label: "Ingresos", color: navy, values: years.map((year) => year.revenueCents) },
@@ -431,7 +462,6 @@ export function CompanyReport({
   ].filter((item) => item.values.some((value) => value !== null));
   const hasBalanceYears = years.some((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0);
   const latestBalance = lastValue(years, (year) => (year.totalAssetsCents !== null && year.totalAssetsCents > 0 ? year.totalAssetsCents : null));
-  const employees = years.map((year) => year.employees);
   const ownership = registry ? sabiOwnershipSlices(registry.shareholdings) : [];
   const capital = ownership.length > 0 ? ownership : project.capital;
   const governance = registry && (registry.shareholdings.length > 0 || registry.directors.length > 0 || registry.subsidiaries.length > 0);
@@ -721,19 +751,32 @@ export function CompanyReport({
         {employees.some((value) => value !== null) || staff.length > 0 ? (
           lock(
             "balance",
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-              {employees.some((value) => value !== null) ? (
-                <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
-                  <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
-                </ChartBox>
-              ) : null}
-              {staff.length > 0 ? (
-                <div className="grid grid-cols-2 content-start gap-2 xl:grid-cols-1">
-                  {staff.map((metric) => (
+            <div className="flex flex-col gap-4">
+              {teamTiles.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+                  {teamTiles.map((metric) => (
                     <KpiTile key={metric.key} metric={metric} years={years} />
                   ))}
                 </div>
               ) : null}
+              {teamSentence ? <p className="max-w-3xl text-sm leading-6 text-[#3d4a63]">{teamSentence}</p> : null}
+              <div className="grid gap-4 lg:grid-cols-2">
+                {employees.some((value) => value !== null) ? (
+                  <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
+                    <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
+                  </ChartBox>
+                ) : null}
+                {productivity.length > 0 ? (
+                  <ChartBox
+                    title="Ingresos frente a coste por empleado"
+                    hint={"Miles de euros por empleado y año. Si la línea de ingresos se acerca a la de coste, casi todo lo que se factura se va en sueldos.\nFuente: ratios SABI (ingresos ÷ empleados y gastos de personal ÷ empleados)."}
+                    legend={productivity.map((item) => <LegendDot key={item.label} color={item.color} label={item.label} />)}
+                    table={<YearTable years={years} rows={productivity.map((item) => ({ label: item.label, unit: "keur", values: item.values }))} />}
+                  >
+                    <LineChart years={years} series={productivity} unit="keur" />
+                  </ChartBox>
+                ) : null}
+              </div>
             </div>,
           )
         ) : (
