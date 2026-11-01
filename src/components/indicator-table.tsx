@@ -1,3 +1,4 @@
+import { compactEur } from "@/lib/report-format";
 import { companyCopy } from "@/lib/company-copy";
 import type { IndicatorUnit, InvestorIndicatorRow } from "@/lib/investor-project";
 
@@ -13,7 +14,7 @@ export function formatIndicator(value: number, unit: IndicatorUnit): string {
     case "days":
       return `${whole.format(value)} días`;
     case "thousands":
-      return `${decimals.format(value)} k€`;
+      return compactEur(value * 100_000);
     default:
       return whole.format(value);
   }

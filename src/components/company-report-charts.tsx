@@ -3,7 +3,6 @@
 import { useState, type ReactNode } from "react";
 import { FieldHint } from "@/components/field-hint";
 import { tooltipBubble } from "@/components/ui/info-hint";
-import { formatCompactEur } from "@/lib/money";
 import {
   pnlWaterfall,
   yearOverYear,
@@ -12,6 +11,7 @@ import {
 } from "@/lib/sabi/insights";
 import type { HealthSignal } from "@/lib/company-report";
 import {
+  compactEur,
   decimal,
   formatDelta,
   isoDay,
@@ -231,11 +231,11 @@ export function BalanceStacks({ years }: { years: SabiYear[] }) {
       <div
         key={label}
         tabIndex={0}
-        aria-label={`${year.year} · ${label}: ${formatCompactEur(value)}`}
+        aria-label={`${year.year} · ${label}: ${compactEur(value)}`}
         className="group/tip relative w-full outline-none first:rounded-t-[3px] hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
         style={{ height: `${(value / max) * 100}%`, backgroundColor: color }}
       >
-        <Tip text={`${yearLabel(year)} · ${label}: ${formatCompactEur(value)} (${decimal.format((value / year.totalAssetsCents!) * 100)} %)`} />
+        <Tip text={`${yearLabel(year)} · ${label}: ${compactEur(value)} (${decimal.format((value / year.totalAssetsCents!) * 100)} %)`} />
       </div>
     );
 
@@ -308,16 +308,16 @@ export function Waterfall({ year }: { year: SabiYear }) {
               <span className="absolute inset-y-0 border-l border-[#c9d0da]" style={{ left: `${pos(0)}%` }} aria-hidden />
               <span
                 tabIndex={0}
-                aria-label={`${bar.label}: ${formatCompactEur(bar.value)}`}
+                aria-label={`${bar.label}: ${compactEur(bar.value)}`}
                 className="group/tip absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                 style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: strong ? 1 : 0.85 }}
               >
-                <Tip text={`${bar.label}: ${formatCompactEur(bar.value)}`} />
+                <Tip text={`${bar.label}: ${compactEur(bar.value)}`} />
               </span>
             </span>
             <span className={`text-right whitespace-nowrap tabular-nums ${bar.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"} ${strong ? "font-semibold" : ""}`}>
               {bar.kind === "delta" && bar.value > 0 ? "+" : ""}
-              {formatCompactEur(bar.value)}
+              {compactEur(bar.value)}
             </span>
           </li>
         );

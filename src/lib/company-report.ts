@@ -22,19 +22,9 @@ export function registryForRole(registry: SabiRegistry | null | undefined, role:
 const es1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
 const es0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-export function compactEur(cents: number): string {
-  const euros = cents / 100;
-  const abs = Math.abs(euros);
-  if (abs >= 1_000_000) {
-    return `${es1.format(euros / 1_000_000)} M€`;
-  }
+import { compactEur } from "./report-format";
 
-  if (abs >= 1_000) {
-    return `${es0.format(euros / 1_000)} k€`;
-  }
-
-  return `${es0.format(euros)} €`;
-}
+export { compactEur };
 
 export type Zone = { upTo: number; level: SignalLevel };
 

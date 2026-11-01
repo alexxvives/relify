@@ -61,10 +61,10 @@ describe("company report", () => {
 
   it("summarises only the numbers on file", () => {
     const lines = reportSummary([year({ year: 2021, revenueCents: 50_000_000 }), year({ year: 2022, revenueCents: 80_000_000 }), year({ netResultCents: -5_000_000 })]);
-    expect(lines[0]).toBe("Los ingresos han pasado de 500 k€ en 2021 a 1 M€ en 2023 (+100 %, +41,4 % de media al año).");
+    expect(lines[0]).toBe("Los ingresos han pasado de 500K € en 2021 a 1M € en 2023 (+100 %, +41,4 % de media al año).");
     expect(lines[1]).toBe("En el último ejercicio (2023) crecieron un 25 % frente a 2022.");
     expect(lines[2]).toContain("margen del 20 %");
-    expect(lines[3]).toBe("Cerró 2023 con pérdidas de 50 k€ y ha tenido beneficios en 2 de los 3 ejercicios disponibles.");
+    expect(lines[3]).toBe("Cerró 2023 con pérdidas de 50K € y ha tenido beneficios en 2 de los 3 ejercicios disponibles.");
     expect(reportSummary([])).toEqual([]);
   });
 

@@ -1,4 +1,3 @@
-import { formatCompactEur } from "./money";
 import { financialDebtCents, marginPercent, netDebtCents, netDebtToEbitda, type SabiYear } from "./sabi/insights";
 
 /* t69: plain (non-client) helpers for the company report, so server components can call them. */
@@ -29,12 +28,35 @@ export const decimal = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1
 export const decimal2 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
 export const integer = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
+const compact1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+const compact0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
+
+/**
+ * t71: the one compact money style of the company report: "-364K €", "57,4K €", "1,7M €", "850 €".
+ * K/M suffix glued to the number, decimal comma, one decimal below 100K and for millions.
+ */
+export function compactEur(cents: number): string {
+  const euros = cents / 100;
+  const sign = euros < 0 ? "-" : "";
+  const abs = Math.abs(euros);
+  if (abs >= 999_950) {
+    return `${sign}${compact1.format(abs / 1_000_000)}M €`;
+  }
+
+  if (abs >= 1_000) {
+    const thousands = abs / 1_000;
+    return `${sign}${(thousands >= 100 ? compact0 : compact1).format(thousands)}K €`;
+  }
+
+  return `${sign}${compact0.format(abs)} €`;
+}
+
 export type Unit = "eur" | "pct" | "x" | "days" | "keur" | "people";
 
 export function formatValue(value: number, unit: Unit): string {
   switch (unit) {
     case "eur":
-      return formatCompactEur(value);
+      return compactEur(value);
     case "pct":
       return `${decimal.format(value)} %`;
     case "x":
@@ -42,7 +64,7 @@ export function formatValue(value: number, unit: Unit): string {
     case "days":
       return `${integer.format(value)} días`;
     case "keur":
-      return `${decimal.format(value)} k€`;
+      return compactEur(value * 100_000);
     case "people":
       return integer.format(value);
   }
@@ -63,7 +85,7 @@ export function formatDelta(delta: number, previous: number, unit: Unit): string
   }
 
   if (previous === 0) {
-    return unit === "eur" ? `${sign}${formatCompactEur(delta)}` : `${sign}${decimal.format(delta)}`;
+    return unit === "eur" ? `${sign}${compactEur(delta)}` : `${sign}${decimal.format(delta)}`;
   }
 
   return `${sign}${decimal.format((delta / Math.abs(previous)) * 100)} %`;

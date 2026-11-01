@@ -3,7 +3,7 @@
 import { FinanceCharts, GroupedYearBars } from "@/components/seller-finance-charts";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
-import { formatCompactEur } from "@/lib/money";
+import { compactEur } from "@/lib/report-format";
 
 const costKeys = ["supplies", "staffCosts", "otherOperatingCosts", "amortization"] as const;
 
@@ -29,8 +29,8 @@ export function ProfileIncomeChart({
       forecast: year.forecast,
       salesCents,
       ebitdaCents,
-      salesLabel: salesCents === null ? "—" : formatCompactEur(salesCents),
-      ebitdaLabel: ebitdaCents === null ? null : formatCompactEur(ebitdaCents),
+      salesLabel: salesCents === null ? "—" : compactEur(salesCents),
+      ebitdaLabel: ebitdaCents === null ? null : compactEur(ebitdaCents),
     };
   });
   const costYears = years.flatMap((year, index) => {
@@ -45,7 +45,7 @@ export function ProfileIncomeChart({
       }
 
       const amount = Math.abs(cents);
-      return [{ label: incomeLabels[key], cents: amount, amountLabel: formatCompactEur(amount) }];
+      return [{ label: incomeLabels[key], cents: amount, amountLabel: compactEur(amount) }];
     });
 
     return slices.length === 0 ? [] : [{ year: year.year, slices }];
