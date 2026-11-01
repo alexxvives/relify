@@ -545,8 +545,7 @@ export function CompanyReport({
   const indicatorRows = project.indicatorRows ?? [];
   const legalFacts = [
     project.legalForm ? { label: companyCopy.legalFormLabel, value: project.legalForm } : null,
-    // t71: the accounts format (e.g. "Abreviado PGC 2007") says little to a buyer; admin only.
-    project.accountsFormat && role === "admin" ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
+    // t72: the accounts format (e.g. "Abreviado PGC 2007") left Negocio for everyone; admins see it as a footnote in Detalle de cuentas.
     project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
   ].flatMap((fact) => (fact ? [fact] : []));
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
@@ -1014,6 +1013,11 @@ export function CompanyReport({
           )}
           {registry ? <RegistryRecords registry={registry} /> : null}
           {role === "admin" ? adminDetail : null}
+          {role === "admin" && project.accountsFormat ? (
+            <p className="text-xs text-[#8b95a7]">
+              {companyCopy.accountsFormatLabel}: {project.accountsFormat}
+            </p>
+          ) : null}
         </div>
       </ReportSection>
     </div>
