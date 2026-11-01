@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signInAction, type SignInState } from "@/app/entrar/actions";
 import { ArrowRight } from "lucide-react";
@@ -13,6 +14,9 @@ export function SignInForm() {
     <form action={action} className="flex flex-col gap-4">
       <EmailField />
       <PasswordField autoComplete="current-password" maxLength={128} placeholder={authCopy.passwordLabel} />
+      <Link href="/olvide-contrasena" className="-mt-2 self-end text-sm font-medium text-[#14998a] hover:text-[#0f8578]">
+        {authCopy.forgotLink}
+      </Link>
       {state?.message ? (
         <p role="alert" className="text-sm text-destructive">
           {state.message}

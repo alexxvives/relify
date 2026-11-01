@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { readServerEnv } from "@/lib/env";
+import { readServerEnv, readSiteUrl } from "@/lib/env";
 import { prisma } from "@/server/db";
+import { passwordResetEmail } from "@/lib/email/messages";
 import { sendAccountEmail } from "@/server/sendAccountEmail";
+import { sendMail } from "@/server/mailer";
 
 function createAuth() {
   const env = readServerEnv();
@@ -15,6 +17,33 @@ function createAuth() {
     }),
     emailAndPassword: {
       enabled: true,
+      // t73b: reset links point at our own page; the token is single-use, lives 1 h and is
+      // stored hashed (verification.storeIdentifier below). Other sessions end on reset.
+      resetPasswordTokenExpiresIn: 60 * 60,
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async ({ user, token }) => {
+        const url = new URL("/restablecer-contrasena", readSiteUrl());
+        url.searchParams.set("token", token);
+        await sendMail({
+          to: user.email,
+          tag: "password-reset",
+          ...passwordResetEmail(url.toString()),
+        });
+      },
+    },
+    verification: {
+      storeIdentifier: "hashed",
+    },
+    // Email-sending endpoints run only through our server actions, which carry their own
+    // per-IP and per-address throttle (src/server/emailThrottle.ts). Close the raw HTTP routes.
+    disabledPaths: [
+      "/sign-up/email",
+      "/request-password-reset",
+      "/reset-password",
+      "/send-verification-email",
+    ],
+    advanced: {
+      ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
     },
     emailVerification: {
       sendVerificationEmail: async ({ user, url }) => {

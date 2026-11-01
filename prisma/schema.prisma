@@ -891,3 +891,13 @@ model SabiImportJob {
   @@index([userId, createdAt])
   @@map("sabi_import_job")
 }
+
+/// t73b: fixed-window counters for anything that sends email (password reset, verification resend,
+/// message notices). Key examples: "reset:ip:1.2.3.4", "reset:email:<sha256>", "msg:<access>:seller".
+model EmailThrottle {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now()) @map("window_start")
+
+  @@map("email_throttle")
+}
