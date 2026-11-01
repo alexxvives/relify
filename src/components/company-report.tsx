@@ -193,26 +193,58 @@ function FigureVeil({ kind }: { kind: VeilKind }) {
   );
 }
 
-function Kpi({ label, value, hint, sub, tone = "ink" }: { label: string; value: string; hint: string; sub?: ReactNode; tone?: "ink" | "loss" }) {
+type FigureSource = "seller" | "sabi" | "calc";
+const sourceBadge: Record<FigureSource, { label: string; className: string }> = {
+  seller: { label: "Vendedor", className: "bg-[#eef0f4] text-[#3d4a63]" },
+  sabi: { label: "Cuentas SABI", className: "bg-[#e6f4f2] text-[#0f5f59]" },
+  calc: { label: "Calculado", className: "bg-[#f4f6f9] text-[#5c6b78]" },
+};
+
+function SourceBadge({ source }: { source: FigureSource }) {
+  return <span className={`rounded px-1.5 py-0.5 text-[10px] leading-3 font-semibold whitespace-nowrap ${sourceBadge[source].className}`}>{sourceBadge[source].label}</span>;
+}
+
+function Kpi({
+  label,
+  value,
+  hint,
+  sub,
+  tone = "ink",
+  source,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  sub?: ReactNode;
+  tone?: "ink" | "loss" | "pending";
+  source?: FigureSource;
+}) {
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-3 sm:p-4">
       <div className="flex items-start justify-between gap-1">
         <span className="text-xs leading-4 font-medium text-[#5c6b78]">{label}</span>
-        <FieldHint text={hint} align="end" wide />
+        <span className="flex shrink-0 items-center gap-1">
+          {source ? <SourceBadge source={source} /> : null}
+          <FieldHint text={hint} align="end" wide />
+        </span>
       </div>
-      <span className={`mt-1.5 text-lg font-semibold tabular-nums sm:text-xl ${tone === "loss" ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>{value}</span>
+      <span className={`mt-1.5 text-lg font-semibold tabular-nums sm:text-xl ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
       {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
     </div>
   );
 }
 
-function Fact({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: string }) {
+function Fact({ icon: Icon, label, value, source, note }: { icon: typeof Building2; label: string; value: string; source?: FigureSource; note?: string }) {
   return (
     <div className="flex min-w-0 items-start gap-3 rounded-xl bg-[#f7f8fb] p-3">
       <Icon className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-hidden />
       <span className="min-w-0">
-        <span className="block text-xs text-[#5c6b78]">{label}</span>
+        <span className="flex flex-wrap items-center gap-1.5 text-xs text-[#5c6b78]">
+          {label}
+          {source ? <SourceBadge source={source} /> : null}
+        </span>
         <span className="block text-sm font-semibold break-words text-[#1c2740]">{value}</span>
+        {note ? <span className="mt-0.5 block text-[11px] leading-4 text-[#8b95a7]">{note}</span> : null}
       </span>
     </div>
   );
@@ -259,8 +291,43 @@ function teamSummary(years: SabiYear[], staff: Metric[]): string | null {
   return share !== null ? `${sentence} Los gastos de personal suponían el ${formatValue(share, "pct")} de los ingresos.` : sentence;
 }
 
+/** t70: how to read the deal block. Price, reason and adjustments come from the seller; the multiple is computed when price and a positive EBITDA exist. */
+function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
+  const priceSet = project.askingPriceCents > 0;
+  const adjustedSet = project.adjustedEbitdaCents !== 0 || project.ebitdaCents === 0;
+  const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  const adjustedMultiple = adjustedSet ? recoveryYears(project.askingPriceCents, project.adjustedEbitdaCents) : null;
+  const fmt = (value: number) => `${value.toLocaleString("es-ES", { maximumFractionDigits: 1 })}x`;
+  const salesMultiple = priceSet && project.revenueCents > 0 ? project.askingPriceCents / project.revenueCents : null;
+
+  let multipleText: string;
+  let multipleNote: string | null = null;
+  if (!priceSet) {
+    multipleText = "Pendiente";
+    multipleNote = "Falta el precio del vendedor";
+  } else if (multiple !== null) {
+    multipleText = fmt(multiple);
+    multipleNote = adjustedMultiple !== null && Math.abs(adjustedMultiple - multiple) >= 0.05 ? `${fmt(adjustedMultiple)} sobre EBITDA ajustado` : null;
+  } else if (adjustedMultiple !== null) {
+    multipleText = `${fmt(adjustedMultiple)} ajust.`;
+    multipleNote = "EBITDA contable negativo; calculado sobre el EBITDA ajustado";
+  } else {
+    multipleText = "No aplica";
+    multipleNote = `EBITDA negativo${salesMultiple !== null ? `; precio / ventas ${fmt(salesMultiple)}` : ""}`;
+  }
+
+  return {
+    priceSet,
+    adjustedSet,
+    multipleText,
+    multipleNote,
+    adjustedNote: adjustedSet ? null : "El vendedor aún no ha indicado ajustes (gastos no recurrentes, sueldos de socios…).",
+    figuresSource: (hasSabi ? "sabi" : "seller") as FigureSource,
+  };
+}
+
 function saleReasonText(reason: string | null): string {
-  return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : companyCopy.unavailable;
+  return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : "Pendiente del vendedor";
 }
 
 function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): { year: SabiYear; value: number } | null {
@@ -475,6 +542,7 @@ export function CompanyReport({
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
   const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
   const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
+  const deal = dealReading(project, years.length > 0);
 
   const sections = [
     { id: "resumen", label: companyReportCopy.summary },
@@ -507,7 +575,13 @@ export function CompanyReport({
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
           <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={<span>Margen {margin}</span>} />
-          <Kpi label={companyCopy.askingPriceLabel} value={compactEur(project.askingPriceCents)} hint={`Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.`} sub={multiple !== null ? <RoiChip years={multiple} /> : null} />
+          <Kpi
+            label={companyCopy.askingPriceLabel}
+            value={project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : "Pendiente"}
+            tone={project.askingPriceCents > 0 ? "ink" : "pending"}
+            hint={project.askingPriceCents > 0 ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.` : "El vendedor aún no ha indicado precio. El registro no lo publica."}
+            sub={multiple !== null ? <RoiChip years={multiple} /> : project.askingPriceCents > 0 ? null : <span>Pendiente de que el vendedor indique precio</span>}
+          />
           <Kpi
             label={lastEmployees ? "Empleados" : companyCopy.workersLabel}
             value={lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
@@ -786,21 +860,57 @@ export function CompanyReport({
 
       <ReportSection id="operacion" icon={HandCoins} title={companyReportCopy.deal} intro={companyReportCopy.dealHint}>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <Kpi label={companyCopy.askingPriceLabel} value={formatEur(project.askingPriceCents)} hint="Precio que pide el vendedor por la empresa." />
+          <Kpi
+            label={companyCopy.askingPriceLabel}
+            value={deal.priceSet ? formatEur(project.askingPriceCents) : "Pendiente"}
+            tone={deal.priceSet ? "ink" : "pending"}
+            source="seller"
+            hint="Precio que pide el vendedor por la empresa. No sale del registro: lo indica el vendedor."
+            sub={deal.priceSet ? null : <span>Pendiente de que el vendedor indique precio</span>}
+          />
           <Kpi
             label="Múltiplo de EBITDA"
-            value={multiple !== null ? `${multiple.toLocaleString("es-ES", { maximumFractionDigits: 1 })}x` : companyCopy.unavailable}
-            hint="Precio ÷ EBITDA: cuántos años del EBITDA actual equivale el precio. También son los años para recuperar la inversión si el EBITDA se mantuviera."
-            sub={multiple !== null ? <RoiChip years={multiple} /> : null}
+            value={deal.multipleText}
+            tone={multiple !== null ? "ink" : "pending"}
+            source="calc"
+            hint={"Precio ÷ EBITDA: cuántos años del EBITDA actual equivale el precio. También son los años para recuperar la compra si el EBITDA se mantuviera.\nSolo se calcula con precio y EBITDA positivos."}
+            sub={
+              <>
+                {multiple !== null ? <RoiChip years={multiple} /> : null}
+                {deal.multipleNote ? <span>{deal.multipleNote}</span> : null}
+              </>
+            }
           />
-          <Kpi label="Rentabilidad sobre el precio" value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : companyCopy.unavailable} hint="EBITDA ÷ precio × 100: lo que el negocio genera cada año por cada 100 € pagados, antes de impuestos e intereses." />
-          <Kpi label={companyCopy.saleReasonLabel} value={saleReasonText(project.saleReason)} hint="Motivo de venta indicado por el vendedor." />
+          <Kpi
+            label="Rentabilidad sobre el precio"
+            value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : deal.priceSet ? "No aplica" : "Pendiente"}
+            tone={yieldPct !== null ? "ink" : "pending"}
+            source="calc"
+            hint="EBITDA ÷ precio × 100: lo que el negocio genera cada año por cada 100 € pagados, antes de impuestos e intereses."
+            sub={yieldPct === null ? <span>{deal.priceSet ? "EBITDA negativo" : "Falta el precio"}</span> : null}
+          />
+          <Kpi
+            label={companyCopy.saleReasonLabel}
+            value={saleReasonText(project.saleReason)}
+            tone={project.saleReason ? "ink" : "pending"}
+            source="seller"
+            hint="Motivo de venta indicado por el vendedor. El registro no lo publica."
+          />
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} />
-          <Fact icon={Receipt} label={companyCopy.adjustedEbitdaLabel} value={`${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}`} />
-          <Fact icon={Receipt} label={companyCopy.opexLabel} value={project.opexCents === null ? companyCopy.unavailable : formatEur(project.opexCents)} />
+          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} source={deal.figuresSource} />
+          <Fact
+            icon={Receipt}
+            label={companyCopy.adjustedEbitdaLabel}
+            value={deal.adjustedSet ? `${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}` : "Pendiente del vendedor"}
+            source="seller"
+            note={deal.adjustedNote ?? undefined}
+          />
+          {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
+        <p className="mt-4 max-w-3xl text-xs leading-5 text-[#5c6b78]">
+          El registro mercantil (SABI) solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.
+        </p>
       </ReportSection>
 
       <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} open={false}>
