@@ -184,27 +184,30 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
     <>
       <div {...dropProps} className="relative rounded-[1.75rem]">
         <CompanyBanner {...banner}>
-          {sabi.importedAt ? null : <span className="hidden text-xs text-white/75 sm:inline">o arrastra el .xlsx al banner</span>}
-          <label
-            title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo al banner.`}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-full border text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
-              sabi.importedAt && !busy ? "h-8 px-3 text-xs font-medium" : "h-9 px-3.5 text-sm font-medium"
-            } ${
-              dragging ? "border-[#7fd6cc] bg-[#0f766e]/60" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
-            }`}
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
-            <span>{label}</span>
-            <span className="sr-only"> ({status}). Excel de SABI .xlsx, máximo {maxMb} MB.</span>
-            <input
-              ref={input}
-              type="file"
-              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              className="sr-only"
-              onChange={(event) => choose(event.target.files?.[0] ?? null)}
-              disabled={busy}
-            />
-          </label>
+          {/* t73: the drag hint sits centred under the button, the pair stacked at the banner's right edge. */}
+          <div className="flex flex-col items-center gap-1">
+            <label
+              title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo al banner.`}
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-full border text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
+                sabi.importedAt && !busy ? "h-8 px-3 text-xs font-medium" : "h-9 px-3.5 text-sm font-medium"
+              } ${
+                dragging ? "border-[#7fd6cc] bg-[#0f766e]/60" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
+              }`}
+            >
+              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
+              <span>{label}</span>
+              <span className="sr-only"> ({status}). Excel de SABI .xlsx, máximo {maxMb} MB.</span>
+              <input
+                ref={input}
+                type="file"
+                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                className="sr-only"
+                onChange={(event) => choose(event.target.files?.[0] ?? null)}
+                disabled={busy}
+              />
+            </label>
+            {sabi.importedAt ? null : <span className="hidden text-[11px] leading-4 text-white/75 sm:block">o arrastra el .xlsx al banner</span>}
+          </div>
         </CompanyBanner>
         {dragging ? (
           <div
