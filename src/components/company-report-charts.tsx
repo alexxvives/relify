@@ -12,6 +12,9 @@ import {
 import type { HealthSignal } from "@/lib/company-report";
 import {
   compactEur,
+  isComparableBase,
+  notSignificant,
+  notSignificantHint,
   decimal,
   formatDelta,
   isoDay,
@@ -77,7 +80,7 @@ function Tip({ text }: { text: string }) {
   );
 }
 
-export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: string; unit: Unit; values: Array<number | null> }[] }) {
+export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: string; unit: Unit; values: Array<number | null>; ns?: boolean[] }[] }) {
   return (
     <table className="w-full min-w-[28rem] text-left text-xs">
       <thead className="bg-[#f7f8fb] text-[#5c6b78]">
@@ -96,7 +99,7 @@ export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: s
             <td className="px-3 py-1.5">{row.label}</td>
             {row.values.map((value, index) => (
               <td key={index} className="px-3 py-1.5 text-right tabular-nums">
-                {value === null ? "—" : formatValue(value, row.unit)}
+                {row.ns?.[index] ? <NotSignificant /> : value === null ? "—" : formatValue(value, row.unit)}
               </td>
             ))}
           </tr>
@@ -347,11 +350,24 @@ export function Sparkline({ values, color, unit }: { values: Array<number | null
 }
 
 
+/** t71: "n/s" marker with the reason on hover/focus. */
+export function NotSignificant() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[#8b95a7]" title={notSignificantHint} aria-label={`${notSignificant}: ${notSignificantHint}`}>
+      {notSignificant}
+    </span>
+  );
+}
+
 export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }) {
-  const lastIndex = metric.values.findLastIndex((value) => value !== null);
-  const value = lastIndex >= 0 ? metric.values[lastIndex]! : null;
-  const change = yearOverYear(metric.values);
-  const good = change && metric.better !== "none" && change.delta !== 0 ? (change.delta > 0) === (metric.better === "up") : null;
+  const lastIndex = metric.values.findLastIndex((value, index) => value !== null || Boolean(metric.ns?.[index]));
+  const lastNs = lastIndex >= 0 && Boolean(metric.ns?.[lastIndex]);
+  const value = lastIndex >= 0 && !lastNs ? metric.values[lastIndex]! : null;
+  const change = lastNs ? null : yearOverYear(metric.values);
+  // t71: a % change over a tiny base (e.g. a first, almost empty year) is shown as n/s instead of +147.989 %.
+  const relative = metric.unit === "eur" || metric.unit === "keur" || metric.unit === "people";
+  const changeNs = change !== null && relative && !isComparableBase(change.previous, change.previous + change.delta);
+  const good = change && !changeNs && metric.better !== "none" && change.delta !== 0 ? (change.delta > 0) === (metric.better === "up") : null;
   const chip = good === null ? "bg-[#eef0f4] text-[#3d4a63]" : good ? "bg-[#e6f4f2] text-[#0f5f59]" : "bg-[#fdecec] text-[#a12f2f]";
 
   return (
@@ -361,13 +377,13 @@ export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }
         <FieldHint text={metric.hint} align="end" wide />
       </div>
       <span className={`mt-1 text-lg font-semibold tabular-nums ${value !== null && value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>
-        {value === null ? "—" : formatValue(value, metric.unit)}
+        {lastNs ? <NotSignificant /> : value === null ? "—" : formatValue(value, metric.unit)}
       </span>
       <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-[#8b95a7]">
         {lastIndex >= 0 ? <span className="tabular-nums">{yearLabel(years[lastIndex]!)}</span> : null}
         {change ? (
           <span className={`rounded-full px-1.5 py-0.5 font-medium tabular-nums ${chip}`} title="Variación frente al ejercicio anterior con dato">
-            {change.delta > 0 ? "▲" : change.delta < 0 ? "▼" : "="} {formatDelta(change.delta, change.previous, metric.unit)}
+            {change.delta > 0 ? "▲" : change.delta < 0 ? "▼" : "="} {changeNs ? <NotSignificant /> : formatDelta(change.delta, change.previous, metric.unit)}
           </span>
         ) : null}
       </div>

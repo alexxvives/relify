@@ -76,6 +76,24 @@ describe("company report", () => {
 });
 
 describe("diligenceChecks", () => {
+  it("measures growth from the first meaningful year, not an almost empty start-up year", () => {
+    const years = [
+      year({ year: 2021, months: 5, revenueCents: 100_000, ebitdaCents: -13_000_000, netResultCents: -13_000_000 }),
+      year({ year: 2022, revenueCents: 40_000_000 }),
+      year({ year: 2023, revenueCents: 80_000_000 }),
+      year({ year: 2024, revenueCents: 148_000_000 }),
+    ];
+    const [growth] = reportSummary(years);
+    expect(growth).toContain("de 400K € en 2022 a 1,5M € en 2024 (+270 %");
+    expect(growth).toContain("No se compara con 2021");
+    expect(growth).not.toContain("147");
+  });
+
+  it("does not give a % change over a tiny base year in the flags", () => {
+    const flags = reportFlags([year({ year: 2023, revenueCents: 100_000 }), year({ year: 2024, revenueCents: 148_000_000 })]);
+    expect(flags[0]!.text).toBe("Ingresos al alza en 2024 (2023 no comparable)");
+  });
+
   it("returns nothing without years", () => {
     expect(diligenceChecks([])).toEqual([]);
   });

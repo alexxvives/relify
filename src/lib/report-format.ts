@@ -104,7 +104,41 @@ export function yearLabel(year: SabiYear): string {
   return year.months !== null && year.months !== 12 ? `${year.year} (${year.months} m)` : String(year.year);
 }
 
-export type Metric = { key: string; label: string; unit: Unit; better: "up" | "down" | "none"; hint: string; values: Array<number | null> };
+
+/* ---------- t71: "n/s" (no significativo) for percentages on a tiny or non-comparable base ---------- */
+
+export const notSignificant = "n/s";
+export const notSignificantHint =
+  "No significativo: el año de referencia tiene una cifra casi nula o no es un ejercicio completo comparable, así que el porcentaje saldría disparado y no dice nada.";
+
+/** A base is below this share of the latest value → growth over it is not meaningful. */
+export const minBaseShare = 0.05;
+
+/** True when a % change from `base` to `latest` means something: positive, full-year base, at least 5 % of the latest. */
+export function isComparableBase(base: number | null, latest: number | null, baseMonths: number | null = null): boolean {
+  if (base === null || latest === null || base <= 0) {
+    return false;
+  }
+  if (baseMonths !== null && baseMonths < 12) {
+    return false;
+  }
+  return base >= minBaseShare * Math.abs(latest);
+}
+
+/** Years whose revenue is negligible (≤ 0 or under 5 % of the best year): their margins are not significant. */
+export function negligibleRevenue(years: SabiYear[]): boolean[] {
+  const peak = Math.max(0, ...years.map((year) => year.revenueCents ?? 0));
+  return years.map((year) => year.revenueCents !== null && (year.revenueCents <= 0 || year.revenueCents < minBaseShare * peak));
+}
+
+/** Margin series for the report: null (shown as n/s) in years with negligible revenue. */
+export function reportMargins(years: SabiYear[], part: (year: SabiYear) => number | null): { values: Array<number | null>; ns: boolean[] } {
+  const negligible = negligibleRevenue(years);
+  const ns = years.map((year, index) => negligible[index]! && part(year) !== null);
+  return { values: years.map((year, index) => (ns[index] ? null : marginPercent(part(year), year.revenueCents))), ns };
+}
+
+export type Metric = { key: string; label: string; unit: Unit; better: "up" | "down" | "none"; hint: string; values: Array<number | null>; ns?: boolean[] };
 
 /* ---------- metric catalogue (plain Spanish: what it is + how it is computed) ---------- */
 
@@ -114,10 +148,14 @@ function ratio(years: SabiYear[], key: string): Array<number | null> {
 
 export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
   const field = (pick: (year: SabiYear) => number | null) => years.map(pick);
+  const ebitdaMargin = reportMargins(years, (year) => year.ebitdaCents);
+  const negligible = negligibleRevenue(years);
+  const profitRatio = ratio(years, "profitMargin");
+  const profitNs = profitRatio.map((value, index) => value !== null && negligible[index]!);
   const kpis: Metric[] = [
     { key: "revenue", label: "Ingresos de explotación", unit: "eur", better: "up", values: field((year) => year.revenueCents), hint: "Todo lo que la empresa ingresa por su actividad (ventas y otros ingresos de explotación) en el ejercicio. La variación es el cambio en % frente al año anterior." },
-    { key: "ebitdaMargin", label: "Margen EBITDA", unit: "pct", better: "up", values: field((year) => marginPercent(year.ebitdaCents, year.revenueCents)), hint: "Qué parte de cada euro ingresado queda tras pagar los gastos de explotación, antes de amortizaciones, intereses e impuestos.\nCálculo: EBITDA ÷ ingresos de explotación × 100." },
-    { key: "profitMargin", label: "Margen de beneficio", unit: "pct", better: "up", values: ratio(years, "profitMargin"), hint: "Beneficio (o pérdida) antes de impuestos por cada 100 € de ingresos.\nCálculo (SABI): resultado antes de impuestos ÷ ingresos de explotación × 100." },
+    { key: "ebitdaMargin", label: "Margen EBITDA", unit: "pct", better: "up", values: ebitdaMargin.values, ns: ebitdaMargin.ns, hint: "Qué parte de cada euro ingresado queda tras pagar los gastos de explotación, antes de amortizaciones, intereses e impuestos.\nCálculo: EBITDA ÷ ingresos de explotación × 100." },
+    { key: "profitMargin", label: "Margen de beneficio", unit: "pct", better: "up", values: profitRatio.map((value, index) => (profitNs[index] ? null : value)), ns: profitNs, hint: "Beneficio (o pérdida) antes de impuestos por cada 100 € de ingresos.\nCálculo (SABI): resultado antes de impuestos ÷ ingresos de explotación × 100." },
     { key: "economicReturn", label: "Rentabilidad económica (ROA)", unit: "pct", better: "up", values: ratio(years, "economicReturn"), hint: "Lo que rinden todos los activos de la empresa, se financien como se financien.\nCálculo (SABI): resultado antes de impuestos ÷ total activo × 100." },
     { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "pct", better: "up", values: ratio(years, "financialReturn"), hint: "Lo que rinde el dinero de los socios.\nCálculo (SABI): resultado antes de impuestos ÷ fondos propios × 100." },
     { key: "staffCostToRevenue", label: "Gastos de personal / ingresos", unit: "pct", better: "down", values: ratio(years, "staffCostToRevenue"), hint: "Qué porcentaje de los ingresos se va en sueldos y cargas sociales.\nCálculo (SABI): gastos de personal ÷ ingresos de explotación × 100." },
@@ -139,7 +177,7 @@ export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
     { key: "collectionDays", label: "Periodo de cobro", unit: "days", better: "down", values: ratio(years, "collectionDays"), hint: "Días que tardan de media los clientes en pagar.\nCálculo (SABI): deudores comerciales ÷ ingresos de explotación × 360." },
     { key: "creditDays", label: "Periodo de pago", unit: "days", better: "none", values: ratio(years, "creditDays"), hint: "Días que tarda de media la empresa en pagar a sus proveedores.\nCálculo (SABI): acreedores comerciales ÷ ingresos de explotación × 360." },
   ];
-  const present = (metric: Metric) => metric.values.some((value) => value !== null);
+  const present = (metric: Metric) => metric.values.some((value) => value !== null) || (metric.ns ?? []).some(Boolean);
   return { kpis: kpis.filter(present), debt: debt.filter(present) };
 }
 

@@ -42,7 +42,7 @@ import {
   Waterfall,
   YearTable,
 } from "@/components/company-report-charts";
-import { formatValue, isoDay, metrics, navy, registryText, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
+import { formatValue, isoDay, metrics, navy, registryText, reportChartsCopy, reportMargins, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
 import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
@@ -65,7 +65,7 @@ import {
 } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
-import { marginPercent, pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
+import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
 import type { SabiRegistry } from "@/lib/sabi/registry";
 
 /**
@@ -525,9 +525,10 @@ export function CompanyReport({
     { label: "EBITDA", color: teal, values: years.map((year) => year.ebitdaCents) },
     { label: "Resultado del ejercicio", color: tealLight, values: years.map((year) => year.netResultCents) },
   ].filter((item) => item.values.some((value) => value !== null));
-  const margins: Series[] = [
-    { label: "Margen EBITDA", color: teal, values: years.map((year) => marginPercent(year.ebitdaCents, year.revenueCents)) },
-    { label: "Margen neto", color: navy, values: years.map((year) => marginPercent(year.netResultCents, year.revenueCents)) },
+  // t71: years with negligible revenue get n/s instead of a -13.459 % margin.
+  const margins: Array<Series & { ns: boolean[] }> = [
+    { label: "Margen EBITDA", color: teal, ...reportMargins(years, (year) => year.ebitdaCents) },
+    { label: "Margen neto", color: navy, ...reportMargins(years, (year) => year.netResultCents) },
   ].filter((item) => item.values.some((value) => value !== null));
   const hasBalanceYears = years.some((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0);
   const latestBalance = lastValue(years, (year) => (year.totalAssetsCents !== null && year.totalAssetsCents > 0 ? year.totalAssetsCents : null));
@@ -722,7 +723,7 @@ export function CompanyReport({
                     legend={margins.map((item) => (
                       <LegendDot key={item.label} color={item.color} label={item.label} />
                     ))}
-                    table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values }))} />}
+                    table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values, ns: item.ns }))} />}
                   >
                     <LineChart years={years} series={margins} unit="pct" />
                   </ChartBox>

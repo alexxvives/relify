@@ -22,7 +22,7 @@ export function registryForRole(registry: SabiRegistry | null | undefined, role:
 const es1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
 const es0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-import { compactEur } from "./report-format";
+import { compactEur, isComparableBase, negligibleRevenue } from "./report-format";
 
 export { compactEur };
 
@@ -279,16 +279,27 @@ export function reportSummary(years: SabiYear[]): string[] {
   const lines: string[] = [];
   const revenue = years.filter((year) => year.revenueCents !== null && year.revenueCents > 0);
   if (revenue.length >= 2) {
-    const first = revenue[0]!;
+    // t71: growth is measured from the first meaningful year (full year, ≥ 5 % of the latest revenue); an almost
+    // empty start-up year would otherwise give +147.989 %.
     const last = revenue[revenue.length - 1]!;
-    const span = last.year - first.year;
-    const total = pct(first.revenueCents!, last.revenueCents!);
-    const cagr = span > 0 ? (Math.pow(last.revenueCents! / first.revenueCents!, 1 / span) - 1) * 100 : null;
-    lines.push(
-      `Los ingresos han pasado de ${compactEur(first.revenueCents!)} en ${first.year} a ${compactEur(last.revenueCents!)} en ${last.year} (${signed(total)}${cagr !== null && span > 1 ? `, ${signed(cagr)} de media al año` : ""}).`,
-    );
+    const first = revenue.slice(0, -1).find((year) => isComparableBase(year.revenueCents, last.revenueCents, year.months));
+    const skipped = first ? revenue.slice(0, revenue.indexOf(first)) : revenue.slice(0, -1);
+    const skippedNote =
+      skipped.length > 0
+        ? ` No se compara con ${skipped.map((year) => year.year).join(", ")} porque ${skipped.length > 1 ? "fueron ejercicios" : "fue un ejercicio"} incompleto${skipped.length > 1 ? "s" : ""} o con ingresos casi nulos (${skipped.map((year) => compactEur(year.revenueCents!)).join(", ")}).`
+        : "";
+    if (first) {
+      const span = last.year - first.year;
+      const total = pct(first.revenueCents!, last.revenueCents!);
+      const cagr = span > 0 ? (Math.pow(last.revenueCents! / first.revenueCents!, 1 / span) - 1) * 100 : null;
+      lines.push(
+        `Los ingresos han pasado de ${compactEur(first.revenueCents!)} en ${first.year} a ${compactEur(last.revenueCents!)} en ${last.year} (${signed(total)}${cagr !== null && span > 1 ? `, ${signed(cagr)} de media al año` : ""}).${skippedNote}`,
+      );
+    } else {
+      lines.push(`Ingresos de ${compactEur(last.revenueCents!)} en ${last.year}.${skippedNote}`);
+    }
     const previous = revenue[revenue.length - 2]!;
-    if (revenue.length > 2) {
+    if (first && first !== previous && isComparableBase(previous.revenueCents, last.revenueCents, previous.months)) {
       const change = pct(previous.revenueCents!, last.revenueCents!);
       lines.push(`En el último ejercicio (${last.year}) ${change >= 0 ? "crecieron" : "cayeron"} un ${es1.format(Math.abs(change))} % frente a ${previous.year}.`);
     }
@@ -298,7 +309,7 @@ export function reportSummary(years: SabiYear[]): string[] {
 
   const ebitda = [...years].reverse().find((year) => year.ebitdaCents !== null);
   if (ebitda) {
-    const margin = marginPercent(ebitda.ebitdaCents, ebitda.revenueCents);
+    const margin = negligibleRevenue(years)[years.indexOf(ebitda)] ? null : marginPercent(ebitda.ebitdaCents, ebitda.revenueCents);
     lines.push(
       ebitda.ebitdaCents! >= 0
         ? `El EBITDA de ${ebitda.year} fue de ${compactEur(ebitda.ebitdaCents!)}${margin !== null ? `, un margen del ${es1.format(margin)} % sobre ingresos` : ""}.`
@@ -329,7 +340,9 @@ export function reportFlags(years: SabiYear[]): ReportFlag[] {
   if (revenue.length >= 2) {
     const [previous, last] = revenue.slice(-2) as [SabiYear, SabiYear];
     const change = pct(previous.revenueCents!, last.revenueCents!);
-    flags.push(change >= 0 ? { level: "good", text: `Ingresos al alza en ${last.year} (${signed(change)})` } : { level: "warn", text: `Ingresos a la baja en ${last.year} (${signed(change)})` });
+    // t71: no % over a tiny or partial base year.
+    const detail = isComparableBase(previous.revenueCents, last.revenueCents, previous.months) ? signed(change) : `${previous.year} no comparable`;
+    flags.push(change >= 0 ? { level: "good", text: `Ingresos al alza en ${last.year} (${detail})` } : { level: "warn", text: `Ingresos a la baja en ${last.year} (${detail})` });
   }
 
   const result = [...years].reverse().find((year) => year.netResultCents !== null);
