@@ -14,6 +14,7 @@ import { buyerProfileComplete } from "@/server/investorProfile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
+import { emailOwnerConnectionRequest } from "@/server/emailNotices";
 
 export type ProjectAccessResult = { ok: true } | { ok: false; message: string };
 
@@ -94,6 +95,7 @@ export async function requestProjectAccess(
         ...sellerNotice,
         href: "/mi-empresa/procesos",
       });
+      await emailOwnerConnectionRequest(project.ownerId, project.codename);
     }
     return { ok: true };
   }
@@ -149,6 +151,7 @@ export async function requestProjectAccess(
         ...sellerNotice,
         href: ownerHref,
       });
+      await emailOwnerConnectionRequest(project.ownerId, project.codename);
     }
   }
 

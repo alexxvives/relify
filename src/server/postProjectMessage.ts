@@ -13,6 +13,7 @@ import { sellerReplyNotice } from "@/lib/notifications";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
+import { emailOwnerNewMessages } from "@/server/emailNotices";
 import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
@@ -97,6 +98,7 @@ export async function postInvestorMessage(
       ),
       href: "/mi-empresa/procesos",
     });
+    await emailOwnerNewMessages(project.ownerId, access.id, project.codename);
   }
 
   return { ok: true };

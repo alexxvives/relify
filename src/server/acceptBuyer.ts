@@ -3,6 +3,7 @@ import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
+import { emailBuyerAccepted } from "@/server/emailNotices";
 
 export type AcceptBuyerResult = { ok: true } | { ok: false; message: string };
 
@@ -54,6 +55,11 @@ export async function acceptBuyer(
         body: `La empresa ha aceptado tu solicitud en ${access.project.codename}.`,
         href: `/proyectos/${access.project.slug}`,
       }),
+      emailBuyerAccepted(
+        access.investorId,
+        access.project.codename,
+        access.project.slug,
+      ),
     ]);
   }
 

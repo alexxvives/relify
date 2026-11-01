@@ -125,3 +125,61 @@ export function reportReadyEmail(
     reason: noticeReason,
   });
 }
+
+/** To the owner. The comprador stays anonymous here: no name, no message text. */
+export function connectionRequestEmail(
+  firstName: string,
+  codename: string,
+  url: string,
+): RenderedEmail {
+  return renderEmail(`Nueva solicitud de conexión en ${codename}`, {
+    preheader: "Un comprador quiere conocer tu empresa.",
+    eyebrow: "Solicitud de conexión",
+    title: "Un comprador quiere conocer tu empresa",
+    paragraphs: [
+      greeting(firstName),
+      `Un comprador ha solicitado acceso a ${codename}. Revisa su perfil y decide si aceptas la conexión; hasta entonces no ve ningún dato confidencial.`,
+    ],
+    cta: { label: "Ver la solicitud", url },
+    reason: noticeReason,
+  });
+}
+
+/** To the owner, at most once per conversation every few hours. Never includes the message text. */
+export function newMessagesEmail(
+  firstName: string,
+  codename: string,
+  url: string,
+): RenderedEmail {
+  return renderEmail(`Tienes mensajes nuevos sobre ${codename}`, {
+    preheader: "Un comprador te ha escrito en Relify.",
+    eyebrow: "Mensajes",
+    title: "Tienes mensajes nuevos",
+    paragraphs: [
+      greeting(firstName),
+      `Un comprador te ha escrito sobre ${codename}. Entra en Relify para leerlo y responder.`,
+    ],
+    cta: { label: "Leer mensajes", url },
+    note: "Para no llenarte la bandeja, agrupamos los avisos: si sigue escribiendo, no te enviaremos otro correo en unas horas.",
+    reason: noticeReason,
+  });
+}
+
+/** To the comprador: only the public codename, never the company's name, CIF or figures. */
+export function requestAcceptedEmail(
+  firstName: string,
+  codename: string,
+  url: string,
+): RenderedEmail {
+  return renderEmail(`Han aceptado tu solicitud en ${codename}`, {
+    preheader: "Ya puedes avanzar con esta oportunidad.",
+    eyebrow: "Solicitud aceptada",
+    title: "Han aceptado tu solicitud",
+    paragraphs: [
+      greeting(firstName),
+      `El vendedor de ${codename} ha aceptado tu solicitud de conexión. Entra en Relify para ver los siguientes pasos.`,
+    ],
+    cta: { label: "Ver la oportunidad", url },
+    reason: noticeReason,
+  });
+}
