@@ -2,6 +2,7 @@ import * as z from "zod";
 import { adminCopy } from "@/lib/admin-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { emailOwnerPublished } from "@/server/emailNotices";
 
 const projectIdSchema = z.string().trim().min(1).max(128);
 
@@ -24,7 +25,7 @@ export async function approveProject(
 
   const project = await prisma.project.findUnique({
     where: { id: parsed.data },
-    select: { id: true, status: true },
+    select: { id: true, status: true, ownerId: true, codename: true },
   });
 
   if (!project) {
@@ -39,6 +40,7 @@ export async function approveProject(
     where: { id: project.id },
     data: { status: "published" },
   });
+  await emailOwnerPublished(project.ownerId, project.codename);
 
   return { ok: true, message: adminCopy.approved };
 }

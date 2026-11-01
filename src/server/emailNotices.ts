@@ -2,6 +2,7 @@ import { readSiteUrl } from "@/lib/env";
 import {
   connectionRequestEmail,
   newMessagesEmail,
+  projectPublishedEmail,
   requestAcceptedEmail,
 } from "@/lib/email/messages";
 import { prisma } from "@/server/db";
@@ -90,6 +91,26 @@ export function emailBuyerAccepted(
         buyer.name.trim().split(/\s+/)[0] ?? "",
         codename,
         link(`/proyectos/${slug}`),
+      ),
+    });
+  });
+}
+
+export function emailOwnerPublished(
+  ownerId: string | null,
+  codename: string,
+): Promise<void> {
+  return quietly(async () => {
+    const owner = await ownerContact(ownerId);
+    if (!owner) return;
+    await sendMail({
+      to: owner.email,
+      tag: "project-published",
+      notice: true,
+      ...projectPublishedEmail(
+        owner.firstName,
+        codename,
+        link(ownerHome(owner.role)),
       ),
     });
   });

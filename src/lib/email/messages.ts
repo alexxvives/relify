@@ -183,3 +183,22 @@ export function requestAcceptedEmail(
     reason: noticeReason,
   });
 }
+
+export function projectPublishedEmail(
+  firstName: string,
+  codename: string,
+  url: string,
+): RenderedEmail {
+  return renderEmail(`${codename} ya está publicada en Relify`, {
+    preheader: "Los compradores ya pueden encontrar tu empresa.",
+    eyebrow: "Empresa publicada",
+    title: "Tu empresa ya está publicada",
+    paragraphs: [
+      greeting(firstName),
+      `Hemos revisado y publicado ${codename}. Los compradores ven un perfil anónimo, sin el nombre de la empresa ni datos confidenciales.`,
+      "Te avisaremos cuando alguien solicite conectar contigo.",
+    ],
+    cta: { label: "Ver mi empresa", url },
+    reason: noticeReason,
+  });
+}
