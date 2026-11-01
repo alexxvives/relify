@@ -176,6 +176,11 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
         {account.role === "investor" ? (
           <InfoRow label="Plan" open>{self ? adminCopy.plans[account.plan] : <PlanPicker userId={account.id} plan={account.plan} />}</InfoRow>
         ) : null}
+        {account.role === "seller" ? (
+          <InfoRow label="Empresas">
+            <span className="tabular-nums">{account.companies === 1 ? "1 empresa" : `${account.companies} empresas`}</span>
+          </InfoRow>
+        ) : null}
         <InfoRow label="Teléfono">{account.phone ?? "—"}</InfoRow>
         <InfoRow label="Alta">{joined.format(new Date(account.createdAt))}</InfoRow>
         <InfoRow label={adminCopy.referralSourceLabel}>{account.onboarded ? (account.referralSource ?? adminCopy.referralSourceEmpty) : "—"}</InfoRow>

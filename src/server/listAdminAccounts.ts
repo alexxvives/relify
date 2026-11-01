@@ -12,6 +12,7 @@ export type AdminAccountRow = {
   plan: "none" | "limited" | "unlimited";
   referralSource: string | null;
   phone: string | null;
+  companies: number;
   createdAt: string;
   isNew: boolean;
 };
@@ -38,6 +39,7 @@ export async function listAdminAccounts(
       createdAt: true,
       phone: true,
       billingCustomer: { select: { plan: true } },
+      _count: { select: { projects: true } },
     },
   });
 
@@ -53,6 +55,7 @@ export async function listAdminAccounts(
     plan: account.billingCustomer?.plan ?? "none",
     referralSource: referralSourceLabel(account.referralSource),
     phone: account.phone,
+    companies: account._count.projects,
     createdAt: account.createdAt.toISOString(),
     isNew: since ? account.createdAt > since : false,
   }));
