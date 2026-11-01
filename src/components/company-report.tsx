@@ -218,6 +218,26 @@ function Fact({ icon: Icon, label, value }: { icon: typeof Building2; label: str
   );
 }
 
+/** t70: what the company does: seller text first, then the registry activity (admin), then the CNAE titles. Null hides the line. */
+function businessAbout(project: InvestorProjectProfile, registryActivity: string | null): { text: string; source: string | null } | null {
+  const own = project.description?.trim();
+  if (own) {
+    return { text: own, source: null };
+  }
+
+  const registry = registryActivity?.trim();
+  if (registry) {
+    return { text: registry, source: "Actividad según el registro mercantil (SABI). El vendedor aún no ha escrito su descripción." };
+  }
+
+  const titles = [project.principalCnae, ...project.secondaryCnaes].flatMap((cnae) => (cnae?.title ? [cnae.title] : []));
+  if (titles.length > 0) {
+    return { text: `${titles[0]}${titles.length > 1 ? `; también ${titles.slice(1).join("; ").toLowerCase()}` : ""}.`, source: "Actividad según los códigos CNAE. El vendedor aún no ha escrito su descripción." };
+  }
+
+  return null;
+}
+
 function saleReasonText(reason: string | null): string {
   return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : companyCopy.unavailable;
 }
@@ -362,6 +382,7 @@ export function CompanyReport({
   privateFacts = null,
   privateHeading = "",
   adminDetail = null,
+  registryActivity = null,
 }: {
   project: InvestorProjectProfile;
   role: ReportRole;
@@ -372,6 +393,8 @@ export function CompanyReport({
   privateFacts?: { key: string; label: string; value: string }[] | null;
   privateHeading?: string;
   adminDetail?: ReactNode;
+  /** t70: SABI "actividad" text. Shown to admin only (free text from the registry can name the company). */
+  registryActivity?: string | null;
 }) {
   const registry = registryForRole(fullRegistry, role);
   const facts = role === "admin" ? privateFacts : null;
@@ -416,6 +439,7 @@ export function CompanyReport({
     project.accountsFormat ? { label: companyCopy.accountsFormatLabel, value: project.accountsFormat } : null,
     project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
   ].flatMap((fact) => (fact ? [fact] : []));
+  const about = businessAbout(project, role === "admin" ? registryActivity : null);
   const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
   const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
 
@@ -510,29 +534,34 @@ export function CompanyReport({
       </ReportSection>
 
       <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
-        <p className="max-w-3xl leading-7 text-[#1c2740]">{project.description ?? companyCopy.unavailable}</p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} />
-          <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={project.foundedYear === null ? companyCopy.unavailable : String(project.foundedYear)} />
+        {about ? (
+          <div className="max-w-3xl">
+            <p className="leading-7 text-[#1c2740]">{about.text}</p>
+            {about.source ? <p className="mt-1 text-xs text-[#8b95a7]">{about.source}</p> : null}
+          </div>
+        ) : null}
+        <div className={`${about ? "mt-4 " : ""}grid gap-2 sm:grid-cols-2 xl:grid-cols-4`}>
+          {project.region ? <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} /> : null}
+          {project.foundedYear !== null ? <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={String(project.foundedYear)} /> : null}
           {legalFacts.map((fact) => (
             <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
           ))}
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
-          {project.principalCnae ? (
-            <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
-              {project.principalCnae.code} · {project.principalCnae.title}
-            </span>
-          ) : (
-            <span className="text-sm text-[#8b95a7]">{companyCopy.unavailable}</span>
-          )}
+        {project.principalCnae || project.secondaryCnaes.length > 0 ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
+            {project.principalCnae ? (
+              <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
+                {project.principalCnae.code} · {project.principalCnae.title}
+              </span>
+          ) : null}
           {project.secondaryCnaes.map((cnae) => (
             <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
               {cnae.code} · {cnae.title}
             </span>
           ))}
         </div>
+        ) : null}
         <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
           Qué vende y a quién
           <FieldHint text={companyCopy.structureHint} wide />

@@ -82,6 +82,7 @@ export function AdminCompany({
                 privateFacts={view.privateFacts}
                 privateHeading={adminCopy.privateHeading}
                 adminDetail={view.sabiDetail ? <SabiDetailPanel detail={view.sabiDetail} readOnly /> : null}
+                registryActivity={view.sabi.activityDescription ?? null}
               />
             </div>
           ),
