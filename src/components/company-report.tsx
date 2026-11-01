@@ -79,7 +79,7 @@ export const companyReportCopy = {
   summaryHint: "Lo esencial de un vistazo. Las frases y alertas salen solo de las cuentas que hay en la ficha.",
   business: "Negocio",
   evolution: "Evolución financiera",
-  evolutionHint: "Cómo han ido ingresos y resultados año a año. Pasa el ratón (o toca) cada barra o punto para ver la cifra.",
+  evolutionHint: "Cómo han ido ingresos y resultados año a año.",
   profitability: "Rentabilidad",
   profitabilityHint: "Cuánto beneficio saca la empresa de lo que vende, de lo que tiene y del dinero de los socios.",
   health: "Solidez financiera",
