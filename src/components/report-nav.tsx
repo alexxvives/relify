@@ -146,7 +146,7 @@ export function ReportNav({ items, label }: { items: ReportNavItem[]; label: str
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
 
   return (
-    <nav aria-label={label} className="sticky top-0 z-20 -mx-1 bg-[#f5f7fa]/85 px-1 py-2 backdrop-blur supports-[backdrop-filter]:bg-[#f5f7fa]/70">
+    <nav aria-label={label} className="sticky top-0 z-20 -mx-1 px-1 py-2">
       <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_4px_16px_-8px_rgba(28,39,64,0.12)]">
         <span className="hidden shrink-0 items-center gap-1.5 border-r border-[#eef0f4] pr-3 pl-2 text-xs font-semibold tracking-wide text-[#8b95a7] uppercase xl:inline-flex">
           <ListTree className="size-4" aria-hidden />
