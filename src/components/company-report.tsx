@@ -508,6 +508,10 @@ export function CompanyReport({
   const signals = healthSignals(years);
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
+  const profitabilityColors: Record<string, string> = { ebitdaMargin: teal, profitMargin: tealLight, economicReturn: navy, financialReturn: tealMid };
+  const profitabilityTrend: Series[] = profitability
+    .filter((metric) => metric.key === "economicReturn" || metric.key === "financialReturn" || !profitability.some((item) => item.key === "economicReturn" || item.key === "financialReturn"))
+    .map((metric) => ({ label: metric.label, color: profitabilityColors[metric.key] ?? navy, values: metric.values }));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
   const employees = years.map((year) => year.employees);
   const employeesMetric: Metric = { key: "employees", label: "Empleados", unit: "people", better: "none", values: employees, hint: "Plantilla media declarada en las cuentas del ejercicio.\nFuente: cuentas anuales (SABI)." };
@@ -750,10 +754,23 @@ export function CompanyReport({
         <ReportSection id="rentabilidad" icon={LineChartIcon} title={companyReportCopy.profitability} intro={companyReportCopy.profitabilityHint}>
           {lock(
             "balance",
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              {profitability.map((metric) => (
-                <KpiTile key={metric.key} metric={metric} years={years} />
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                {profitability.map((metric) => (
+                  <KpiTile key={metric.key} metric={metric} years={years} />
+                ))}
+              </div>
+              {/* t71: the full multi-year evolution, not only the last year on the tiles. */}
+              <ChartBox
+                title="Evolución de la rentabilidad"
+                hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado antes de impuestos ÷ fondos propios.\nLa tabla añade los márgenes."}
+                legend={profitabilityTrend.map((item) => (
+                  <LegendDot key={item.label} color={item.color} label={item.label} />
+                ))}
+                table={<YearTable years={years} rows={profitability.map((metric) => ({ label: metric.label, unit: metric.unit, values: metric.values, ns: metric.ns }))} />}
+              >
+                <LineChart years={years} series={profitabilityTrend} unit="pct" />
+              </ChartBox>
             </div>,
           )}
         </ReportSection>
