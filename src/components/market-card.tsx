@@ -360,17 +360,15 @@ export function MarketCard({
             <span className="flex-1" />
           )}
         </div>
-        {project.summary ? (
-          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#5c6b78]">
-            {project.summary}
-          </p>
-        ) : !project.cnaeCode ? (
-          // Same height as a described card so the grid rows stay aligned.
-          <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[#8a96a3] italic">
-            {sectorName ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El
-            vendedor aún no ha añadido una descripción.
-          </p>
-        ) : null}
+        {/* t73: the description block always takes exactly two lines, so every card in a row has the same height. */}
+        <p
+          className={`mt-2 line-clamp-2 h-10 text-sm leading-5 ${project.summary ? "text-[#5c6b78]" : "text-[#8a96a3] italic"}`}
+          title={project.summary || undefined}
+        >
+          {project.summary
+            ? project.summary
+            : `${sectorName && !project.cnaeCode ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El vendedor aún no ha añadido una descripción.`}
+        </p>
 
         <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure

@@ -167,9 +167,9 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
     <div
       data-sabi-pending={project.sabiPending ? "true" : undefined}
       title={project.sabiPending ? `${adminCopy.sabiPendingBadge}${since ? ` · ${adminCopy.sabiPendingSince} ${since}` : ""}` : undefined}
-      className={`h-full rounded-2xl border p-2 ${ring}`}
+      className={`flex h-full flex-col rounded-2xl border p-2 ${ring}`}
     >
-      <div className="relative">
+      <div className="relative flex-1">
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} hidePhotoTags />
         <div className="absolute top-3 right-3 z-10">
           <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
