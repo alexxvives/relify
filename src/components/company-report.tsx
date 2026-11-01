@@ -85,7 +85,7 @@ export const companyReportCopy = {
   profitability: "Rentabilidad",
   profitabilityHint: "Cuánto beneficio saca la empresa de lo que vende, de lo que tiene y del dinero de los socios.",
   health: "Solidez financiera",
-  healthHint: "Semáforos de deuda y liquidez: verde es holgado, ámbar conviene revisarlo y rojo es una señal de riesgo. Cada ⓘ explica el cálculo y los umbrales.",
+  healthHint: "Semáforos de deuda y liquidez: verde es holgado, ámbar conviene revisarlo y rojo es una señal de riesgo.",
   healthAll: "Ver todos los indicadores de deuda y liquidez",
   balance: "Balance",
   balanceHint: "Lo que tiene la empresa (activo) frente a cómo lo financia (fondos propios y deudas).",
