@@ -32,6 +32,7 @@ import {
   ColumnBars,
   Empty,
   HoldingTable,
+  ChartTip,
   KpiTile,
   LegendDot,
   LineChart,
@@ -1050,7 +1051,15 @@ function BalanceComposition({ reading }: { reading: Composition }) {
         <p className="mb-1 text-xs font-medium text-[#5c6b78]">{title}</p>
         <div className="flex h-5 w-full overflow-hidden rounded-md bg-[#eef0f4]">
           {parts.map((part) => (
-            <span key={part.label} className="h-full" style={{ width: `${(Math.abs(part.value) / total) * 100}%`, backgroundColor: part.value < 0 ? "#d98080" : part.color }} title={`${part.label}: ${formatEur(part.value)}`} />
+            <span
+              key={part.label}
+              tabIndex={0}
+              aria-label={`${part.label}: ${formatEur(part.value)}`}
+              className="h-full outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+              style={{ width: `${(Math.abs(part.value) / total) * 100}%`, backgroundColor: part.value < 0 ? "#d98080" : part.color }}
+            >
+              <ChartTip text={`${part.label}: ${formatEur(part.value)} (${((Math.abs(part.value) / total) * 100).toLocaleString("es-ES", { maximumFractionDigits: 0 })} %)`} />
+            </span>
           ))}
         </div>
         <ul className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#5c6b78]">

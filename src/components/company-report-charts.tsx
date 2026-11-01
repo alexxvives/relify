@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { FieldHint } from "@/components/field-hint";
-import { tooltipBubble } from "@/components/ui/info-hint";
+import { placeBubble, tooltipBox, tooltipBubble } from "@/components/ui/info-hint";
 import {
   pnlWaterfall,
   yearOverYear,
@@ -72,10 +73,56 @@ export function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function Tip({ text }: { text: string }) {
+/**
+ * t71: chart tooltip. Rendered in a portal with fixed coordinates (like InfoHint) so it wraps at 240–360 px and is
+ * never clipped by the chart box; it opens on hover or keyboard focus of its parent bar/point.
+ */
+export function ChartTip({ text }: { text: string }) {
+  const marker = useRef<HTMLSpanElement>(null);
+  const bubble = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
+  useEffect(() => {
+    const host = marker.current?.parentElement;
+    if (!host) {
+      return;
+    }
+    const show = () => setOpen(true);
+    const hide = () => {
+      setOpen(false);
+      setPos(null);
+    };
+    host.addEventListener("mouseenter", show);
+    host.addEventListener("mouseleave", hide);
+    host.addEventListener("focus", show);
+    host.addEventListener("blur", hide);
+    return () => {
+      host.removeEventListener("mouseenter", show);
+      host.removeEventListener("mouseleave", hide);
+      host.removeEventListener("focus", show);
+      host.removeEventListener("blur", hide);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const anchor = marker.current?.parentElement?.getBoundingClientRect();
+    const box = bubble.current?.getBoundingClientRect();
+    if (open && anchor && box && pos === null) {
+      setPos(placeBubble(anchor, box));
+    }
+  }, [open, pos]);
+
   return (
-    <span role="tooltip" className={`pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap group-focus/tip:block group-hover/tip:block ${tooltipBubble}`}>
-      {text}
+    <span ref={marker} hidden>
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <span ref={bubble} role="tooltip" style={tooltipBox(pos)} className={`pointer-events-none z-[100] ${tooltipBubble}`}>
+              {text}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }
@@ -143,7 +190,7 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
                       className="group/tip absolute inset-x-0 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                       style={{ ...style, backgroundColor: value < 0 && series.length === 1 ? loss : item.color }}
                     >
-                      <Tip text={`${yearLabel(year)} · ${item.label}: ${formatValue(value, unit)}`} />
+                      <ChartTip text={`${yearLabel(year)} · ${item.label}: ${formatValue(value, unit)}`} />
                     </div>
                   </div>
                 );
@@ -209,7 +256,7 @@ export function LineChart({ years, series, unit }: { years: SabiYear[]; series: 
                 className="group/tip absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                 style={{ left: `${x(index)}%`, top: `${y(shown)}%`, backgroundColor: cut ? "#ffffff" : item.color, borderColor: cut ? item.color : "#ffffff" }}
               >
-                <Tip text={text} />
+                <ChartTip text={text} />
               </div>
             );
           }),
@@ -238,7 +285,7 @@ export function BalanceStacks({ years }: { years: SabiYear[] }) {
         className="group/tip relative w-full outline-none first:rounded-t-[3px] hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
         style={{ height: `${(value / max) * 100}%`, backgroundColor: color }}
       >
-        <Tip text={`${yearLabel(year)} · ${label}: ${compactEur(value)} (${decimal.format((value / year.totalAssetsCents!) * 100)} %)`} />
+        <ChartTip text={`${yearLabel(year)} · ${label}: ${compactEur(value)} (${decimal.format((value / year.totalAssetsCents!) * 100)} %)`} />
       </div>
     );
 
@@ -315,7 +362,7 @@ export function Waterfall({ year }: { year: SabiYear }) {
                 className="group/tip absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                 style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: strong ? 1 : 0.85 }}
               >
-                <Tip text={`${bar.label}: ${compactEur(bar.value)}`} />
+                <ChartTip text={`${bar.label}: ${compactEur(bar.value)}`} />
               </span>
             </span>
             <span className={`text-right whitespace-nowrap tabular-nums ${bar.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"} ${strong ? "font-semibold" : ""}`}>

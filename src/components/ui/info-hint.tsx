@@ -18,8 +18,35 @@ const iconTone = {
   verifiedLight: "text-[#7ee2a8]",
 } as const;
 
-const widths = { auto: 256, md: 256, lg: 384 } as const;
+/** t71: every tooltip wraps between ~240 px and 360 px wide (auto: short labels shrink to fit, still max 360 px). */
+const widths = { auto: { min: 0, max: 360 }, md: { min: 240, max: 320 }, lg: { min: 280, max: 360 } } as const;
 const margin = 8;
+
+/** t71: fixed-position bubble style shared with the chart tooltips: wraps, never wider than the viewport. */
+export function tooltipBox(pos: { left: number; top: number } | null, size: { min: number; max: number } = { min: 240, max: 360 }) {
+  return {
+    position: "fixed" as const,
+    left: pos?.left ?? -9999,
+    top: pos?.top ?? -9999,
+    width: "max-content",
+    minWidth: size.min > 0 ? `min(${size.min}px, calc(100vw - ${margin * 2}px))` : undefined,
+    maxWidth: `min(${size.max}px, calc(100vw - ${margin * 2}px))`,
+    overflowWrap: "break-word" as const,
+  };
+}
+
+/** t71: place a bubble centred over (or under) an anchor rect, clamped to the viewport. */
+export function placeBubble(anchor: DOMRect, box: DOMRect, align: "start" | "center" | "end" = "center", side: "top" | "bottom" = "top") {
+  const viewport = document.documentElement.clientWidth;
+  const want = align === "center" ? anchor.left + anchor.width / 2 - box.width / 2 : align === "end" ? anchor.right - box.width : anchor.left;
+  const left = Math.min(Math.max(want, margin), Math.max(viewport - box.width - margin, margin));
+  const above = anchor.top - box.height - margin;
+  const below = anchor.bottom + margin;
+  const fitsAbove = above >= margin;
+  const fitsBelow = below + box.height <= window.innerHeight - margin;
+  const top = side === "top" ? (fitsAbove || !fitsBelow ? above : below) : fitsBelow || !fitsAbove ? below : above;
+  return { left, top: Math.max(top, margin) };
+}
 
 /**
  * Icon with a tooltip. t70: it opens only from its own trigger (hover, keyboard focus, tap) and is
@@ -60,15 +87,7 @@ export function InfoHint({
     if (!anchor || !box) {
       return;
     }
-    const viewport = document.documentElement.clientWidth;
-    const want = align === "center" ? anchor.left + anchor.width / 2 - box.width / 2 : align === "end" ? anchor.right - box.width : anchor.left;
-    const left = Math.min(Math.max(want, margin), Math.max(viewport - box.width - margin, margin));
-    const above = anchor.top - box.height - margin;
-    const below = anchor.bottom + margin;
-    const fitsAbove = above >= margin;
-    const fitsBelow = below + box.height <= window.innerHeight - margin;
-    const top = side === "top" ? (fitsAbove || !fitsBelow ? above : below) : fitsBelow || !fitsAbove ? below : above;
-    setPos({ left, top: Math.max(top, margin) });
+    setPos(placeBubble(anchor, box, align, side));
   }, [align, side]);
 
   useEffect(() => {
@@ -139,8 +158,8 @@ export function InfoHint({
               ref={bubble}
               id={id}
               role="tooltip"
-              style={{ position: "fixed", left: pos?.left ?? -9999, top: pos?.top ?? -9999, width: width === "auto" ? undefined : widths[width], maxWidth: `calc(100vw - ${margin * 2}px)` }}
-              className={`pointer-events-none z-[100] ${width === "auto" ? "w-max max-w-64" : ""} ${tooltipBubble}`}
+              style={tooltipBox(pos, widths[width])}
+              className={`pointer-events-none z-[100] ${tooltipBubble}`}
             >
               {text}
             </span>,
