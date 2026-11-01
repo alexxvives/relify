@@ -1,5 +1,5 @@
-import { formatCompactEur } from "@/lib/money";
-import { financialDebtCents, marginPercent, netDebtCents, netDebtToEbitda, type SabiYear } from "@/lib/sabi/insights";
+import { formatCompactEur } from "./money";
+import { financialDebtCents, marginPercent, netDebtCents, netDebtToEbitda, type SabiYear } from "./sabi/insights";
 
 /* t69: plain (non-client) helpers for the company report, so server components can call them. */
 /** t69: chart and registry building blocks for the company report (was the t68 "Análisis SABI" panel). */
@@ -119,4 +119,18 @@ export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
   ];
   const present = (metric: Metric) => metric.values.some((value) => value !== null);
   return { kpis: kpis.filter(present), debt: debt.filter(present) };
+}
+
+/**
+ * t71: registry free text (SABI "actividad") arrives in ALL CAPS with hard line breaks. Collapse whitespace and,
+ * when it is mostly upper case, turn it into sentence case so it reads as a normal paragraph.
+ */
+export function registryText(text: string): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  const letters = flat.replace(/[^A-Za-zÀ-ÿ]/g, "");
+  const upper = letters.replace(/[^A-ZÀ-Þ]/g, "").length;
+  if (letters.length === 0 || upper / letters.length < 0.7) {
+    return flat;
+  }
+  return flat.toLocaleLowerCase("es-ES").replace(/(^|[.!?]\s+)(\p{L})/gu, (_, lead: string, letter: string) => `${lead}${letter.toLocaleUpperCase("es-ES")}`);
 }

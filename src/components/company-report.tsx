@@ -42,9 +42,10 @@ import {
   Waterfall,
   YearTable,
 } from "@/components/company-report-charts";
-import { formatValue, isoDay, metrics, navy, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
+import { formatValue, isoDay, metrics, navy, registryText, reportChartsCopy, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
 import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
+import { InfoHint } from "@/components/ui/info-hint";
 import { FinancialTable } from "@/components/financial-table";
 import { IndicatorTable } from "@/components/indicator-table";
 import { RoiChip } from "@/components/market-card";
@@ -260,12 +261,12 @@ function businessAbout(project: InvestorProjectProfile, registryActivity: string
 
   const registry = registryActivity?.trim();
   if (registry) {
-    return { text: registry, source: "Actividad según el registro mercantil (SABI). El vendedor aún no ha escrito su descripción." };
+    return { text: registryText(registry), source: "Descripción por defecto: es la actividad que consta en el registro mercantil (SABI). El vendedor aún no ha escrito la suya." };
   }
 
   const titles = [project.principalCnae, ...project.secondaryCnaes].flatMap((cnae) => (cnae?.title ? [cnae.title] : []));
   if (titles.length > 0) {
-    return { text: `${titles[0]}${titles.length > 1 ? `; también ${titles.slice(1).join("; ").toLowerCase()}` : ""}.`, source: "Actividad según los códigos CNAE. El vendedor aún no ha escrito su descripción." };
+    return { text: `${titles[0]}${titles.length > 1 ? `; también ${titles.slice(1).join("; ").toLowerCase()}` : ""}.`, source: "Descripción por defecto: sale de los códigos CNAE de la empresa. El vendedor aún no ha escrito la suya." };
   }
 
   return null;
@@ -647,10 +648,14 @@ export function CompanyReport({
 
       <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
         {about ? (
-          <div className="max-w-3xl">
-            <p className="leading-7 text-[#1c2740]">{about.text}</p>
-            {about.source ? <p className="mt-1 text-xs text-[#8b95a7]">{about.source}</p> : null}
-          </div>
+          <p className="leading-7 text-[#1c2740]">
+            {about.text}
+            {about.source ? (
+              <span className="ml-1.5 inline-flex align-middle">
+                <InfoHint text={about.source} icon="warning" tone="warning" width="lg" />
+              </span>
+            ) : null}
+          </p>
         ) : null}
         <div className={`${about ? "mt-4 " : ""}grid gap-2 sm:grid-cols-2 xl:grid-cols-4`}>
           {project.region ? <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} /> : null}
