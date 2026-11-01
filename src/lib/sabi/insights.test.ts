@@ -43,7 +43,7 @@ describe("sabi insights", () => {
     expect(slices).toEqual([
       { label: "A", basisPoints: 5000, detail: "> 50 %" },
       { label: "B", basisPoints: 810 },
-      { label: "Resto (2 accionistas sin % en SABI)", basisPoints: 4190, detail: "< 41,9 %" },
+      { label: "Resto (2 accionistas sin % definido)", basisPoints: 4190, detail: "< 41,9 %" },
     ]);
     expect(sabiOwnershipSlices([holder("X", null)])).toEqual([]);
     expect(sabiOwnershipSlices([holder("X", "100,00")])).toEqual([{ label: "X", basisPoints: 10000 }]);
