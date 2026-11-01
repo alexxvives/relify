@@ -206,11 +206,20 @@ export function MarketCard({
   const style = sectorStyles[key];
   const Icon = style.icon;
   const years = recoveryYears(project.askingPriceCents, project.ebitdaCents);
-  const margin = percent(project.ebitdaCents, project.revenueCents);
-  const adjustedMargin = percent(
-    project.adjustedEbitdaCents,
-    project.revenueCents,
-  );
+  // t73: 0 means "not known yet" on these cards (no SABI, no seller figure), never a real 0 €.
+  const known = (cents: number | null | undefined): cents is number =>
+    typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
+  const hasRevenue = known(project.revenueCents);
+  const margin =
+    hasRevenue && known(project.ebitdaCents)
+      ? percent(project.ebitdaCents, project.revenueCents)
+      : null;
+  const adjustedMargin =
+    hasRevenue && known(project.adjustedEbitdaCents)
+      ? percent(project.adjustedEbitdaCents, project.revenueCents)
+      : null;
+  const card = (cents: number | null | undefined): string | null =>
+    known(cents) ? formatCardEur(cents) : null;
   const headcount =
     project.headcount && isHeadcountRange(project.headcount)
       ? `${headcountLabels[project.headcount]} trab.`
@@ -373,23 +382,23 @@ export function MarketCard({
         <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure
             label="Facturación"
-            value={formatCardEur(project.revenueCents)}
+            value={card(project.revenueCents)}
           />
           <Figure
             label="EBITDA"
-            value={formatCardEur(project.ebitdaCents)}
+            value={card(project.ebitdaCents)}
             share={margin}
             edge="left"
           />
           <Figure
             label="EBITDA ajustado"
-            value={formatCardEur(project.adjustedEbitdaCents)}
+            value={card(project.adjustedEbitdaCents)}
             share={adjustedMargin}
             edge="top"
           />
           <Figure
             label="Precio de venta"
-            value={formatCardEur(project.askingPriceCents)}
+            value={card(project.askingPriceCents)}
             edge="both"
             strong
             note={years === null ? null : <RoiChip years={years} fit />}
@@ -416,7 +425,8 @@ function Figure({
   note = null,
 }: {
   label: string;
-  value: string;
+  /** Null when unknown: shows "—" with a "No disponible" tooltip instead of a fake 0. */
+  value: string | null;
   share?: number | null;
   edge?: "left" | "top" | "both";
   strong?: boolean;
@@ -441,9 +451,15 @@ function Figure({
         <span
           className={`${strong ? "text-base @[9.5rem]:text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}
         >
-          {value}
+          {value === null ? (
+            <span className="text-[#9aa5b1]" title="No disponible">
+              —<span className="sr-only">No disponible</span>
+            </span>
+          ) : (
+            value
+          )}
         </span>
-        {share !== null ? (
+        {share !== null && value !== null ? (
           <span
             className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`}
             title={`Margen sobre facturación: ${share} %`}
