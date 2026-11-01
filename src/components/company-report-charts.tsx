@@ -523,9 +523,14 @@ const levelChip = { good: "bg-[#e6f4f2] text-[#0f5f59]", warn: "bg-[#fdf3e1] tex
 /** Traffic-light gauge: coloured zones on a track, a marker at the value and the plain-language reading below. */
 export function SignalGauge({ signal }: { signal: HealthSignal }) {
   const span = signal.max - signal.min || 1;
-  const pos = (value: number) => Math.min(100, Math.max(0, ((value - signal.min) / span) * 100));
-  const ends = signal.zones.map((zone) => (zone.upTo === Infinity ? 100 : pos(zone.upTo)));
-  const zones = signal.zones.map((zone, index) => ({ level: zone.level, width: Math.max(ends[index]! - (index > 0 ? ends[index - 1]! : 0), 0) }));
+  const raw = (value: number) => Math.min(100, Math.max(0, ((value - signal.min) / span) * 100));
+  const ends = signal.zones.map((zone) => (zone.upTo === Infinity ? 100 : raw(zone.upTo)));
+  const scaleZones = signal.zones.map((zone, index) => ({ level: zone.level, width: Math.max(ends[index]! - (index > 0 ? ends[index - 1]! : 0), 0) }));
+  // t71: always bad on the left and good on the right. Metrics where lower is better (debt/EBITDA, days to collect)
+  // are drawn mirrored so the red zone never ends up on the right.
+  const mirrored = signal.zones[0]?.level === "good";
+  const pos = (value: number) => (mirrored ? 100 - raw(value) : raw(value));
+  const zones = mirrored ? [...scaleZones].reverse() : scaleZones;
 
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-4">
@@ -546,6 +551,10 @@ export function SignalGauge({ signal }: { signal: HealthSignal }) {
           ))}
         </div>
         <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow" style={{ left: `${pos(signal.value)}%`, backgroundColor: levelColors[signal.level] }} aria-hidden />
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-[#8b95a7]" aria-hidden>
+        <span>Peor</span>
+        <span>Mejor</span>
       </div>
       <p className="mt-3 text-sm leading-6 text-[#3d4a63]">{signal.reading}</p>
     </section>
