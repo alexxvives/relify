@@ -358,3 +358,157 @@ export function reportFlags(years: SabiYear[]): ReportFlag[] {
 
   return flags;
 }
+
+/* ---------- t70: due-diligence quick read ---------- */
+
+export type DiligenceLevel = "good" | "warn" | "bad" | "info";
+export type DiligenceCheck = { key: string; label: string; value: string; level: DiligenceLevel; text: string };
+
+const months1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
+
+/** Operating working capital (NOF): current assets without cash minus current liabilities without short-term bank debt. */
+export function operatingWorkingCapital(year: SabiYear): number | null {
+  if (year.currentAssetsCents === null || year.currentLiabilitiesCents === null) {
+    return null;
+  }
+  return year.currentAssetsCents - (year.cashCents ?? 0) - (year.currentLiabilitiesCents - (year.shortTermDebtCents ?? 0));
+}
+
+/**
+ * Checks a buyer or accountant runs first, computed only from the filed accounts (and the audit opinion when the
+ * registry has one). Approximations say so in their text. Nothing is shown for a check without data.
+ */
+export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"] = []): DiligenceCheck[] {
+  const checks: DiligenceCheck[] = [];
+  const closed = years.filter((year) => year.revenueCents !== null || year.totalAssetsCents !== null);
+  const last = closed[closed.length - 1];
+  if (!last) {
+    return checks;
+  }
+  const previous = closed.length > 1 ? closed[closed.length - 2]! : null;
+
+  // Information quality: how many years, short years, audit.
+  const short = closed.filter((year) => year.months !== null && year.months !== 12);
+  const audit = [...audits].sort((left, right) => right.year - left.year)[0];
+  checks.push({
+    key: "information",
+    label: "Calidad de la información",
+    value: `${closed.length} ejercicio${closed.length === 1 ? "" : "s"}${audit?.opinion ? ` · auditoría ${audit.year}: ${audit.opinion}` : " · sin auditoría registrada"}`,
+    level: short.length > 0 || !audit ? "warn" : "good",
+    text: [
+      short.length > 0 ? `Ejercicio${short.length > 1 ? "s" : ""} de duración distinta a 12 meses (${short.map((year) => `${year.year}: ${year.months} meses`).join(", ")}): no son comparables sin anualizar.` : null,
+      audit ? null : "No consta informe de auditoría: las cifras no están verificadas por un tercero.",
+    ]
+      .filter(Boolean)
+      .join(" ") || "Cuentas depositadas y auditadas.",
+  });
+
+  // Recurring losses.
+  const results = closed.filter((year) => year.netResultCents !== null);
+  if (results.length > 0) {
+    const losses = results.filter((year) => year.netResultCents! < 0).length;
+    checks.push({
+      key: "losses",
+      label: "Resultados",
+      value: `Pérdidas en ${losses} de ${results.length}`,
+      level: losses === 0 ? "good" : losses === results.length || losses >= 2 ? "bad" : "warn",
+      text: losses === 0 ? "Beneficio en todos los ejercicios disponibles." : "Pérdidas repetidas: revisar si son estructurales o por gastos no recurrentes antes de valorar.",
+    });
+  }
+
+  // Equity.
+  if (last.equityCents !== null && last.totalAssetsCents !== null && last.totalAssetsCents > 0) {
+    const ratio = (last.equityCents / last.totalAssetsCents) * 100;
+    checks.push({
+      key: "equity",
+      label: "Patrimonio neto",
+      value: `${compactEur(last.equityCents)} (${es1.format(ratio)} % del activo)`,
+      level: last.equityCents <= 0 ? "bad" : ratio < 20 ? "warn" : "good",
+      text:
+        last.equityCents <= 0
+          ? "Patrimonio negativo: posible causa de disolución si queda por debajo de la mitad del capital social. Revisar con el asesor legal."
+          : ratio < 20
+            ? "Poco patrimonio frente al activo: la empresa se financia sobre todo con deuda y proveedores."
+            : "La empresa se financia en buena parte con fondos propios.",
+    });
+  }
+
+  // Cash runway when EBITDA is negative.
+  if (last.ebitdaCents !== null && last.ebitdaCents < 0 && last.cashCents !== null && last.cashCents > 0) {
+    const months = last.cashCents / (-last.ebitdaCents / (last.months ?? 12));
+    checks.push({
+      key: "runway",
+      label: "Caja frente a pérdidas operativas",
+      value: `≈ ${months1.format(months)} meses`,
+      level: months < 12 ? "bad" : "warn",
+      text: `Con ${compactEur(last.cashCents)} de caja y un EBITDA de ${compactEur(last.ebitdaCents)}, la caja cubriría unos ${months1.format(months)} meses al ritmo de ${last.year}. Aproximado: no incluye inversiones ni deuda.`,
+    });
+  }
+
+  // Operating working capital and cash conversion.
+  const nof = operatingWorkingCapital(last);
+  if (nof !== null) {
+    const base = last.revenueCents !== null && last.revenueCents > 0 ? (nof / last.revenueCents) * 100 : null;
+    const before = previous ? operatingWorkingCapital(previous) : null;
+    const change = before !== null ? nof - before : null;
+    checks.push({
+      key: "workingCapital",
+      label: "Necesidades operativas de fondos (NOF)",
+      value: `${compactEur(nof)}${base !== null ? ` (${es1.format(base)} % de ingresos)` : ""}`,
+      level: nof < 0 ? "good" : base !== null && base > 25 ? "warn" : "info",
+      text: `${nof < 0 ? "Clientes y existencias se financian con proveedores y otros acreedores a corto plazo." : "Dinero inmovilizado en clientes y existencias, neto de proveedores."}${change !== null ? ` ${change > 0 ? "Aumentó" : "Bajó"} ${compactEur(Math.abs(change))} frente a ${previous!.year}.` : ""} Cálculo: activo corriente sin caja − pasivo corriente sin deuda bancaria.`,
+    });
+    if (change !== null && last.ebitdaCents !== null) {
+      const operatingCash = last.ebitdaCents - change;
+      checks.push({
+        key: "cashConversion",
+        label: "Caja operativa aproximada",
+        value: compactEur(operatingCash),
+        level: operatingCash < 0 ? "bad" : last.ebitdaCents > 0 && operatingCash < last.ebitdaCents * 0.6 ? "warn" : "good",
+        text: `EBITDA (${compactEur(last.ebitdaCents)}) menos el aumento de NOF (${compactEur(change)}) en ${last.year}. Antes de impuestos, intereses e inversiones.${last.ebitdaCents > 0 ? ` Convierte el ${es1.format((operatingCash / last.ebitdaCents) * 100)} % del EBITDA en caja.` : ""}`,
+      });
+    }
+  }
+
+  // Capex proxy: change in fixed assets + depreciation (EBITDA − EBIT).
+  if (previous && last.nonCurrentAssetsCents !== null && previous.nonCurrentAssetsCents !== null && last.ebitdaCents !== null && last.ebitCents !== null) {
+    const depreciation = last.ebitdaCents - last.ebitCents;
+    const capex = last.nonCurrentAssetsCents - previous.nonCurrentAssetsCents + depreciation;
+    const share = last.revenueCents !== null && last.revenueCents > 0 ? (capex / last.revenueCents) * 100 : null;
+    checks.push({
+      key: "capex",
+      label: "Inversión aproximada (capex)",
+      value: `${compactEur(capex)}${share !== null ? ` (${es1.format(share)} % de ingresos)` : ""}`,
+      level: "info",
+      text: `Variación del activo no corriente más amortizaciones (${compactEur(depreciation)}) en ${last.year}. Aproximado: incluye inversiones financieras y revalorizaciones; pedir el detalle al vendedor.`,
+    });
+  }
+
+  // Debt maturity split.
+  const longDebt = last.longTermDebtCents ?? 0;
+  const shortDebt = last.shortTermDebtCents ?? 0;
+  if (longDebt + shortDebt > 0) {
+    const shortShare = (shortDebt / (longDebt + shortDebt)) * 100;
+    checks.push({
+      key: "debtMaturity",
+      label: "Vencimiento de la deuda bancaria",
+      value: `${es1.format(shortShare)} % a menos de un año`,
+      level: shortShare > 60 ? "warn" : "good",
+      text: `${compactEur(shortDebt)} a corto y ${compactEur(longDebt)} a largo plazo. ${shortShare > 60 ? "La mayor parte vence en 12 meses: comprobar renovaciones y pólizas." : "La deuda se reparte en el tiempo."}`,
+    });
+  }
+
+  // Staff weight.
+  if (last.staffCostsCents !== null && last.revenueCents !== null && last.revenueCents > 0) {
+    const share = (Math.abs(last.staffCostsCents) / last.revenueCents) * 100;
+    checks.push({
+      key: "staffWeight",
+      label: "Peso del personal",
+      value: `${es1.format(share)} % de los ingresos`,
+      level: share > 60 ? "warn" : "info",
+      text: share > 60 ? "Negocio muy intensivo en personal: el margen depende de la productividad y de retener al equipo clave." : "Gastos de personal sobre ingresos del último ejercicio.",
+    });
+  }
+
+  return checks;
+}

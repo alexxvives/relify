@@ -1,5 +1,6 @@
 import { cloneElement, isValidElement, type ReactNode } from "react";
 import {
+  ClipboardCheck,
   Briefcase,
   Building2,
   ChevronDown,
@@ -52,7 +53,7 @@ import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
-import { compactEur, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
+import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
 import {
   figureVeilBalance,
   figureVeilCapital,
@@ -543,6 +544,7 @@ export function CompanyReport({
   const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
   const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
   const composition = balanceComposition(years);
+  const checks = diligenceChecks(years, fullRegistry?.audits ?? []);
   const deal = dealReading(project, years.length > 0);
 
   const sections = [
@@ -555,6 +557,7 @@ export function CompanyReport({
     capital.length > 0 || governance ? { id: "propiedad", label: companyReportCopy.ownership } : null,
     { id: "equipo", label: companyReportCopy.team },
     { id: "operacion", label: companyReportCopy.deal },
+    checks.length > 0 ? { id: "revision", label: "Revisión" } : null,
     { id: "detalle", label: companyReportCopy.detail },
   ].flatMap((item) => (item ? [item] : []));
 
@@ -914,6 +917,46 @@ export function CompanyReport({
         </p>
       </ReportSection>
 
+      {checks.length > 0 ? (
+        <ReportSection
+          id="revision"
+          icon={ClipboardCheck}
+          title="Revisión para la due diligence"
+          intro="Primeras comprobaciones que haría un comprador o su asesor con las cuentas depositadas. Son lecturas automáticas: los valores marcados como aproximados deben confirmarse con el vendedor."
+        >
+          {lock(
+            "balance",
+            <div className="flex flex-col gap-4">
+              <ul className="grid gap-2 lg:grid-cols-2">
+                {checks.map((check) => (
+                  <li key={check.key} className="flex min-w-0 gap-3 rounded-xl border border-[#e7eaee] bg-white p-3">
+                    <span className={`mt-1 size-2.5 shrink-0 rounded-full ${diligenceDot[check.level]}`} aria-hidden />
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <span className="text-sm font-semibold text-[#1c2740]">{check.label}</span>
+                        <span className="text-sm text-[#0f5f59] tabular-nums">{check.value}</span>
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">{check.text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="rounded-xl bg-[#f7f8fb] p-3">
+                <p className="text-sm font-semibold text-[#1c2740]">Lo que las cuentas no dicen y hay que pedir al vendedor</p>
+                <ul className="mt-1.5 grid gap-x-6 gap-y-1 text-xs leading-5 text-[#5c6b78] sm:grid-cols-2">
+                  {diligenceAsks.map((ask) => (
+                    <li key={ask} className="flex gap-2">
+                      <span className="mt-2 size-1 shrink-0 rounded-full bg-[#8b95a7]" aria-hidden />
+                      {ask}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>,
+          )}
+        </ReportSection>
+      ) : null}
+
       <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} open={false}>
         <div className="flex flex-col gap-6">
           {figuresOpen ? (
@@ -1005,6 +1048,22 @@ function BalanceComposition({ reading }: { reading: Composition }) {
     </div>
   );
 }
+
+const diligenceDot: Record<"good" | "warn" | "bad" | "info", string> = {
+  good: "bg-[#0f766e]",
+  warn: "bg-[#d9a23a]",
+  bad: "bg-[#a12f2f]",
+  info: "bg-[#9aa6bd]",
+};
+
+const diligenceAsks = [
+  "Concentración de clientes: peso de los 5 principales en ventas.",
+  "Ajustes al EBITDA: sueldos de socios, gastos no recurrentes o personales.",
+  "Detalle de la deuda: entidades, vencimientos, garantías y avales personales.",
+  "Inversiones previstas y estado de los activos (capex de mantenimiento).",
+  "Contingencias fiscales, laborales y litigios abiertos.",
+  "Contratos clave, licencias y dependencia de personas concretas.",
+];
 
 function BalanceReading({ year }: { year: SabiYear }) {
   const total = year.totalAssetsCents!;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { healthSignals, registryForRole, reportFlags, reportSummary } from "./company-report";
+import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary } from "./company-report";
 import type { SabiYear } from "./sabi/insights";
 import type { SabiRegistry } from "./sabi/registry";
 
@@ -72,5 +72,35 @@ describe("company report", () => {
     const flags = reportFlags([year({ year: 2022 }), year({ revenueCents: 90_000_000, netResultCents: -1 })]);
     expect(flags[0]).toEqual({ level: "warn", text: "Ingresos a la baja en 2023 (-10 %)" });
     expect(flags[1]).toEqual({ level: "warn", text: "Pérdidas en 2023" });
+  });
+});
+
+describe("diligenceChecks", () => {
+  it("returns nothing without years", () => {
+    expect(diligenceChecks([])).toEqual([]);
+  });
+
+  it("flags losses, short years, missing audit and computes runway and NOF from real fields only", () => {
+    const checks = diligenceChecks([
+      year({ year: 2022, netResultCents: -5_000_000, currentAssetsCents: 80_000_000, currentLiabilitiesCents: 60_000_000, cashCents: 10_000_000, shortTermDebtCents: 20_000_000, nonCurrentAssetsCents: 100_000_000 }),
+      year({ year: 2023, months: 11, netResultCents: -8_000_000, ebitdaCents: -12_000_000, ebitCents: -14_000_000, nonCurrentAssetsCents: 101_000_000 }),
+    ]);
+    const byKey = Object.fromEntries(checks.map((check) => [check.key, check]));
+    expect(byKey.information!.level).toBe("warn");
+    expect(byKey.information!.text).toContain("11 meses");
+    expect(byKey.losses!.level).toBe("bad");
+    // 10 M cents cash / (12 M cents / 11 months) = 9.2 months
+    expect(byKey.runway!.value).toBe("≈ 9 meses");
+    // NOF 2023: (90 − 10) − (60 − 20) = 40 M cents; 2022: (80 − 10) − (60 − 20) = 30 M cents
+    expect(byKey.cashConversion!.text).toContain("aumento de NOF");
+    // capex: (101 − 100) M + (−12 − −14) M = 3 M cents
+    expect(byKey.capex!.value.startsWith("30")).toBe(true);
+    expect(byKey.debtMaturity!.value).toContain("33,3 %");
+  });
+
+  it("marks audited, profitable companies as good", () => {
+    const checks = diligenceChecks([year({})], [{ year: 2023, closingOn: null, opinion: "Favorable", auditorName: "X", auditorCode: null, fields: {} }]);
+    expect(checks.find((check) => check.key === "information")!.level).toBe("good");
+    expect(checks.find((check) => check.key === "information")!.value).not.toContain("X");
   });
 });
