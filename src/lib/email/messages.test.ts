@@ -15,9 +15,9 @@ describe("email messages", () => {
   it("welcome emails speak of comprador, never inversor", () => {
     for (const role of ["seller", "investor", "advisor"] as const) {
       const mail = welcomeEmail(role, "Ana", site);
-      expect(mail.text.toLowerCase()).not.toContain("inversor ");
+      expect(mail.text.replace(/https:\/\/\S+/g, "").toLowerCase()).not.toContain("inversor");
       expect(mail.html).toContain("https://itsrelify.com/");
     }
-    expect(welcomeEmail("investor", "Ana", site).text).toContain("Comprador");
+    expect(welcomeEmail("investor", "Ana", site).text).toContain("cuenta de comprador");
   });
 });
