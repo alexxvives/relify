@@ -52,11 +52,16 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
   const filled = Object.values(values).filter((value) => value.trim() !== "").length;
 
   return (
-    <Card id="panel-sabi-detail" className="scroll-mt-6">
+    // t73: the admin copy (readOnly, inside Detalle de cuentas) is a compact, collapsed block; the seller keeps the full card.
+    <Card id="panel-sabi-detail" className={readOnly ? "scroll-mt-6 !p-4 shadow-none" : "scroll-mt-6"}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sabiDetailCopy.title}</h2>
-          <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{sabiDetailCopy.intro}</p>
+          {readOnly ? (
+            <h3 className="text-sm font-semibold text-[#2b3b4a]">{sabiDetailCopy.title}</h3>
+          ) : (
+            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{sabiDetailCopy.title}</h2>
+          )}
+          <p className={readOnly ? "mt-0.5 text-xs text-[#64748b]" : "mt-1 max-w-3xl text-sm text-[#64748b]"}>{readOnly ? "Datos brutos del informe SABI (solo administración): legales, contacto, grupo y desglose contable por año." : sabiDetailCopy.intro}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {detail.imported ? (
