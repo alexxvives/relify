@@ -334,45 +334,107 @@ function waterfallBars(steps: WaterfallStep[]) {
   return bars;
 }
 
-export function Waterfall({ year }: { year: SabiYear }) {
+const pctOfRevenue = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+
+/**
+ * t73: P&L bridge with a year toggle. Each row shows the amount and its share of revenue; positive
+ * steps are teal, negative steps red, subtotals navy-teal, and the final result is highlighted.
+ * Dashed connectors carry the running total from one bar to the next.
+ */
+export function Waterfall({ years }: { years: SabiYear[] }) {
+  const usable = years.filter((year) => pnlWaterfall(year).length > 0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const year = usable.find((item) => item.year === picked) ?? usable.at(-1);
+  if (!year) {
+    return null;
+  }
+
   const bars = waterfallBars(pnlWaterfall(year));
+  const revenue = year.revenueCents ?? 0;
   const points = bars.flatMap((bar) => [bar.from, bar.to]);
   const max = Math.max(0, ...points);
   const min = Math.min(0, ...points);
   const range = max - min || 1;
   const pos = (value: number) => ((value - min) / range) * 100;
+  const share = (value: number) => (revenue > 0 ? `${pctOfRevenue.format((value / revenue) * 100)} %` : null);
 
   return (
-    <ul className="flex flex-col gap-1.5">
-      {bars.map((bar) => {
-        const left = pos(Math.min(bar.from, bar.to));
-        const width = Math.max(pos(Math.max(bar.from, bar.to)) - left, 0.6);
-        const color = bar.kind === "delta" ? (bar.value < 0 ? loss : tealMid) : bar.to < 0 ? loss : bar.kind === "start" ? navy : teal;
-        const strong = bar.kind !== "delta";
-        return (
-          <li key={bar.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0.5 text-xs sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_5rem]">
-            <span className={strong ? "truncate font-semibold text-[#1c2740]" : "truncate pl-2 text-[#5c6b78]"} title={bar.label}>
-              {bar.label}
-            </span>
-            <span className="relative order-last col-span-2 h-5 rounded bg-[#f4f6f9] sm:order-none sm:col-span-1">
-              <span className="absolute inset-y-0 border-l border-[#c9d0da]" style={{ left: `${pos(0)}%` }} aria-hidden />
-              <span
-                tabIndex={0}
-                aria-label={`${bar.label}: ${compactEur(bar.value)}`}
-                className="group/tip absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
-                style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: strong ? 1 : 0.85 }}
+    <div className="flex flex-col gap-3">
+      {usable.length > 1 ? (
+        <div role="radiogroup" aria-label="Ejercicio" className="flex flex-wrap gap-1.5">
+          {usable.map((item) => {
+            const active = item.year === year.year;
+            return (
+              <button
+                key={item.year}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setPicked(item.year)}
+                className={`h-7 rounded-full border px-3 text-xs font-medium tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                  active ? "border-[#1c2740] bg-[#1c2740] text-white" : "border-[#e1e5eb] bg-white text-[#3d4a63] hover:border-[#2fc4b2] hover:text-[#0f766e]"
+                }`}
               >
-                <ChartTip text={`${bar.label}: ${compactEur(bar.value)}`} />
+                {yearLabel(item)}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#5c6b78]">
+        <LegendDot color={navy} label="Ingresos" />
+        <LegendDot color={tealMid} label="Suma" />
+        <LegendDot color={loss} label="Resta" />
+        <LegendDot color={teal} label="Subtotal" />
+      </div>
+      <ul className="flex flex-col gap-2">
+        {bars.map((bar, index) => {
+          const left = pos(Math.min(bar.from, bar.to));
+          const width = Math.max(pos(Math.max(bar.from, bar.to)) - left, 0.6);
+          const final = index === bars.length - 1;
+          const color = bar.kind === "delta" ? (bar.value < 0 ? loss : tealMid) : bar.kind === "start" ? navy : bar.to < 0 ? loss : teal;
+          const strong = bar.kind !== "delta";
+          const pct = share(bar.value);
+          const amount = `${bar.kind === "delta" && bar.value > 0 ? "+" : ""}${compactEur(bar.value)}`;
+          const text = `${bar.label}: ${amount}${pct ? ` (${pct} de los ingresos)` : ""}`;
+          return (
+            <li
+              key={bar.label}
+              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 rounded-lg text-xs sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_7.5rem] ${
+                final ? `-mx-2 px-2 py-2 ring-1 ${bar.value < 0 ? "bg-[#fdf3f3] ring-[#f3c9c9]" : "bg-[#eef8f6] ring-[#bfe6df]"}` : ""
+              }`}
+            >
+              <span className={strong ? "truncate font-semibold text-[#1c2740]" : "truncate pl-3 text-[#5c6b78]"} title={bar.label}>
+                {bar.kind === "delta" ? <span className="mr-1 text-[#8b95a7]" aria-hidden>{bar.value < 0 ? "−" : "+"}</span> : null}
+                {bar.label}
               </span>
-            </span>
-            <span className={`text-right whitespace-nowrap tabular-nums ${bar.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"} ${strong ? "font-semibold" : ""}`}>
-              {bar.kind === "delta" && bar.value > 0 ? "+" : ""}
-              {compactEur(bar.value)}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+              <span className={`relative order-last col-span-2 rounded bg-[#f4f6f9] sm:order-none sm:col-span-1 ${final ? "h-7" : "h-6"}`}>
+                <span className="absolute inset-y-0 border-l border-[#c9d0da]" style={{ left: `${pos(0)}%` }} aria-hidden />
+                <span
+                  tabIndex={0}
+                  aria-label={text}
+                  className="absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+                  style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color }}
+                >
+                  <ChartTip text={text} />
+                </span>
+                {final ? null : (
+                  <span
+                    className="pointer-events-none absolute top-full hidden h-2 border-l border-dashed border-[#8b95a7] sm:block"
+                    style={{ left: `${pos(bar.to)}%` }}
+                    aria-hidden
+                  />
+                )}
+              </span>
+              <span className="flex items-baseline justify-end gap-1.5 text-right whitespace-nowrap tabular-nums">
+                <span className={`${bar.value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"} ${strong ? "font-semibold" : ""} ${final ? "text-sm" : ""}`}>{amount}</span>
+                {pct ? <span className="w-12 text-[11px] text-[#8b95a7]">{pct}</span> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

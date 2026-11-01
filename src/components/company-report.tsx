@@ -727,10 +727,10 @@ export function CompanyReport({
               </div>
               {latest ? (
                 <ChartBox
-                  title={`De ingresos a resultado · ${yearLabel(latest)}`}
-                  hint="Cascada del último ejercicio: parte de los ingresos y resta cada gasto hasta llegar al resultado final."
+                  title="De ingresos a resultado"
+                  hint={"Cascada del ejercicio elegido: parte de los ingresos, suma o resta cada partida y llega al resultado final.\nAl lado de cada importe, su peso sobre los ingresos de ese año."}
                 >
-                  <Waterfall year={latest} />
+                  <Waterfall years={years} />
                 </ChartBox>
               ) : null}
             </div>
