@@ -127,14 +127,14 @@ function ReportSection({
   children: ReactNode;
 }) {
   return (
-    <details open={open} id={id} className="group scroll-mt-24 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+    <details open={open} id={id} className="group/section scroll-mt-24 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
       <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:px-6 [&::-webkit-details-marker]:hidden">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
           <Icon className="size-5" aria-hidden />
         </span>
         <h2 className="min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
         {aside ? <span className="hidden truncate text-sm text-[#5c6b78] sm:block">{aside}</span> : null}
-        <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open:rotate-180" aria-hidden />
+        <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open/section:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
         {intro ? <p className="mb-4 max-w-3xl text-sm leading-6 text-[#5c6b78]">{intro}</p> : null}

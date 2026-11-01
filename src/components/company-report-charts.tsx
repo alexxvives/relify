@@ -71,7 +71,7 @@ export function LegendDot({ color, label }: { color: string; label: string }) {
 
 function Tip({ text }: { text: string }) {
   return (
-    <span role="tooltip" className={`pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap group-focus:block group-hover:block ${tooltipBubble}`}>
+    <span role="tooltip" className={`pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap group-focus/tip:block group-hover/tip:block ${tooltipBubble}`}>
       {text}
     </span>
   );
@@ -137,7 +137,7 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
                     <div
                       tabIndex={0}
                       aria-label={`${year.year} · ${item.label}: ${formatValue(value, unit)}`}
-                      className="group absolute inset-x-0 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+                      className="group/tip absolute inset-x-0 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                       style={{ ...style, backgroundColor: value < 0 && series.length === 1 ? loss : item.color }}
                     >
                       <Tip text={`${yearLabel(year)} · ${item.label}: ${formatValue(value, unit)}`} />
@@ -203,7 +203,7 @@ export function LineChart({ years, series, unit }: { years: SabiYear[]; series: 
                 key={`${item.label}-${index}`}
                 tabIndex={0}
                 aria-label={text}
-                className="group absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+                className="group/tip absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                 style={{ left: `${x(index)}%`, top: `${y(shown)}%`, backgroundColor: cut ? "#ffffff" : item.color, borderColor: cut ? item.color : "#ffffff" }}
               >
                 <Tip text={text} />
@@ -232,7 +232,7 @@ export function BalanceStacks({ years }: { years: SabiYear[] }) {
         key={label}
         tabIndex={0}
         aria-label={`${year.year} · ${label}: ${formatCompactEur(value)}`}
-        className="group relative w-full outline-none first:rounded-t-[3px] hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+        className="group/tip relative w-full outline-none first:rounded-t-[3px] hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
         style={{ height: `${(value / max) * 100}%`, backgroundColor: color }}
       >
         <Tip text={`${yearLabel(year)} · ${label}: ${formatCompactEur(value)} (${decimal.format((value / year.totalAssetsCents!) * 100)} %)`} />
@@ -309,7 +309,7 @@ export function Waterfall({ year }: { year: SabiYear }) {
               <span
                 tabIndex={0}
                 aria-label={`${bar.label}: ${formatCompactEur(bar.value)}`}
-                className="group absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+                className="group/tip absolute inset-y-0.5 rounded-[3px] outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
                 style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: strong ? 1 : 0.85 }}
               >
                 <Tip text={`${bar.label}: ${formatCompactEur(bar.value)}`} />
