@@ -186,6 +186,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       <div {...dropProps} className="relative rounded-[1.75rem]">
         <CompanyBanner {...banner}>
           {/* t73: the drag hint sits centred under the button, the pair stacked at the banner's right edge. */}
+          <div className="flex flex-wrap items-start justify-end gap-2">
           <div className="flex flex-col items-center gap-1">
             <label
               title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo al banner.`}
@@ -209,6 +210,8 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
             </label>
             {sabi.importedAt ? null : <span className="hidden text-[11px] leading-4 text-white/75 sm:block">o arrastra el .xlsx al banner</span>}
           </div>
+          <AdminReportNotice variant="banner" projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
+          </div>
         </CompanyBanner>
         {dragging ? (
           <div
@@ -221,7 +224,6 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
           </div>
         ) : null}
       </div>
-      <AdminReportNotice projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
       {showPanel ? (
         <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
           {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
