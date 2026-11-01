@@ -240,6 +240,9 @@ model Project {
   averageHeadcount    Float?               @map("average_headcount")
   sabiRequestedAt     DateTime?            @map("sabi_requested_at")
   sabiImportedAt      DateTime?            @map("sabi_imported_at")
+  /// t73b: when an admin sent the "informe financiero listo" email to the seller, and who.
+  reportNotifiedAt    DateTime?            @map("report_notified_at")
+  reportNotifiedById  String?              @map("report_notified_by_id")
   sabiFileName        String?              @map("sabi_file_name")
   sabiData            Json?                @map("sabi_data")
   legalForm           String?              @map("legal_form")

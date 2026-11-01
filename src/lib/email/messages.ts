@@ -97,3 +97,31 @@ export function verifyEmail(url: string): RenderedEmail {
     reason: accountReason,
   });
 }
+
+const noticeReason =
+  "Recibes este aviso por la actividad de tu cuenta en Relify. Si no quieres más avisos por correo, escríbenos a info@itsrelify.com.";
+
+function greeting(firstName: string): string {
+  return firstName ? `Hola, ${firstName}:` : "Hola:";
+}
+
+/** To the seller (or the advisor who owns the mandate): their own company, so its name is fine here. */
+export function reportReadyEmail(
+  firstName: string,
+  companyName: string,
+  url: string,
+): RenderedEmail {
+  return renderEmail(`Tu informe financiero de ${companyName} está listo`, {
+    preheader:
+      "Ya puedes revisar los datos financieros de tu empresa en Relify.",
+    eyebrow: "Informe financiero",
+    title: "Tu informe financiero está listo",
+    paragraphs: [
+      greeting(firstName),
+      `Hemos preparado el informe financiero de ${companyName} con los datos de sus cuentas anuales. Revísalo y, si algo no cuadra, cuéntanoslo antes de publicar.`,
+      "Los compradores no ven estos datos hasta que tú decides compartirlos.",
+    ],
+    cta: { label: "Revisar mi informe", url },
+    reason: noticeReason,
+  });
+}

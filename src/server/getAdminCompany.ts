@@ -91,6 +91,8 @@ export type AdminSabiView = {
   previewTarget: SabiPreviewTarget;
   importedAt: string | null;
   requestedAt: string | null;
+  /** t73b: "informe financiero listo" email to the seller: sent when / by whom, and whether there is a seller to tell. */
+  report: { sentAt: string | null; sentBy: string | null; hasOwner: boolean };
   fileName: string | null;
   legalForm: string | null;
   incorporatedOn: string | null;
@@ -187,6 +189,9 @@ export async function getAdminCompany(
       address: true,
       createdAt: true,
       sabiImportedAt: true,
+      reportNotifiedAt: true,
+      reportNotifiedById: true,
+      owner: { select: { email: true } },
       sabiRequestedAt: true,
       sabiFileName: true,
       sabiData: true,
@@ -335,6 +340,11 @@ export async function getAdminCompany(
   ]);
 
   const stored = readSabiStored(project.sabiData)?.report ?? null;
+  const reportSender = project.reportNotifiedById
+    ? await prisma.user
+        .findUnique({ where: { id: project.reportNotifiedById }, select: { name: true, lastName: true, email: true } })
+        .then((sender) => (sender ? [sender.name, sender.lastName].filter(Boolean).join(" ") || sender.email : null))
+    : null;
   const sabi: AdminSabiView = {
     projectId: project.id,
     hasCif: project.cif.trim().length > 0,
@@ -350,6 +360,11 @@ export async function getAdminCompany(
     requestedAt: project.sabiRequestedAt
       ? when.format(project.sabiRequestedAt)
       : null,
+    report: {
+      sentAt: project.reportNotifiedAt ? when.format(project.reportNotifiedAt) : null,
+      sentBy: reportSender,
+      hasOwner: project.owner !== null,
+    },
     fileName: project.sabiFileName,
     legalForm: stored?.identity.legalForm ?? null,
     incorporatedOn: stored?.identity.incorporatedOn ?? null,

@@ -9,6 +9,7 @@ import { mapSabiReport } from "@/lib/sabi/mapping";
 import { parseSabiWorkbookStaged, sabiStages, type SabiStage } from "@/lib/sabi/parse";
 import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { CompanyBanner } from "@/components/company-banner";
+import { AdminReportNotice } from "@/components/admin-report-notice";
 import type { AdminSabiView } from "@/server/getAdminCompany";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
@@ -220,6 +221,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
           </div>
         ) : null}
       </div>
+      <AdminReportNotice projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
       {showPanel ? (
         <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
           {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
