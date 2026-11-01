@@ -26,6 +26,7 @@ import {
   IdCard,
   FileCheck2,
 } from "lucide-react";
+import { ReportNav } from "@/components/report-nav";
 import {
   BalanceStacks,
   ChartBox,
@@ -571,17 +572,7 @@ export function CompanyReport({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <nav aria-label={companyReportCopy.nav} className="sticky top-0 z-20 -mx-1 overflow-x-auto bg-[#f5f7fa]/90 px-1 py-2 backdrop-blur">
-        <ul className="flex w-max gap-1.5">
-          {sections.map((item) => (
-            <li key={item.id}>
-              <a href={`#${item.id}`} className="inline-flex rounded-full border border-[#e1e5eb] bg-white px-3 py-1.5 text-xs font-medium whitespace-nowrap text-[#1c2740] hover:border-[#2fc4b2] hover:text-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none">
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <ReportNav items={sections} label={companyReportCopy.nav} />
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
