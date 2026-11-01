@@ -1,7 +1,9 @@
 import { sellerPublishOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
+import { ebitdaBlockedMessage, missingHint } from "@/lib/publish-checklist";
 import { prisma } from "@/server/db";
+import { getSellerOverview } from "@/server/getSellerOverview";
 import { reconcileListingPayment } from "@/server/fulfillCheckout";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import {
@@ -84,11 +86,16 @@ export async function publishSellerProject(
   });
 
   if (project && project.ebitdaCents <= 0) {
-    return {
-      ok: false,
-      message:
-        "El EBITDA tiene que ser positivo para publicar. Un resultado de explotación negativo no entra en el catálogo: la ficha se ordena por lo que el negocio gana, y un EBITDA cero o negativo no deja calcular ese plazo.",
-    };
+    return { ok: false, message: ebitdaBlockedMessage };
+  }
+
+  // t74: the server enforces the same checklist the seller card shows.
+  if (project && project.status === "draft") {
+    const { checklist } = await getSellerOverview(user.id);
+
+    if (!checklist.ready) {
+      return { ok: false, message: missingHint(checklist.missing) };
+    }
   }
 
   if (!outcome.ok || !project) {

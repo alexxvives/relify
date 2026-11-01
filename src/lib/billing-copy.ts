@@ -119,6 +119,7 @@ export const billingCopy = {
   listingNote:
     "Esta empresa adicional aún no está pagada. Son 149 € más IVA (180,29 €), un solo pago. Hasta que se apruebe, no sale en el catálogo.",
   publishFree: "Pedir publicación",
+  publishExplainer: "Es una solicitud: un administrador revisa la ficha antes de que salga en el catálogo.",
   publishing: "Enviando…",
   publishPaid: "Pagar 149 € + IVA y pedir publicación",
   published: "Empresa publicada.",

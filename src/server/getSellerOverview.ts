@@ -10,6 +10,7 @@ import {
   type SellerPanelFlags,
   type SliceKind,
 } from "@/lib/company-profile";
+import { publishChecklist, type PublishChecklist } from "@/lib/publish-checklist";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
@@ -54,6 +55,7 @@ const emptyPanels: SellerPanelFlags = {
 
 export async function getSellerOverview(ownerId: string): Promise<{
   panels: SellerPanelFlags;
+  checklist: PublishChecklist;
   series: SellerYearPoint[];
   mixes: SellerMix[];
   costYears: SellerCostYear[];
@@ -67,6 +69,8 @@ export async function getSellerOverview(ownerId: string): Promise<{
           cif: true,
           description: true,
           saleReason: true,
+          ebitdaCents: true,
+          sabiImportedAt: true,
           askingPriceCents: true,
           customerBase: true,
           headcountRange: true,
@@ -101,7 +105,13 @@ export async function getSellerOverview(ownerId: string): Promise<{
     : null;
 
   if (!project) {
-    return { panels: emptyPanels, series: [], mixes: [], costYears: [] };
+    return {
+      panels: emptyPanels,
+      checklist: publishChecklist({ panels: emptyPanels, saleReason: false, ebitdaPositive: false, registryImported: false }),
+      series: [],
+      mixes: [],
+      costYears: [],
+    };
   }
 
   const closed = project.years.filter((year) => year.kind === "closed");
@@ -121,7 +131,13 @@ export async function getSellerOverview(ownerId: string): Promise<{
       .filter((slice) => slice.kind === "capital")
       .map(() => "1"),
     askingPrice: centsToEuroInput(project.askingPriceCents),
-    saleReason: project.saleReason ?? "",
+  });
+  // t74: the sale reason and a positive EBITDA are their own checklist items now.
+  const checklist = publishChecklist({
+    panels,
+    saleReason: (project.saleReason ?? "").trim().length > 0,
+    ebitdaPositive: project.ebitdaCents > 0,
+    registryImported: project.sabiImportedAt !== null,
   });
   const series: SellerYearPoint[] = [];
 
@@ -153,6 +169,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
 
   return {
     panels,
+    checklist,
     series,
     mixes: mixGroups(project.activitySlices, project.customerBase),
     costYears: costYears(project.years),

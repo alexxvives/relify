@@ -69,7 +69,7 @@ async function CompanyPageContent({
         hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
         funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
-        panels={overview.panels}
+        checklist={overview.checklist}
         series={overview.series}
         mixes={overview.mixes}
         costYears={overview.costYears}

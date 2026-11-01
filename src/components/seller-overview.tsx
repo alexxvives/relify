@@ -12,40 +12,20 @@ import { billingCopy } from "@/lib/billing-copy";
 import { companyCopy } from "@/lib/company-copy";
 import { formatCompactEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
-import { filledSellerPanels, type SellerFocusPanel, type SellerPanelFlags } from "@/lib/company-profile";
+import { missingHint, type PublishChecklist } from "@/lib/publish-checklist";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { SellerCostYear, SellerMix, SellerYearPoint } from "@/server/getSellerOverview";
 import { Card } from "@/components/ui/form";
 
-const panelSteps = [
-  { key: "identity", label: sellerCopy.panelIdentity },
-  { key: "description", label: sellerCopy.panelDescription },
-  { key: "cnae", label: sellerCopy.panelCnae },
-  { key: "income", label: sellerCopy.panelIncome },
-  { key: "balance", label: sellerCopy.panelBalance },
-  { key: "structure", label: sellerCopy.panelStructure },
-  { key: "price", label: sellerCopy.panelPrice },
-] as const;
-
 const photoHref = "/mi-empresa/detalles?seccion=price#fotos";
-
-const panelHref: Record<SellerFocusPanel, string> = {
-  identity: "/mi-empresa/detalles?seccion=identity#panel-identity",
-  description: "/mi-empresa/detalles?seccion=description#panel-description",
-  cnae: "/mi-empresa/detalles?seccion=cnae#panel-cnae",
-  income: "/mi-empresa/detalles?seccion=income#panel-income",
-  balance: "/mi-empresa/detalles?seccion=balance#panel-balance",
-  structure: "/mi-empresa/detalles?seccion=structure#panel-structure",
-  price: "/mi-empresa/detalles?seccion=price#panel-price",
-};
 
 export function SellerOverview({
   listing,
   payToPublish = false,
   hasPhoto = false,
   funnel,
-  panels,
+  checklist,
   series,
   mixes,
   costYears,
@@ -61,15 +41,15 @@ export function SellerOverview({
   hasPhoto?: boolean;
   funnel: SellerFunnel;
   notifications: NotificationView[];
-  panels: SellerPanelFlags;
+  checklist: PublishChecklist;
   series: SellerYearPoint[];
   mixes: SellerMix[];
   costYears: SellerCostYear[];
   pending: HomePendingAction[];
 }) {
   // The photo is a recommendation, not a requirement: it never holds the meter back.
-  const filled = filledSellerPanels(panels);
-  const complete = filled === panelSteps.length;
+  const filled = checklist.items.filter((item) => item.done).length;
+  const complete = checklist.ready;
   const chartPoints = series.map((point) => ({
     ...point,
     salesLabel: point.salesCents === null ? "—" : formatCompactEur(point.salesCents),
@@ -132,30 +112,34 @@ export function SellerOverview({
                   : sellerCopy.unpublished}
             </h2>
             {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
-            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} /> : null}
-            <CompletionMeter filled={filled} total={panelSteps.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
+            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} ready={checklist.ready} hint={missingHint(checklist.missing)} /> : null}
+            <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
-              {panelSteps.map((item) => {
-                const done = panels[item.key];
+              {checklist.items.map((item) => {
                 const row = (
                   <>
-                    <span className={done ? "text-[#17663a]" : undefined}>{item.label}</span>
-                    {done ? (
-                      <Check className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-                    ) : (
-                      <Circle className="size-4 shrink-0 text-[#c5cdd6]" aria-hidden />
-                    )}
+                    <span className={`flex min-w-0 items-center gap-1.5 ${item.done ? "text-[#17663a]" : ""}`}>
+                      {item.label}
+                      {item.hint ? <FieldHint text={item.hint} /> : null}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      {item.fromRegistry ? (
+                        <span className="rounded-full bg-[#e6f6f3] px-2 py-0.5 text-[11px] font-semibold text-[#0f766e]">SABI</span>
+                      ) : null}
+                      {item.done ? (
+                        <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-[#c5cdd6]" aria-label="Pendiente" />
+                      )}
+                    </span>
                   </>
                 );
                 return (
                   <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
-                    {done ? (
+                    {item.done ? (
                       <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740]">{row}</div>
                     ) : (
-                      <Link
-                        href={panelHref[item.key]}
-                        className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740]"
-                      >
+                      <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740] hover:bg-[#eaf0ff]">
                         {row}
                       </Link>
                     )}
@@ -170,7 +154,10 @@ export function SellerOverview({
                   </div>
                 ) : (
                   <Link href={photoHref} className="flex items-center justify-between gap-3 bg-[#fff8db] px-3 py-3 text-sm text-[#1c2740]">
-                    <span>{sellerCopy.panelPhoto}</span>
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      {sellerCopy.panelPhoto}
+                      <FieldHint text={sellerCopy.panelPhotoHint} />
+                    </span>
                     <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
                   </Link>
                 )}
