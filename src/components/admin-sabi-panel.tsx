@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent } from "react";
 import { sabiJobStageLabel, sabiJobStartedEvent, sabiJobUpdateEvent, type SabiJobUpdate } from "@/lib/sabi/job-events";
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, RefreshCw, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
@@ -26,7 +26,11 @@ function isoDay(iso: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-/** Company banner with a compact "Subir SABI" file button in its top-right corner; preview, confirm and stored data render below it. */
+/**
+ * Company banner with a compact "Subir SABI" / "Reimportar SABI" button in its top-right corner.
+ * t72: the whole banner is the drop zone (highlighted while dragging); the old full-width drop area
+ * is gone, and the panel below only appears while reading, importing, previewing or reporting a result.
+ */
 export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: Omit<ComponentProps<typeof CompanyBanner>, "children"> }) {
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -40,7 +44,7 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
   const [jobId, setJobId] = useState<string | null>(null);
   const [serverStage, setServerStage] = useState("queued");
 
-  // t67: drag-and-drop on the button and on the drop zone; clicking still opens the file picker.
+  // t72: drag-and-drop anywhere on the banner; clicking the button still opens the file picker.
   const dropProps = {
     onDragEnter: (event: DragEvent) => {
       event.preventDefault();
@@ -172,68 +176,64 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
       ? `Pendiente SABI${sabi.requestedAt ? ` · CIF introducido el ${sabi.requestedAt}` : ""}`
       : "Sin CIF todavía";
   const busy = pending || saving;
-  const label = saving ? "Importando…" : pending ? "Leyendo…" : sabi.importedAt ? "Sustituir SABI" : "Subir SABI";
+  const label = saving ? "Importando…" : pending ? "Leyendo…" : sabi.importedAt ? "Reimportar SABI" : "Subir SABI";
+  const maxMb = Math.round(sabiMaxBytes / 1024 / 1024);
+  const showPanel = busy || Object.keys(stages).length > 0 || preview !== null || error !== null || done !== null;
 
   return (
     <>
-      <CompanyBanner {...banner}>
-        <label
-          {...dropProps}
-          title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""}`}
-          className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
-            dragging ? "border-[#7fd6cc] bg-[#0f766e]/60 ring-2 ring-[#7fd6cc]" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
-          }`}
-        >
-          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
-          <span>{label}</span>
-          <span className="sr-only"> ({status})</span>
-          <input
-            ref={input}
-            type="file"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            className="sr-only"
-            onChange={(event) => choose(event.target.files?.[0] ?? null)}
-            disabled={busy}
-          />
-        </label>
-      </CompanyBanner>
-      <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
-        {preview ? null : (
-          <div
-            {...dropProps}
-            role="button"
-            tabIndex={0}
-            aria-disabled={busy}
-            onClick={() => (busy ? undefined : input.current?.click())}
-            onKeyDown={(event) => {
-              if (!busy && (event.key === "Enter" || event.key === " ")) {
-                event.preventDefault();
-                input.current?.click();
-              }
-            }}
-            className={`mb-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-4 py-5 text-center text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2] ${
-              dragging ? "border-[#2fc4b2] bg-[#e6f6f3] text-[#0f766e]" : "border-[#d5dbe3] text-[#5c6b78] hover:border-[#7fd6cc] hover:bg-[#f4fbfa]"
+      <div {...dropProps} className="relative rounded-[1.75rem]">
+        <CompanyBanner {...banner}>
+          {sabi.importedAt ? null : <span className="hidden text-xs text-white/75 sm:inline">o arrastra el .xlsx al banner</span>}
+          <label
+            title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo al banner.`}
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-full border text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
+              sabi.importedAt && !busy ? "h-8 px-3 text-xs font-medium" : "h-9 px-3.5 text-sm font-medium"
+            } ${
+              dragging ? "border-[#7fd6cc] bg-[#0f766e]/60" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
             }`}
           >
-            <UploadCloud className="size-6 text-[#0f766e]" aria-hidden />
-            <span className="font-medium text-[#1c2740]">{dragging ? "Suelta el archivo para leerlo" : "Arrastra aquí el Excel de SABI (.xlsx)"}</span>
-            <span className="text-xs">o haz clic para elegirlo · máx. {Math.round(sabiMaxBytes / 1024 / 1024)} MB</span>
+            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
+            <span>{label}</span>
+            <span className="sr-only"> ({status}). Excel de SABI .xlsx, máximo {maxMb} MB.</span>
+            <input
+              ref={input}
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              className="sr-only"
+              onChange={(event) => choose(event.target.files?.[0] ?? null)}
+              disabled={busy}
+            />
+          </label>
+        </CompanyBanner>
+        {dragging ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border-2 border-dashed border-[#7fd6cc] bg-[#0f766e]/80 text-center text-white backdrop-blur-sm"
+          >
+            <UploadCloud className="size-8" aria-hidden />
+            <span className="text-base font-semibold">{busy ? "Espera a que termine la importación" : "Suelta el Excel de SABI para leerlo"}</span>
+            <span className="text-xs text-white/80">.xlsx · máx. {maxMb} MB</span>
           </div>
-        )}
-        {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
-        {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
-        {error ? (
-          <p role="alert" className="text-sm font-medium text-[#b42318]">
-            {error}
-          </p>
         ) : null}
-        {done ? (
-          <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
-            <CheckCircle2 className="size-4" aria-hidden /> {done}
-          </p>
-        ) : null}
-        {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
-      </section>
+      </div>
+      {showPanel ? (
+        <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
+          {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
+          {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
+          {error ? (
+            <p role="alert" className="text-sm font-medium text-[#b42318]">
+              {error}
+            </p>
+          ) : null}
+          {done ? (
+            <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
+              <CheckCircle2 className="size-4" aria-hidden /> {done}
+            </p>
+          ) : null}
+          {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
+        </section>
+      ) : null}
     </>
   );
 }
