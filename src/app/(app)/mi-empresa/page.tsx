@@ -12,6 +12,7 @@ import { prisma } from "@/server/db";
 import { sellerFunnel } from "@/server/activityFunnel";
 import { projectSold } from "@/server/saleOutcome";
 import { getSellerOverview } from "@/server/getSellerOverview";
+import { getSellerDashboard } from "@/server/getSellerDashboard";
 import { withoutOwnCompany } from "@/lib/notifications";
 import { listNotifications } from "@/server/listNotifications";
 import { listProjectMessages } from "@/server/listProjectMessages";
@@ -43,13 +44,14 @@ async function CompanyPageContent({
   await materializePendingCompanies(user.id);
 
   // One round trip per wave instead of eleven sequential queries.
-  const [nifVerified, projectId, listing, notifications, overview, messages] = await Promise.all([
+  const [nifVerified, projectId, listing, notifications, overview, messages, dashboard] = await Promise.all([
     companyNifIsVerified(user),
     activeSellerProjectId(user.id),
     getSellerListing(user.id),
     listNotifications(user.id),
     getSellerOverview(user.id),
     listProjectMessages(user, null),
+    getSellerDashboard(user.id),
   ]);
   const [funnel, sold, own] = await Promise.all([
     sellerFunnel(user.id, projectId),
@@ -70,9 +72,7 @@ async function CompanyPageContent({
         funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
         checklist={overview.checklist}
-        series={overview.series}
-        mixes={overview.mixes}
-        costYears={overview.costYears}
+        dashboard={dashboard}
         pending={homePendingActions(
           "seller",
           messages.threads.map((thread) => ({

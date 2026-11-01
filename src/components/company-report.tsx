@@ -1094,7 +1094,7 @@ const diligenceAsks = [
   "Contratos clave, licencias y dependencia de personas concretas.",
 ];
 
-function BalanceReading({ year }: { year: SabiYear }) {
+export function BalanceReading({ year }: { year: SabiYear }) {
   const total = year.totalAssetsCents!;
   const share = (value: number | null) => (value === null ? null : (value / total) * 100);
   const rows = [

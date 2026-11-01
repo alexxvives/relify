@@ -7,15 +7,15 @@ import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
 import { PublishSellerButton } from "@/components/publish-seller";
-import { FinanceCharts, FinanceChartsPlaceholder } from "@/components/seller-finance-charts";
+import { FinanceChartsPlaceholder } from "@/components/seller-finance-charts";
+import { SellerDashboard } from "@/components/seller-dashboard";
+import type { SellerDashboard as SellerDashboardData } from "@/server/getSellerDashboard";
 import { billingCopy } from "@/lib/billing-copy";
 import { companyCopy } from "@/lib/company-copy";
-import { formatCompactEur } from "@/lib/money";
 import type { NotificationView } from "@/lib/notifications";
 import { missingHint, type PublishChecklist } from "@/lib/publish-checklist";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { SellerCostYear, SellerMix, SellerYearPoint } from "@/server/getSellerOverview";
 import { Card } from "@/components/ui/form";
 
 const photoHref = "/mi-empresa/detalles?seccion=price#fotos";
@@ -26,9 +26,7 @@ export function SellerOverview({
   hasPhoto = false,
   funnel,
   checklist,
-  series,
-  mixes,
-  costYears,
+  dashboard,
   pending,
   sold = false,
   financialsPending = false,
@@ -42,23 +40,12 @@ export function SellerOverview({
   funnel: SellerFunnel;
   notifications: NotificationView[];
   checklist: PublishChecklist;
-  series: SellerYearPoint[];
-  mixes: SellerMix[];
-  costYears: SellerCostYear[];
+  dashboard: SellerDashboardData;
   pending: HomePendingAction[];
 }) {
   // The photo is a recommendation, not a requirement: it never holds the meter back.
   const filled = checklist.items.filter((item) => item.done).length;
   const complete = checklist.ready;
-  const chartPoints = series.map((point) => ({
-    ...point,
-    salesLabel: point.salesCents === null ? "—" : formatCompactEur(point.salesCents),
-    ebitdaLabel: point.ebitdaCents === null ? null : formatCompactEur(point.ebitdaCents),
-  }));
-  const chartCostYears = costYears.map((year) => ({
-    year: year.year,
-    slices: year.slices.map((cost) => ({ ...cost, amountLabel: formatCompactEur(cost.cents) })),
-  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,13 +66,19 @@ export function SellerOverview({
                 </div>
                 <SabiPendingOverlay />
               </div>
-            ) : series.length === 0 ? (
+            ) : dashboard.years.length === 0 ? (
               <>
                 <p className="mt-1 text-sm text-[#667085]">{sellerCopy.financeEmpty}</p>
                 <FinanceChartsPlaceholder />
               </>
             ) : (
-              <FinanceCharts points={chartPoints} mixes={mixes} costYears={chartCostYears} />
+              <SellerDashboard
+                years={dashboard.years}
+                directors={dashboard.directors}
+                shareholders={dashboard.shareholders}
+                funnel={funnel}
+                checklist={checklist}
+              />
             )}
           </section>
         </div>

@@ -198,13 +198,40 @@ export function SellerHomeSkeleton() {
         <CardTitle width="w-64" sub />
         <Tiles count={5} />
       </Card>
+      {/* t74: mirrors the "Cómo va tu empresa" dashboard: KPI tiles, then the two evolution charts and the gauges. */}
       <Card>
         <CardTitle width="w-64" />
-        <B className="mt-5 h-3 w-40" />
-        <div className="mt-4 flex h-44 items-end justify-around gap-6 px-6">
-          {[40, 70, 30, 55, 85].map((height, index) => (
-            <div key={index} className="w-10" style={{ height: `${height}%` }}>
-              <B className="h-full w-full rounded-md" />
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="rounded-xl border border-[#e7eaee] p-3">
+              <B className="h-3 w-20" />
+              <B className="mt-2 h-5 w-16" />
+              <B className="mt-3 h-6 w-full rounded-md" />
+            </div>
+          ))}
+        </div>
+        <B className="mt-6 h-4 w-28" />
+        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+          {[0, 1].map((box) => (
+            <div key={box} className="rounded-xl border border-[#e7eaee] p-4">
+              <B className="h-3 w-40" />
+              <div className="mt-4 flex h-40 items-end justify-around gap-4 px-2">
+                {[40, 70, 30, 55, 85].map((height, index) => (
+                  <div key={index} className="w-8" style={{ height: `${height}%` }}>
+                    <B className="h-full w-full rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <B className="mt-6 h-4 w-32" />
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="rounded-xl border border-[#e7eaee] p-4">
+              <B className="h-3 w-28" />
+              <B className="mt-3 h-6 w-16" />
+              <B className="mt-3 h-2.5 w-full rounded-full" />
             </div>
           ))}
         </div>
