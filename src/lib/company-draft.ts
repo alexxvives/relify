@@ -114,6 +114,7 @@ export const companyDraftSchema = z
     revenue: optionalEuroText,
     ebitda: optionalEuroText,
     adjustedEbitda: optionalEuroText,
+    ebitdaAdjustments: z.string().max(8000, "adjustment-format"),
     askingPrice: optionalEuroText,
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
@@ -173,6 +174,10 @@ const draftMessages = {
   "signed-euro": companyCopy.euroInvalid,
   "statement-year": companyCopy.statementYearInvalid,
   "duplicate-year": companyCopy.duplicateYear,
+  "adjustment-format": companyCopy.adjustmentsInvalid,
+  "adjustment-amount": companyCopy.adjustmentsInvalid,
+  "adjustment-reason": companyCopy.adjustmentsInvalid,
+  "adjustment-count": companyCopy.adjustmentsCount,
 } as const;
 
 export function companyDraftFieldMessage(error: z.ZodError): string {
@@ -288,6 +293,7 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     revenue: "",
     ebitda: "",
     adjustedEbitda: "",
+    ebitdaAdjustments: "",
     askingPrice: "",
     opex: "",
     capitalPercents: [],

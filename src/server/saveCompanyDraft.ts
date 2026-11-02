@@ -14,7 +14,8 @@ import {
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { lockedIdentity, sellerMoneyFields } from "@/lib/seller-draft-guard";
+import { lockedIdentity, sellerAdjustmentWrite, sellerMoneyFields } from "@/lib/seller-draft-guard";
+import { Prisma } from "@/generated/prisma/client";
 
 export type SaveCompanyDraftResult =
   { ok: true } | { ok: false; message: string };
@@ -88,6 +89,8 @@ export async function saveCompanyDraft(
             codename: true,
             cif: true,
             address: true,
+            ebitdaCents: true,
+            ebitdaAdjustments: true,
             shareholders: { select: { name: true } },
             dataRoomFiles: { select: { fileName: true } },
           },
@@ -109,6 +112,21 @@ export async function saveCompanyDraft(
   // t78: once the NIF is verified the legal name and CIF are locked (change requests go through info@).
   const identity = lockedIdentity(existing, { legalName: input.legalName, cif: cif.length > 0 ? cif : keptCif });
   const writtenCif = identity.cif;
+
+  // t82: adjusted EBITDA = stored accounts EBITDA + listed adjustments, computed here only.
+  const adjustments = sellerAdjustmentWrite(
+    input.ebitdaAdjustments,
+    existing ? { ebitdaCents: Number(existing.ebitdaCents), hasList: Array.isArray(existing.ebitdaAdjustments) } : null,
+  );
+  if (!adjustments.ok) {
+    return { ok: false, message: adjustments.code === "adjustment-count" ? companyCopy.adjustmentsCount : companyCopy.adjustmentsInvalid };
+  }
+  const adjustmentFields =
+    adjustments.write.kind === "set"
+      ? { ebitdaAdjustments: adjustments.write.rows, adjustedEbitdaCents: adjustments.write.adjustedEbitdaCents }
+      : adjustments.write.kind === "clear"
+        ? { ebitdaAdjustments: Prisma.DbNull, adjustedEbitdaCents: 0 }
+        : {};
 
   const secrets = [
     input.legalName,
@@ -149,6 +167,7 @@ export async function saveCompanyDraft(
     region: input.region,
     // t78: revenue, EBITDA, OPEX and yearly accounts are never taken from a seller submission.
     ...sellerMoneyFields(input, existing === null),
+    ...adjustmentFields,
     foundedYear: input.foundedYear === "" ? null : Number(input.foundedYear),
     description: input.description === "" ? null : input.description,
     saleReason: input.saleReason === "" ? null : input.saleReason,
@@ -198,6 +217,7 @@ export async function saveCompanyDraft(
           ebitdaCents: 0,
           askingPriceCents: profile.askingPriceCents ?? 0,
           adjustedEbitdaCents: profile.adjustedEbitdaCents ?? 0,
+          ...(profile.ebitdaAdjustments === Prisma.DbNull ? { ebitdaAdjustments: Prisma.DbNull } : {}),
           netDebtCents: 0,
           workingCapitalCents: 0,
           netIncomeCents: 0,

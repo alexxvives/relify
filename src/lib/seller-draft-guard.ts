@@ -1,3 +1,5 @@
+import { adjustedEbitdaCents, parseEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+
 /**
  * t78: what a seller submission may change. Once the company's NIF is verified (stored CIF), the legal name and CIF
  * are locked to the stored values: buyers already in process must not see a renamed company. Admins edit elsewhere.
@@ -26,18 +28,47 @@ function euroCents(value: string): number | null {
 
 /**
  * t78: money fields a seller submission may write. Revenue, EBITDA, OPEX and the yearly accounts come from the
- * registry / our team and are ignored. Asking price and adjusted EBITDA are seller-asserted; empty keeps the stored value.
+ * registry / our team and are ignored. The asking price is seller-asserted; empty keeps the stored value.
+ * t82: the adjusted EBITDA is no longer typed: it is derived from the adjustment list (sellerAdjustmentFields).
  * New projects get zeros for the non-null columns.
  */
 export function sellerMoneyFields(
-  input: { askingPrice: string; adjustedEbitda: string },
+  input: { askingPrice: string },
   isNew: boolean,
 ): { askingPriceCents?: number; adjustedEbitdaCents?: number; revenueCents?: number; ebitdaCents?: number; opexCents?: null } {
   const askingPriceCents = euroCents(input.askingPrice);
-  const adjustedEbitdaCents = euroCents(input.adjustedEbitda);
   return {
     ...(askingPriceCents !== null ? { askingPriceCents } : isNew ? { askingPriceCents: 0 } : {}),
-    ...(adjustedEbitdaCents !== null ? { adjustedEbitdaCents } : isNew ? { adjustedEbitdaCents: 0 } : {}),
-    ...(isNew ? { revenueCents: 0, ebitdaCents: 0, opexCents: null } : {}),
+    ...(isNew ? { adjustedEbitdaCents: 0, revenueCents: 0, ebitdaCents: 0, opexCents: null } : {}),
+  };
+}
+
+export type AdjustmentWrite =
+  | { kind: "keep" }
+  | { kind: "clear" }
+  | { kind: "set"; rows: EbitdaAdjustment[]; adjustedEbitdaCents: number };
+
+/**
+ * t82: what the posted adjustment list writes. `raw` is the hidden JSON field; an absent field ("") keeps whatever is
+ * stored (a legacy declared figure stays as is). "[]" removes a list the seller had and clears the adjusted figure.
+ * The adjusted EBITDA is always the stored accounts EBITDA plus the rows; any total the client sends is ignored.
+ */
+export function sellerAdjustmentWrite(
+  raw: string,
+  stored: { ebitdaCents: number; hasList: boolean } | null,
+): { ok: true; write: AdjustmentWrite } | { ok: false; code: string } {
+  if (raw.trim() === "") {
+    return { ok: true, write: { kind: "keep" } };
+  }
+  const parsed = parseEbitdaAdjustments(raw);
+  if (!parsed.ok) {
+    return parsed;
+  }
+  if (parsed.rows.length === 0) {
+    return { ok: true, write: stored?.hasList ? { kind: "clear" } : { kind: "keep" } };
+  }
+  return {
+    ok: true,
+    write: { kind: "set", rows: parsed.rows, adjustedEbitdaCents: adjustedEbitdaCents(stored?.ebitdaCents ?? 0, parsed.rows) },
   };
 }

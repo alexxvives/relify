@@ -1,3 +1,4 @@
+import { adjustmentsToFormJson, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
 import {
   draftFromRegistry,
   type RegistryCompany,
@@ -170,6 +171,7 @@ export async function getCompanyDraft(
             revenueCents: true,
             ebitdaCents: true,
             adjustedEbitdaCents: true,
+            ebitdaAdjustments: true,
             askingPriceCents: true,
             opexCents: true,
             headcountRange: true,
@@ -232,6 +234,8 @@ export async function getCompanyDraft(
     revenue: centsToEuroInput(draft.revenueCents),
     ebitda: centsToEuroInput(draft.ebitdaCents),
     adjustedEbitda: centsToEuroInput(draft.adjustedEbitdaCents),
+    // t82: "" = legacy (no itemised list yet); otherwise the stored rows as the form's JSON.
+    ebitdaAdjustments: adjustmentsToFormJson(storedEbitdaAdjustments(draft.ebitdaAdjustments)),
     askingPrice: centsToEuroInput(draft.askingPriceCents),
     opex: money(draft.opexCents),
     capitalPercents: percents("capital"),

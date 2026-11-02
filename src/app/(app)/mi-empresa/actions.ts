@@ -79,6 +79,7 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     revenue: readText(formData, "revenue"),
     ebitda: readText(formData, "ebitda"),
     adjustedEbitda: readText(formData, "adjustedEbitda"),
+    ebitdaAdjustments: readText(formData, "ebitdaAdjustments"),
     askingPrice: readText(formData, "askingPrice"),
     opex: readText(formData, "opex"),
     capitalPercents: readList(formData, "capitalPercent"),

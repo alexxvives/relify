@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import * as z from "zod";
 import { Prisma } from "@/generated/prisma/client";
+import { adjustedEbitdaCents, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
 import { isCnaeCode } from "@/lib/cnae-2009";
 import {
   mapSabiReport,
@@ -46,6 +47,7 @@ type Loaded = {
     foundedYear: number | null;
     region: string;
     opexCents: number | null;
+    ebitdaAdjustments: unknown;
     netDebtCents: number | null;
     workingCapitalCents: number | null;
     years: { year: number; kind: string; dataSource: string | null }[];
@@ -92,6 +94,7 @@ async function load(
       foundedYear: true,
       region: true,
       opexCents: true,
+      ebitdaAdjustments: true,
       netDebtCents: true,
       workingCapitalCents: true,
       years: { select: { year: true, kind: true, dataSource: true } },
@@ -186,6 +189,7 @@ export async function confirmSabiImport(
     ),
   ];
 
+  const listedAdjustments = storedEbitdaAdjustments(project.ebitdaAdjustments);
   const writes: Prisma.PrismaPromise<unknown>[] = [
     // Replacing an earlier import: drop its closed years (and any row for an imported year); other forecasts stay.
     prisma.projectYear.deleteMany({
@@ -242,6 +246,10 @@ export async function confirmSabiImport(
           : {}),
         ...(useFigures && figures.ebitdaCents !== null
           ? { ebitdaCents: figures.ebitdaCents }
+          : {}),
+        // t82: an itemised adjusted EBITDA follows the newly imported accounts EBITDA.
+        ...(useFigures && figures.ebitdaCents !== null && listedAdjustments
+          ? { adjustedEbitdaCents: adjustedEbitdaCents(figures.ebitdaCents, listedAdjustments) }
           : {}),
         ...(useFigures && figures.netIncomeCents !== null
           ? { netIncomeCents: figures.netIncomeCents }
