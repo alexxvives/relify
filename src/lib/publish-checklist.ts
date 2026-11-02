@@ -1,74 +1,80 @@
 import type { SellerFocusPanel, SellerPanelFlags } from "./company-profile";
 
 /**
- * t74: the "Pedir publicación" checklist. Pure so the seller card, the button and the server
- * gate all agree on what is still missing.
+ * t75: two lists.
+ * - The seller checklist holds only what we expect FROM the seller (plus name/NIF until verified).
+ *   When it is complete the company moves to review on its own.
+ * - The admin checks (financials loaded, EBITDA > 0) are ours: we fill them within 24 h, admin sees
+ *   them on the company page and the server enforces them before approval and before payment.
  */
-export type PublishCheckKey = SellerFocusPanel | "saleReason" | "ebitda";
+export type SellerCheckKey = "identity" | "saleReason" | "description" | "price";
+export type AdminCheckKey = "cnae" | "income" | "balance" | "structure" | "ebitda";
 
-export type PublishCheckItem = {
-  key: PublishCheckKey;
+export type CheckItem<K extends string> = {
+  key: K;
   label: string;
   done: boolean;
-  /** Filled by the registry import (SABI) rather than typed by the seller. */
-  fromRegistry: boolean;
   href: string;
   hint?: string;
 };
 
-export type PublishChecklist = {
-  items: PublishCheckItem[];
+export type CheckList<K extends string> = {
+  items: CheckItem<K>[];
   missing: string[];
   ready: boolean;
 };
 
+export type PublishChecklist = CheckList<SellerCheckKey>;
+export type AdminPublishChecks = CheckList<AdminCheckKey>;
+
 const detailHref = (panel: SellerFocusPanel, anchor: string = `panel-${panel}`) =>
   `/mi-empresa/detalles?seccion=${panel}#${anchor}`;
 
-export const publishCheckLabels: Record<PublishCheckKey, string> = {
+export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> = {
   identity: "Nombre y NIF",
   saleReason: "Motivo de venta",
   description: "Descripción",
+  price: "Precio de venta",
   cnae: "CNAE principal",
   income: "Pérdidas y ganancias",
-  ebitda: "EBITDA positivo",
   balance: "Balance",
-  structure: "Estructura y actividad",
-  price: "Precio de venta",
+  structure: "Estructura (empleados)",
+  ebitda: "EBITDA positivo",
 };
 
 export const ebitdaCheckHint = "Solo publicamos empresas con un EBITDA del último cierre mayor que cero.";
 
-export function publishChecklist(input: {
-  panels: SellerPanelFlags;
-  saleReason: boolean;
-  ebitdaPositive: boolean;
-  registryImported: boolean;
-}): PublishChecklist {
-  const registry = input.registryImported;
-  const items: PublishCheckItem[] = [
-    { key: "identity", done: input.panels.identity, fromRegistry: registry, href: detailHref("identity") },
-    { key: "saleReason", done: input.saleReason, fromRegistry: false, href: detailHref("identity") },
-    { key: "description", done: input.panels.description, fromRegistry: false, href: detailHref("description") },
-    { key: "cnae", done: input.panels.cnae, fromRegistry: registry, href: detailHref("cnae") },
-    { key: "income", done: input.panels.income, fromRegistry: registry, href: detailHref("income") },
-    {
-      key: "ebitda",
-      done: input.ebitdaPositive,
-      fromRegistry: registry,
-      href: detailHref("income"),
-      hint: ebitdaCheckHint,
-    },
-    { key: "balance", done: input.panels.balance, fromRegistry: registry, href: detailHref("balance") },
-    { key: "structure", done: input.panels.structure, fromRegistry: registry, href: detailHref("structure") },
-    { key: "price", done: input.panels.price, fromRegistry: false, href: detailHref("price") },
-  ].map((item) => ({ ...item, label: publishCheckLabels[item.key as PublishCheckKey], fromRegistry: item.fromRegistry && item.done })) as PublishCheckItem[];
-  const missing = items.filter((item) => !item.done).map((item) => item.label);
-
-  return { items, missing, ready: missing.length === 0 };
+function list<K extends SellerCheckKey | AdminCheckKey>(items: Omit<CheckItem<K>, "label">[]): CheckList<K> {
+  const labelled = items.map((item) => ({ ...item, label: publishCheckLabels[item.key] }));
+  const missing = labelled.filter((item) => !item.done).map((item) => item.label);
+  return { items: labelled, missing, ready: missing.length === 0 };
 }
 
-/** One short line under the disabled button: "Falta: Motivo de venta y Precio de venta". */
+export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: boolean }): PublishChecklist {
+  const items: Omit<CheckItem<SellerCheckKey>, "label">[] = [];
+  // Name and NIF come from the NIF step; they only show while still missing.
+  if (!input.panels.identity) {
+    items.push({ key: "identity", done: false, href: detailHref("identity") });
+  }
+  items.push(
+    { key: "saleReason", done: input.saleReason, href: detailHref("identity") },
+    { key: "description", done: input.panels.description, href: detailHref("description") },
+    { key: "price", done: input.panels.price, href: detailHref("price") },
+  );
+  return list(items);
+}
+
+export function adminPublishChecks(input: { panels: SellerPanelFlags; ebitdaPositive: boolean }): AdminPublishChecks {
+  return list<AdminCheckKey>([
+    { key: "cnae", done: input.panels.cnae, href: "" },
+    { key: "income", done: input.panels.income, href: "" },
+    { key: "balance", done: input.panels.balance, href: "" },
+    { key: "structure", done: input.panels.structure, href: "" },
+    { key: "ebitda", done: input.ebitdaPositive, href: "", hint: ebitdaCheckHint },
+  ]);
+}
+
+/** "Falta: A y B." for server messages; counts past three. */
 export function missingHint(missing: string[]): string {
   if (missing.length === 0) {
     return "";
@@ -78,10 +84,16 @@ export function missingHint(missing: string[]): string {
     return `Faltan ${missing.length} requisitos de la lista.`;
   }
 
-  const list =
-    missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(", ")} y ${missing[missing.length - 1]}`;
+  const items = missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(", ")} y ${missing[missing.length - 1]}`;
 
-  return `Falta: ${list}.`;
+  return `Falta: ${items}.`;
 }
 
 export const ebitdaBlockedMessage = "Necesitas un EBITDA positivo para publicar.";
+export const financialsPendingMessage = "Podrás publicar en cuanto carguemos tus cuentas (en 24 h).";
+
+/** Server message when the admin-side checks fail for a seller action (payment). */
+export function adminChecksMessage(checks: AdminPublishChecks): string {
+  const financialsMissing = checks.items.some((item) => item.key !== "ebitda" && !item.done);
+  return financialsMissing ? financialsPendingMessage : ebitdaBlockedMessage;
+}

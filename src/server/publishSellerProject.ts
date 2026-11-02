@@ -1,9 +1,9 @@
 import { sellerPublishOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
-import { ebitdaBlockedMessage, missingHint } from "@/lib/publish-checklist";
+import { adminChecksMessage, missingHint } from "@/lib/publish-checklist";
 import { prisma } from "@/server/db";
-import { getSellerOverview } from "@/server/getSellerOverview";
+import { loadPublishChecks } from "@/server/publishChecks";
 import { reconcileListingPayment } from "@/server/fulfillCheckout";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import {
@@ -67,7 +67,6 @@ export async function publishSellerProject(
         select: {
           id: true,
           status: true,
-          ebitdaCents: true,
           listingPayment: { select: { id: true } },
         },
       })
@@ -85,16 +84,17 @@ export async function publishSellerProject(
       project?.listingPayment !== null && project?.listingPayment !== undefined,
   });
 
-  if (project && project.ebitdaCents <= 0) {
-    return { ok: false, message: ebitdaBlockedMessage };
-  }
-
-  // t74: the server enforces the same checklist the seller card shows.
+  // t75: the seller checklist and the admin checks (financials loaded, EBITDA > 0) gate every
+  // seller-triggered submission, so nobody pays for a listing we would not approve.
   if (project && project.status === "draft") {
-    const { checklist } = await getSellerOverview(user.id);
+    const checks = await loadPublishChecks(project.id);
 
-    if (!checklist.ready) {
-      return { ok: false, message: missingHint(checklist.missing) };
+    if (!checks || !checks.seller.ready) {
+      return { ok: false, message: missingHint(checks?.seller.missing ?? []) || billingCopy.publishMissing };
+    }
+
+    if (!checks.admin.ready) {
+      return { ok: false, message: adminChecksMessage(checks.admin) };
     }
   }
 

@@ -1,3 +1,5 @@
+import type { AdminPublishChecks, PublishChecklist } from "@/lib/publish-checklist";
+import { loadPublishChecks } from "@/server/publishChecks";
 import type { SabiPreviewTarget } from "@/lib/sabi/preview";
 import {
   sabiExtraOf,
@@ -129,6 +131,8 @@ export type AdminCompanyView = {
   profile: InvestorProjectProfile;
   privateFacts: AdminPrivateFact[];
   status: "draft" | "pending" | "published";
+  /** t75: what approval needs (seller list + our financial checks). */
+  publishChecks: { seller: PublishChecklist; admin: AdminPublishChecks } | null;
   accesses: AdminCompanyAccess[];
   selectedId: string | null;
   investor: { label: string; profile: PublicInvestorCard | null } | null;
@@ -331,12 +335,13 @@ export async function getAdminCompany(
   const chosen = input.accessId
     ? (project.accesses.find((access) => access.id === input.accessId) ?? null)
     : null;
-  const [parties, sabiDetail, sabiRegistry] = await Promise.all([
+  const [parties, sabiDetail, sabiRegistry, publishChecks] = await Promise.all([
     chosen
       ? sideParties(project.id, chosen)
       : Promise.resolve({ investor: null, advisors: [] }),
     getSabiDetail(project.id),
     getSabiRegistry(project.id),
+    project.status === "published" ? Promise.resolve(null) : loadPublishChecks(project.id),
   ]);
 
   const stored = readSabiStored(project.sabiData)?.report ?? null;
@@ -422,6 +427,7 @@ export async function getAdminCompany(
     profile: withSabiCapital(toInvestorProject(project), sabiRegistry),
     privateFacts,
     status: project.status,
+    publishChecks,
     accesses,
     selectedId: selected?.id ?? null,
     investor: parties.investor,

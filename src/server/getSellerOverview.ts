@@ -69,8 +69,6 @@ export async function getSellerOverview(ownerId: string): Promise<{
           cif: true,
           description: true,
           saleReason: true,
-          ebitdaCents: true,
-          sabiImportedAt: true,
           askingPriceCents: true,
           customerBase: true,
           headcountRange: true,
@@ -107,7 +105,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
   if (!project) {
     return {
       panels: emptyPanels,
-      checklist: publishChecklist({ panels: emptyPanels, saleReason: false, ebitdaPositive: false, registryImported: false }),
+      checklist: publishChecklist({ panels: emptyPanels, saleReason: false }),
       series: [],
       mixes: [],
       costYears: [],
@@ -132,12 +130,10 @@ export async function getSellerOverview(ownerId: string): Promise<{
       .map(() => "1"),
     askingPrice: centsToEuroInput(project.askingPriceCents),
   });
-  // t74: the sale reason and a positive EBITDA are their own checklist items now.
+  // t75: only what the seller provides; financials and EBITDA > 0 are admin checks (publishChecks.ts).
   const checklist = publishChecklist({
     panels,
     saleReason: (project.saleReason ?? "").trim().length > 0,
-    ebitdaPositive: project.ebitdaCents > 0,
-    registryImported: project.sabiImportedAt !== null,
   });
   const series: SellerYearPoint[] = [];
 

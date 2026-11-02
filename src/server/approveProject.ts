@@ -1,3 +1,5 @@
+import { missingHint } from "@/lib/publish-checklist";
+import { loadPublishChecks } from "@/server/publishChecks";
 import * as z from "zod";
 import { adminCopy } from "@/lib/admin-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -34,6 +36,13 @@ export async function approveProject(
 
   if (project.status !== "pending") {
     return { ok: false, message: adminCopy.notPending };
+  }
+
+  // t75: approval is the safety net; it still enforces the financial checks and EBITDA > 0.
+  const checks = await loadPublishChecks(project.id);
+
+  if (!checks || !checks.admin.ready) {
+    return { ok: false, message: `No se puede publicar. ${missingHint(checks?.admin.missing ?? [])}` };
   }
 
   await prisma.project.update({
