@@ -691,34 +691,61 @@ export function ProjectSkeleton() {
 }
 
 export function CompanyDetailsSkeleton() {
+  const panel = (wide: boolean, index: number) => (
+    <Card key={index}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <B className="size-8 rounded-full" />
+          <B className={wide ? "h-7 w-48" : "h-7 w-64"} />
+        </div>
+        <B className="h-7 w-28 rounded-full" />
+      </div>
+      {wide ? (
+        <>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {[0, 1, 2, 3, 4, 5].map((field) => (
+              <Field key={field} />
+            ))}
+          </div>
+          <B className="mt-5 h-28 w-full rounded-xl" />
+        </>
+      ) : null}
+    </Card>
+  );
   return (
     <Shell>
-      <div className="flex items-center justify-between gap-3">
-        <Bare className="h-9 w-48" />
-        <div className="flex gap-2">
-          <Bare className="h-9 w-40 rounded-full" />
-          <Bare className="h-9 w-32 rounded-full" />
-        </div>
-      </div>
+      <Bare className="h-9 w-48" />
       <Tabs />
-      <Card>
-        <div className="flex items-start justify-between">
-          <B className="h-7 w-48" />
-          <B className="h-7 w-28 rounded-full" />
-        </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {[0, 1, 2, 3, 4, 5].map((index) => (
-            <Field key={index} />
+      {/* t77: mirrors the section rail (desktop) / pills (mobile) + cards layout. */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+        <div className="flex gap-1.5 overflow-hidden lg:hidden">
+          {[0, 1, 2, 3].map((index) => (
+            <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <B className="mt-5 h-28 w-full rounded-xl" />
-      </Card>
-      <Card>
-        <div className="flex items-start justify-between">
-          <B className="h-7 w-72" />
-          <B className="h-7 w-28 rounded-full" />
+        <div className="hidden lg:block">
+          <div className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4">
+            <div className="flex items-center gap-3">
+              <B className="size-14 rounded-full" />
+              <div className="flex-1">
+                <B className="h-4 w-24" />
+                <B className="mt-2 h-3 w-full" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 border-t border-[#eef0f4] pt-3">
+              {[0, 1, 2, 3].map((index) => (
+                <B key={index} className="h-8 w-full rounded-xl" />
+              ))}
+            </div>
+            <B className="h-10 w-full rounded-xl" />
+          </div>
         </div>
-      </Card>
+        <div className="flex min-w-0 flex-col gap-4">
+          {panel(true, 0)}
+          {panel(false, 1)}
+          {panel(false, 2)}
+        </div>
+      </div>
     </Shell>
   );
 }

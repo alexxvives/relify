@@ -37,12 +37,20 @@ export function SellerCompanyPanel({
           sabiRegistry ? (
             <>
               {sabiRegistry && !sabiRegistryIsEmpty(sabiRegistry) ? (
-                <Card id="panel-sabi-registry" className="scroll-mt-6">
-                  <h2 className="text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</h2>
-                  <p className="mt-1 max-w-3xl text-sm text-[#64748b]">Socios, administradores, participadas, auditorías y bancos importados del registro. Solo los ves tú y Releva; los compradores no ven nombres.</p>
-                  <div className="mt-5">
-                    <RegistryOverview registry={{ ...sabiRegistry, banks: [] }} />
-                  </div>
+                <Card className="p-0">
+                  <details id="panel-sabi-registry" className="group scroll-mt-20 lg:scroll-mt-6">
+                    <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-2xl p-5 focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                      <span className="min-w-0">
+                        <span className="block text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</span>
+                        <span className="mt-1 block max-w-3xl text-sm text-[#64748b]">Socios, administradores, participadas y auditorías. Solo los ves tú y Releva; los compradores no ven nombres.</span>
+                      </span>
+                      <span className="inline-flex shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 py-1 text-xs font-semibold text-[#3d4a63] group-open:hidden">Ver</span>
+                      <span className="hidden shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 py-1 text-xs font-semibold text-[#3d4a63] group-open:inline-flex">Ocultar</span>
+                    </summary>
+                    <div className="px-5 pb-5">
+                      <RegistryOverview registry={{ ...sabiRegistry, banks: [] }} />
+                    </div>
+                  </details>
                 </Card>
               ) : null}
             </>

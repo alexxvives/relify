@@ -68,6 +68,7 @@ import {
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
+import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -187,7 +188,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-6">
+    <Card id={id} className="scroll-mt-20 lg:scroll-mt-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -494,48 +495,6 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
           )}
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function SaveButton({
-  id,
-  pending,
-  pendingId,
-  rejected,
-  shake,
-  dirty,
-  onChoose,
-}: {
-  id: string;
-  pending: boolean;
-  pendingId: string;
-  rejected: boolean;
-  shake: number;
-  dirty: boolean;
-  onChoose: (id: string) => void;
-}) {
-  const active = pending && pendingId === id;
-  if (!dirty) {
-    return null;
-  }
-  return (
-    <div className="mt-5 flex justify-end">
-      <button
-        key={rejected ? `${id}-${shake}` : id}
-        type="submit"
-        name="savePanel"
-        value={id}
-        disabled={active}
-        onClick={() => onChoose(id)}
-        className={
-          rejected
-            ? "releva-shake inline-flex h-12 w-full items-center justify-center rounded-full bg-[#c0362c] px-8 text-base font-semibold text-white sm:w-auto"
-            : "inline-flex h-12 w-full items-center justify-center rounded-full bg-[#465ab4] px-8 text-base font-semibold text-white disabled:opacity-60 sm:w-auto"
-        }
-      >
-        {active ? companyCopy.saving : companyCopy.save}
-      </button>
     </div>
   );
 }
@@ -1157,6 +1116,38 @@ export function CompanyDraftForm({
     state && !state.saved && !suppressStatus && !percentSumMessages.has(state.message) ? state.message : null;
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
 
+  // t77: section nav, required-items progress and the sticky save bar.
+  const basicDone = legalName.trim().length > 0 && saleReason !== "";
+  const structureDone = headcount.length > 0;
+  const priceDone = askingPrice.trim().length > 0;
+  const figuresLoaded = (salesFromAccounts ?? revenue).toString().trim().length > 0;
+  const required = [
+    { label: "Tu empresa", done: basicDone },
+    { label: "Cómo es tu negocio", done: structureDone },
+    { label: "Precio", done: priceDone },
+  ];
+  const progress = {
+    done: required.filter((item) => item.done).length,
+    total: required.length,
+    missing: required.filter((item) => !item.done).map((item) => item.label),
+  };
+  const companySections: DetailSectionItem[] = [
+    { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
+    { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
+    { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
+    ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
+  ];
+  const dealSections: DetailSectionItem[] = [
+    { id: "panel-price", label: "Precio y cifras", status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
+    { id: "ficha-detalles", label: "Vista del comprador", status: "info" },
+  ];
+  const dirtySections = [
+    { id: "basic", label: companyCopy.basicTitle, dirty: basicDirty },
+    { id: "structure", label: companyCopy.structureHeading, dirty: structureDirty },
+    { id: "income", label: "Tus cifras", dirty: incomeDirty || balanceDirty },
+    { id: "deal", label: "Ficha pública", dirty: dealDirty },
+  ].filter((section) => section.dirty);
+
   function saveAndLeave(href: string) {
     const form = formRef.current;
     if (!form || !form.checkValidity()) {
@@ -1184,11 +1175,21 @@ export function CompanyDraftForm({
           onChange={setTab}
         />
       </div>
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+      <DetailSectionNav
+        key={tab}
+        items={tab === "company" ? companySections : dealSections}
+        progress={progress}
+        next={
+          tab === "company"
+            ? { label: "Siguiente: ficha pública", onClick: () => { setTab("deal"); window.scrollTo({ top: 0 }); } }
+            : { label: "Volver a tu empresa", onClick: () => { setTab("company"); window.scrollTo({ top: 0 }); } }
+        }
+      />
+      <div className="flex min-w-0 flex-col gap-4">
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
-      <p className="max-w-3xl text-sm text-[#5c6b78]">
-        Tres pasos: cuéntanos lo básico, cómo es tu negocio y revisa tus cifras. Las cifras las cargamos nosotros.
-      </p>
       <Panel
+        id="panel-basic"
         step={1}
         title={companyCopy.basicTitle}
         intro="Nombre, motivo de venta, descripción y sector."
@@ -1321,7 +1322,6 @@ export function CompanyDraftForm({
             </Button>
           </div>
         </div>
-        <SaveButton id="basic" pending={pending} pendingId={saveTarget} rejected={panelRejected("basic")} shake={attempt} dirty={basicDirty} onChoose={chooseSave} />
       </Panel>
 
       <Panel
@@ -1372,7 +1372,6 @@ export function CompanyDraftForm({
             <div className="hidden lg:block" />
           )}
         </div>
-        <SaveButton id="structure" pending={pending} pendingId={saveTarget} rejected={panelRejected("structure")} shake={attempt} dirty={structureDirty} onChoose={chooseSave} />
       </Panel>
 
       <SellerFiguresCard step={3} figures={investorPreview} />
@@ -1477,7 +1476,6 @@ export function CompanyDraftForm({
             </tbody>
           </table>
         </div>
-        <SaveButton id="income" pending={pending} pendingId={saveTarget} rejected={panelRejected("income")} shake={attempt} dirty={incomeDirty} onChoose={chooseSave} />
       </Panel>
 
       <Panel
@@ -1560,7 +1558,6 @@ export function CompanyDraftForm({
             </tbody>
           </table>
         </div>
-        <SaveButton id="balance" pending={pending} pendingId={saveTarget} rejected={panelRejected("balance")} shake={attempt} dirty={balanceDirty} onChoose={chooseSave} />
       </Panel>
       </div>
       {financeExtra}
@@ -1655,8 +1652,17 @@ export function CompanyDraftForm({
           />
           <CompanyReport project={reportYears && reportYears.length > 0 ? { ...investorPreview, reportYears } : investorPreview} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
         </div>
-        <SaveButton id="deal" pending={pending} pendingId={saveTarget} rejected={panelRejected("deal")} shake={attempt} dirty={dealDirty} onChoose={chooseSave} />
       </Panel>
+      </div>
+      <UnsavedBar
+        sections={dirtySections.map((section) => section.label)}
+        saving={pending}
+        rejected={dirtySections.length > 0 && panelRejected(dirtySections[0].id)}
+        shake={attempt}
+        value={dirtySections[0]?.id ?? ""}
+        onChoose={chooseSave}
+      />
+      </div>
       </div>
 
       {statusMessage ? (

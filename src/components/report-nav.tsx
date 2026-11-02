@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useScrollSpy } from "@/components/use-scroll-spy";
 import {
   Briefcase,
   ClipboardCheck,
@@ -46,10 +47,10 @@ function reducedMotion(): boolean {
  * overflows, arrow-key / Home / End navigation between pills.
  */
 export function ReportNav({ items, label }: { items: ReportNavItem[]; label: string }) {
-  const [active, setActive] = useState(items[0]?.id ?? "");
+  const ids = items.map((item) => item.id);
+  const { active, go: scrollTo } = useScrollSpy(ids, spyOffset);
   const [edges, setEdges] = useState({ start: false, end: false });
   const track = useRef<HTMLUListElement>(null);
-  const lock = useRef<number | null>(null);
 
   const measureEdges = useCallback(() => {
     const el = track.current;
@@ -58,41 +59,6 @@ export function ReportNav({ items, label }: { items: ReportNavItem[]; label: str
     }
     setEdges({ start: el.scrollLeft > 4, end: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
   }, []);
-
-  // Scroll-spy: the active section is the last one whose top has passed the bar.
-  useEffect(() => {
-    let frame = 0;
-    function spy() {
-      frame = 0;
-      if (lock.current !== null) {
-        return;
-      }
-      let current = items[0]?.id ?? "";
-      for (const item of items) {
-        const el = document.getElementById(item.id);
-        if (el && el.getBoundingClientRect().top - spyOffset <= 0) {
-          current = item.id;
-        }
-      }
-      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-      setActive(atBottom ? (items.at(-1)?.id ?? current) : current);
-    }
-    function onScroll() {
-      if (!frame) {
-        frame = window.requestAnimationFrame(spy);
-      }
-    }
-    spy();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-    };
-  }, [items]);
 
   // Keep the active pill visible inside the horizontal track (without moving the page).
   useEffect(() => {
@@ -112,25 +78,13 @@ export function ReportNav({ items, label }: { items: ReportNavItem[]; label: str
   }, [measureEdges]);
 
   function go(event: MouseEvent<HTMLAnchorElement>, id: string) {
-    const target = document.getElementById(id);
-    if (!target || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
       return;
     }
-    event.preventDefault();
-    if (target instanceof HTMLDetailsElement && !target.open) {
-      target.open = true;
+    if (scrollTo(id)) {
+      event.preventDefault();
+      document.getElementById(id)?.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
     }
-    setActive(id);
-    // Hold the highlight on the clicked pill until the smooth scroll settles.
-    if (lock.current !== null) {
-      window.clearTimeout(lock.current);
-    }
-    lock.current = window.setTimeout(() => {
-      lock.current = null;
-    }, 900);
-    target.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
-    window.history.replaceState(null, "", `#${id}`);
-    target.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
   }
 
   function keys(event: KeyboardEvent<HTMLAnchorElement>, index: number) {
