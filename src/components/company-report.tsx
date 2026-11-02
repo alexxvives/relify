@@ -68,6 +68,8 @@ import {
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
 import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
+import { formatHolderName, holderTypeLabel } from "@/lib/sabi/holders";
+import type { SabiHolding } from "@/lib/sabi/parse";
 import type { SabiRegistry } from "@/lib/sabi/registry";
 
 /**
@@ -345,41 +347,44 @@ function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): 
   return null;
 }
 
-/** Registry blocks (identities): ownership list, directors, subsidiaries, audits, banks and activity codes. */
-export function RegistryOverview({ registry, showDonut = true, lead = null }: { registry: SabiRegistry; showDonut?: boolean; lead?: ReactNode }) {
-  const ownership = sabiOwnershipSlices(registry.shareholdings);
+/** t75: one shareholders module for admin and seller: donut with the list beside it (stacked on mobile), clean names and %. */
+export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
+  const rows = holdings.map((holder) => ({ ...holder, name: formatHolderName(holder.name) }));
+  const slices = sabiOwnershipSlices(rows);
+  return (
+    <Section
+      icon={<Users className="size-4 text-[#0f766e]" aria-hidden />}
+      title="Accionistas"
+      count={holdings.length}
+      hint={"Según el registro mercantil. \u201c> 50 %\u201d significa que solo consta que supera el 50 %."}
+    >
+      {slices.length > 0 ? (
+        <div className="[&>section]:h-auto">
+          <ShareDonut title="Reparto del capital" slices={slices} palette="capital" />
+        </div>
+      ) : (
+        <ul className="divide-y divide-[#eef0f4] text-sm">
+          {rows.map((holder, index) => (
+            <li key={`${holder.name}-${index}`} className="flex items-center justify-between gap-3 py-1.5">
+              <span className="min-w-0 truncate text-[#1c2740]">{holder.name}</span>
+              {holderTypeLabel(holder.type) ? <span className="shrink-0 text-xs text-[#5c6b78]">{holderTypeLabel(holder.type)}</span> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Toggle label={reportChartsCopy.showTable}>
+        <HoldingTable rows={rows} />
+      </Toggle>
+    </Section>
+  );
+}
+
+/** Registry blocks (identities): ownership, directors, subsidiaries, audits, banks and activity codes. */
+export function RegistryOverview({ registry }: { registry: SabiRegistry }) {
   const directors = new Set(registry.directors.map((person) => person.name)).size;
   return (
     <div className="flex flex-col gap-4">
-      {registry.shareholdings.length > 0 ? (
-        <div className={lead ? "grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] [&>section]:h-auto" : "contents"}>
-        {lead}
-        <Section
-          icon={<Users className="size-4 text-[#0f766e]" aria-hidden />}
-          title="Accionistas registrados"
-          count={registry.shareholdings.length}
-          hint={"Según el registro (SABI). \u201c> 50 %\u201d significa que solo se publica que supera el 50 %. El tipo es el código del registro tal cual."}
-        >
-          {showDonut && ownership.length > 0 ? (
-            <div className="mb-3 max-w-md [&>section]:h-auto">
-              <ShareDonut title="Reparto del capital" slices={ownership} palette="capital" />
-            </div>
-          ) : null}
-          <ul className="flex flex-wrap gap-1.5">
-            {registry.shareholdings.map((holder, index) => (
-              <li key={`${holder.name}-${index}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#f4f6f9] px-2.5 py-1 text-xs text-[#1c2740]">
-                <span className="truncate">{holder.name}</span>
-                {holder.type ? <span className="rounded bg-white px-1 text-[10px] font-semibold text-[#5c6b78]">{holder.type}</span> : null}
-                {(holder.direct ?? holder.total) ? <span className="font-medium text-[#0f5f59] tabular-nums">{holder.direct ?? holder.total} %</span> : null}
-              </li>
-            ))}
-          </ul>
-          <Toggle label={reportChartsCopy.showTable}>
-            <HoldingTable rows={registry.shareholdings} />
-          </Toggle>
-        </Section>
-        </div>
-      ) : null}
+      {registry.shareholdings.length > 0 ? <ShareholdersPanel holdings={registry.shareholdings} /> : null}
       {directors > 0 ? (
         <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors}>
           <People directors={registry.directors} />
@@ -831,11 +836,7 @@ export function CompanyReport({
           <div className="flex flex-col gap-4">
             {capital.length > 0 && !(registry && registry.shareholdings.length > 0) ? lock("capital", <div className="[&>section]:h-auto"><ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" /></div>) : null}
             {registry ? (
-              <RegistryOverview
-                registry={{ ...registry, audits: [], banks: [], activityCodes: {} }}
-                showDonut={false}
-                lead={capital.length > 0 && registry.shareholdings.length > 0 ? lock("capital", <ShareDonut title={companyCopy.chartCapital} slices={capital} palette="capital" />) : null}
-              />
+              <RegistryOverview registry={{ ...registry, audits: [], banks: [], activityCodes: {} }} />
             ) : null}
           </div>
         </ReportSection>

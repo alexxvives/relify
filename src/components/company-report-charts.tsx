@@ -1,5 +1,6 @@
 "use client";
 
+import { formatHoldingPercent, holderTypeLabel } from "@/lib/sabi/holders";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { FieldHint } from "@/components/field-hint";
@@ -557,9 +558,9 @@ export function HoldingTable({ rows }: { rows: SabiHolding[] }) {
           <tr key={`${row.name}-${index}`} className="border-t border-[#eef0f4] text-[#1c2740]">
             <td className="px-3 py-1.5 font-medium">{row.name}</td>
             <td className="px-3 py-1.5">{row.country ?? "—"}</td>
-            <td className="px-3 py-1.5">{row.type ?? "—"}</td>
-            <td className="px-3 py-1.5 text-right tabular-nums">{row.direct ?? "—"}</td>
-            <td className="px-3 py-1.5 text-right tabular-nums">{row.total ?? "—"}</td>
+            <td className="px-3 py-1.5">{holderTypeLabel(row.type) ?? "—"}</td>
+            <td className="px-3 py-1.5 text-right tabular-nums">{formatHoldingPercent(row.direct) ?? "—"}</td>
+            <td className="px-3 py-1.5 text-right tabular-nums">{formatHoldingPercent(row.total) ?? "—"}</td>
             <td className="px-3 py-1.5 tabular-nums">{isoDay(row.infoDate)}</td>
           </tr>
         ))}
