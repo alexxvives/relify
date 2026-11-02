@@ -6,7 +6,7 @@ import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -14,7 +14,6 @@ import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
 import { CompanyReport } from "@/components/company-report";
 import type { SabiYear } from "@/lib/sabi/insights";
-import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
@@ -629,9 +628,19 @@ function PercentRows({
 }) {
   const over = slicePercentIssue(values) === "over";
 
+  const legendId = `${name}-legend`;
   return (
-    <fieldset className="min-w-0">
-      <legend className="mb-3 text-base font-semibold text-[#1c2740]">{legend}</legend>
+    <div role="group" aria-labelledby={legendId} className="min-w-0">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 id={legendId} className="text-base font-semibold text-[#1c2740]">{legend}</h3>
+        <AddIconButton
+          label={addLabel}
+          disabled={values.length >= maxActivitySlices}
+          onClick={() => {
+            onChange([...values, ""]);
+          }}
+        />
+      </div>
       <div className="flex flex-col gap-3">
       {values.map((value, index) => {
         const mark = over && index === values.length - 1;
@@ -665,18 +674,24 @@ function PercentRows({
         </div>
         );
       })}
-      <Button
-        type="button"
-        variant="outline"
-        disabled={values.length >= maxActivitySlices}
-        onClick={() => {
-          onChange([...values, ""]);
-        }}
-      >
-        {addLabel}
-      </Button>
       </div>
-    </fieldset>
+    </div>
+  );
+}
+
+/** t80: compact "+" beside a section title instead of a full-width "Añadir …" button. */
+function AddIconButton({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-[#d8dee8] text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <Plus className="size-4" aria-hidden />
+    </button>
   );
 }
 
@@ -1332,9 +1347,18 @@ export function CompanyDraftForm({
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
           <div className="flex flex-col gap-3">
-            <p className="text-sm font-medium">
-              {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">
+                {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
+              </p>
+              <AddIconButton
+                label={companyCopy.addSecondaryCnae}
+                disabled={secondaryCnaes.length >= maxSecondaryCnaes}
+                onClick={() => {
+                  setSecondaryCnaes((current) => [...current, ""]);
+                }}
+              />
+            </div>
             {secondaryCnaes.map((code, index) => (
               <div key={`secondary-${index}`} className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
@@ -1355,16 +1379,6 @@ export function CompanyDraftForm({
                 />
               </div>
             ))}
-            <Button
-              type="button"
-              variant="outline"
-              disabled={secondaryCnaes.length >= maxSecondaryCnaes}
-              onClick={() => {
-                setSecondaryCnaes((current) => [...current, ""]);
-              }}
-            >
-              {companyCopy.addSecondaryCnae}
-            </Button>
           </div>
         </div>
       </Panel>
