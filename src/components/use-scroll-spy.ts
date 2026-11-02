@@ -13,6 +13,14 @@ export function scrollToTop(target: HTMLElement) {
   window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? "auto" : "smooth" });
 }
 
+/** t84: smooth-scroll so the target sits near the vertical centre of the viewport ("Ir" links in Tu progreso). */
+export function scrollToCenter(target: HTMLElement) {
+  const rect = target.getBoundingClientRect();
+  const visible = window.innerHeight - stickyHeaderOffset;
+  const top = rect.top + window.scrollY - stickyHeaderOffset - Math.max(0, (visible - rect.height) / 2);
+  window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? "auto" : "smooth" });
+}
+
 /**
  * t77: shared scroll-spy for section navs (company report, seller details). The active section is the last one whose
  * top has passed `offset`; at the bottom of the page the last section wins. `go` smooth-scrolls (opening collapsed

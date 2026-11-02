@@ -71,7 +71,7 @@ import {
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
-import { scrollToTop } from "@/components/use-scroll-spy";
+import { scrollToCenter } from "@/components/use-scroll-spy";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
@@ -1391,7 +1391,7 @@ export function CompanyDraftForm({
     }
     window.setTimeout(() => {
       const target = document.getElementById(id);
-      if (target) scrollToTop(target);
+      if (target) scrollToCenter(target);
       target?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
     }, 60);
     return true;
@@ -1430,7 +1430,8 @@ export function CompanyDraftForm({
       <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
-      <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
+      {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
+      <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
         id="panel-basic"
         step={1}
