@@ -70,6 +70,8 @@ import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form
 import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
+import { identityChangeHref } from "@/lib/seller-draft-guard";
+import { shellCopy } from "@/lib/shell";
 import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -832,6 +834,8 @@ export function CompanyDraftForm({
   const [attempt, setAttempt] = useState(0);
   const [suppressStatus, setSuppressStatus] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
+  // t78: /mi-empresa/detalles is only reachable with a verified NIF (stored CIF); the server enforces the lock too.
+  const identityLocked = cif.trim().length > 0;
   const saveStamp = state?.saved && !pending && saveTarget.length > 0 ? `${saveTarget}:${attempt}` : "";
   const [saveClosed, setSaveClosed] = useState("");
 
@@ -1212,22 +1216,41 @@ export function CompanyDraftForm({
         onCollapse={() => setOpenBasic(false)}
       >
         <div className="grid gap-6 md:grid-cols-2">
-          <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
-            <Input
-              name="legalName"
-              value={legalName}
-              onChange={(event) => setLegalName(event.target.value)}
-            />
-          </Fact>
-          <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
-            <Input
-              name="cif"
-              value={nif}
-              spellCheck={false}
-              autoCapitalize="characters"
-              onChange={(event) => setNif(event.target.value.toUpperCase())}
-            />
-          </Fact>
+          {identityLocked ? (
+            <>
+              <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
+                <Input name="legalName" value={legalName} readOnly aria-readonly="true" className="bg-[#f5f6f8] text-[#3d4a63]" />
+              </Fact>
+              <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
+                <Input name="cif" value={nif} readOnly aria-readonly="true" className="bg-[#f5f6f8] text-[#3d4a63]" />
+              </Fact>
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#5c6b78] md:col-span-2">
+                <Lock className="size-3.5" aria-hidden />
+                NIF verificado: el nombre legal y el NIF no se pueden cambiar desde aquí.
+                <a
+                  href={identityChangeHref(shellCopy.helpEmail, codename)}
+                  className="font-semibold text-[#0f766e] underline decoration-[#7fd6cc] underline-offset-2 hover:text-[#0c5f59]"
+                >
+                  Solicitar cambio
+                </a>
+              </p>
+            </>
+          ) : (
+            <>
+              <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
+                <Input name="legalName" value={legalName} onChange={(event) => setLegalName(event.target.value)} />
+              </Fact>
+              <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
+                <Input
+                  name="cif"
+                  value={nif}
+                  spellCheck={false}
+                  autoCapitalize="characters"
+                  onChange={(event) => setNif(event.target.value.toUpperCase())}
+                />
+              </Fact>
+            </>
+          )}
           <Fact icon={MapPin} label={companyCopy.addressLabel}>
             <Input
               name="address"

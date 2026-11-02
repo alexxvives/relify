@@ -20,6 +20,7 @@ import {
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
+import { lockedIdentity } from "@/lib/seller-draft-guard";
 
 export type SaveCompanyDraftResult =
   { ok: true } | { ok: false; message: string };
@@ -158,7 +159,9 @@ export async function saveCompanyDraft(
       : ownedCount <= 1
         ? pendingCif
         : "";
-  const writtenCif = cif.length > 0 ? cif : keptCif;
+  // t78: once the NIF is verified the legal name and CIF are locked (change requests go through info@).
+  const identity = lockedIdentity(existing, { legalName: input.legalName, cif: cif.length > 0 ? cif : keptCif });
+  const writtenCif = identity.cif;
 
   const secrets = [
     input.legalName,
@@ -193,7 +196,7 @@ export async function saveCompanyDraft(
       : await uniqueCodename();
 
   const profile = {
-    legalName: input.legalName,
+    legalName: identity.legalName,
     address: input.address,
     codename,
     region: input.region,
