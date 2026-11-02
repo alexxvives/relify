@@ -822,23 +822,35 @@ export function CompanyReport({
           </div>
         </div>
         {buyerView ? <BuyerRegistryBlock view={buyerView} /> : null}
+        {/* t83: empty mix: the seller gets a fill action, buyers don't see the block, admin keeps a note. */}
+        {mixEmpty && role === "buyer" && !sellerPreview ? null : (
+          <>
         <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
-          Qué vende y a quién
-          <FieldHint text={companyCopy.structureHint} wide />
-        </h3>
-        {lock(
-          "mix",
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
-            <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
-            {project.customerBase === "consumer" ? (
-              <section className="flex h-full flex-col gap-3 rounded-xl bg-[#f4f7ff] p-4">
-                <h3 className="text-sm font-semibold text-[#1c2740]">{companyCopy.chartClient}</h3>
-                <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.customerConsumerPublic}</p>
-              </section>
-            ) : (
-              <ShareDonut title={companyCopy.chartClient} slices={project.clients} palette="client" />
-            )}
-          </div>,
+            Qué vende y a quién
+            <FieldHint text={companyCopy.structureHint} wide />
+          </h3>
+          {mixEmpty ? (
+              <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-[#d6dbe3] bg-[#fbfbfc] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[#5c6b78]">
+                  {sellerPreview ? "Aún no has indicado qué vendes ni a quién. Los compradores no verán este bloque hasta que lo completes." : "El vendedor aún no ha indicado el reparto de ventas."}
+                </p>
+                {sellerPreview?.mixAction ?? null}
+              </div>
+            ) : lock(
+            "mix",
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+              <ShareDonut title={companyCopy.chartProduct} slices={project.products} palette="product" />
+              {project.customerBase === "consumer" ? (
+                <section className="flex h-full flex-col gap-3 rounded-xl bg-[#f4f7ff] p-4">
+                  <h3 className="text-sm font-semibold text-[#1c2740]">{companyCopy.chartClient}</h3>
+                  <p className="text-sm leading-6 text-[#5c6b78]">{companyCopy.customerConsumerPublic}</p>
+                </section>
+              ) : (
+                <ShareDonut title={companyCopy.chartClient} slices={project.clients} palette="client" />
+              )}
+            </div>,
+          )}
+          </>
         )}
       </ReportSection>
 

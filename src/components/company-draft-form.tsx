@@ -1932,7 +1932,22 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyReport project={previewProject} sellerPreview={{ mixAction: null }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
+          <CompanyReport project={previewProject} sellerPreview={{
+            mixAction: (
+              <KitButton
+                type="button"
+                tone="outline"
+                size="sm"
+                onClick={() => {
+                  setTab("company");
+                  setOpenStructure(true);
+                  requestAnimationFrame(() => document.getElementById("panel-structure")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                }}
+              >
+                {companyCopy.fillMixAction}
+              </KitButton>
+            ),
+          }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
         </div>
       </Panel>
       </div>
