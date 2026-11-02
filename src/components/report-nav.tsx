@@ -8,7 +8,6 @@ import {
   FileSpreadsheet,
   HandCoins,
   LineChart,
-  ListTree,
   PieChart,
   Scale,
   ShieldCheck,
@@ -46,9 +45,18 @@ function reducedMotion(): boolean {
  * smooth scroll (opens collapsed sections first), horizontal scroll with fade edges when it
  * overflows, arrow-key / Home / End navigation between pills.
  */
-export function ReportNav({ items, label }: { items: ReportNavItem[]; label: string }) {
+export function ReportNav({
+  items,
+  label,
+  belowFloatingTabs = false,
+}: {
+  items: ReportNavItem[];
+  label: string;
+  /** t81: sticks under the seller's floating "Información empresa / Ficha pública" toggle instead of under it. */
+  belowFloatingTabs?: boolean;
+}) {
   const ids = items.map((item) => item.id);
-  const { active, go: scrollTo } = useScrollSpy(ids, spyOffset);
+  const { active, go: scrollTo } = useScrollSpy(ids, belowFloatingTabs ? spyOffset + 56 : spyOffset);
   const [edges, setEdges] = useState({ start: false, end: false });
   const track = useRef<HTMLUListElement>(null);
 
@@ -100,12 +108,8 @@ export function ReportNav({ items, label }: { items: ReportNavItem[]; label: str
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
 
   return (
-    <nav aria-label={label} className="sticky top-0 z-20 -mx-1 px-1 py-2">
+    <nav aria-label={label} className={`sticky z-20 -mx-1 px-1 py-2 ${belowFloatingTabs ? "top-[3.5rem]" : "top-0"}`}>
       <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_4px_16px_-8px_rgba(28,39,64,0.12)]">
-        <span className="hidden shrink-0 items-center gap-1.5 border-r border-[#eef0f4] pr-3 pl-2 text-xs font-semibold tracking-wide text-[#8b95a7] uppercase xl:inline-flex">
-          <ListTree className="size-4" aria-hidden />
-          Secciones
-        </span>
         <ul
           ref={track}
           onScroll={measureEdges}

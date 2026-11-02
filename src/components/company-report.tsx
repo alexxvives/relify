@@ -135,7 +135,7 @@ function ReportSection({
   children: ReactNode;
 }) {
   return (
-    <details open={open} id={id} className="group/section scroll-mt-24 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+    <details open={open} id={id} className="group/section scroll-mt-32 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
       <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:px-6 [&::-webkit-details-marker]:hidden">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
           <Icon className="size-5" aria-hidden />
@@ -549,6 +549,7 @@ export function CompanyReport({
   adminDetail = null,
   registryActivity = null,
   buyerRegistry = null,
+  navBelowTabs = false,
 }: {
   project: InvestorProjectProfile;
   role: ReportRole;
@@ -563,6 +564,8 @@ export function CompanyReport({
   registryActivity?: string | null;
   /** t77: buyer-safe registry view, already gated by NDA on the server (see buyerRegistryView). */
   buyerRegistry?: BuyerRegistry | null;
+  /** t81: the report sits under the seller's floating toggle; its section bar sticks below it. */
+  navBelowTabs?: boolean;
 }) {
   const registry = registryForRole(fullRegistry, role);
   const buyerView = role === "buyer" ? buyerRegistry : null;
@@ -654,7 +657,7 @@ export function CompanyReport({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <ReportNav items={sections} label={companyReportCopy.nav} />
+      <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">

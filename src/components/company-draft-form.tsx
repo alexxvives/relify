@@ -1721,7 +1721,7 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyReport project={{ ...investorPreview, ...(reportYears && reportYears.length > 0 ? { reportYears } : {}), ...(fichaExtras ?? {}) }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
+          <CompanyReport project={{ ...investorPreview, ...(reportYears && reportYears.length > 0 ? { reportYears } : {}), ...(fichaExtras ?? {}) }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
         </div>
       </Panel>
       </div>
