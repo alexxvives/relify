@@ -499,7 +499,8 @@ export function NotSignificant() {
   );
 }
 
-export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }) {
+/** t85: optional curve swatch (same colour, dash and marker as its line in the chart) so tile and curve read as one. */
+export function KpiTile({ metric, years, curve }: { metric: Metric; years: SabiYear[]; curve?: { color: string; dash?: string; marker: Marker } }) {
   const lastIndex = metric.values.findLastIndex((value, index) => value !== null || Boolean(metric.ns?.[index]));
   const lastNs = lastIndex >= 0 && Boolean(metric.ns?.[lastIndex]);
   const value = lastIndex >= 0 && !lastNs ? metric.values[lastIndex]! : null;
@@ -513,7 +514,17 @@ export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-3">
       <div className="flex items-start justify-between gap-1">
-        <span className="text-xs leading-4 font-medium text-[#5c6b78]">{metric.label}</span>
+        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-4 font-medium text-[#5c6b78]">
+          {curve ? (
+            <span className="relative inline-flex h-3 w-6 shrink-0 items-center" aria-hidden>
+              <svg viewBox="0 0 24 4" className="absolute inset-x-0 h-1 w-6">
+                <line x1="0" y1="2" x2="24" y2="2" stroke={curve.color} strokeWidth={2.5} strokeDasharray={curve.dash} />
+              </svg>
+              <span className={`relative mx-auto size-2 ${markerShape[curve.marker]}`} style={{ backgroundColor: curve.color }} />
+            </span>
+          ) : null}
+          {metric.label}
+        </span>
         <FieldHint text={metric.hint} align="end" wide />
       </div>
       <span className={`mt-1 text-lg font-semibold tabular-nums ${value !== null && value < 0 ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>
@@ -528,7 +539,7 @@ export function KpiTile({ metric, years }: { metric: Metric; years: SabiYear[] }
         ) : null}
       </div>
       <div className="mt-auto pt-2">
-        <Sparkline values={metric.values} color={teal} unit={metric.unit} />
+        <Sparkline values={metric.values} color={curve?.color ?? teal} unit={metric.unit} />
       </div>
     </div>
   );

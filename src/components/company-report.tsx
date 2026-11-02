@@ -974,7 +974,7 @@ export function CompanyReport({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                 {profitability.map((metric) => (
-                  <KpiTile key={metric.key} metric={metric} years={years} />
+                  <KpiTile key={metric.key} metric={metric} years={years} curve={profitabilityStyles[metric.key]} />
                 ))}
               </div>
               {/* t71: the full multi-year evolution, not only the last year on the tiles. */}
