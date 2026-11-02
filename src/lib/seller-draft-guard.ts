@@ -7,7 +7,10 @@ export function lockedIdentity(
   submitted: { legalName: string; cif: string },
 ): { legalName: string; cif: string; locked: boolean } {
   if (existing && existing.cif.trim().length > 0) {
-    return { legalName: existing.legalName, cif: existing.cif, locked: true };
+    // A stored project whose legal name was never written (registry prefill not yet saved)
+    // takes the submitted one once; after that it is locked like the CIF.
+    const legalName = existing.legalName.trim().length > 0 ? existing.legalName : submitted.legalName;
+    return { legalName, cif: existing.cif, locked: true };
   }
   return { ...submitted, locked: false };
 }

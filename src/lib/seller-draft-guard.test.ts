@@ -10,6 +10,12 @@ describe("lockedIdentity (t78)", () => {
     });
   });
 
+  it("fills a never-saved legal name once, keeping the CIF locked", () => {
+    expect(
+      lockedIdentity({ legalName: "", cif: "B12345678" }, { legalName: "Registro SL", cif: "X" }),
+    ).toEqual({ legalName: "Registro SL", cif: "B12345678", locked: true });
+  });
+
   it("accepts the submitted values before verification", () => {
     expect(lockedIdentity({ legalName: "", cif: "" }, { legalName: "Nueva SL", cif: "B11111111" })).toMatchObject({ legalName: "Nueva SL", locked: false });
     expect(lockedIdentity(null, { legalName: "Nueva SL", cif: "" }).locked).toBe(false);
