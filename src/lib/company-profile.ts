@@ -399,7 +399,7 @@ export function sellerPanelFlags(input: {
     balance: input.closedYears.some((year) => year.currentAssets.trim().length > 0 || year.equity.trim().length > 0),
     // t75: the shareholder split is no longer a seller input; headcount is the structure signal.
     structure: input.headcount.trim().length > 0,
-    price: input.askingPrice.trim().length > 0,
+    price: askingPriceSet(input.askingPrice),
   };
 }
 
@@ -414,4 +414,10 @@ export function descriptionContainsSecret(description: string, secrets: string[]
     const needle = secret.trim().toLocaleLowerCase("es-ES");
     return needle.length > 0 && haystack.includes(needle);
   });
+}
+
+/** t83: a stored 0 comes back as "0"; that is "sin definir", never a price. */
+export function askingPriceSet(value: string): boolean {
+  const amount = Number(value.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(amount) && amount > 0;
 }

@@ -1,4 +1,6 @@
-import { slicePercentIssue } from "./company-profile";
+import { askingPriceSet, slicePercentIssue } from "./company-profile";
+
+export { askingPriceSet };
 
 export type CompletionSection = "basic" | "structure" | "deal";
 
@@ -57,8 +59,3 @@ export function completionProgress(fields: RequiredField[]) {
   };
 }
 
-/** t83: a stored 0 comes back as "0"; that is "sin definir", never a price. */
-export function askingPriceSet(value: string): boolean {
-  const amount = Number(value.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(amount) && amount > 0;
-}
