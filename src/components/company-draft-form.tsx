@@ -188,8 +188,11 @@ function Panel({
   dirty,
   onEdit,
   onCollapse,
+  fixed = false,
   children,
 }: {
+  /** t84: always expanded, no collapse/edit toggle (Ficha pública). */
+  fixed?: boolean;
   id?: string;
   /** t76: guided numbering on the seller's "Información empresa" tab. */
   step?: number;
@@ -232,7 +235,7 @@ function Panel({
               {done ? companyCopy.doneChip : companyCopy.pendingChip}
             </span>
           )}
-          {open ? (
+          {fixed ? null : open ? (
             <KitButton
               type="button"
               aria-expanded="true"
@@ -1014,12 +1017,6 @@ export function CompanyDraftForm({
   const [, setListedPhoto] = useState(
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
-  // t83: Ficha pública starts collapsed; a new key so earlier "open" choices don't carry over.
-  const [openDeal, setOpenDeal] = usePanelOpen(
-    "Relify:panel:deal:v2",
-    focus === "price",
-    focus === "price",
-  );
 
   const [closedAfterSave, setClosedAfterSave] = useState("");
   const [saveTarget, setSaveTarget] = useState("");
@@ -1401,7 +1398,6 @@ export function CompanyDraftForm({
     if (field.section === "structure") setOpenStructure(true);
     if (field.section === "deal") {
       setTab("deal");
-      setOpenDeal(true);
     }
     window.setTimeout(() => {
       const target = document.getElementById(id);
@@ -1850,14 +1846,12 @@ export function CompanyDraftForm({
         title={companyCopy.detailsDealTab}
         intro={companyCopy.dealFold}
         hint={dealNote}
-        open={saveClosed === "deal" ? false : openDeal}
+        open
+        fixed
         dirty={dealDirty}
         done={priceDone}
-        onEdit={() => {
-          setSaveClosed("");
-          setOpenDeal(true);
-        }}
-        onCollapse={() => setOpenDeal(false)}
+        onEdit={() => setSaveClosed("")}
+        onCollapse={() => undefined}
       >
         <PublicFicha
           codename={codename}
