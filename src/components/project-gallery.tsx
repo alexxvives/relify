@@ -1,8 +1,8 @@
 "use client";
 
-import { EyeOff, ImagePlus, Images, ShieldAlert, Trash2, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, ShieldAlert, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { addProjectPhotosAction, deleteProjectPhotoAction } from "@/app/(app)/mi-empresa/actions";
 import { setProjectPhotoHiddenAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
 import { companyCopy } from "@/lib/company-copy";
@@ -29,49 +29,119 @@ async function shrink(file: File): Promise<File> {
   return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
 }
 
-/** t84: read-only gallery for the report (buyer ficha, seller preview, admin with hide/show). */
-export function PhotoGallery({ photos, moderate = false }: { photos: GalleryPhoto[]; moderate?: boolean }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+/** t85: full-screen viewer shared by the seller editor and the buyer ficha: large photo, prev/next, close, Esc and arrow keys. */
+export function PhotoLightbox({ photos, index, onIndex, onClose }: { photos: GalleryPhoto[]; index: number; onIndex: (index: number) => void; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const count = photos.length;
+  const step = useCallback((delta: number) => onIndex((index + delta + count) % count), [count, index, onIndex]);
+  useEffect(() => {
+    closeRef.current?.focus();
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+      else if (event.key === "ArrowRight") step(1);
+      else if (event.key === "ArrowLeft") step(-1);
+    }
+    window.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, [onClose, step]);
+  const photo = photos[index];
+  if (!photo) return null;
+  const navButton =
+    "absolute top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1c2740] shadow hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none";
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {photos.map((photo) => (
-        <figure key={photo.id} className="relative overflow-hidden rounded-xl border border-[#e7eaee] bg-[#f7f8fb]">
-          <a href={photoSrc(photo.id)} target="_blank" rel="noreferrer" className="block aspect-[4/3]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(photo.id)} alt="Foto del negocio" loading="lazy" className={`size-full object-cover ${photo.hidden ? "opacity-40 grayscale" : ""}`} />
-          </a>
-          {photo.hidden ? (
-            <span className="absolute top-2 left-2 rounded-full bg-[#1c2740]/85 px-2 py-0.5 text-[11px] font-semibold text-white">{companyCopy.galleryHiddenByAdmin}</span>
-          ) : null}
-          {moderate ? (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() =>
-                start(async () => {
-                  await setProjectPhotoHiddenAction(photo.id, !photo.hidden);
-                  router.refresh();
-                })
-              }
-              className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-medium text-[#1c2740] shadow hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-60"
-            >
-              {photo.hidden ? <Eye className="size-3.5" aria-hidden /> : <EyeOff className="size-3.5" aria-hidden />}
-              {photo.hidden ? "Mostrar" : "Ocultar"}
+    <div role="dialog" aria-modal="true" aria-label={`Foto ${index + 1} de ${count}`} className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1220]/85 p-4" onClick={onClose}>
+      <div className="relative flex max-h-full w-full max-w-5xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photoSrc(photo.id)} alt={`Foto del negocio ${index + 1}`} className="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl" />
+        {count > 1 ? (
+          <>
+            <button type="button" aria-label="Foto anterior" onClick={() => step(-1)} className={`${navButton} left-2`}>
+              <ChevronLeft className="size-5" aria-hidden />
             </button>
-          ) : null}
-        </figure>
-      ))}
+            <button type="button" aria-label="Foto siguiente" onClick={() => step(1)} className={`${navButton} right-2`}>
+              <ChevronRight className="size-5" aria-hidden />
+            </button>
+          </>
+        ) : null}
+        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#1c2740]/85 px-2.5 py-0.5 text-xs font-medium text-white tabular-nums">
+          {index + 1} / {count}
+        </span>
+      </div>
+      <button
+        ref={closeRef}
+        type="button"
+        aria-label="Cerrar"
+        onClick={onClose}
+        className="absolute top-4 right-4 inline-flex size-11 items-center justify-center rounded-full bg-white/90 text-[#1c2740] shadow hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+      >
+        <X className="size-5" aria-hidden />
+      </button>
     </div>
   );
 }
 
-/** t84: seller editor in Ficha pública: multi-upload, delete, identification warning. */
+function Thumb({ photo, index, size, onOpen }: { photo: GalleryPhoto; index: number; size: string; onOpen: (index: number) => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={`Ver foto ${index + 1} en grande`}
+      onClick={() => onOpen(index)}
+      className={`${size} block overflow-hidden rounded-lg border border-[#e7eaee] bg-[#f7f8fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photoSrc(photo.id)} alt="" loading="lazy" className={`size-full object-cover transition hover:scale-105 ${photo.hidden ? "opacity-40 grayscale" : ""}`} />
+    </button>
+  );
+}
+
+/** t85: compact thumbnail strip for the report (buyer ficha, seller preview, admin with hide/show); click opens the lightbox. */
+export function PhotoGallery({ photos, moderate = false }: { photos: GalleryPhoto[]; moderate?: boolean }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <>
+      <ul className="flex flex-wrap gap-2">
+        {photos.map((photo, index) => (
+          <li key={photo.id} className="relative flex flex-col items-center gap-1">
+            <Thumb photo={photo} index={index} size="size-20 sm:size-24" onOpen={setOpen} />
+            {photo.hidden ? <span className="absolute top-1 left-1 rounded-full bg-[#1c2740]/85 px-1.5 py-0.5 text-[10px] font-semibold text-white">{companyCopy.galleryHiddenByAdmin}</span> : null}
+            {moderate ? (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() =>
+                  start(async () => {
+                    await setProjectPhotoHiddenAction(photo.id, !photo.hidden);
+                    router.refresh();
+                  })
+                }
+                className="inline-flex items-center gap-1 rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-[11px] font-medium text-[#1c2740] hover:bg-[#f4f7ff] disabled:opacity-60"
+              >
+                {photo.hidden ? <Eye className="size-3" aria-hidden /> : <EyeOff className="size-3" aria-hidden />}
+                {photo.hidden ? "Mostrar" : "Ocultar"}
+              </button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      {open !== null ? <PhotoLightbox photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} /> : null}
+    </>
+  );
+}
+
+/** t85: compact seller uploader in Ficha pública: "Fotos n/6", "Añadir fotos", thumbnails with delete to the right, short warning. */
 export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
   const room = galleryLimit - photos.length;
 
   function upload(list: FileList | null) {
@@ -103,20 +173,19 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
   }
 
   return (
-    <section id="ficha-fotos" className="mt-6 flex flex-col gap-3 rounded-2xl border border-[#e6e9f0] bg-white p-4 sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Images className="size-5 text-[#0f766e]" aria-hidden />
-          <h3 className="text-base font-semibold text-[#1c2740]">{companyCopy.galleryTitle}</h3>
-          <span className="text-xs text-[#5c6b78] tabular-nums">
-            {photos.length} / {galleryLimit}
-          </span>
-        </div>
+    <div id="ficha-fotos" className="mt-6 flex scroll-mt-24 flex-col gap-2">
+      <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
+        {companyCopy.galleryTitle}
+        <span className="text-xs font-normal text-[#5c6b78] tabular-nums">
+          {photos.length} / {galleryLimit}
+        </span>
+      </span>
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           disabled={pending || room <= 0}
           onClick={() => input.current?.click()}
-          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#d5dbe3] bg-white px-3 text-sm font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#d5dbe3] bg-white px-3 text-sm font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50"
         >
           <ImagePlus className="size-4" aria-hidden />
           {pending ? "Subiendo…" : companyCopy.galleryAdd}
@@ -134,10 +203,34 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
             event.currentTarget.value = "";
           }}
         />
+        {photos.length > 0 ? (
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Fotos subidas">
+            {photos.map((photo, index) => (
+              <li key={photo.id} className="relative">
+                <Thumb photo={photo} index={index} size="size-11" onOpen={setOpen} />
+                <button
+                  type="button"
+                  aria-label={`${companyCopy.galleryDelete} ${index + 1}`}
+                  title={companyCopy.galleryDelete}
+                  disabled={pending}
+                  onClick={() =>
+                    start(async () => {
+                      await deleteProjectPhotoAction(photo.id);
+                      router.refresh();
+                    })
+                  }
+                  className="absolute -top-1.5 -right-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#c0362c] text-white shadow-sm hover:bg-[#a12f2f] disabled:opacity-60"
+                >
+                  <X className="size-3" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
-      <p className="text-sm text-[#5c6b78]">{companyCopy.galleryHint}</p>
-      <p className="flex items-start gap-2 rounded-xl bg-[#fff7e8] p-3 text-sm leading-5 text-[#7a4b00]">
-        <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p className="text-xs text-[#5c6b78]">{companyCopy.galleryHint}</p>
+      <p className="flex items-start gap-1.5 text-xs leading-5 text-[#7a4b00]">
+        <ShieldAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         {companyCopy.galleryWarning}
       </p>
       {message ? (
@@ -145,36 +238,7 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
           {message}
         </p>
       ) : null}
-      {photos.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-[#d6dbe3] bg-[#fbfbfc] p-4 text-center text-sm text-[#8b95a7]">{companyCopy.galleryEmpty}</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {photos.map((photo) => (
-            <figure key={photo.id} className="relative overflow-hidden rounded-xl border border-[#e7eaee] bg-[#f7f8fb]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoSrc(photo.id)} alt="Foto del negocio" loading="lazy" className={`aspect-[4/3] w-full object-cover ${photo.hidden ? "opacity-40 grayscale" : ""}`} />
-              {photo.hidden ? (
-                <span className="absolute top-2 left-2 rounded-full bg-[#1c2740]/85 px-2 py-0.5 text-[11px] font-semibold text-white">{companyCopy.galleryHiddenByAdmin}</span>
-              ) : null}
-              <button
-                type="button"
-                aria-label={companyCopy.galleryDelete}
-                title={companyCopy.galleryDelete}
-                disabled={pending}
-                onClick={() =>
-                  start(async () => {
-                    await deleteProjectPhotoAction(photo.id);
-                    router.refresh();
-                  })
-                }
-                className="absolute top-2 right-2 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-[#a12f2f] shadow hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-60"
-              >
-                <Trash2 className="size-4" aria-hidden />
-              </button>
-            </figure>
-          ))}
-        </div>
-      )}
-    </section>
+      {open !== null ? <PhotoLightbox photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} /> : null}
+    </div>
   );
 }
