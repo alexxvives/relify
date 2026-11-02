@@ -696,11 +696,13 @@ function CnaeSelect({
     return select;
   }
 
+  // t84: a plain wrapper (not <label>) so clicks beside the field don't open the dropdown;
+  // the label row is h-8 to line up with the "Secundarios" row and its + button.
   return (
-    <label className="flex flex-col gap-2 text-sm font-medium">
-      {label}
+    <div className="flex flex-col gap-3 text-sm font-medium">
+      <p className="flex h-8 items-center">{label}</p>
       {select}
-    </label>
+    </div>
   );
 }
 
