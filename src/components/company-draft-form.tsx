@@ -41,6 +41,7 @@ import {
   type ForecastYearInput,
 } from "@/lib/company-draft";
 import { draftInvestorPreview } from "@/lib/draft-investor-preview";
+import type { InvestorProjectProfile } from "@/lib/investor-project";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
@@ -785,6 +786,7 @@ export function CompanyDraftForm({
   coverSrc = null,
   financeExtra = null,
   reportYears = null,
+  fichaExtras = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -795,6 +797,8 @@ export function CompanyDraftForm({
   financeExtra?: ReactNode;
   /** t69: imported closed years, so the buyer preview shows the same report charts buyers will see. */
   reportYears?: SabiYear[] | null;
+  /** t81: Ratios and result/working-capital rows of the stored accounts, for the buyer preview. */
+  fichaExtras?: Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears"> | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1717,7 +1721,7 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyReport project={reportYears && reportYears.length > 0 ? { ...investorPreview, reportYears } : investorPreview} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
+          <CompanyReport project={{ ...investorPreview, ...(reportYears && reportYears.length > 0 ? { reportYears } : {}), ...(fichaExtras ?? {}) }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} />
         </div>
       </Panel>
       </div>

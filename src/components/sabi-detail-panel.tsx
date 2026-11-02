@@ -1,5 +1,8 @@
 "use client";
 
+import { optionalEurosToCents } from "@/lib/company-draft";
+import { FinancialTable } from "@/components/financial-table";
+
 import { useActionState, useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, FileSpreadsheet } from "lucide-react";
 import { saveSabiDetailAction, type SabiDetailState } from "@/app/(app)/mi-empresa/sabi-detail-actions";
@@ -29,7 +32,19 @@ export const sabiDetailCopy = {
   saving: "Guardando…",
 };
 
-export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDetailForm; readOnly?: boolean }) {
+export function SabiDetailPanel({
+  detail,
+  readOnly = false,
+  hide = [],
+}: {
+  detail: SabiDetailForm;
+  readOnly?: boolean;
+  /** t81: columns already shown above in the admin report with the same value (read-only copy only). */
+  hide?: string[];
+}) {
+  const hidden = new Set(readOnly ? hide : []);
+  const yearsAsc = [...detail.years].sort((left, right) => left.year - right.year);
+  const cents = (column: string) => yearsAsc.map((year) => optionalEurosToCents((year.values as Record<string, string>)[column] ?? ""));
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState<SabiDetailState, FormData>(saveSabiDetailAction, null);
   const [values, setValues] = useState<Record<string, string>>(() => ({
@@ -85,7 +100,7 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
             <legend className="mb-1 text-sm font-semibold tracking-tight text-[#2b3b4a]">{sabiCompanyDetailGroups[group]}</legend>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sabiCompanyDetailFields
-                .filter((field) => field.group === group)
+                .filter((field) => field.group === group && !hidden.has(field.column))
                 .map((field) => {
                   const name = `company_${field.column}`;
                   return (
@@ -111,7 +126,24 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
         {detail.years.length === 0 ? (
           <p className="rounded-xl bg-[#f6f7f9] px-4 py-3 text-sm text-[#475467]">{sabiDetailCopy.noYears}</p>
         ) : (
-          (Object.keys(sabiYearDetailGroups) as SabiYearDetailGroup[]).map((group) => (
+          (Object.keys(sabiYearDetailGroups) as SabiYearDetailGroup[]).map((group) =>
+            readOnly ? (
+              // t81: same grid as Detalle de cuentas (years oldest first, Tendencia, share of the last year).
+              <fieldset key={group} className="flex flex-col gap-2">
+                <legend className="mb-1 text-sm font-semibold tracking-tight text-[#2b3b4a]">{sabiYearDetailGroups[group]} · €</legend>
+                <FinancialTable
+                  grid
+                  trend
+                  title="Concepto"
+                  years={yearsAsc.map((year) => ({ year: year.year, forecast: false }))}
+                  rows={sabiYearDetailFields
+                    .filter((field) => field.group === group && !hidden.has(field.column))
+                    .map((field) => ({ key: field.column, label: field.label, emphasis: field.column.startsWith("total"), values: cents(field.column) }))
+                    .filter((row) => row.values.some((value) => value !== null))}
+                  shareBase={group === "results" ? { label: "ingresos", values: cents("operatingRevenueCents") } : { label: "activo", values: cents("totalAssetsCents") }}
+                />
+              </fieldset>
+            ) : (
             <fieldset key={group} className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-semibold tracking-tight text-[#2b3b4a]">{sabiYearDetailGroups[group]} · €</legend>
               <div className="layout-table rounded-xl border border-[#e7eaee]">
@@ -156,7 +188,8 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
                 </table>
               </div>
             </fieldset>
-          ))
+            ),
+          )
         )}
 
         {readOnly ? null : (

@@ -9,6 +9,7 @@ import { sellerCopy } from "@/lib/seller-copy";
 import { getCompanyDraft } from "@/server/getCompanyDraft";
 import { getSabiDetail } from "@/server/sabiDetail";
 import { getSabiRegistry } from "@/server/sabiRegistry";
+import { getSellerFichaExtras } from "@/server/sellerFichaExtras";
 import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { getSellerListing } from "@/server/publishSellerProject";
@@ -46,7 +47,7 @@ async function CompanyDetailsPageContent({
     getSellerListing(user.id),
     activeSellerProjectId(user.id),
   ]);
-  const [sabiDetail, sabiRegistry] = projectId ? await Promise.all([getSabiDetail(projectId), getSabiRegistry(projectId)]) : [null, null];
+  const [sabiDetail, sabiRegistry, fichaExtras] = projectId ? await Promise.all([getSabiDetail(projectId), getSabiRegistry(projectId), getSellerFichaExtras(projectId)]) : [null, null, null];
   const coverVersion = projectId && projectCoverIsStored(projectId) ? projectCoverVersion(projectId) : null;
   const coverSrc = listing && coverVersion ? projectCoverHref(listing.slug, coverVersion) : null;
 
@@ -60,6 +61,7 @@ async function CompanyDetailsPageContent({
         coverSrc={coverSrc}
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
+        fichaExtras={fichaExtras}
       />
     </>
   );

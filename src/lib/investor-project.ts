@@ -164,6 +164,8 @@ export type InvestorProjectProfile = {
   detailRows?: InvestorStatementRow[];
   /** Closed-year ratios and staff; only rows with data. Same columns as balanceYears. */
   indicatorRows?: InvestorIndicatorRow[];
+  /** t81: columns of detailRows/indicatorRows when they differ from balanceYears (seller preview). */
+  detailYears?: InvestorYearColumn[];
   /** t69: closed years as plain numbers for the visual report (same data as the tables above, oldest first). */
   reportYears?: SabiYear[];
 };

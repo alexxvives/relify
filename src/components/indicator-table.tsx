@@ -1,3 +1,4 @@
+import { AlignedColumns, MiniTrend } from "@/components/financial-table";
 import { compactEur } from "@/lib/report-format";
 import { companyCopy } from "@/lib/company-copy";
 import type { IndicatorUnit, InvestorIndicatorRow } from "@/lib/investor-project";
@@ -21,18 +22,25 @@ export function formatIndicator(value: number, unit: IndicatorUnit): string {
 }
 
 /** Ratios as SABI computes them (percentages, multiples, days, thousands of EUR per employee). */
-export function IndicatorTable({ years, rows }: { years: { year: number }[]; rows: InvestorIndicatorRow[] }) {
+export function IndicatorTable({ years, rows, aligned = false }: { years: { year: number }[]; rows: InvestorIndicatorRow[]; /** t81: same columns as the aligned FinancialTable (Tendencia, blank share column: a ratio has no share). */ aligned?: boolean }) {
   return (
     <div className="layout-table">
-      <table className="border-collapse text-sm">
+      <table className={aligned ? "w-full! min-w-[44rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"}>
+        {aligned ? <AlignedColumns years={years.length} /> : null}
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
-            <th className="py-3 pr-4 text-left font-medium">{companyCopy.evolutionLabel}</th>
+            <th className={`py-3 pr-4 text-left font-medium ${aligned ? "font-semibold text-[#1c2740]" : ""}`}>{companyCopy.evolutionLabel}</th>
             {years.map((year) => (
               <th key={year.year} className="px-3 py-3 text-right font-medium">
                 {year.year}
               </th>
             ))}
+            {aligned ? (
+              <>
+                <th className="px-3 py-3 text-center font-medium">Tendencia</th>
+                <th />
+              </>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -47,6 +55,14 @@ export function IndicatorTable({ years, rows }: { years: { year: number }[]; row
                   {value === null ? companyCopy.unavailable : formatIndicator(value, row.unit)}
                 </td>
               ))}
+              {aligned ? (
+                <>
+                  <td className="px-3 py-2 text-center">
+                    <MiniTrend values={row.values} />
+                  </td>
+                  <td />
+                </>
+              ) : null}
             </tr>
           ))}
         </tbody>

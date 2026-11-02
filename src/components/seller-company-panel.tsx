@@ -2,6 +2,7 @@ import { CompanyDraftForm } from "@/components/company-draft-form";
 import { RegistryOverview } from "@/components/company-report";
 import { Card } from "@/components/ui/form";
 import type { SabiDetailForm } from "@/server/sabiDetail";
+import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { sabiRegistryIsEmpty, type SabiRegistry } from "@/lib/sabi/registry";
 import type { CompanyDraftInput } from "@/lib/company-draft";
 import type { SellerFocusPanel } from "@/lib/company-profile";
@@ -13,6 +14,7 @@ export function SellerCompanyPanel({
   reviewPending = false,
   coverSrc = null,
   sabiRegistry = null,
+  fichaExtras = null,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -22,6 +24,7 @@ export function SellerCompanyPanel({
   /** t76: no longer shown to sellers (raw accounting detail; figures are loaded by us). Kept for callers. */
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
+  fichaExtras?: SellerFichaExtras | null;
 }) {
   return (
     <>
@@ -32,6 +35,7 @@ export function SellerCompanyPanel({
         focus={focus}
         reviewPending={reviewPending}
         reportYears={sabiRegistry?.years ?? null}
+        fichaExtras={fichaExtras}
         coverSrc={coverSrc}
         financeExtra={
           sabiRegistry ? (

@@ -619,6 +619,12 @@ export function CompanyReport({
   const capital = ownership.length > 0 ? ownership : project.capital;
   const governance = registry && (registry.shareholdings.length > 0 || registry.directors.length > 0 || registry.subsidiaries.length > 0);
   const detailRows = project.detailRows ?? [];
+  // t81: ratio / result tables can come with their own closed years (seller preview reads them from the stored accounts).
+  const detailYears = project.detailYears ?? project.balanceYears;
+  const salesRow = project.incomeRows.find((row) => row.key === "sales");
+  const salesBase = salesRow
+    ? { label: "ingresos", values: detailYears.map((column) => salesRow.values[project.incomeYears.findIndex((item) => item.year === column.year && !item.forecast)] ?? null) }
+    : undefined;
   const indicatorRows = project.indicatorRows ?? [];
   const legalFacts = [
     project.legalForm ? { label: companyCopy.legalFormLabel, value: project.legalForm } : null,
@@ -1059,23 +1065,23 @@ export function CompanyReport({
             <>
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.incomeHeading}</h3>
-                <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend shareOf={{ key: "sales", label: "ventas" }} />
+                <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ingresos" }} />
               </div>
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.balanceHeading}</h3>
                 {composition ? <BalanceComposition reading={composition} /> : null}
-                <FinancialTable years={project.balanceYears} rows={project.balanceRows} trend shareOf={{ key: "totalAssets", label: "activo" }} />
+                <FinancialTable years={project.balanceYears} rows={project.balanceRows} trend grid shareOf={{ key: "totalAssets", label: "activo" }} />
               </div>
               {indicatorRows.length > 0 ? (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Ratios</h3>
-                  <IndicatorTable years={project.balanceYears} rows={indicatorRows} />
+                  <IndicatorTable years={detailYears} rows={indicatorRows} aligned />
                 </div>
               ) : null}
               {detailRows.length > 0 ? (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
-                  <FinancialTable years={project.balanceYears} rows={detailRows} trend />
+                  <FinancialTable years={detailYears} rows={detailRows} trend grid shareBase={salesBase} />
                 </div>
               ) : null}
             </>
