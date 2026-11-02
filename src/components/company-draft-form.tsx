@@ -68,6 +68,7 @@ import {
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
+import { scrollToTop } from "@/components/use-scroll-spy";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
@@ -1150,7 +1151,6 @@ export function CompanyDraftForm({
     clientPercents,
     askingPrice,
   });
-  const progress = completionProgress(requiredFields);
   // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
   const basicDone = sectionComplete(requiredFields, "basic");
   const structureDone = sectionComplete(requiredFields, "structure");
@@ -1161,15 +1161,16 @@ export function CompanyDraftForm({
     { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
-  // t79: the right-hand checklist groups each required field under its section.
+  // t79/t80: the right-hand checklist groups each required field under its section. It covers this tab only: the asking
+  // price lives on Ficha pública and listing it here (as a separate "Ficha pública" group) confused sellers.
+  const companyFields = requiredFields.filter((field) => field.section !== "deal");
   const navProgress = {
-    ...progress,
-    fields: requiredFields.map((field) => ({
+    ...completionProgress(companyFields),
+    fields: companyFields.map((field) => ({
       id: field.id,
       label: field.label,
       done: field.done,
-      group: field.section === "basic" ? "panel-basic" : field.section === "structure" ? "panel-structure" : "deal",
-      groupLabel: field.section === "deal" ? companyCopy.detailsDealTab : undefined,
+      group: field.section === "basic" ? "panel-basic" : "panel-structure",
     })),
   };
   const dirtySections = [
@@ -1194,7 +1195,7 @@ export function CompanyDraftForm({
     }
     window.setTimeout(() => {
       const target = document.getElementById(id);
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target) scrollToTop(target);
       target?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
     }, 60);
     return true;
@@ -1626,6 +1627,8 @@ export function CompanyDraftForm({
       </Panel>
       </div>
       {financeExtra}
+      {/* t80: room so the last sections can scroll up to the top from the progress panel. */}
+      <div aria-hidden className="hidden h-[40vh] lg:block" />
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>

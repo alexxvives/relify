@@ -6,6 +6,13 @@ function reducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/** t80: smooth-scroll so the target's top sits just below the sticky header (scrollIntoView ignored the header). */
+export const stickyHeaderOffset = 80;
+export function scrollToTop(target: HTMLElement) {
+  const top = target.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+  window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? "auto" : "smooth" });
+}
+
 /**
  * t77: shared scroll-spy for section navs (company report, seller details). The active section is the last one whose
  * top has passed `offset`; at the bottom of the page the last section wins. `go` smooth-scrolls (opening collapsed
@@ -66,7 +73,7 @@ export function useScrollSpy(ids: string[], offset = 140) {
     lock.current = window.setTimeout(() => {
       lock.current = null;
     }, 900);
-    target.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
+    scrollToTop(target);
     window.history.replaceState(null, "", `#${id}`);
     return true;
   }, []);
