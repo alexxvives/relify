@@ -593,10 +593,18 @@ export function People({ directors }: { directors: SabiPerson[] }) {
 
     people.set(person.name, entry);
   }
+  return <PeopleList people={[...people.values()]} />;
+}
 
+/** t80: first 6 people, the rest behind "Ver más (N)". */
+const peopleShown = 6;
+function PeopleList({ people }: { people: Array<{ name: string; roles: string[]; since: string | null; group: string | null }> }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? people : people.slice(0, peopleShown);
   return (
+    <div>
     <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-      {[...people.values()].map((person) => (
+      {shown.map((person) => (
         <li key={person.name} className="flex min-w-0 items-start gap-3 rounded-lg bg-[#f7f8fb] p-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-xs font-semibold text-white" aria-hidden>
             {initials(person.name)}
@@ -619,6 +627,17 @@ export function People({ directors }: { directors: SabiPerson[] }) {
         </li>
       ))}
     </ul>
+    {people.length > peopleShown ? (
+      <button
+        type="button"
+        aria-expanded={all}
+        onClick={() => setAll((value) => !value)}
+        className="mt-3 rounded-lg px-2 py-1 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+      >
+        {all ? "Ver menos" : `Ver más (${people.length - peopleShown})`}
+      </button>
+    ) : null}
+    </div>
   );
 }
 

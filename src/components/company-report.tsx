@@ -501,14 +501,25 @@ function BuyerRegistryBlock({ view }: { view: BuyerRegistry }) {
           {directors.length > 0 ? (
             <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors.length}>
               <ul className="divide-y divide-[#eef0f4] text-sm">
-                {directors.slice(0, 8).map((person, index) => (
+                {directors.slice(0, 6).map((person, index) => (
                   <li key={`${person.name}-${index}`} className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5">
                     <span className="min-w-0 truncate font-medium text-[#1c2740]">{person.name}</span>
                     <span className="text-xs text-[#5c6b78]">{person.role}</span>
                   </li>
                 ))}
               </ul>
-              {directors.length > 8 ? <p className="mt-2 text-xs text-[#5c6b78]">Y {directors.length - 8} más en el registro.</p> : null}
+              {directors.length > 6 ? (
+                <Toggle label={`Ver más (${directors.length - 6})`}>
+                  <ul className="divide-y divide-[#eef0f4] text-sm">
+                    {directors.slice(6).map((person, index) => (
+                      <li key={`${person.name}-more-${index}`} className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5">
+                        <span className="min-w-0 truncate font-medium text-[#1c2740]">{person.name}</span>
+                        <span className="text-xs text-[#5c6b78]">{person.role}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Toggle>
+              ) : null}
             </Section>
           ) : null}
         </div>
