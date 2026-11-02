@@ -629,7 +629,7 @@ export function CompanyReport({
   const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
   // t83: never "0 €"; the seller sees it as missing, buyers as "A consultar".
   const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
-  const priceUnsetNote = sellerPreview || role === "admin" ? "Defínelo en «Datos de la ficha»." : "El vendedor no lo ha publicado todavía.";
+  const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
   const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const lastEmployees = lastValue(years, (year) => year.employees);
@@ -779,43 +779,48 @@ export function CompanyReport({
       </ReportSection>
 
       <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
-        {about ? (
-          <p className="leading-7 text-[#1c2740]">
-            {about.text}
-            {about.source ? (
-              <span className="ml-1.5 inline-flex align-middle">
-                <InfoHint text={about.source} icon="warning" tone="warning" width="lg" />
-              </span>
-            ) : null}
-          </p>
-        ) : null}
-        <div className={`${about ? "mt-4 " : ""}grid gap-2 sm:grid-cols-2 xl:grid-cols-4`}>
-          {project.region ? <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} /> : null}
-          {project.foundedYear !== null ? <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={String(project.foundedYear)} /> : null}
-          {legalFacts.map((fact) => (
-            <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
-          ))}
-        </div>
-        {project.principalCnae || project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
-            {project.principalCnae ? (
-              <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
-                {project.principalCnae.code} · {project.principalCnae.title}
-              </span>
+        {/* t83: description on the left, facts and sector chips on the right, so the block uses the full width. */}
+        <div className={about ? "grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(16rem,2fr)] lg:items-start" : "flex flex-col gap-4"}>
+          {about ? (
+            <p className="leading-7 text-[#1c2740]">
+              {about.text}
+              {about.source ? (
+                <span className="ml-1.5 inline-flex align-middle">
+                  <InfoHint text={about.source} icon="warning" tone="warning" width="lg" />
+                </span>
+              ) : null}
+            </p>
           ) : null}
-          {project.secondaryCnaes.map((cnae) => (
-            <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-              {cnae.code} · {cnae.title}
-            </span>
-          ))}
-          {extraActivities.map((activity) => (
-            <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-              {activity.code} · {activity.title}
-            </span>
-          ))}
+          <div className="flex min-w-0 flex-col gap-3">
+            <div className={`grid gap-2 ${about ? "sm:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-4"}`}>
+              {project.region ? <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} /> : null}
+              {project.foundedYear !== null ? <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={String(project.foundedYear)} /> : null}
+              {legalFacts.map((fact) => (
+                <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
+              ))}
+            </div>
+            {project.principalCnae || project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
+                {project.principalCnae ? (
+                  <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
+                    {project.principalCnae.code} · {project.principalCnae.title}
+                  </span>
+                ) : null}
+                {project.secondaryCnaes.map((cnae) => (
+                  <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+                    {cnae.code} · {cnae.title}
+                  </span>
+                ))}
+                {extraActivities.map((activity) => (
+                  <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+                    {activity.code} · {activity.title}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
-        ) : null}
         {buyerView ? <BuyerRegistryBlock view={buyerView} /> : null}
         <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
           Qué vende y a quién
