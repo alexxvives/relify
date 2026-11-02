@@ -10,7 +10,7 @@ import {
   type SellerPanelFlags,
   type SliceKind,
 } from "@/lib/company-profile";
-import { publishChecklist, type PublishChecklist } from "@/lib/publish-checklist";
+import { adminChecksMessage, adminPublishChecks, publishChecklist, type PublishChecklist } from "@/lib/publish-checklist";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
@@ -56,6 +56,8 @@ const emptyPanels: SellerPanelFlags = {
 export async function getSellerOverview(ownerId: string): Promise<{
   panels: SellerPanelFlags;
   checklist: PublishChecklist;
+  /** t75: why "Publicar · pagar" cannot run yet (financials not loaded / EBITDA <= 0), or null. */
+  payBlocked: string | null;
   series: SellerYearPoint[];
   mixes: SellerMix[];
   costYears: SellerCostYear[];
@@ -69,6 +71,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
           cif: true,
           description: true,
           saleReason: true,
+          ebitdaCents: true,
           askingPriceCents: true,
           customerBase: true,
           headcountRange: true,
@@ -106,6 +109,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     return {
       panels: emptyPanels,
       checklist: publishChecklist({ panels: emptyPanels, saleReason: false }),
+      payBlocked: null,
       series: [],
       mixes: [],
       costYears: [],
@@ -135,6 +139,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     panels,
     saleReason: (project.saleReason ?? "").trim().length > 0,
   });
+  const admin = adminPublishChecks({ panels, ebitdaPositive: project.ebitdaCents > 0 });
   const series: SellerYearPoint[] = [];
 
   for (const year of [...project.years].sort(
@@ -166,6 +171,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
   return {
     panels,
     checklist,
+    payBlocked: admin.ready ? null : adminChecksMessage(admin),
     series,
     mixes: mixGroups(project.activitySlices, project.customerBase),
     costYears: costYears(project.years),

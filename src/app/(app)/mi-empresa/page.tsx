@@ -1,3 +1,4 @@
+import { submitForReviewIfReady } from "@/server/submitForReview";
 import { Suspense } from "react";
 import { materializePendingCompanies } from "@/server/sellerCompany";
 import { SellerHomeSkeleton } from "@/components/page-skeletons";
@@ -43,6 +44,12 @@ async function CompanyPageContent({
   // A CIF verified before verify created the company: turn it into the draft now.
   await materializePendingCompanies(user.id);
 
+  // t75: a complete seller checklist (free or paid listing) moves to review on its own.
+  const activeId = await activeSellerProjectId(user.id);
+  if (activeId) {
+    await submitForReviewIfReady(user.id, activeId);
+  }
+
   // One round trip per wave instead of eleven sequential queries.
   const [nifVerified, projectId, listing, notifications, overview, messages, dashboard] = await Promise.all([
     companyNifIsVerified(user),
@@ -72,6 +79,7 @@ async function CompanyPageContent({
         funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
         checklist={overview.checklist}
+        payBlocked={overview.payBlocked}
         dashboard={dashboard}
         pending={homePendingActions(
           "seller",

@@ -1,3 +1,4 @@
+import { notifyPublishRequest } from "@/server/submitForReview";
 import { advisorDepositCents } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -118,10 +119,13 @@ async function applyListing(
   });
 
   if (intent !== "add" && project.status === "draft") {
-    await prisma.project.update({
-      where: { id: project.id },
+    const moved = await prisma.project.updateMany({
+      where: { id: project.id, status: "draft" },
       data: { status: "pending" },
     });
+    if (moved.count > 0) {
+      await notifyPublishRequest(project.id, true);
+    }
   }
 }
 

@@ -1570,7 +1570,7 @@ export function CompanyDraftForm({
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>
       {reviewPending ? (
-        <p className="rounded-2xl bg-[#fff8db] px-4 py-3 text-sm font-medium text-[#614d05]">{billingCopy.reviewPending}</p>
+        <p className="rounded-2xl bg-[#e6f6f4] px-4 py-3 text-sm font-medium text-[#0f766e]">{billingCopy.reviewPending}</p>
       ) : null}
       <Panel
         id="panel-price"

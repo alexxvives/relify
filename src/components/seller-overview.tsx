@@ -6,7 +6,7 @@ import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { FieldHint } from "@/components/field-hint";
-import { PublishSellerButton } from "@/components/publish-seller";
+import { PublishPayButton } from "@/components/publish-seller";
 import { FinanceChartsPlaceholder } from "@/components/seller-finance-charts";
 import { SellerDashboard } from "@/components/seller-dashboard";
 import type { SellerDashboard as SellerDashboardData } from "@/server/getSellerDashboard";
@@ -24,6 +24,7 @@ export function SellerOverview({
   listing,
   payToPublish = false,
   hasPhoto = false,
+  payBlocked = null,
   funnel,
   checklist,
   dashboard,
@@ -37,6 +38,8 @@ export function SellerOverview({
   listing: "missing" | "draft" | "pending" | "published";
   payToPublish?: boolean;
   hasPhoto?: boolean;
+  /** t75: why the pay CTA cannot run yet. */
+  payBlocked?: string | null;
   funnel: SellerFunnel;
   notifications: NotificationView[];
   checklist: PublishChecklist;
@@ -90,7 +93,7 @@ export function SellerOverview({
                   : listing === "published"
                   ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "pending"
-                    ? "text-xl font-semibold sm:whitespace-nowrap text-[#8a6112]"
+                    ? "text-xl font-semibold text-[#0f766e]"
                     : "text-lg font-semibold whitespace-nowrap text-[#c0362c]"
               }
             >
@@ -102,8 +105,8 @@ export function SellerOverview({
                   ? billingCopy.reviewPending
                   : sellerCopy.unpublished}
             </h2>
-            {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
-            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} ready={checklist.ready} /> : null}
+            {listing === "pending" ? <p className="mt-2 text-sm text-[#475467]">{billingCopy.reviewRequested}</p> : null}
+            {listing === "draft" && payToPublish && checklist.ready ? <PublishPayButton blocked={payBlocked} /> : null}
             <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
               {checklist.items.map((item) => {

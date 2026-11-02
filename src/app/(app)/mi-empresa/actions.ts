@@ -1,5 +1,6 @@
 "use server";
 
+import { submitForReviewIfReady } from "@/server/submitForReview";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
@@ -124,6 +125,12 @@ export async function saveCompanyDraftAction(
 
   if (!result.ok) {
     return { message: result.message, saved: false };
+  }
+
+  // t75: no "Pedir publicación" step; a complete seller checklist submits itself.
+  const activeId = await activeSellerProjectId(user.id);
+  if (activeId) {
+    await submitForReviewIfReady(user.id, activeId);
   }
 
   revalidatePath("/mi-empresa");

@@ -1,3 +1,4 @@
+import { notifyPublishRequest } from "@/server/submitForReview";
 import { sellerPublishOutcome } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -113,10 +114,13 @@ export async function publishSellerProject(
   }
 
   if (outcome.mode === "free" || outcome.mode === "paid") {
-    await prisma.project.update({
-      where: { id: project.id },
+    const moved = await prisma.project.updateMany({
+      where: { id: project.id, status: "draft" },
       data: { status: "pending" },
     });
+    if (moved.count > 0) {
+      await notifyPublishRequest(project.id, outcome.mode === "paid");
+    }
   }
 
   return { ok: true };

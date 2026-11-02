@@ -48,7 +48,7 @@ export type AdminNavCount = {
 
 /**
  * Sidebar bubbles: a total per page, plus a red bubble. Empresas: CIFs waiting for the SABI import
- * (stays until imported). Cuentas, Asesores, Conexiones: created since the admin last opened the page
+ * plus companies pending review (stays until imported / approved). Cuentas, Asesores, Conexiones: created since the admin last opened the page
  * (cleared on visit, stored per admin in AdminSeen).
  */
 export async function adminNavCounts(
@@ -67,7 +67,8 @@ export async function adminNavCounts(
     newAccesses,
   ] = await Promise.all([
     prisma.project.count(),
-    prisma.project.count({ where: { NOT: { cif: "" }, sabiImportedAt: null } }),
+    // t75: plus companies waiting for approval (auto-submitted when the seller list is complete).
+    prisma.project.count({ where: { OR: [{ NOT: { cif: "" }, sabiImportedAt: null }, { status: "pending" }] } }),
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gt: since("cuentas") } } }),
     prisma.user.count({ where: { role: "advisor" } }),
@@ -83,7 +84,7 @@ export async function adminNavCounts(
     "/admin/empresas": {
       total: companies,
       alert: sabiPending,
-      alertLabel: "pendientes de SABI",
+      alertLabel: "pendientes de SABI o de revisión",
     },
     "/admin/cuentas": {
       total: accounts,
