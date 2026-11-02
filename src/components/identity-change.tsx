@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Lock, X } from "lucide-react";
+import { Lock, Pencil, X } from "lucide-react";
 import { requestIdentityChangeAction, type IdentityChangeState } from "@/app/(app)/mi-empresa/actions";
 import { Input, Textarea } from "@/components/ui/form";
 import { identityChangeMaxLength } from "@/lib/identity-change-email";
@@ -11,11 +11,8 @@ export type IdentityField = "legalName" | "cif";
 
 const tooltip = "Verificado. Para cambiarlo, solicítalo";
 
-/**
- * t79: a verified, read-only identity field (nombre legal / NIF). A lock inside the field explains why it can't be
- * edited (tooltip) and a small "Solicitar cambio" button opens the request modal.
- */
-export function LockedIdentityInput({ name, value, onRequest }: { name: IdentityField; value: string; onRequest: () => void }) {
+/** t79: a verified, read-only identity field (nombre legal / NIF); the lock's tooltip says why it can't be edited. */
+export function LockedIdentityInput({ name, value }: { name: IdentityField; value: string }) {
   return (
     <div className="relative">
       <span className="group absolute top-1/2 left-3 z-10 -translate-y-1/2" tabIndex={0} aria-label={tooltip}>
@@ -27,15 +24,22 @@ export function LockedIdentityInput({ name, value, onRequest }: { name: Identity
           {tooltip}
         </span>
       </span>
-      <Input name={name} value={value} readOnly aria-readonly="true" title={tooltip} className="bg-[#f5f6f8] pr-28 pl-8 text-[#3d4a63]" />
-      <button
-        type="button"
-        onClick={onRequest}
-        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md px-2 py-1 text-xs font-semibold text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-      >
-        Solicitar cambio
-      </button>
+      <Input name={name} value={value} readOnly aria-readonly="true" title={value} className="truncate bg-[#f5f6f8] pl-8 text-[#3d4a63]" />
     </div>
+  );
+}
+
+/** t79: the small button under the locked fields that opens the request modal. */
+export function RequestIdentityChangeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+    >
+      <Pencil className="size-3.5" aria-hidden />
+      Solicitar cambio
+    </button>
   );
 }
 
