@@ -65,10 +65,13 @@ export function DetailSectionNav({
   items,
   progress,
   next,
+  onMissing,
 }: {
   items: DetailSectionItem[];
-  progress: { done: number; total: number; missing: string[] };
+  progress: { done: number; total: number; missing: Array<{ id: string; label: string }> };
   next?: { label: string; onClick: () => void } | null;
+  /** t78: missing fields that live outside this nav's sections (e.g. on the other tab). */
+  onMissing?: (id: string) => boolean;
 }) {
   const { active, go } = useScrollSpy(
     items.map((item) => item.id),
@@ -109,11 +112,29 @@ export function DetailSectionNav({
             <CompletionRing done={progress.done} total={progress.total} />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#1c2740]">{complete ? "Todo listo" : "Tu progreso"}</p>
-              <p className="text-xs text-[#64748b]">
-                {complete ? "Has completado lo imprescindible." : `Falta: ${progress.missing.join(", ")}.`}
-              </p>
+              <p className="text-xs text-[#64748b]">{complete ? "Has completado lo imprescindible." : `${progress.missing.length} campos obligatorios por completar`}</p>
             </div>
           </div>
+          {complete ? null : (
+            <div className="-mt-1">
+              <p className="text-xs font-semibold text-[#1c2740]">Falta:</p>
+              <ul className="mt-1 flex flex-col gap-0.5">
+                {progress.missing.map((field) => (
+                  <li key={field.id}>
+                    <a
+                      href={`#${field.id}`}
+                      onClick={(event) => {
+                        if (onMissing?.(field.id) || go(field.id)) event.preventDefault();
+                      }}
+                      className="text-xs font-medium text-[#0f766e] underline decoration-[#7fd6cc] underline-offset-2 hover:text-[#0c5f59] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+                    >
+                      {field.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <ul className="flex flex-col gap-0.5 border-t border-[#eef0f4] pt-3">
             {items.map((item) => {
               const current = item.id === active;

@@ -6,7 +6,7 @@ import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { AlertCircle, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -70,6 +70,7 @@ import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form
 import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
+import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -404,7 +405,9 @@ function FichaMetrics({
 }) {
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} />
+      <div id="panel-asking-price" className="scroll-mt-24">
+        <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} />
+      </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
@@ -1115,16 +1118,17 @@ export function CompanyDraftForm({
   const structureDone = headcount.length > 0;
   const priceDone = askingPrice.trim().length > 0;
   const figuresLoaded = (reportYears?.length ?? 0) > 0;
-  const required = [
-    { label: "Tu empresa", done: basicDone },
-    { label: "Cómo es tu negocio", done: structureDone },
-    { label: "Precio", done: priceDone },
-  ];
-  const progress = {
-    done: required.filter((item) => item.done).length,
-    total: required.length,
-    missing: required.filter((item) => !item.done).map((item) => item.label),
-  };
+  const requiredFields = sellerRequiredFields({
+    saleReason,
+    description,
+    principalCnae,
+    customerBase,
+    productPercents,
+    clientPercents,
+    askingPrice,
+  });
+  const progress = completionProgress(requiredFields);
+  const descriptionMissing = description.trim() === "";
   const companySections: DetailSectionItem[] = [
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
@@ -1141,6 +1145,27 @@ export function CompanyDraftForm({
     { id: "income", label: "Tus cifras", dirty: incomeDirty || balanceDirty },
     { id: "deal", label: "Ficha pública", dirty: dealDirty },
   ].filter((section) => section.dirty);
+
+  // t78: "Falta" links open the panel (and tab) that holds the field, then scroll to it.
+  function goToMissing(id: string): boolean {
+    const field = requiredFields.find((item) => item.id === id);
+    if (!field) {
+      return false;
+    }
+    setSaveClosed("");
+    if (field.section === "basic") setOpenBasic(true);
+    if (field.section === "structure") setOpenStructure(true);
+    if (field.section === "deal") {
+      setTab("deal");
+      setOpenDeal(true);
+    }
+    window.setTimeout(() => {
+      const target = document.getElementById(id);
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      target?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
+    }, 60);
+    return true;
+  }
 
   function saveAndLeave(href: string) {
     const form = formRef.current;
@@ -1174,6 +1199,7 @@ export function CompanyDraftForm({
         key={tab}
         items={tab === "company" ? companySections : dealSections}
         progress={progress}
+        onMissing={goToMissing}
         next={
           tab === "company"
             ? { label: "Ver ficha pública", onClick: () => { setTab("deal"); window.scrollTo({ top: 0 }); } }
@@ -1229,7 +1255,7 @@ export function CompanyDraftForm({
               onChange={(event) => setFoundedYear(keepYear(event.target.value))}
             />
           </Fact>
-          <Fact icon={Handshake} label={companyCopy.saleReasonLabel} required>
+          <Fact id="panel-sale-reason" icon={Handshake} label={companyCopy.saleReasonLabel} required>
             <OptionSelect
               key={saleReason === "" && panelRejected("basic") ? `sale-reason-${attempt}` : "sale-reason"}
               name="saleReason"
@@ -1260,6 +1286,10 @@ export function CompanyDraftForm({
         <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col gap-2">
           <span className="flex items-center gap-2 text-base font-semibold text-[#1c2740]">
             {companyCopy.descriptionLabel}
+            <span className="text-[#c0362c]" aria-hidden>
+              *
+            </span>
+            <span className="sr-only">(obligatorio)</span>
             {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : null}
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
@@ -1271,7 +1301,17 @@ export function CompanyDraftForm({
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             aria-label={companyCopy.descriptionLabel}
+            aria-required="true"
+            aria-invalid={descriptionMissing || undefined}
+            aria-describedby={descriptionMissing ? "description-missing" : undefined}
+            className={descriptionMissing ? "border-[#e0a526] bg-[#fffbeb]" : undefined}
           />
+          {descriptionMissing ? (
+            <p id="description-missing" className="flex items-start gap-1.5 text-sm font-medium text-[#8a5a00]">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+              Añade una descripción de tu empresa: qué hace, clientes, diferencial.
+            </p>
+          ) : null}
           <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
             <span>
               {description.length} / {descriptionMaxLength}
@@ -1333,7 +1373,9 @@ export function CompanyDraftForm({
         }}
         onCollapse={() => setOpenStructure(false)}
       >
-        <CustomerChoice customerBase={customerBase} onCustomerBase={setCustomerBase} />
+        <div id="panel-customer" className="scroll-mt-24">
+          <CustomerChoice customerBase={customerBase} onCustomerBase={setCustomerBase} />
+        </div>
         <div className="mb-6 border-t border-[#d7dde6]" />
         {customerBase === "business" || customerBase === "mixed"
           ? null
@@ -1345,6 +1387,7 @@ export function CompanyDraftForm({
           <input key={`kept-capital-${index}`} type="hidden" name="capitalPercent" value={value} />
         ))}
         <div className="grid items-start gap-6 lg:grid-cols-2">
+          <div id="panel-product-split" className="scroll-mt-24">
           <PercentRows
             legend={companyCopy.productsLegend}
             name="productPercent"
@@ -1353,7 +1396,9 @@ export function CompanyDraftForm({
             values={productPercents}
             onChange={setProductPercents}
           />
+          </div>
           {customerBase === "business" || customerBase === "mixed" ? (
+            <div id="panel-client-split" className="scroll-mt-24">
             <PercentRows
               legend={companyCopy.clientsLegend}
               name="clientPercent"
@@ -1362,6 +1407,7 @@ export function CompanyDraftForm({
               values={clientPercents}
               onChange={setClientPercents}
             />
+            </div>
           ) : (
             <div className="hidden lg:block" />
           )}
