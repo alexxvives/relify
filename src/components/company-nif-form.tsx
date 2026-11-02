@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  previewCompanyNifAction,
   verifyCompanyNifAction,
   type VerifyNifState,
 } from "@/app/(app)/mi-empresa/nif-actions";
@@ -55,7 +56,10 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   // "filling" holds at least FILL_MS so the step reads as deliberate, then "done" shows the check.
-  const [phase, setPhase] = useState<"form" | "filling" | "done">("form");
+  const [phase, setPhase] = useState<"form" | "confirm" | "filling" | "done">("form");
+  // t80: registry name behind the typed CIF ("¿Es esta tu empresa?"); null name = not found, failed = lookup down.
+  const [match, setMatch] = useState<{ cif: string; legalName: string | null; failed: boolean } | null>(null);
+  const [checking, startChecking] = useTransition();
   const [minElapsed, setMinElapsed] = useState(false);
 
   useEffect(() => {
@@ -159,6 +163,58 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
               </button>
             </div>
           </div>
+        ) : phase === "confirm" && match ? (
+          <div className="py-2">
+            <span className="inline-flex items-center rounded-full bg-[#e6f4f1] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
+              {companyCopy.setupNifStep}
+            </span>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+              {match.legalName ? "¿Es esta tu empresa?" : "Comprueba tu CIF"}
+            </h2>
+            <div className="mt-5 rounded-2xl border border-[#e1e6ee] bg-[#f7f8fb] p-5">
+              {match.legalName ? (
+                <p className="text-lg font-semibold break-words text-[#1c2740]">{match.legalName}</p>
+              ) : null}
+              <p className={`text-sm tracking-wider text-[#5c6b78] tabular-nums ${match.legalName ? "mt-1" : ""}`}>CIF {match.cif}</p>
+              {match.legalName ? null : (
+                <p className="mt-3 text-sm leading-6 text-[#5c6b78]">
+                  {match.failed
+                    ? "Ahora mismo no podemos consultar el registro mercantil para mostrarte el nombre. Revisa que el CIF es el de tu empresa antes de continuar."
+                    : "No encontramos ninguna empresa con este CIF en el registro mercantil. Revisa que está bien escrito antes de continuar."}
+                </p>
+              )}
+            </div>
+            <p className="mt-3 text-xs leading-5 text-[#5c6b78]">Después el nombre y el CIF quedan fijados en tu ficha.</p>
+            <form
+              action={action}
+              className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+              onSubmit={() => {
+                setMinElapsed(false);
+                setPhase("filling");
+              }}
+            >
+              <input type="hidden" name="nif" value={match.cif} />
+              <button
+                type="button"
+                onClick={() => {
+                  setPhase("form");
+                  setMatch(null);
+                  setAttempt((current) => current + 1);
+                }}
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-[#d5dbe3] bg-white px-5 text-sm font-semibold text-[#1c2740] hover:bg-[#f7f8fb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e]"
+              >
+                No, corregir CIF
+              </button>
+              <button
+                type="submit"
+                disabled={pending}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0f766e] px-5 text-sm font-semibold text-white hover:bg-[#0c5f59] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:opacity-60"
+              >
+                {match.legalName ? "Sí, es mi empresa" : "Sí, el CIF es correcto"}
+                <ArrowRight className="size-4" aria-hidden />
+              </button>
+            </form>
+          </div>
         ) : phase === "filling" ? (
           <div
             role="status"
@@ -241,8 +297,20 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
                   setAttempt((current) => current + 1);
                   return;
                 }
-                setMinElapsed(false);
-                setPhase("filling");
+                event.preventDefault();
+                startChecking(async () => {
+                  const result = await previewCompanyNifAction(nif);
+                  if (result.ok) {
+                    setMatch({ cif: result.cif, legalName: result.legalName, failed: false });
+                    setPhase("confirm");
+                  } else if (result.lookupFailed) {
+                    setMatch({ cif: nif.trim(), legalName: null, failed: true });
+                    setPhase("confirm");
+                  } else {
+                    setLocalMessage(result.message);
+                    setAttempt((current) => current + 1);
+                  }
+                });
               }}
             >
               <label
@@ -275,10 +343,10 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
                 />
                 <button
                   type="submit"
-                  disabled={pending}
+                  disabled={pending || checking}
                   className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1c2740] px-5 text-sm font-semibold text-white transition hover:bg-[#28375a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:opacity-60"
                 >
-                  {pending ? companyCopy.nifPending : companyCopy.nifSubmit}
+                  {pending || checking ? companyCopy.nifPending : companyCopy.nifSubmit}
                   <ArrowRight className="size-4" aria-hidden />
                 </button>
               </div>

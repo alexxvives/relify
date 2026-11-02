@@ -31,6 +31,40 @@ function prefillData(record: RegistryCompany) {
   };
 }
 
+export type PreviewNifResult =
+  | { ok: true; cif: string; legalName: string | null }
+  | { ok: false; message: string; lookupFailed?: boolean };
+
+/**
+ * t80: read-only step before the CIF is saved: the registry name behind the CIF so the seller can confirm
+ * "¿Es esta tu empresa?". Uses the same cached lookup as verifyCompanyNif (no prefill, no project writes).
+ */
+export async function previewCompanyNif(
+  user: CurrentUser,
+  rawNif: string,
+): Promise<PreviewNifResult> {
+  if (!user.onboarded || user.role !== "seller") {
+    return { ok: false, message: companyCopy.nifNotSeller };
+  }
+  const cif = normalizeCif(rawNif);
+  if (cif.length === 0) {
+    return { ok: false, message: companyCopy.nifRequired };
+  }
+  if (!isValidSpanishCif(cif)) {
+    return { ok: false, message: companyCopy.nifInvalid };
+  }
+  try {
+    const lookup = await lookupCompanyRegistry(cif);
+    if (!lookup.ok) {
+      return { ok: false, message: companyCopy.nifRegistryUnavailable, lookupFailed: true };
+    }
+    const name = lookup.record?.legalName?.trim() ?? "";
+    return { ok: true, cif, legalName: name.length > 0 ? name : null };
+  } catch {
+    return { ok: false, message: companyCopy.nifRegistryUnavailable, lookupFailed: true };
+  }
+}
+
 export async function verifyCompanyNif(
   user: CurrentUser,
   rawNif: string,
