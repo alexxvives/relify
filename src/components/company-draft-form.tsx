@@ -410,6 +410,7 @@ function FichaMetrics({
   ebitda,
   adjustedEbitda,
   margin,
+  netResult,
   priceStatus = null,
   adjustments,
 }: {
@@ -419,6 +420,7 @@ function FichaMetrics({
   ebitda: string;
   adjustedEbitda: string;
   margin: string;
+  netResult: string;
   priceStatus?: ReactNode;
   adjustments: ReactNode;
 }) {
@@ -433,6 +435,8 @@ function FichaMetrics({
       <ReadOnlyFigure label={companyCopy.adjustedEbitdaLabel} value={adjustedEbitda} />
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
+      {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
+      <ReadOnlyFigure label="Resultado neto" value={netResult} />
       <div className="sm:col-span-2 lg:col-span-3">{adjustments}</div>
     </div>
   );
@@ -1256,6 +1260,12 @@ export function CompanyDraftForm({
   // t80: a negative EBITDA is still the real figure (it used to be dropped, so DEALE showed "Pendiente de cargar").
   // Only the price estimate needs a positive basis, and euroCentsOrNull below stays unsigned for that.
   const ebitdaFromAccounts = ebitdaCentsFromAccounts !== null ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
+  // t85: net result of the account year, read from the stored accounts (detailRows), never typed by the seller.
+  const netResultCents = (() => {
+    const row = fichaExtras?.detailRows?.find((line) => line.key === "netResultCents");
+    const column = accountYear ? (fichaExtras?.detailYears ?? []).findIndex((column) => String(column.year) === accountYear.year) : -1;
+    return row && column >= 0 ? (row.values[column] ?? null) : null;
+  })();
   // t82: live bridge base = the stored accounts EBITDA the server will use, else the loaded statements.
   const storedEbitdaCents = signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : null;
   const adjustmentBaseCents =
@@ -1881,6 +1891,7 @@ export function CompanyDraftForm({
               </>
             }
             margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+            netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
             priceStatus={
               <PriceStatus
                 estimate={priceEstimate}
