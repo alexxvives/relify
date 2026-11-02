@@ -30,6 +30,7 @@ export async function notifyReportReady(
       legalName: true,
       codename: true,
       sabiImportedAt: true,
+      years: { where: { kind: "closed" }, select: { year: true, salesCents: true }, orderBy: { year: "asc" } },
     },
   });
 
@@ -50,7 +51,9 @@ export async function notifyReportReady(
     to: owner.email,
     tag: "report-ready",
     notice: true,
-    ...reportReadyEmail(owner.firstName, companyName, url),
+    ...reportReadyEmail(owner.firstName, companyName, url, {
+      sales: project.years.flatMap((row) => (row.salesCents === null ? [] : [{ year: row.year, cents: Number(row.salesCents) }])),
+    }),
   });
 
   if (sent.status !== "sent") {
