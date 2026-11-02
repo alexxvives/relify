@@ -474,7 +474,7 @@ function EbitdaAdjustmentsEditor({
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {rows.map((row, index) => (
-            <li key={index} className="grid gap-2 rounded-xl border border-[#e7eaee] bg-white p-2 sm:grid-cols-[minmax(0,14rem)_8.5rem_minmax(0,1fr)_2rem] sm:items-center">
+            <li key={index} className="grid gap-2 rounded-xl border border-[#e7eaee] bg-white p-2 sm:grid-cols-[minmax(0,19rem)_8.5rem_minmax(0,1fr)_2rem] sm:items-center">
               <label className="min-w-0">
                 <span className="sr-only">{companyCopy.adjustmentTypeLabel}</span>
                 <select
@@ -1241,7 +1241,9 @@ export function CompanyDraftForm({
   // Only the price estimate needs a positive basis, and euroCentsOrNull below stays unsigned for that.
   const ebitdaFromAccounts = ebitdaCentsFromAccounts !== null ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
   // t82: live bridge base = the stored accounts EBITDA the server will use, else the loaded statements.
-  const adjustmentBaseCents = signedEuroPattern.test(ebitda.trim()) && eurosToCents(ebitda.trim()) !== 0 ? eurosToCents(ebitda.trim()) : ebitdaCentsFromAccounts;
+  const storedEbitdaCents = signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : null;
+  const adjustmentBaseCents =
+    storedEbitdaCents !== null && (storedEbitdaCents !== 0 || ebitdaCentsFromAccounts === null) ? storedEbitdaCents : ebitdaCentsFromAccounts;
   const adjustmentSumCents = adjustmentRows.reduce((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
   const legacyAdjustedCents = !hadAdjustmentList && signedEuroPattern.test(initial.adjustedEbitda.trim()) ? eurosToCents(initial.adjustedEbitda.trim()) : 0;
   const adjustedEbitda =
