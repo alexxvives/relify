@@ -145,7 +145,8 @@ export async function getSellerOverview(ownerId: string): Promise<{
   for (const year of [...project.years].sort(
     (left, right) => left.year - right.year,
   )) {
-    if (year.salesCents === null && year.kind !== "forecast") {
+    // t79: an empty forecast never shows; sellers no longer enter one and the registry has none.
+    if (year.salesCents === null) {
       continue;
     }
 
@@ -155,16 +156,6 @@ export async function getSellerOverview(ownerId: string): Promise<{
       ebitdaCents:
         year.salesCents === null ? null : statementEbitda(pnlAmounts(year)),
       forecast: year.kind === "forecast",
-    });
-  }
-
-  if (series.length > 0 && !series.some((point) => point.forecast)) {
-    const latest = series.reduce((max, point) => Math.max(max, point.year), 0);
-    series.push({
-      year: latest + 1,
-      salesCents: null,
-      ebitdaCents: null,
-      forecast: true,
     });
   }
 

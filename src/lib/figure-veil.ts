@@ -8,7 +8,6 @@ const years = [
   { year: 2023, forecast: false },
   { year: 2024, forecast: false },
   { year: 2025, forecast: false },
-  { year: 2026, forecast: true },
 ];
 
 const money = years.map(() => figureVeilCents);
@@ -72,7 +71,7 @@ export function figureVeilBalance() {
       key,
       label: balanceLabels[key],
       emphasis: isEmphasisRow(key),
-      values: money.slice(0, 3),
+      values: money,
     })),
   };
 }

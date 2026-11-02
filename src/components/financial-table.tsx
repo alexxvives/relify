@@ -2,8 +2,8 @@ import { companyCopy } from "@/lib/company-copy";
 import { formatEur } from "@/lib/money";
 
 export function FinancialTable({
-  years,
-  rows,
+  years: allYears,
+  rows: allRows,
   trend = false,
   shareOf,
 }: {
@@ -14,6 +14,10 @@ export function FinancialTable({
   /** t70: row whose last closed value is the 100 % base for a "% sobre" column with a mini bar. */
   shareOf?: { key: string; label: string };
 }) {
+  // t79: a forecast column with no figures (sellers no longer enter one) is hidden; filled ones stay.
+  const keep = allYears.map((year, index) => !year.forecast || allRows.some((row) => row.values[index] != null));
+  const years = allYears.filter((_, index) => keep[index]);
+  const rows = allRows.map((row) => ({ ...row, values: row.values.filter((_, index) => keep[index]) }));
   const baseRow = shareOf ? rows.find((row) => row.key === shareOf.key) : undefined;
   const baseIndex = baseRow ? lastClosedIndex(years, baseRow.values) : -1;
   const base = baseIndex >= 0 ? baseRow!.values[baseIndex]! : null;

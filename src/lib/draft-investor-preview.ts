@@ -107,7 +107,10 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
   const incomeSource = [
     ...input.closedYears.map((year) => ({ year: yearNumber(year.year), forecast: false, amounts: pnlFrom(year) })),
     { year: yearNumber(input.forecastYear.year), forecast: true, amounts: pnlFrom(input.forecastYear) },
-  ].filter((column): column is { year: number; forecast: boolean; amounts: PnlAmounts } => column.year !== null);
+  ]
+    .filter((column): column is { year: number; forecast: boolean; amounts: PnlAmounts } => column.year !== null)
+    // t79: "Previsión" is optional and only shows when it has figures.
+    .filter((column) => !column.forecast || Object.values(column.amounts).some((value) => value !== null));
   const balanceSource = input.closedYears.flatMap((year) => {
     const number = yearNumber(year.year);
     return number === null ? [] : [{ year: number, amounts: balanceFrom(year) }];
