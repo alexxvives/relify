@@ -13,7 +13,7 @@ import type { SellerDashboard as SellerDashboardData } from "@/server/getSellerD
 import { billingCopy } from "@/lib/billing-copy";
 import { companyCopy } from "@/lib/company-copy";
 import type { NotificationView } from "@/lib/notifications";
-import { missingHint, type PublishChecklist } from "@/lib/publish-checklist";
+import { type PublishChecklist } from "@/lib/publish-checklist";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
@@ -103,7 +103,7 @@ export function SellerOverview({
                   : sellerCopy.unpublished}
             </h2>
             {listing === "pending" ? <p className="mt-2 text-sm text-[#614d05]">{billingCopy.reviewRequested}</p> : null}
-            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} ready={checklist.ready} hint={missingHint(checklist.missing)} /> : null}
+            {listing === "draft" ? <PublishSellerButton requiresPayment={payToPublish} ready={checklist.ready} /> : null}
             <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
               {checklist.items.map((item) => {
