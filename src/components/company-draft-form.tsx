@@ -17,7 +17,7 @@ import type { SabiYear } from "@/lib/sabi/insights";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
-import { IdentityChangeDialog, LockedIdentityInput, RequestIdentityChangeButton, type IdentityField } from "@/components/identity-change";
+import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
 import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
@@ -1240,11 +1240,8 @@ export function CompanyDraftForm({
                 <LockedIdentityInput name="legalName" value={legalName} />
               </Fact>
               <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
-                <LockedIdentityInput name="cif" value={nif} />
+                <LockedIdentityInput name="cif" value={nif} onRequest={() => setChangeField("cif")} />
               </Fact>
-              <div className="-mt-4 flex justify-end md:col-span-2">
-                <RequestIdentityChangeButton onClick={() => setChangeField("legalName")} />
-              </div>
             </>
           ) : (
             <>

@@ -12,34 +12,32 @@ export type IdentityField = "legalName" | "cif";
 const tooltip = "Verificado. Para cambiarlo, solicítalo";
 
 /** t79: a verified, read-only identity field (nombre legal / NIF); the lock's tooltip says why it can't be edited. */
-export function LockedIdentityInput({ name, value }: { name: IdentityField; value: string }) {
+export function LockedIdentityInput({ name, value, onRequest }: { name: IdentityField; value: string; onRequest?: () => void }) {
   return (
     <div className="relative">
       <span className="group absolute top-1/2 left-3 z-10 -translate-y-1/2" tabIndex={0} aria-label={tooltip}>
         <Lock className="size-3.5 text-[#0f766e]" aria-hidden />
         <span
           role="tooltip"
-          className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-md bg-[#1c2740] px-2 py-1 text-xs whitespace-nowrap text-white shadow group-hover:block group-focus:block"
+          className="pointer-events-none absolute bottom-full -left-2 mb-2 hidden rounded-md bg-[#1c2740] px-2 py-1 text-xs whitespace-nowrap text-white shadow group-hover:block group-focus:block"
         >
           {tooltip}
         </span>
       </span>
-      <Input name={name} value={value} readOnly aria-readonly="true" title={value} className="truncate bg-[#f5f6f8] pl-8 text-[#3d4a63]" />
+      <Input name={name} value={value} readOnly aria-readonly="true" title={value} className={`truncate bg-[#f5f6f8] pl-8 text-[#3d4a63] ${onRequest ? "pr-10" : ""}`} />
+      {onRequest ? (
+        // t80: the change request is a compact icon inside the NIF field (no extra row under the cells).
+        <button
+          type="button"
+          onClick={onRequest}
+          aria-label="Solicitar cambio"
+          title="Solicitar cambio"
+          className="absolute top-1/2 right-1.5 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        >
+          <Pencil className="size-4" aria-hidden />
+        </button>
+      ) : null}
     </div>
-  );
-}
-
-/** t79: the small button under the locked fields that opens the request modal. */
-export function RequestIdentityChangeButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-    >
-      <Pencil className="size-3.5" aria-hidden />
-      Solicitar cambio
-    </button>
   );
 }
 
