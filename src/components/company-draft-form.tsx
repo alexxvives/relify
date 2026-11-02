@@ -414,13 +414,18 @@ function FichaMetrics({
 function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
   const cents = signedEuroPattern.test(value.trim()) ? eurosToCents(value.trim()) : null;
   return (
-    <MetricTile label={label}>
+    <MetricTile
+      label={label}
+      corner={
+        // t80: the read-only note sits beside the tile title, not under the number.
+        <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-[#667085]">
+          <Lock className="size-3" aria-hidden />
+          De tus cuentas
+        </span>
+      }
+    >
       <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
         {cents !== null && cents !== 0 ? <span className={cents < 0 ? "text-[#b42318]" : undefined}>{wholeEur(cents)}</span> : <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>}
-      </span>
-      <span className="mt-1 inline-flex items-center gap-1 text-xs text-[#667085]">
-        <Lock className="size-3" aria-hidden />
-        De tus cuentas
       </span>
     </MetricTile>
   );
