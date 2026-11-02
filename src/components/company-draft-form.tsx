@@ -72,6 +72,16 @@ import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller
 import { scrollToTop } from "@/components/use-scroll-spy";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
+import {
+  ebitdaAdjustmentLabels,
+  ebitdaAdjustmentReasonMax,
+  ebitdaAdjustmentTypes,
+  formRowAmountCents,
+  formRowsFromJson,
+  maxEbitdaAdjustments,
+  type EbitdaAdjustmentFormRow,
+  type EbitdaAdjustmentType,
+} from "@/lib/ebitda-adjustments";
 import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -384,18 +394,18 @@ function FichaMetrics({
   onAskingPrice,
   ebitda,
   adjustedEbitda,
-  onAdjustedEbitda,
   margin,
   priceStatus = null,
+  adjustments,
 }: {
   revenue: string;
   askingPrice: string;
   onAskingPrice: (value: string) => void;
   ebitda: string;
   adjustedEbitda: string;
-  onAdjustedEbitda: (value: string) => void;
   margin: string;
   priceStatus?: ReactNode;
+  adjustments: ReactNode;
 }) {
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -405,10 +415,131 @@ function FichaMetrics({
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
-      <FigureField label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} />
+      <ReadOnlyFigure label={companyCopy.adjustedEbitdaLabel} value={adjustedEbitda} />
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
+      <div className="sm:col-span-2 lg:col-span-3">{adjustments}</div>
     </div>
+  );
+}
+
+/**
+ * t82: the seller itemises the adjusted EBITDA instead of typing a total. The bridge is a live preview only; the
+ * server recomputes it from the stored accounts EBITDA when saving.
+ */
+function EbitdaAdjustmentsEditor({
+  rows,
+  onRows,
+  baseCents,
+  year,
+  legacyCents,
+}: {
+  rows: EbitdaAdjustmentFormRow[];
+  onRows: (rows: EbitdaAdjustmentFormRow[]) => void;
+  baseCents: number | null;
+  year: string | null;
+  legacyCents: number | null;
+}) {
+  const update = (index: number, patch: Partial<EbitdaAdjustmentFormRow>) =>
+    onRows(rows.map((row, position) => (position === index ? { ...row, ...patch } : row)));
+  const amounts = rows.map((row) => formRowAmountCents(row.amount));
+  const sum = amounts.reduce<number>((total, cents) => total + (cents ?? 0), 0);
+  const inputClass =
+    "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none";
+  return (
+    <section aria-labelledby="ebitda-adjustments-title" className="rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 id="ebitda-adjustments-title" className="text-sm font-semibold text-[#1c2740]">
+            {companyCopy.adjustmentsTitle}
+            {year ? <span className="ml-2 font-normal text-[#667085]">· {companyCopy.adjustmentsYear.replace("{year}", year)}</span> : null}
+          </h3>
+          <p className="mt-1 text-sm text-[#667085]">{companyCopy.adjustmentsIntro}</p>
+        </div>
+        <AddIconButton
+          label={companyCopy.adjustmentsAdd}
+          disabled={rows.length >= maxEbitdaAdjustments}
+          onClick={() => onRows([...rows, { type: "owner_salary", amount: "", reason: "" }])}
+        />
+      </div>
+      {rows.length === 0 ? (
+        legacyCents !== null ? (
+          <p className="mt-3 text-sm text-[#667085]">
+            <span className="font-semibold text-[#1c2740]">{companyCopy.adjustmentsLegacy}: {formatEur(legacyCents)}.</span>{" "}
+            {companyCopy.adjustmentsLegacyNote}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-[#667085]">{companyCopy.adjustmentsEmpty}</p>
+        )
+      ) : (
+        <ul className="mt-3 flex flex-col gap-2">
+          {rows.map((row, index) => (
+            <li key={index} className="grid gap-2 rounded-xl border border-[#e7eaee] bg-white p-2 sm:grid-cols-[minmax(0,14rem)_8.5rem_minmax(0,1fr)_2rem] sm:items-center">
+              <label className="min-w-0">
+                <span className="sr-only">{companyCopy.adjustmentTypeLabel}</span>
+                <select
+                  value={row.type}
+                  onChange={(event) => update(index, { type: event.target.value as EbitdaAdjustmentType })}
+                  className={inputClass}
+                >
+                  {ebitdaAdjustmentTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {ebitdaAdjustmentLabels[type]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="min-w-0">
+                <span className="sr-only">{companyCopy.adjustmentAmountLabel}</span>
+                <input
+                  inputMode="decimal"
+                  value={row.amount}
+                  placeholder="+/- €"
+                  title={companyCopy.adjustmentAmountHint}
+                  aria-invalid={row.amount.trim() !== "" && (amounts[index] === null || amounts[index] === 0)}
+                  onChange={(event) => update(index, { amount: keepSignedEuro(event.target.value) })}
+                  className={`${inputClass} text-right tabular-nums`}
+                />
+              </label>
+              <label className="min-w-0">
+                <span className="sr-only">{companyCopy.adjustmentReasonLabel}</span>
+                <input
+                  value={row.reason}
+                  maxLength={ebitdaAdjustmentReasonMax}
+                  placeholder={companyCopy.adjustmentReasonPlaceholder}
+                  onChange={(event) => update(index, { reason: event.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <button
+                type="button"
+                aria-label={companyCopy.adjustmentsRemove}
+                title={companyCopy.adjustmentsRemove}
+                onClick={() => onRows(rows.filter((_, position) => position !== index))}
+                className="inline-flex size-8 items-center justify-center justify-self-end rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {rows.length > 0 ? (
+        <>
+          <p className="mt-2 text-xs text-[#667085]">{companyCopy.adjustmentAmountHint}</p>
+          <dl className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm tabular-nums" aria-live="polite">
+            <dt className="text-[#667085]">{companyCopy.ebitdaLabel}</dt>
+            <dd className="font-semibold text-[#1c2740]">{baseCents === null ? "—" : formatEur(baseCents)}</dd>
+            <dt className="text-[#667085]" aria-hidden>→</dt>
+            <dt className="text-[#667085]">{companyCopy.adjustmentsTotal}</dt>
+            <dd className="font-semibold text-[#1c2740]">{sum > 0 ? "+" : ""}{formatEur(sum)}</dd>
+            <dt className="text-[#667085]" aria-hidden>→</dt>
+            <dt className="text-[#0f766e]">{companyCopy.adjustedEbitdaLabel}</dt>
+            <dd className="font-semibold text-[#0f766e]">{baseCents === null ? "—" : formatEur(baseCents + sum)}</dd>
+          </dl>
+        </>
+      ) : null}
+    </section>
   );
 }
 
@@ -430,6 +561,10 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
       </span>
     </MetricTile>
   );
+}
+
+function adjustmentRowsJson(rows: EbitdaAdjustmentFormRow[]): string {
+  return JSON.stringify(rows.map((row) => ({ type: row.type, amount: row.amount.trim().replace(/[.\s]/g, ""), reason: row.reason.trim() })));
 }
 
 function euroCentsOrNull(value: string): number | null {
@@ -817,7 +952,10 @@ export function CompanyDraftForm({
   const [secondaryCnaes, setSecondaryCnaes] = useState(initial.secondaryCnaes);
   const [revenue] = useState(initial.revenue);
   const [ebitda] = useState(initial.ebitda);
-  const [adjustedEbitda, setAdjustedEbitda] = useState(initial.adjustedEbitda);
+  // t82: itemised adjustments replace the typed adjusted EBITDA. "" in the draft means legacy (never itemised).
+  const [adjustmentRows, setAdjustmentRows] = useState<EbitdaAdjustmentFormRow[]>(() => formRowsFromJson(initial.ebitdaAdjustments));
+  const adjustmentsJson = adjustmentRowsJson(adjustmentRows);
+  const hadAdjustmentList = initial.ebitdaAdjustments.trim() !== "";
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
@@ -902,6 +1040,7 @@ export function CompanyDraftForm({
     revenue: initial.revenue,
     ebitda: initial.ebitda,
     adjustedEbitda: initial.adjustedEbitda,
+    ebitdaAdjustments: adjustmentRowsJson(formRowsFromJson(initial.ebitdaAdjustments)),
     opex: initial.opex,
     askingPrice: initial.askingPrice,
     closedYears: initial.closedYears,
@@ -926,7 +1065,8 @@ export function CompanyDraftForm({
     customerBase,
     revenue,
     ebitda,
-    adjustedEbitda,
+    adjustedEbitda: initial.adjustedEbitda,
+    ebitdaAdjustments: adjustmentsJson,
     opex,
     askingPrice,
     closedYears,
@@ -962,7 +1102,7 @@ export function CompanyDraftForm({
     codename !== baseline.codename ||
     revenue !== baseline.revenue ||
     ebitda !== baseline.ebitda ||
-    adjustedEbitda !== baseline.adjustedEbitda ||
+    adjustmentsJson !== baseline.ebitdaAdjustments ||
     opex !== baseline.opex ||
     askingPrice !== baseline.askingPrice;
 
@@ -1100,6 +1240,18 @@ export function CompanyDraftForm({
   // t80: a negative EBITDA is still the real figure (it used to be dropped, so DEALE showed "Pendiente de cargar").
   // Only the price estimate needs a positive basis, and euroCentsOrNull below stays unsigned for that.
   const ebitdaFromAccounts = ebitdaCentsFromAccounts !== null ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
+  // t82: live bridge base = the stored accounts EBITDA the server will use, else the loaded statements.
+  const adjustmentBaseCents = signedEuroPattern.test(ebitda.trim()) && eurosToCents(ebitda.trim()) !== 0 ? eurosToCents(ebitda.trim()) : ebitdaCentsFromAccounts;
+  const adjustmentSumCents = adjustmentRows.reduce((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
+  const legacyAdjustedCents = !hadAdjustmentList && signedEuroPattern.test(initial.adjustedEbitda.trim()) ? eurosToCents(initial.adjustedEbitda.trim()) : 0;
+  const adjustedEbitda =
+    adjustmentRows.length > 0
+      ? adjustmentBaseCents === null
+        ? ""
+        : eurosToCentsLabel(adjustmentBaseCents + adjustmentSumCents)
+      : hadAdjustmentList
+        ? "0"
+        : initial.adjustedEbitda;
   const adjustedEbitdaCents = euroCentsOrNull(adjustedEbitda);
   const ebitdaBasisCents = adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? adjustedEbitdaCents : euroCentsOrNull(ebitdaFromAccounts ?? ebitda);
   const priceEstimate = estimatePriceRange({
@@ -1135,6 +1287,7 @@ export function CompanyDraftForm({
     revenue: salesFromAccounts ?? revenue,
     ebitda: ebitdaFromAccounts ?? ebitda,
     adjustedEbitda,
+    ebitdaAdjustments: adjustmentsJson,
     askingPrice,
     opex,
     capitalPercents,
@@ -1677,7 +1830,18 @@ export function CompanyDraftForm({
             onAskingPrice={setAskingPrice}
             ebitda={ebitdaFromAccounts ?? ebitda}
             adjustedEbitda={adjustedEbitda}
-            onAdjustedEbitda={setAdjustedEbitda}
+            adjustments={
+              <>
+                <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
+                <EbitdaAdjustmentsEditor
+                  rows={adjustmentRows}
+                  onRows={setAdjustmentRows}
+                  baseCents={adjustmentBaseCents}
+                  year={accountYear?.year ?? null}
+                  legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                />
+              </>
+            }
             margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
             priceStatus={
               <PriceStatus

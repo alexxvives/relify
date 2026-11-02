@@ -1,3 +1,4 @@
+import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
 import { cnaeTitle } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
 import { eurosToCents, optionalEurosToCents, projectSlug, type CompanyDraftInput } from "./company-draft";
@@ -132,6 +133,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     revenueCents,
     ebitdaCents,
     adjustedEbitdaCents: unsignedCents(input.adjustedEbitda),
+    ebitdaAdjustments: previewAdjustments(input.ebitdaAdjustments),
     askingPriceCents: unsignedCents(input.askingPrice),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
@@ -161,4 +163,13 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
       values: balanceSource.map((column) => balanceValue(key, column.amounts)),
     })),
   };
+}
+
+/** t82: the seller's typed rows as the buyer would see them (only complete rows; the server re-validates). */
+function previewAdjustments(raw: string): EbitdaAdjustment[] | null {
+  const rows = formRowsFromJson(raw).flatMap((row) => {
+    const amountCents = formRowAmountCents(row.amount);
+    return amountCents === null || amountCents === 0 ? [] : [{ type: row.type, amountCents, reason: row.reason.trim() || null }];
+  });
+  return rows.length > 0 ? rows : null;
 }
