@@ -1120,7 +1120,7 @@ export function CompanyDraftForm({
   const basicDone = legalName.trim().length > 0 && saleReason !== "";
   const structureDone = headcount.length > 0;
   const priceDone = askingPrice.trim().length > 0;
-  const figuresLoaded = (salesFromAccounts ?? revenue).toString().trim().length > 0;
+  const figuresLoaded = (reportYears?.length ?? 0) > 0;
   const required = [
     { label: "Tu empresa", done: basicDone },
     { label: "Cómo es tu negocio", done: structureDone },
@@ -1182,7 +1182,7 @@ export function CompanyDraftForm({
         progress={progress}
         next={
           tab === "company"
-            ? { label: "Siguiente: ficha pública", onClick: () => { setTab("deal"); window.scrollTo({ top: 0 }); } }
+            ? { label: "Ver ficha pública", onClick: () => { setTab("deal"); window.scrollTo({ top: 0 }); } }
             : { label: "Volver a tu empresa", onClick: () => { setTab("company"); window.scrollTo({ top: 0 }); } }
         }
       />

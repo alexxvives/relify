@@ -77,7 +77,7 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-0 z-20 -mx-1 bg-white/85 px-1 py-2 backdrop-blur lg:hidden">
+      <nav aria-label="Secciones" className="sticky top-0 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
         <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const current = item.id === active;
