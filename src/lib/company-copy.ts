@@ -43,7 +43,6 @@ export const companyCopy = {
   opexLabel: "OPEX",
   askingPriceLabel: "Precio de venta",
   priceUnset: "Sin definir",
-  setPriceAction: "Definir precio",
   priceOnRequest: "A consultar",
   fillMixAction: "Completar qué vendes y a quién",
   euroHint: "Importe en euros, por ejemplo 1250000 o 1250000,50.",

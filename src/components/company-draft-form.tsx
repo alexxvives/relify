@@ -342,19 +342,7 @@ function FigureField({
     >
       <input type="hidden" name={name} value={value} />
       {editable && unset ? (
-        <span className="flex flex-col items-start gap-1">
-          <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(true);
-              requestAnimationFrame(() => inputRef.current?.focus());
-            }}
-            className="text-sm font-medium text-[#0f766e] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#2fc4b2]"
-          >
-            {companyCopy.setPriceAction}
-          </button>
-        </span>
+        <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
       ) : editable ? (
         <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
           <input
