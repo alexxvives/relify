@@ -16,6 +16,7 @@ import { projectImageSrc } from "@/lib/project-image";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
+import { adjustmentsForBuyer } from "@/lib/ebitda-adjustments";
 import { prisma } from "@/server/db";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { buyerMatchBudget } from "@/server/buyerPlan";
@@ -119,7 +120,7 @@ async function InvestorProjectContent({
   const registry = await getBuyerRegistry(profile.slug, access === "accepted");
   return (
     <InvestorProject
-      project={profile}
+      project={{ ...profile, ebitdaAdjustments: adjustmentsForBuyer(profile.ebitdaAdjustments, access === "accepted") }}
       registry={registry}
       recommendations={otherPublishedProjects(published, profile.slug)}
       access={access}

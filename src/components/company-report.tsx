@@ -55,6 +55,7 @@ import { RoiChip } from "@/components/market-card";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
 import { companyCopy } from "@/lib/company-copy";
+import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
@@ -238,6 +239,48 @@ function Kpi({
       </div>
       <span className={`mt-1.5 text-lg font-semibold tabular-nums sm:text-xl ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
       {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
+    </div>
+  );
+}
+
+/** t82: EBITDA → itemised seller adjustments → adjusted EBITDA. Reasons only after the NDA (or for admin). */
+function AdjustmentBridge({
+  ebitdaCents,
+  adjustedCents,
+  rows,
+  showReasons,
+}: {
+  ebitdaCents: number;
+  adjustedCents: number;
+  rows: EbitdaAdjustment[];
+  showReasons: boolean;
+}) {
+  return (
+    <div className="mt-3 rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#5c6b78]">{companyCopy.adjustmentsTitle}</p>
+      <dl className="mt-2 divide-y divide-[#eef1f4] tabular-nums">
+        <div className="flex items-baseline justify-between gap-3 py-1.5">
+          <dt className="text-[#5c6b78]">{companyCopy.ebitdaLabel}</dt>
+          <dd className="font-semibold text-[#1c2740]">{formatEur(ebitdaCents)}</dd>
+        </div>
+        {rows.map((row, index) => (
+          <div key={index} className="flex items-baseline justify-between gap-3 py-1.5">
+            <dt className="min-w-0 text-[#1c2740]">
+              {ebitdaAdjustmentLabels[row.type]}
+              {showReasons && row.reason ? <span className="block text-xs text-[#5c6b78]">{row.reason}</span> : null}
+            </dt>
+            <dd className={`shrink-0 font-semibold ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
+              {row.amountCents > 0 ? "+" : ""}
+              {formatEur(row.amountCents)}
+            </dd>
+          </div>
+        ))}
+        <div className="flex items-baseline justify-between gap-3 py-1.5">
+          <dt className="font-semibold text-[#0f766e]">{companyCopy.adjustedEbitdaLabel}</dt>
+          <dd className="font-semibold text-[#0f766e]">{formatEur(adjustedCents)}</dd>
+        </div>
+      </dl>
+      {!showReasons ? <p className="mt-2 text-xs text-[#5c6b78]">{companyCopy.adjustmentsReasonsLocked}</p> : null}
     </div>
   );
 }
@@ -1011,10 +1054,18 @@ export function CompanyReport({
             label={companyCopy.adjustedEbitdaLabel}
             value={deal.adjustedSet ? `${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}` : "Pendiente del vendedor"}
             source="seller"
-            note={deal.adjustedNote ?? undefined}
+            note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
           />
           {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
+        {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
+          <AdjustmentBridge
+            ebitdaCents={project.ebitdaCents}
+            adjustedCents={project.adjustedEbitdaCents}
+            rows={project.ebitdaAdjustments}
+            showReasons={figuresOpen || role === "admin"}
+          />
+        ) : null}
         {role === "admin" ? null : (
         <p className="mt-4 text-xs leading-5 text-[#5c6b78]">
           El registro mercantil solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.

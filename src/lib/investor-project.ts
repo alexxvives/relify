@@ -1,3 +1,4 @@
+import { storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import type { Prisma } from "@/generated/prisma/client";
 import { cnaeTitle } from "./cnae-2009";
 import { toSabiYear, type SabiYear } from "./sabi/insights";
@@ -29,6 +30,7 @@ export const investorProjectSelect = {
   revenueCents: true,
   ebitdaCents: true,
   adjustedEbitdaCents: true,
+  ebitdaAdjustments: true,
   askingPriceCents: true,
   opexCents: true,
   headcountRange: true,
@@ -142,6 +144,8 @@ export type InvestorProjectProfile = {
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
+  /** t82: itemised adjustments; null = legacy/none. Reasons are null for a buyer before the NDA. */
+  ebitdaAdjustments: EbitdaAdjustment[] | null;
   askingPriceCents: number;
   opexCents: number | null;
   ebitdaMarginBp: number | null;
@@ -180,6 +184,7 @@ type InvestorProjectRecord = {
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
+  ebitdaAdjustments: unknown;
   askingPriceCents: number;
   opexCents: number | null;
   headcountRange: string | null;
@@ -425,6 +430,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     revenueCents: record.revenueCents,
     ebitdaCents: record.ebitdaCents,
     adjustedEbitdaCents: record.adjustedEbitdaCents,
+    ebitdaAdjustments: storedEbitdaAdjustments(record.ebitdaAdjustments),
     askingPriceCents: record.askingPriceCents,
     opexCents: record.opexCents,
     ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
