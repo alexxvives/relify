@@ -1114,9 +1114,6 @@ export function CompanyDraftForm({
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
 
   // t77: section nav, required-items progress and the sticky save bar.
-  const basicDone = legalName.trim().length > 0 && saleReason !== "";
-  const structureDone = headcount.length > 0;
-  const priceDone = askingPrice.trim().length > 0;
   const figuresLoaded = (reportYears?.length ?? 0) > 0;
   const requiredFields = sellerRequiredFields({
     saleReason,
@@ -1128,6 +1125,10 @@ export function CompanyDraftForm({
     askingPrice,
   });
   const progress = completionProgress(requiredFields);
+  // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
+  const basicDone = sectionComplete(requiredFields, "basic");
+  const structureDone = sectionComplete(requiredFields, "structure");
+  const priceDone = sectionComplete(requiredFields, "deal");
   const descriptionMissing = description.trim() === "";
   const companySections: DetailSectionItem[] = [
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
@@ -1215,7 +1216,7 @@ export function CompanyDraftForm({
         intro="Nombre, motivo de venta, descripción y sector."
         open={saveClosed === "basic" ? false : openBasic}
         dirty={basicDirty}
-        done={legalName.trim().length > 0 && saleReason !== ""}
+        done={basicDone}
         onEdit={() => {
           setSaveClosed("");
           setOpenBasic(true);
@@ -1366,7 +1367,7 @@ export function CompanyDraftForm({
         hint={companyCopy.slicePrivate}
         open={saveClosed === "structure" ? false : openStructure}
         dirty={structureDirty}
-        done={headcount.length > 0}
+        done={structureDone}
         onEdit={() => {
           setSaveClosed("");
           setOpenStructure(true);
@@ -1614,7 +1615,7 @@ export function CompanyDraftForm({
         hint={dealNote}
         open={saveClosed === "deal" ? false : openDeal}
         dirty={dealDirty}
-        done={askingPrice.trim().length > 0}
+        done={priceDone}
         onEdit={() => {
           setSaveClosed("");
           setOpenDeal(true);
