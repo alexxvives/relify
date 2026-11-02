@@ -200,7 +200,7 @@ function FigureVeil({ kind }: { kind: VeilKind }) {
 type FigureSource = "seller" | "sabi" | "calc";
 const sourceBadge: Record<FigureSource, { label: string; className: string }> = {
   seller: { label: "Vendedor", className: "bg-[#eef0f4] text-[#3d4a63]" },
-  sabi: { label: "Cuentas SABI", className: "bg-[#e6f4f2] text-[#0f5f59]" },
+  sabi: { label: "Cuentas anuales", className: "bg-[#e6f4f2] text-[#0f5f59]" },
   calc: { label: "Calculado", className: "bg-[#f4f6f9] text-[#5c6b78]" },
 };
 
@@ -263,7 +263,7 @@ function businessAbout(project: InvestorProjectProfile, registryActivity: string
 
   const registry = registryActivity?.trim();
   if (registry) {
-    return { text: registryText(registry), source: "Descripción por defecto: es la actividad que consta en el registro mercantil (SABI). El vendedor aún no ha escrito la suya." };
+    return { text: registryText(registry), source: "Descripción por defecto: es la actividad que consta en el registro mercantil. El vendedor aún no ha escrito la suya." };
   }
 
   const titles = [project.principalCnae, ...project.secondaryCnaes].flatMap((cnae) => (cnae?.title ? [cnae.title] : []));
@@ -517,7 +517,7 @@ export function CompanyReport({
     .map((metric) => ({ label: metric.label, color: profitabilityColors[metric.key] ?? navy, values: metric.values }));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
   const employees = years.map((year) => year.employees);
-  const employeesMetric: Metric = { key: "employees", label: "Empleados", unit: "people", better: "none", values: employees, hint: "Plantilla media declarada en las cuentas del ejercicio.\nFuente: cuentas anuales (SABI)." };
+  const employeesMetric: Metric = { key: "employees", label: "Empleados", unit: "people", better: "none", values: employees, hint: "Plantilla media declarada en las cuentas del ejercicio.\nFuente: cuentas anuales." };
   const teamTiles = [employeesMetric, ...["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].flatMap((key) => staff.filter((metric) => metric.key === key))].filter((metric) =>
     metric.values.some((value) => value !== null),
   );
@@ -863,7 +863,7 @@ export function CompanyReport({
                 {productivity.length > 0 ? (
                   <ChartBox
                     title="Ingresos frente a coste por empleado"
-                    hint={"Miles de euros por empleado y año. Si la línea de ingresos se acerca a la de coste, casi todo lo que se factura se va en sueldos.\nFuente: ratios SABI (ingresos ÷ empleados y gastos de personal ÷ empleados)."}
+                    hint={"Miles de euros por empleado y año. Si la línea de ingresos se acerca a la de coste, casi todo lo que se factura se va en sueldos.\nFuente: cuentas anuales (ingresos ÷ empleados y gastos de personal ÷ empleados)."}
                     legend={productivity.map((item) => <LegendDot key={item.label} color={item.color} label={item.label} />)}
                     table={<YearTable years={years} rows={productivity.map((item) => ({ label: item.label, unit: "keur", values: item.values }))} />}
                   >
@@ -929,7 +929,7 @@ export function CompanyReport({
           {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
         <p className="mt-4 text-xs leading-5 text-[#5c6b78]">
-          El registro mercantil (SABI) solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.
+          El registro mercantil solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.
         </p>
       </ReportSection>
 

@@ -21,9 +21,9 @@ const inputClass =
 
 export const sabiDetailCopy = {
   title: "Datos registrales y detalle contable",
-  intro: "Todo lo que trae el informe SABI que no cabe en las tablas de arriba: datos legales, contacto, grupo y el desglose completo del balance y la cuenta de resultados.",
+  intro: "Más detalle de tu empresa: datos legales, contacto, grupo y el desglose completo del balance y la cuenta de resultados.",
   fromSabi: "Rellenado desde SABI",
-  notImported: "Aún no se ha importado SABI: puedes rellenarlos a mano o esperar a que el equipo suba el informe.",
+  notImported: "Aún no hemos cargado estos datos: puedes rellenarlos a mano o esperar a que los carguemos (24 h).",
   noYears: "Guarda primero los ejercicios en «Cuenta de resultados» para poder completar el desglose por año.",
   save: "Guardar datos registrales",
   saving: "Guardando…",
@@ -64,7 +64,7 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
           <p className={readOnly ? "mt-0.5 text-xs text-[#64748b]" : "mt-1 max-w-3xl text-sm text-[#64748b]"}>{readOnly ? "Datos brutos del informe SABI (solo administración): legales, contacto, grupo y desglose contable por año." : sabiDetailCopy.intro}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {detail.imported ? (
+          {readOnly && detail.imported ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-[#e6f4f2] px-2.5 py-1 text-xs font-medium text-[#0f5f59]">
               <FileSpreadsheet className="size-3.5" aria-hidden />
               {sabiDetailCopy.fromSabi} · {filled}
@@ -122,7 +122,7 @@ export function SabiDetailPanel({ detail, readOnly = false }: { detail: SabiDeta
                       {detail.years.map((year) => (
                         <th key={year.year} className="sticky top-0 bg-[#f6f7f9] px-3 py-2.5 text-right font-medium text-[#2b3b4a]">
                           {year.year}
-                          {year.source === "sabi" ? <span className="ml-1 text-xs font-normal text-[#0f766e]">SABI</span> : null}
+                          {readOnly && year.source === "sabi" ? <span className="ml-1 text-xs font-normal text-[#0f766e]">SABI</span> : null}
                         </th>
                       ))}
                     </tr>

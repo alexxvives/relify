@@ -114,9 +114,6 @@ export function SellerOverview({
                       {item.hint ? <FieldHint text={item.hint} /> : null}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
-                      {item.fromRegistry ? (
-                        <span className="rounded-full bg-[#e6f6f3] px-2 py-0.5 text-[11px] font-semibold text-[#0f766e]">SABI</span>
-                      ) : null}
                       {item.done ? (
                         <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
                       ) : (

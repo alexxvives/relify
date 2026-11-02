@@ -234,7 +234,7 @@ export function sabiOwnershipSlices(holdings: SabiHolding[]): OwnershipSlice[] {
 
   if (used < 10000) {
     const lowerBound = slices.some((slice) => slice.detail);
-    const label = unknown > 0 ? `Resto (${unknown} ${unknown === 1 ? "accionista" : "accionistas"} sin % definido)` : "Resto (sin identificar en SABI)";
+    const label = unknown > 0 ? `Resto (${unknown} ${unknown === 1 ? "accionista" : "accionistas"} sin % definido)` : "Resto (sin identificar en el registro)";
     slices.push({ label, basisPoints: 10000 - used, ...(lowerBound ? { detail: `< ${((10000 - used) / 100).toLocaleString("es-ES")} %` } : {}) });
   }
 

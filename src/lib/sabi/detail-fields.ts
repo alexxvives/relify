@@ -19,7 +19,7 @@ export type SabiYearDetailField = {
 export const sabiYearDetailGroups: Record<SabiYearDetailGroup, string> = {
   assets: "Activo",
   liabilities: "Patrimonio neto y pasivo",
-  results: "Cuenta de resultados (formato SABI)",
+  results: "Cuenta de resultados (detalle)",
 };
 
 export const sabiYearDetailFields = [
@@ -39,7 +39,7 @@ export const sabiYearDetailFields = [
   { column: "materialsConsumptionCents", sabi: "materialsConsumption", label: "Consumo de mercaderías y materias", group: "results" },
   { column: "materialsCents", sabi: "materials", label: "Materiales", group: "results" },
   { column: "grossResultCents", sabi: "grossResult", label: "Resultado bruto", group: "results" },
-  { column: "sabiOtherOperatingExpensesCents", sabi: "otherOperatingExpenses", label: "Otros gastos de explotación (SABI)", group: "results" },
+  { column: "sabiOtherOperatingExpensesCents", sabi: "otherOperatingExpenses", label: "Otros gastos de explotación (detalle)", group: "results" },
   { column: "otherOperatingItemsCents", sabi: "otherOperatingItems", label: "Otros conceptos de explotación", group: "results" },
   { column: "operatingResultCents", sabi: "operatingResult", label: "Resultado de explotación", group: "results" },
   { column: "ebitCents", sabi: "ebit", label: "EBIT", group: "results" },

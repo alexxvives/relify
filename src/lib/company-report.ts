@@ -181,7 +181,7 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       max: 2.5,
       zones,
       scale: "Rojo: menos de 0,7 · Ámbar: de 0,7 a 1 · Verde: 1 o más",
-      hint: "Prueba ácida (SABI) = (activo corriente − existencias) ÷ pasivo corriente. Es la liquidez más exigente: no cuenta el stock, que tarda en venderse.",
+      hint: "Prueba ácida = (activo corriente − existencias) ÷ pasivo corriente. Es la liquidez más exigente: no cuenta el stock, que tarda en venderse.",
     });
   }
 
@@ -234,7 +234,7 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       max: 10,
       zones,
       scale: "Rojo: menos de 2 · Ámbar: de 2 a 5 · Verde: 5 o más",
-      hint: "Cobertura de intereses (SABI) = resultado de explotación (EBIT) ÷ gastos financieros.",
+      hint: "Cobertura de intereses = resultado de explotación (EBIT) ÷ gastos financieros.",
     });
   }
 
@@ -257,7 +257,7 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       max: 180,
       zones,
       scale: "Verde: hasta 60 días (plazo legal general) · Ámbar: de 60 a 90 · Rojo: más de 90",
-      hint: "Periodo de cobro (SABI) = deudores comerciales ÷ ingresos de explotación × 360.",
+      hint: "Periodo de cobro = deudores comerciales ÷ ingresos de explotación × 360.",
     });
   }
 
