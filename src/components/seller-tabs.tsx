@@ -48,7 +48,9 @@ export function SellerTabs<T extends string>({
 }
 
 /**
- * t78: floating segmented pill control, centred at the top of the page and sticky while scrolling.
+ * t78/t79: floating segmented pill control, centred at the top of the page and sticky while scrolling.
+ * From lg up it takes no row of its own: it overlays the page title row (h-0 + negative margins),
+ * so there is no empty band under the title. On narrow screens the title is too wide to share the row.
  * Same tablist semantics as SellerTabs, with arrow-key navigation.
  */
 export function FloatingSegmentedTabs<T extends string>({
@@ -74,7 +76,7 @@ export function FloatingSegmentedTabs<T extends string>({
   }
 
   return (
-    <div className="pointer-events-none sticky top-2 z-40 flex justify-center">
+    <div className="pointer-events-none sticky top-2 z-40 flex justify-center lg:-mt-[3.5rem] lg:mb-10 lg:h-0 lg:items-start lg:overflow-visible">
       <div
         role="tablist"
         aria-label={label}
