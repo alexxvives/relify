@@ -37,7 +37,7 @@ export function SellerCompanyPanel({
         financeExtra={
           sabiDetail || sabiRegistry ? (
             <>
-              {sabiDetail ? <SabiDetailPanel detail={sabiDetail} /> : null}
+              {sabiDetail ? <SabiDetailPanel detail={sabiDetail} readOnly /> : null}
               {sabiRegistry && !sabiRegistryIsEmpty(sabiRegistry) ? (
                 <Card id="panel-sabi-registry" className="scroll-mt-6">
                   <h2 className="text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</h2>

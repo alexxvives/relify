@@ -67,6 +67,7 @@ import {
   type SliceKind,
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
+import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -161,6 +162,7 @@ function marginText(revenue: string, ebitda: string): string {
 
 function Panel({
   id,
+  step,
   title,
   intro,
   hint,
@@ -172,6 +174,8 @@ function Panel({
   children,
 }: {
   id?: string;
+  /** t76: guided numbering on the seller's "Información empresa" tab. */
+  step?: number;
   title: string;
   intro?: string;
   hint?: string;
@@ -187,6 +191,7 @@ function Panel({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+            {step ? <StepNumber value={step} /> : null}
             {title}
             {hint ? <FieldHint text={hint} /> : null}
           </h2>
@@ -1180,8 +1185,13 @@ export function CompanyDraftForm({
         />
       </div>
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
+      <p className="max-w-3xl text-sm text-[#5c6b78]">
+        Tres pasos: cuéntanos lo básico, cómo es tu negocio y revisa tus cifras. Las cifras las cargamos nosotros.
+      </p>
       <Panel
+        step={1}
         title={companyCopy.basicTitle}
+        intro="Nombre, motivo de venta, descripción y sector."
         open={saveClosed === "basic" ? false : openBasic}
         dirty={basicDirty}
         done={legalName.trim().length > 0 && saleReason !== ""}
@@ -1316,6 +1326,7 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-structure"
+        step={2}
         title={companyCopy.structureHeading}
         intro={companyCopy.structureFold}
         hint={companyCopy.slicePrivate}
@@ -1364,6 +1375,9 @@ export function CompanyDraftForm({
         <SaveButton id="structure" pending={pending} pendingId={saveTarget} rejected={panelRejected("structure")} shake={attempt} dirty={structureDirty} onChoose={chooseSave} />
       </Panel>
 
+      <SellerFiguresCard step={3} figures={investorPreview} />
+      {/* t76: raw accounting inputs are not for sellers; they stay mounted (hidden) so saving keeps the loaded values. */}
+      <div hidden>
       <Panel
         id="panel-income"
         title={companyCopy.incomeHeading}
@@ -1548,6 +1562,7 @@ export function CompanyDraftForm({
         </div>
         <SaveButton id="balance" pending={pending} pendingId={saveTarget} rejected={panelRejected("balance")} shake={attempt} dirty={balanceDirty} onChoose={chooseSave} />
       </Panel>
+      </div>
       {financeExtra}
       </div>
 

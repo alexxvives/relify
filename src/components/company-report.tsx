@@ -44,7 +44,7 @@ import {
   Waterfall,
   YearTable,
 } from "@/components/company-report-charts";
-import { formatValue, isoDay, metrics, navy, registryText, reportChartsCopy, reportMargins, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
+import { formatValue, isoDay, metrics, navy, registryText, reportMargins, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
 import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";

@@ -20,6 +20,7 @@ import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
 import { publishSellerProject } from "@/server/publishSellerProject";
+import { requestFigureCorrection } from "@/server/requestFigureCorrection";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
@@ -293,4 +294,23 @@ export async function generateCodenameAction(current: string): Promise<string> {
     return current;
   }
   return uniqueCodename([current]);
+}
+
+export type FigureCorrectionState = { ok: boolean; message: string } | null;
+
+/** t76: "Proponer corrección" on the read-only figures; emails the team, changes nothing. */
+export async function requestFigureCorrectionAction(_state: FigureCorrectionState, formData: FormData): Promise<FigureCorrectionState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  const projectId = await activeSellerProjectId(user.id);
+  if (!projectId) {
+    return { ok: false, message: "Primero guarda los datos de tu empresa." };
+  }
+
+  const result = await requestFigureCorrection(user, projectId, readText(formData, "message"));
+  return result.ok ? { ok: true, message: "Enviado. Revisaremos las cifras y te avisaremos al corregirlas." } : { ok: false, message: result.message };
 }
