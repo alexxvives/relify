@@ -6,6 +6,8 @@ export function FinancialTable({
   rows: allRows,
   trend = false,
   shareOf,
+  title,
+  aligned = false,
 }: {
   years: { year: number; forecast: boolean }[];
   rows: { key: string; label: string; emphasis: boolean; values: Array<number | null> }[];
@@ -13,9 +15,14 @@ export function FinancialTable({
   trend?: boolean;
   /** t70: row whose last closed value is the 100 % base for a "% sobre" column with a mini bar. */
   shareOf?: { key: string; label: string };
+  /** t80: header label of the first column (defaults to "Evolución financiera"). */
+  title?: string;
+  /** t80: full-width fixed layout so stacked tables line their year columns up. */
+  aligned?: boolean;
 }) {
-  // t79: a forecast column with no figures (sellers no longer enter one) is hidden; filled ones stay.
-  const keep = allYears.map((year, index) => !year.forecast || allRows.some((row) => row.values[index] != null));
+  // t79/t80: a year column with no figures at all (e.g. an unfiled 2025, or an empty forecast) is hidden.
+  const filled = allYears.map((_, index) => allRows.some((row) => row.values[index] != null));
+  const keep = filled.some(Boolean) ? filled : allYears.map((year) => !year.forecast);
   const years = allYears.filter((_, index) => keep[index]);
   const rows = allRows.map((row) => ({ ...row, values: row.values.filter((_, index) => keep[index]) }));
   const baseRow = shareOf ? rows.find((row) => row.key === shareOf.key) : undefined;
@@ -27,10 +34,10 @@ export function FinancialTable({
 
   return (
     <div className="layout-table">
-      <table className="border-collapse text-sm">
+      <table className={aligned ? "w-full table-fixed border-collapse text-sm" : "border-collapse text-sm"}>
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
-            <th className="py-3 pr-4 text-left font-medium">{companyCopy.evolutionLabel}</th>
+            <th className={`py-3 pr-4 text-left font-medium ${aligned ? "w-[44%] font-semibold text-[#1c2740]" : ""}`}>{title ?? companyCopy.evolutionLabel}</th>
             {years.map((year) => (
               <th
                 key={`${year.forecast ? "forecast" : "closed"}-${year.year}`}

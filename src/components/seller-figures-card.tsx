@@ -105,19 +105,10 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
       </div>
 
       {detail ? (
-        <div className="mt-4 flex flex-col gap-4">
-          {hasIncome ? (
-            <div className="layout-table">
-              <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Cuenta de resultados</h3>
-              <FinancialTable years={figures.incomeYears} rows={figures.incomeRows} />
-            </div>
-          ) : null}
-          {hasBalance ? (
-            <div className="layout-table">
-              <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Balance</h3>
-              <FinancialTable years={figures.balanceYears} rows={figures.balanceRows} />
-            </div>
-          ) : null}
+        // t80: two clearly separated tables, each titled in its own header, same column grid, key rows only.
+        <div className="mt-4 flex flex-col gap-8">
+          {hasIncome ? <FinancialTable title="Cuenta de resultados" aligned years={figures.incomeYears} rows={keyRows(figures.incomeRows)} /> : null}
+          {hasBalance ? <FinancialTable title="Balance" aligned years={figures.balanceYears} rows={keyRows(figures.balanceRows)} /> : null}
         </div>
       ) : null}
 
@@ -165,4 +156,9 @@ export function StepNumber({ value }: { value: number }) {
       {value}
     </span>
   );
+}
+
+/** t80: the detail lists only lines with figures (subtotals always), not every all-zero line of the accounts model. */
+function keyRows<T extends { emphasis: boolean; values: Array<number | null> }>(rows: T[]): T[] {
+  return rows.filter((row) => row.emphasis || row.values.some((value) => value != null && value !== 0));
 }
