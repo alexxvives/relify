@@ -21,6 +21,7 @@ import { getCurrentUser } from "@/server/getCurrentUser";
 import { buyerMatchBudget } from "@/server/buyerPlan";
 import { buyerProfileComplete } from "@/server/investorProfile";
 import { getInvestorProject } from "@/server/getInvestorProject";
+import { getBuyerRegistry } from "@/server/sabiRegistry";
 import { getProjectAccess } from "@/server/getProjectAccess";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
 import { listProjectMessages } from "@/server/listProjectMessages";
@@ -115,9 +116,11 @@ async function InvestorProjectContent({
   if (sold && access === "none") {
     return <SoldNotice codename={profile.codename} />;
   }
+  const registry = await getBuyerRegistry(profile.slug, access === "accepted");
   return (
     <InvestorProject
       project={profile}
+      registry={registry}
       recommendations={otherPublishedProjects(published, profile.slug)}
       access={access}
       plan={billing.plan}

@@ -41,7 +41,7 @@ export function SellerCompanyPanel({
                   <h2 className="text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</h2>
                   <p className="mt-1 max-w-3xl text-sm text-[#64748b]">Socios, administradores, participadas, auditorías y bancos importados del registro. Solo los ves tú y Releva; los compradores no ven nombres.</p>
                   <div className="mt-5">
-                    <RegistryOverview registry={sabiRegistry} />
+                    <RegistryOverview registry={{ ...sabiRegistry, banks: [] }} />
                   </div>
                 </Card>
               ) : null}

@@ -16,6 +16,7 @@ import { MarketCard } from "@/components/market-card";
 import { companyCopy } from "@/lib/company-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
+import type { BuyerRegistry } from "@/lib/buyer-registry";
 import type { ProjectAccessView } from "@/lib/project-access";
 import type { ThreadMessageView } from "@/lib/project-message";
 import type { BuyerPlanName } from "@/lib/billing";
@@ -35,6 +36,7 @@ function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
 
 export function InvestorProject({
   project,
+  registry = null,
   recommendations,
   access,
   plan,
@@ -53,6 +55,7 @@ export function InvestorProject({
   cover = null,
 }: {
   project: InvestorProjectProfile;
+  registry?: BuyerRegistry | null;
   recommendations: PublicProjectCard[];
   access: ProjectAccessView;
   plan: BuyerPlanName;
@@ -137,6 +140,7 @@ export function InvestorProject({
                 <CompanyReport
                   project={project}
                   role="buyer"
+                  buyerRegistry={registry}
                   figuresOpen={access === "accepted"}
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}

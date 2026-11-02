@@ -72,6 +72,7 @@ import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/ins
 import { formatHolderName } from "@/lib/sabi/holders";
 import type { SabiHolding } from "@/lib/sabi/parse";
 import type { SabiRegistry } from "@/lib/sabi/registry";
+import { auditStatusLabel, type BuyerRegistry } from "@/lib/buyer-registry";
 
 /**
  * t69: the single company report every role reads (admin, seller preview, buyer, advisor). One ordered story:
@@ -427,7 +428,7 @@ function RegistryRecords({ registry }: { registry: SabiRegistry }) {
                   <p className="text-sm font-medium text-[#1c2740] tabular-nums">
                     {audit.year} <span className="text-xs font-normal text-[#5c6b78]">· cierre {isoDay(audit.closingOn)}</span>
                   </p>
-                  <p className="text-xs text-[#5c6b78]">{[audit.opinion, audit.auditorName, audit.auditorCode].filter(Boolean).join(" · ") || "Sin datos de auditoría"}</p>
+                  <p className="text-xs text-[#5c6b78]">{[auditStatusLabel(audit.opinion), audit.auditorName, audit.auditorCode].filter(Boolean).join(" · ")}</p>
                 </li>
               ))}
           </ol>
@@ -467,6 +468,55 @@ function RegistryRecords({ registry }: { registry: SabiRegistry }) {
   );
 }
 
+/** t77: registry facts a buyer may see: audit summary always; audits by year and directors only after the NDA. */
+function BuyerRegistryBlock({ view }: { view: BuyerRegistry }) {
+  const directors = view.directors ?? [];
+  const audits = view.audits ?? [];
+  if (!view.auditLine && audits.length === 0 && directors.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      {view.auditLine && audits.length === 0 ? (
+        <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#e6f6f4] px-3 py-1 text-xs font-medium text-[#0f5f59]">
+          <ShieldCheck className="size-3.5" aria-hidden />
+          {view.auditLine}
+        </p>
+      ) : null}
+      {audits.length > 0 || directors.length > 0 ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {audits.length > 0 ? (
+            <Section icon={<ShieldCheck className="size-4 text-[#0f766e]" aria-hidden />} title="Auditoría por ejercicio" count={audits.length}>
+              <ul className="divide-y divide-[#eef0f4] text-sm">
+                {audits.map((audit) => (
+                  <li key={audit.year} className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5">
+                    <span className="font-medium text-[#1c2740] tabular-nums">{audit.year}</span>
+                    <span className="text-xs text-[#5c6b78]">{[audit.status, audit.auditor].filter(Boolean).join(" · ")}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+          {directors.length > 0 ? (
+            <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors.length}>
+              <ul className="divide-y divide-[#eef0f4] text-sm">
+                {directors.slice(0, 8).map((person, index) => (
+                  <li key={`${person.name}-${index}`} className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5">
+                    <span className="min-w-0 truncate font-medium text-[#1c2740]">{person.name}</span>
+                    <span className="text-xs text-[#5c6b78]">{person.role}</span>
+                  </li>
+                ))}
+              </ul>
+              {directors.length > 8 ? <p className="mt-2 text-xs text-[#5c6b78]">Y {directors.length - 8} más en el registro.</p> : null}
+            </Section>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function CompanyReport({
   project,
   role,
@@ -478,6 +528,7 @@ export function CompanyReport({
   privateHeading = "",
   adminDetail = null,
   registryActivity = null,
+  buyerRegistry = null,
 }: {
   project: InvestorProjectProfile;
   role: ReportRole;
@@ -490,8 +541,13 @@ export function CompanyReport({
   adminDetail?: ReactNode;
   /** t70: SABI "actividad" text. Shown to admin only (free text from the registry can name the company). */
   registryActivity?: string | null;
+  /** t77: buyer-safe registry view, already gated by NDA on the server (see buyerRegistryView). */
+  buyerRegistry?: BuyerRegistry | null;
 }) {
   const registry = registryForRole(fullRegistry, role);
+  const buyerView = role === "buyer" ? buyerRegistry : null;
+  const shownCnaes = new Set([project.principalCnae?.code, ...project.secondaryCnaes.map((cnae) => cnae.code)].filter(Boolean));
+  const extraActivities = (buyerView?.activities ?? []).filter((activity) => !shownCnaes.has(activity.code));
   const facts = role === "admin" ? privateFacts : null;
   const years = (project.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
   const hasYears = years.length > 0;
@@ -660,7 +716,7 @@ export function CompanyReport({
             <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
           ))}
         </div>
-        {project.principalCnae || project.secondaryCnaes.length > 0 ? (
+        {project.principalCnae || project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-[#5c6b78]">Sector</span>
             {project.principalCnae ? (
@@ -673,8 +729,14 @@ export function CompanyReport({
               {cnae.code} · {cnae.title}
             </span>
           ))}
+          {extraActivities.map((activity) => (
+            <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+              {activity.code} · {activity.title}
+            </span>
+          ))}
         </div>
         ) : null}
+        {buyerView ? <BuyerRegistryBlock view={buyerView} /> : null}
         <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
           Qué vende y a quién
           <FieldHint text={companyCopy.structureHint} wide />

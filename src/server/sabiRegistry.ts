@@ -1,3 +1,4 @@
+import { buyerRegistryView, type BuyerRegistry } from "@/lib/buyer-registry";
 import { readSabiRegistry, type SabiRegistry } from "@/lib/sabi/registry";
 import { toSabiYear } from "@/lib/sabi/insights";
 import { prisma } from "@/server/db";
@@ -60,4 +61,10 @@ export async function getSabiRegistry(
   return project
     ? { ...readSabiRegistry(project), years: years.map(toSabiYear) }
     : null;
+}
+
+/** t77: the buyer-safe registry view for a ficha (see buyerRegistryView). Identities only after an accepted NDA. */
+export async function getBuyerRegistry(slug: string, ndaAccepted: boolean): Promise<BuyerRegistry | null> {
+  const project = await prisma.project.findUnique({ where: { slug }, select: { id: true } });
+  return project ? buyerRegistryView(await getSabiRegistry(project.id), ndaAccepted) : null;
 }
