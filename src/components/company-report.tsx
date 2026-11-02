@@ -582,9 +582,10 @@ export function CompanyReport({
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
   const profitabilityColors: Record<string, string> = { ebitdaMargin: teal, profitMargin: tealLight, economicReturn: navy, financialReturn: tealMid };
+  // t81: all four curves (t71 left the two margins out whenever ROA/ROE existed); n/s years are gaps, not -13.459 %.
   const profitabilityTrend: Series[] = profitability
-    .filter((metric) => metric.key === "economicReturn" || metric.key === "financialReturn" || !profitability.some((item) => item.key === "economicReturn" || item.key === "financialReturn"))
-    .map((metric) => ({ label: metric.label, color: profitabilityColors[metric.key] ?? navy, values: metric.values }));
+    .map((metric) => ({ label: metric.label, color: profitabilityColors[metric.key] ?? navy, values: metric.values.map((value, index) => (metric.ns?.[index] ? null : value)) }))
+    .filter((item) => item.values.some((value) => value !== null));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
   const employees = years.map((year) => year.employees);
   const employeesMetric: Metric = { key: "employees", label: "Empleados", unit: "people", better: "none", values: employees, hint: "Plantilla media declarada en las cuentas del ejercicio.\nFuente: cuentas anuales." };
@@ -831,7 +832,7 @@ export function CompanyReport({
               {/* t71: the full multi-year evolution, not only the last year on the tiles. */}
               <ChartBox
                 title="Evolución de la rentabilidad"
-                hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado antes de impuestos ÷ fondos propios.\nLa tabla añade los márgenes."}
+                hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado antes de impuestos ÷ fondos propios.\nMargen EBITDA y margen de beneficio = sobre ingresos."}
                 legend={profitabilityTrend.map((item) => (
                   <LegendDot key={item.label} color={item.color} label={item.label} />
                 ))}
