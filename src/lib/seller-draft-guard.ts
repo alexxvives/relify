@@ -15,12 +15,6 @@ export function lockedIdentity(
   return { ...submitted, locked: false };
 }
 
-export function identityChangeHref(email: string, codename: string): string {
-  const subject = encodeURIComponent(`Solicitud de cambio de razón social / NIF — ${codename}`);
-  const body = encodeURIComponent("Hola, quiero solicitar un cambio en el nombre legal o el NIF de mi empresa.\n\nDato actual:\nDato correcto:\nMotivo:\n");
-  return `mailto:${email}?subject=${subject}&body=${body}`;
-}
-
 function euroCents(value: string): number | null {
   const trimmed = value.trim();
   if (!/^\d{1,12}(,\d{1,2})?$/.test(trimmed)) {

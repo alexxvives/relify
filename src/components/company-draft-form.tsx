@@ -17,6 +17,7 @@ import type { SabiYear } from "@/lib/sabi/insights";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
+import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
 import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
@@ -70,8 +71,6 @@ import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form
 import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
-import { identityChangeHref } from "@/lib/seller-draft-guard";
-import { shellCopy } from "@/lib/shell";
 import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -842,6 +841,7 @@ export function CompanyDraftForm({
   const [clientError, setClientError] = useState<string | null>(null);
   // t78: /mi-empresa/detalles is only reachable with a verified NIF (stored CIF); the server enforces the lock too.
   const identityLocked = cif.trim().length > 0;
+  const [changeField, setChangeField] = useState<IdentityField | null>(null);
   const saveStamp = state?.saved && !pending && saveTarget.length > 0 ? `${saveTarget}:${attempt}` : "";
   const [saveClosed, setSaveClosed] = useState("");
 
@@ -1200,6 +1200,7 @@ export function CompanyDraftForm({
     <>
     <form ref={formRef} action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <UnsavedChangesGuard dirty={formDirty} onSave={saveAndLeave} />
+      <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
       <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
       <FloatingSegmentedTabs
         label={companyCopy.tabsLabel}
@@ -1236,21 +1237,11 @@ export function CompanyDraftForm({
           {identityLocked ? (
             <>
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
-                <Input name="legalName" value={legalName} readOnly aria-readonly="true" className="bg-[#f5f6f8] text-[#3d4a63]" />
+                <LockedIdentityInput name="legalName" value={legalName} onRequest={() => setChangeField("legalName")} />
               </Fact>
               <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
-                <Input name="cif" value={nif} readOnly aria-readonly="true" className="bg-[#f5f6f8] text-[#3d4a63]" />
+                <LockedIdentityInput name="cif" value={nif} onRequest={() => setChangeField("cif")} />
               </Fact>
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#5c6b78] md:col-span-2">
-                <Lock className="size-3.5" aria-hidden />
-                NIF verificado: el nombre legal y el NIF no se pueden cambiar desde aquí.
-                <a
-                  href={identityChangeHref(shellCopy.helpEmail, codename)}
-                  className="font-semibold text-[#0f766e] underline decoration-[#7fd6cc] underline-offset-2 hover:text-[#0c5f59]"
-                >
-                  Solicitar cambio
-                </a>
-              </p>
             </>
           ) : (
             <>

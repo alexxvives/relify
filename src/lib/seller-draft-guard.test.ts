@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { identityChangeHref, lockedIdentity } from "./seller-draft-guard";
+import { lockedIdentity } from "./seller-draft-guard";
 
 describe("lockedIdentity (t78)", () => {
   it("keeps the stored legal name and CIF once the NIF is verified", () => {
@@ -21,9 +21,6 @@ describe("lockedIdentity (t78)", () => {
     expect(lockedIdentity(null, { legalName: "Nueva SL", cif: "" }).locked).toBe(false);
   });
 
-  it("builds a mailto for change requests", () => {
-    expect(identityChangeHref("info@itsrelify.com", "Proyecto Sol")).toMatch(/^mailto:info@itsrelify\.com\?subject=/);
-  });
 });
 
 import { sellerMoneyFields } from "./seller-draft-guard";

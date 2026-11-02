@@ -21,6 +21,7 @@ import { getCurrentUser } from "@/server/getCurrentUser";
 import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { requestFigureCorrection } from "@/server/requestFigureCorrection";
+import { requestIdentityChange } from "@/server/requestIdentityChange";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
@@ -313,4 +314,28 @@ export async function requestFigureCorrectionAction(_state: FigureCorrectionStat
 
   const result = await requestFigureCorrection(user, projectId, readText(formData, "message"));
   return result.ok ? { ok: true, message: "Enviado. Revisaremos las cifras y te avisaremos al corregirlas." } : { ok: false, message: result.message };
+}
+
+export type IdentityChangeState = { ok: boolean; message: string } | null;
+
+/** t79: "Solicitar cambio" on the locked legal name / NIF; emails info@, changes nothing. */
+export async function requestIdentityChangeAction(_state: IdentityChangeState, formData: FormData): Promise<IdentityChangeState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  const projectId = await activeSellerProjectId(user.id);
+  if (!projectId) {
+    return { ok: false, message: "Primero guarda los datos de tu empresa." };
+  }
+
+  const result = await requestIdentityChange(user, projectId, {
+    field: readText(formData, "field"),
+    current: readText(formData, "current"),
+    correct: readText(formData, "correct"),
+    reason: readText(formData, "reason"),
+  });
+  return result.ok ? { ok: true, message: "Solicitud enviada. Te escribiremos cuando lo revisemos." } : { ok: false, message: result.message };
 }
