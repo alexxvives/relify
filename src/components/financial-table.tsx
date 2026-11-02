@@ -91,16 +91,24 @@ export function FinancialTable({
   );
 }
 
-/** t81: shared widths for every aligned table: label takes the rest, then years, Tendencia and the share column. */
+/**
+ * t81/t83: shared widths for every aligned table. Fixed shares of the full width (label, then the
+ * years splitting what is left, Tendencia and the share column), so the years spread across the
+ * card instead of bunching on the right, and stacked tables with the same years line up.
+ */
 export function AlignedColumns({ years }: { years: number }) {
+  const label = 26;
+  const trend = 9;
+  const share = 14;
+  const year = years > 0 ? (100 - label - trend - share) / years : 0;
   return (
     <colgroup>
-      <col />
+      <col style={{ width: `${label}%` }} />
       {Array.from({ length: years }, (_, index) => (
-        <col key={index} className="w-[7.5rem]" />
+        <col key={index} style={{ width: `${year}%` }} />
       ))}
-      <col className="w-[6rem]" />
-      <col className="w-[10.5rem]" />
+      <col style={{ width: `${trend}%` }} />
+      <col style={{ width: `${share}%` }} />
     </colgroup>
   );
 }
