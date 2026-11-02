@@ -1136,10 +1136,6 @@ export function CompanyDraftForm({
     { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
-  const dealSections: DetailSectionItem[] = [
-    { id: "panel-price", label: "Precio y cifras", status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
-    { id: "ficha-detalles", label: "Vista del comprador", status: "info" },
-  ];
   const dirtySections = [
     { id: "basic", label: companyCopy.basicTitle, dirty: basicDirty },
     { id: "structure", label: companyCopy.structureHeading, dirty: structureDirty },
@@ -1196,13 +1192,9 @@ export function CompanyDraftForm({
           window.scrollTo({ top: 0 });
         }}
       />
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
-      <DetailSectionNav
-        key={tab}
-        items={tab === "company" ? companySections : dealSections}
-        progress={progress}
-        onMissing={goToMissing}
-      />
+      {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
+      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
+      {tab === "company" ? <DetailSectionNav items={companySections} progress={progress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
       <Panel
