@@ -81,7 +81,7 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-0 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
+      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
         <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const current = item.id === active;
@@ -107,7 +107,7 @@ export function DetailSectionNav({
       </nav>
 
       <aside className="hidden lg:block">
-        <nav aria-label="Secciones" className="sticky top-6 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+        <nav aria-label="Secciones" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
           <div className="flex items-center gap-3">
             <CompletionRing done={progress.done} total={progress.total} />
             <div className="min-w-0">

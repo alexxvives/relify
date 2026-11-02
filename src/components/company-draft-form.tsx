@@ -16,7 +16,7 @@ import { CompanyReport } from "@/components/company-report";
 import type { SabiYear } from "@/lib/sabi/insights";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
-import { SellerTabs } from "@/components/seller-tabs";
+import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
 import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
@@ -1184,28 +1184,24 @@ export function CompanyDraftForm({
     <form ref={formRef} action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
       <UnsavedChangesGuard dirty={formDirty} onSave={saveAndLeave} />
       <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <SellerTabs
-          label={companyCopy.tabsLabel}
-          tabs={[
-            { id: "company", label: companyCopy.detailsCompanyTab },
-            { id: "deal", label: companyCopy.detailsDealTab },
-          ]}
-          value={tab}
-          onChange={setTab}
-        />
-      </div>
+      <FloatingSegmentedTabs
+        label={companyCopy.tabsLabel}
+        tabs={[
+          { id: "company", label: companyCopy.detailsCompanyTab },
+          { id: "deal", label: companyCopy.detailsDealTab },
+        ]}
+        value={tab}
+        onChange={(id) => {
+          setTab(id);
+          window.scrollTo({ top: 0 });
+        }}
+      />
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
       <DetailSectionNav
         key={tab}
         items={tab === "company" ? companySections : dealSections}
         progress={progress}
         onMissing={goToMissing}
-        next={
-          tab === "company"
-            ? { label: "Ver ficha pública", onClick: () => { setTab("deal"); window.scrollTo({ top: 0 }); } }
-            : { label: "Volver a tu empresa", onClick: () => { setTab("company"); window.scrollTo({ top: 0 }); } }
-        }
       />
       <div className="flex min-w-0 flex-col gap-4">
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>

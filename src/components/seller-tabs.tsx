@@ -46,3 +46,61 @@ export function SellerTabs<T extends string>({
     </div>
   );
 }
+
+/**
+ * t78: floating segmented pill control, centred at the top of the page and sticky while scrolling.
+ * Same tablist semantics as SellerTabs, with arrow-key navigation.
+ */
+export function FloatingSegmentedTabs<T extends string>({
+  label,
+  tabs,
+  value,
+  onChange,
+}: {
+  label: string;
+  tabs: readonly { id: T; label: string }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return;
+    }
+    event.preventDefault();
+    const index = tabs.findIndex((item) => item.id === value);
+    const next = tabs[(index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+    onChange(next.id);
+    event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${next.id}"]`)?.focus();
+  }
+
+  return (
+    <div className="pointer-events-none sticky top-2 z-40 flex justify-center">
+      <div
+        role="tablist"
+        aria-label={label}
+        onKeyDown={onKeyDown}
+        className="pointer-events-auto inline-flex gap-1 rounded-full border border-[#e6e9f0] bg-white/90 p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] backdrop-blur"
+      >
+        {tabs.map((item) => {
+          const selected = item.id === value;
+          return (
+            <button
+              key={item.id}
+              data-tab={item.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => onChange(item.id)}
+              className={`h-9 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-5 ${
+                selected ? "bg-[#1c2740] text-white" : "text-[#3d4a63] hover:bg-[#f1f4f8]"
+              }`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
