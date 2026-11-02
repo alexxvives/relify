@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 import { MapPin } from "lucide-react";
+import { sectorStyles } from "@/components/market-card";
+import type { SectorImageKey } from "@/lib/sector-image";
+import { sectorBannerBackground } from "@/lib/sector-theme";
 
 export function CompanyBanner({
   title,
@@ -11,6 +14,8 @@ export function CompanyBanner({
   cue,
   heading = "h1",
   image = null,
+  sector = null,
+  chips = [],
 }: {
   title: string;
   subtitle?: string;
@@ -24,8 +29,15 @@ export function CompanyBanner({
   heading?: "h1" | "p";
   /** Company or sector photo shown behind the banner; `ai` adds the AI-image label. */
   image?: { src: string; ai: boolean } | null;
+  /** t83: CNAE sector family. Without the seller's own cover, the banner uses the sector icon and hue instead of a photo. */
+  sector?: SectorImageKey | null;
+  /** t83: neutral chips under the title (sector, region, founding decade). Never identifying data. */
+  chips?: string[];
 }) {
   const Title = heading;
+  const themed = sector !== null && (!image || image.ai);
+  if (themed) image = null;
+  const SectorIcon = sector ? sectorStyles[sector].icon : null;
 
   return (
     <header
@@ -33,6 +45,8 @@ export function CompanyBanner({
       style={
         image
           ? { background: "#05070f" }
+          : themed && sector
+            ? { background: sectorBannerBackground(sector) }
           : {
               background:
                 "radial-gradient(140% 120% at -8% -20%, #ffffff 0%, #d5e0ff 16%, rgba(70, 90, 180, 0.55) 42%, #05070f 72%)",
@@ -55,11 +69,32 @@ export function CompanyBanner({
           backgroundSize: "18px 18px",
         }}
       />
+      {themed && SectorIcon ? (
+        <SectorIcon
+          className="pointer-events-none absolute -right-10 -bottom-16 size-72 rotate-[-12deg] text-white opacity-[0.08] sm:size-96"
+          strokeWidth={1.25}
+          aria-hidden
+        />
+      ) : null}
       {children ? <div className="absolute top-6 right-6 z-10 flex items-center gap-2">{children}</div> : null}
       <div className="relative z-10 mx-auto max-w-3xl pt-2 text-center">
+        {themed && SectorIcon ? (
+          <span className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/25" aria-hidden>
+            <SectorIcon className="size-6 text-white" />
+          </span>
+        ) : null}
         <Title className="releva-page-title text-6xl leading-[0.96] text-white sm:text-7xl">
           {title}
         </Title>
+        {chips.length > 0 ? (
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label="Datos generales">
+            {chips.map((chip) => (
+              <li key={chip} className="rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white ring-1 ring-white/20 sm:text-sm">
+                {chip}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {subtitle || status ? (
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#e7ecff]">
           {subtitle ? (

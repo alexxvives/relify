@@ -14,6 +14,7 @@ import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftActio
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
+import { bannerChips } from "@/lib/sector-theme";
 import { CompanyReport } from "@/components/company-report";
 import type { SabiYear } from "@/lib/sabi/insights";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -1929,8 +1930,9 @@ export function CompanyDraftForm({
           <CompanyBanner
             heading="p"
             title={investorPreview.codename.trim().length > 0 ? investorPreview.codename : companyCopy.codenameLabel}
-            subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
+            sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
+            chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
           />
           <CompanyReport project={previewProject} sellerPreview={{
             mixAction: (

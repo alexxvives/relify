@@ -8,6 +8,8 @@ import { sabiDetailDuplicates } from "@/lib/sabi/detail-duplicates";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { adminCopy } from "@/lib/admin-copy";
+import { sectorKeyFromCnae } from "@/lib/sector-image";
+import { bannerChips } from "@/lib/sector-theme";
 import { companyCopy } from "@/lib/company-copy";
 import { watchingCue } from "@/lib/deal-pipeline";
 import { meetingIsPast, readMeeting } from "@/lib/meeting";
@@ -52,6 +54,8 @@ export function AdminCompany({
   const chat = messages.filter((message) => message.kind !== "meeting");
   const meetings = messages.filter((message) => message.kind === "meeting");
 
+  const adminSector = view.profile.principalCnae ? sectorKeyFromCnae(view.profile.principalCnae.code) : null;
+
   const company = (
     <>
       <AdminSabiPanel
@@ -59,6 +63,8 @@ export function AdminCompany({
         header={{
           title: view.profile.codename,
           subtitle: view.profile.region,
+          sector: adminSector,
+          chips: bannerChips({ sector: adminSector, region: view.profile.region, foundedYear: view.profile.foundedYear }),
           status: { label: statusLabel(view.status), live: view.status === "published" },
           statusNote: view.publishChecks ? <PublishReadinessChip checks={view.publishChecks} /> : null,
           cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} /> : null,

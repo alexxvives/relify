@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CompanyBanner } from "@/components/company-banner";
+import { sectorKeyFromCnae } from "@/lib/sector-image";
+import { bannerChips } from "@/lib/sector-theme";
 import { CompanyReport } from "@/components/company-report";
 import { DealPipeline, ProcessRoom } from "@/components/deal-pipeline";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -94,6 +96,9 @@ export function InvestorProject({
       </Link>
     ) : null;
 
+  const principal = project.principalCnae?.code ?? null;
+  const bannerSector = principal ? sectorKeyFromCnae(principal) : null;
+
   return (
     <div className="flex w-full flex-col gap-6">
       <LiveRefresh />
@@ -105,6 +110,8 @@ export function InvestorProject({
       <CompanyBanner
         title={project.codename}
         image={cover}
+        sector={bannerSector}
+        chips={bannerChips({ sector: bannerSector, region: project.region, foundedYear: project.foundedYear })}
         progress={
           steps.length > 0 ? (
             <DealPipeline

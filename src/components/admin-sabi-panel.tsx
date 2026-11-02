@@ -11,6 +11,9 @@ import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { AdminReportNotice } from "@/components/admin-report-notice";
 import type { AdminSabiView } from "@/server/getAdminCompany";
+import { sectorStyles } from "@/components/market-card";
+import type { SectorImageKey } from "@/lib/sector-image";
+import { sectorThemes } from "@/lib/sector-theme";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
@@ -34,6 +37,9 @@ type AdminHeader = {
   statusNote?: ReactNode;
   cue?: ReactNode;
   progress?: ReactNode;
+  /** t83: sector family tile and neutral chips (sector, region, founding decade), as on the buyer banner. */
+  sector?: SectorImageKey | null;
+  chips?: string[];
 };
 
 /**
@@ -251,8 +257,15 @@ export function AdminSabiPanel({
     <div {...dropProps} className="relative flex flex-col gap-4">
       <header className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {header.sector ? <AdminSectorTile sector={header.sector} /> : null}
           <h1 className="text-2xl font-semibold text-[#1c2740]">{header.title}</h1>
-          {header.subtitle ? <span className="text-sm text-[#5c6b78]">{header.subtitle}</span> : null}
+          {header.chips && header.chips.length > 0
+            ? header.chips.map((chip) => (
+                <span key={chip} className="rounded-full bg-[#f1f3f6] px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
+                  {chip}
+                </span>
+              ))
+            : header.subtitle ? <span className="text-sm text-[#5c6b78]">{header.subtitle}</span> : null}
           {header.status ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e1e5eb] bg-white px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
               <span className={`size-2 rounded-full ${header.status.live ? "bg-[#2fc4b2]" : "bg-[#c3c9d3]"}`} aria-hidden />
@@ -414,5 +427,19 @@ function Fact({ label, value }: { label: string; value: string | null }) {
       <dt className="text-xs text-[#5c6b78]">{label}</dt>
       <dd className="font-medium text-[#1c2740]">{value || "—"}</dd>
     </div>
+  );
+}
+
+function AdminSectorTile({ sector }: { sector: SectorImageKey }) {
+  const Icon = sectorStyles[sector].icon;
+  return (
+    <span
+      className="flex size-9 items-center justify-center rounded-xl text-white"
+      style={{ background: sectorThemes[sector].hue }}
+      title={sectorThemes[sector].label}
+      aria-hidden
+    >
+      <Icon className="size-5" />
+    </span>
   );
 }
