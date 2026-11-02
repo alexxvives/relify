@@ -4,6 +4,8 @@ import { MarketCard } from "@/components/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { mergeStatementTable } from "@/lib/statement-merge";
+import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
@@ -41,7 +43,6 @@ import {
   type ForecastYearInput,
 } from "@/lib/company-draft";
 import { draftInvestorPreview } from "@/lib/draft-investor-preview";
-import type { InvestorProjectProfile } from "@/lib/investor-project";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
@@ -934,7 +935,7 @@ export function CompanyDraftForm({
   /** t69: imported closed years, so the buyer preview shows the same report charts buyers will see. */
   reportYears?: SabiYear[] | null;
   /** t81: Ratios and result/working-capital rows of the stored accounts, for the buyer preview. */
-  fichaExtras?: Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears"> | null;
+  fichaExtras?: SellerFichaExtras | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1302,6 +1303,27 @@ export function CompanyDraftForm({
     closedYears,
     forecastYear,
   });
+  // t83: the preview tables keep every stored year, not only the form window.
+  const previewProject = (() => {
+    const { stored = null, ...extras } = fichaExtras ?? {};
+    const income = mergeStatementTable(
+      { years: investorPreview.incomeYears, rows: investorPreview.incomeRows },
+      stored ? { years: stored.incomeYears, rows: stored.incomeRows } : null,
+    );
+    const balance = mergeStatementTable(
+      { years: investorPreview.balanceYears, rows: investorPreview.balanceRows },
+      stored ? { years: stored.balanceYears, rows: stored.balanceRows } : null,
+    );
+    return {
+      ...investorPreview,
+      ...(reportYears && reportYears.length > 0 ? { reportYears } : {}),
+      ...extras,
+      incomeYears: income.years,
+      incomeRows: income.rows,
+      balanceYears: balance.years,
+      balanceRows: balance.rows,
+    };
+  })();
   const statusMessage =
     state && !state.saved && !suppressStatus && !percentSumMessages.has(state.message) ? state.message : null;
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
@@ -1889,7 +1911,7 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyReport project={{ ...investorPreview, ...(reportYears && reportYears.length > 0 ? { reportYears } : {}), ...(fichaExtras ?? {}) }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
+          <CompanyReport project={previewProject} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
         </div>
       </Panel>
       </div>

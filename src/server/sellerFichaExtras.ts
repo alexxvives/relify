@@ -1,7 +1,10 @@
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
 import { prisma } from "@/server/db";
 
-export type SellerFichaExtras = Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears">;
+export type SellerFichaExtras = Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears"> & {
+  /** t83: stored P&L and balance, so the preview keeps years outside the form window. */
+  stored: Pick<InvestorProjectProfile, "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows">;
+};
 
 /**
  * t81: the Ratios and "Resultado, cash flow y circulante" tables of the buyer ficha, read from the
@@ -14,5 +17,8 @@ export async function getSellerFichaExtras(projectId: string): Promise<SellerFic
     return null;
   }
   const profile = toInvestorProject(row);
-  return { detailRows: profile.detailRows ?? [], indicatorRows: profile.indicatorRows ?? [], detailYears: profile.balanceYears };
+  return {
+    detailRows: profile.detailRows ?? [], indicatorRows: profile.indicatorRows ?? [], detailYears: profile.balanceYears,
+    stored: { incomeYears: profile.incomeYears, incomeRows: profile.incomeRows, balanceYears: profile.balanceYears, balanceRows: profile.balanceRows },
+  };
 }
