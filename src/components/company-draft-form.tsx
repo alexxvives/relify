@@ -448,19 +448,20 @@ function EbitdaAdjustmentsEditor({
     "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none";
   return (
     <section aria-labelledby="ebitda-adjustments-title" className="rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
+      {/* t83: the + sits right after the title, like every other add icon. */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
           <h3 id="ebitda-adjustments-title" className="text-sm font-semibold text-[#1c2740]">
             {companyCopy.adjustmentsTitle}
             {year ? <span className="ml-2 font-normal text-[#667085]">· {companyCopy.adjustmentsYear.replace("{year}", year)}</span> : null}
           </h3>
-          <p className="mt-1 text-sm text-[#667085]">{companyCopy.adjustmentsIntro}</p>
+          <AddIconButton
+            label={companyCopy.adjustmentsAdd}
+            disabled={rows.length >= maxEbitdaAdjustments}
+            onClick={() => onRows([...rows, { type: "owner_salary", amount: "", reason: "" }])}
+          />
         </div>
-        <AddIconButton
-          label={companyCopy.adjustmentsAdd}
-          disabled={rows.length >= maxEbitdaAdjustments}
-          onClick={() => onRows([...rows, { type: "owner_salary", amount: "", reason: "" }])}
-        />
+        <p className="mt-1 text-sm text-[#667085]">{companyCopy.adjustmentsIntro}</p>
       </div>
       {rows.length === 0 ? (
         legacyCents !== null ? (
@@ -773,7 +774,7 @@ function PercentRows({
   const legendId = `${name}-legend`;
   return (
     <div role="group" aria-labelledby={legendId} className="min-w-0">
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-3 flex items-center justify-start gap-2">
         <h3 id={legendId} className="text-base font-semibold text-[#1c2740]">{legend}</h3>
         <AddIconButton
           label={addLabel}
@@ -1513,7 +1514,7 @@ export function CompanyDraftForm({
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-start gap-2">
               <p className="text-sm font-medium">
                 {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
               </p>
