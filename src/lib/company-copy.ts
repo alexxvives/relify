@@ -76,7 +76,7 @@ export const companyCopy = {
   marketPreviewTitle: "Cómo se verá mi empresa en el Marketplace",
   openFichaTitle: "Cómo se verán los detalles de mi empresa",
   previewBefore: "Antes de conectar",
-  previewAfter: "Tras aceptar y NDA",
+  previewAfter: "Tras aceptar el NDA",
   previewLockNote:
     "La estructura de la empresa, la cuenta de resultados y el balance solo se muestran cuando tú aceptas la solicitud del comprador y él firma el NDA. Antes, el comprador ve estas secciones difuminadas.",
   previewLockedSeller: "Privado: se abre cuando aceptas al comprador y firma el NDA.",

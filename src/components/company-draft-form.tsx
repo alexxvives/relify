@@ -1123,7 +1123,8 @@ export function CompanyDraftForm({
     : principalCnae
       ? { src: sectorImageSrc(sectorKeyFromCnae(principalCnae)), ai: true }
       : null;
-  const [previewOpen, setPreviewOpen] = useState(false);
+  // t76: the buyer-view preview opens on "Tras aceptar el NDA"; the before-NDA view is one click away.
+  const [previewOpen, setPreviewOpen] = useState(true);
   const investorPreview = draftInvestorPreview({
     legalName,
     address,
