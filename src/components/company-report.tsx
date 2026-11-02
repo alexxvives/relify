@@ -68,7 +68,7 @@ import {
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
 import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
-import { formatHolderName, holderTypeLabel } from "@/lib/sabi/holders";
+import { formatHolderName, formatHoldingPercent, holderTypeLabel } from "@/lib/sabi/holders";
 import type { SabiHolding } from "@/lib/sabi/parse";
 import type { SabiRegistry } from "@/lib/sabi/registry";
 
@@ -347,7 +347,7 @@ function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): 
   return null;
 }
 
-/** t75: one shareholders module for admin and seller: donut with the list beside it (stacked on mobile), clean names and %. */
+/** t76: one shareholders module for admin and seller: table on the left, donut on the right in wide containers, stacked when narrow. */
 export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
   const rows = holdings.map((holder) => ({ ...holder, name: formatHolderName(holder.name) }));
   const slices = sabiOwnershipSlices(rows);
@@ -358,24 +358,46 @@ export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
       count={holdings.length}
       hint={"Según el registro mercantil. \u201c> 50 %\u201d significa que solo consta que supera el 50 %."}
     >
-      {slices.length > 0 ? (
-        <div className="[&>section]:h-auto">
-          <ShareDonut title="Reparto del capital" slices={slices} palette="capital" />
+      <div className="@container">
+        <div className={`grid items-start gap-4 ${slices.length > 0 ? "@3xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]" : ""}`}>
+          <ShareholderTable rows={rows} />
+          {slices.length > 0 ? (
+            <div className="min-w-0 [&>section]:h-auto">
+              <ShareDonut title="Reparto del capital" slices={slices} palette="capital" />
+            </div>
+          ) : null}
         </div>
-      ) : (
-        <ul className="divide-y divide-[#eef0f4] text-sm">
-          {rows.map((holder, index) => (
-            <li key={`${holder.name}-${index}`} className="flex items-center justify-between gap-3 py-1.5">
-              <span className="min-w-0 truncate text-[#1c2740]">{holder.name}</span>
-              {holderTypeLabel(holder.type) ? <span className="shrink-0 text-xs text-[#5c6b78]">{holderTypeLabel(holder.type)}</span> : null}
-            </li>
-          ))}
-        </ul>
-      )}
-      <Toggle label={reportChartsCopy.showTable}>
-        <HoldingTable rows={rows} />
-      </Toggle>
+      </div>
     </Section>
+  );
+}
+
+function ShareholderTable({ rows }: { rows: SabiHolding[] }) {
+  return (
+    <table className="w-full min-w-0 text-left text-sm">
+      <caption className="sr-only">Accionistas y su participación</caption>
+      <thead className="text-xs text-[#5c6b78]">
+        <tr className="border-b border-[#eef0f4]">
+          <th scope="col" className="py-2 pr-3 font-semibold">Accionista</th>
+          <th scope="col" className="py-2 text-right font-semibold">Participación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, index) => {
+          const type = holderTypeLabel(row.type);
+          const share = formatHoldingPercent(row.direct) ?? formatHoldingPercent(row.total);
+          return (
+            <tr key={`${row.name}-${index}`} className="border-b border-[#eef0f4] last:border-0">
+              <td className="min-w-0 py-2 pr-3">
+                <span className="block break-words font-medium text-[#1c2740]">{row.name}</span>
+                {type || row.country ? <span className="block text-xs text-[#5c6b78]">{[type, row.country].filter(Boolean).join(" · ")}</span> : null}
+              </td>
+              <td className="py-2 text-right align-top font-semibold whitespace-nowrap text-[#0f5f59] tabular-nums">{share ?? "Sin dato"}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
