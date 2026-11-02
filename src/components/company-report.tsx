@@ -1090,11 +1090,6 @@ export function CompanyReport({
             showReasons={figuresOpen || role === "admin"}
           />
         ) : null}
-        {role === "admin" ? null : (
-        <p className="mt-4 text-xs leading-5 text-[#5c6b78]">
-          El registro mercantil solo publica cuentas anuales: no incluye precio, motivo de venta ni ajustes al EBITDA. Esos datos los aporta el vendedor; el múltiplo y la rentabilidad se calculan en cuanto hay precio y un EBITDA positivo.
-        </p>
-        )}
       </ReportSection>
 
       {checks.length > 0 ? (
