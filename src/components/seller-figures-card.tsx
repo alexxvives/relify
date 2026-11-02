@@ -4,18 +4,20 @@ import { useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, MessageSquareText, ShieldCheck } from "lucide-react";
 import { requestFigureCorrectionAction, type FigureCorrectionState } from "@/app/(app)/mi-empresa/actions";
 import { FinancialTable } from "@/components/financial-table";
-import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { Button as KitButton, Card, Textarea } from "@/components/ui/form";
 import { figureCorrectionMaxLength } from "@/lib/figure-correction-email";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
+import { formatCardEur } from "@/lib/money";
+import type { SabiYear } from "@/lib/sabi/insights";
+import { sellerKeyFigures } from "@/lib/seller-key-figures";
 
 type Figures = Pick<InvestorProjectProfile, "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows">;
 
 /**
- * t76: the seller's figures, read-only. We load the accounts within 24 h; the seller sees the same
- * charts as the ficha and can propose a correction instead of editing raw accounting fields.
+ * t76/t78: the seller's figures, read-only. Only the key numbers with their year; the charts live in the
+ * Ficha pública. The seller can open the detail tables or propose a correction.
  */
-export function SellerFiguresCard({ step, figures }: { step: number; figures: Figures }) {
+export function SellerFiguresCard({ step, figures, reportYears = null }: { step: number; figures: Figures; reportYears?: SabiYear[] | null }) {
   const [detail, setDetail] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const [message, setMessage] = useState("");
@@ -23,7 +25,8 @@ export function SellerFiguresCard({ step, figures }: { step: number; figures: Fi
   const [pending, startTransition] = useTransition();
   const hasIncome = figures.incomeRows.some((row) => row.key === "sales" && row.values.some((value) => value !== null));
   const hasBalance = figures.balanceRows.some((row) => row.values.some((value) => value !== null && value !== 0));
-  const hasFigures = hasIncome || hasBalance;
+  const tiles = sellerKeyFigures(reportYears);
+  const hasFigures = hasIncome || hasBalance || tiles.length > 0;
 
   function send() {
     const data = new FormData();
@@ -47,7 +50,7 @@ export function SellerFiguresCard({ step, figures }: { step: number; figures: Fi
             Tus cifras
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-[#64748b]">
-            Ventas, resultados y balance de tus últimos ejercicios, tal como los verá el comprador. No tienes que escribir nada.
+            Las cifras clave de tu último ejercicio. Las gráficas completas están en la Ficha pública. No tienes que escribir nada.
           </p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
@@ -56,14 +59,24 @@ export function SellerFiguresCard({ step, figures }: { step: number; figures: Fi
         </span>
       </div>
 
-      {hasFigures ? (
-        <div className="mt-5 grid gap-4 xl:grid-cols-2">
-          {hasIncome ? <ProfileIncomeChart years={figures.incomeYears} rows={figures.incomeRows} /> : null}
-          {hasBalance ? <ProfileBalanceChart years={figures.balanceYears} rows={figures.balanceRows} /> : null}
-        </div>
-      ) : (
+      {tiles.length > 0 ? (
+        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          {tiles.map((tile) => (
+            <div key={tile.key} className="rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3">
+              <dt className="text-xs font-medium text-[#5c6b78]">{tile.label}</dt>
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-[#1c2740]">
+                {tile.unit === "eur" ? formatCardEur(tile.value) : new Intl.NumberFormat("es-ES").format(tile.value)}
+              </dd>
+              <dd className="mt-0.5 text-xs text-[#667085]">
+                {tile.year}
+                {tile.months !== null ? ` (${tile.months} m)` : ""}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : hasFigures ? null : (
         <p className="mt-5 rounded-2xl bg-[#f4f7ff] px-4 py-4 text-sm text-[#1c2740]">
-          Estamos preparando tus cifras. En un plazo de 24 h las verás aquí con sus gráficas.
+          Estamos preparando tus cifras. En un plazo de 24 h las verás aquí.
         </p>
       )}
 

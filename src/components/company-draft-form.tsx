@@ -1368,7 +1368,7 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
-      <SellerFiguresCard step={3} figures={investorPreview} />
+      <SellerFiguresCard step={3} figures={investorPreview} reportYears={reportYears} />
       {/* t76: raw accounting inputs are not for sellers; they stay mounted (hidden) so saving keeps the loaded values. */}
       <div hidden>
       <Panel
