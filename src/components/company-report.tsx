@@ -349,7 +349,7 @@ function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): 
   return null;
 }
 
-/** t76: one shareholders module for admin and seller: table on the left, donut on the right in wide containers, stacked when narrow. */
+/** t76: one shareholders module for admin and seller: t81: table and donut 50/50 in wide containers (donut centred in its half), stacked when narrow. */
 export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
   const rows = holdings.map((holder) => ({ ...holder, name: formatHolderName(holder.name) }));
   const slices = sabiOwnershipSlices(rows);
@@ -361,10 +361,10 @@ export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
       hint={"Según el registro mercantil. \u201c> 50 %\u201d significa que solo consta que supera el 50 %."}
     >
       <div className="@container">
-        <div className={`grid items-start gap-4 ${slices.length > 0 ? "@3xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]" : ""}`}>
+        <div className={`grid items-start gap-4 ${slices.length > 0 ? "@3xl:grid-cols-2" : ""}`}>
           <ShareholderTable rows={rows} />
           {slices.length > 0 ? (
-            <div className="min-w-0 [&>section]:h-auto">
+            <div className="mx-auto w-full max-w-[24rem] min-w-0 [&>section]:h-auto">
               <ShareDonut title="Reparto del capital" slices={slices} palette="capital" />
             </div>
           ) : null}
