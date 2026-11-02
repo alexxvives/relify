@@ -380,6 +380,9 @@ export function RegistryOverview({ registry }: { registry: SabiRegistry }) {
   return (
     <div className="flex flex-col gap-4">
       {registry.shareholdings.length > 0 ? <ShareholdersPanel holdings={registry.shareholdings} /> : null}
+      {/* t81: directors (~75 %) and subsidiaries (~25 %) side by side in wide containers, stacked when narrow. */}
+      <div className="@container">
+        <div className={`grid items-start gap-4 ${directors > 0 && registry.subsidiaries.length > 0 ? "@4xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]" : ""}`}>
       {directors > 0 ? (
         <Section icon={<Users className="size-4 text-[#0f766e]" aria-hidden />} title="Administradores y directivos" count={directors}>
           <People directors={registry.directors} />
@@ -404,6 +407,8 @@ export function RegistryOverview({ registry }: { registry: SabiRegistry }) {
           </Toggle>
         </Section>
       ) : null}
+        </div>
+      </div>
       <RegistryRecords registry={registry} />
     </div>
   );
