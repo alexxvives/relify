@@ -5,6 +5,7 @@ export function CompanyBanner({
   title,
   subtitle,
   status,
+  statusNote = null,
   progress,
   children,
   cue,
@@ -14,6 +15,8 @@ export function CompanyBanner({
   title: string;
   subtitle?: string;
   status?: { label: string; live: boolean };
+  /** t76: small chip next to the status (admin publish readiness). */
+  statusNote?: ReactNode;
   progress?: ReactNode;
   children?: ReactNode;
   /** Deal "what's next" cue, shown under the progress bar. */
@@ -86,6 +89,7 @@ export function CompanyBanner({
               {status.label}
             </span>
           ) : null}
+          {statusNote}
         </p>
         ) : null}
       </div>

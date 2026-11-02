@@ -1,4 +1,3 @@
-import { missingHint } from "@/lib/publish-checklist";
 import { loadPublishChecks } from "@/server/publishChecks";
 import * as z from "zod";
 import { adminCopy } from "@/lib/admin-copy";
@@ -42,7 +41,7 @@ export async function approveProject(
   const checks = await loadPublishChecks(project.id);
 
   if (!checks || !checks.admin.ready) {
-    return { ok: false, message: `No se puede publicar. ${missingHint(checks?.admin.missing ?? [])}` };
+    return { ok: false, message: `No se puede publicar. Falta: ${(checks?.admin.missing ?? []).join(", ") || "comprobar los datos"}.` };
   }
 
   await prisma.project.update({

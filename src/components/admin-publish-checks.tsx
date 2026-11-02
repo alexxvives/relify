@@ -1,52 +1,25 @@
-import { CheckCircle2, Circle } from "lucide-react";
 import type { AdminPublishChecks, PublishChecklist } from "@/lib/publish-checklist";
 
-/** t75: admin-only view of what approval needs. The server enforces the same checks in approveProject. */
-export function AdminPublishChecksCard({
-  checks,
-  status,
-}: {
-  checks: { seller: PublishChecklist; admin: AdminPublishChecks };
-  status: "draft" | "pending" | "published";
-}) {
-  const ready = checks.seller.ready && checks.admin.ready;
-  const groups = [
-    { title: "Del vendedor", list: checks.seller },
-    { title: "Nuestras comprobaciones", list: checks.admin },
-  ];
+/**
+ * t76: a tiny chip beside the status in the admin banner instead of the big checklist card.
+ * The tooltip (and screen-reader text) lists what is missing; approveProject still enforces it.
+ */
+export function PublishReadinessChip({ checks }: { checks: { seller: PublishChecklist; admin: AdminPublishChecks } }) {
+  const missing = [...checks.seller.items, ...checks.admin.items].filter((item) => !item.done).map((item) => item.label);
+  const ready = missing.length === 0;
+  const label = ready ? "Lista para aprobar" : `Faltan ${missing.length} requisito${missing.length === 1 ? "" : "s"}`;
+  const tip = ready ? "Cumple todo lo necesario para publicarla." : `Falta: ${missing.join(", ")}.`;
 
   return (
-    <section aria-labelledby="admin-publish-checks" className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="admin-publish-checks" className="text-base font-semibold text-[#1c2740]">
-          Revisión para publicar
-        </h2>
-        <span className={`text-sm font-medium ${ready ? "text-[#0f766e]" : "text-[#5b6578]"}`}>
-          {ready ? (status === "pending" ? "Lista para aprobar" : "Todo correcto") : "Aún no se puede aprobar"}
-        </span>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {groups.map((group) => (
-          <div key={group.title}>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-[#5b6578]">{group.title}</h3>
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {group.list.items.map((item) => (
-                <li key={item.key} className="flex items-start gap-2 text-sm text-[#1c2740]">
-                  {item.done ? (
-                    <CheckCircle2 aria-hidden className="mt-0.5 size-4 shrink-0 text-[#0f766e]" />
-                  ) : (
-                    <Circle aria-hidden className="mt-0.5 size-4 shrink-0 text-[#9aa3b5]" />
-                  )}
-                  <span>
-                    {item.label}
-                    <span className="sr-only">{item.done ? ": hecho" : ": pendiente"}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
+    <span
+      tabIndex={0}
+      title={tip}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white ${
+        ready ? "bg-[#2fc4b2] text-[#0b2b29]" : "bg-white/15 text-white ring-1 ring-white/40"
+      }`}
+    >
+      {label}
+      <span className="sr-only">. {tip}</span>
+    </span>
   );
 }

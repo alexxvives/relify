@@ -14,7 +14,7 @@ import { meetingIsPast, readMeeting } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AdminCompanyMessage, AdminCompanyView, AdminSideAdvisor } from "@/server/getAdminCompany";
 import { Card } from "@/components/ui/form";
-import { AdminPublishChecksCard } from "@/components/admin-publish-checks";
+import { PublishReadinessChip } from "@/components/admin-publish-checks";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -60,6 +60,7 @@ export function AdminCompany({
           title: view.profile.codename,
           subtitle: view.profile.region,
           status: { label: statusLabel(view.status), live: view.status === "published" },
+          statusNote: view.publishChecks ? <PublishReadinessChip checks={view.publishChecks} /> : null,
           cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null,
           progress:
             selected && selected.steps.length > 0 ? (
@@ -67,7 +68,6 @@ export function AdminCompany({
             ) : null,
         }}
       />
-      {view.publishChecks ? <AdminPublishChecksCard checks={view.publishChecks} status={view.status} /> : null}
       {selected && !view.investor ? (
         <p className="text-sm text-[#3d4a63]">
           {adminCopy.investorParty} · {selected.investorLabel}
