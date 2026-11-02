@@ -302,7 +302,7 @@ function AdjustmentBridge({
   showReasons: boolean;
 }) {
   return (
-    <div className="mt-3 rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
+    <div className="rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-[#5c6b78]">{companyCopy.adjustmentsTitle}</p>
       <dl className="mt-2 divide-y divide-[#eef1f4] tabular-nums">
         <div className="flex items-baseline justify-between gap-3 py-1.5">
@@ -1133,23 +1133,33 @@ export function CompanyReport({
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} source={deal.figuresSource} />
-          <Fact
-            icon={Receipt}
-            label={companyCopy.adjustedEbitdaLabel}
-            value={deal.adjustedSet ? `${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}` : "Pendiente del vendedor"}
-            source="seller"
-            note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
-          />
+          {/* t85: "Ver ajustes" popover on the EBITDA ajustado tile: types and amounts before the NDA, plus motives after. */}
+          <div className="relative min-w-0">
+            <Fact
+              icon={Receipt}
+              label={companyCopy.adjustedEbitdaLabel}
+              value={deal.adjustedSet ? `${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}` : "Pendiente del vendedor"}
+              source="seller"
+              note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
+            />
+            {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
+              <details className="group absolute top-2 right-2">
+                <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                  Ver ajustes
+                </summary>
+                <div className="absolute right-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
+                  <AdjustmentBridge
+                    ebitdaCents={project.ebitdaCents}
+                    adjustedCents={project.adjustedEbitdaCents}
+                    rows={project.ebitdaAdjustments}
+                    showReasons={figuresOpen || role === "admin"}
+                  />
+                </div>
+              </details>
+            ) : null}
+          </div>
           {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
-        {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-          <AdjustmentBridge
-            ebitdaCents={project.ebitdaCents}
-            adjustedCents={project.adjustedEbitdaCents}
-            rows={project.ebitdaAdjustments}
-            showReasons={figuresOpen || role === "admin"}
-          />
-        ) : null}
       </ReportSection>
 
       {checks.length > 0 ? (

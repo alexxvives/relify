@@ -412,6 +412,7 @@ function FichaMetrics({
   margin,
   netResult,
   priceStatus = null,
+  adjustmentCount,
   adjustments,
 }: {
   revenue: string;
@@ -422,8 +423,11 @@ function FichaMetrics({
   margin: string;
   netResult: string;
   priceStatus?: ReactNode;
+  adjustmentCount: number;
   adjustments: ReactNode;
 }) {
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div id="panel-asking-price" className="scroll-mt-24">
@@ -432,12 +436,79 @@ function FichaMetrics({
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
-      <ReadOnlyFigure label={companyCopy.adjustedEbitdaLabel} value={adjustedEbitda} />
+      {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
+      <div id="ebitda-ajustado" className="scroll-mt-24">
+        <MetricTile
+          label={companyCopy.adjustedEbitdaLabel}
+          action={
+            <button
+              type="button"
+              aria-label="Editar ajustes al EBITDA"
+              aria-haspopup="dialog"
+              onClick={() => setAdjustOpen(true)}
+              className="inline-flex size-7 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
+              <Pencil className="size-3.5" aria-hidden />
+            </button>
+          }
+          corner={adjustmentCount > 0 ? <span className="text-xs text-[#667085]">{adjustmentCount} {adjustmentCount === 1 ? "ajuste" : "ajustes"}</span> : null}
+        >
+          <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+            {adjustedCents !== null ? (
+              <span className={adjustedCents < 0 ? "text-[#b42318]" : undefined}>{wholeEur(adjustedCents)}</span>
+            ) : (
+              <button type="button" onClick={() => setAdjustOpen(true)} className="text-base font-medium text-[#667085] underline-offset-2 hover:text-[#465ab4] hover:underline">
+                Sin ajustes
+              </button>
+            )}
+          </span>
+        </MetricTile>
+      </div>
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
-      <div className="sm:col-span-2 lg:col-span-3">{adjustments}</div>
+      {adjustOpen ? <AdjustmentsModal onClose={() => setAdjustOpen(false)}>{adjustments}</AdjustmentsModal> : null}
+    </div>
+  );
+}
+
+function AdjustmentsModal({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    panel.current?.focus();
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 p-0 sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ebitda-adjustments-title"
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl focus:outline-none sm:rounded-2xl sm:p-5"
+      >
+        <button
+          type="button"
+          aria-label="Cerrar"
+          onClick={onClose}
+          className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        >
+          <X className="size-4" aria-hidden />
+        </button>
+        {children}
+        <div className="mt-4 flex justify-end">
+          <KitButton type="button" size="sm" onClick={onClose}>
+            Hecho
+          </KitButton>
+        </div>
+      </div>
     </div>
   );
 }
@@ -466,7 +537,7 @@ function EbitdaAdjustmentsEditor({
   const inputClass =
     "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none";
   return (
-    <section aria-labelledby="ebitda-adjustments-title" className="rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+    <section aria-labelledby="ebitda-adjustments-title" className="pr-8">
       {/* t83: the + sits right after the title, like every other add icon. */}
       <div className="min-w-0">
         <div className="flex items-center gap-2">
@@ -1872,15 +1943,16 @@ export function CompanyDraftForm({
           summary={description}
         >
           <GalleryEditor photos={fichaExtras?.photos ?? []} />
+          <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
           <FichaMetrics
             revenue={salesFromAccounts ?? revenue}
             askingPrice={askingPrice}
             onAskingPrice={setAskingPrice}
             ebitda={ebitdaFromAccounts ?? ebitda}
             adjustedEbitda={adjustedEbitda}
+            adjustmentCount={adjustmentRows.length}
             adjustments={
               <>
-                <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
                 <EbitdaAdjustmentsEditor
                   rows={adjustmentRows}
                   onRows={setAdjustmentRows}
