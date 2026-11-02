@@ -1544,7 +1544,7 @@ export function CompanyDraftForm({
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-start gap-2">
+            <div className="flex h-8 items-center justify-start gap-2">
               <p className="text-sm font-medium">
                 {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
               </p>
