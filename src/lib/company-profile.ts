@@ -397,7 +397,8 @@ export function sellerPanelFlags(input: {
     cnae: input.principalCnae.trim().length > 0,
     income: input.closedYears.some((year) => year.sales.trim().length > 0),
     balance: input.closedYears.some((year) => year.currentAssets.trim().length > 0 || year.equity.trim().length > 0),
-    structure: input.headcount.trim().length > 0 || input.capitalPercents.some((value) => value.trim().length > 0),
+    // t75: the shareholder split is no longer a seller input; headcount is the structure signal.
+    structure: input.headcount.trim().length > 0,
     price: input.askingPrice.trim().length > 0,
   };
 }

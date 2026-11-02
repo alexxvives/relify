@@ -1320,7 +1320,7 @@ export function CompanyDraftForm({
         hint={companyCopy.slicePrivate}
         open={saveClosed === "structure" ? false : openStructure}
         dirty={structureDirty}
-        done={headcount.length > 0 || capitalPercents.some((value) => value.trim().length > 0)}
+        done={headcount.length > 0}
         onEdit={() => {
           setSaveClosed("");
           setOpenStructure(true);
@@ -1334,15 +1334,11 @@ export function CompanyDraftForm({
           : clientPercents.map((value, index) => (
               <input key={`kept-client-${index}`} type="hidden" name="clientPercent" value={value} />
             ))}
-        <div className="grid items-start gap-6 lg:grid-cols-3">
-          <PercentRows
-            legend={companyCopy.shareholdersLegend}
-            name="capitalPercent"
-            kind="capital"
-            addLabel={companyCopy.addShareholder}
-            values={capitalPercents}
-            onChange={setCapitalPercents}
-          />
+        {/* t75: shareholders live in their own panel; stored capital slices ride along unchanged. */}
+        {capitalPercents.map((value, index) => (
+          <input key={`kept-capital-${index}`} type="hidden" name="capitalPercent" value={value} />
+        ))}
+        <div className="grid items-start gap-6 lg:grid-cols-2">
           <PercentRows
             legend={companyCopy.productsLegend}
             name="productPercent"
