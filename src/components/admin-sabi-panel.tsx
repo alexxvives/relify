@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { sabiJobStageLabel, sabiJobStartedEvent, sabiJobUpdateEvent, type SabiJobUpdate } from "@/lib/sabi/job-events";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, RefreshCw, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
@@ -8,7 +8,7 @@ import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
 import { parseSabiWorkbookStaged, sabiStages, type SabiStage } from "@/lib/sabi/parse";
 import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
-import { CompanyBanner } from "@/components/company-banner";
+import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { AdminReportNotice } from "@/components/admin-report-notice";
 import type { AdminSabiView } from "@/server/getAdminCompany";
 
@@ -27,12 +27,32 @@ function isoDay(iso: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
+type AdminHeader = {
+  title: string;
+  subtitle?: string | null;
+  status?: { label: string; live: boolean };
+  statusNote?: ReactNode;
+  cue?: ReactNode;
+  progress?: ReactNode;
+};
+
 /**
- * Company banner with a compact "Subir SABI" / "Reimportar SABI" button in its top-right corner.
- * t72: the whole banner is the drop zone (highlighted while dragging); the old full-width drop area
- * is gone, and the panel below only appears while reading, importing, previewing or reporting a result.
+ * t81: admin company page without the hero banner. A compact header (codename, region, status,
+ * deal progress) sits above the tabs; "Subir/Reimportar SABI" and "Notificar al vendedor" live at
+ * the right end of the tab row. Header and tab row together are the SABI drop zone.
  */
-export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: Omit<ComponentProps<typeof CompanyBanner>, "children"> }) {
+export function AdminSabiPanel({
+  sabi,
+  header,
+  panels,
+  between = null,
+}: {
+  sabi: AdminSabiView;
+  header: AdminHeader;
+  panels: ComponentProps<typeof InvestorProjectTabs>["panels"];
+  /** Rendered between the header and the tabs (e.g. the buyer label of the selected process). */
+  between?: ReactNode;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<SabiPreview | null>(null);
@@ -181,67 +201,82 @@ export function AdminSabiPanel({ sabi, banner }: { sabi: AdminSabiView; banner: 
   const maxMb = Math.round(sabiMaxBytes / 1024 / 1024);
   const showPanel = busy || Object.keys(stages).length > 0 || preview !== null || error !== null || done !== null;
 
-  return (
-    <>
-      <div {...dropProps} className="relative rounded-[1.75rem]">
-        <CompanyBanner {...banner}>
-          {/* t73: the drag hint sits centred under the button, the pair stacked at the banner's right edge. */}
-          <div className="flex flex-wrap items-start justify-end gap-2">
-          <div className="flex flex-col items-center gap-1">
-            <label
-              title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo al banner.`}
-              className={`inline-flex cursor-pointer items-center gap-2 rounded-full border text-white backdrop-blur focus-within:ring-2 focus-within:ring-white/70 ${
-                sabi.importedAt && !busy ? "h-8 px-3 text-xs font-medium" : "h-9 px-3.5 text-sm font-medium"
-              } ${
-                dragging ? "border-[#7fd6cc] bg-[#0f766e]/60" : sabi.hasCif && !sabi.importedAt ? "border-[#ff8a8a]/80 bg-[#c0362c]/35 hover:bg-[#c0362c]/50" : "border-white/35 bg-white/10 hover:bg-white/20"
-              }`}
-            >
-              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
-              <span>{label}</span>
-              <span className="sr-only"> ({status}). Excel de SABI .xlsx, máximo {maxMb} MB.</span>
-              <input
-                ref={input}
-                type="file"
-                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="sr-only"
-                onChange={(event) => choose(event.target.files?.[0] ?? null)}
-                disabled={busy}
-              />
-            </label>
-            {sabi.importedAt ? null : <span className="hidden text-[11px] leading-4 text-white/75 sm:block">o arrastra el .xlsx al banner</span>}
-          </div>
-          <AdminReportNotice variant="banner" projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
-          </div>
-        </CompanyBanner>
-        {dragging ? (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border-2 border-dashed border-[#7fd6cc] bg-[#0f766e]/80 text-center text-white backdrop-blur-sm"
-          >
-            <UploadCloud className="size-8" aria-hidden />
-            <span className="text-base font-semibold">{busy ? "Espera a que termine la importación" : "Suelta el Excel de SABI para leerlo"}</span>
-            <span className="text-xs text-white/80">.xlsx · máx. {maxMb} MB</span>
-          </div>
-        ) : null}
-      </div>
-      {showPanel ? (
-        <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
-          {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
-          {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
-          {error ? (
-            <p role="alert" className="text-sm font-medium text-[#b42318]">
-              {error}
-            </p>
-          ) : null}
-          {done ? (
-            <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
-              <CheckCircle2 className="size-4" aria-hidden /> {done}
-            </p>
-          ) : null}
-          {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
-        </section>
+  const panel = showPanel ? (
+    <section aria-label="SABI" className="rounded-2xl border border-[#e7eaee] bg-white p-5 sm:p-6">
+      {pending || saving || Object.keys(stages).length > 0 ? <SabiProgress stages={stages} saving={saving ? sabiJobStageLabel(serverStage) : null} parsing={pending && !saving} /> : null}
+      {file && preview ? <p className="text-xs text-[#5c6b78]">{file.name}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm font-medium text-[#b42318]">
+          {error}
+        </p>
       ) : null}
+      {done ? (
+        <p role="status" className="inline-flex items-center gap-2 text-sm font-medium text-[#0f766e]">
+          <CheckCircle2 className="size-4" aria-hidden /> {done}
+        </p>
+      ) : null}
+      {preview ? <PreviewBlock preview={preview} onConfirm={confirm} onCancel={() => choose(null)} pending={busy} /> : null}
+    </section>
+  ) : null;
+
+  const actions = (
+    <>
+      <label
+        title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo a la cabecera.`}
+        className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium focus-within:ring-2 focus-within:ring-[#0f766e]/40 ${
+          dragging
+            ? "border-[#0f766e] bg-[#e6f4f1] text-[#0f766e]"
+            : sabi.hasCif && !sabi.importedAt
+              ? "border-[#e8a39b] bg-[#fdf1ef] text-[#a12f2f] hover:bg-[#fbe4e0]"
+              : "border-[#d5dbe3] bg-white text-[#1c2740] hover:border-[#0f766e] hover:text-[#0f766e]"
+        }`}
+      >
+        {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}
+        <span>{label}</span>
+        <span className="sr-only"> ({status}). Excel de SABI .xlsx, máximo {maxMb} MB.</span>
+        <input
+          ref={input}
+          type="file"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          className="sr-only"
+          onChange={(event) => choose(event.target.files?.[0] ?? null)}
+          disabled={busy}
+        />
+      </label>
+      <AdminReportNotice variant="page" projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
     </>
+  );
+
+  return (
+    <div {...dropProps} className="relative flex flex-col gap-4">
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-2xl font-semibold text-[#1c2740]">{header.title}</h1>
+          {header.subtitle ? <span className="text-sm text-[#5c6b78]">{header.subtitle}</span> : null}
+          {header.status ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e1e5eb] bg-white px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
+              <span className={`size-2 rounded-full ${header.status.live ? "bg-[#2fc4b2]" : "bg-[#c3c9d3]"}`} aria-hidden />
+              {header.status.label}
+            </span>
+          ) : null}
+          {header.statusNote}
+        </div>
+        {header.progress ? <div>{header.progress}</div> : null}
+        {header.cue ? <div className="flex">{header.cue}</div> : null}
+      </header>
+      {between}
+      <InvestorProjectTabs panels={panels} actions={actions} notice={panel ? <div className="mt-4">{panel}</div> : null} />
+      {dragging ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 flex h-64 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#0f766e] bg-[#e6f4f1]/95 text-center text-[#0f766e]"
+        >
+          <UploadCloud className="size-8" aria-hidden />
+          <span className="text-base font-semibold">{busy ? "Espera a que termine la importación" : "Suelta el Excel de SABI para leerlo"}</span>
+          <span className="text-xs">.xlsx · máx. {maxMb} MB</span>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

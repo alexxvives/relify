@@ -5,7 +5,6 @@ import { CompanyReport } from "@/components/company-report";
 import { SabiDetailPanel } from "@/components/sabi-detail-panel";
 import { sabiRegistryIsEmpty } from "@/lib/sabi/registry";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
-import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
@@ -56,24 +55,24 @@ export function AdminCompany({
     <>
       <AdminSabiPanel
         sabi={{ ...view.sabi, extra: null }}
-        banner={{
+        header={{
           title: view.profile.codename,
           subtitle: view.profile.region,
           status: { label: statusLabel(view.status), live: view.status === "published" },
           statusNote: view.publishChecks ? <PublishReadinessChip checks={view.publishChecks} /> : null,
-          cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null,
+          cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} /> : null,
           progress:
             selected && selected.steps.length > 0 ? (
-              <DealPipeline steps={selected.steps} role="advisor" onDark hideAsideCue hideWaitingCue />
+              <DealPipeline steps={selected.steps} role="advisor" hideAsideCue hideWaitingCue />
             ) : null,
         }}
-      />
-      {selected && !view.investor ? (
-        <p className="text-sm text-[#3d4a63]">
-          {adminCopy.investorParty} · {selected.investorLabel}
-        </p>
-      ) : null}
-      <InvestorProjectTabs
+        between={
+          selected && !view.investor ? (
+            <p className="text-sm text-[#3d4a63]">
+              {adminCopy.investorParty} · {selected.investorLabel}
+            </p>
+          ) : null
+        }
         panels={{
           company: (
             <div className="flex flex-col gap-4">
