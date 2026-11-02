@@ -1,5 +1,4 @@
 import { CompanyDraftForm } from "@/components/company-draft-form";
-import { SabiDetailPanel } from "@/components/sabi-detail-panel";
 import { RegistryOverview } from "@/components/company-report";
 import { Card } from "@/components/ui/form";
 import type { SabiDetailForm } from "@/server/sabiDetail";
@@ -13,7 +12,6 @@ export function SellerCompanyPanel({
   focus = null,
   reviewPending = false,
   coverSrc = null,
-  sabiDetail = null,
   sabiRegistry = null,
 }: {
   draft: CompanyDraftInput | null;
@@ -21,6 +19,7 @@ export function SellerCompanyPanel({
   focus?: SellerFocusPanel | null;
   reviewPending?: boolean;
   coverSrc?: string | null;
+  /** t76: no longer shown to sellers (raw accounting detail; figures are loaded by us). Kept for callers. */
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
 }) {
@@ -35,9 +34,8 @@ export function SellerCompanyPanel({
         reportYears={sabiRegistry?.years ?? null}
         coverSrc={coverSrc}
         financeExtra={
-          sabiDetail || sabiRegistry ? (
+          sabiRegistry ? (
             <>
-              {sabiDetail ? <SabiDetailPanel detail={sabiDetail} readOnly /> : null}
               {sabiRegistry && !sabiRegistryIsEmpty(sabiRegistry) ? (
                 <Card id="panel-sabi-registry" className="scroll-mt-6">
                   <h2 className="text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</h2>
