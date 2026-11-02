@@ -1143,6 +1143,7 @@ export function CompanyReport({
             <>
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.incomeHeading}</h3>
+                {pnlCascade(years) ? <PnlCascade reading={pnlCascade(years)!} /> : null}
                 <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ingresos" }} />
               </div>
               <div>
@@ -1159,6 +1160,7 @@ export function CompanyReport({
               {detailRows.length > 0 ? (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
+                  <MiniYearStrip years={years} />
                   <FinancialTable years={detailYears} rows={detailRows} trend grid shareBase={salesBase} />
                 </div>
               ) : null}
@@ -1175,6 +1177,88 @@ export function CompanyReport({
           ) : null}
         </div>
       </ReportSection>
+    </div>
+  );
+}
+
+type Cascade = { year: SabiYear; steps: { label: string; value: number; color: string }[] };
+
+/** t83: last closed year read as ingresos → EBITDA → resultado, each bar against the revenue. */
+function pnlCascade(years: SabiYear[]): Cascade | null {
+  const year = [...years].reverse().find((item) => (item.revenueCents ?? 0) > 0);
+  if (!year || year.revenueCents === null) return null;
+  const steps = [
+    { label: "Ingresos", value: year.revenueCents, color: navy },
+    { label: "EBITDA", value: year.ebitdaCents, color: teal },
+    { label: "Resultado del ejercicio", value: year.netResultCents, color: tealMid },
+  ].flatMap((step) => (step.value !== null && step.value !== undefined ? [{ ...step, value: step.value }] : []));
+  return steps.length >= 2 ? { year, steps } : null;
+}
+
+function PnlCascade({ reading }: { reading: Cascade }) {
+  const base = Math.abs(reading.steps[0]?.value ?? 1) || 1;
+  return (
+    <div className="mb-3 rounded-xl border border-[#e7eaee] bg-white p-3">
+      <p className="mb-2 text-xs text-[#5c6b78]">De los ingresos al resultado en {yearLabel(reading.year)}.</p>
+      <ul className="flex flex-col gap-1.5">
+        {reading.steps.map((step) => {
+          const width = Math.min(100, (Math.abs(step.value) / base) * 100);
+          const negative = step.value < 0;
+          return (
+            <li key={step.label} className="grid grid-cols-[9rem_1fr_auto] items-center gap-3 text-xs sm:grid-cols-[12rem_1fr_auto]">
+              <span className="text-[#3d4a63]">{step.label}</span>
+              <span className="h-3 overflow-hidden rounded bg-[#eef0f4]">
+                <span className="block h-full rounded" style={{ width: `${Math.max(width, 1)}%`, backgroundColor: negative ? "#d98080" : step.color }} />
+              </span>
+              <span className={`text-right font-semibold tabular-nums ${negative ? "text-[#a12f2f]" : "text-[#1c2740]"}`}>{formatEur(step.value)}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** t83: cash at year end and working capital per year as small bars above the detail table. Hidden without two years of data. */
+function MiniYearStrip({ years }: { years: SabiYear[] }) {
+  const series = [
+    { label: "Caja al cierre", values: years.map((year) => year.cashCents) },
+    { label: "Fondo de maniobra", values: years.map((year) => year.workingCapitalCents) },
+  ].filter((item) => item.values.filter((value) => value !== null).length >= 2);
+  if (series.length === 0) return null;
+  return (
+    <div className="mb-3 grid gap-3 rounded-xl border border-[#e7eaee] bg-white p-3 sm:grid-cols-2">
+      {series.map((item) => {
+        const max = Math.max(1, ...item.values.map((value) => Math.abs(value ?? 0)));
+        return (
+          <div key={item.label}>
+            <p className="mb-1 text-xs font-medium text-[#5c6b78]">{item.label}</p>
+            <div className="flex h-14 items-center gap-1.5">
+              {item.values.map((value, index) => {
+                const height = value === null ? 0 : Math.max(4, (Math.abs(value) / max) * 50);
+                const year = years[index];
+                const label = `${year ? yearLabel(year) : ""}: ${value === null ? "sin dato" : formatEur(value)}`;
+                return (
+                  <span key={year?.year ?? index} tabIndex={0} aria-label={label} className="relative flex h-full flex-1 flex-col justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]">
+                    <span className="flex h-1/2 items-end">
+                      {value !== null && value >= 0 ? <span className="block w-full rounded-t" style={{ height: `${height}%`, minHeight: 2, backgroundColor: teal }} /> : null}
+                    </span>
+                    <span className="flex h-1/2 items-start border-t border-[#d6dbe3]">
+                      {value !== null && value < 0 ? <span className="block w-full rounded-b" style={{ height: `${height}%`, minHeight: 2, backgroundColor: "#d98080" }} /> : null}
+                    </span>
+                    <ChartTip text={label} />
+                  </span>
+                );
+              })}
+            </div>
+            <div className="mt-1 flex gap-1.5 text-[10px] text-[#8b95a7]">
+              {years.map((year) => (
+                <span key={year.year} className="flex-1 text-center tabular-nums">{yearLabel(year)}</span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
