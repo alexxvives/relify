@@ -34,6 +34,8 @@ export function HashCleaner() {
         const target = document.getElementById(id);
 
         if (target) {
+          // t84: report sections start collapsed; open the one the hash points at.
+          if (target instanceof HTMLDetailsElement) target.open = true;
           target.scrollIntoView({ block: "start" });
         }
 

@@ -125,7 +125,7 @@ function ReportSection({
   title,
   intro,
   aside,
-  open = true,
+  open = false,
   children,
 }: {
   id: string;
@@ -143,7 +143,7 @@ function ReportSection({
           <Icon className="size-5" aria-hidden />
         </span>
         <h2 className="min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
-        {aside ? <span className="hidden truncate text-sm text-[#5c6b78] sm:block">{aside}</span> : null}
+        {aside ? <span className="max-w-[45%] truncate text-right text-xs text-[#5c6b78] sm:text-sm">{aside}</span> : null}
         <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open/section:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
@@ -621,6 +621,8 @@ export function CompanyReport({
   const facts = role === "admin" ? privateFacts : null;
   const years = (project.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
   const hasYears = years.length > 0;
+  // t84: collapsed section headers show the period covered (no figures, so nothing locked leaks).
+  const periodAside = hasYears ? (years.length === 1 ? `Ejercicio ${yearLabel(years[0]!)}` : `${yearLabel(years[0]!)}–${yearLabel(years[years.length - 1]!)} · ${years.length} ejercicios`) : undefined;
   const lock = (kind: VeilKind, children: ReactNode) => (
     <LockedFigures open={figuresOpen} kind={kind} note={lockedNote} action={lockAction}>
       {children}
@@ -864,7 +866,7 @@ export function CompanyReport({
         )}
       </ReportSection>
 
-      <ReportSection id="evolucion" icon={TrendingUp} title={companyReportCopy.evolution} intro={companyReportCopy.evolutionHint}>
+      <ReportSection id="evolucion" icon={TrendingUp} title={companyReportCopy.evolution} intro={companyReportCopy.evolutionHint} aside={periodAside}>
         {lock(
           "income",
           hasYears && trend.length > 0 ? (
@@ -911,7 +913,7 @@ export function CompanyReport({
       </ReportSection>
 
       {profitability.length > 0 ? (
-        <ReportSection id="rentabilidad" icon={LineChartIcon} title={companyReportCopy.profitability} intro={companyReportCopy.profitabilityHint}>
+        <ReportSection id="rentabilidad" icon={LineChartIcon} title={companyReportCopy.profitability} intro={companyReportCopy.profitabilityHint} aside={periodAside}>
           {lock(
             "balance",
             <div className="space-y-4">
@@ -937,7 +939,7 @@ export function CompanyReport({
       ) : null}
 
       {signals.length > 0 || debt.length > 0 ? (
-        <ReportSection id="solidez" icon={ShieldCheck} title={companyReportCopy.health} intro={companyReportCopy.healthHint}>
+        <ReportSection id="solidez" icon={ShieldCheck} title={companyReportCopy.health} intro={companyReportCopy.healthHint} aside={periodAside}>
           {lock(
             "balance",
             <div className="flex flex-col gap-4">
@@ -966,7 +968,7 @@ export function CompanyReport({
         </ReportSection>
       ) : null}
 
-      <ReportSection id="balance" icon={Scale} title={companyReportCopy.balance} intro={companyReportCopy.balanceHint}>
+      <ReportSection id="balance" icon={Scale} title={companyReportCopy.balance} intro={companyReportCopy.balanceHint} aside={periodAside}>
         {lock(
           "balance",
           hasBalanceYears ? (
@@ -1106,6 +1108,7 @@ export function CompanyReport({
         <ReportSection
           id="revision"
           icon={ClipboardCheck}
+          aside={checks.length > 0 ? `${checks.length} comprobaciones` : undefined}
           title="Revisión para la due diligence"
           intro="Primeras comprobaciones que haría un comprador o su asesor con las cuentas depositadas. Son lecturas automáticas: los valores marcados como aproximados deben confirmarse con el vendedor."
         >
@@ -1142,7 +1145,7 @@ export function CompanyReport({
         </ReportSection>
       ) : null}
 
-      <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} open={false}>
+      <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} aside={periodAside}>
         <div className="flex flex-col gap-6">
           {figuresOpen ? (
             <>
