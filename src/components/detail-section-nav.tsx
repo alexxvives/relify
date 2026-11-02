@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, CircleCheck, Clock, Info, Pencil } from "lucide-react";
+import { AlertCircle, ArrowRight, Circle, CircleCheck, Clock, Info, Pencil } from "lucide-react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 
 export type DetailSectionStatus = "done" | "pending" | "dirty" | "info";
@@ -58,19 +58,19 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
 }
 
 /**
- * t77: section navigation for /mi-empresa/detalles. Desktop: sticky vertical rail with scroll-spy, per-section status
- * and a completion ring. Mobile: sticky horizontal pills. `next` links to the other tab.
+ * t77/t79: section navigation + progress for /mi-empresa/detalles. Desktop: one sticky panel on the RIGHT (as on Inicio)
+ * with the completion ring and a checklist grouped by section: each section row scrolls there (scroll-spy highlight),
+ * its required fields sit underneath with a check or an empty circle and a subtle "Ir" on hover. Merging the section nav
+ * into this panel avoids two sidebars squeezing the form. Mobile: sticky horizontal section pills.
  */
 export function DetailSectionNav({
   items,
   progress,
-  next,
   onMissing,
 }: {
   items: DetailSectionItem[];
-  progress: { done: number; total: number; missing: Array<{ id: string; label: string }> };
-  next?: { label: string; onClick: () => void } | null;
-  /** t78: missing fields that live outside this nav's sections (e.g. on the other tab). */
+  progress: { done: number; total: number; missing: Array<{ id: string; label: string }>; fields?: DetailField[] };
+  /** Required fields that live outside the visible sections (e.g. on the other tab) open their tab first. */
   onMissing?: (id: string) => boolean;
 }) {
   const { active, go } = useScrollSpy(
@@ -78,6 +78,17 @@ export function DetailSectionNav({
     120,
   );
   const complete = progress.done >= progress.total;
+  const fields = progress.fields ?? [];
+  const groups = [
+    ...items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) })),
+    ...extraGroups(fields, items),
+  ];
+
+  function jump(id: string) {
+    return (event: React.MouseEvent) => {
+      if (onMissing?.(id) || go(id)) event.preventDefault();
+    };
+  }
 
   return (
     <>
@@ -106,72 +117,84 @@ export function DetailSectionNav({
         </ul>
       </nav>
 
-      <aside className="hidden lg:block">
-        <nav aria-label="Secciones" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+      <aside className="hidden lg:order-last lg:block">
+        <nav aria-label="Tu progreso" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
           <div className="flex items-center gap-3">
             <CompletionRing done={progress.done} total={progress.total} />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#1c2740]">{complete ? "Todo listo" : "Tu progreso"}</p>
-              <p className="text-xs text-[#64748b]">{complete ? "Has completado lo imprescindible." : `${progress.missing.length} campos obligatorios por completar`}</p>
+              <p className="text-xs text-[#64748b]">
+                {complete ? "Has completado lo imprescindible." : `Te faltan ${progress.missing.length} de ${progress.total} datos`}
+              </p>
             </div>
           </div>
-          {complete ? null : (
-            <div className="-mt-1">
-              <p className="text-xs font-semibold text-[#1c2740]">Falta:</p>
-              <ul className="mt-1 flex flex-col gap-0.5">
-                {progress.missing.map((field) => (
-                  <li key={field.id}>
-                    <a
-                      href={`#${field.id}`}
-                      onClick={(event) => {
-                        if (onMissing?.(field.id) || go(field.id)) event.preventDefault();
-                      }}
-                      className="text-xs font-medium text-[#0f766e] underline decoration-[#7fd6cc] underline-offset-2 hover:text-[#0c5f59] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-                    >
-                      {field.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <ul className="flex flex-col gap-0.5 border-t border-[#eef0f4] pt-3">
-            {items.map((item) => {
+          <ul className="flex flex-col gap-3 border-t border-[#eef0f4] pt-3">
+            {groups.map(({ item, fields: groupFields }) => {
               const current = item.id === active;
               return (
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
-                    onClick={(event) => {
-                      if (go(item.id)) event.preventDefault();
-                    }}
-                    className={`flex items-center gap-2.5 rounded-xl border-l-2 px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                      current ? "border-[#0f766e] bg-[#e6f4f2] font-semibold text-[#1c2740]" : "border-transparent text-[#3d4a63] hover:bg-[#f5f6f8]"
+                    onClick={jump(item.id)}
+                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                      current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}
                   >
-                    <StatusIcon status={item.status} />
+                    <StatusIcon status={item.status} className="size-3.5" />
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     <span className="sr-only">{statusText[item.status]}</span>
                   </a>
+                  {groupFields.length > 0 ? (
+                    <ul className="mt-0.5 ml-[1.0625rem] flex flex-col border-l border-[#eef0f4] pl-2">
+                      {groupFields.map((field) => (
+                        <li key={field.id}>
+                          <a
+                            href={`#${field.id}`}
+                            onClick={jump(field.id)}
+                            className="group flex items-center gap-2 rounded-md px-1.5 py-1 text-xs focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
+                          >
+                            {field.done ? (
+                              <CircleCheck className="size-3.5 shrink-0 text-[#0f766e]" aria-hidden />
+                            ) : (
+                              <Circle className="size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
+                            )}
+                            <span className={`min-w-0 flex-1 truncate ${field.done ? "text-[#8b95a7]" : "font-medium text-[#1c2740]"}`}>{field.label}</span>
+                            <span className="sr-only">{field.done ? "Completo" : "Pendiente"}</span>
+                            {field.done ? null : (
+                              <span aria-hidden className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                                Ir
+                                <ArrowRight className="size-3" />
+                              </span>
+                            )}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </li>
               );
             })}
           </ul>
-          {next ? (
-            <button
-              type="button"
-              onClick={next.onClick}
-              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#1c2740] px-3 text-sm font-semibold text-white hover:bg-[#2a3756] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-            >
-              {next.label}
-              <ArrowRight className="size-4" aria-hidden />
-            </button>
-          ) : null}
         </nav>
       </aside>
     </>
   );
+}
+
+export type DetailField = { id: string; label: string; done: boolean; group: string; groupLabel?: string };
+
+/** Fields whose group is not one of this tab's sections (e.g. the asking price on Ficha pública). */
+function extraGroups(fields: DetailField[], items: DetailSectionItem[]) {
+  const known = new Set(items.map((item) => item.id));
+  const rest = fields.filter((field) => !known.has(field.group));
+  const ids = [...new Set(rest.map((field) => field.group))];
+  return ids.map((id) => {
+    const groupFields = rest.filter((field) => field.group === id);
+    const status: DetailSectionStatus = groupFields.every((field) => field.done) ? "done" : "pending";
+    // The group row jumps to its first field (its tab opens via onMissing).
+    return { item: { id: groupFields[0]?.id ?? id, label: groupFields[0]?.groupLabel ?? id, status } as DetailSectionItem, fields: groupFields };
+  });
 }
 
 /**

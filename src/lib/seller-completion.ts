@@ -26,18 +26,18 @@ function splitDone(values: string[]): boolean {
 
 /**
  * t78: the seller's required fields. A section is complete only when all of its required fields are; the progress
- * ring counts fields and "Falta" names the fields, not the sections.
+ * ring counts fields and the checklist names the fields, not the sections.
  */
 export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
   const businessClients = input.customerBase === "business" || input.customerBase === "mixed";
   return [
-    { id: "panel-sale-reason", label: "Por qué se vende", section: "basic", done: input.saleReason !== "" },
-    { id: "panel-description", label: "Descripción de la empresa", section: "basic", done: input.description.trim() !== "" },
-    { id: "panel-cnae", label: "Sector principal", section: "basic", done: input.principalCnae.trim() !== "" },
+    { id: "panel-sale-reason", label: "Motivo de venta", section: "basic", done: input.saleReason !== "" },
+    { id: "panel-description", label: "Descripción", section: "basic", done: input.description.trim() !== "" },
+    { id: "panel-cnae", label: "Sector", section: "basic", done: input.principalCnae.trim() !== "" },
     { id: "panel-customer", label: "Tipo de clientes", section: "structure", done: input.customerBase !== "" },
-    { id: "panel-product-split", label: "Reparto de ventas por producto", section: "structure", done: splitDone(input.productPercents) },
+    { id: "panel-product-split", label: "Ventas por producto", section: "structure", done: splitDone(input.productPercents) },
     ...(businessClients
-      ? [{ id: "panel-client-split", label: "Reparto de ventas por cliente", section: "structure" as const, done: splitDone(input.clientPercents) }]
+      ? [{ id: "panel-client-split", label: "Ventas por cliente", section: "structure" as const, done: splitDone(input.clientPercents) }]
       : []),
     { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: input.askingPrice.trim() !== "" },
   ];
@@ -52,5 +52,7 @@ export function completionProgress(fields: RequiredField[]) {
     done: fields.filter((field) => field.done).length,
     total: fields.length,
     missing: fields.filter((field) => !field.done).map((field) => ({ id: field.id, label: field.label })),
+    /** t79: every required field with its state, for the grouped checklist. */
+    fields,
   };
 }

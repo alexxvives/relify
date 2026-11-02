@@ -1146,6 +1146,17 @@ export function CompanyDraftForm({
     { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
+  // t79: the right-hand checklist groups each required field under its section.
+  const navProgress = {
+    ...progress,
+    fields: requiredFields.map((field) => ({
+      id: field.id,
+      label: field.label,
+      done: field.done,
+      group: field.section === "basic" ? "panel-basic" : field.section === "structure" ? "panel-structure" : "deal",
+      groupLabel: field.section === "deal" ? companyCopy.detailsDealTab : undefined,
+    })),
+  };
   const dirtySections = [
     { id: "basic", label: companyCopy.basicTitle, dirty: basicDirty },
     { id: "structure", label: companyCopy.structureHeading, dirty: structureDirty },
@@ -1153,7 +1164,7 @@ export function CompanyDraftForm({
     { id: "deal", label: "Ficha pública", dirty: dealDirty },
   ].filter((section) => section.dirty);
 
-  // t78: "Falta" links open the panel (and tab) that holds the field, then scroll to it.
+  // t78/t79: checklist links open the panel (and tab) that holds the field, then scroll to it.
   function goToMissing(id: string): boolean {
     const field = requiredFields.find((item) => item.id === id);
     if (!field) {
@@ -1203,8 +1214,8 @@ export function CompanyDraftForm({
         }}
       />
       {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
-      {tab === "company" ? <DetailSectionNav items={companySections} progress={progress} onMissing={goToMissing} /> : null}
+      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
+      {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       <div className={tab === "company" ? "flex flex-col gap-4" : "hidden"}>
       <Panel

@@ -21,7 +21,7 @@ describe("seller completion (t78)", () => {
 
   it("lists missing fields by name, not by section", () => {
     const progress = completionProgress(sellerRequiredFields({ ...empty, saleReason: "retirement", principalCnae: "1071" }));
-    expect(progress.missing.map((item) => item.label)).toContain("Descripción de la empresa");
+    expect(progress.missing.map((item) => item.label)).toContain("Descripción");
     expect(progress.missing.map((item) => item.label)).not.toContain("Tu empresa");
     expect(progress.done).toBe(2);
   });
