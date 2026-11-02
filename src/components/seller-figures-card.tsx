@@ -53,10 +53,19 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
           </h2>
           <SectionIntro>Las cifras clave de tu último ejercicio y su evolución.</SectionIntro>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
-          <ShieldCheck className="size-3.5" aria-hidden />
-          Lo rellenamos nosotros
-        </span>
+        {/* t85: "Proponer corrección" sits right before the "Lo rellenamos nosotros" label, same row. */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {hasFigures ? (
+            <KitButton type="button" tone="outline" size="sm" aria-expanded={correcting} onClick={() => setCorrecting((open) => !open)}>
+              <MessageSquareText className="size-4" aria-hidden />
+              Proponer corrección
+            </KitButton>
+          ) : null}
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
+            <ShieldCheck className="size-3.5" aria-hidden />
+            Lo rellenamos nosotros
+          </span>
+        </div>
       </div>
 
       {tiles.length > 0 ? (
@@ -89,12 +98,6 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
           <KitButton type="button" tone="outline" size="sm" aria-expanded={detail} onClick={() => setDetail((open) => !open)}>
             {detail ? <ChevronUp className="size-4" aria-hidden /> : <ChevronDown className="size-4" aria-hidden />}
             {detail ? "Ocultar detalle" : "Ver detalle"}
-          </KitButton>
-        ) : null}
-        {hasFigures ? (
-          <KitButton type="button" tone="outline" size="sm" aria-expanded={correcting} onClick={() => setCorrecting((open) => !open)}>
-            <MessageSquareText className="size-4" aria-hidden />
-            Proponer corrección
           </KitButton>
         ) : null}
         {state ? (
