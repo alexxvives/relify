@@ -1478,6 +1478,12 @@ export function CompanyDraftForm({
       const target = document.getElementById(id);
       if (target) scrollToCenter(target);
       target?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
+      // t85: every field gets the same visible teal highlight Descripción shows via its focus ring, even chip/button groups.
+      if (target) {
+        const flash = ["rounded-xl", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
+        target.classList.add(...flash);
+        window.setTimeout(() => target.classList.remove(...flash), 1800);
+      }
     }, 60);
     return true;
   }
