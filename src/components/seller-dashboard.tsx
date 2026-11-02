@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LineChart as LineIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { ChartBox, ColumnBars, KpiTile, LegendDot, LineChart, YearTable, type Series } from "@/components/company-report-charts";
+import { ChartBox, ColumnBars, KpiTile, LegendDot, LegendLine, LineChart, profitabilityStyles, YearTable, type Series } from "@/components/company-report-charts";
 import { metrics, navy, reportMargins, teal, type Metric } from "@/lib/report-format";
 import type { SabiYear } from "@/lib/sabi/insights";
 
@@ -44,8 +44,13 @@ export function SellerDashboard({
     { label: "Ingresos", color: navy, values: years.map((year) => year.revenueCents) },
     { label: "EBITDA", color: teal, values: years.map((year) => year.ebitdaCents) },
   ].filter((item) => item.values.some((value) => value !== null));
+  // t85: margen EBITDA plus margen de beneficio, styled like the ficha's Evolución de la rentabilidad.
+  const profit = kpis.find((metric) => metric.key === "profitMargin");
   const margins: Array<Series & { ns: boolean[] }> = [
-    { label: "Margen EBITDA", color: teal, ...reportMargins(years, (year) => year.ebitdaCents) },
+    { label: "Margen EBITDA", ...profitabilityStyles.ebitdaMargin, ...reportMargins(years, (year) => year.ebitdaCents) },
+    ...(profit
+      ? [{ label: profit.label, ...profitabilityStyles.profitMargin, values: profit.values.map((value, index) => (profit.ns?.[index] ? null : value)), ns: profit.ns ?? years.map(() => false) }]
+      : []),
   ].filter((item) => item.values.some((value) => value !== null) || item.ns.some(Boolean));
 
   return (
@@ -70,9 +75,9 @@ export function SellerDashboard({
             </ChartBox>
             {margins.length > 0 ? (
               <ChartBox
-                title="Margen EBITDA"
-                hint="Qué parte de los ingresos queda como EBITDA. En años con ingresos casi nulos se muestra n/s."
-                legend={margins.map((item) => <LegendDot key={item.label} color={item.color} label={item.label} />)}
+                title="Márgenes"
+                hint="Qué parte de los ingresos queda como EBITDA y como beneficio antes de impuestos. En años con ingresos casi nulos se muestra n/s."
+                legend={margins.map((item) => <LegendLine key={item.label} color={item.color} label={item.label} dash={item.dash} marker={item.marker} />)}
                 table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values, ns: item.ns }))} />}
               >
                 <LineChart years={years} series={margins} unit="pct" />

@@ -38,6 +38,7 @@ import {
   KpiTile,
   LegendDot,
   LegendLine,
+  profitabilityStyles,
   LineChart,
   People,
   Section,
@@ -689,15 +690,9 @@ export function CompanyReport({
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
   // t84: colourblind-safe (Okabe-Ito based, with brand navy/teal) plus dash + marker per line.
-  const profitabilityStyles: Record<string, Partial<Pick<Series, "color" | "dash" | "marker">>> = {
-    ebitdaMargin: { color: "#0f766e", marker: "circle" },
-    profitMargin: { color: "#d55e00", dash: "6 4", marker: "square" },
-    economicReturn: { color: "#1c2740", dash: "2 3", marker: "diamond" },
-    financialReturn: { color: "#56b4e9", dash: "10 3 2 3", marker: "triangle" },
-  };
   // t81: all four curves (t71 left the two margins out whenever ROA/ROE existed); n/s years are gaps, not -13.459 %.
   const profitabilityTrend: Series[] = profitability
-    .map((metric) => ({ label: metric.label, color: navy, ...profitabilityStyles[metric.key], values: metric.values.map((value, index) => (metric.ns?.[index] ? null : value)) }))
+    .map((metric) => ({ label: metric.label, ...(profitabilityStyles[metric.key] ?? { color: navy }), values: metric.values.map((value, index) => (metric.ns?.[index] ? null : value)) }))
     .filter((item) => item.values.some((value) => value !== null));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
   const employees = years.map((year) => year.employees);
