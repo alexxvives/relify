@@ -6,7 +6,7 @@ import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -1139,7 +1139,6 @@ export function CompanyDraftForm({
   const basicDone = sectionComplete(requiredFields, "basic");
   const structureDone = sectionComplete(requiredFields, "structure");
   const priceDone = sectionComplete(requiredFields, "deal");
-  const descriptionMissing = description.trim() === "";
   const companySections: DetailSectionItem[] = [
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
@@ -1317,21 +1316,12 @@ export function CompanyDraftForm({
             name="description"
             rows={4}
             maxLength={descriptionMaxLength}
-            placeholder={`${companyCopy.descriptionPlaceholder} (máx. ${descriptionMaxLength} caracteres)`}
+            placeholder={companyCopy.descriptionPlaceholder}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             aria-label={companyCopy.descriptionLabel}
             aria-required="true"
-            aria-invalid={descriptionMissing || undefined}
-            aria-describedby={descriptionMissing ? "description-missing" : undefined}
-            className={descriptionMissing ? "border-[#e0a526] bg-[#fffbeb]" : undefined}
           />
-          {descriptionMissing ? (
-            <p id="description-missing" className="flex items-start gap-1.5 text-sm font-medium text-[#8a5a00]">
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-              Añade una descripción de tu empresa: qué hace, clientes, diferencial.
-            </p>
-          ) : null}
           <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
             <span>
               {description.length} / {descriptionMaxLength}

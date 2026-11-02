@@ -95,7 +95,7 @@ export const companyCopy = {
     "La facturación sale de las ventas de {year}. El EBITDA, el precio, el EBITDA ajustado y el OPEX se escriben aquí.",
   descriptionGuide:
     "Proporciona datos clave sobre la actividad de la empresa, la variedad de productos y servicios, la experiencia en el sector y los principales canales de venta. Recuerda no revelar el nombre real ni la página web para preservar la confidencialidad.",
-  descriptionPlaceholder: "Añade una pequeña descripción de tu empresa.",
+  descriptionPlaceholder: "Qué hace tu empresa, sus clientes y qué la diferencia",
   descriptionProgress:
     "Vas por buen camino, pero podrías desarrollar un poco más para que el comprador entienda mejor la dimensión y enfoque del negocio.",
   generalHeading: "Descripción general",
