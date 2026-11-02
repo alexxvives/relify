@@ -34,7 +34,7 @@ export function FinancialTable({
 
   return (
     <div className="layout-table">
-      <table className={aligned ? "w-full table-fixed border-collapse text-sm" : "border-collapse text-sm"}>
+      <table className={aligned ? "w-full! min-w-[30rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"}>
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
             <th className={`py-3 pr-4 text-left font-medium ${aligned ? "w-[44%] font-semibold text-[#1c2740]" : ""}`}>{title ?? companyCopy.evolutionLabel}</th>
