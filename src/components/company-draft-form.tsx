@@ -156,7 +156,7 @@ function latestClosedWithSales(years: ClosedYearInput[]): ClosedYearInput | null
 }
 
 function marginText(revenue: string, ebitda: string): string {
-  if (!unsignedEuroPattern.test(revenue.trim()) || !unsignedEuroPattern.test(ebitda.trim())) {
+  if (!unsignedEuroPattern.test(revenue.trim()) || !signedEuroPattern.test(ebitda.trim())) {
     return companyCopy.unavailable;
   }
 
@@ -412,11 +412,11 @@ function FichaMetrics({
 }
 
 function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
-  const cents = euroCentsOrNull(value);
+  const cents = signedEuroPattern.test(value.trim()) ? eurosToCents(value.trim()) : null;
   return (
     <MetricTile label={label}>
       <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
-        {cents !== null && cents > 0 ? wholeEur(cents) : <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>}
+        {cents !== null && cents !== 0 ? <span className={cents < 0 ? "text-[#b42318]" : undefined}>{wholeEur(cents)}</span> : <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>}
       </span>
       <span className="mt-1 inline-flex items-center gap-1 text-xs text-[#667085]">
         <Lock className="size-3" aria-hidden />
@@ -1072,8 +1072,9 @@ export function CompanyDraftForm({
   const accountYear = latestClosedWithSales(closedYears);
   const salesFromAccounts = accountYear && unsignedEuroPattern.test(accountYear.sales.trim()) ? accountYear.sales.trim() : null;
   const ebitdaCentsFromAccounts = accountYear ? incomeValue("ebitda", previewPnl(accountYear)) : null;
-  const ebitdaFromAccounts =
-    ebitdaCentsFromAccounts !== null && ebitdaCentsFromAccounts >= 0 ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
+  // t80: a negative EBITDA is still the real figure (it used to be dropped, so DEALE showed "Pendiente de cargar").
+  // Only the price estimate needs a positive basis, and euroCentsOrNull below stays unsigned for that.
+  const ebitdaFromAccounts = ebitdaCentsFromAccounts !== null ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
   const adjustedEbitdaCents = euroCentsOrNull(adjustedEbitda);
   const ebitdaBasisCents = adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? adjustedEbitdaCents : euroCentsOrNull(ebitdaFromAccounts ?? ebitda);
   const priceEstimate = estimatePriceRange({
@@ -2040,7 +2041,7 @@ function MarketPreview({
     codename: codename.trim().length > 0 ? codename : companyCopy.codenameLabel,
     region: region.trim().length > 0 ? region : companyCopy.regionLabel,
     revenueCents: previewCents(revenue) ?? 0,
-    ebitdaCents: previewCents(ebitda) ?? 0,
+    ebitdaCents: signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : 0,
     adjustedEbitdaCents: previewCents(adjustedEbitda) ?? 0,
     askingPriceCents: previewCents(askingPrice) ?? 0,
     sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,

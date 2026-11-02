@@ -24,4 +24,14 @@ describe("draftInvestorPreview", () => {
     expect(preview.codename).toBe("Proyecto Cala");
     expect(preview.slug).not.toContain(" ");
   });
+
+  it("keeps a negative EBITDA and its margin (t80, DEALE showed 0 €)", () => {
+    const preview = draftInvestorPreview({
+      ...emptyCompanyDraft(new Date("2026-06-01T00:00:00.000Z")),
+      revenue: "1654133,67",
+      ebitda: "-109998,88",
+    });
+    expect(preview.ebitdaCents).toBe(-10_999_888);
+    expect(preview.ebitdaMarginBp).toBe(-665);
+  });
 });

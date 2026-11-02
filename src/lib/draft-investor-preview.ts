@@ -103,7 +103,8 @@ function yearNumber(value: string): number | null {
 
 export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectProfile {
   const revenueCents = unsignedCents(input.revenue);
-  const ebitdaCents = unsignedCents(input.ebitda);
+  // t80: keep a negative EBITDA (from the accounts) instead of showing 0 €.
+  const ebitdaCents = signedCents(input.ebitda) ?? 0;
   const incomeSource = [
     ...input.closedYears.map((year) => ({ year: yearNumber(year.year), forecast: false, amounts: pnlFrom(year) })),
     { year: yearNumber(input.forecastYear.year), forecast: true, amounts: pnlFrom(input.forecastYear) },
