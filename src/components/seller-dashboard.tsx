@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { LineChart as LineIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { ChartBox, ColumnBars, KpiTile, LegendDot, LegendLine, LineChart, profitabilityStyles, YearTable, type Series } from "@/components/company-report-charts";
@@ -87,12 +86,6 @@ export function SellerDashboard({
         </Block>
       ) : null}
 
-      <Link
-        href="/mi-empresa/detalles?seccion=price#ficha-detalles"
-        className="self-start text-sm font-medium text-[#0f766e] underline-offset-2 hover:underline"
-      >
-        Ver el informe completo de tu ficha
-      </Link>
     </div>
   );
 }
