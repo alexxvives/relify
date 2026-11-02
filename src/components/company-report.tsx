@@ -40,6 +40,7 @@ import {
   People,
   Section,
   SignalGauge,
+  ShareholderTable,
   Toggle,
   Waterfall,
   YearTable,
@@ -68,7 +69,7 @@ import {
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
 import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
-import { formatHolderName, formatHoldingPercent, holderTypeLabel } from "@/lib/sabi/holders";
+import { formatHolderName } from "@/lib/sabi/holders";
 import type { SabiHolding } from "@/lib/sabi/parse";
 import type { SabiRegistry } from "@/lib/sabi/registry";
 
@@ -369,35 +370,6 @@ export function ShareholdersPanel({ holdings }: { holdings: SabiHolding[] }) {
         </div>
       </div>
     </Section>
-  );
-}
-
-function ShareholderTable({ rows }: { rows: SabiHolding[] }) {
-  return (
-    <table className="w-full min-w-0 text-left text-sm">
-      <caption className="sr-only">Accionistas y su participación</caption>
-      <thead className="text-xs text-[#5c6b78]">
-        <tr className="border-b border-[#eef0f4]">
-          <th scope="col" className="py-2 pr-3 font-semibold">Accionista</th>
-          <th scope="col" className="py-2 text-right font-semibold">Participación</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, index) => {
-          const type = holderTypeLabel(row.type);
-          const share = formatHoldingPercent(row.direct) ?? formatHoldingPercent(row.total);
-          return (
-            <tr key={`${row.name}-${index}`} className="border-b border-[#eef0f4] last:border-0">
-              <td className="min-w-0 py-2 pr-3">
-                <span className="block break-words font-medium text-[#1c2740]">{row.name}</span>
-                {type || row.country ? <span className="block text-xs text-[#5c6b78]">{[type, row.country].filter(Boolean).join(" · ")}</span> : null}
-              </td>
-              <td className="py-2 text-right align-top font-semibold whitespace-nowrap text-[#0f5f59] tabular-nums">{share ?? "Sin dato"}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
   );
 }
 

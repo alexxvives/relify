@@ -1,6 +1,6 @@
 "use client";
 
-import { formatHoldingPercent, holderTypeLabel } from "@/lib/sabi/holders";
+import { formatHoldingPercent, holderTypeLabel, topShareholders } from "@/lib/sabi/holders";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { FieldHint } from "@/components/field-hint";
@@ -668,5 +668,61 @@ export function SignalGauge({ signal }: { signal: HealthSignal }) {
       </div>
       <p className="mt-3 text-sm leading-6 text-[#3d4a63]">{signal.reading}</p>
     </section>
+  );
+}
+
+/** t77: shareholders next to the donut: top stakes plus one grouped "sin %" line, sized to the chart; "Ver más (N)" for the rest. */
+export function ShareholderTable({ rows }: { rows: SabiHolding[] }) {
+  const [all, setAll] = useState(false);
+  const top = topShareholders(rows);
+  const visible = all ? [...top.known, ...top.unknown] : top.shown;
+  return (
+    <div className="flex min-w-0 flex-col">
+      <table className="w-full min-w-0 text-left text-sm">
+        <caption className="sr-only">Accionistas y su participación</caption>
+        <thead className="text-xs text-[#5c6b78]">
+          <tr className="border-b border-[#eef0f4]">
+            <th scope="col" className="py-2 pr-3 font-semibold">Accionista</th>
+            <th scope="col" className="py-2 text-right font-semibold">Participación</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map((row, index) => {
+            const type = holderTypeLabel(row.type);
+            const share = formatHoldingPercent(row.direct) ?? formatHoldingPercent(row.total);
+            return (
+              <tr key={`${row.name}-${index}`} className="border-b border-[#eef0f4] last:border-0">
+                <td className="min-w-0 py-2 pr-3">
+                  <span className="block truncate font-medium text-[#1c2740]" title={row.name}>{row.name}</span>
+                  {type || row.country ? <span className="block text-xs text-[#5c6b78]">{[type, row.country].filter(Boolean).join(" · ")}</span> : null}
+                </td>
+                <td className="py-2 text-right align-top font-semibold whitespace-nowrap text-[#0f5f59] tabular-nums">{share ?? "Sin dato"}</td>
+              </tr>
+            );
+          })}
+          {!all && top.unknown.length > 0 ? (
+            <tr>
+              <td className="py-2 pr-3">
+                <span className="block font-medium text-[#1c2740]">
+                  {top.unknown.length === 1 ? "1 accionista más" : `${top.unknown.length} accionistas más`}
+                </span>
+                <span className="block text-xs text-[#5c6b78]">Sin porcentaje publicado en el registro</span>
+              </td>
+              <td className="py-2 text-right align-top text-xs font-semibold whitespace-nowrap text-[#5c6b78]">Sin dato</td>
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+      {top.hidden > 0 ? (
+        <button
+          type="button"
+          aria-expanded={all}
+          onClick={() => setAll((open) => !open)}
+          className="mt-2 self-start rounded-lg px-2 py-1 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        >
+          {all ? "Ver menos" : `Ver más (${top.hidden})`}
+        </button>
+      ) : null}
+    </div>
   );
 }

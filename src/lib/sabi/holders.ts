@@ -56,3 +56,19 @@ export function formatHoldingPercent(text: string | null | undefined): string | 
   const value = (share.basisPoints / 100).toLocaleString("es-ES", { maximumFractionDigits: 2 });
   return `${share.atLeast ? "> " : ""}${value} %`;
 }
+
+/**
+ * t77: the shareholders table shows only what fits next to the donut: the biggest known stakes first, then one
+ * grouped line for holders with no published %. Everything else waits behind "Ver más (N)".
+ */
+export function topShareholders<T extends { direct: string | null; total: string | null }>(holdings: T[], limit = 5): { known: T[]; unknown: T[]; shown: T[]; hidden: number } {
+  const withShare = holdings.map((holder, index) => ({ holder, index, share: parseSabiPercent(holder.direct) ?? parseSabiPercent(holder.total) }));
+  const known = withShare
+    .filter((item) => item.share)
+    .sort((a, b) => b.share!.basisPoints - a.share!.basisPoints || a.index - b.index)
+    .map((item) => item.holder);
+  const unknown = withShare.filter((item) => !item.share).map((item) => item.holder);
+  const room = unknown.length > 0 ? Math.max(1, limit - 1) : limit;
+  const shown = known.slice(0, room);
+  return { known, unknown, shown, hidden: holdings.length - shown.length };
+}
