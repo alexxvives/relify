@@ -116,3 +116,14 @@ describe("company draft money and slug", () => {
     expect(placed.forecastYear.sales).toBe("");
   });
 });
+
+describe("empty + rows (t85)", () => {
+  it("ignores rows added with + but left empty", () => {
+    const parsed = companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", secondaryCnaes: [""], productPercents: ["", " "], capitalPercents: [""] }));
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.secondaryCnaes).toEqual([]);
+      expect(parsed.data.productPercents).toEqual([]);
+    }
+  });
+});

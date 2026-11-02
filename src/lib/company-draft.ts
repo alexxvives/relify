@@ -110,16 +110,16 @@ export const companyDraftSchema = z
     description: z.string().trim().max(descriptionMaxLength, "description"),
     saleReason: z.union([z.literal(""), z.enum(saleReasons)]),
     principalCnae: z.string().trim(),
-    secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count"),
+    secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count").transform(dropEmptyRows),
     revenue: optionalEuroText,
     ebitda: optionalEuroText,
     adjustedEbitda: optionalEuroText,
     ebitdaAdjustments: z.string().max(8000, "adjustment-format"),
     askingPrice: optionalEuroText,
     opex: optionalEuroText,
-    capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
-    productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
-    clientPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
+    capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
+    productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
+    clientPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     customerBase: z.union([z.literal(""), z.enum(customerBases)]),
     headcount: z.union([z.literal(""), z.enum(headcountRanges)]),
     closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema]),
@@ -150,6 +150,11 @@ export const companyDraftSchema = z
       ctx.addIssue({ code: "custom", message: "duplicate-year", path: ["closedYears"] });
     }
   });
+
+/** t85: a row added with "+" but never filled is not data; ignore it instead of failing the save. */
+function dropEmptyRows(values: string[]): string[] {
+  return values.filter((value) => value.length > 0);
+}
 
 export type CompanyDraftInput = z.infer<typeof companyDraftSchema>;
 export type ClosedYearInput = CompanyDraftInput["closedYears"][number];

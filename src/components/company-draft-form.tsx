@@ -888,7 +888,10 @@ function Fact({
   );
 }
 
-function sameList(left: readonly string[], right: readonly string[]): boolean {
+/** t85: empty rows added with "+" don't count as a change until they get a value. */
+function sameList(rawLeft: readonly string[], rawRight: readonly string[]): boolean {
+  const left = rawLeft.filter((value) => value.trim().length > 0);
+  const right = rawRight.filter((value) => value.trim().length > 0);
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
