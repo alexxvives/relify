@@ -1214,25 +1214,34 @@ export function CompanyReport({
         <div className="flex flex-col gap-6">
           {figuresOpen ? (
             <>
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.balanceHeading}</h3>
-                {composition ? <BalanceComposition reading={composition} /> : null}
-                <FinancialTable years={project.balanceYears} rows={project.balanceRows} trend grid shareOf={{ key: "totalAssets", label: "activo" }} />
+              {/* t85: every table is its own card with a header bar, so the four tables never run together. */}
+              <div className={detailCard}>
+                <h3 className={detailCardHead}>{companyCopy.balanceHeading}</h3>
+                <div className="p-3 sm:p-4">
+                  {composition ? <BalanceComposition reading={composition} /> : null}
+                  <FinancialTable years={project.balanceYears} rows={project.balanceRows} trend grid shareOf={{ key: "totalAssets", label: "activo" }} />
+                </div>
               </div>
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.incomeHeading}</h3>
-                <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ingresos" }} />
+              <div className={detailCard}>
+                <h3 className={detailCardHead}>{companyCopy.incomeHeading}</h3>
+                <div className="p-3 sm:p-4">
+                  <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ingresos" }} />
+                </div>
               </div>
               {indicatorRows.length > 0 ? (
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">Ratios</h3>
-                  <IndicatorTable years={detailYears} rows={indicatorRows} aligned />
+                <div className={detailCard}>
+                  <h3 className={detailCardHead}>Ratios</h3>
+                  <div className="p-3 sm:p-4">
+                    <IndicatorTable years={detailYears} rows={indicatorRows} aligned />
+                  </div>
                 </div>
               ) : null}
               {detailRows.length > 0 ? (
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-[#1c2740]">{companyCopy.detailHeading}</h3>
-                  <FinancialTable years={detailYears} rows={detailRows} trend grid shareBase={salesBase} />
+                <div className={detailCard}>
+                  <h3 className={detailCardHead}>{companyCopy.detailHeading}</h3>
+                  <div className="p-3 sm:p-4">
+                    <FinancialTable years={detailYears} rows={detailRows} trend grid shareBase={salesBase} />
+                  </div>
                 </div>
               ) : null}
             </>
@@ -1251,6 +1260,9 @@ export function CompanyReport({
     </div>
   );
 }
+
+const detailCard = "overflow-hidden rounded-2xl border border-[#e3e8ee] bg-white";
+const detailCardHead = "border-b border-[#e3e8ee] bg-[#f4f6f9] px-4 py-2.5 text-sm font-semibold text-[#1c2740]";
 
 type Composition = { year: SabiYear; assets: { label: string; value: number; color: string }[]; funding: { label: string; value: number; color: string }[] };
 
