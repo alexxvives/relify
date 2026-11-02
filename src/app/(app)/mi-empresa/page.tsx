@@ -79,6 +79,7 @@ async function CompanyPageContent({
         funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
         checklist={overview.checklist}
+        recommended={overview.recommended}
         payBlocked={overview.payBlocked}
         dashboard={dashboard}
         pending={homePendingActions(

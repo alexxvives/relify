@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SabiPendingOverlay } from "@/components/sabi-pending-notice";
-import { Check, Circle } from "lucide-react";
+import { Check, Circle, Plus } from "lucide-react";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
@@ -13,7 +13,7 @@ import type { SellerDashboard as SellerDashboardData } from "@/server/getSellerD
 import { billingCopy } from "@/lib/billing-copy";
 import { companyCopy } from "@/lib/company-copy";
 import type { NotificationView } from "@/lib/notifications";
-import { type PublishChecklist } from "@/lib/publish-checklist";
+import { type CheckItem, type PublishChecklist, type RecommendedCheckKey } from "@/lib/publish-checklist";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
@@ -27,6 +27,7 @@ export function SellerOverview({
   payBlocked = null,
   funnel,
   checklist,
+  recommended = [],
   dashboard,
   pending,
   sold = false,
@@ -43,6 +44,7 @@ export function SellerOverview({
   funnel: SellerFunnel;
   notifications: NotificationView[];
   checklist: PublishChecklist;
+  recommended?: CheckItem<RecommendedCheckKey>[];
   dashboard: SellerDashboardData;
   pending: HomePendingAction[];
 }) {
@@ -137,19 +139,43 @@ export function SellerOverview({
                   </li>
                 );
               })}
-              <li className="border-t border-[#e6eaf5]">
+            </ul>
+            <p className="mt-4 mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide text-[#8a6112] uppercase">
+              {companyCopy.cardPhotosRecommended}
+              <span className="font-normal tracking-normal text-[#667085] normal-case">· no bloquea la publicación</span>
+            </p>
+            <ul className="overflow-hidden rounded-xl border border-dashed border-[#ecd9a6] bg-[#fffdf5]">
+              {recommended.map((item) => (
+                <li key={item.key} className="border-t border-dashed border-[#f1e4bf] first:border-t-0">
+                  {item.done ? (
+                    <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#17663a]">
+                      {item.label}
+                      <Check className="size-4 shrink-0" aria-label="Hecho" />
+                    </div>
+                  ) : (
+                    <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#1c2740] hover:bg-[#fff6dc]">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        {item.label}
+                        {item.hint ? <FieldHint text={item.hint} /> : null}
+                      </span>
+                      <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Recomendado" />
+                    </Link>
+                  )}
+                </li>
+              ))}
+              <li className="border-t border-dashed border-[#f1e4bf] first:border-t-0">
                 {hasPhoto ? (
-                  <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740]">
-                    <span className="text-[#17663a]">{sellerCopy.panelPhoto}</span>
-                    <Check className="size-4 shrink-0 text-[#17663a]" aria-hidden />
+                  <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#17663a]">
+                    {sellerCopy.panelPhoto}
+                    <Check className="size-4 shrink-0" aria-hidden />
                   </div>
                 ) : (
-                  <Link href={photoHref} className="flex items-center justify-between gap-3 bg-[#fff8db] px-3 py-3 text-sm text-[#1c2740]">
+                  <Link href={photoHref} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#1c2740] hover:bg-[#fff6dc]">
                     <span className="flex min-w-0 items-center gap-1.5">
                       {sellerCopy.panelPhoto}
                       <FieldHint text={sellerCopy.panelPhotoHint} />
                     </span>
-                    <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
+                    <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Recomendado" />
                   </Link>
                 )}
               </li>

@@ -97,3 +97,38 @@ export function adminChecksMessage(checks: AdminPublishChecks): string {
   const financialsMissing = checks.items.some((item) => item.key !== "ebitda" && !item.done);
   return financialsMissing ? financialsPendingMessage : ebitdaBlockedMessage;
 }
+
+/**
+ * t85: steps that make the ficha stronger but never block publishing (the auto-publish rule above
+ * stays as is). The client split only applies when the company sells to businesses.
+ */
+export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda";
+
+export const recommendedCheckLabels: Record<RecommendedCheckKey, string> = {
+  customer: "¿A quién vendes?",
+  productSplit: "Productos y servicios",
+  clientSplit: "Reparto por clientes",
+  adjustedEbitda: "EBITDA ajustado",
+};
+
+export function recommendedChecklist(input: {
+  customerBase: "business" | "consumer" | "mixed" | null;
+  productSlices: number;
+  clientSlices: number;
+  adjustments: number;
+}): CheckItem<RecommendedCheckKey>[] {
+  const items: Omit<CheckItem<RecommendedCheckKey>, "label">[] = [
+    { key: "customer", done: input.customerBase !== null, href: detailHref("structure", "panel-customer") },
+    { key: "productSplit", done: input.productSlices > 0, href: detailHref("structure", "panel-product-split") },
+  ];
+  if (input.customerBase === "business" || input.customerBase === "mixed") {
+    items.push({ key: "clientSplit", done: input.clientSlices > 0, href: detailHref("structure", "panel-client-split") });
+  }
+  items.push({
+    key: "adjustedEbitda",
+    done: input.adjustments > 0,
+    href: detailHref("price", "ebitda-ajustado"),
+    hint: "Si hay gastos o ingresos que un comprador no tendría, añádelos como ajustes para mostrar lo que el negocio gana de verdad.",
+  });
+  return items.map((item) => ({ ...item, label: recommendedCheckLabels[item.key] }));
+}

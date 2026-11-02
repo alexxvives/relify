@@ -10,7 +10,8 @@ import {
   type SellerPanelFlags,
   type SliceKind,
 } from "@/lib/company-profile";
-import { adminChecksMessage, adminPublishChecks, publishChecklist, type PublishChecklist } from "@/lib/publish-checklist";
+import { adminChecksMessage, adminPublishChecks, publishChecklist, recommendedChecklist, type CheckItem, type PublishChecklist, type RecommendedCheckKey } from "@/lib/publish-checklist";
+import { storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 
@@ -56,6 +57,8 @@ const emptyPanels: SellerPanelFlags = {
 export async function getSellerOverview(ownerId: string): Promise<{
   panels: SellerPanelFlags;
   checklist: PublishChecklist;
+  /** t85: non-blocking "Recomendado" steps shown under the required ones. */
+  recommended: CheckItem<RecommendedCheckKey>[];
   /** t75: why "Publicar · pagar" cannot run yet (financials not loaded / EBITDA <= 0), or null. */
   payBlocked: string | null;
   series: SellerYearPoint[];
@@ -74,6 +77,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
           ebitdaCents: true,
           askingPriceCents: true,
           customerBase: true,
+          ebitdaAdjustments: true,
           headcountRange: true,
           cnaes: { select: { role: true, code: true } },
           activitySlices: {
@@ -109,6 +113,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     return {
       panels: emptyPanels,
       checklist: publishChecklist({ panels: emptyPanels, saleReason: false }),
+      recommended: recommendedChecklist({ customerBase: null, productSlices: 0, clientSlices: 0, adjustments: 0 }),
       payBlocked: null,
       series: [],
       mixes: [],
@@ -162,6 +167,12 @@ export async function getSellerOverview(ownerId: string): Promise<{
   return {
     panels,
     checklist,
+    recommended: recommendedChecklist({
+      customerBase: project.customerBase,
+      productSlices: project.activitySlices.filter((slice) => slice.kind === "product").length,
+      clientSlices: project.activitySlices.filter((slice) => slice.kind === "client").length,
+      adjustments: storedEbitdaAdjustments(project.ebitdaAdjustments)?.length ?? 0,
+    }),
     payBlocked: admin.ready ? null : adminChecksMessage(admin),
     series,
     mixes: mixGroups(project.activitySlices, project.customerBase),
