@@ -2,7 +2,6 @@ import { CompanyDraftForm } from "@/components/company-draft-form";
 import { SabiDetailPanel } from "@/components/sabi-detail-panel";
 import { RegistryOverview } from "@/components/company-report";
 import { Card } from "@/components/ui/form";
-import { RegistrySummaryCard } from "@/components/registry-summary-card";
 import type { SabiDetailForm } from "@/server/sabiDetail";
 import { sabiRegistryIsEmpty, type SabiRegistry } from "@/lib/sabi/registry";
 import type { CompanyDraftInput } from "@/lib/company-draft";
@@ -28,7 +27,6 @@ export function SellerCompanyPanel({
   const registryImported = Boolean(sabiRegistry && sabiRegistry.years.length > 0);
   return (
     <>
-      {sabiRegistry && registryImported ? <RegistrySummaryCard registry={sabiRegistry} legalName={draft?.legalName ?? ""} cif={cif} /> : null}
       <CompanyDraftForm
         registryImported={registryImported}
         key={cif || "nueva"}
