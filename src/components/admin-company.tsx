@@ -4,6 +4,7 @@ import { AdminSabiPanel } from "@/components/admin-sabi-panel";
 import { CompanyReport } from "@/components/company-report";
 import { SabiDetailPanel } from "@/components/sabi-detail-panel";
 import { sabiRegistryIsEmpty } from "@/lib/sabi/registry";
+import { sabiDetailDuplicates } from "@/lib/sabi/detail-duplicates";
 import { DealPipeline, DealWaitingCue } from "@/components/deal-pipeline";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { adminCopy } from "@/lib/admin-copy";
@@ -82,7 +83,11 @@ export function AdminCompany({
                 registry={view.sabiRegistry && !sabiRegistryIsEmpty(view.sabiRegistry) ? view.sabiRegistry : null}
                 privateFacts={view.privateFacts}
                 privateHeading={adminCopy.privateHeading}
-                adminDetail={view.sabiDetail ? <SabiDetailPanel detail={view.sabiDetail} readOnly /> : null}
+                adminDetail={
+                  view.sabiDetail ? (
+                    <SabiDetailPanel detail={view.sabiDetail} readOnly hide={[...sabiDetailDuplicates(view.sabiDetail, view.profile.reportYears ?? [], view.sabiRegistry)]} />
+                  ) : null
+                }
                 registryActivity={view.sabi.activityDescription ?? null}
               />
             </div>
