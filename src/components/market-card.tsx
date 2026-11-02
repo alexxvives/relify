@@ -193,6 +193,7 @@ export function MarketCard({
   muted = false,
   href: hrefOverride,
   hidePhotoTags = false,
+  priceUnset = "A consultar",
 }: {
   project: PublicProjectCard;
   actions?: ReactNode;
@@ -201,6 +202,8 @@ export function MarketCard({
   href?: string;
   /** Admin grid drops the location/size/age chips on the photo. */
   hidePhotoTags?: boolean;
+  /** t83: shown when there is no asking price ("A consultar" for buyers, "Sin definir" in the seller preview). */
+  priceUnset?: string;
 }) {
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
@@ -398,7 +401,7 @@ export function MarketCard({
           />
           <Figure
             label="Precio de venta"
-            value={card(project.askingPriceCents)}
+            value={card(project.askingPriceCents) ?? priceUnset}
             edge="both"
             strong
             note={years === null ? null : <RoiChip years={years} fit />}

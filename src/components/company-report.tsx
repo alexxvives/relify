@@ -593,6 +593,7 @@ export function CompanyReport({
   registryActivity = null,
   buyerRegistry = null,
   navBelowTabs = false,
+  sellerPreview = null,
 }: {
   project: InvestorProjectProfile;
   role: ReportRole;
@@ -609,6 +610,8 @@ export function CompanyReport({
   buyerRegistry?: BuyerRegistry | null;
   /** t81: the report sits under the seller's floating toggle; its section bar sticks below it. */
   navBelowTabs?: boolean;
+  /** t83: seller's own preview: "Sin definir" price and an empty "Qué vende y a quién" with a fill action. */
+  sellerPreview?: { mixAction: ReactNode } | null;
 }) {
   const registry = registryForRole(fullRegistry, role);
   const buyerView = role === "buyer" ? buyerRegistry : null;
@@ -624,6 +627,10 @@ export function CompanyReport({
   );
 
   const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  // t83: never "0 €"; the seller sees it as missing, buyers as "A consultar".
+  const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
+  const priceUnsetNote = sellerPreview || role === "admin" ? "Defínelo en «Datos de la ficha»." : "El vendedor no lo ha publicado todavía.";
+  const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const lastEmployees = lastValue(years, (year) => year.employees);
   const age = project.foundedYear !== null ? new Date().getFullYear() - project.foundedYear : null;
@@ -708,10 +715,10 @@ export function CompanyReport({
           <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={<span>Margen {margin}</span>} />
           <Kpi
             label={companyCopy.askingPriceLabel}
-            value={project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : "Pendiente"}
+            value={project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
             tone={project.askingPriceCents > 0 ? "ink" : "pending"}
             hint={project.askingPriceCents > 0 ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.` : "El vendedor aún no ha indicado precio. El registro no lo publica."}
-            sub={multiple !== null ? <RoiChip years={multiple} /> : project.askingPriceCents > 0 ? null : <span>Pendiente de que el vendedor indique precio</span>}
+            sub={multiple !== null ? <RoiChip years={multiple} /> : project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
           />
           <Kpi
             label={lastEmployees ? "Empleados" : companyCopy.workersLabel}
@@ -1012,11 +1019,11 @@ export function CompanyReport({
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <Kpi
             label={companyCopy.askingPriceLabel}
-            value={deal.priceSet ? formatEur(project.askingPriceCents) : "Pendiente"}
+            value={deal.priceSet ? formatEur(project.askingPriceCents) : priceUnset}
             tone={deal.priceSet ? "ink" : "pending"}
             source="seller"
             hint="Precio que pide el vendedor por la empresa. No sale del registro: lo indica el vendedor."
-            sub={deal.priceSet ? null : <span>Pendiente de que el vendedor indique precio</span>}
+            sub={deal.priceSet ? null : <span>{priceUnsetNote}</span>}
           />
           <Kpi
             label="Múltiplo de EBITDA"

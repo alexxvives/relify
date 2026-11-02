@@ -39,7 +39,7 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
     ...(businessClients
       ? [{ id: "panel-client-split", label: "Ventas por cliente", section: "structure" as const, done: splitDone(input.clientPercents) }]
       : []),
-    { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: input.askingPrice.trim() !== "" },
+    { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: askingPriceSet(input.askingPrice) },
   ];
 }
 
@@ -55,4 +55,10 @@ export function completionProgress(fields: RequiredField[]) {
     /** t79: every required field with its state, for the grouped checklist. */
     fields,
   };
+}
+
+/** t83: a stored 0 comes back as "0"; that is "sin definir", never a price. */
+export function askingPriceSet(value: string): boolean {
+  const amount = Number(value.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(amount) && amount > 0;
 }

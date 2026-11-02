@@ -83,7 +83,7 @@ import {
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
-import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
+import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -289,6 +289,7 @@ function FigureField({
   onChange,
   locked = false,
   corner = null,
+  unsetText,
 }: {
   label: string;
   name: string;
@@ -296,8 +297,11 @@ function FigureField({
   onChange?: (next: string) => void;
   locked?: boolean;
   corner?: ReactNode;
+  /** t83: shown instead of "0 €" while the figure is empty or 0 (e.g. "Sin definir" for the price). */
+  unsetText?: string;
 }) {
   const [editing, setEditing] = useState(false);
+  const unset = unsetText !== undefined && !editing && !askingPriceSet(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const shown = editing ? value : groupedEuro(value);
   const amount = shown.length > 0 ? shown : "—";
@@ -314,8 +318,11 @@ function FigureField({
             aria-label={`Editar ${label}`}
             title={`Editar ${label}`}
             onClick={() => {
-              inputRef.current?.focus();
-              inputRef.current?.select();
+              setEditing(true);
+              requestAnimationFrame(() => {
+                inputRef.current?.focus();
+                inputRef.current?.select();
+              });
             }}
             className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
           >
@@ -330,7 +337,21 @@ function FigureField({
       }
     >
       <input type="hidden" name={name} value={value} />
-      {editable ? (
+      {editable && unset ? (
+        <span className="flex flex-col items-start gap-1">
+          <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            className="text-sm font-medium text-[#0f766e] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#2fc4b2]"
+          >
+            {companyCopy.setPriceAction}
+          </button>
+        </span>
+      ) : editable ? (
         <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
           <input
             ref={inputRef}
@@ -411,7 +432,7 @@ function FichaMetrics({
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div id="panel-asking-price" className="scroll-mt-24">
-        <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} />
+        <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} unsetText={companyCopy.priceUnset} />
       </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
@@ -1911,7 +1932,7 @@ export function CompanyDraftForm({
             subtitle={investorPreview.region.trim().length > 0 ? investorPreview.region : companyCopy.regionLabel}
             image={previewBanner}
           />
-          <CompanyReport project={previewProject} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
+          <CompanyReport project={previewProject} sellerPreview={{ mixAction: null }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
         </div>
       </Panel>
       </div>
@@ -2293,6 +2314,7 @@ function MarketPreview({
           <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div inert className="h-full">
             <MarketCard
+              priceUnset={companyCopy.priceUnset}
               project={card}
               actions={
                 <span className="inline-flex size-9 items-center justify-center rounded-full bg-white text-[#5c6b78]">

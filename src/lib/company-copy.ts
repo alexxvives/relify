@@ -42,6 +42,9 @@ export const companyCopy = {
   ebitdaMarginLabel: "Margen EBITDA",
   opexLabel: "OPEX",
   askingPriceLabel: "Precio de venta",
+  priceUnset: "Sin definir",
+  setPriceAction: "Definir precio",
+  priceOnRequest: "A consultar",
   euroHint: "Importe en euros, por ejemplo 1250000 o 1250000,50.",
   signedEuroHint: "Ingresos en positivo y gastos en negativo. Un campo vacío queda sin dato.",
   slicePrivate:

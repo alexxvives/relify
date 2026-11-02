@@ -43,3 +43,13 @@ describe("seller completion (t78)", () => {
     expect(sectionComplete(fields, "deal")).toBe(true);
   });
 });
+
+describe("askingPriceSet (t83)", () => {
+  it("treats empty and 0 as not set", async () => {
+    const { askingPriceSet } = await import("./seller-completion");
+    expect(askingPriceSet("")).toBe(false);
+    expect(askingPriceSet("0")).toBe(false);
+    expect(askingPriceSet("0,00")).toBe(false);
+    expect(askingPriceSet("1.200.000")).toBe(true);
+  });
+});
