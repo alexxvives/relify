@@ -415,8 +415,12 @@ function RegistryRecords({ registry }: { registry: SabiRegistry }) {
     return null;
   }
 
+  // t80: one column per block present, so Bancos (admin only) and Códigos de actividad stay side by side and the
+  // seller view (no banks) does not leave an empty third column.
+  const blocks = [registry.audits.length > 0, registry.banks.length > 0, schemes.length > 0].filter(Boolean).length;
+  const cols = blocks >= 3 ? "lg:grid-cols-3" : blocks === 2 ? "md:grid-cols-2" : "";
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className={`grid gap-4 ${cols}`}>
       {registry.audits.length > 0 ? (
         <Section icon={<ShieldCheck className="size-4 text-[#0f766e]" aria-hidden />} title="Auditoría por ejercicio" count={registry.audits.length}>
           <ol className="relative ml-1.5 border-l border-[#d5dbe3]">
