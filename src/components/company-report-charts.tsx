@@ -172,9 +172,10 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
     <div>
       <div className="relative h-44">
         <div className="absolute inset-x-0 border-t border-[#c9d0da]" style={{ bottom: `${zero}%` }} aria-hidden />
-        <div className="absolute inset-0 flex gap-2 sm:gap-4">
+        {/* t81: equal slots without flex gap, so each year sits at (i + 0.5) / n like LineChart's slot mode. */}
+        <div className="absolute inset-0 flex">
           {years.map((year, yearIndex) => (
-            <div key={year.year} className="flex h-full min-w-0 flex-1 justify-center gap-1">
+            <div key={year.year} className="flex h-full min-w-0 flex-1 justify-center gap-1 px-1 sm:px-2">
               {series.map((item) => {
                 const value = item.values[yearIndex] ?? null;
                 if (value === null) {
@@ -200,9 +201,9 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
           ))}
         </div>
       </div>
-      <div className="mt-1.5 flex gap-2 text-center text-[11px] text-[#5c6b78] tabular-nums sm:gap-4">
+      <div className="mt-1.5 flex text-center text-[11px] text-[#5c6b78] tabular-nums">
         {years.map((year) => (
-          <span key={year.year} className="min-w-0 flex-1 truncate">
+          <span key={year.year} className="min-w-0 flex-1 truncate px-1">
             {yearLabel(year)}
           </span>
         ))}
@@ -218,12 +219,12 @@ function clampFor(unit: Unit, value: number): number {
   return unit === "pct" ? Math.max(-pctLimit, Math.min(pctLimit, value)) : value;
 }
 
-export function LineChart({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
+export function LineChart({ years, series, unit, slots = false }: { years: SabiYear[]; series: Series[]; unit: Unit; /** t81: place years at slot centres, same x as ColumnBars beside it. */ slots?: boolean }) {
   const all = series.flatMap((item) => item.values).filter((value): value is number => value !== null).map((value) => clampFor(unit, value));
   const max = Math.max(0, ...all);
   const min = Math.min(0, ...all);
   const range = max - min || 1;
-  const x = (index: number) => (years.length === 1 ? 50 : 6 + (index / (years.length - 1)) * 88);
+  const x = (index: number) => (slots ? ((index + 0.5) / years.length) * 100 : years.length === 1 ? 50 : 6 + (index / (years.length - 1)) * 88);
   const y = (value: number) => ((max - value) / range) * 100;
 
   return (

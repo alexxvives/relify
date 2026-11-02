@@ -934,7 +934,7 @@ export function CompanyReport({
               {teamSentence ? <p className="text-sm leading-6 text-[#3d4a63]">{teamSentence}</p> : null}
               <div className="grid gap-4 lg:grid-cols-2">
                 {employees.some((value) => value !== null) ? (
-                  <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
+                  <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." legend={productivity.length > 0 ? <LegendDot color={teal} label="Empleados" /> : undefined} table={<YearTable years={years} rows={[{ label: "Empleados", unit: "people", values: employees }]} />}>
                     <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
                   </ChartBox>
                 ) : null}
@@ -945,7 +945,7 @@ export function CompanyReport({
                     legend={productivity.map((item) => <LegendDot key={item.label} color={item.color} label={item.label} />)}
                     table={<YearTable years={years} rows={productivity.map((item) => ({ label: item.label, unit: "keur", values: item.values }))} />}
                   >
-                    <LineChart years={years} series={productivity} unit="keur" />
+                    <LineChart years={years} series={productivity} unit="keur" slots />
                   </ChartBox>
                 ) : null}
               </div>
