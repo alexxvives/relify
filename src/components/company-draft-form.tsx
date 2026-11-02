@@ -990,9 +990,10 @@ export function CompanyDraftForm({
   const [, setListedPhoto] = useState(
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
+  // t83: Ficha pública starts collapsed; a new key so earlier "open" choices don't carry over.
   const [openDeal, setOpenDeal] = usePanelOpen(
-    "Relify:panel:deal",
-    focus === null || focus === "price",
+    "Relify:panel:deal:v2",
+    focus === "price",
     focus === "price",
   );
 
