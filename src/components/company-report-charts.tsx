@@ -159,7 +159,31 @@ export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: s
 
 /* ---------- charts ---------- */
 
-export type Series = { label: string; color: string; values: Array<number | null> };
+export type Marker = "circle" | "square" | "diamond" | "triangle";
+/** t84: optional dash pattern + marker shape so lines stay distinguishable without colour. */
+export type Series = { label: string; color: string; values: Array<number | null>; dash?: string; marker?: Marker };
+
+const markerShape: Record<Marker, string> = {
+  circle: "rounded-full",
+  square: "rounded-[2px]",
+  diamond: "rotate-45 rounded-[2px]",
+  triangle: "[clip-path:polygon(50%_0,100%_100%,0_100%)]",
+};
+
+/** t84: legend swatch drawing the line's colour, dash and marker. */
+export function LegendLine({ color, label, dash, marker = "circle" }: { color: string; label: string; dash?: string; marker?: Marker }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="relative inline-flex h-3 w-7 items-center" aria-hidden>
+        <svg viewBox="0 0 28 4" className="absolute inset-x-0 h-1 w-7">
+          <line x1="0" y1="2" x2="28" y2="2" stroke={color} strokeWidth={2.5} strokeDasharray={dash} />
+        </svg>
+        <span className={`relative mx-auto size-2.5 ${markerShape[marker]}`} style={{ backgroundColor: color }} />
+      </span>
+      {label}
+    </span>
+  );
+}
 
 export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series: Series[]; unit: Unit }) {
   const all = series.flatMap((item) => item.values).filter((value): value is number => value !== null);
@@ -238,7 +262,7 @@ export function LineChart({ years, series, unit, slots = false }: { years: SabiY
             const points = item.values
               .map((value, index) => (value === null ? null : `${x(index)},${y(clampFor(unit, value))}`))
               .filter((point): point is string => point !== null);
-            return <polyline key={item.label} points={points.join(" ")} fill="none" stroke={item.color} strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />;
+            return <polyline key={item.label} points={points.join(" ")} fill="none" stroke={item.color} strokeWidth={2.5} strokeDasharray={item.dash} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />;
           })}
         </svg>
         {series.map((item) =>
@@ -255,9 +279,14 @@ export function LineChart({ years, series, unit, slots = false }: { years: SabiY
                 key={`${item.label}-${index}`}
                 tabIndex={0}
                 aria-label={text}
-                className="group/tip absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
-                style={{ left: `${x(index)}%`, top: `${y(shown)}%`, backgroundColor: cut ? "#ffffff" : item.color, borderColor: cut ? item.color : "#ffffff" }}
+                className="group/tip absolute size-3 -translate-x-1/2 -translate-y-1/2 outline-none focus-visible:ring-2 focus-visible:ring-[#2fc4b2]"
+                style={{ left: `${x(index)}%`, top: `${y(shown)}%` }}
               >
+                <span
+                  aria-hidden
+                  className={`absolute inset-0 border-2 shadow ${markerShape[item.marker ?? "circle"]}`}
+                  style={{ backgroundColor: cut ? "#ffffff" : item.color, borderColor: cut ? item.color : item.marker === "triangle" ? item.color : "#ffffff" }}
+                />
                 <ChartTip text={text} />
               </div>
             );

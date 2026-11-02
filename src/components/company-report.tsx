@@ -36,6 +36,7 @@ import {
   ChartTip,
   KpiTile,
   LegendDot,
+  LegendLine,
   LineChart,
   People,
   Section,
@@ -639,10 +640,16 @@ export function CompanyReport({
   const signals = healthSignals(years);
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
-  const profitabilityColors: Record<string, string> = { ebitdaMargin: teal, profitMargin: tealLight, economicReturn: navy, financialReturn: tealMid };
+  // t84: colourblind-safe (Okabe-Ito based, with brand navy/teal) plus dash + marker per line.
+  const profitabilityStyles: Record<string, Partial<Pick<Series, "color" | "dash" | "marker">>> = {
+    ebitdaMargin: { color: "#0f766e", marker: "circle" },
+    profitMargin: { color: "#d55e00", dash: "6 4", marker: "square" },
+    economicReturn: { color: "#1c2740", dash: "2 3", marker: "diamond" },
+    financialReturn: { color: "#56b4e9", dash: "10 3 2 3", marker: "triangle" },
+  };
   // t81: all four curves (t71 left the two margins out whenever ROA/ROE existed); n/s years are gaps, not -13.459 %.
   const profitabilityTrend: Series[] = profitability
-    .map((metric) => ({ label: metric.label, color: profitabilityColors[metric.key] ?? navy, values: metric.values.map((value, index) => (metric.ns?.[index] ? null : value)) }))
+    .map((metric) => ({ label: metric.label, color: navy, ...profitabilityStyles[metric.key], values: metric.values.map((value, index) => (metric.ns?.[index] ? null : value)) }))
     .filter((item) => item.values.some((value) => value !== null));
   const staff = kpis.filter((metric) => ["revenuePerEmployee", "averageStaffCost", "staffCostToRevenue"].includes(metric.key));
   const employees = years.map((year) => year.employees);
@@ -918,7 +925,7 @@ export function CompanyReport({
                 title="Evolución de la rentabilidad"
                 hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado antes de impuestos ÷ fondos propios.\nMargen EBITDA y margen de beneficio = sobre ingresos."}
                 legend={profitabilityTrend.map((item) => (
-                  <LegendDot key={item.label} color={item.color} label={item.label} />
+                  <LegendLine key={item.label} color={item.color} label={item.label} dash={item.dash} marker={item.marker} />
                 ))}
                 table={<YearTable years={years} rows={profitability.map((metric) => ({ label: metric.label, unit: metric.unit, values: metric.values, ns: metric.ns }))} />}
               >
