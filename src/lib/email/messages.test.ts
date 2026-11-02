@@ -26,20 +26,13 @@ describe("email messages", () => {
   });
 });
 
-describe("reportReadyEmail visual (t84)", () => {
-  it("draws real sales as table bars with no SVG or script", async () => {
+describe("reportReadyEmail (t85)", () => {
+  it("is a clean notice with logo and CTA, no chart", async () => {
     const { reportReadyEmail } = await import("./messages");
-    const mail = reportReadyEmail("Ana", "Acme SL", "https://example.com/mi-empresa", {
-      sales: [
-        { year: 2022, cents: 100_000_000 },
-        { year: 2023, cents: 150_000_000 },
-      ],
-    });
-    expect(mail.html).toContain("Ventas por ejercicio");
-    expect(mail.html).toContain('width="100%"');
+    const mail = reportReadyEmail("Ana", "Acme SL", "https://example.com/mi-empresa");
     expect(mail.html).toContain("https://example.com/brand/email-logo-white.png");
-    expect(mail.html).not.toMatch(/<svg|<script/i);
-    expect(mail.text).toContain("2023:");
+    expect(mail.html).toContain("Ver mi ficha");
+    expect(mail.html).not.toMatch(/<svg|<script|Ventas por ejercicio/i);
     expect(mail.text).not.toMatch(/inversor/i);
   });
 });

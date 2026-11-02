@@ -1,4 +1,3 @@
-import { compactEur } from "../report-format";
 import { renderEmail, type RenderedEmail } from "./layout";
 
 /**
@@ -107,44 +106,21 @@ function greeting(firstName: string): string {
 }
 
 /** To the seller (or the advisor who owns the mandate): their own company, so its name is fine here. */
-export type ReportReadyFigures = {
-  /** Real figures from the imported accounts, oldest first; never invented. */
-  sales: { year: number; cents: number }[];
-};
-
 export function reportReadyEmail(
   firstName: string,
   companyName: string,
   url: string,
-  figures?: ReportReadyFigures,
 ): RenderedEmail {
-  const sales = (figures?.sales ?? []).slice(-5);
-  const latest = sales.at(-1);
-  const first = sales[0];
-  const growth = latest && first && sales.length > 1 && first.cents > 0 ? Math.round(((latest.cents - first.cents) / first.cents) * 100) : null;
   return renderEmail(`Tu informe financiero de ${companyName} está listo`, {
-    preheader:
-      "Ya puedes revisar los datos financieros de tu empresa en Relify.",
-    eyebrow: "Informe financiero",
-    title: "Tu informe financiero está listo",
+    preheader: "Tu ficha ya tiene el informe financiero. Revísalo en un par de minutos.",
+    eyebrow: "Tu ficha está lista",
+    title: "Tu informe financiero ya está listo",
     paragraphs: [
       greeting(firstName),
-      `Hemos preparado el informe financiero de ${companyName} con los datos de sus cuentas anuales. Revísalo y, si algo no cuadra, cuéntanoslo antes de publicar.`,
-      "Los compradores no ven estos datos hasta que tú decides compartirlos.",
+      `Hemos completado la ficha de ${companyName} con los datos de sus cuentas anuales.`,
+      "Échale un vistazo y, si algo no cuadra, avísanos antes de publicar. Los compradores no ven estos datos hasta que tú decides compartirlos.",
     ],
-    visual: sales.length
-      ? {
-          title: "Ventas por ejercicio",
-          stats: [
-            { label: "Ejercicios", value: String(sales.length) },
-            { label: `Ventas ${latest?.year ?? ""}`.trim(), value: latest ? compactEur(latest.cents) : "—" },
-            ...(growth !== null ? [{ label: `Desde ${first?.year}`, value: `${growth > 0 ? "+" : ""}${growth}%` }] : []),
-          ],
-          bars: sales.map((row) => ({ label: String(row.year), value: row.cents, display: compactEur(row.cents) })),
-          caption: "Datos de las cuentas anuales depositadas. El informe completo incluye rentabilidad, balance y solidez.",
-        }
-      : undefined,
-    cta: { label: "Revisar mi informe", url },
+    cta: { label: "Ver mi ficha", url },
     reason: noticeReason,
   });
 }
