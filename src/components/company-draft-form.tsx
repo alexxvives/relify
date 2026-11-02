@@ -1202,21 +1202,17 @@ export function CompanyDraftForm({
         onCollapse={() => setOpenBasic(false)}
       >
         <div className="grid gap-6 md:grid-cols-2">
-          <Fact id="panel-identity" icon={Building2} label={companyCopy.factName} registry={registryImported && initial.legalName.trim() !== ""}>
+          <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
             <Input
               name="legalName"
               value={legalName}
-              className="read-only:cursor-default read-only:bg-[#f6f8fa]"
-              readOnly={registryImported && initial.legalName.trim() !== ""}
               onChange={(event) => setLegalName(event.target.value)}
             />
           </Fact>
-          <Fact icon={FileSpreadsheet} label={companyCopy.factNif} registry={registryImported && cif.trim() !== ""}>
+          <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
             <Input
               name="cif"
               value={nif}
-              className="read-only:cursor-default read-only:bg-[#f6f8fa]"
-              readOnly={registryImported && cif.trim() !== ""}
               spellCheck={false}
               autoCapitalize="characters"
               onChange={(event) => setNif(event.target.value.toUpperCase())}
