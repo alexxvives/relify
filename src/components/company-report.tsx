@@ -53,20 +53,19 @@ import { InfoHint } from "@/components/ui/info-hint";
 import { FinancialTable } from "@/components/financial-table";
 import { IndicatorTable } from "@/components/indicator-table";
 import { RoiChip } from "@/components/market-card";
-import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { ShareDonut } from "@/components/share-donut";
+import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
 import {
-  figureVeilBalance,
   figureVeilCapital,
-  figureVeilChartBalance,
-  figureVeilChartIncome,
   figureVeilClient,
+  figureVeilMargins,
   figureVeilProduct,
+  figureVeilYears,
 } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
@@ -117,7 +116,7 @@ const privateIcons: Record<string, typeof Building2> = {
   created: CalendarDays,
 };
 
-type VeilKind = "mix" | "capital" | "income" | "balance";
+type VeilKind = "mix" | "capital" | "income" | "balance" | "profitability" | "health" | "team";
 
 function ReportSection({
   id,
@@ -189,18 +188,61 @@ function FigureVeil({ kind }: { kind: VeilKind }) {
     return <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />;
   }
 
-  const chart = kind === "income" ? figureVeilChartIncome() : figureVeilChartBalance();
-  if (kind === "income") {
-    return <ProfileIncomeChart years={chart.years} rows={chart.rows} />;
-  }
-
-  const balance = figureVeilBalance();
-  return (
-    <div>
-      <FinancialTable years={balance.years} rows={balance.rows} />
-      <ProfileBalanceChart years={chart.years} rows={chart.rows} />
+  // t84: placeholders mirror the current section designs, drawn from invented numbers only.
+  const fake = figureVeilYears();
+  const tiles = (labels: string[]) => (
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+      {labels.map((label) => (
+        <div key={label} className="flex flex-col gap-1.5 rounded-xl border border-[#e7eaee] bg-white p-3">
+          <span className="text-xs text-[#5c6b78]">{label}</span>
+          <span className="text-lg font-semibold text-[#1c2740]">99,9 %</span>
+          <span className="h-1.5 w-2/3 rounded-full bg-[#e6f4f2]" />
+        </div>
+      ))}
     </div>
   );
+  if (kind === "income") {
+    return (
+      <div className="grid gap-4 xl:grid-cols-2">
+        <ColumnBars
+          years={fake}
+          unit="eur"
+          series={[
+            { label: "Ingresos", color: navy, values: fake.map((year) => year.revenueCents) },
+            { label: "EBITDA", color: teal, values: fake.map((year) => year.ebitdaCents) },
+            { label: "Resultado", color: tealLight, values: fake.map((year) => year.netResultCents) },
+          ]}
+        />
+        <LineChart years={fake} unit="eur" series={[{ label: "Ingresos", color: navy, values: fake.map((year) => year.revenueCents) }]} />
+      </div>
+    );
+  }
+  if (kind === "profitability") {
+    const styles = [
+      { color: "#0f766e" },
+      { color: "#d55e00", dash: "6 4" },
+      { color: "#1c2740", dash: "2 3" },
+      { color: "#56b4e9", dash: "10 3 2 3" },
+    ];
+    return (
+      <div className="space-y-4">
+        {tiles(["Margen EBITDA", "Margen de beneficio", "ROA", "ROE"])}
+        <LineChart years={fake} unit="pct" series={figureVeilMargins.map((values, index) => ({ label: `Serie ${index + 1}`, values, ...styles[index]! }))} />
+      </div>
+    );
+  }
+  if (kind === "health") {
+    return tiles(["Liquidez", "Endeudamiento", "Autonomía", "Cobertura"]);
+  }
+  if (kind === "team") {
+    return (
+      <div className="flex flex-col gap-4">
+        {tiles(["Empleados", "Ingresos por empleado", "Coste por empleado", "Peso del personal"])}
+        <ColumnBars years={fake} unit="people" series={[{ label: "Empleados", color: teal, values: fake.map((year) => year.employees) }]} />
+      </div>
+    );
+  }
+  return <BalanceStacks years={fake} />;
 }
 
 type FigureSource = "seller" | "sabi" | "calc";
@@ -915,7 +957,7 @@ export function CompanyReport({
       {profitability.length > 0 ? (
         <ReportSection id="rentabilidad" icon={LineChartIcon} title={companyReportCopy.profitability} intro={companyReportCopy.profitabilityHint} aside={periodAside}>
           {lock(
-            "balance",
+            "profitability",
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                 {profitability.map((metric) => (
@@ -941,7 +983,7 @@ export function CompanyReport({
       {signals.length > 0 || debt.length > 0 ? (
         <ReportSection id="solidez" icon={ShieldCheck} title={companyReportCopy.health} intro={companyReportCopy.healthHint} aside={periodAside}>
           {lock(
-            "balance",
+            "health",
             <div className="flex flex-col gap-4">
               {signals.length > 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -1010,7 +1052,7 @@ export function CompanyReport({
       <ReportSection id="equipo" icon={Users} title={companyReportCopy.team} aside={project.headcountRange ? headcountLabels[project.headcountRange] : undefined}>
         {employees.some((value) => value !== null) || staff.length > 0 ? (
           lock(
-            "balance",
+            "team",
             <div className="flex flex-col gap-4">
               {teamTiles.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
@@ -1113,7 +1155,7 @@ export function CompanyReport({
           intro="Primeras comprobaciones que haría un comprador o su asesor con las cuentas depositadas. Son lecturas automáticas: los valores marcados como aproximados deben confirmarse con el vendedor."
         >
           {lock(
-            "balance",
+            "health",
             <div className="flex flex-col gap-4">
               <ul className="grid gap-2 lg:grid-cols-2">
                 {checks.map((check) => (

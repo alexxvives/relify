@@ -1,4 +1,5 @@
 import { balanceDisplayKeys, incomeDisplayKeys, isEmphasisRow } from "./company-profile";
+import type { SabiYear } from "@/lib/sabi/insights";
 import { balanceLabels, incomeLabels } from "./company-copy";
 
 /** Every locked figure is this many cents: 999.999,00 €. Real statements stay off the page. */
@@ -97,3 +98,44 @@ export function figureVeilChartBalance() {
     })),
   };
 }
+
+/** t84: fake years (all invented) so blurred placeholders reuse the current report charts. */
+export function figureVeilYears(): SabiYear[] {
+  const shape = [0.62, 0.74, 0.88, 1];
+  return shape.map((k, index) => {
+    const revenue = Math.round(figureVeilCents * k);
+    const assets = Math.round(figureVeilCents * (0.7 + index * 0.08));
+    return {
+      year: 2021 + index,
+      months: 12,
+      employees: 14 + index * 3,
+      revenueCents: revenue,
+      suppliesCents: Math.round(revenue * 0.35),
+      staffCostsCents: Math.round(revenue * 0.3),
+      ebitdaCents: Math.round(revenue * (0.12 + index * 0.02)),
+      ebitCents: Math.round(revenue * (0.09 + index * 0.02)),
+      financialResultCents: -Math.round(revenue * 0.01),
+      profitBeforeTaxCents: Math.round(revenue * (0.08 + index * 0.015)),
+      netResultCents: Math.round(revenue * (0.06 + index * 0.012)),
+      totalAssetsCents: assets,
+      nonCurrentAssetsCents: Math.round(assets * 0.45),
+      currentAssetsCents: Math.round(assets * 0.55),
+      cashCents: Math.round(assets * 0.18),
+      equityCents: Math.round(assets * (0.42 + index * 0.03)),
+      nonCurrentLiabilitiesCents: Math.round(assets * 0.22),
+      currentLiabilitiesCents: Math.round(assets * (0.36 - index * 0.03)),
+      longTermDebtCents: Math.round(assets * 0.18),
+      shortTermDebtCents: Math.round(assets * 0.1),
+      workingCapitalCents: Math.round(assets * (0.19 + index * 0.03)),
+      ratios: {},
+    };
+  });
+}
+
+/** t84: invented percentages for the profitability placeholder lines. */
+export const figureVeilMargins = [
+  [11, 13, 15, 17],
+  [6, 7.5, 8.5, 10],
+  [9, 10, 12, 13],
+  [18, 20, 23, 25],
+];

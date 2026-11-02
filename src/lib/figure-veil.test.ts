@@ -12,3 +12,14 @@ describe("figure veil", () => {
     expect(sales.every((value) => value !== figureVeilCents)).toBe(true);
   });
 });
+
+describe("figureVeilYears (t84)", () => {
+  it("builds invented years only, capped at the veil amount", async () => {
+    const { figureVeilYears } = await import("./figure-veil");
+    const years = figureVeilYears();
+    expect(years.length).toBeGreaterThan(1);
+    for (const year of years) {
+      expect(year.revenueCents ?? 0).toBeLessThanOrEqual(figureVeilCents);
+    }
+  });
+});
