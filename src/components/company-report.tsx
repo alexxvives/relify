@@ -242,9 +242,9 @@ function Kpi({
   );
 }
 
-function Fact({ icon: Icon, label, value, source, note }: { icon: typeof Building2; label: string; value: string; source?: FigureSource; note?: string }) {
+function Fact({ icon: Icon, label, value, source, note, raised = false }: { icon: typeof Building2; label: string; value: string; source?: FigureSource; note?: string; raised?: boolean }) {
   return (
-    <div className="flex min-w-0 items-start gap-3 rounded-xl bg-[#f7f8fb] p-3">
+    <div className={`flex min-w-0 items-start gap-3 rounded-xl p-3 ${raised ? "border border-[#d5dbe3] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.06)]" : "bg-[#f7f8fb]"}`}>
       <Icon className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-hidden />
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-1.5 text-xs text-[#5c6b78]">
@@ -663,14 +663,14 @@ export function CompanyReport({
           />
         </div>
         {facts && facts.length > 0 ? (
-          <div className="mt-4 rounded-xl border border-dashed border-[#c9d0da] bg-[#fafbfc] p-4">
+          <div className="mt-4 rounded-xl border border-dashed border-[#aab4c3] bg-[#eef1f5] p-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1c2740]">
               <EyeOff className="size-4 text-[#0f766e]" aria-hidden />
               {privateHeading}
             </h3>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               {facts.map((fact) => (
-                <Fact key={fact.key} icon={privateIcons[fact.key] ?? Building2} label={fact.label} value={fact.value} />
+                <Fact key={fact.key} icon={privateIcons[fact.key] ?? Building2} label={fact.label} value={fact.value} raised />
               ))}
             </div>
           </div>
