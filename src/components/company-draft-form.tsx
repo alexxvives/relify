@@ -26,6 +26,7 @@ import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate }
 import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
+import { GalleryEditor } from "@/components/project-gallery";
 import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import { marketCopy } from "@/lib/market-copy";
@@ -1857,6 +1858,7 @@ export function CompanyDraftForm({
           principalCnae={principalCnae}
           summary={description}
         >
+          <GalleryEditor photos={fichaExtras?.photos ?? []} />
           <FichaMetrics
             revenue={salesFromAccounts ?? revenue}
             askingPrice={askingPrice}

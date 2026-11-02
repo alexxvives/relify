@@ -1,6 +1,7 @@
 import { cloneElement, isValidElement, type ReactNode } from "react";
 import {
   ClipboardCheck,
+  Images,
   Briefcase,
   Building2,
   ChevronDown,
@@ -54,6 +55,7 @@ import { FinancialTable } from "@/components/financial-table";
 import { IndicatorTable } from "@/components/indicator-table";
 import { RoiChip } from "@/components/market-card";
 import { ShareDonut } from "@/components/share-donut";
+import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
@@ -663,6 +665,8 @@ export function CompanyReport({
   const facts = role === "admin" ? privateFacts : null;
   const years = (project.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
   const hasYears = years.length > 0;
+  // t84: seller gallery; hidden (moderated) photos only reach admin.
+  const galleryPhotos = (project.photos ?? []).filter((photo) => role === "admin" || !photo.hidden);
   // t84: collapsed section headers show the period covered (no figures, so nothing locked leaks).
   const periodAside = hasYears ? (years.length === 1 ? `Ejercicio ${yearLabel(years[0]!)}` : `${yearLabel(years[0]!)}–${yearLabel(years[years.length - 1]!)} · ${years.length} ejercicios`) : undefined;
   const lock = (kind: VeilKind, children: ReactNode) => (
@@ -745,6 +749,7 @@ export function CompanyReport({
   const sections = [
     { id: "resumen", label: companyReportCopy.summary },
     { id: "negocio", label: companyReportCopy.business },
+    galleryPhotos.length > 0 ? { id: "fotos", label: companyCopy.galleryTitle } : null,
     { id: "evolucion", label: companyReportCopy.evolution },
     profitability.length > 0 ? { id: "rentabilidad", label: companyReportCopy.profitability } : null,
     signals.length > 0 || debt.length > 0 ? { id: "solidez", label: companyReportCopy.health } : null,
@@ -907,6 +912,12 @@ export function CompanyReport({
           </>
         )}
       </ReportSection>
+
+      {galleryPhotos.length > 0 ? (
+        <ReportSection id="fotos" icon={Images} title={companyCopy.galleryTitle} aside={`${galleryPhotos.length} ${galleryPhotos.length === 1 ? "foto" : "fotos"}`}>
+          <PhotoGallery photos={galleryPhotos} moderate={role === "admin"} />
+        </ReportSection>
+      ) : null}
 
       <ReportSection id="evolucion" icon={TrendingUp} title={companyReportCopy.evolution} intro={companyReportCopy.evolutionHint} aside={periodAside}>
         {lock(

@@ -34,6 +34,8 @@ export const getInvestorProject = cache(
       return null;
     }
 
-    return toInvestorProject(project);
+    const profile = toInvestorProject(project);
+    // t84: buyers never receive photos an admin has hidden.
+    return { ...profile, photos: (profile.photos ?? []).filter((photo) => !photo.hidden) };
   },
 );

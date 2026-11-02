@@ -22,6 +22,8 @@ import {
 
 export const investorProjectSelect = {
   slug: true,
+  /** t84: gallery ids only; bytes are served by /fotos/[id]. */
+  photos: { select: { id: true, hidden: true }, orderBy: [{ position: "asc" as const }, { createdAt: "asc" as const }] },
   codename: true,
   region: true,
   foundedYear: true,
@@ -170,11 +172,14 @@ export type InvestorProjectProfile = {
   indicatorRows?: InvestorIndicatorRow[];
   /** t81: columns of detailRows/indicatorRows when they differ from balanceYears (seller preview). */
   detailYears?: InvestorYearColumn[];
+  /** t84: seller gallery (hidden = moderated by admin; buyers never get hidden ones). */
+  photos?: { id: string; hidden: boolean }[];
   /** t69: closed years as plain numbers for the visual report (same data as the tables above, oldest first). */
   reportYears?: SabiYear[];
 };
 
 type InvestorProjectRecord = {
+  photos?: { id: string; hidden: boolean }[];
   slug: string;
   codename: string;
   region: string;
@@ -416,6 +421,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
 
   return {
     reportYears,
+    photos: (record.photos ?? []).map((photo) => ({ id: photo.id, hidden: photo.hidden })),
     slug: record.slug,
     legalForm: record.legalForm ?? null,
     accountsFormat: record.accountsFormat ?? null,

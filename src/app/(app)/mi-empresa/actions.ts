@@ -19,6 +19,7 @@ import {
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
+import { addProjectPhotos, deleteProjectPhoto } from "@/server/projectPhotos";
 import { publishSellerProject } from "@/server/publishSellerProject";
 import { requestFigureCorrection } from "@/server/requestFigureCorrection";
 import { requestIdentityChange } from "@/server/requestIdentityChange";
@@ -280,6 +281,35 @@ export async function deleteProjectCoverAction(): Promise<{ ok: true } | { ok: f
   revalidatePath("/mercado");
   revalidatePath("/proyectos");
   return { ok: true };
+}
+
+/** t84: gallery photos for the ficha pública (several at once). */
+export async function addProjectPhotosAction(formData: FormData): Promise<{ ok: true } | { ok: false; message: string }> {
+  const user = await sellerUser();
+  const projectId = await activeSellerProjectId(user.id);
+  const files = formData.getAll("photos").filter((value): value is File => value instanceof File && value.size > 0);
+  if (!projectId || files.length === 0) {
+    return { ok: false, message: companyCopy.cardPhotosType };
+  }
+  const result = await addProjectPhotos(projectId, await Promise.all(files.map(async (file) => ({ type: file.type, bytes: new Uint8Array(await file.arrayBuffer()) }))));
+  if (!result.ok) {
+    return { ok: false, message: result.reason === "limit" ? companyCopy.galleryLimit : result.reason === "size" ? companyCopy.cardPhotosLarge : companyCopy.cardPhotosType };
+  }
+  refreshSellerPages();
+  revalidatePath("/proyectos");
+  return { ok: true };
+}
+
+export async function deleteProjectPhotoAction(photoId: string): Promise<{ ok: boolean }> {
+  const user = await sellerUser();
+  const projectId = await activeSellerProjectId(user.id);
+  if (!projectId || typeof photoId !== "string") {
+    return { ok: false };
+  }
+  const ok = await deleteProjectPhoto(projectId, photoId);
+  refreshSellerPages();
+  revalidatePath("/proyectos");
+  return { ok };
 }
 
 export async function deleteSellerCompanyAction(formData: FormData): Promise<void> {

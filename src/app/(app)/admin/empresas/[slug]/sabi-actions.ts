@@ -14,6 +14,19 @@ import {
   type SabiJobView,
 } from "@/server/sabiJobs";
 
+import { setProjectPhotoHidden } from "@/server/projectPhotos";
+
+/** t84: admin moderation of seller gallery photos (hide / show). */
+export async function setProjectPhotoHiddenAction(photoId: string, hidden: boolean): Promise<{ ok: boolean }> {
+  await requireRole("admin");
+  const slug = typeof photoId === "string" ? await setProjectPhotoHidden(photoId, hidden === true) : null;
+  if (slug) {
+    revalidatePath(`/admin/empresas/${slug}`);
+    revalidatePath(`/proyectos/${slug}`);
+  }
+  return { ok: slug !== null };
+}
+
 export type SabiConfirmState = SabiJobStart;
 
 /** t67: starts the import as a background job and returns at once; the admin layout polls its progress. */

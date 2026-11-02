@@ -1,7 +1,7 @@
 import { investorProjectSelect, toInvestorProject, type InvestorProjectProfile } from "@/lib/investor-project";
 import { prisma } from "@/server/db";
 
-export type SellerFichaExtras = Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears"> & {
+export type SellerFichaExtras = Pick<InvestorProjectProfile, "detailRows" | "indicatorRows" | "detailYears" | "photos"> & {
   /** t83: stored P&L and balance, so the preview keeps years outside the form window. */
   stored: Pick<InvestorProjectProfile, "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows">;
 };
@@ -18,6 +18,7 @@ export async function getSellerFichaExtras(projectId: string): Promise<SellerFic
   }
   const profile = toInvestorProject(row);
   return {
+    photos: profile.photos ?? [],
     detailRows: profile.detailRows ?? [], indicatorRows: profile.indicatorRows ?? [], detailYears: profile.balanceYears,
     stored: { incomeYears: profile.incomeYears, incomeRows: profile.incomeRows, balanceYears: profile.balanceYears, balanceRows: profile.balanceRows },
   };

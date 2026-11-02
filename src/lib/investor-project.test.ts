@@ -17,6 +17,7 @@ const investorKeys = [
   "headcountRange",
   "legalForm",
   "opexCents",
+  "photos",
   "region",
   "revenueCents",
   "saleReason",
