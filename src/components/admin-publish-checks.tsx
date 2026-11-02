@@ -6,9 +6,14 @@ import type { AdminPublishChecks, PublishChecklist } from "@/lib/publish-checkli
  */
 export function PublishReadinessChip({ checks }: { checks: { seller: PublishChecklist; admin: AdminPublishChecks } }) {
   const missing = [...checks.seller.items, ...checks.admin.items].filter((item) => !item.done).map((item) => item.label);
-  const ready = missing.length === 0;
-  const label = ready ? "Lista para aprobar" : `Faltan ${missing.length} requisito${missing.length === 1 ? "" : "s"}`;
-  const tip = ready ? "Cumple todo lo necesario para publicarla." : `Falta: ${missing.join(", ")}.`;
+  // t80: no "Faltan N requisitos" chip in the banner; only the positive "Lista para aprobar" shows.
+  // approveProject still enforces the checks and names what is missing.
+  if (missing.length > 0) {
+    return null;
+  }
+  const ready = true;
+  const label = "Lista para aprobar";
+  const tip = "Cumple todo lo necesario para publicarla.";
 
   return (
     <span
