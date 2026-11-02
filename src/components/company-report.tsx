@@ -830,7 +830,6 @@ export function CompanyReport({
       </ReportSection>
 
       <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
-        {/* t84: description on top; region, founding year and sector span the full width in 3 equal columns (stacked on mobile). */}
         <div className="flex flex-col gap-4">
           {about ? (
             <p className="leading-7 text-[#1c2740]">
@@ -842,32 +841,40 @@ export function CompanyReport({
               ) : null}
             </p>
           ) : null}
-          <div className="grid gap-3 md:grid-cols-3 md:items-stretch">
-            {project.region ? <Fact icon={Map} label={companyCopy.regionLabel} value={project.region} /> : null}
-            {project.foundedYear !== null ? <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} value={String(project.foundedYear)} /> : null}
-            {project.principalCnae || project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
+          {/* t85: province and founding year live in the banner chips only; sectors split into principal (left) and secundarios (right). */}
+          {project.principalCnae || project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 md:items-stretch">
               <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-[#f7f8fb] p-3">
-                <span className="flex items-center gap-3 text-xs text-[#5c6b78]"><Briefcase className="size-4 shrink-0 text-[#0f766e]" aria-hidden />Sector</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {project.principalCnae ? (
-                    <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
-                      {project.principalCnae.code} · {project.principalCnae.title}
-                    </span>
-                  ) : null}
-                  {project.secondaryCnaes.map((cnae) => (
-                    <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-                      {cnae.code} · {cnae.title}
-                    </span>
-                  ))}
-                  {extraActivities.map((activity) => (
-                    <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-                      {activity.code} · {activity.title}
-                    </span>
-                  ))}
-                </div>
+                <span className="flex items-center gap-3 text-xs text-[#5c6b78]"><Briefcase className="size-4 shrink-0 text-[#0f766e]" aria-hidden />Sector principal</span>
+                {project.principalCnae ? (
+                  <span className="self-start rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
+                    {project.principalCnae.code} · {project.principalCnae.title}
+                  </span>
+                ) : (
+                  <span className="text-sm text-[#667085]">{companyCopy.unavailable}</span>
+                )}
               </div>
-            ) : null}
-          </div>
+              <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-[#f7f8fb] p-3">
+                <span className="flex items-center gap-3 text-xs text-[#5c6b78]"><Briefcase className="size-4 shrink-0 text-[#0f766e]" aria-hidden />Sectores secundarios</span>
+                {project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.secondaryCnaes.map((cnae) => (
+                      <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+                        {cnae.code} · {cnae.title}
+                      </span>
+                    ))}
+                    {extraActivities.map((activity) => (
+                      <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
+                        {activity.code} · {activity.title}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-[#667085]">Ninguno</span>
+                )}
+              </div>
+            </div>
+          ) : null}
           {legalFacts.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-3">
               {legalFacts.map((fact) => (
