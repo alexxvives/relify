@@ -76,8 +76,6 @@ export function SellerOverview({
                 years={dashboard.years}
                 directors={dashboard.directors}
                 shareholders={dashboard.shareholders}
-                funnel={funnel}
-                checklist={checklist}
               />
             )}
           </section>

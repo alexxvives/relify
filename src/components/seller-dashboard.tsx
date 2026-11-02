@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { Activity, Gauge, LineChart as LineIcon, Scale, Store, Users } from "lucide-react";
+import { Gauge, LineChart as LineIcon, Scale, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { BalanceReading } from "@/components/company-report";
 import { BalanceStacks, ChartBox, ColumnBars, KpiTile, LegendDot, LineChart, SignalGauge, YearTable, type Series } from "@/components/company-report-charts";
 import { healthSignals } from "@/lib/company-report";
 import { metrics, navy, reportMargins, teal, tealLight, tealMid, type Metric } from "@/lib/report-format";
-import type { PublishChecklist } from "@/lib/publish-checklist";
 import type { SabiYear } from "@/lib/sabi/insights";
-import type { SellerFunnel } from "@/server/activityFunnel";
 
 /**
  * t74: seller Inicio "Cómo va tu empresa". The same charts, gauges and K/M/n-s formatting as the
@@ -17,14 +15,10 @@ export function SellerDashboard({
   years,
   directors,
   shareholders,
-  funnel,
-  checklist,
 }: {
   years: SabiYear[];
   directors: number;
   shareholders: number;
-  funnel: SellerFunnel;
-  checklist: PublishChecklist;
 }) {
   const { kpis } = metrics(years);
   const revenue = kpis.find((metric) => metric.key === "revenue");
@@ -60,9 +54,6 @@ export function SellerDashboard({
   const signals = healthSignals(years);
   const latestBalance = [...years].reverse().find((year) => year.totalAssetsCents !== null && year.totalAssetsCents > 0) ?? null;
   const latestEmployees = [...years].reverse().find((year) => year.employees !== null)?.employees ?? null;
-  const done = checklist.items.filter((item) => item.done).length;
-  const readiness = checklist.items.length === 0 ? 0 : Math.round((done / checklist.items.length) * 100);
-  const interest = funnel.requests + funnel.ndas + funnel.lois;
 
   return (
     <div className="mt-4 flex flex-col gap-6">
@@ -149,42 +140,6 @@ export function SellerDashboard({
         </div>
       </Block>
 
-      <Block icon={<Store className="size-4" aria-hidden />} title="Tu ficha en el mercado">
-        <div className="grid gap-4 md:grid-cols-3">
-          <section className="rounded-xl border border-[#e7eaee] bg-white p-4 md:col-span-1">
-            <h3 className="text-sm font-semibold text-[#1c2740]">Preparación de la ficha</h3>
-            <p className="mt-2 text-2xl font-semibold text-[#1c2740] tabular-nums">
-              {readiness} %<span className="ml-1.5 text-xs font-normal text-[#8b95a7]">{done} de {checklist.items.length}</span>
-            </p>
-            <div
-              className="mt-3 h-2.5 overflow-hidden rounded-full bg-[#eef1f5]"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={readiness}
-              aria-label="Preparación de la ficha"
-            >
-              <div className="h-full rounded-full bg-[#2fc4b2]" style={{ width: `${readiness}%` }} />
-            </div>
-          </section>
-          <section className="rounded-xl border border-[#e7eaee] bg-white p-4">
-            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">Visitas que piden acceso</h3>
-            <p className="mt-2 text-2xl font-semibold text-[#1c2740] tabular-nums">{funnel.views > 0 ? `${Math.round((funnel.requests / funnel.views) * 100)} %` : "—"}</p>
-            <p className="mt-1 text-xs text-[#667085]">
-              {funnel.requests} de {funnel.views} {funnel.views === 1 ? "comprador" : "compradores"} que han visto la ficha
-            </p>
-          </section>
-          <section className="rounded-xl border border-[#e7eaee] bg-white p-4">
-            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
-              <Activity className="size-4 text-[#0f766e]" aria-hidden /> Interés
-            </h3>
-            <p className="mt-2 text-2xl font-semibold text-[#1c2740] tabular-nums">{interest}</p>
-            <p className="mt-1 text-xs text-[#667085]">
-              {funnel.requests} solicitudes · {funnel.ndas} NDAs · {funnel.lois} LOIs
-            </p>
-          </section>
-        </div>
-      </Block>
     </div>
   );
 }
