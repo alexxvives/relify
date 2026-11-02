@@ -834,12 +834,11 @@ export function CompanyReport({
             <FieldHint text={companyCopy.structureHint} wide />
           </h3>
           {mixEmpty ? (
-              <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-[#d6dbe3] bg-[#fbfbfc] p-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-[#5c6b78]">
-                  {sellerPreview ? "Aún no has indicado qué vendes ni a quién. Los compradores no verán este bloque hasta que lo completes." : "El vendedor aún no ha indicado el reparto de ventas."}
-                </p>
-                {sellerPreview?.mixAction ?? null}
-              </div>
+              sellerPreview ? (
+                <MixSkeleton note="Aún no has indicado qué vendes ni a quién. Los compradores no verán este bloque hasta que lo completes." action={sellerPreview.mixAction ?? null} />
+              ) : (
+                <p className="rounded-xl border border-dashed border-[#d6dbe3] bg-[#fbfbfc] p-4 text-sm text-[#5c6b78]">El vendedor aún no ha indicado el reparto de ventas.</p>
+              )
             ) : lock(
             "mix",
             <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
@@ -1294,5 +1293,36 @@ export function BalanceReading({ year }: { year: SabiYear }) {
         )}
       </dl>
     </section>
+  );
+}
+
+/** t84: seller empty state for "Qué vende y a quién": grayed placeholder donuts with the fill action overlaid. */
+function MixSkeleton({ note, action }: { note: string; action: ReactNode }) {
+  const ring = (key: string, title: string, dash: string) => (
+    <div key={key} className="flex items-center gap-4 rounded-xl bg-[#f7f8fb] p-4">
+      <div className="relative size-24 shrink-0 rounded-full" style={{ background: `conic-gradient(${dash})` }}>
+        <div className="absolute inset-4 rounded-full bg-[#f7f8fb]" />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <span className="text-sm font-semibold text-[#98a2b3]">{title}</span>
+        {[70, 52, 34].map((width) => (
+          <span key={width} className="h-2.5 rounded-full bg-[#e3e7ee]" style={{ width: `${width}%` }} />
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div className="relative">
+      <div aria-hidden className="pointer-events-none grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4 opacity-70 select-none">
+        {ring("p", companyCopy.chartProduct, "#d5dbe3 0 45%, #e3e7ee 45% 75%, #eef0f4 75% 100%")}
+        {ring("c", companyCopy.chartClient, "#d5dbe3 0 55%, #e3e7ee 55% 85%, #eef0f4 85% 100%")}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="flex max-w-md flex-col items-center gap-3 rounded-2xl border border-[#e3e7ee] bg-white/95 p-4 text-center shadow-[0_8px_24px_rgba(28,39,64,0.10)]">
+          <p className="text-sm text-[#5c6b78]">{note}</p>
+          {action}
+        </div>
+      </div>
+    </div>
   );
 }
