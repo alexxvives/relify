@@ -79,10 +79,7 @@ export function DetailSectionNav({
   );
   const complete = progress.done >= progress.total;
   const fields = progress.fields ?? [];
-  const groups = [
-    ...items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) })),
-    ...extraGroups(fields, items),
-  ];
+  const groups = items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) }));
 
   function jump(id: string) {
     return (event: React.MouseEvent) => {
@@ -152,17 +149,17 @@ export function DetailSectionNav({
                           <a
                             href={`#${field.id}`}
                             onClick={jump(field.id)}
-                            className="group flex items-center gap-2 rounded-md px-1.5 py-1 text-xs focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
+                            className="group flex items-start gap-2 rounded-md px-1.5 py-1 text-[13px] leading-snug focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
                           >
                             {field.done ? (
-                              <CircleCheck className="size-3.5 shrink-0 text-[#0f766e]" aria-hidden />
+                              <CircleCheck className="mt-0.5 size-3.5 shrink-0 text-[#0f766e]" aria-hidden />
                             ) : (
-                              <Circle className="size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
+                              <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
                             )}
-                            <span className={`min-w-0 flex-1 truncate ${field.done ? "text-[#8b95a7]" : "font-medium text-[#1c2740]"}`}>{field.label}</span>
+                            <span className={`min-w-0 flex-1 ${field.done ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{field.label}</span>
                             <span className="sr-only">{field.done ? "Completo" : "Pendiente"}</span>
                             {field.done ? null : (
-                              <span aria-hidden className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                              <span aria-hidden className="mt-px inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                                 Ir
                                 <ArrowRight className="size-3" />
                               </span>
@@ -182,20 +179,7 @@ export function DetailSectionNav({
   );
 }
 
-export type DetailField = { id: string; label: string; done: boolean; group: string; groupLabel?: string };
-
-/** Fields whose group is not one of this tab's sections (e.g. the asking price on Ficha pública). */
-function extraGroups(fields: DetailField[], items: DetailSectionItem[]) {
-  const known = new Set(items.map((item) => item.id));
-  const rest = fields.filter((field) => !known.has(field.group));
-  const ids = [...new Set(rest.map((field) => field.group))];
-  return ids.map((id) => {
-    const groupFields = rest.filter((field) => field.group === id);
-    const status: DetailSectionStatus = groupFields.every((field) => field.done) ? "done" : "pending";
-    // The group row jumps to its first field (its tab opens via onMissing).
-    return { item: { id: groupFields[0]?.id ?? id, label: groupFields[0]?.groupLabel ?? id, status } as DetailSectionItem, fields: groupFields };
-  });
-}
+export type DetailField = { id: string; label: string; done: boolean; group: string };
 
 /**
  * t77/t78: sticky save bar. Shown while the form has unsaved changes or the last save failed (with the reason),
