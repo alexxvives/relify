@@ -17,3 +17,30 @@ export function identityChangeHref(email: string, codename: string): string {
   const body = encodeURIComponent("Hola, quiero solicitar un cambio en el nombre legal o el NIF de mi empresa.\n\nDato actual:\nDato correcto:\nMotivo:\n");
   return `mailto:${email}?subject=${subject}&body=${body}`;
 }
+
+function euroCents(value: string): number | null {
+  const trimmed = value.trim();
+  if (!/^\d{1,12}(,\d{1,2})?$/.test(trimmed)) {
+    return null;
+  }
+  const [whole, decimals = ""] = trimmed.split(",");
+  return Number(whole) * 100 + Number(decimals.padEnd(2, "0"));
+}
+
+/**
+ * t78: money fields a seller submission may write. Revenue, EBITDA, OPEX and the yearly accounts come from the
+ * registry / our team and are ignored. Asking price and adjusted EBITDA are seller-asserted; empty keeps the stored value.
+ * New projects get zeros for the non-null columns.
+ */
+export function sellerMoneyFields(
+  input: { askingPrice: string; adjustedEbitda: string },
+  isNew: boolean,
+): { askingPriceCents?: number; adjustedEbitdaCents?: number; revenueCents?: number; ebitdaCents?: number; opexCents?: null } {
+  const askingPriceCents = euroCents(input.askingPrice);
+  const adjustedEbitdaCents = euroCents(input.adjustedEbitda);
+  return {
+    ...(askingPriceCents !== null ? { askingPriceCents } : isNew ? { askingPriceCents: 0 } : {}),
+    ...(adjustedEbitdaCents !== null ? { adjustedEbitdaCents } : isNew ? { adjustedEbitdaCents: 0 } : {}),
+    ...(isNew ? { revenueCents: 0, ebitdaCents: 0, opexCents: null } : {}),
+  };
+}

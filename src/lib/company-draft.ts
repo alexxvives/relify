@@ -47,7 +47,6 @@ export const saleReasonLabels: Record<SaleReason, string> = {
 const unsignedEuroPattern = /^\d{1,12}(,\d{1,2})?$/;
 const signedEuroPattern = /^-?\d{1,12}(,\d{1,2})?$/;
 
-const euroText = z.string().trim().regex(unsignedEuroPattern, "euro");
 const optionalEuroText = z.string().trim().refine((value) => value === "" || unsignedEuroPattern.test(value), "euro");
 const moneyText = z.string().trim();
 
@@ -112,10 +111,10 @@ export const companyDraftSchema = z
     saleReason: z.union([z.literal(""), z.enum(saleReasons)]),
     principalCnae: z.string().trim(),
     secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count"),
-    revenue: euroText,
-    ebitda: euroText,
-    adjustedEbitda: euroText,
-    askingPrice: euroText,
+    revenue: optionalEuroText,
+    ebitda: optionalEuroText,
+    adjustedEbitda: optionalEuroText,
+    askingPrice: optionalEuroText,
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count"),

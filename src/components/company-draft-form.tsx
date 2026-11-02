@@ -374,32 +374,24 @@ function MetricTile({
   );
 }
 
+/**
+ * t78: the seller types only the asking price and adjusted EBITDA. Revenue, EBITDA and margin come from the accounts
+ * we load (read-only); OPEX is not asked. The server ignores those fields in seller submissions.
+ */
 function FichaMetrics({
   revenue,
-  revenueLocked,
-  onRevenue,
-  opex,
-  onOpex,
   askingPrice,
   onAskingPrice,
   ebitda,
-  ebitdaLocked,
-  onEbitda,
   adjustedEbitda,
   onAdjustedEbitda,
   margin,
   priceStatus = null,
 }: {
   revenue: string;
-  revenueLocked: boolean;
-  onRevenue: (value: string) => void;
-  opex: string;
-  onOpex: (value: string) => void;
   askingPrice: string;
   onAskingPrice: (value: string) => void;
   ebitda: string;
-  ebitdaLocked: boolean;
-  onEbitda: (value: string) => void;
   adjustedEbitda: string;
   onAdjustedEbitda: (value: string) => void;
   margin: string;
@@ -413,11 +405,25 @@ function FichaMetrics({
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
-      <FigureField label={companyCopy.revenueLabel} name="revenue" value={revenue} onChange={onRevenue} locked={revenueLocked} />
-      <FigureField label={companyCopy.ebitdaLabel} name="ebitda" value={ebitda} onChange={onEbitda} locked={ebitdaLocked} />
       <FigureField label={companyCopy.adjustedEbitdaLabel} name="adjustedEbitda" value={adjustedEbitda} onChange={onAdjustedEbitda} />
-      <FigureField label={companyCopy.opexLabel} name="opex" value={opex} onChange={onOpex} />
+      <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
+      <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
     </div>
+  );
+}
+
+function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
+  const cents = euroCentsOrNull(value);
+  return (
+    <MetricTile label={label}>
+      <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+        {cents !== null && cents > 0 ? wholeEur(cents) : <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>}
+      </span>
+      <span className="mt-1 inline-flex items-center gap-1 text-xs text-[#667085]">
+        <Lock className="size-3" aria-hidden />
+        De tus cuentas
+      </span>
+    </MetricTile>
   );
 }
 
@@ -785,10 +791,10 @@ export function CompanyDraftForm({
   const [saleReason, setSaleReason] = useState(initial.saleReason);
   const [principalCnae, setPrincipalCnae] = useState(initial.principalCnae);
   const [secondaryCnaes, setSecondaryCnaes] = useState(initial.secondaryCnaes);
-  const [revenue, setRevenue] = useState(initial.revenue);
-  const [ebitda, setEbitda] = useState(initial.ebitda);
+  const [revenue] = useState(initial.revenue);
+  const [ebitda] = useState(initial.ebitda);
   const [adjustedEbitda, setAdjustedEbitda] = useState(initial.adjustedEbitda);
-  const [opex, setOpex] = useState(initial.opex);
+  const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
@@ -1648,15 +1654,9 @@ export function CompanyDraftForm({
         >
           <FichaMetrics
             revenue={salesFromAccounts ?? revenue}
-            revenueLocked={salesFromAccounts !== null}
-            onRevenue={setRevenue}
-            opex={opex}
-            onOpex={setOpex}
             askingPrice={askingPrice}
             onAskingPrice={setAskingPrice}
             ebitda={ebitdaFromAccounts ?? ebitda}
-            ebitdaLocked={ebitdaFromAccounts !== null}
-            onEbitda={setEbitda}
             adjustedEbitda={adjustedEbitda}
             onAdjustedEbitda={setAdjustedEbitda}
             margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}

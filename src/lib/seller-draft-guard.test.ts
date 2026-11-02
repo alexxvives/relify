@@ -19,3 +19,23 @@ describe("lockedIdentity (t78)", () => {
     expect(identityChangeHref("info@itsrelify.com", "Proyecto Sol")).toMatch(/^mailto:info@itsrelify\.com\?subject=/);
   });
 });
+
+import { sellerMoneyFields } from "./seller-draft-guard";
+
+describe("sellerMoneyFields (t78)", () => {
+  it("never writes revenue, EBITDA or OPEX for an existing project", () => {
+    const fields = sellerMoneyFields({ askingPrice: "500000", adjustedEbitda: "" }, false);
+    expect(fields).toEqual({ askingPriceCents: 50_000_000 });
+    expect("revenueCents" in fields || "ebitdaCents" in fields || "opexCents" in fields).toBe(false);
+  });
+
+  it("parses decimals and fills required columns with zero for a new project", () => {
+    expect(sellerMoneyFields({ askingPrice: "1200,5", adjustedEbitda: "" }, true)).toEqual({
+      askingPriceCents: 120_050,
+      adjustedEbitdaCents: 0,
+      revenueCents: 0,
+      ebitdaCents: 0,
+      opexCents: null,
+    });
+  });
+});

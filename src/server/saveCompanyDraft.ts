@@ -3,14 +3,8 @@ import { codenameIsFree, uniqueCodename } from "@/server/uniqueCodename";
 import { isCuratedNickname } from "@/lib/nickname";
 import { companyCopy } from "@/lib/company-copy";
 import {
-  closedYearIsActive,
-  eurosToCents,
-  forecastYearIsActive,
-  optionalEurosToCents,
   projectSlug,
-  type ClosedYearInput,
   type CompanyDraftInput,
-  type ForecastYearInput,
 } from "@/lib/company-draft";
 import {
   descriptionContainsSecret,
@@ -20,7 +14,7 @@ import {
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { lockedIdentity } from "@/lib/seller-draft-guard";
+import { lockedIdentity, sellerMoneyFields } from "@/lib/seller-draft-guard";
 
 export type SaveCompanyDraftResult =
   { ok: true } | { ok: false; message: string };
@@ -59,53 +53,6 @@ function sliceData(projectId: string, kind: SliceKind, basisPoints: number[]) {
     basisPoints: points,
   }));
 }
-
-function pnlData(year: ForecastYearInput | ClosedYearInput) {
-  return {
-    salesCents: optionalEurosToCents(year.sales),
-    inventoryChangeCents: optionalEurosToCents(year.inventoryChange),
-    ownUseCents: optionalEurosToCents(year.ownUse),
-    suppliesCents: optionalEurosToCents(year.supplies),
-    otherOperatingIncomeCents: optionalEurosToCents(year.otherOperatingIncome),
-    staffCostsCents: optionalEurosToCents(year.staffCosts),
-    otherOperatingCostsCents: optionalEurosToCents(year.otherOperatingCosts),
-    grantIncomeCents: optionalEurosToCents(year.grantIncome),
-    provisionSurplusCents: optionalEurosToCents(year.provisionSurplus),
-    assetImpairmentCents: optionalEurosToCents(year.assetImpairment),
-    subsidiaryControlLossCents: optionalEurosToCents(
-      year.subsidiaryControlLoss,
-    ),
-    negativeDifferenceCents: optionalEurosToCents(year.negativeDifference),
-    otherResultsCents: optionalEurosToCents(year.otherResults),
-    amortizationCents: optionalEurosToCents(year.amortization),
-  };
-}
-
-function balanceData(year: ClosedYearInput) {
-  return {
-    currentAssetsCents: optionalEurosToCents(year.currentAssets),
-    cashCents: optionalEurosToCents(year.cash),
-    nonCurrentAssetsCents: optionalEurosToCents(year.nonCurrentAssets),
-    currentLiabilitiesCents: optionalEurosToCents(year.currentLiabilities),
-    longTermDebtCents: optionalEurosToCents(year.longTermDebt),
-    nonCurrentLiabilitiesCents: optionalEurosToCents(
-      year.nonCurrentLiabilities,
-    ),
-    shortTermDebtCents: optionalEurosToCents(year.shortTermDebt),
-    equityCents: optionalEurosToCents(year.equity),
-  };
-}
-
-const emptyBalance = {
-  currentAssetsCents: null,
-  cashCents: null,
-  nonCurrentAssetsCents: null,
-  currentLiabilitiesCents: null,
-  longTermDebtCents: null,
-  nonCurrentLiabilitiesCents: null,
-  shortTermDebtCents: null,
-  equityCents: null,
-};
 
 export async function saveCompanyDraft(
   user: CurrentUser,
@@ -200,14 +147,11 @@ export async function saveCompanyDraft(
     address: input.address,
     codename,
     region: input.region,
-    revenueCents: eurosToCents(input.revenue),
-    ebitdaCents: eurosToCents(input.ebitda),
-    adjustedEbitdaCents: eurosToCents(input.adjustedEbitda),
-    askingPriceCents: eurosToCents(input.askingPrice),
+    // t78: revenue, EBITDA, OPEX and yearly accounts are never taken from a seller submission.
+    ...sellerMoneyFields(input, existing === null),
     foundedYear: input.foundedYear === "" ? null : Number(input.foundedYear),
     description: input.description === "" ? null : input.description,
     saleReason: input.saleReason === "" ? null : input.saleReason,
-    opexCents: optionalEurosToCents(input.opex),
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,
   };
@@ -229,33 +173,9 @@ export async function saveCompanyDraft(
     })),
   ];
 
-  const closedYears = input.closedYears.filter(closedYearIsActive);
-  const includeForecast = forecastYearIsActive(input.forecastYear);
-
   await prisma.$transaction(async (tx) => {
     const projectId = existing?.id ?? randomUUID();
 
-    // Lines that only the Modelo 200 upload fills: keep them across edits of the details form.
-    const extras = new Map(
-      existing
-        ? (
-            await tx.projectYear.findMany({
-              where: { projectId },
-              select: {
-                year: true,
-                financialResultCents: true,
-                profitBeforeTaxCents: true,
-                netResultCents: true,
-                inventoryCents: true,
-                receivablesCents: true,
-                suppliersCents: true,
-                dataSource: true,
-                confirmedAt: true,
-              },
-            })
-          ).map(({ year, ...rest }) => [year, rest] as const)
-        : [],
-    );
     const stored =
       writtenCif.length > 0 ? { ...profile, cif: writtenCif } : profile;
 
@@ -268,13 +188,16 @@ export async function saveCompanyDraft(
       });
       await tx.projectCnae.deleteMany({ where: { projectId } });
       await tx.activitySlice.deleteMany({ where: { projectId } });
-      await tx.projectYear.deleteMany({ where: { projectId } });
     } else {
       await tx.project.create({
         data: {
           id: projectId,
           slug: await unusedSlug(codename),
           ...profile,
+          revenueCents: 0,
+          ebitdaCents: 0,
+          askingPriceCents: profile.askingPriceCents ?? 0,
+          adjustedEbitdaCents: profile.adjustedEbitdaCents ?? 0,
           netDebtCents: 0,
           workingCapitalCents: 0,
           netIncomeCents: 0,
@@ -309,33 +232,6 @@ export async function saveCompanyDraft(
       await tx.activitySlice.createMany({ data: slices });
     }
 
-    const years = [
-      ...closedYears.map((year) => ({
-        id: randomUUID(),
-        projectId,
-        year: Number(year.year),
-        kind: "closed" as const,
-        ...pnlData(year),
-        ...balanceData(year),
-        ...(extras.get(Number(year.year)) ?? {}),
-      })),
-      ...(includeForecast
-        ? [
-            {
-              id: randomUUID(),
-              projectId,
-              year: Number(input.forecastYear.year),
-              kind: "forecast" as const,
-              ...pnlData(input.forecastYear),
-              ...emptyBalance,
-            },
-          ]
-        : []),
-    ];
-
-    if (years.length > 0) {
-      await tx.projectYear.createMany({ data: years });
-    }
   });
 
   return { ok: true };
