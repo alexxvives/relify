@@ -202,6 +202,8 @@ model Project {
   revenueCents        BigInt                  @map("revenue_cents")
   ebitdaCents         BigInt                  @map("ebitda_cents")
   adjustedEbitdaCents BigInt                  @map("adjusted_ebitda_cents")
+  /// t82: seller adjustments [{type, amountCents, reason}]; null = legacy declared figure without detail.
+  ebitdaAdjustments   Json?                @map("ebitda_adjustments")
   askingPriceCents    BigInt                  @map("asking_price_cents")
   verifiedAt          DateTime?            @map("verified_at")
   netDebtCents        BigInt                  @map("net_debt_cents")
