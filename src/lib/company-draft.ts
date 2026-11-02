@@ -129,10 +129,7 @@ export const companyDraftSchema = z
     validateCnaes(input.principalCnae, input.secondaryCnaes, ctx);
     validatePercents(input.capitalPercents, "capitalPercents", "percent-sum-capital", ctx);
     validatePercents(input.productPercents, "productPercents", "percent-sum-product", ctx);
-    if (input.saleReason === "") {
-      ctx.addIssue({ code: "custom", message: "sale-reason", path: ["saleReason"] });
-    }
-
+    // t78: drafts save partially; "Por qué se vende" is required for completion (seller progress), not to save.
     if (input.customerBase === "consumer") {
       const kept = input.clientPercents.map((value) => value.trim()).filter((value) => value.length > 0);
       if (kept.some((value) => parsePercentToBasisPoints(value) === null)) {

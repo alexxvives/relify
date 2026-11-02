@@ -69,6 +69,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
+import { saveBlockReason } from "@/lib/seller-save";
 
 const cnaeOptions = [
   { value: "", label: companyCopy.cnaeEmpty },
@@ -827,6 +828,7 @@ export function CompanyDraftForm({
   const [rejectedSave, setRejectedSave] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [suppressStatus, setSuppressStatus] = useState(false);
+  const [clientError, setClientError] = useState<string | null>(null);
   const saveStamp = state?.saved && !pending && saveTarget.length > 0 ? `${saveTarget}:${attempt}` : "";
   const [saveClosed, setSaveClosed] = useState("");
 
@@ -955,14 +957,12 @@ export function CompanyDraftForm({
     setSaveTarget(id);
     setAttempt((current) => current + 1);
 
-    const slicesBlocked = [capitalPercents, productPercents, clientPercents].some(
-      (values) => slicePercentIssue(values) !== "ok",
-    );
-    const saleReasonBlocked = (id === "basic" || id === "") && saleReason === "";
+    const blocked = saveBlockReason([capitalPercents, productPercents, clientPercents]);
 
-    if (!slicesBlocked && !saleReasonBlocked) {
+    if (!blocked) {
       setRejectedSave("");
       setSuppressStatus(false);
+      setClientError(null);
       return;
     }
 
@@ -970,15 +970,9 @@ export function CompanyDraftForm({
     leaveHrefRef.current = null;
     setRejectedSave(id);
     setSuppressStatus(true);
+    setClientError(blocked);
     setTab("company");
-
-    if (saleReasonBlocked) {
-      setOpenBasic(true);
-    }
-
-    if (slicesBlocked) {
-      setOpenStructure(true);
-    }
+    setOpenStructure(true);
   }
 
   useEffect(() => {
@@ -1659,8 +1653,10 @@ export function CompanyDraftForm({
         saving={pending}
         rejected={dirtySections.length > 0 && panelRejected(dirtySections[0].id)}
         shake={attempt}
-        value={dirtySections[0]?.id ?? ""}
+        value={dirtySections[0]?.id ?? "basic"}
         onChoose={chooseSave}
+        error={pending ? null : (clientError ?? (state && !state.saved ? state.message : null))}
+        savedStamp={state?.saved && !pending ? attempt : null}
       />
       </div>
       </div>

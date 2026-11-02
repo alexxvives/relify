@@ -31,7 +31,7 @@ describe("company draft money and slug", () => {
     })).success).toBe(false);
   });
 
-  it("requires a sale reason", () => {
+  it("saves a partial draft without a sale reason (t78)", () => {
     expect(companyDraftSchema.safeParse(draft({
       codename: "Proyecto Norte",
       region: "Galicia",
@@ -40,7 +40,7 @@ describe("company draft money and slug", () => {
       adjustedEbitda: "120",
       askingPrice: "800",
       saleReason: "",
-    })).success).toBe(false);
+    })).success).toBe(true);
   });
 
   it("requires shareholder percents to sum to 100", () => {
