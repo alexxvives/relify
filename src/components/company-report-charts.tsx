@@ -362,7 +362,7 @@ export function Waterfall({ years }: { years: SabiYear[] }) {
   return (
     <div className="flex flex-col gap-3">
       {usable.length > 1 ? (
-        <div role="radiogroup" aria-label="Ejercicio" className="flex flex-wrap gap-1.5">
+        <div role="radiogroup" aria-label="Ejercicio" className="flex flex-wrap justify-center gap-1.5">
           {usable.map((item) => {
             const active = item.year === year.year;
             return (
