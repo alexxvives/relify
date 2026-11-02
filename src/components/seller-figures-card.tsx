@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, MessageSquareText, ShieldCheck } from "lucide-react";
 import { requestFigureCorrectionAction, type FigureCorrectionState } from "@/app/(app)/mi-empresa/actions";
@@ -45,13 +47,11 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
     <Card id="panel-figures" className="scroll-mt-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-3 text-2xl font-semibold text-[#2b3b4a]">
+          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             <StepNumber value={step} />
             Tus cifras
           </h2>
-          <p className="mt-1 max-w-2xl text-sm text-[#64748b]">
-            Las cifras clave de tu último ejercicio. Las gráficas completas están en la Ficha pública. No tienes que escribir nada.
-          </p>
+          <SectionIntro>Las cifras clave de tu último ejercicio y su evolución.</SectionIntro>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
           <ShieldCheck className="size-3.5" aria-hidden />
@@ -148,6 +148,11 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
       ) : null}
     </Card>
   );
+}
+
+/** t79: one-line section intro shared by "Cómo es tu negocio" and "Tus cifras". */
+export function SectionIntro({ children }: { children: ReactNode }) {
+  return <p className="mt-1 text-sm text-[#64748b]">{children}</p>;
 }
 
 export function StepNumber({ value }: { value: number }) {

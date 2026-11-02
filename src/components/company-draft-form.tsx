@@ -68,7 +68,7 @@ import {
   type SliceKind,
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
-import { SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
+import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import { completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
@@ -199,7 +199,7 @@ function Panel({
             {title}
             {hint ? <FieldHint text={hint} /> : null}
           </h2>
-          {open ? null : intro ? <p className="mt-1 text-sm text-[#64748b]">{intro}</p> : null}
+          {open ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {open && dirty ? (
