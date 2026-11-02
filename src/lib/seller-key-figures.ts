@@ -3,7 +3,7 @@ import type { SabiYear } from "./sabi/insights";
 export type KeyFigure = {
   key: string;
   label: string;
-  unit: "eur" | "count";
+  unit: "eur" | "count" | "percent";
   value: number;
   year: number;
   /** Months in that fiscal year when it isn't a full year (e.g. 11). */
@@ -13,6 +13,16 @@ export type KeyFigure = {
 const metrics: Array<{ key: string; label: string; unit: KeyFigure["unit"]; pick: (year: SabiYear) => number | null }> = [
   { key: "revenue", label: "Ingresos", unit: "eur", pick: (year) => year.revenueCents },
   { key: "ebitda", label: "EBITDA", unit: "eur", pick: (year) => year.ebitdaCents },
+  {
+    // t79: 8th tile so the grid fills 2×4; percent of the same year's revenue, one decimal.
+    key: "ebitdaMargin",
+    label: "Margen EBITDA",
+    unit: "percent",
+    pick: (year) =>
+      year.ebitdaCents === null || year.revenueCents === null || year.revenueCents <= 0
+        ? null
+        : Math.round((year.ebitdaCents / year.revenueCents) * 1000) / 10,
+  },
   { key: "netResult", label: "Resultado", unit: "eur", pick: (year) => year.netResultCents },
   { key: "employees", label: "Empleados", unit: "count", pick: (year) => year.employees },
   { key: "totalAssets", label: "Activo", unit: "eur", pick: (year) => year.totalAssetsCents },

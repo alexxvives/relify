@@ -24,6 +24,17 @@ describe("sellerKeyFigures", () => {
     expect(tiles.some((tile) => tile.key === "equity")).toBe(false);
   });
 
+  it("adds EBITDA margin from the same year so a full year gives 8 tiles (t79)", () => {
+    const full = year({
+      year: 2024, revenueCents: 1_000_000, ebitdaCents: 123_400, netResultCents: 1, employees: 3,
+      totalAssetsCents: 1, equityCents: 1, longTermDebtCents: 1,
+    });
+    const tiles = sellerKeyFigures([full]);
+    expect(tiles).toHaveLength(8);
+    expect(tiles[2]).toMatchObject({ key: "ebitdaMargin", unit: "percent", value: 12.3 });
+    expect(sellerKeyFigures([year({ year: 2024, revenueCents: 0, ebitdaCents: 5 })]).some((tile) => tile.key === "ebitdaMargin")).toBe(false);
+  });
+
   it("returns nothing without figures", () => {
     expect(sellerKeyFigures(null)).toEqual([]);
   });

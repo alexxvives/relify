@@ -60,12 +60,16 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
       </div>
 
       {tiles.length > 0 ? (
-        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+        <dl className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
           {tiles.map((tile) => (
             <div key={tile.key} className="rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3">
               <dt className="text-xs font-medium text-[#5c6b78]">{tile.label}</dt>
               <dd className="mt-1 text-xl font-semibold tabular-nums text-[#1c2740]">
-                {tile.unit === "eur" ? formatCardEur(tile.value) : new Intl.NumberFormat("es-ES").format(tile.value)}
+                {tile.unit === "eur"
+                  ? formatCardEur(tile.value)
+                  : tile.unit === "percent"
+                    ? `${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(tile.value)} %`
+                    : new Intl.NumberFormat("es-ES").format(tile.value)}
               </dd>
               <dd className="mt-0.5 text-xs text-[#667085]">
                 {tile.year}
