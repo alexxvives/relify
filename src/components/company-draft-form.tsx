@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
-import { RegistryBadge } from "@/components/registry-badge";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -170,12 +169,9 @@ function Panel({
   dirty,
   onEdit,
   onCollapse,
-  registry = false,
   children,
 }: {
   id?: string;
-  /** t74: prefilled from the registry import; shows the "Fuente: registro (SABI)" badge. */
-  registry?: boolean;
   title: string;
   intro?: string;
   hint?: string;
@@ -194,7 +190,6 @@ function Panel({
             {title}
             {hint ? <FieldHint text={hint} /> : null}
           </h2>
-          {registry ? <RegistryBadge className="mt-1" /> : null}
           {open ? null : intro ? <p className="mt-1 text-sm text-[#64748b]">{intro}</p> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -715,14 +710,12 @@ function Fact({
   icon: Icon,
   label,
   required = false,
-  registry = false,
   children,
 }: {
   id?: string;
   icon: typeof Building2;
   label: string;
   required?: boolean;
-  registry?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -738,7 +731,6 @@ function Fact({
               *
             </span>
           ) : null}
-          {registry ? <RegistryBadge className="ml-2" /> : null}
         </span>
         <div className="text-base font-semibold text-[#2b3b4a]">{children}</div>
       </span>
@@ -797,10 +789,7 @@ export function CompanyDraftForm({
   coverSrc = null,
   financeExtra = null,
   reportYears = null,
-  registryImported = false,
 }: {
-  /** t74: the company has a registry (SABI) import; its fields carry the source badge. */
-  registryImported?: boolean;
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
@@ -1226,7 +1215,7 @@ export function CompanyDraftForm({
             />
           </Fact>
           <input type="hidden" name="region" value={region} />
-          <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel} registry={registryImported && initial.foundedYear !== ""}>
+          <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel}>
             <Input
               name="foundedYear"
               inputMode="numeric"
@@ -1252,7 +1241,7 @@ export function CompanyDraftForm({
               }}
             />
           </Fact>
-          <Fact icon={Users} label={companyCopy.workersLabel} registry={registryImported && initial.headcount !== ""}>
+          <Fact icon={Users} label={companyCopy.workersLabel}>
             <OptionSelect
               name="headcount"
               label={companyCopy.headcountLabel}
@@ -1326,7 +1315,6 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-structure"
-        registry={registryImported}
         title={companyCopy.structureHeading}
         intro={companyCopy.structureFold}
         hint={companyCopy.slicePrivate}
@@ -1381,7 +1369,6 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-income"
-        registry={registryImported}
         title={companyCopy.incomeHeading}
         intro={companyCopy.incomeFold}
         hint={`${companyCopy.incomeIntro} ${companyCopy.signedEuroHint}\n\n${companyCopy.incomeWindowNote}`}
@@ -1484,7 +1471,6 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-balance"
-        registry={registryImported}
         title={companyCopy.balanceHeading}
         intro={companyCopy.balanceFold}
         hint={companyCopy.balanceIntro}

@@ -24,11 +24,9 @@ export function SellerCompanyPanel({
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
 }) {
-  const registryImported = Boolean(sabiRegistry && sabiRegistry.years.length > 0);
   return (
     <>
       <CompanyDraftForm
-        registryImported={registryImported}
         key={cif || "nueva"}
         draft={draft}
         cif={cif}
