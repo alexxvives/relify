@@ -1449,6 +1449,7 @@ export function CompanyDraftForm({
       id: field.id,
       label: field.label,
       done: field.done,
+      required: field.required,
       group: field.section === "basic" ? "panel-basic" : field.section === "deal" ? "panel-price" : "panel-structure",
     })),
   };

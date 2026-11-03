@@ -69,7 +69,14 @@ export function DetailSectionNav({
   onMissing,
 }: {
   items: DetailSectionItem[];
-  progress: { done: number; total: number; missing: Array<{ id: string; label: string }>; fields?: DetailField[] };
+  progress: {
+    done: number;
+    total: number;
+    missing: Array<{ id: string; label: string }>;
+    missingRequired?: number;
+    missingRecommended?: number;
+    fields?: DetailField[];
+  };
   /** Required fields that live outside the visible sections (e.g. on the other tab) open their tab first. */
   onMissing?: (id: string) => boolean;
 }) {
@@ -121,7 +128,7 @@ export function DetailSectionNav({
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#1c2740]">{complete ? "Todo listo" : "Tu progreso"}</p>
               <p className="text-xs text-[#64748b]">
-                {complete ? "Has completado lo imprescindible." : `Te faltan ${progress.missing.length} de ${progress.total} datos`}
+                {complete ? "Has completado lo imprescindible." : missingSummary(progress)}
               </p>
             </div>
           </div>
@@ -158,8 +165,9 @@ export function DetailSectionNav({
                             )}
                             <span className={`min-w-0 flex-1 ${field.done ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{field.label}</span>
                             <span className="sr-only">{field.done ? "Completo" : "Pendiente"}</span>
+                            {field.done || field.required === undefined ? null : <RequirementTag required={field.required} />}
                             {field.done ? null : (
-                              <span aria-hidden className="mt-px inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                              <span aria-hidden className="mt-px hidden items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] group-hover:inline-flex group-focus-visible:inline-flex">
                                 Ir
                                 <ArrowRight className="size-3" />
                               </span>
@@ -179,7 +187,33 @@ export function DetailSectionNav({
   );
 }
 
-export type DetailField = { id: string; label: string; done: boolean; group: string };
+export type DetailField = { id: string; label: string; done: boolean; group: string; required?: boolean };
+
+/** t88: same Obligatorio / Recomendado tags as the Inicio checklist (seller-overview.tsx), compact for the side panel. */
+function RequirementTag({ required }: { required: boolean }) {
+  return (
+    <span
+      className={`mt-px shrink-0 rounded-full px-1.5 py-px text-[10px] leading-4 font-semibold whitespace-nowrap group-hover:hidden group-focus-visible:hidden ${
+        required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"
+      }`}
+    >
+      {required ? "Obligatorio" : "Recomendado"}
+    </span>
+  );
+}
+
+/** t88: "Te faltan 2 obligatorios · 1 recomendado" (required counted apart, as on Inicio). */
+export function missingSummary(progress: { missing: Array<unknown>; total: number; missingRequired?: number; missingRecommended?: number }): string {
+  if (progress.missingRequired === undefined || progress.missingRecommended === undefined) {
+    return `Te faltan ${progress.missing.length} de ${progress.total} datos`;
+  }
+  const parts: string[] = [];
+  const required = progress.missingRequired;
+  const recommended = progress.missingRecommended;
+  if (required > 0) parts.push(`${required} ${required === 1 ? "obligatorio" : "obligatorios"}`);
+  if (recommended > 0) parts.push(`${recommended} ${recommended === 1 ? "recomendado" : "recomendados"}`);
+  return parts.length > 0 ? `Te faltan ${parts.join(" · ")}` : "Todo completo";
+}
 
 /**
  * t77/t78: sticky save bar. Shown while the form has unsaved changes or the last save failed (with the reason),

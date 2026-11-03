@@ -52,4 +52,15 @@ describe("askingPriceSet (t83)", () => {
     expect(askingPriceSet("0,00")).toBe(false);
     expect(askingPriceSet("1.200.000")).toBe(true);
   });
+
+  it("t88: counts required and recommended gaps apart, matching the Inicio checklist", () => {
+    const progress = completionProgress(sellerRequiredFields({ ...empty, saleReason: "retirement", customerBase: "business" }));
+    expect(progress.missingRequired).toBe(2);
+    expect(progress.missingRecommended).toBe(3);
+    expect(sellerRequiredFields(empty).filter((field) => field.required).map((field) => field.id)).toEqual([
+      "panel-sale-reason",
+      "panel-description",
+      "panel-asking-price",
+    ]);
+  });
 });
