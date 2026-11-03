@@ -870,13 +870,16 @@ function PercentRows({
     <div role="group" aria-labelledby={legendId} className="min-w-0">
       <div className="mb-3 flex items-center justify-start gap-2">
         <h3 id={legendId} className="text-base font-semibold text-[#1c2740]">{legend}</h3>
-        <AddIconButton
-          label={addLabel}
-          disabled={values.length >= maxActivitySlices}
-          onClick={() => {
-            onChange([...values, ""]);
-          }}
-        />
+        {/* t87: "Tu progreso" highlights this plus button (data-flash), not the section title. */}
+        <span data-flash className="inline-flex rounded-full">
+          <AddIconButton
+            label={addLabel}
+            disabled={values.length >= maxActivitySlices}
+            onClick={() => {
+              onChange([...values, ""]);
+            }}
+          />
+        </span>
       </div>
       <div className="flex flex-col gap-3">
       {values.map((value, index) => {
@@ -1479,12 +1482,14 @@ export function CompanyDraftForm({
     window.setTimeout(() => {
       const target = document.getElementById(id);
       if (target) scrollToCenter(target);
-      target?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({ preventScroll: true });
+      // t87: sections whose action is a plus button (Ventas por producto / por cliente) highlight and focus that button.
+      const flashTarget = target?.querySelector<HTMLElement>("[data-flash]") ?? target;
+      (flashTarget?.querySelector<HTMLElement>("input, textarea, select, button") ?? flashTarget)?.focus({ preventScroll: true });
       // t85: every field gets the same visible teal highlight Descripción shows via its focus ring, even chip/button groups.
-      if (target) {
-        const flash = ["rounded-xl", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
-        target.classList.add(...flash);
-        window.setTimeout(() => target.classList.remove(...flash), 1800);
+      if (flashTarget) {
+        const flash = [flashTarget === target ? "rounded-xl" : "rounded-full", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
+        flashTarget.classList.add(...flash);
+        window.setTimeout(() => flashTarget.classList.remove(...flash), 1800);
       }
     }, 60);
     return true;
