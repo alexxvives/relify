@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SabiPendingOverlay } from "@/components/sabi-pending-notice";
-import { Check, CircleAlert, Plus } from "lucide-react";
+import { Check } from "lucide-react";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
@@ -110,43 +110,31 @@ export function SellerOverview({
             {listing === "pending" ? <p className="mt-2 text-sm text-[#475467]">{billingCopy.reviewRequested}</p> : null}
             {listing === "draft" && payToPublish && checklist.ready ? <PublishPayButton blocked={payBlocked} /> : null}
             <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
-            {/* t86: one list. Missing required steps in red, missing recommended ones in amber; each carries a tag so colour is not the only cue. */}
+            {/* t87: neutral rows; only the Obligatorio / Recomendado tag carries colour, a check marks done steps. */}
             <ul className="mt-4 overflow-hidden rounded-xl border border-[#e6eaf5] bg-white">
               {[
                 ...checklist.items.map((item) => ({ key: item.key, label: item.label, hint: item.hint, done: item.done, href: item.href, required: true })),
                 ...recommended.map((item) => ({ key: item.key, label: item.label, hint: item.hint, done: item.done, href: item.href, required: false })),
                 { key: "photo", label: sellerCopy.panelPhoto, hint: sellerCopy.panelPhotoHint, done: hasPhoto, href: photoHref, required: false },
               ].map((item) => {
-                const tone = item.done ? "done" : item.required ? "required" : "recommended";
                 const row = (
                   <>
-                    <span className={`flex min-w-0 items-center gap-1.5 xl:whitespace-nowrap ${tone === "done" ? "text-[#17663a]" : tone === "required" ? "font-medium text-[#a12f2f]" : "font-medium text-[#8a6112]"}`}>
-                      {item.label}
-                      {item.hint && !item.done ? <FieldHint text={item.hint} /> : null}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      {item.done ? null : (
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${item.required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"}`}>
-                          {item.required ? "Obligatorio" : companyCopy.cardPhotosRecommended}
-                        </span>
-                      )}
-                      {item.done ? (
-                        <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
-                      ) : item.required ? (
-                        <CircleAlert className="size-4 shrink-0 text-[#c0362c]" aria-label="Pendiente" />
-                      ) : (
-                        <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Pendiente" />
-                      )}
-                    </span>
+                    <span title={item.hint && !item.done ? item.hint : undefined} className={`min-w-0 xl:whitespace-nowrap ${item.done ? "text-[#667085]" : "font-medium text-[#1c2740]"}`}>{item.label}</span>
+                    {item.done ? (
+                      <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
+                    ) : (
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${item.required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"}`}>
+                        {item.required ? "Obligatorio" : companyCopy.cardPhotosRecommended}
+                      </span>
+                    )}
                   </>
                 );
-                const stripe = tone === "done" ? "border-l-transparent" : tone === "required" ? "border-l-[#c0362c] bg-[#fff8f7]" : "border-l-[#e0b546] bg-[#fffdf5]";
                 return (
-                  <li key={item.key} className={`border-t border-l-4 border-t-[#e6eaf5] first:border-t-0 ${stripe}`}>
+                  <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
                     {item.done ? (
                       <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm">{row}</div>
                     ) : (
-                      <Link href={item.href} className={`flex items-center justify-between gap-3 px-3 py-3 text-sm ${item.required ? "hover:bg-[#fdecea]" : "hover:bg-[#fff6dc]"}`}>
+                      <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-3 text-sm hover:bg-[#f7f8fb]">
                         {row}
                       </Link>
                     )}
