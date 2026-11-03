@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { MapPin } from "lucide-react";
 import { sectorStyles } from "@/components/market-card";
 import type { SectorImageKey } from "@/lib/sector-image";
-import { sectorBannerBackground } from "@/lib/sector-theme";
+import { sectorBannerBackground, sectorThemes } from "@/lib/sector-theme";
 
 export function CompanyBanner({
   title,
@@ -15,6 +15,7 @@ export function CompanyBanner({
   heading = "h1",
   sector = null,
   chips = [],
+  variant = "hero",
 }: {
   title: string;
   subtitle?: string;
@@ -30,8 +31,50 @@ export function CompanyBanner({
   sector?: SectorImageKey | null;
   /** t83: neutral chips under the title (sector, region, founding decade). Never identifying data. */
   chips?: string[];
+  /**
+   * t88b: "compact" is the admin company header (t81: no hero banner). Same data and slots as the hero: a small
+   * sector tile, the name, small chips, status, readiness chip, then deal progress and cue on the light page.
+   */
+  variant?: "hero" | "compact";
 }) {
   const Title = heading;
+  if (variant === "compact") {
+    const Icon = sector ? sectorStyles[sector].icon : null;
+    return (
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {sector && Icon ? (
+            <span
+              className="flex size-9 items-center justify-center rounded-xl text-white"
+              style={{ background: sectorThemes[sector].hue }}
+              title={sectorThemes[sector].label}
+              aria-hidden
+            >
+              <Icon className="size-5" />
+            </span>
+          ) : null}
+          <Title className="text-2xl font-semibold text-[#1c2740]">{title}</Title>
+          {chips.length > 0
+            ? chips.map((chip) => (
+                <span key={chip} className="rounded-full bg-[#f1f3f6] px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
+                  {chip}
+                </span>
+              ))
+            : subtitle ? <span className="text-sm text-[#5c6b78]">{subtitle}</span> : null}
+          {status ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e1e5eb] bg-white px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
+              <span className={`size-2 rounded-full ${status.live ? "bg-[#2fc4b2]" : "bg-[#c3c9d3]"}`} aria-hidden />
+              {status.label}
+            </span>
+          ) : null}
+          {statusNote}
+          {children ? <div className="ml-auto flex items-center gap-2">{children}</div> : null}
+        </div>
+        {progress ? <div>{progress}</div> : null}
+        {cue ? <div className="flex">{cue}</div> : null}
+      </header>
+    );
+  }
   const themed = sector !== null;
   const SectorIcon = sector ? sectorStyles[sector].icon : null;
 
