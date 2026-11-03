@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SabiPendingOverlay } from "@/components/sabi-pending-notice";
-import { Check, Circle, Plus } from "lucide-react";
+import { Check, CircleAlert, Plus } from "lucide-react";
 import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import type { SellerFunnel } from "@/server/activityFunnel";
 import { CompletionMeter } from "@/components/completion-meter";
@@ -110,75 +110,49 @@ export function SellerOverview({
             {listing === "pending" ? <p className="mt-2 text-sm text-[#475467]">{billingCopy.reviewRequested}</p> : null}
             {listing === "draft" && payToPublish && checklist.ready ? <PublishPayButton blocked={payBlocked} /> : null}
             <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
-            <ul className="mt-4 overflow-hidden rounded-xl bg-[#f4f7ff]">
-              {checklist.items.map((item) => {
+            {/* t86: one list. Missing required steps in red, missing recommended ones in amber; each carries a tag so colour is not the only cue. */}
+            <ul className="mt-4 overflow-hidden rounded-xl border border-[#e6eaf5] bg-white">
+              {[
+                ...checklist.items.map((item) => ({ key: item.key, label: item.label, hint: item.hint, done: item.done, href: item.href, required: true })),
+                ...recommended.map((item) => ({ key: item.key, label: item.label, hint: item.hint, done: item.done, href: item.href, required: false })),
+                { key: "photo", label: sellerCopy.panelPhoto, hint: sellerCopy.panelPhotoHint, done: hasPhoto, href: photoHref, required: false },
+              ].map((item) => {
+                const tone = item.done ? "done" : item.required ? "required" : "recommended";
                 const row = (
                   <>
-                    <span className={`flex min-w-0 items-center gap-1.5 ${item.done ? "text-[#17663a]" : ""}`}>
+                    <span className={`flex min-w-0 items-center gap-1.5 ${tone === "done" ? "text-[#17663a]" : tone === "required" ? "font-medium text-[#a12f2f]" : "font-medium text-[#8a6112]"}`}>
                       {item.label}
-                      {item.hint ? <FieldHint text={item.hint} /> : null}
+                      {item.hint && !item.done ? <FieldHint text={item.hint} /> : null}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
+                      {item.done ? null : (
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"}`}>
+                          {item.required ? "Obligatorio" : companyCopy.cardPhotosRecommended}
+                        </span>
+                      )}
                       {item.done ? (
                         <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
+                      ) : item.required ? (
+                        <CircleAlert className="size-4 shrink-0 text-[#c0362c]" aria-label="Pendiente" />
                       ) : (
-                        <Circle className="size-4 shrink-0 text-[#c5cdd6]" aria-label="Pendiente" />
+                        <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Pendiente" />
                       )}
                     </span>
                   </>
                 );
+                const stripe = tone === "done" ? "border-l-transparent" : tone === "required" ? "border-l-[#c0362c] bg-[#fff8f7]" : "border-l-[#e0b546] bg-[#fffdf5]";
                 return (
-                  <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
+                  <li key={item.key} className={`border-t border-l-4 border-t-[#e6eaf5] first:border-t-0 ${stripe}`}>
                     {item.done ? (
-                      <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740]">{row}</div>
+                      <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm">{row}</div>
                     ) : (
-                      <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-3 text-sm text-[#1c2740] hover:bg-[#eaf0ff]">
+                      <Link href={item.href} className={`flex items-center justify-between gap-3 px-3 py-3 text-sm ${item.required ? "hover:bg-[#fdecea]" : "hover:bg-[#fff6dc]"}`}>
                         {row}
                       </Link>
                     )}
                   </li>
                 );
               })}
-            </ul>
-            <p className="mt-4 mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide text-[#8a6112] uppercase">
-              {companyCopy.cardPhotosRecommended}
-              <span className="font-normal tracking-normal text-[#667085] normal-case">· no bloquea la publicación</span>
-            </p>
-            <ul className="overflow-hidden rounded-xl border border-dashed border-[#ecd9a6] bg-[#fffdf5]">
-              {recommended.map((item) => (
-                <li key={item.key} className="border-t border-dashed border-[#f1e4bf] first:border-t-0">
-                  {item.done ? (
-                    <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#17663a]">
-                      {item.label}
-                      <Check className="size-4 shrink-0" aria-label="Hecho" />
-                    </div>
-                  ) : (
-                    <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#1c2740] hover:bg-[#fff6dc]">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        {item.label}
-                        {item.hint ? <FieldHint text={item.hint} /> : null}
-                      </span>
-                      <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Recomendado" />
-                    </Link>
-                  )}
-                </li>
-              ))}
-              <li className="border-t border-dashed border-[#f1e4bf] first:border-t-0">
-                {hasPhoto ? (
-                  <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#17663a]">
-                    {sellerCopy.panelPhoto}
-                    <Check className="size-4 shrink-0" aria-hidden />
-                  </div>
-                ) : (
-                  <Link href={photoHref} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-[#1c2740] hover:bg-[#fff6dc]">
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      {sellerCopy.panelPhoto}
-                      <FieldHint text={sellerCopy.panelPhotoHint} />
-                    </span>
-                    <Plus className="size-4 shrink-0 text-[#b88a1b]" aria-label="Recomendado" />
-                  </Link>
-                )}
-              </li>
             </ul>
           </Card>
           <PendingActions side items={pending} empty={sellerCopy.pendingEmpty} />
