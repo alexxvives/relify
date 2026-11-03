@@ -54,7 +54,7 @@ export function SellerOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+      <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
         <div className="flex w-full min-w-0 flex-col gap-6 self-start">
           <SellerActivitySummary funnel={funnel} />
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -120,13 +120,13 @@ export function SellerOverview({
                 const tone = item.done ? "done" : item.required ? "required" : "recommended";
                 const row = (
                   <>
-                    <span className={`flex min-w-0 items-center gap-1.5 ${tone === "done" ? "text-[#17663a]" : tone === "required" ? "font-medium text-[#a12f2f]" : "font-medium text-[#8a6112]"}`}>
+                    <span className={`flex min-w-0 items-center gap-1.5 xl:whitespace-nowrap ${tone === "done" ? "text-[#17663a]" : tone === "required" ? "font-medium text-[#a12f2f]" : "font-medium text-[#8a6112]"}`}>
                       {item.label}
                       {item.hint && !item.done ? <FieldHint text={item.hint} /> : null}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       {item.done ? null : (
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${item.required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"}`}>
                           {item.required ? "Obligatorio" : companyCopy.cardPhotosRecommended}
                         </span>
                       )}
