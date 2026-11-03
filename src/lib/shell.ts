@@ -109,7 +109,10 @@ export function noticeOpenOnPath(href: string | null, pathname: string): boolean
   return path.length > 0 && (pathname === path || pathname.startsWith(`${path}/`));
 }
 
-export function destinationIsCurrent(href: string, pathname: string): boolean {
+export function destinationIsCurrent(rawHref: string, rawPathname: string): boolean {
+  // Match on the path only: query strings and anchors (?seccion=..., #fotos) never change the page.
+  const href = rawHref.split(/[?#]/)[0] ?? "";
+  const pathname = rawPathname.split(/[?#]/)[0] ?? "";
   if (pathname === href) {
     return true;
   }

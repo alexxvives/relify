@@ -262,6 +262,13 @@ export function AppFrame({
   const routePath = usePathname();
   // Optimistic active state: highlight the clicked item at once, before the route commits.
   const [navTarget, setNavTarget] = useState<{ href: string; from: string } | null>(null);
+  // Drop the optimistic target as soon as the route changes, so a later navigation from inside the
+  // page (a checklist row, a link) never shows the old click as active.
+  const [seenPath, setSeenPath] = useState(routePath);
+  if (seenPath !== routePath) {
+    setSeenPath(routePath);
+    setNavTarget(null);
+  }
   const pathname = navTarget !== null && navTarget.from === routePath ? navTarget.href : routePath;
   // Same numbers as the company switcher badges: "your turn" actions per company, named so other companies are clear.
   const pendingGroups = canManageCompanies

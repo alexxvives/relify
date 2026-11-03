@@ -37,6 +37,10 @@ describe("destinationsForRole", () => {
 });
 
 describe("destinationIsCurrent", () => {
+  it("ignores query strings and anchors", () => {
+    expect(destinationIsCurrent("/mi-empresa/detalles?seccion=price#fotos", "/mi-empresa/detalles")).toBe(true);
+    expect(destinationIsCurrent("/mi-empresa", "/mi-empresa/detalles")).toBe(false);
+  });
   it("marks Empresas on the market and on a project detail", () => {
     expect(destinationIsCurrent("/mercado", "/mercado")).toBe(true);
     expect(destinationIsCurrent("/mercado", "/proyectos/proyecto-duna")).toBe(true);
