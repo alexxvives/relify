@@ -1441,9 +1441,9 @@ export function CompanyDraftForm({
   const priceDone = sectionComplete(requiredFields, "deal");
   const companySections: DetailSectionItem[] = [
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
+    { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
     { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
-    { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
   // t79/t80: the right-hand checklist groups each required field under its section. It covers this tab only: the asking
@@ -1674,9 +1674,62 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
+      {/* t87: Datos de la ficha (apodo, fotos, precio, EBITDA ajustado) is step 2, right under Tu empresa, so sellers find the price early. */}
+      <Panel
+        id="panel-price"
+        step={2}
+        title={companyCopy.fichaFieldsTitle}
+        intro={companyCopy.dealFold}
+        hint={dealNote}
+        open
+        fixed
+        dirty={dealDirty}
+        done={priceDone}
+        onEdit={() => setSaveClosed("")}
+        onCollapse={() => undefined}
+      >
+          <PublicFicha
+            codename={codename}
+            coverSrc={coverSrc}
+            photos={fichaExtras?.photos ?? []}
+            onListed={setListedPhoto}
+            onCodename={setCodename}
+          >
+            <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
+            <FichaMetrics
+              revenue={salesFromAccounts ?? revenue}
+              askingPrice={askingPrice}
+              onAskingPrice={setAskingPrice}
+              ebitda={ebitdaFromAccounts ?? ebitda}
+              adjustedEbitda={adjustedEbitda}
+              adjustmentCount={adjustmentRows.length}
+              adjustments={
+                <>
+                  <EbitdaAdjustmentsEditor
+                    rows={adjustmentRows}
+                    onRows={setAdjustmentRows}
+                    baseCents={adjustmentBaseCents}
+                    year={accountYear?.year ?? null}
+                    legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                  />
+                </>
+              }
+              margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+              netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
+              priceStatus={
+                <PriceStatus
+                  estimate={priceEstimate}
+                  askingCents={euroCentsOrNull(askingPrice)}
+                  basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
+                />
+              }
+            />
+          </PublicFicha>
+      </Panel>
+
       <Panel
         id="panel-structure"
-        step={2}
+        step={3}
         title={companyCopy.structureHeading}
         intro={companyCopy.structureFold}
         hint={companyCopy.slicePrivate}
@@ -1730,7 +1783,7 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
-      <SellerFiguresCard step={3} figures={investorPreview} reportYears={reportYears} />
+      <SellerFiguresCard step={4} figures={investorPreview} reportYears={reportYears} />
       {/* t76: raw accounting inputs are not for sellers; they stay mounted (hidden) so saving keeps the loaded values. */}
       <div hidden>
       <Panel
@@ -1916,57 +1969,6 @@ export function CompanyDraftForm({
         </div>
       </Panel>
       </div>
-      {/* t86: the ficha's editable data (apodo, fotos, precio, EBITDA ajustado) lives here; Ficha pública is only the buyer preview. */}
-      <Panel
-        id="panel-price"
-        title={companyCopy.fichaFieldsTitle}
-        intro={companyCopy.dealFold}
-        hint={dealNote}
-        open
-        fixed
-        dirty={dealDirty}
-        done={priceDone}
-        onEdit={() => setSaveClosed("")}
-        onCollapse={() => undefined}
-      >
-          <PublicFicha
-            codename={codename}
-            coverSrc={coverSrc}
-            photos={fichaExtras?.photos ?? []}
-            onListed={setListedPhoto}
-            onCodename={setCodename}
-          >
-            <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
-            <FichaMetrics
-              revenue={salesFromAccounts ?? revenue}
-              askingPrice={askingPrice}
-              onAskingPrice={setAskingPrice}
-              ebitda={ebitdaFromAccounts ?? ebitda}
-              adjustedEbitda={adjustedEbitda}
-              adjustmentCount={adjustmentRows.length}
-              adjustments={
-                <>
-                  <EbitdaAdjustmentsEditor
-                    rows={adjustmentRows}
-                    onRows={setAdjustmentRows}
-                    baseCents={adjustmentBaseCents}
-                    year={accountYear?.year ?? null}
-                    legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
-                  />
-                </>
-              }
-              margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-              netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
-              priceStatus={
-                <PriceStatus
-                  estimate={priceEstimate}
-                  askingCents={euroCentsOrNull(askingPrice)}
-                  basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
-                />
-              }
-            />
-          </PublicFicha>
-      </Panel>
       {financeExtra}
       {/* t80: room so the last sections can scroll up to the top from the progress panel. */}
       <div aria-hidden className="hidden h-[40vh] lg:block" />
