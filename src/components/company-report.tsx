@@ -744,7 +744,7 @@ export function CompanyReport({
   const sections = [
     { id: "resumen", label: companyReportCopy.summary },
     { id: "negocio", label: companyReportCopy.business },
-    galleryPhotos.length > 0 ? { id: "fotos", label: companyCopy.galleryTitle } : null,
+    galleryPhotos.length > 0 ? { id: "galeria", label: companyCopy.galleryTitle } : null,
     { id: "evolucion", label: companyReportCopy.evolution },
     profitability.length > 0 ? { id: "rentabilidad", label: companyReportCopy.profitability } : null,
     signals.length > 0 || debt.length > 0 ? { id: "solidez", label: companyReportCopy.health } : null,
@@ -916,7 +916,7 @@ export function CompanyReport({
       </ReportSection>
 
       {galleryPhotos.length > 0 ? (
-        <ReportSection id="fotos" icon={Images} title={companyCopy.galleryTitle} aside={`${galleryPhotos.length} ${galleryPhotos.length === 1 ? "foto" : "fotos"}`}>
+        <ReportSection id="galeria" icon={Images} title={companyCopy.galleryTitle} aside={`${galleryPhotos.length} ${galleryPhotos.length === 1 ? "foto" : "fotos"}`}>
           <PhotoGallery photos={galleryPhotos} moderate={role === "admin"} />
         </ReportSection>
       ) : null}

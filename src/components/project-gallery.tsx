@@ -100,17 +100,17 @@ function Thumb({ photo, index, size, onOpen }: { photo: GalleryPhoto; index: num
   );
 }
 
-/** t85: compact thumbnail strip for the report (buyer ficha, seller preview, admin with hide/show); click opens the lightbox. */
+/** t85/t86: small gallery grid for the report (buyer ficha, seller preview, admin with hide/show); click opens the lightbox. */
 export function PhotoGallery({ photos, moderate = false }: { photos: GalleryPhoto[]; moderate?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState<number | null>(null);
   return (
     <>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
         {photos.map((photo, index) => (
           <li key={photo.id} className="relative flex flex-col items-center gap-1">
-            <Thumb photo={photo} index={index} size="size-20 sm:size-24" onOpen={setOpen} />
+            <Thumb photo={photo} index={index} size="aspect-square w-[min(100%,10rem)]" onOpen={setOpen} />
             {photo.hidden ? <span className="absolute top-1 left-1 rounded-full bg-[#1c2740]/85 px-1.5 py-0.5 text-[10px] font-semibold text-white">{companyCopy.galleryHiddenByAdmin}</span> : null}
             {moderate ? (
               <button
