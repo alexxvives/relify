@@ -1460,6 +1460,42 @@ export function CompanyDraftForm({
     { id: "deal", label: companyCopy.fichaFieldsTitle, dirty: dealDirty },
   ].filter((section) => section.dirty);
 
+  // t88: deep links from Inicio (/mi-empresa/detalles?seccion=x#anchor). The browser's own hash jump fires before
+  // hydration, while panels are still closed, so it landed at the bottom of the page. After render: open the panel that
+  // holds the anchor, wait for the element, expand any <details> around it, centre it and highlight it.
+  const deepLinkDone = useRef(false);
+  useEffect(() => {
+    if (deepLinkDone.current) return;
+    deepLinkDone.current = true;
+    const hash = decodeURIComponent(window.location.hash.slice(1));
+    const id = hash || (focus ? `panel-${focus}` : "");
+    if (!id) return;
+    const field = requiredFields.find((item) => item.id === id);
+    if (field?.section === "basic") setOpenBasic(true);
+    if (field?.section === "structure") setOpenStructure(true);
+    let cancelled = false;
+    const started = Date.now();
+    function attempt() {
+      if (cancelled) return;
+      const target = document.getElementById(id);
+      if (!target) {
+        if (Date.now() - started < 4000) window.setTimeout(attempt, 100);
+        return;
+      }
+      for (let node = target.parentElement; node; node = node.parentElement) {
+        if (node instanceof HTMLDetailsElement && !node.open) node.open = true;
+      }
+      // Two frames so the opened panels have laid out before measuring.
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => !cancelled && highlightTarget(target, true)));
+    }
+    window.setTimeout(attempt, 50);
+    return () => {
+      cancelled = true;
+    };
+    // Runs once, on the first render after hydration.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // t78/t79: checklist links open the panel (and tab) that holds the field, then scroll to it.
   function goToMissing(id: string): boolean {
     const field = requiredFields.find((item) => item.id === id);
@@ -1472,16 +1508,7 @@ export function CompanyDraftForm({
     if (field.section === "deal") setTab("company");
     window.setTimeout(() => {
       const target = document.getElementById(id);
-      if (target) scrollToCenter(target);
-      // t87: sections whose action is a plus button (Ventas por producto / por cliente) highlight and focus that button.
-      const flashTarget = target?.querySelector<HTMLElement>("[data-flash]") ?? target;
-      (flashTarget?.querySelector<HTMLElement>("input, textarea, select, button") ?? flashTarget)?.focus({ preventScroll: true });
-      // t85: every field gets the same visible teal highlight Descripción shows via its focus ring, even chip/button groups.
-      if (flashTarget) {
-        const flash = [flashTarget === target ? "rounded-xl" : "rounded-full", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
-        flashTarget.classList.add(...flash);
-        window.setTimeout(() => flashTarget.classList.remove(...flash), 1800);
-      }
+      if (target) highlightTarget(target);
     }, 60);
     return true;
   }
@@ -2312,4 +2339,24 @@ function BalanceCell({
       className={`${statementInputClassName} text-right`}
     />
   );
+}
+
+/**
+ * t85/t87/t88: centre a field and give it the teal highlight Descripción shows via its focus ring (chip groups and plus
+ * buttons included). `settle` re-centres once if late content (charts, images) moved it during the smooth scroll.
+ */
+function highlightTarget(target: HTMLElement, settle = false) {
+  scrollToCenter(target);
+  const flashTarget = target.querySelector<HTMLElement>("[data-flash]") ?? target;
+  (flashTarget.querySelector<HTMLElement>("input, textarea, select, button") ?? flashTarget).focus({ preventScroll: true });
+  const flash = [flashTarget === target ? "rounded-xl" : "rounded-full", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
+  flashTarget.classList.add(...flash);
+  window.setTimeout(() => flashTarget.classList.remove(...flash), 2400);
+  if (settle) {
+    window.setTimeout(() => {
+      const rect = target.getBoundingClientRect();
+      const drift = Math.abs(rect.top + rect.height / 2 - (window.innerHeight + 80) / 2);
+      if (drift > 120) scrollToCenter(target);
+    }, 900);
+  }
 }
