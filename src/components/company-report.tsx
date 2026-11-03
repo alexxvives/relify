@@ -745,7 +745,6 @@ export function CompanyReport({
     { id: "resumen", label: companyReportCopy.summary },
     { id: "operacion", label: companyReportCopy.deal },
     { id: "negocio", label: companyReportCopy.business },
-    galleryPhotos.length > 0 ? { id: "galeria", label: companyCopy.galleryTitle } : null,
     { id: "evolucion", label: companyReportCopy.evolution },
     profitability.length > 0 ? { id: "rentabilidad", label: companyReportCopy.profitability } : null,
     signals.length > 0 || debt.length > 0 ? { id: "solidez", label: companyReportCopy.health } : null,
@@ -754,6 +753,8 @@ export function CompanyReport({
     { id: "equipo", label: companyReportCopy.team },
     checks.length > 0 ? { id: "revision", label: "Revisión" } : null,
     { id: "detalle", label: companyReportCopy.detail },
+    // t88: photos are the last section; the banner never shows them.
+    galleryPhotos.length > 0 ? { id: "galeria", label: companyCopy.galleryTitle } : null,
   ].flatMap((item) => (item ? [item] : []));
 
   return (
@@ -996,11 +997,6 @@ export function CompanyReport({
         )}
       </ReportSection>
 
-      {galleryPhotos.length > 0 ? (
-        <ReportSection id="galeria" icon={Images} title={companyCopy.galleryTitle} aside={`${galleryPhotos.length} ${galleryPhotos.length === 1 ? "foto" : "fotos"}`}>
-          <PhotoGallery photos={galleryPhotos} moderate={role === "admin"} />
-        </ReportSection>
-      ) : null}
 
       <ReportSection id="evolucion" icon={TrendingUp} title={companyReportCopy.evolution} intro={companyReportCopy.evolutionHint} aside={periodAside}>
         {lock(
@@ -1268,6 +1264,11 @@ export function CompanyReport({
           ) : null}
         </div>
       </ReportSection>
+      {galleryPhotos.length > 0 ? (
+        <ReportSection id="galeria" icon={Images} title={companyCopy.galleryTitle} aside={`${galleryPhotos.length} ${galleryPhotos.length === 1 ? "foto" : "fotos"}`}>
+          <PhotoGallery photos={galleryPhotos} moderate={role === "admin"} />
+        </ReportSection>
+      ) : null}
     </div>
   );
 }

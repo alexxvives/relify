@@ -12,8 +12,6 @@ import { catalogCopy } from "@/lib/catalog-copy";
 import { spanishDate } from "@/lib/deal-documents";
 import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import { madridToday } from "@/lib/meeting";
-import { projectImageSrc } from "@/lib/project-image";
-import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
 import { adjustmentsForBuyer } from "@/lib/ebitda-adjustments";
@@ -93,12 +91,10 @@ async function InvestorProjectContent({
   slug,
   tab,
   sold,
-  cover,
 }: {
   user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   slug: string;
   sold: boolean;
-  cover: { src: string; ai: boolean } | null;
   tab: string | string[] | undefined;
 }) {
   const profile = await getInvestorProject(user, slug);
@@ -137,15 +133,8 @@ async function InvestorProjectContent({
       profileComplete={profileComplete}
       initialTab={readTab(tab)}
       accessId={messages.threads[0]?.accessId ?? ""}
-      cover={cover}
     />
   );
-}
-
-function bannerImage(project: { slug: string; coverSrc?: string | null; sectorKey?: SectorImageKey }): { src: string; ai: boolean } | null {
-  const own = project.coverSrc && project.coverSrc.length > 0 ? project.coverSrc : projectImageSrc(project.slug);
-  if (own) return { src: own, ai: false };
-  return project.sectorKey ? { src: sectorImageSrc(project.sectorKey), ai: true } : null;
 }
 
 function SoldNotice({ codename }: { codename: string }) {
@@ -197,7 +186,7 @@ export default async function ProjectDetailPage({
     return (
       <AppShell>
         <Suspense fallback={<ProjectSkeleton />}>
-          <InvestorProjectContent user={user} slug={slug} tab={query.tab} sold={project.sold === true} cover={bannerImage(project)} />
+          <InvestorProjectContent user={user} slug={slug} tab={query.tab} sold={project.sold === true} />
         </Suspense>
       </AppShell>
     );

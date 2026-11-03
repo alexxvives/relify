@@ -54,7 +54,6 @@ export function InvestorProject({
   profileComplete = true,
   initialTab = "company",
   accessId,
-  cover = null,
 }: {
   project: InvestorProjectProfile;
   registry?: BuyerRegistry | null;
@@ -73,7 +72,6 @@ export function InvestorProject({
   profileComplete?: boolean;
   initialTab?: "company" | "questions" | "meetings";
   accessId: string;
-  cover?: { src: string; ai: boolean } | null;
 }) {
   const locked = access !== "accepted";
   const chat = messages.filter((message) => message.kind === "question");
@@ -109,7 +107,6 @@ export function InvestorProject({
 
       <CompanyBanner
         title={project.codename}
-        image={cover}
         sector={bannerSector}
         chips={bannerChips({ sector: bannerSector, region: project.region, foundedYear: project.foundedYear })}
         progress={

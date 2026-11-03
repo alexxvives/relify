@@ -2,7 +2,7 @@
 
 import { MarketCard } from "@/components/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
-import { sectorImageSrc, sectorKeyFromCnae } from "@/lib/sector-image";
+import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
@@ -1366,13 +1366,6 @@ export function CompanyDraftForm({
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
       : companyCopy.euroHint
   }`;
-  // Same banner the investor sees on the ficha: own photo first, else the sector reference photo.
-  const ownBanner = coverSrc ?? projectImageSrc(projectSlug(codename));
-  const previewBanner = ownBanner
-    ? { src: ownBanner, ai: false }
-    : principalCnae
-      ? { src: sectorImageSrc(sectorKeyFromCnae(principalCnae)), ai: true }
-      : null;
   // t76: the buyer-view preview opens on "Tras aceptar el NDA"; the before-NDA view is one click away.
   const [previewOpen, setPreviewOpen] = useState(true);
   const investorPreview = draftInvestorPreview({
@@ -2031,7 +2024,6 @@ export function CompanyDraftForm({
           <CompanyBanner
             heading="p"
             title={investorPreview.codename.trim().length > 0 ? investorPreview.codename : companyCopy.codenameLabel}
-            image={previewBanner}
             sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
             chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
           />

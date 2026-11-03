@@ -13,7 +13,6 @@ export function CompanyBanner({
   children,
   cue,
   heading = "h1",
-  image = null,
   sector = null,
   chips = [],
 }: {
@@ -27,40 +26,24 @@ export function CompanyBanner({
   /** Deal "what's next" cue, shown under the progress bar. */
   cue?: ReactNode;
   heading?: "h1" | "p";
-  /** Company or sector photo shown behind the banner; `ai` adds the AI-image label. */
-  image?: { src: string; ai: boolean } | null;
-  /** t83: CNAE sector family. Without the seller's own cover, the banner uses the sector icon and hue instead of a photo. */
+  /** t83: CNAE sector family: the banner uses the sector icon and hue. t88: never a photo (photos live in the Fotos section). */
   sector?: SectorImageKey | null;
   /** t83: neutral chips under the title (sector, region, founding decade). Never identifying data. */
   chips?: string[];
 }) {
   const Title = heading;
-  const themed = sector !== null && (!image || image.ai);
-  if (themed) image = null;
+  const themed = sector !== null;
   const SectorIcon = sector ? sectorStyles[sector].icon : null;
 
   return (
     <header
       className="relative overflow-hidden rounded-[1.75rem] px-6 py-[4.625rem] text-white sm:px-8 sm:py-[5.125rem]"
       style={
-        image
-          ? { background: "#05070f" }
-          : themed && sector
-            ? { background: sectorBannerBackground(sector) }
-          : {
-              background:
-                "radial-gradient(140% 120% at -8% -20%, #ffffff 0%, #d5e0ff 16%, rgba(70, 90, 180, 0.55) 42%, #05070f 72%)",
-            }
+        themed && sector
+          ? { background: sectorBannerBackground(sector) }
+          : { background: "linear-gradient(135deg, #1c2740 0%, #141c30 100%)" }
       }
     >
-      {image ? (
-        <>
-          {/* Covers can come from the app's upload route, which next/image cannot optimise. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image.src} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05070f]/55 via-[#05070f]/65 to-[#05070f]/90" aria-hidden />
-        </>
-      ) : null}
       <div
         className="pointer-events-none absolute -inset-4 opacity-20"
         aria-hidden
