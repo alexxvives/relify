@@ -11,9 +11,8 @@ import { buildSabiPreview, type SabiPreview } from "@/lib/sabi/preview";
 import { InvestorProjectTabs } from "@/components/investor-project-tabs";
 import { AdminReportNotice } from "@/components/admin-report-notice";
 import type { AdminSabiView } from "@/server/getAdminCompany";
-import { sectorStyles } from "@/components/market-card";
+import { CompanyBanner } from "@/components/company-banner";
 import type { SectorImageKey } from "@/lib/sector-image";
-import { sectorThemes } from "@/lib/sector-theme";
 
 const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
@@ -43,8 +42,8 @@ type AdminHeader = {
 };
 
 /**
- * t81: admin company page without the hero banner. A compact header (codename, region, status,
- * deal progress) sits above the tabs; "Subir/Reimportar SABI" and "Notificar al vendedor" live at
+ * t81/t88: admin company page. The header is the shared CompanyBanner (t88: was a compact admin-only header) with the
+ * status, readiness chip and deal progress in its slots; "Subir/Reimportar SABI" and "Notificar al vendedor" live at
  * the right end of the tab row. Header and tab row together are the SABI drop zone.
  */
 export function AdminSabiPanel({
@@ -255,28 +254,17 @@ export function AdminSabiPanel({
 
   return (
     <div {...dropProps} className="relative flex flex-col gap-4">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          {header.sector ? <AdminSectorTile sector={header.sector} /> : null}
-          <h1 className="text-2xl font-semibold text-[#1c2740]">{header.title}</h1>
-          {header.chips && header.chips.length > 0
-            ? header.chips.map((chip) => (
-                <span key={chip} className="rounded-full bg-[#f1f3f6] px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
-                  {chip}
-                </span>
-              ))
-            : header.subtitle ? <span className="text-sm text-[#5c6b78]">{header.subtitle}</span> : null}
-          {header.status ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e1e5eb] bg-white px-2.5 py-1 text-xs font-medium text-[#3d4a63]">
-              <span className={`size-2 rounded-full ${header.status.live ? "bg-[#2fc4b2]" : "bg-[#c3c9d3]"}`} aria-hidden />
-              {header.status.label}
-            </span>
-          ) : null}
-          {header.statusNote}
-        </div>
-        {header.progress ? <div>{header.progress}</div> : null}
-        {header.cue ? <div className="flex">{header.cue}</div> : null}
-      </header>
+      {/* t88: same sector banner as the buyer and seller fichas (shared CompanyBanner); admin extras ride in its slots. */}
+      <CompanyBanner
+        title={header.title}
+        subtitle={header.chips && header.chips.length > 0 ? undefined : (header.subtitle ?? undefined)}
+        sector={header.sector ?? null}
+        chips={header.chips ?? []}
+        status={header.status}
+        statusNote={header.statusNote}
+        progress={header.progress}
+        cue={header.cue}
+      />
       {between}
       <InvestorProjectTabs panels={panels} actions={actions} notice={panel ? <div className="mt-4">{panel}</div> : null} />
       {dragging ? (
@@ -427,19 +415,5 @@ function Fact({ label, value }: { label: string; value: string | null }) {
       <dt className="text-xs text-[#5c6b78]">{label}</dt>
       <dd className="font-medium text-[#1c2740]">{value || "—"}</dd>
     </div>
-  );
-}
-
-function AdminSectorTile({ sector }: { sector: SectorImageKey }) {
-  const Icon = sectorStyles[sector].icon;
-  return (
-    <span
-      className="flex size-9 items-center justify-center rounded-xl text-white"
-      style={{ background: sectorThemes[sector].hue }}
-      title={sectorThemes[sector].label}
-      aria-hidden
-    >
-      <Icon className="size-5" />
-    </span>
   );
 }

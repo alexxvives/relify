@@ -1,4 +1,5 @@
 import { profitabilityStyles } from "@/lib/profitability-styles";
+import { detailCard, detailCardHead } from "@/components/detail-card";
 import { cloneElement, Fragment, isValidElement, type ReactNode } from "react";
 import {
   ClipboardCheck,
@@ -1273,8 +1274,6 @@ export function CompanyReport({
   );
 }
 
-const detailCard = "overflow-hidden rounded-2xl border border-[#e3e8ee] bg-white";
-const detailCardHead = "border-b border-[#e3e8ee] bg-[#f4f6f9] px-4 py-2.5 text-sm font-semibold text-[#1c2740]";
 
 type Composition = { year: SabiYear; assets: { label: string; value: number; color: string }[]; funding: { label: string; value: number; color: string }[] };
 

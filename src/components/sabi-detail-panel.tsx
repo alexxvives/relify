@@ -1,5 +1,6 @@
 "use client";
 
+import { detailCard, detailCardHead } from "@/components/detail-card";
 import { optionalEurosToCents } from "@/lib/company-draft";
 import { FinancialTable } from "@/components/financial-table";
 
@@ -129,8 +130,9 @@ export function SabiDetailPanel({
           (Object.keys(sabiYearDetailGroups) as SabiYearDetailGroup[]).map((group) =>
             readOnly ? (
               // t81: same grid as Detalle de cuentas (years oldest first, Tendencia, share of the last year).
-              <fieldset key={group} className="flex flex-col gap-2">
-                <legend className="mb-1 text-sm font-semibold tracking-tight text-[#2b3b4a]">{sabiYearDetailGroups[group]} · €</legend>
+              // t88: same card as Detalle de cuentas' tables (shared detailCard styles).
+              <div key={group} className={detailCard}>
+                <h3 className={detailCardHead}>{sabiYearDetailGroups[group]} · €</h3>
                 <FinancialTable
                   grid
                   trend
@@ -142,7 +144,7 @@ export function SabiDetailPanel({
                     .filter((row) => row.values.some((value) => value !== null))}
                   shareBase={group === "results" ? { label: "ingresos", values: cents("operatingRevenueCents") } : { label: "activo", values: cents("totalAssetsCents") }}
                 />
-              </fieldset>
+              </div>
             ) : (
             <fieldset key={group} className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-semibold tracking-tight text-[#2b3b4a]">{sabiYearDetailGroups[group]} · €</legend>
