@@ -27,7 +27,6 @@ import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
 import { CardPhotoUploader, type GalleryPhoto } from "@/components/project-gallery";
-import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import { marketCopy } from "@/lib/market-copy";
 import { keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
@@ -1018,7 +1017,6 @@ export function CompanyDraftForm({
   draft,
   cif,
   focus = null,
-  reviewPending = false,
   coverSrc = null,
   financeExtra = null,
   reportYears = null,
@@ -1027,7 +1025,6 @@ export function CompanyDraftForm({
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
-  reviewPending?: boolean;
   coverSrc?: string | null;
   /** t62: SABI detail block, rendered under the balance sheet. */
   financeExtra?: ReactNode;
@@ -1980,9 +1977,6 @@ export function CompanyDraftForm({
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>
-      {reviewPending ? (
-        <p className="rounded-2xl bg-[#e6f6f4] px-4 py-3 text-sm font-medium text-[#0f766e]">{billingCopy.reviewPending}</p>
-      ) : null}
       <Panel
         id="panel-ficha-preview"
         title={companyCopy.detailsDealTab}

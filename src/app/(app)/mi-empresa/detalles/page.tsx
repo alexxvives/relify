@@ -58,7 +58,6 @@ async function CompanyDetailsPageContent({
         draft={draft}
         cif={cif}
         focus={focus}
-        reviewPending={listing?.status === "pending"}
         coverSrc={coverSrc}
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
