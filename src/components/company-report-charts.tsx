@@ -787,10 +787,3 @@ export function ShareholderTable({ rows }: { rows: SabiHolding[] }) {
   );
 }
 
-/** t84/t85: one colour-blind-safe style per profitability series, shared by the ficha chart, its cards and seller Inicio. */
-export const profitabilityStyles: Record<string, Required<Pick<Series, "color" | "marker">> & Pick<Series, "dash">> = {
-  ebitdaMargin: { color: "#0f766e", marker: "circle" },
-  profitMargin: { color: "#d55e00", dash: "6 4", marker: "square" },
-  economicReturn: { color: "#1c2740", dash: "2 3", marker: "diamond" },
-  financialReturn: { color: "#56b4e9", dash: "10 3 2 3", marker: "triangle" },
-};

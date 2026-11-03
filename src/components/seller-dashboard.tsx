@@ -1,6 +1,7 @@
+import { profitabilityStyles } from "@/lib/profitability-styles";
 import { LineChart as LineIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { ChartBox, ColumnBars, KpiTile, LegendDot, LegendLine, LineChart, profitabilityStyles, YearTable, type Series } from "@/components/company-report-charts";
+import { ChartBox, ColumnBars, KpiTile, LegendDot, LegendLine, LineChart, YearTable, type Series } from "@/components/company-report-charts";
 import { metrics, navy, reportMargins, teal, type Metric } from "@/lib/report-format";
 import type { SabiYear } from "@/lib/sabi/insights";
 

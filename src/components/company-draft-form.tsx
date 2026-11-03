@@ -492,7 +492,7 @@ function AdjustmentsModal({ onClose, children }: { onClose: () => void; children
         aria-labelledby="ebitda-adjustments-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl focus:outline-none sm:rounded-2xl sm:p-5"
+        className="relative max-h-[90vh] w-full max-w-[44rem] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl focus:outline-none sm:rounded-2xl sm:p-5"
       >
         <button
           type="button"

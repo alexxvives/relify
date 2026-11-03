@@ -1,3 +1,4 @@
+import { profitabilityStyles } from "@/lib/profitability-styles";
 import { cloneElement, isValidElement, type ReactNode } from "react";
 import {
   ClipboardCheck,
@@ -38,7 +39,6 @@ import {
   KpiTile,
   LegendDot,
   LegendLine,
-  profitabilityStyles,
   LineChart,
   People,
   Section,
