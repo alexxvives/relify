@@ -190,10 +190,12 @@ function Panel({
   onEdit,
   onCollapse,
   fixed = false,
+  chip = true,
   children,
 }: {
   /** t84: always expanded, no collapse/edit toggle (Ficha pública). */
   fixed?: boolean;
+  chip?: boolean;
   id?: string;
   /** t76: guided numbering on the seller's "Información empresa" tab. */
   step?: number;
@@ -224,7 +226,7 @@ function Panel({
               <Pencil className="size-3.5" aria-hidden />
               {companyCopy.unsaved}
             </span>
-          ) : (
+          ) : !chip ? null : (
             <span
               className={
                 done
@@ -1066,10 +1068,10 @@ export function CompanyDraftForm({
   const [forecastYear, setForecastYear] = useState(initial.forecastYear);
   const [storedTab, setStoredTab] = useSessionChoice(
     "Relify:seller-tab",
-    focus === "price" ? "deal" : "company",
+    "company",
     ["company", "deal"],
   );
-  const [tabPin, setTabPin] = useState<"company" | "deal" | null>(focus === "price" ? "deal" : null);
+  const [tabPin, setTabPin] = useState<"company" | "deal" | null>(focus === "price" ? "company" : null);
   const tab = tabPin ?? storedTab;
   const [openBasic, setOpenBasic] = usePanelOpen(
     "Relify:panel:basic",
@@ -1441,25 +1443,27 @@ export function CompanyDraftForm({
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
     { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
+    { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
   // t79/t80: the right-hand checklist groups each required field under its section. It covers this tab only: the asking
   // price lives on Ficha pública and listing it here (as a separate "Ficha pública" group) confused sellers.
-  const companyFields = requiredFields.filter((field) => field.section !== "deal");
+  // t86: the asking price now sits in Datos de la ficha on this tab, so it is listed too.
+  const companyFields = requiredFields;
   const navProgress = {
     ...completionProgress(companyFields),
     fields: companyFields.map((field) => ({
       id: field.id,
       label: field.label,
       done: field.done,
-      group: field.section === "basic" ? "panel-basic" : "panel-structure",
+      group: field.section === "basic" ? "panel-basic" : field.section === "deal" ? "panel-price" : "panel-structure",
     })),
   };
   const dirtySections = [
     { id: "basic", label: companyCopy.basicTitle, dirty: basicDirty },
     { id: "structure", label: companyCopy.structureHeading, dirty: structureDirty },
     { id: "income", label: "Tus cifras", dirty: incomeDirty || balanceDirty },
-    { id: "deal", label: "Ficha pública", dirty: dealDirty },
+    { id: "deal", label: companyCopy.fichaFieldsTitle, dirty: dealDirty },
   ].filter((section) => section.dirty);
 
   // t78/t79: checklist links open the panel (and tab) that holds the field, then scroll to it.
@@ -1471,9 +1475,7 @@ export function CompanyDraftForm({
     setSaveClosed("");
     if (field.section === "basic") setOpenBasic(true);
     if (field.section === "structure") setOpenStructure(true);
-    if (field.section === "deal") {
-      setTab("deal");
-    }
+    if (field.section === "deal") setTab("company");
     window.setTimeout(() => {
       const target = document.getElementById(id);
       if (target) scrollToCenter(target);
@@ -1914,6 +1916,57 @@ export function CompanyDraftForm({
         </div>
       </Panel>
       </div>
+      {/* t86: the ficha's editable data (apodo, fotos, precio, EBITDA ajustado) lives here; Ficha pública is only the buyer preview. */}
+      <Panel
+        id="panel-price"
+        title={companyCopy.fichaFieldsTitle}
+        intro={companyCopy.dealFold}
+        hint={dealNote}
+        open
+        fixed
+        dirty={dealDirty}
+        done={priceDone}
+        onEdit={() => setSaveClosed("")}
+        onCollapse={() => undefined}
+      >
+          <PublicFicha
+            codename={codename}
+            coverSrc={coverSrc}
+            photos={fichaExtras?.photos ?? []}
+            onListed={setListedPhoto}
+            onCodename={setCodename}
+          >
+            <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
+            <FichaMetrics
+              revenue={salesFromAccounts ?? revenue}
+              askingPrice={askingPrice}
+              onAskingPrice={setAskingPrice}
+              ebitda={ebitdaFromAccounts ?? ebitda}
+              adjustedEbitda={adjustedEbitda}
+              adjustmentCount={adjustmentRows.length}
+              adjustments={
+                <>
+                  <EbitdaAdjustmentsEditor
+                    rows={adjustmentRows}
+                    onRows={setAdjustmentRows}
+                    baseCents={adjustmentBaseCents}
+                    year={accountYear?.year ?? null}
+                    legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                  />
+                </>
+              }
+              margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+              netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
+              priceStatus={
+                <PriceStatus
+                  estimate={priceEstimate}
+                  askingCents={euroCentsOrNull(askingPrice)}
+                  basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
+                />
+              }
+            />
+          </PublicFicha>
+      </Panel>
       {financeExtra}
       {/* t80: room so the last sections can scroll up to the top from the progress panel. */}
       <div aria-hidden className="hidden h-[40vh] lg:block" />
@@ -1924,61 +1977,29 @@ export function CompanyDraftForm({
         <p className="rounded-2xl bg-[#e6f6f4] px-4 py-3 text-sm font-medium text-[#0f766e]">{billingCopy.reviewPending}</p>
       ) : null}
       <Panel
-        id="panel-price"
+        id="panel-ficha-preview"
         title={companyCopy.detailsDealTab}
-        intro={companyCopy.dealFold}
-        hint={dealNote}
         open
         fixed
-        dirty={dealDirty}
-        done={priceDone}
-        onEdit={() => setSaveClosed("")}
+        chip={false}
+        done={false}
+        dirty={false}
+        onEdit={() => undefined}
         onCollapse={() => undefined}
       >
-        <PublicFicha
-          codename={codename}
-          coverSrc={coverSrc}
-          photos={fichaExtras?.photos ?? []}
-          onListed={setListedPhoto}
-          onCodename={setCodename}
-          region={region}
-          revenue={salesFromAccounts ?? revenue}
-          ebitda={ebitdaFromAccounts ?? ebitda}
-          adjustedEbitda={adjustedEbitda}
-          askingPrice={askingPrice}
-          principalCnae={principalCnae}
-          summary={description}
-        >
-          <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
-          <FichaMetrics
+        <p className="-mt-2 mb-4 text-sm text-[#5c6b78]">{companyCopy.fichaPreviewIntro}</p>
+        <div className="flex flex-col gap-4">
+          <MarketPreview
+            codename={codename}
+            region={region}
             revenue={salesFromAccounts ?? revenue}
-            askingPrice={askingPrice}
-            onAskingPrice={setAskingPrice}
             ebitda={ebitdaFromAccounts ?? ebitda}
             adjustedEbitda={adjustedEbitda}
-            adjustmentCount={adjustmentRows.length}
-            adjustments={
-              <>
-                <EbitdaAdjustmentsEditor
-                  rows={adjustmentRows}
-                  onRows={setAdjustmentRows}
-                  baseCents={adjustmentBaseCents}
-                  year={accountYear?.year ?? null}
-                  legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
-                />
-              </>
-            }
-            margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-            netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
-            priceStatus={
-              <PriceStatus
-                estimate={priceEstimate}
-                askingCents={euroCentsOrNull(askingPrice)}
-                basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
-              />
-            }
+            askingPrice={askingPrice}
+            principalCnae={principalCnae}
+            summary={description}
           />
-        </PublicFicha>
+        </div>
         <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
           <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
             {companyCopy.openFichaTitle}
@@ -2073,13 +2094,6 @@ function PublicFicha({
   photos,
   onListed,
   onCodename,
-  region,
-  revenue,
-  ebitda,
-  adjustedEbitda,
-  askingPrice,
-  principalCnae = "",
-  summary = "",
   children,
 }: {
   codename: string;
@@ -2087,13 +2101,6 @@ function PublicFicha({
   photos: GalleryPhoto[];
   onListed: (listed: boolean) => void;
   onCodename: (value: string) => void;
-  region: string;
-  revenue: string;
-  ebitda: string;
-  adjustedEbitda: string;
-  askingPrice: string;
-  principalCnae?: string;
-  summary?: string;
   children: ReactNode;
 }) {
   const [regenerating, startRegenerate] = useTransition();
@@ -2102,10 +2109,7 @@ function PublicFicha({
 
   return (
     <>
-      <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
-        {companyCopy.fichaFieldsTitle}
-      </span>
-      <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
             <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
@@ -2138,16 +2142,6 @@ function PublicFicha({
         <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
       </div>
       {children}
-      <MarketPreview
-        codename={codename}
-        region={region}
-        revenue={revenue}
-        ebitda={ebitda}
-        adjustedEbitda={adjustedEbitda}
-        askingPrice={askingPrice}
-        principalCnae={principalCnae}
-        summary={summary}
-      />
     </>
   );
 }

@@ -95,6 +95,7 @@ export const companyCopy = {
   cardPreviewBody: "Así la ve un comprador antes de conectar.",
   marketPreviewTitle: "Cómo se verá mi empresa en el Marketplace",
   openFichaTitle: "Cómo se verán los detalles de mi empresa",
+  fichaPreviewIntro: "Lo que ve un comprador: tu tarjeta en el Marketplace y los detalles de tu empresa. Se edita en Información de la empresa.",
   previewBefore: "Antes de conectar",
   previewAfter: "Tras aceptar el NDA",
   previewLockNote:
