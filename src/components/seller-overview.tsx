@@ -17,6 +17,7 @@ import { type CheckItem, type PublishChecklist, type RecommendedCheckKey } from 
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
+import { InfoHint } from "@/components/ui/info-hint";
 
 const photoHref = "/mi-empresa/detalles?seccion=price#fotos";
 
@@ -95,7 +96,7 @@ export function SellerOverview({
                   : listing === "published"
                   ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "pending"
-                    ? "text-xl font-semibold text-[#0f766e]"
+                    ? "inline-flex items-center gap-1.5 text-xl font-semibold whitespace-nowrap text-[#0f766e]"
                     : "text-lg font-semibold whitespace-nowrap text-[#c0362c]"
               }
             >
@@ -104,10 +105,14 @@ export function SellerOverview({
                 : listing === "published"
                 ? billingCopy.sellerPublished
                 : listing === "pending"
-                  ? billingCopy.reviewPending
+                  ? (
+                      <>
+                        {billingCopy.reviewPending}
+                        <InfoHint text={billingCopy.reviewRequested} icon="info" align="center" />
+                      </>
+                    )
                   : sellerCopy.unpublished}
             </h2>
-            {listing === "pending" ? <p className="mt-2 text-sm text-[#475467]">{billingCopy.reviewRequested}</p> : null}
             {listing === "draft" && payToPublish && checklist.ready ? <PublishPayButton blocked={payBlocked} /> : null}
             <CompletionMeter filled={filled} total={checklist.items.length} label={complete ? sellerCopy.completedLabel : sellerCopy.meterPending} />
             {/* t87: neutral rows; only the Obligatorio / Recomendado tag carries colour, a check marks done steps. */}

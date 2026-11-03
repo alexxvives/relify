@@ -120,7 +120,7 @@ export const billingCopy = {
   publishing: "Abriendo el pago…",
   publishPaid: "Publicar · pagar 149 € + IVA",
   published: "Empresa publicada.",
-  reviewPending: "En revisión: la publicamos en breve.",
+  reviewPending: "En revisión",
   reviewRequested: "Hemos recibido tu ficha completa. Te avisaremos en cuanto esté publicada.",
   publishMissing: "Esa empresa no está en tus borradores.",
   publishForbidden: "No puedes publicar esta empresa.",
