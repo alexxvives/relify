@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { readServerEnv, readSiteUrl } from "@/lib/env";
+import { emailLink, readServerEnv } from "@/lib/env";
 import { prisma } from "@/server/db";
 import { passwordResetEmail, verifyEmail } from "@/lib/email/messages";
 import { sendMail } from "@/server/mailer";
@@ -21,7 +21,7 @@ function createAuth() {
       resetPasswordTokenExpiresIn: 60 * 60,
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, token }) => {
-        const url = new URL("/restablecer-contrasena", readSiteUrl());
+        const url = new URL(emailLink("/restablecer-contrasena"));
         url.searchParams.set("token", token);
         await sendMail({
           to: user.email,
@@ -53,7 +53,7 @@ function createAuth() {
         await sendMail({
           to: user.email,
           tag: "verify-email",
-          ...verifyEmail(url),
+          ...verifyEmail(emailLink(url)),
         });
       },
     },

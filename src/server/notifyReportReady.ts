@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { reportReadyEmail } from "@/lib/email/messages";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -45,7 +45,7 @@ export async function notifyReportReady(
     };
 
   const companyName = project.legalName.trim() || project.codename;
-  const url = new URL(ownerHome(owner.role), readSiteUrl()).toString();
+  const url = new URL(ownerHome(owner.role), emailSiteUrl()).toString();
   const sent = await sendMail({
     to: owner.email,
     tag: "report-ready",

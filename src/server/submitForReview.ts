@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { publishRequestEmail } from "@/lib/publish-request-email";
 import { prisma } from "@/server/db";
 import { sendMail } from "@/server/mailer";
@@ -16,7 +16,7 @@ export async function notifyPublishRequest(projectId: string, paid: boolean): Pr
       return;
     }
 
-    const adminUrl = new URL(`/admin/empresas/${project.slug}`, readSiteUrl()).toString();
+    const adminUrl = new URL(`/admin/empresas/${project.slug}`, emailSiteUrl()).toString();
     const { to, ...mail } = publishRequestEmail({
       companyName: project.legalName || project.codename,
       ownerName: project.owner?.name ?? "",

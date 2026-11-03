@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { figureCorrectionEmail, figureCorrectionMaxLength } from "@/lib/figure-correction-email";
 import { prisma } from "@/server/db";
 import { sendMail } from "@/server/mailer";
@@ -30,7 +30,7 @@ export async function requestFigureCorrection(
     ownerName: user.name ?? "",
     ownerEmail: user.email,
     message: text,
-    adminUrl: new URL(`/admin/empresas/${project.slug}`, readSiteUrl()).toString(),
+    adminUrl: new URL(`/admin/empresas/${project.slug}`, emailSiteUrl()).toString(),
   });
   const result = await sendMail({ to, tag: "figure-correction", ...mail });
   if (result.status !== "sent") {

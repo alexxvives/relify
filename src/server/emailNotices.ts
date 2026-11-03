@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import {
   connectionRequestEmail,
   newMessagesEmail,
@@ -16,7 +16,7 @@ import { ownerContact, ownerHome } from "@/server/ownerContact";
  */
 
 function link(path: string): string {
-  return new URL(path, readSiteUrl()).toString();
+  return new URL(path, emailSiteUrl()).toString();
 }
 
 async function quietly(task: () => Promise<unknown>): Promise<void> {

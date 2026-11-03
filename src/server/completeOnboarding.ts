@@ -9,7 +9,7 @@ import {
 import { normalizeCif } from "@/lib/spanish-cif";
 import { auth } from "@/server/auth";
 import { prisma } from "@/server/db";
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { welcomeEmail } from "@/lib/email/messages";
 import { sendMail } from "@/server/mailer";
 
@@ -71,7 +71,7 @@ export async function completeOnboarding(
     await sendMail({
       to: session.user.email,
       tag: `welcome-${input.role}`,
-      ...welcomeEmail(input.role, input.name.trim(), readSiteUrl()),
+      ...welcomeEmail(input.role, input.name.trim(), emailSiteUrl()),
     });
   }
 

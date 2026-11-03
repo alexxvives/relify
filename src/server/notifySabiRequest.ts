@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { sabiRequestEmail } from "@/lib/sabi-request-email";
 import { sendMail } from "@/server/mailer";
 
@@ -17,7 +17,7 @@ export async function notifySabiRequest(input: {
     input.slug
       ? `/admin/empresas/${input.slug}`
       : "/admin/empresas?sabi=pendiente",
-    readSiteUrl(),
+    emailSiteUrl(),
   ).toString();
   const { to, ...mail } = sabiRequestEmail({ ...input, adminUrl });
   const result = await sendMail({ to, tag: "sabi-request", ...mail });

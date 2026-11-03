@@ -1,4 +1,4 @@
-import { readSiteUrl } from "@/lib/env";
+import { emailSiteUrl } from "@/lib/env";
 import { identityChangeEmail, readIdentityChange } from "@/lib/identity-change-email";
 import { prisma } from "@/server/db";
 import { sendMail } from "@/server/mailer";
@@ -25,7 +25,7 @@ export async function requestIdentityChange(
     codename: project.codename,
     ownerName: user.name ?? "",
     ownerEmail: user.email,
-    adminUrl: new URL(`/admin/empresas/${project.slug}`, readSiteUrl()).toString(),
+    adminUrl: new URL(`/admin/empresas/${project.slug}`, emailSiteUrl()).toString(),
   });
   const result = await sendMail({ to, tag: "identity-change", ...mail });
   if (result.status !== "sent") {
