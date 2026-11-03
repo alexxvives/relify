@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary } from "./company-report";
+import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, reportSummaryMarked, summarySegments } from "./company-report";
 import type { SabiYear } from "./sabi/insights";
 import type { SabiRegistry } from "./sabi/registry";
 
@@ -128,5 +128,17 @@ describe("diligenceChecks audit source", () => {
     const info = diligenceChecks([year({})], [], true).find((check) => check.key === "information")!;
     expect(info.value).toContain("según el vendedor");
     expect(info.text).toContain("pedir la opinión");
+  });
+});
+
+describe("summary bold segments", () => {
+  it("marks key figures and splits them without HTML", () => {
+    const years = [year({ year: 2021, revenueCents: 50_000_000 }), year({ year: 2022, revenueCents: 80_000_000 })];
+    const [marked] = reportSummaryMarked(years);
+    expect(marked).toContain("**");
+    expect(reportSummary(years)[0]).toBe(marked!.replaceAll("**", ""));
+    const parts = summarySegments(marked!);
+    expect(parts.some((part) => part.strong)).toBe(true);
+    expect(parts.map((part) => part.text).join("")).toBe(reportSummary(years)[0]);
   });
 });

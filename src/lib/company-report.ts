@@ -274,8 +274,28 @@ function signed(value: number): string {
 
 export type ReportFlag = { level: "good" | "warn"; text: string };
 
+export type SummarySegment = { text: string; strong: boolean };
+
+/** t87: key figures in the summary are wrapped in ** markers; only our own templates add them (numbers, never user text). */
+function b(text: string): string {
+  return `**${text}**`;
+}
+
+/** Splits a marked summary line into plain and bold segments, so the UI renders <strong> without injecting HTML. */
+export function summarySegments(line: string): SummarySegment[] {
+  return line
+    .split("**")
+    .map((text, index) => ({ text, strong: index % 2 === 1 }))
+    .filter((segment) => segment.text.length > 0);
+}
+
 /** A few plain-Spanish sentences built only from the numbers on file (nothing is said about missing data). */
 export function reportSummary(years: SabiYear[]): string[] {
+  return reportSummaryMarked(years).map((line) => line.replaceAll("**", ""));
+}
+
+/** Same sentences as reportSummary, with the key figures marked for bold (see summarySegments). */
+export function reportSummaryMarked(years: SabiYear[]): string[] {
   const lines: string[] = [];
   const revenue = years.filter((year) => year.revenueCents !== null && year.revenueCents > 0);
   if (revenue.length >= 2) {
@@ -293,18 +313,18 @@ export function reportSummary(years: SabiYear[]): string[] {
       const total = pct(first.revenueCents!, last.revenueCents!);
       const cagr = span > 0 ? (Math.pow(last.revenueCents! / first.revenueCents!, 1 / span) - 1) * 100 : null;
       lines.push(
-        `Los ingresos han pasado de ${compactEur(first.revenueCents!)} en ${first.year} a ${compactEur(last.revenueCents!)} en ${last.year} (${signed(total)}${cagr !== null && span > 1 ? `, ${signed(cagr)} de media al año` : ""}).${skippedNote}`,
+        `Los ingresos han pasado de ${b(compactEur(first.revenueCents!))} en ${first.year} a ${b(compactEur(last.revenueCents!))} en ${last.year} (${b(signed(total))}${cagr !== null && span > 1 ? `, ${b(signed(cagr))} de media al año` : ""}).${skippedNote}`,
       );
     } else {
-      lines.push(`Ingresos de ${compactEur(last.revenueCents!)} en ${last.year}.${skippedNote}`);
+      lines.push(`Ingresos de ${b(compactEur(last.revenueCents!))} en ${last.year}.${skippedNote}`);
     }
     const previous = revenue[revenue.length - 2]!;
     if (first && first !== previous && isComparableBase(previous.revenueCents, last.revenueCents, previous.months)) {
       const change = pct(previous.revenueCents!, last.revenueCents!);
-      lines.push(`En el último ejercicio (${last.year}) ${change >= 0 ? "crecieron" : "cayeron"} un ${es1.format(Math.abs(change))} % frente a ${previous.year}.`);
+      lines.push(`En el último ejercicio (${last.year}) ${change >= 0 ? "crecieron" : "cayeron"} un ${b(`${es1.format(Math.abs(change))} %`)} frente a ${previous.year}.`);
     }
   } else if (revenue.length === 1) {
-    lines.push(`Ingresos de ${compactEur(revenue[0]!.revenueCents!)} en ${revenue[0]!.year}.`);
+    lines.push(`Ingresos de ${b(compactEur(revenue[0]!.revenueCents!))} en ${revenue[0]!.year}.`);
   }
 
   const ebitda = [...years].reverse().find((year) => year.ebitdaCents !== null);
@@ -312,8 +332,8 @@ export function reportSummary(years: SabiYear[]): string[] {
     const margin = negligibleRevenue(years)[years.indexOf(ebitda)] ? null : marginPercent(ebitda.ebitdaCents, ebitda.revenueCents);
     lines.push(
       ebitda.ebitdaCents! >= 0
-        ? `El EBITDA de ${ebitda.year} fue de ${compactEur(ebitda.ebitdaCents!)}${margin !== null ? `, un margen del ${es1.format(margin)} % sobre ingresos` : ""}.`
-        : `El EBITDA de ${ebitda.year} fue negativo (${compactEur(ebitda.ebitdaCents!)}): la actividad no cubrió sus gastos de explotación.`,
+        ? `El EBITDA de ${ebitda.year} fue de ${b(compactEur(ebitda.ebitdaCents!))}${margin !== null ? `, un margen del ${b(`${es1.format(margin)} %`)} sobre ingresos` : ""}.`
+        : `El EBITDA de ${ebitda.year} fue ${b("negativo")} (${b(compactEur(ebitda.ebitdaCents!))}): la actividad no cubrió sus gastos de explotación.`,
     );
   }
 
@@ -322,7 +342,7 @@ export function reportSummary(years: SabiYear[]): string[] {
     const last = results[results.length - 1]!;
     const positive = results.filter((year) => year.netResultCents! > 0).length;
     lines.push(
-      `${last.netResultCents! >= 0 ? `Cerró ${last.year} con un beneficio de ${compactEur(last.netResultCents!)}` : `Cerró ${last.year} con pérdidas de ${compactEur(-last.netResultCents!)}`}${results.length > 1 ? ` y ha tenido beneficios en ${positive} de los ${results.length} ejercicios disponibles` : ""}.`,
+      `${last.netResultCents! >= 0 ? `Cerró ${last.year} con un beneficio de ${b(compactEur(last.netResultCents!))}` : `Cerró ${last.year} con ${b(`pérdidas de ${compactEur(-last.netResultCents!)}`)}`}${results.length > 1 ? ` y ha tenido beneficios en ${b(`${positive} de los ${results.length}`)} ejercicios disponibles` : ""}.`,
     );
   }
 

@@ -1,5 +1,5 @@
 import { profitabilityStyles } from "@/lib/profitability-styles";
-import { cloneElement, isValidElement, type ReactNode } from "react";
+import { cloneElement, Fragment, isValidElement, type ReactNode } from "react";
 import {
   ClipboardCheck,
   Images,
@@ -62,7 +62,7 @@ import { companyCopy } from "@/lib/company-copy";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
-import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, type ReportRole } from "@/lib/company-report";
+import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
 import {
   figureVeilCapital,
   figureVeilClient,
@@ -684,7 +684,7 @@ export function CompanyReport({
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const lastEmployees = lastValue(years, (year) => year.employees);
   const age = project.foundedYear !== null ? new Date().getFullYear() - project.foundedYear : null;
-  const summary = figuresOpen ? reportSummary(years) : [];
+  const summary = figuresOpen ? reportSummaryMarked(years) : [];
   const flags = figuresOpen ? reportFlags(years) : [];
   const signals = healthSignals(years);
   const { kpis, debt } = metrics(years);
@@ -800,7 +800,17 @@ export function CompanyReport({
                   {summary.map((line) => (
                     <li key={line} className="flex gap-2">
                       <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0f766e]" aria-hidden />
-                      {line}
+                      <span>
+                        {summarySegments(line).map((segment, index) =>
+                          segment.strong ? (
+                            <strong key={index} className="font-semibold text-[#1c2740]">
+                              {segment.text}
+                            </strong>
+                          ) : (
+                            <Fragment key={index}>{segment.text}</Fragment>
+                          ),
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>
