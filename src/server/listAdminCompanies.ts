@@ -9,11 +9,7 @@ import {
   valuationSectorFromCnae,
 } from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
-import {
-  projectCoverHref,
-  projectCoverIsStored,
-  projectCoverVersion,
-} from "@/server/projectCover";
+import { cardCovers } from "@/server/projectCardCover";
 
 export type AdminCompanyRow = {
   id: string;
@@ -86,12 +82,11 @@ export async function listAdminCompanies(
     },
   });
 
+  const covers = await cardCovers(projects);
+
   return projects.map((project) => {
     const code = project.cnaes[0]?.code ?? null;
     const sector = valuationSectorFromCnae(code ?? undefined);
-    const version = projectCoverIsStored(project.id)
-      ? projectCoverVersion(project.id)
-      : null;
     const card: PublicProjectCard = {
       slug: project.slug,
       codename: project.codename,
@@ -110,7 +105,7 @@ export async function listAdminCompanies(
       cnaeCode: code,
       cnaeTitle: code ? cnaeTitle(code) : null,
       summary: project.description?.trim() || null,
-      coverSrc: version ? projectCoverHref(project.slug, version) : null,
+      coverSrc: covers.get(project.id) ?? null,
     };
 
     return {

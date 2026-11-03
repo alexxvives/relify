@@ -8,11 +8,7 @@ import {
   valuationSectorFromCnae,
 } from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
-import {
-  projectCoverHref,
-  projectCoverIsStored,
-  projectCoverVersion,
-} from "@/server/projectCover";
+import { cardCovers } from "@/server/projectCardCover";
 
 export async function listPublicProjects(): Promise<PublicProjectCard[]> {
   const rows = await prisma.project.findMany({
@@ -29,12 +25,11 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
     orderBy: { codename: "asc" },
   });
 
+  const covers = await cardCovers(rows);
+
   return rows.map((row) => {
     const code = row.cnaes[0]?.code ?? null;
     const sector = valuationSectorFromCnae(code ?? undefined);
-    const version = projectCoverIsStored(row.id)
-      ? projectCoverVersion(row.id)
-      : null;
 
     return {
       slug: row.slug,
@@ -53,7 +48,7 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       cnaeCode: code,
       cnaeTitle: code ? cnaeTitle(code) : null,
       summary: row.description?.trim() || null,
-      coverSrc: version ? projectCoverHref(row.slug, version) : null,
+      coverSrc: covers.get(row.id) ?? null,
     };
   });
 }

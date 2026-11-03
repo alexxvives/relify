@@ -52,11 +52,7 @@ import {
   investorVisibleFiles,
   type VisibleFile,
 } from "@/server/investorVisibleFiles";
-import {
-  projectCoverHref,
-  projectCoverIsStored,
-  projectCoverVersion,
-} from "@/server/projectCover";
+import { cardCover } from "@/server/projectCardCover";
 import { recordNotification } from "@/server/recordNotification";
 
 export type EngagementResult =
@@ -471,11 +467,8 @@ function showcaseFor(
     askingPriceCents: number;
   },
   locked: boolean,
+  coverSrc: string | null,
 ): AdvisorEngagementPage["showcase"] {
-  const version = projectCoverIsStored(project.id)
-    ? projectCoverVersion(project.id)
-    : null;
-  const coverSrc = version ? projectCoverHref(project.slug, version) : null;
 
   if (locked) {
     const veil = formatWholeEur(figureVeilCents);
@@ -694,7 +687,7 @@ export async function getAdvisorEngagement(
       hiredByInvestor: row.client === "investor",
       figuresOpen: false,
       description: row.project.description?.trim() ?? "",
-      showcase: showcaseFor(row.project, true),
+      showcase: showcaseFor(row.project, true, await cardCover(row.project)),
       investorCard,
       steps,
       preview: null,
@@ -793,7 +786,7 @@ export async function getAdvisorEngagement(
     hiredByInvestor: row.client === "investor",
     figuresOpen,
     description: row.project.description?.trim() ?? "",
-    showcase: showcaseFor(row.project, !figuresOpen),
+    showcase: showcaseFor(row.project, !figuresOpen, await cardCover(row.project)),
     investorCard,
     steps,
     contract:

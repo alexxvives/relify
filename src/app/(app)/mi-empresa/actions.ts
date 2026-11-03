@@ -297,6 +297,7 @@ export async function addProjectPhotosAction(formData: FormData): Promise<{ ok: 
   }
   refreshSellerPages();
   revalidatePath("/proyectos");
+  revalidatePath("/mercado");
   return { ok: true };
 }
 
@@ -309,6 +310,7 @@ export async function deleteProjectPhotoAction(photoId: string): Promise<{ ok: b
   const ok = await deleteProjectPhoto(projectId, photoId);
   refreshSellerPages();
   revalidatePath("/proyectos");
+  revalidatePath("/mercado");
   return { ok };
 }
 

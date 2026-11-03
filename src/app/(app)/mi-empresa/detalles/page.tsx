@@ -10,7 +10,7 @@ import { getCompanyDraft } from "@/server/getCompanyDraft";
 import { getSabiDetail } from "@/server/sabiDetail";
 import { getSabiRegistry } from "@/server/sabiRegistry";
 import { getSellerFichaExtras } from "@/server/sellerFichaExtras";
-import { projectCoverHref, projectCoverIsStored, projectCoverVersion } from "@/server/projectCover";
+import { cardCover, mergeLegacyCover } from "@/server/projectCardCover";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { requireRole } from "@/server/requireRole";
@@ -47,9 +47,10 @@ async function CompanyDetailsPageContent({
     getSellerListing(user.id),
     activeSellerProjectId(user.id),
   ]);
+  // t86: the old single file cover joins the project photos (first position) so the one uploader shows it.
+  if (projectId) await mergeLegacyCover(projectId);
   const [sabiDetail, sabiRegistry, fichaExtras] = projectId ? await Promise.all([getSabiDetail(projectId), getSabiRegistry(projectId), getSellerFichaExtras(projectId)]) : [null, null, null];
-  const coverVersion = projectId && projectCoverIsStored(projectId) ? projectCoverVersion(projectId) : null;
-  const coverSrc = listing && coverVersion ? projectCoverHref(listing.slug, coverVersion) : null;
+  const coverSrc = listing && projectId ? await cardCover({ id: projectId, slug: listing.slug }) : null;
 
   return (
     <>

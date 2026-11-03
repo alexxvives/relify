@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { addProjectPhotosAction, deleteProjectPhotoAction } from "@/app/(app)/mi-empresa/actions";
 import { setProjectPhotoHiddenAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { FieldHint } from "@/components/field-hint";
 import { companyCopy } from "@/lib/company-copy";
 
 export type GalleryPhoto = { id: string; hidden: boolean };
@@ -135,8 +136,12 @@ export function PhotoGallery({ photos, moderate = false }: { photos: GalleryPhot
   );
 }
 
-/** t85: compact seller uploader in Ficha pública: "Fotos n/6", "Añadir fotos", thumbnails with delete to the right, short warning. */
-export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
+/**
+ * t86: the single seller uploader ("Subir fotos") in Datos de la ficha. Photos are stored as project photos (max 6);
+ * the first visible one is the marketplace card cover and all visible ones show in the ficha's Fotos section.
+ * Clicking a thumbnail opens the lightbox.
+ */
+export function CardPhotoUploader({ photos, recommended, onCount }: { photos: GalleryPhoto[]; recommended: boolean; onCount?: (count: number) => void }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
@@ -146,15 +151,19 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
 
   function upload(list: FileList | null) {
     const files = Array.from(list ?? []).filter((file) => file.type.startsWith("image/"));
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      if ((list?.length ?? 0) > 0) setMessage(companyCopy.cardPhotosType);
+      return;
+    }
     if (files.length > room) {
-      setMessage(companyCopy.galleryLimit);
+      setMessage(companyCopy.cardPhotosLimit);
       return;
     }
     start(async () => {
       try {
         // One request per photo keeps each server-action body well under the size limit.
         let failure: string | null = null;
+        let added = 0;
         for (const file of files) {
           const body = new FormData();
           body.append("photos", await shrink(file));
@@ -163,8 +172,10 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
             failure = result.message;
             break;
           }
+          added += 1;
         }
         setMessage(failure);
+        onCount?.(photos.length + added);
         router.refresh();
       } catch {
         setMessage(companyCopy.cardPhotosType);
@@ -173,22 +184,26 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
   }
 
   return (
-    <div id="ficha-fotos" className="mt-6 flex scroll-mt-24 flex-col gap-2">
+    <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
       <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
-        {companyCopy.galleryTitle}
+        {companyCopy.cardPhotos}
         <span className="text-xs font-normal text-[#5c6b78] tabular-nums">
           {photos.length} / {galleryLimit}
         </span>
+        <FieldHint text={companyCopy.cardPhotosHint} />
+        {recommended && photos.length === 0 ? (
+          <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
+        ) : null}
       </span>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           disabled={pending || room <= 0}
           onClick={() => input.current?.click()}
-          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#d5dbe3] bg-white px-3 text-sm font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50"
+          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a] hover:bg-[#f7f8fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50 sm:flex-none"
         >
-          <ImagePlus className="size-4" aria-hidden />
-          {pending ? "Subiendo…" : companyCopy.galleryAdd}
+          <ImagePlus className="size-4 shrink-0" aria-hidden />
+          <span className="truncate">{pending ? "Subiendo…" : companyCopy.cardPhotos}</span>
         </button>
         <input
           ref={input}
@@ -197,7 +212,7 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
           multiple
           className="sr-only"
           tabIndex={-1}
-          aria-hidden
+          aria-label={companyCopy.cardPhotos}
           onChange={(event) => {
             upload(event.currentTarget.files);
             event.currentTarget.value = "";
@@ -208,14 +223,18 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
             {photos.map((photo, index) => (
               <li key={photo.id} className="relative">
                 <Thumb photo={photo} index={index} size="size-11" onOpen={setOpen} />
+                {index === 0 ? (
+                  <span className="pointer-events-none absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-full bg-[#1c2740] px-1.5 text-[9px] leading-4 font-semibold text-white">Portada</span>
+                ) : null}
                 <button
                   type="button"
-                  aria-label={`${companyCopy.galleryDelete} ${index + 1}`}
-                  title={companyCopy.galleryDelete}
+                  aria-label={`${companyCopy.cardPhotosRemove} ${index + 1}`}
+                  title={companyCopy.cardPhotosRemove}
                   disabled={pending}
                   onClick={() =>
                     start(async () => {
                       await deleteProjectPhotoAction(photo.id);
+                      onCount?.(photos.length - 1);
                       router.refresh();
                     })
                   }
@@ -228,7 +247,6 @@ export function GalleryEditor({ photos }: { photos: GalleryPhoto[] }) {
           </ul>
         ) : null}
       </div>
-      <p className="text-xs text-[#5c6b78]">{companyCopy.galleryHint}</p>
       <p className="flex items-start gap-1.5 text-xs leading-5 text-[#7a4b00]">
         <ShieldAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         {companyCopy.galleryWarning}

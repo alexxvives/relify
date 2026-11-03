@@ -8,9 +8,9 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, ImagePlus, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { deleteProjectCoverAction, generateCodenameAction, saveCompanyDraftAction, saveProjectCoverAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
+import { generateCodenameAction, saveCompanyDraftAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -26,7 +26,7 @@ import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate }
 import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
-import { GalleryEditor } from "@/components/project-gallery";
+import { CardPhotoUploader, type GalleryPhoto } from "@/components/project-gallery";
 import { billingCopy } from "@/lib/billing-copy";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import { marketCopy } from "@/lib/market-copy";
@@ -1938,6 +1938,7 @@ export function CompanyDraftForm({
         <PublicFicha
           codename={codename}
           coverSrc={coverSrc}
+          photos={fichaExtras?.photos ?? []}
           onListed={setListedPhoto}
           onCodename={setCodename}
           region={region}
@@ -1948,7 +1949,6 @@ export function CompanyDraftForm({
           principalCnae={principalCnae}
           summary={description}
         >
-          <GalleryEditor photos={fichaExtras?.photos ?? []} />
           <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
           <FichaMetrics
             revenue={salesFromAccounts ?? revenue}
@@ -2067,12 +2067,10 @@ function addressWithRegion(address: string, region: string): string {
   return street.length === 0 ? place : `${street}, ${place}`;
 }
 
-const cardPhotoLimit = 4;
-const cardPhotoBytes = 8 * 1024 * 1024;
-
 function PublicFicha({
   codename,
   coverSrc,
+  photos,
   onListed,
   onCodename,
   region,
@@ -2086,6 +2084,7 @@ function PublicFicha({
 }: {
   codename: string;
   coverSrc: string | null;
+  photos: GalleryPhoto[];
   onListed: (listed: boolean) => void;
   onCodename: (value: string) => void;
   region: string;
@@ -2097,87 +2096,9 @@ function PublicFicha({
   summary?: string;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const [regenerating, startRegenerate] = useTransition();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [active, setActive] = useState(0);
-  const [coverHidden, setCoverHidden] = useState(false);
-  const [focus, setFocus] = useState("50% 50%");
-  const [focusOpen, setFocusOpen] = useState(false);
-  const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const imageSrc = projectImageSrc(projectSlug(codename));
-  const storedCover = coverHidden ? null : coverSrc;
-  const shown = photos[active] ?? storedCover ?? imageSrc;
   const recommended = photos.length === 0 && !coverSrc && !imageSrc;
-
-  function storePhotos(next: string[]) {
-    setPhotos(next);
-    setActive((current) => Math.min(current, Math.max(next.length - 1, 0)));
-    onListed(next.length > 0 || Boolean(storedCover) || Boolean(imageSrc));
-    if (next.length === 0 && storedCover) {
-      setCoverHidden(true);
-      void deleteProjectCoverAction();
-    }
-  }
-
-  async function uploadCover(file: File) {
-    const body = new FormData();
-    body.set("cover", file);
-    const result = await saveProjectCoverAction(body);
-
-    if (!result.ok) {
-      setPhotoMessage(result.message);
-      return;
-    }
-
-    onListed(true);
-    router.refresh();
-  }
-
-  async function addPhotos(files: File[]) {
-    const room = cardPhotoLimit - photos.length;
-    if (room <= 0) {
-      setPhotoMessage(companyCopy.cardPhotosLimit);
-      return;
-    }
-
-    const accepted = files.slice(0, room);
-    if (files.length > room) {
-      setPhotoMessage(companyCopy.cardPhotosLimit);
-    } else {
-      setPhotoMessage(null);
-    }
-
-    const next: string[] = [];
-    for (const file of accepted) {
-      if (!file.type.startsWith("image/")) {
-        setPhotoMessage(companyCopy.cardPhotosType);
-        continue;
-      }
-      if (file.size > cardPhotoBytes) {
-        setPhotoMessage(companyCopy.cardPhotosLarge);
-        continue;
-      }
-      try {
-        next.push(await readCardPhoto(file));
-      } catch {
-        setPhotoMessage(companyCopy.cardPhotosType);
-      }
-    }
-
-    if (next.length === 0) {
-      return;
-    }
-
-    const first = accepted[0];
-
-    if (photos.length === 0 && first) {
-      void uploadCover(first);
-    }
-
-    storePhotos([...photos, ...next].slice(0, cardPhotoLimit));
-  }
 
   return (
     <>
@@ -2214,122 +2135,7 @@ function PublicFicha({
             </button>
           </div>
         </div>
-        <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
-          <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
-            {companyCopy.cardPhotos}
-            <FieldHint text={companyCopy.cardPhotosHint} />
-            {recommended ? (
-              <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">
-                {companyCopy.cardPhotosRecommended}
-              </span>
-            ) : null}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                fileRef.current?.click();
-              }}
-              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a]"
-            >
-              <ImagePlus className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{companyCopy.cardPhotos}</span>
-            </button>
-            {(() => {
-              const uploaded = photos.length > 0 ? photos : storedCover ? [storedCover] : [];
-              if (uploaded.length === 0) {
-                return shown ? (
-                  <button
-                    type="button"
-                    aria-label={companyCopy.cardPhotos}
-                    onClick={() => {
-                      setFocusOpen(true);
-                    }}
-                    className="relative size-11 shrink-0 overflow-hidden rounded-xl border border-[#e7eaee]"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={shown} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
-                  </button>
-                ) : null;
-              }
-              return (
-                <ul className="mr-1.5 flex shrink-0 items-center gap-2">
-                  {uploaded.map((photo, index) => (
-                    <li key={`${index}-${photo.slice(-24)}`} className="relative size-11 shrink-0">
-                      <button
-                        type="button"
-                        aria-pressed={index === active}
-                        aria-label={`${companyCopy.cardPhotos} ${index + 1}`}
-                        onClick={() => {
-                          setActive(index);
-                          setFocusOpen(true);
-                        }}
-                        className={
-                          index === active
-                            ? "size-11 overflow-hidden rounded-xl border-2 border-[#465ab4]"
-                            : "size-11 overflow-hidden rounded-xl border border-[#e7eaee]"
-                        }
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={photo} alt="" className="size-full object-cover" style={{ objectPosition: focus }} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={companyCopy.cardPhotosRemove}
-                        onClick={() => {
-                          if (photos.length === 0) {
-                            setCoverHidden(true);
-                            void deleteProjectCoverAction();
-                            onListed(Boolean(imageSrc));
-                            return;
-                          }
-                          storePhotos(photos.filter((_, itemIndex) => itemIndex !== index));
-                        }}
-                        className="absolute -top-1.5 -right-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#c0362c] text-white shadow-sm"
-                      >
-                        <X className="size-3" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              );
-            })()}
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            className="sr-only"
-            aria-label={companyCopy.cardPhotos}
-            onChange={(event) => {
-              const files = event.target.files ? Array.from(event.target.files) : [];
-              event.target.value = "";
-              void addPhotos(files);
-            }}
-          />
-          {photoMessage ? (
-            <p role="alert" className="text-sm text-[#c0362c]">
-              {photoMessage}
-            </p>
-          ) : null}
-          {focusOpen && shown ? (
-            <button
-              type="button"
-              className="relative h-64 overflow-hidden rounded-xl border border-[#e7eaee]"
-              onClick={(event) => {
-                const bounds = event.currentTarget.getBoundingClientRect();
-                const x = Math.round(((event.clientX - bounds.left) / bounds.width) * 100);
-                const y = Math.round(((event.clientY - bounds.top) / bounds.height) * 100);
-                setFocus(`${x}% ${y}%`);
-                setFocusOpen(false);
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={shown} alt="" className="size-full object-contain" />
-            </button>
-          ) : null}
-        </div>
+        <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
       </div>
       {children}
       <MarketPreview
@@ -2448,41 +2254,6 @@ function SampleListing({ side }: { side: keyof typeof sampleListings }) {
       <MarketCard project={sampleListings[side]} muted />
     </div>
   );
-}
-
-function readCardPhoto(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => {
-      reject(new Error("read"));
-    };
-    reader.onload = () => {
-      if (typeof reader.result !== "string") {
-        reject(new Error("read"));
-        return;
-      }
-      const image = new window.Image();
-      image.onerror = () => {
-        reject(new Error("image"));
-      };
-      image.onload = () => {
-        const max = 960;
-        const scale = Math.min(1, max / Math.max(image.width, image.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(image.width * scale));
-        canvas.height = Math.max(1, Math.round(image.height * scale));
-        const context = canvas.getContext("2d");
-        if (!context) {
-          reject(new Error("canvas"));
-          return;
-        }
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.72));
-      };
-      image.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 function previewCents(value: string): number | null {

@@ -20,7 +20,7 @@ import { listProjectMessages } from "@/server/listProjectMessages";
 import { getSellerListing } from "@/server/publishSellerProject";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
 import { requireRole } from "@/server/requireRole";
-import { projectCoverIsStored } from "@/server/projectCover";
+import { cardCover } from "@/server/projectCardCover";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
 
@@ -60,6 +60,7 @@ async function CompanyPageContent({
     listProjectMessages(user, null),
     getSellerDashboard(user.id),
   ]);
+  const coverSrc = listing && projectId ? await cardCover({ id: projectId, slug: listing.slug }) : null;
   const [funnel, sold, own] = await Promise.all([
     sellerFunnel(user.id, projectId),
     projectId ? projectSold(projectId) : Promise.resolve(false),
@@ -75,7 +76,7 @@ async function CompanyPageContent({
         financialsPending={nifVerified && !own?.sabiImportedAt}
         listing={listing?.status ?? "missing"}
         payToPublish={listing?.requiresPayment ?? false}
-        hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || (projectId && projectCoverIsStored(projectId)))}
+        hasPhoto={Boolean((listing && projectImageSrc(listing.slug)) || coverSrc)}
         funnel={funnel}
         notifications={withoutOwnCompany(notifications, own?.codename)}
         checklist={overview.checklist}

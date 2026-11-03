@@ -74,7 +74,7 @@ export function ProjectPhoto({
   const own = src && src.length > 0 ? src : projectImageSrc(slug);
   const generated = !own && sectorKey !== undefined;
   const image = own ?? (sectorKey ? sectorImageSrc(sectorKey) : null);
-  const uploaded = image?.includes("/portadas/") === true;
+  const uploaded = image?.includes("/portadas/") === true || image?.startsWith("/fotos/") === true;
 
   return (
     <div className={frameClassName}>
