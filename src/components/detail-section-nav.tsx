@@ -163,9 +163,11 @@ export function DetailSectionNav({
                             ) : (
                               <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
                             )}
-                            <span className={`min-w-0 flex-1 ${field.done ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{field.label}</span>
+                            <span className={`flex min-w-0 flex-1 flex-col ${field.done ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>
+                              {field.label}
+                              {field.done || field.required === undefined ? null : <RequirementTag required={field.required} />}
+                            </span>
                             <span className="sr-only">{field.done ? "Completo" : "Pendiente"}</span>
-                            {field.done || field.required === undefined ? null : <RequirementTag required={field.required} />}
                             {field.done ? null : (
                               <span aria-hidden className="mt-px hidden items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] group-hover:inline-flex group-focus-visible:inline-flex">
                                 Ir
@@ -193,7 +195,7 @@ export type DetailField = { id: string; label: string; done: boolean; group: str
 function RequirementTag({ required }: { required: boolean }) {
   return (
     <span
-      className={`mt-px shrink-0 rounded-full px-1.5 py-px text-[10px] leading-4 font-semibold whitespace-nowrap group-hover:hidden group-focus-visible:hidden ${
+      className={`mt-0.5 w-fit rounded-full px-1.5 py-px text-[10px] leading-4 font-semibold whitespace-nowrap ${
         required ? "bg-[#fdecea] text-[#a12f2f]" : "bg-[#fff4d6] text-[#8a6112]"
       }`}
     >
