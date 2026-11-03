@@ -108,7 +108,6 @@ export const companyCopy = {
   cardPhotosRecommended: "Recomendado",
   galleryTitle: "Fotos",
   galleryHint: "Instalaciones, producto o equipo trabajando. Hasta 6 fotos; se muestran en tu ficha pública.",
-  galleryWarning: "Sin rótulos, logos, fachadas, matrículas, caras ni documentos: nada que identifique la empresa.",
   galleryAdd: "Añadir fotos",
   galleryLimit: "Puedes subir hasta 6 fotos.",
   galleryDelete: "Eliminar foto",

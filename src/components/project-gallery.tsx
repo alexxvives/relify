@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, ShieldAlert, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff, ImagePlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { addProjectPhotosAction, deleteProjectPhotoAction } from "@/app/(app)/mi-empresa/actions";
@@ -247,10 +247,6 @@ export function CardPhotoUploader({ photos, recommended, onCount }: { photos: Ga
           </ul>
         ) : null}
       </div>
-      <p className="flex items-start gap-1.5 text-xs leading-5 text-[#7a4b00]">
-        <ShieldAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-        {companyCopy.galleryWarning}
-      </p>
       {message ? (
         <p role="alert" className="text-sm text-[#a12f2f]">
           {message}
