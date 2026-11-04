@@ -63,7 +63,7 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
-import { adjustedEbitdaTone, ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
@@ -218,23 +218,6 @@ function Kpi({
       <span className={`mt-2 leading-tight font-bold tracking-tight tabular-nums ${tone === "pending" || value.length > 12 ? "text-base sm:text-xl" : "text-2xl sm:text-4xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
       {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
     </div>
-  );
-}
-
-const adjustedPillTone = {
-  down: "bg-[#fdecea] text-[#a12f2f]",
-  up: "bg-[#e3f4ea] text-[#17663a]",
-  flat: "bg-[#eef0f4] text-[#475467]",
-} as const;
-
-/** t92: the adjustments' net effect as a pill: red when they lower the EBITDA, green when they raise it, grey when equal. */
-function AdjustedPill({ ebitdaCents, adjustedCents }: { ebitdaCents: number; adjustedCents: number }) {
-  const tone = adjustedEbitdaTone(ebitdaCents, adjustedCents);
-  const delta = adjustedCents - ebitdaCents;
-  return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${adjustedPillTone[tone]}`}>
-      {tone === "flat" ? "Igual al EBITDA" : `${delta > 0 ? "+" : "−"}${compactEur(Math.abs(delta))} de ajustes`}
-    </span>
   );
 }
 
@@ -691,8 +674,6 @@ export function CompanyReport({
     project.audited === true ? { label: companyCopy.auditedLabel, value: companyCopy.auditedYes } : null,
   ].flatMap((fact) => (fact ? [fact] : []));
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
-  const adjustment = project.adjustedEbitdaCents - project.ebitdaCents;
-  const yieldPct = project.askingPriceCents > 0 && project.ebitdaCents > 0 ? (project.ebitdaCents / project.askingPriceCents) * 100 : null;
   const composition = balanceComposition(years);
   const checks = diligenceChecks(years, fullRegistry?.audits ?? [], project.audited === true);
   const deal = dealReading(project, years.length > 0);
@@ -719,7 +700,35 @@ export function CompanyReport({
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
-          <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={<span>Margen {margin}</span>} />
+          <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={
+              <>
+                <span>Margen {margin}</span>
+                {/* t95: adjusted EBITDA as a quieter second line; "Ver ajustes" opens the bridge. Hidden without adjustments. */}
+                {deal.adjustedSet && project.adjustedEbitdaCents !== project.ebitdaCents ? (
+                  <span className="flex w-full flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-[#5c6b78]">
+                    <span className="tabular-nums">
+                      Ajustado <span className="font-semibold text-[#1c2740]">{compactEur(project.adjustedEbitdaCents)}</span>
+                      {project.revenueCents > 0 ? ` · ${Math.round((project.adjustedEbitdaCents / project.revenueCents) * 100)} %` : ""}
+                    </span>
+                    {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
+                      <details className="group relative">
+                        <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                          Ver ajustes
+                        </summary>
+                        <div className="absolute left-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
+                          <AdjustmentBridge
+                            ebitdaCents={project.ebitdaCents}
+                            adjustedCents={project.adjustedEbitdaCents}
+                            rows={project.ebitdaAdjustments}
+                            showReasons={figuresOpen || role === "admin"}
+                          />
+                        </div>
+                      </details>
+                    ) : null}
+                  </span>
+                ) : null}
+              </>
+            } />
           <Kpi
             label={companyCopy.askingPriceLabel}
             value={project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
@@ -736,7 +745,7 @@ export function CompanyReport({
           />
         </div>
         {/* t94: plantilla, financiación y asesoría as compact chips under the headline numbers. */}
-        <ul className="mt-3 flex flex-wrap gap-2 text-xs">
+        <ul className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
           <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
             <Users className="size-3.5 text-[#0f766e]" aria-hidden />
             <span className="text-[#5c6b78]">{lastEmployees ? "Empleados" : companyCopy.workersLabel}</span>
@@ -760,51 +769,6 @@ export function CompanyReport({
             </li>
           ) : null}
         </ul>
-        {/* t94: the old "Operación de venta" figures live here now (múltiplo, rentabilidad, EBITDA exacto y ajustado, OPEX). */}
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <Fact
-            icon={HandCoins}
-            label="Múltiplo de EBITDA"
-            value={deal.multipleText}
-            source="calc"
-            note={deal.multipleNote ?? (multiple === null ? "Solo se calcula con precio y EBITDA positivos." : "Precio ÷ EBITDA.")}
-          />
-          <Fact
-            icon={HandCoins}
-            label="Rentabilidad sobre el precio"
-            value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : deal.priceSet ? "No aplica" : "Pendiente"}
-            source="calc"
-            note={yieldPct === null ? (deal.priceSet ? "EBITDA negativo" : "Falta el precio") : "EBITDA ÷ precio × 100."}
-          />
-          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} source={deal.figuresSource} />
-          {/* t85: "Ver ajustes" popover on the EBITDA ajustado tile: types and amounts before the NDA, plus motives after. */}
-          <div className="relative min-w-0">
-            <Fact
-              icon={Receipt}
-              label={companyCopy.adjustedEbitdaLabel}
-              value={deal.adjustedSet ? formatEur(project.adjustedEbitdaCents) : "Pendiente del vendedor"}
-              pill={deal.adjustedSet ? <AdjustedPill ebitdaCents={project.ebitdaCents} adjustedCents={project.adjustedEbitdaCents} /> : null}
-              source="seller"
-              note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
-            />
-            {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-              <details className="group absolute top-2 right-2">
-                <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-                  Ver ajustes
-                </summary>
-                <div className="absolute right-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
-                  <AdjustmentBridge
-                    ebitdaCents={project.ebitdaCents}
-                    adjustedCents={project.adjustedEbitdaCents}
-                    rows={project.ebitdaAdjustments}
-                    showReasons={figuresOpen || role === "admin"}
-                  />
-                </div>
-              </details>
-            ) : null}
-          </div>
-          {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
-        </div>
         {facts && facts.length > 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-[#aab4c3] bg-[#eef1f5] p-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1c2740]">
