@@ -524,79 +524,64 @@ function SellerFinancingField({
   // t93: only Sí / No / Negociable is asked now; earlier % and plazo answers are posted back untouched (kept in the DB).
   const terms = mode === "yes" || mode === "negotiable";
   return (
-    <div id="panel-seller-financing" className="mt-3 scroll-mt-24 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+    <div id="panel-seller-financing" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <input type="hidden" name="sellerFinancing" value={mode} />
       <input type="hidden" name="sellerFinancingPct" value={terms ? pct : ""} />
       <input type="hidden" name="sellerFinancingYears" value={terms ? years : ""} />
-      {/* t92: question and helper on the left, a Sí / No / Negociable segmented control on the right (stacks on mobile). */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <div className="min-w-0">
-          <p id="seller-financing-label" className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1c2740]">
-            ¿Aceptarías financiar parte del precio?
-            {mode === "" ? <span className="rounded-full bg-[#fdecea] px-2 py-px text-[11px] leading-4 font-semibold text-[#a12f2f]">Obligatorio</span> : null}
-          </p>
-          <p id="seller-financing-help" className="mt-1 max-w-prose text-xs leading-5 text-[#667085]">
-            El comprador te pagaría una parte más adelante, a plazos. Los compradores lo verán en tu ficha.
-          </p>
-        </div>
-        <div
-          role="radiogroup"
-          aria-labelledby="seller-financing-label"
-          aria-describedby="seller-financing-help"
-          className="grid h-11 w-full shrink-0 grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1 sm:w-auto sm:min-w-[19rem]"
-        >
-          {sellerFinancingModes.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={mode === option}
-              onClick={() => onMode(option)}
-              className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
-              }`}
-            >
-              {sellerFinancingLabels[option]}
-            </button>
-          ))}
-        </div>
+      {/* t94: half-width card next to the asesor question; the Sí / No / Negociable control sits under the text. */}
+      <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
+        ¿Aceptarías financiar parte del precio?
+      </p>
+      <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
+        El comprador te pagaría una parte más adelante, a plazos. Los compradores lo verán en tu ficha.
+      </p>
+      <div
+        role="radiogroup"
+        aria-labelledby="seller-financing-label"
+        aria-describedby="seller-financing-help"
+        className="mt-auto grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
+      >
+        {sellerFinancingModes.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={mode === option}
+            onClick={() => onMode(option)}
+            className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+              mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
+            }`}
+          >
+            {sellerFinancingLabels[option]}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
-/** t93: ¿Te quedarías como asesor tras la venta? Recommended; same card style as the financing question. */
+/** t94: ¿Te quedarías como asesor tras la venta? Optional; a dropdown in a card that sits next to the financing one. */
 function SellerStayField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
-    <div id="panel-seller-stay" className="mt-3 scroll-mt-24 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <input type="hidden" name="sellerStay" value={value} />
-      <p id="seller-stay-label" className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1c2740]">
+    <div id="panel-seller-stay" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <label htmlFor="seller-stay-select" className="text-sm font-semibold text-[#1c2740]">
         ¿Te quedarías como asesor tras la venta?
-        {value === "" ? <span className="rounded-full bg-[#fff4d6] px-2 py-px text-[11px] leading-4 font-semibold text-[#8a6112]">Recomendado</span> : null}
-      </p>
-      <p id="seller-stay-help" className="mt-1 max-w-prose text-xs leading-5 text-[#667085]">
+      </label>
+      <p id="seller-stay-help" className="mt-1 text-xs leading-5 text-[#667085]">
         Ayudar al comprador durante el traspaso da confianza. Los compradores lo verán en tu ficha.
       </p>
-      <div
-        role="radiogroup"
-        aria-labelledby="seller-stay-label"
-        aria-describedby="seller-stay-help"
-        className="mt-3 grid grid-cols-4 gap-1 rounded-xl border border-[#e7eaee] bg-white p-1 sm:grid-cols-7"
-      >
-        {sellerStayOptions.map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={value === option}
-            onClick={() => onChange(option)}
-            className={`h-9 rounded-lg px-2 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-              value === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
-            }`}
-          >
-            {sellerStayLabels[option]}
-          </button>
-        ))}
+      <div className="mt-auto pt-3">
+        <OptionSelect
+          id="seller-stay-select"
+          name="sellerStay"
+          label="¿Te quedarías como asesor tras la venta?"
+          placeholder="Elige una opción"
+          describedBy="seller-stay-help"
+          textSize="sm"
+          value={value}
+          options={sellerStayOptions.map((option) => ({ value: option, label: sellerStayLabels[option] }))}
+          onValueChange={onChange}
+        />
       </div>
     </div>
   );
@@ -946,7 +931,7 @@ const standingCopy = {
 /** Suggested price as a status pill under the price input; the range, the bar and the why live in a popover. */
 // t93: the popover is position:fixed (the metric tile clips overflow), stays open while the pointer crosses the gap,
 // and closes with Esc. It shows a red→orange→yellow→green→…→red bar with the asking price as a black dot.
-function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate | null; askingCents: number | null; basis: string }) {
+function PriceStatus({ estimate, askingCents }: { estimate: PriceEstimate | null; askingCents: number | null }) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [place, setPlace] = useState<{ top: number; right: number } | null>(null);
@@ -2149,17 +2134,18 @@ export function CompanyDraftForm({
                 <PriceStatus
                   estimate={priceEstimate}
                   askingCents={euroCentsOrNull(askingPrice)}
-                  basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
                 />
               }
             />
-            <SellerFinancingField
-              mode={sellerFinancing}
-              pct={sellerFinancingPct}
-              years={sellerFinancingYears}
-              onMode={setSellerFinancing}
-            />
-            <SellerStayField value={sellerStay} onChange={setSellerStay} />
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <SellerFinancingField
+                mode={sellerFinancing}
+                pct={sellerFinancingPct}
+                years={sellerFinancingYears}
+                onMode={setSellerFinancing}
+              />
+              <SellerStayField value={sellerStay} onChange={setSellerStay} />
+            </div>
           </PublicFicha>
       </Panel>
 
