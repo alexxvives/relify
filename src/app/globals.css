@@ -2858,3 +2858,33 @@
     animation: none;
   }
 }
+
+/* t95: adviser sector tags that overflow their two reserved lines drift gently left and back. */
+@keyframes relify-tag-drift {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  85%,
+  100% {
+    transform: translateX(calc(-1 * var(--drift, 0px)));
+  }
+}
+
+.relify-tag-drift {
+  animation: relify-tag-drift var(--drift-time, 8s) ease-in-out infinite alternate;
+}
+
+.relify-tag-drift-host:hover .relify-tag-drift,
+.relify-tag-drift-host:focus-within .relify-tag-drift {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relify-tag-drift {
+    animation: none;
+  }
+  .relify-tag-drift-host {
+    overflow-x: auto;
+  }
+}

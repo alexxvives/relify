@@ -1,7 +1,7 @@
 "use client";
 
 import { InfoHint } from "@/components/ui/info-hint";
-import { useActionState, useState } from "react";
+import { useActionState, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Check, Star } from "lucide-react";
 import { requestAdvisoryQuoteAction, type AdvisoryQuoteState } from "@/app/(app)/asesoramiento/actions";
 import { AppToast } from "@/components/app-toast";
@@ -37,19 +37,52 @@ function ReviewMark({ cases }: { cases: number }) {
   );
 }
 
-/** t92: the adviser's sectors wrap onto a second line instead of being cut or scrolled. */
+/**
+ * t95: the sectors always take exactly two tag lines, so every banner ends at the same height. When they do not fit,
+ * they lay out in two rows that drift gently left and back (paused on hover; static and scrollable with reduced motion).
+ */
 function SectorTags({ sectors }: { sectors: string[] }) {
-  if (sectors.length === 0) {
-    return null;
-  }
+  const hostRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const [drift, setDrift] = useState<number | null>(null);
+  const strip = drift !== null;
+
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    const list = listRef.current;
+    if (!host || !list) return;
+    const check = () => {
+      // Measure the wrapped layout first: overflowing two lines switches to the two-row drifting strip.
+      const wrapped = list.dataset.mode !== "strip";
+      if (wrapped) {
+        setDrift(list.scrollHeight > host.clientHeight + 1 ? Math.max(0, list.scrollWidth - host.clientWidth) : null);
+      } else {
+        // Stay a strip once switched (it no longer fits in two wrapped lines); only the drift distance updates.
+        setDrift(Math.max(0, list.scrollWidth - host.clientWidth));
+      }
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [sectors, strip]);
+
   return (
-    <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Sectores">
-      {sectors.map((sector) => (
-        <li key={sector} className="max-w-full rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 break-words text-white">
-          {sector}
-        </li>
-      ))}
-    </ul>
+    <div ref={hostRef} className="relify-tag-drift-host mt-4 h-[54px] overflow-hidden">
+      <ul
+        ref={listRef}
+        data-mode={strip ? "strip" : "wrap"}
+        aria-label="Sectores"
+        className={strip ? "relify-tag-drift grid w-max auto-cols-max grid-flow-col grid-rows-2 gap-1.5" : "flex flex-wrap gap-1.5"}
+        style={strip ? ({ "--drift": `${drift}px`, "--drift-time": `${Math.min(14, Math.max(5, drift / 25))}s` } as CSSProperties) : undefined}
+      >
+        {sectors.map((sector) => (
+          <li key={sector} className="max-w-full rounded-full bg-white/15 px-2.5 py-1 text-xs leading-4 whitespace-nowrap text-white">
+            {sector}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
