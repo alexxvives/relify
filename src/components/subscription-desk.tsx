@@ -57,31 +57,32 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
       ) : null}
       {desk.kind === "stripe" ? (
         <>
-          {/* t91: dates and status live in the banner as compact chips instead of a separate row. */}
+          {/* t94: plan and price on the left, three fact tiles on the right (stacked on phones). */}
           <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-[#1c2740] px-6 py-6 text-white sm:px-8">
-            <p className="text-xs font-semibold text-white/60">{billingCopy.yourPlan}</p>
-            <h3 className="mt-2 text-3xl font-semibold tracking-tight">{desk.planLabel}</h3>
-            {desk.amountLabel ? <p className="mt-2 text-lg text-white/85">{desk.amountLabel}</p> : null}
-            <dl className="mt-5 flex flex-wrap gap-2 text-xs">
-              <div
-                className={
-                  desk.canceling
-                    ? "inline-flex items-center gap-1.5 rounded-full bg-[#fff4d6] px-3 py-1.5 text-[#8a6112]"
-                    : "inline-flex items-center gap-1.5 rounded-full bg-[#e8f6ee] px-3 py-1.5 text-[#17663a]"
-                }
-              >
-                <dt className="font-medium opacity-80">{billingCopy.statusLabel}</dt>
-                <dd className="font-semibold">{desk.statusLabel}</dd>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white/60">{billingCopy.yourPlan}</p>
+                <h3 className="mt-2 text-3xl font-semibold tracking-tight">{desk.planLabel}</h3>
+                {desk.amountLabel ? <p className="mt-2 text-lg text-white/85">{desk.amountLabel}</p> : null}
               </div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
-                <dt className="font-medium text-white/70">{desk.canceling ? billingCopy.endsOn : billingCopy.renewsOn}</dt>
-                <dd className="font-semibold text-white">{desk.whenLabel}</dd>
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
-                <dt className="font-medium text-white/70">{billingCopy.periodStart}</dt>
-                <dd className="font-semibold text-white">{desk.periodStart}</dd>
-              </div>
-            </dl>
+              <dl className="grid gap-2 sm:grid-cols-3 lg:min-w-[34rem]">
+                <div className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/15">
+                  <dt className="text-xs font-medium text-white/65">{billingCopy.statusLabel}</dt>
+                  <dd className="mt-1 flex items-center gap-2 text-sm font-semibold">
+                    <span className={desk.canceling ? "size-2 rounded-full bg-[#f5c451]" : "size-2 rounded-full bg-[#2fc4b2]"} aria-hidden />
+                    {desk.statusLabel}
+                  </dd>
+                </div>
+                <div className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/15">
+                  <dt className="text-xs font-medium text-white/65">{desk.canceling ? billingCopy.endsOn : billingCopy.renewsOn}</dt>
+                  <dd className="mt-1 text-sm font-semibold">{desk.whenLabel}</dd>
+                </div>
+                <div className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/15">
+                  <dt className="text-xs font-medium text-white/65">{billingCopy.periodStart}</dt>
+                  <dd className="mt-1 text-sm font-semibold">{desk.periodStart}</dd>
+                </div>
+              </dl>
+            </div>
           </section>
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
