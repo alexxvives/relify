@@ -5,6 +5,9 @@ import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/form";
 
+// t95: only one menu is open at a time across the page; opening another closes the previous one.
+let closeOpenMenu: (() => void) | null = null;
+
 export function OptionSelect({
   name,
   label,
@@ -97,11 +100,40 @@ export function OptionSelect({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const close = () => {
+      setOpen(false);
+      setQuery("");
+    };
+    if (closeOpenMenu && closeOpenMenu !== close) closeOpenMenu();
+    closeOpenMenu = close;
+    return () => {
+      if (closeOpenMenu === close) closeOpenMenu = null;
+    };
+  }, [open]);
+
   useLayoutEffect(() => {
     if (!open) return;
+    let frame = 0;
     const measure = () => {
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
+      // t95: close once the trigger scrolls out of view (window or any scrolling parent), so the menu never floats
+      // over unrelated parts of the page.
+      let clip = { top: 0, bottom: window.innerHeight };
+      for (let node = triggerRef.current?.parentElement; node && node !== document.body; node = node.parentElement) {
+        const overflow = getComputedStyle(node).overflowY;
+        if (overflow === "auto" || overflow === "scroll") {
+          const box = node.getBoundingClientRect();
+          clip = { top: Math.max(clip.top, box.top), bottom: Math.min(clip.bottom, box.bottom) };
+        }
+      }
+      if (rect.bottom < clip.top || rect.top > clip.bottom) {
+        setOpen(false);
+        setQuery("");
+        return;
+      }
       const gap = 4;
       const margin = 8;
       const wanted = Math.min(menuRef.current?.scrollHeight ?? 280, 320);
@@ -117,11 +149,20 @@ export function OptionSelect({
       });
     };
     measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
+    const schedule = (event?: Event) => {
+      // Scrolling inside the menu's own list must not move or close it.
+      if (event && event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
     return () => {
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+      cancelAnimationFrame(frame);
+      // t95: never reuse the last position on the next open (the menu used to flash where it was before).
+      setPlace(null);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
     };
   }, [open]);
 
