@@ -534,7 +534,7 @@ function SellerFinancingField({
         ¿Aceptarías financiar parte del precio?
       </p>
       <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
-        El comprador te pagaría una parte más adelante, a plazos. Los compradores lo verán en tu ficha.
+        El comprador te pagaría una parte más adelante, a plazos.
       </p>
       <div
         role="radiogroup"
@@ -569,7 +569,7 @@ function SellerStayField({ value, onChange }: { value: string; onChange: (value:
         ¿Te quedarías como asesor tras la venta?
       </label>
       <p id="seller-stay-help" className="mt-1 text-xs leading-5 text-[#667085]">
-        Ayudar al comprador durante el traspaso da confianza. Los compradores lo verán en tu ficha.
+        Ayudar al comprador durante el traspaso da confianza.
       </p>
       <div className="mt-auto pt-3">
         <OptionSelect
