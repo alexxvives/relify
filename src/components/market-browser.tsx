@@ -98,7 +98,8 @@ export function MarketBrowser({
           </span>
         </button>
       </div>
-      <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+      {/* t92: the filter bar stacks above the cards so its open dropdowns cover the cards' heart buttons (z-20). */}
+      <div className="relative z-40 rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
           <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
             {marketCopy.searchLabel}
@@ -153,7 +154,7 @@ export function MarketBrowser({
       {visible.length === 0 ? (
         <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
       ) : (
-        <div className={marketGridClass}>
+        <div className={`isolate ${marketGridClass}`}>
           {visible.map((project) => {
             return (
               <MarketCard
