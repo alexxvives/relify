@@ -13,7 +13,8 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
   const accounts = overview.roles.reduce((sum, row) => sum + row.count, 0);
   const finished = Math.max(accounts - overview.unfinished, 0);
   // Admin seats are staff, not users of the marketplace: left out of "Cuentas por rol".
-  const userRoles = overview.roles.filter((row) => row.role !== "admin");
+  // t91: accounts without a role ("Alta pendiente") already have their own onboarding card; only real roles here.
+  const userRoles = overview.roles.filter((row) => row.role !== "admin" && row.role !== "none");
   const userAccounts = userRoles.reduce((sum, row) => sum + row.count, 0);
   const roles = userRoles.map((row) => ({
     label: adminCopy.roles[row.role],
