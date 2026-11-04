@@ -37,7 +37,7 @@ export function OptionSelect({
   /** t92: muted prompt for an empty value, so the trigger never repeats the field label in larger type. */
   placeholder?: string;
   /** t94: "sm" matches the 14px text inputs (fieldInputClass); default keeps the 16px form inputs. */
-  textSize?: "base" | "sm";
+  textSize?: "base" | "sm"; // sm also uses h-10, like fieldInputClass
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -161,8 +161,8 @@ export function OptionSelect({
         style={invalid ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
         className={
           invalid
-            ? `releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none`
-            : `flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20`
+            ? `releva-shake flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none`
+            : `flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20`
         }
       >
         <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"}>{selected?.label ?? placeholder ?? label}</span>

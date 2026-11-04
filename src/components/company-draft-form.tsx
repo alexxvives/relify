@@ -735,6 +735,7 @@ function EbitdaAdjustmentsDialog({
                               id={`${id}-type`}
                               label={companyCopy.adjustmentTypeLabel}
                               placeholder="Elige un tipo"
+                              textSize="sm"
                               value={row.type}
                               invalid={Boolean(rowErrors.type)}
                               describedBy={rowErrors.type ? `${id}-type-error` : undefined}
