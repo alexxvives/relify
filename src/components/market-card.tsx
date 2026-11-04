@@ -5,7 +5,6 @@ import {
   BadgeCheck,
   Briefcase,
   Building2,
-  CalendarDays,
   Cpu,
   Factory,
   GraduationCap,
@@ -231,15 +230,6 @@ export function MarketCard({
   const photoTags = [
     { key: "region", icon: MapPin, text: project.region },
     ...(headcount ? [{ key: "headcount", icon: Users, text: headcount }] : []),
-    ...(project.foundedDecade
-      ? [
-          {
-            key: "founded",
-            icon: CalendarDays,
-            text: `desde ${project.foundedDecade}`,
-          },
-        ]
-      : []),
   ];
 
   return (
