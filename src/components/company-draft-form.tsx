@@ -1006,9 +1006,10 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
               <p className="text-sm font-semibold text-[#1c2740]">Rango orientativo de precio</p>
               <PriceBar estimate={estimate} askingCents={askingCents} />
               <p className="mt-3 text-xs leading-5 text-[#3d4a63]">
-                {basis} × múltiplo de <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span> (
-                <span className="tabular-nums">{formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}</span>
-                {estimate.adjustments.length > 0 ? <>, ajustado por {estimate.adjustments.join(", ")}</> : null}).
+                Múltiplo EBITDA:{" "}
+                <span className="tabular-nums font-semibold text-[#1c2740]">
+                  {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}
+                </span>
               </p>
               <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
                 Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
