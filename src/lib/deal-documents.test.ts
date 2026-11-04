@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loiAgreement, ndaAgreement, spanishDate } from "./deal-documents";
+import { advisorNdaAgreement, loiAgreement, ndaAgreement, projectTitle, regionPlace, spanishDate } from "./deal-documents";
 
 const sample = {
   buyerName: "Laura Vidal",
@@ -29,5 +29,19 @@ describe("deal documents", () => {
     expect(loi).not.toContain("Duna Servicios");
     expect(nda.length).toBeLessThan(2000);
     expect(loi.length).toBeLessThan(2000);
+  });
+
+  it("t92: opens with the parties and never says 'proyecto Proyecto'", () => {
+    const input = { buyerName: "Martín Soler", codename: "Proyecto Olivo", region: "Comunitat Valenciana", dateLabel: "4 de noviembre de 2026" };
+    const nda = ndaAgreement(input);
+    expect(nda).toContain(
+      "Martín Soler (el Comprador) y el titular de Proyecto Olivo, empresa ubicada en la Comunitat Valenciana (el Vendedor), acuerdan lo siguiente:",
+    );
+    for (const text of [nda, loiAgreement({ ...input, askingPrice: "1 €" }), advisorNdaAgreement({ ...input, advisorName: "Ana" })]) {
+      expect(text.toLowerCase()).not.toContain("proyecto proyecto");
+    }
+    expect(projectTitle("Olivo")).toBe("Proyecto Olivo");
+    expect(projectTitle("proyecto  Olivo")).toBe("Proyecto Olivo");
+    expect(regionPlace("Canarias")).toBe("Canarias");
   });
 });

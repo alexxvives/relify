@@ -7,6 +7,28 @@ export function spanishDate(now: Date): string {
   }).format(now);
 }
 
+/** t92: "Proyecto Olivo" stays as is and "Olivo" becomes "Proyecto Olivo", so the text never says "proyecto Proyecto". */
+export function projectTitle(codename: string): string {
+  const name = codename.trim().replace(/\s+/g, " ");
+  if (!name) {
+    return "el proyecto";
+  }
+  return /^proyecto\s/i.test(name) ? `Proyecto ${name.replace(/^proyecto\s+/i, "")}` : `Proyecto ${name}`;
+}
+
+/** t92: "en la Comunitat Valenciana", "en Canarias": article only for names that take one. */
+export function regionPlace(region: string): string {
+  const name = region.trim();
+  if (!name) {
+    return "España";
+  }
+  return /^(comunidad|comunitat|región|regi[oó]n|ciudad|rioja)\b/i.test(name) ? `la ${name}` : name;
+}
+
+function partiesLine(person: string, role: "Comprador" | "Asesor", codename: string, region: string): string {
+  return `${person} (el ${role}) y el titular de ${projectTitle(codename)}, empresa ubicada en ${regionPlace(region)} (el Vendedor), acuerdan lo siguiente:`;
+}
+
 export function ndaAgreement(input: {
   buyerName: string;
   codename: string;
@@ -18,9 +40,9 @@ export function ndaAgreement(input: {
     "",
     `Fecha: ${input.dateLabel}`,
     "",
-    `${input.buyerName}, como comprador en Relify, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
+    partiesLine(input.buyerName, "Comprador", input.codename, input.region),
     "",
-    `1. El comprador usará la información del proyecto ${input.codename} solo para valorar una posible compra.`,
+    `1. El Comprador usará la información de ${projectTitle(input.codename)} solo para valorar una posible compra.`,
     "2. No la revelará a terceros, salvo a asesores que acepten esta misma confidencialidad.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa ni impide hablar con otros compradores.",
@@ -40,7 +62,7 @@ export function loiAgreement(input: {
     "",
     `Fecha: ${input.dateLabel}`,
     "",
-    `${input.buyerName}, comprador en Relify, manifiesta su intención de estudiar la compra del proyecto ${input.codename} (${input.region}).`,
+    `${input.buyerName} (el Comprador) manifiesta al titular de ${projectTitle(input.codename)}, empresa ubicada en ${regionPlace(input.region)} (el Vendedor), su intención de estudiar la compra de la empresa.`,
     "",
     `1. Precio orientativo. La ficha pública indica ${input.askingPrice}. Es una referencia, no el precio cerrado. El importe definitivo se acuerda después de la revisión.`,
     "2. Esta carta no obliga a comprar ni a vender. No es el contrato de compraventa y no es el pago. La revisión, el contrato y el pago vienen después.",
@@ -61,9 +83,9 @@ export function advisorNdaAgreement(input: {
     "",
     `Fecha: ${input.dateLabel}`,
     "",
-    `${input.advisorName}, como asesor en Relify, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
+    partiesLine(input.advisorName, "Asesor", input.codename, input.region),
     "",
-    `1. El asesor usará la información del proyecto ${input.codename} solo para el encargo.`,
+    `1. El Asesor usará la información de ${projectTitle(input.codename)} solo para el encargo.`,
     "2. La firma del comprador no abre esta ficha. El asesor firma la suya.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa.",
