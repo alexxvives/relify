@@ -137,7 +137,10 @@ export function OptionSelect({
       const gap = 4;
       const margin = 8;
       const wanted = Math.min(menuRef.current?.scrollHeight ?? 280, 320);
-      const left = Math.min(rect.left, window.innerWidth - margin - (menuRef.current?.offsetWidth ?? rect.width));
+      // t95b: a "w-full" menu is measured before it gets its width (100 % of the viewport while hidden), which clamped
+      // it to the left edge; it always ends up as wide as the trigger, so use that.
+      const menuWidth = menuClassName === "w-full" ? rect.width : Math.max(rect.width, menuRef.current?.offsetWidth ?? 0);
+      const left = Math.min(rect.left, window.innerWidth - margin - menuWidth);
       const below = window.innerHeight - rect.bottom - gap - margin;
       const above = rect.top - gap - margin;
       const up = below < wanted && above > below;
@@ -164,7 +167,7 @@ export function OptionSelect({
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
     };
-  }, [open]);
+  }, [open, menuClassName]);
 
   useEffect(() => {
     if (open && searchable) {
