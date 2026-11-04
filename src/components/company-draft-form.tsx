@@ -1033,6 +1033,11 @@ function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCe
   const dot = askingCents !== null && askingCents > 0 ? priceBarPosition(askingCents, estimate) : null;
   return (
     <div className="mt-3">
+      {dot !== null ? (
+        <p className="mb-1.5 flex items-center justify-end gap-1.5 text-[11px] leading-4 text-[#475467]">
+          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="tabular-nums font-semibold text-[#1c2740]">{wholeEur(askingCents!)}</span>
+        </p>
+      ) : null}
       <div className="relative h-2.5 rounded-full" style={{ background: priceBarGradient }}>
         {dot !== null ? (
           <span
@@ -1059,11 +1064,6 @@ function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCe
           {wholeEur(maxCents)}
         </span>
       </div>
-      {dot !== null ? (
-        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#475467]">
-          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="tabular-nums font-semibold text-[#1c2740]">{wholeEur(askingCents!)}</span>
-        </p>
-      ) : null}
     </div>
   );
 }
