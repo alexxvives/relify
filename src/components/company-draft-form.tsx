@@ -4,7 +4,7 @@ import { MarketCard } from "@/components/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { useModal } from "@/components/use-modal";
-import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
@@ -1402,7 +1402,23 @@ export function CompanyDraftForm({
   const leaveHrefRef = useRef<string | null>(null);
   const sawLeavePending = useRef(false);
   const initial = draft ?? emptyCompanyDraft();
-  const [state, action, pending] = useActionState<CompanyDraftState, FormData>(saveCompanyDraftAction, null);
+  // t95: the save runs outside a React transition. Inside one, the router refresh that follows revalidatePath kept the
+  // action "pending" after the response had landed when the save started from the debounce timer.
+  const [state, setState] = useState<CompanyDraftState>(null);
+  const [pending, setPending] = useState(false);
+  const stateRef = useRef<CompanyDraftState>(null);
+  async function action(data: FormData) {
+    setPending(true);
+    let next: CompanyDraftState;
+    try {
+      next = await saveCompanyDraftAction(stateRef.current, data);
+    } catch {
+      next = { message: companyCopy.autosaveError, saved: false };
+    }
+    stateRef.current = next;
+    setState(next);
+    setPending(false);
+  }
   const [legalName, setLegalName] = useState(initial.legalName);
   const [address, setAddress] = useState(() => addressWithRegion(initial.address, initial.region));
   const [codename, setCodename] = useState(initial.codename);
@@ -1596,29 +1612,10 @@ export function CompanyDraftForm({
 
 
 
+  // t95: Enter in a field saves now instead of a native submit; the autosave path handles every save.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
-    const native = event.nativeEvent;
-    const submitter = native instanceof SubmitEvent ? native.submitter : null;
-    const id = submitter instanceof HTMLButtonElement ? submitter.value : saveTarget;
-    setSaveTarget(id);
-    setAttempt((current) => current + 1);
-
-    const blocked = saveBlockReason([capitalPercents, productPercents, clientPercents]);
-
-    if (!blocked) {
-      setRejectedSave("");
-      setSuppressStatus(false);
-      setClientError(null);
-      return;
-    }
-
     event.preventDefault();
-    leaveHrefRef.current = null;
-    setRejectedSave(id);
-    setSuppressStatus(true);
-    setClientError(blocked);
-    setTab("company");
-    setOpenStructure(true);
+    autoSaveRef.current();
   }
 
   useEffect(() => {
@@ -1857,7 +1854,6 @@ export function CompanyDraftForm({
   const saveTimer = useRef<number | null>(null);
   const savedForm = useRef<FormData | null>(null);
   const sentForm = useRef<FormData | null>(null);
-  const [, startAutoSave] = useTransition();
 
   function runAutoSave() {
     if (saveTimer.current !== null) {
@@ -1898,7 +1894,7 @@ export function CompanyDraftForm({
     );
     setLastSentKey(draftKey);
     sentForm.current = data;
-    startAutoSave(() => action(data));
+    void action(data);
   }
   const autoSaveRef = useRef(runAutoSave);
   useEffect(() => {
@@ -2019,7 +2015,6 @@ export function CompanyDraftForm({
     <>
     <form
       ref={formRef}
-      action={action}
       onSubmit={onSubmit}
       onInput={(event) => {
         const target = event.target;
