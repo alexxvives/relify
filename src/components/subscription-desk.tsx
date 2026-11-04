@@ -57,39 +57,31 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
       ) : null}
       {desk.kind === "stripe" ? (
         <>
-          <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-            <div className="bg-[#1c2740] px-6 py-6 text-white sm:px-8">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-white/60">{billingCopy.yourPlan}</p>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-tight">{desk.planLabel}</h3>
-                  {desk.amountLabel ? <p className="mt-2 text-lg text-white/85">{desk.amountLabel}</p> : null}
-                </div>
-                <span
-                  className={
-                    desk.canceling
-                      ? "rounded-full bg-[#fff4d6] px-3 py-1 text-xs font-semibold text-[#8a6112]"
-                      : "rounded-full bg-[#e8f6ee] px-3 py-1 text-xs font-semibold text-[#17663a]"
-                  }
-                >
-                  {desk.canceling ? billingCopy.endsOn : desk.statusLabel}
-                </span>
+          {/* t91: dates and status live in the banner as compact chips instead of a separate row. */}
+          <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-[#1c2740] px-6 py-6 text-white sm:px-8">
+            <p className="text-xs font-semibold text-white/60">{billingCopy.yourPlan}</p>
+            <h3 className="mt-2 text-3xl font-semibold tracking-tight">{desk.planLabel}</h3>
+            {desk.amountLabel ? <p className="mt-2 text-lg text-white/85">{desk.amountLabel}</p> : null}
+            <dl className="mt-5 flex flex-wrap gap-2 text-xs">
+              <div
+                className={
+                  desk.canceling
+                    ? "inline-flex items-center gap-1.5 rounded-full bg-[#fff4d6] px-3 py-1.5 text-[#8a6112]"
+                    : "inline-flex items-center gap-1.5 rounded-full bg-[#e8f6ee] px-3 py-1.5 text-[#17663a]"
+                }
+              >
+                <dt className="font-medium opacity-80">{billingCopy.statusLabel}</dt>
+                <dd className="font-semibold">{desk.statusLabel}</dd>
               </div>
-            </div>
-            <div className="grid gap-6 p-6 text-center sm:grid-cols-3 sm:p-8">
-              <div>
-                <p className="text-xs font-semibold text-[#667085]">{billingCopy.renewsOn}</p>
-                <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.whenLabel}</p>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+                <dt className="font-medium text-white/70">{desk.canceling ? billingCopy.endsOn : billingCopy.renewsOn}</dt>
+                <dd className="font-semibold text-white">{desk.whenLabel}</dd>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-[#667085]">{billingCopy.periodStart}</p>
-                <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.periodStart}</p>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+                <dt className="font-medium text-white/70">{billingCopy.periodStart}</dt>
+                <dd className="font-semibold text-white">{desk.periodStart}</dd>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-[#667085]">{billingCopy.statusLabel}</p>
-                <p className="mt-1 text-base font-medium text-[#1c2740]">{desk.statusLabel}</p>
-              </div>
-            </div>
+            </dl>
           </section>
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
