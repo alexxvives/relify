@@ -28,36 +28,10 @@ export const sellerFinancingInputSchema = {
   sellerFinancingYears: z.string().trim().max(2),
 };
 
-export type SellerFinancingErrors = { pct?: string; years?: string };
-
-/** Field-level problems; only filled fields are judged, except that "Sí" needs both terms. */
-export function sellerFinancingErrors(input: SellerFinancingInput): SellerFinancingErrors {
-  const errors: SellerFinancingErrors = {};
-  if (input.sellerFinancing === "" || input.sellerFinancing === "no") {
-    return errors;
-  }
-  const pct = input.sellerFinancingPct.trim();
-  const years = input.sellerFinancingYears.trim();
-  if (pct !== "" && !(/^\d{1,3}$/.test(pct) && Number(pct) >= 1 && Number(pct) <= 100)) {
-    errors.pct = "Indica un porcentaje entero entre 1 y 100.";
-  } else if (pct === "" && input.sellerFinancing === "yes") {
-    errors.pct = "Indica qué parte del precio financiarías.";
-  }
-  if (years !== "" && !sellerFinancingYearOptions.some((option) => String(option) === years)) {
-    errors.years = "Elige un plazo de la lista.";
-  } else if (years === "" && input.sellerFinancing === "yes") {
-    errors.years = "Elige el plazo.";
-  }
-  return errors;
-}
-
 /** What gets stored: null columns when unanswered; terms are dropped for "No". Invalid input returns ok: false. */
 export function sellerFinancingWrite(
   input: SellerFinancingInput,
 ): { ok: true; data: { sellerFinancing: SellerFinancingMode | null; sellerFinancingMaxPct: number | null; sellerFinancingYears: number | null } } | { ok: false } {
-  if (Object.keys(sellerFinancingErrors(input)).length > 0) {
-    return { ok: false };
-  }
   const mode = input.sellerFinancing === "" ? null : (input.sellerFinancing as SellerFinancingMode);
   const terms = mode === "yes" || mode === "negotiable";
   const pct = input.sellerFinancingPct.trim();
@@ -95,26 +69,12 @@ export function sellerFinancingToInput(value: SellerFinancing | null): SellerFin
   };
 }
 
-function yearsText(years: number): string {
-  return years >= 5 ? "5 años o más" : years === 1 ? "1 año" : `${years} años`;
-}
-
-/** t92: marketplace card chip. Only for Sí or Negociable; nothing for No or unanswered. */
+/** t92/t93: marketplace card chip. Only for Sí or Negociable; nothing for No or unanswered. */
 export function sellerFinancingChip(value: SellerFinancing | null): string | null {
-  if (!value || value.mode === "no") {
-    return null;
-  }
-  return value.maxPct !== null ? `Financia hasta ${value.maxPct} %` : "Financiación vendedor";
+  return !value || value.mode === "no" ? null : "Financiación vendedor";
 }
 
-/** Buyer-facing sentence, e.g. "Acepta financiar hasta un 20 % a 3 años". */
+/** t93: buyer-facing sentence in Operación de venta. */
 export function sellerFinancingText(value: SellerFinancing): string {
-  if (value.mode === "no") {
-    return "No";
-  }
-  const parts = [value.maxPct !== null ? `hasta un ${value.maxPct} %` : null, value.years !== null ? `a ${yearsText(value.years)}` : null].filter(Boolean);
-  if (value.mode === "yes") {
-    return parts.length > 0 ? `Acepta financiar ${parts.join(" ")}` : "Acepta financiar parte del precio";
-  }
-  return parts.length > 0 ? `A negociar (orientativo: ${parts.join(" ")})` : "A negociar";
+  return value.mode === "no" ? "No" : value.mode === "yes" ? "Acepta financiar parte del precio" : "Financiación negociable";
 }

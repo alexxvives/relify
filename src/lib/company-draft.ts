@@ -1,4 +1,4 @@
-import { sellerFinancingErrors, sellerFinancingInputSchema } from "./seller-financing";
+import { sellerFinancingInputSchema } from "./seller-financing";
 import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
@@ -129,14 +129,6 @@ export const companyDraftSchema = z
   })
   .superRefine((input, ctx) => {
     validateCnaes(input.principalCnae, input.secondaryCnaes, ctx);
-    // t90: seller financing terms are checked field by field; "Sí" needs share and term.
-    const financing = sellerFinancingErrors(input);
-    if (financing.pct) {
-      ctx.addIssue({ code: "custom", message: "seller-financing-pct", path: ["sellerFinancingPct"] });
-    }
-    if (financing.years) {
-      ctx.addIssue({ code: "custom", message: "seller-financing-years", path: ["sellerFinancingYears"] });
-    }
     validatePercents(input.capitalPercents, "capitalPercents", "percent-sum-capital", ctx);
     validatePercents(input.productPercents, "productPercents", "percent-sum-product", ctx);
     // t78: drafts save partially; "Por qué se vende" is required for completion (seller progress), not to save.

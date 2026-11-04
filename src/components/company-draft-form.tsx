@@ -92,7 +92,7 @@ import {
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
-import { sellerFinancingChip, storedSellerFinancing, sellerFinancingErrors, sellerFinancingLabels, sellerFinancingModes, sellerFinancingYearOptions } from "@/lib/seller-financing";
+import { sellerFinancingChip, storedSellerFinancing, sellerFinancingLabels, sellerFinancingModes } from "@/lib/seller-financing";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -498,21 +498,13 @@ function SellerFinancingField({
   pct,
   years,
   onMode,
-  onPct,
-  onYears,
-  showMissing,
 }: {
   mode: string;
   pct: string;
   years: string;
   onMode: (value: string) => void;
-  onPct: (value: string) => void;
-  onYears: (value: string) => void;
-  showMissing: boolean;
 }) {
-  const errors = sellerFinancingErrors({ sellerFinancing: mode, sellerFinancingPct: pct, sellerFinancingYears: years });
-  const pctError = errors.pct && (pct.trim() !== "" || showMissing) ? errors.pct : null;
-  const yearsError = errors.years && (years.trim() !== "" || showMissing) ? errors.years : null;
+  // t93: only Sí / No / Negociable is asked now; earlier % and plazo answers are posted back untouched (kept in the DB).
   const terms = mode === "yes" || mode === "negotiable";
   return (
     <div id="panel-seller-financing" className="mt-3 scroll-mt-24 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
@@ -552,55 +544,6 @@ function SellerFinancingField({
           ))}
         </div>
       </div>
-      {terms ? (
-        <div className="mt-4 border-t border-[#eef0f4] pt-4">
-          <p className="text-xs leading-5 text-[#667085]">
-            {mode === "yes" ? "Indica hasta qué parte del precio y en qué plazo." : "Opcional: da una orientación para que el comprador sepa por dónde empezar."}
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div className="min-w-0">
-              <label htmlFor="seller-financing-pct" className="block text-xs font-medium text-[#475467]">
-                % máximo del precio{mode === "negotiable" ? " (opcional)" : ""}
-              </label>
-              <div className="relative mt-1">
-                <input
-                  id="seller-financing-pct"
-                  inputMode="numeric"
-                  value={pct}
-                  onChange={(event) => onPct(event.target.value.replace(/[^\d]/g, "").slice(0, 3))}
-                  placeholder="20"
-                  aria-invalid={pctError ? true : undefined}
-                  aria-describedby={pctError ? "seller-financing-pct-error" : undefined}
-                  className={`${fieldInputClass} h-11 pr-8 tabular-nums`}
-                />
-                <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#667085]">%</span>
-              </div>
-              {pctError ? <p id="seller-financing-pct-error" className="mt-1 text-xs text-[#b42318]">{pctError}</p> : null}
-            </div>
-            <div className="min-w-0">
-              <label htmlFor="seller-financing-years" className="block text-xs font-medium text-[#475467]">
-                Plazo{mode === "negotiable" ? " (opcional)" : ""}
-              </label>
-              <div className="mt-1">
-                <OptionSelect
-                  id="seller-financing-years"
-                  label="Plazo"
-                  placeholder="Elige el plazo"
-                  value={years}
-                  invalid={Boolean(yearsError)}
-                  describedBy={yearsError ? "seller-financing-years-error" : undefined}
-                  options={sellerFinancingYearOptions.map((option) => ({
-                    value: String(option),
-                    label: option === 5 ? "5 años o más" : option === 1 ? "1 año" : `${option} años`,
-                  }))}
-                  onValueChange={onYears}
-                />
-              </div>
-              {yearsError ? <p id="seller-financing-years-error" className="mt-1 text-xs text-[#b42318]">{yearsError}</p> : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -1320,8 +1263,8 @@ export function CompanyDraftForm({
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
-  const [sellerFinancingPct, setSellerFinancingPct] = useState(initial.sellerFinancingPct);
-  const [sellerFinancingYears, setSellerFinancingYears] = useState(initial.sellerFinancingYears);
+  const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
+  const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
@@ -1511,8 +1454,6 @@ export function CompanyDraftForm({
     setCustomerBase(baseline.customerBase);
     setAskingPrice(baseline.askingPrice);
     setSellerFinancing(baseline.sellerFinancing);
-    setSellerFinancingPct(baseline.sellerFinancingPct);
-    setSellerFinancingYears(baseline.sellerFinancingYears);
     setClosedYears(baseline.closedYears);
     setForecastYear(baseline.forecastYear);
     setClientError(null);
@@ -2063,9 +2004,6 @@ export function CompanyDraftForm({
               pct={sellerFinancingPct}
               years={sellerFinancingYears}
               onMode={setSellerFinancing}
-              onPct={setSellerFinancingPct}
-              onYears={setSellerFinancingYears}
-              showMissing={Boolean(state && !state.saved && state.message.startsWith("Financiación del vendedor"))}
             />
           </PublicFicha>
       </Panel>
@@ -2340,7 +2278,7 @@ export function CompanyDraftForm({
             askingPrice={askingPrice}
             principalCnae={principalCnae}
             summary={description}
-            financingChip={sellerFinancingChip(storedSellerFinancing({ sellerFinancing, sellerFinancingMaxPct: Number(sellerFinancingPct) || null }))}
+            financingChip={sellerFinancingChip(storedSellerFinancing({ sellerFinancing }))}
           />
         </div>
         <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
