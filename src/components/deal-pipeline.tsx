@@ -5,9 +5,8 @@ import { PdfPages } from "@/components/pdf-pages";
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Check, CircleHelp, Phone, ShieldCheck, X } from "lucide-react";
+import { Check, CircleHelp, ShieldCheck, X } from "lucide-react";
 import { AgreementDocument } from "@/components/agreement-document";
-import { shellCopy } from "@/lib/shell";
 import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -212,23 +211,6 @@ export function DealPipeline({
   );
 }
 
-/** When it is the user's turn, offer a phone call right where they have to act. */
-function HelpCall({ onDark }: { onDark: boolean }) {
-  return (
-    <a
-      href={shellCopy.helpPhoneHref}
-      className={
-        onDark
-          ? "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-white/40 px-4 text-sm font-medium text-white hover:bg-white/10"
-          : "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-[#e7eaee] bg-white px-4 text-sm font-medium text-[#1c2740] hover:bg-[#f4f6fb]"
-      }
-    >
-      <Phone className="size-4" aria-hidden />
-      {shellCopy.helpCall} {shellCopy.helpPhone}
-    </a>
-  );
-}
-
 function TurnCue({
   cue,
   onDark,
@@ -264,7 +246,6 @@ function TurnCue({
           <span className="text-sm leading-5 text-white">{cue.action}</span>
           {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
           {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
-          <HelpCall onDark />
         </div>
       );
     }
@@ -285,7 +266,6 @@ function TurnCue({
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
         {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
-        <HelpCall onDark={false} />
       </div>
     );
   }
