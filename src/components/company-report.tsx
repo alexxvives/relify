@@ -141,7 +141,7 @@ function ReportSection({
           <Icon className="size-5" aria-hidden />
         </span>
         <h2 className="min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
-        {aside ? <span className="max-w-[45%] truncate text-right text-xs text-[#5c6b78] sm:text-sm">{aside}</span> : null}
+        {aside ? <span className="max-w-[55%] text-right text-xs leading-snug text-pretty break-words text-[#5c6b78] sm:text-sm">{aside}</span> : null}
         <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open/section:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
@@ -864,7 +864,7 @@ export function CompanyReport({
         </div>
       </ReportSection>
 
-      <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae?.title}>
+      <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae ? `${project.principalCnae.code} · ${project.principalCnae.title}` : undefined}>
         <div className="flex flex-col gap-4">
           {about ? (
             <p className="leading-7 text-[#1c2740]">
@@ -882,8 +882,8 @@ export function CompanyReport({
               <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-[#f7f8fb] p-3">
                 <span className="flex items-center gap-3 text-xs text-[#5c6b78]"><Briefcase className="size-4 shrink-0 text-[#0f766e]" aria-hidden />Sector principal</span>
                 {project.principalCnae ? (
-                  <span className="self-start rounded-full bg-[#1c2740] px-3 py-1 text-xs font-medium text-white">
-                    {project.principalCnae.code} · {project.principalCnae.title}
+                  <span className="self-start rounded-2xl bg-[#1c2740] px-3 py-1 text-xs leading-5 font-medium break-words text-white">
+                    <span className="font-semibold tabular-nums">{project.principalCnae.code}</span> · {project.principalCnae.title}
                   </span>
                 ) : (
                   <span className="text-sm text-[#667085]">{companyCopy.unavailable}</span>
@@ -894,13 +894,13 @@ export function CompanyReport({
                 {project.secondaryCnaes.length > 0 || extraActivities.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
                     {project.secondaryCnaes.map((cnae) => (
-                      <span key={cnae.code} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-                        {cnae.code} · {cnae.title}
+                      <span key={cnae.code} className="max-w-full rounded-2xl bg-[#eef0f4] px-3 py-1 text-xs leading-5 break-words text-[#1c2740]">
+                        <span className="font-semibold tabular-nums">{cnae.code}</span> · {cnae.title}
                       </span>
                     ))}
                     {extraActivities.map((activity) => (
-                      <span key={`registry-${activity.code}`} className="rounded-full bg-[#eef0f4] px-3 py-1 text-xs text-[#1c2740]">
-                        {activity.code} · {activity.title}
+                      <span key={`registry-${activity.code}`} className="max-w-full rounded-2xl bg-[#eef0f4] px-3 py-1 text-xs leading-5 break-words text-[#1c2740]">
+                        <span className="font-semibold tabular-nums">{activity.code}</span> · {activity.title}
                       </span>
                     ))}
                   </div>
