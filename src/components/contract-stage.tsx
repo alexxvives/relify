@@ -405,7 +405,7 @@ function SignContractDialog({ contractId, href, fileName, price, onClose }: { co
         <div className="flex items-center justify-end gap-3 border-t border-[#eef0f3] px-5 py-4">
           {state && !state.ok ? <Feedback state={state} /> : null}
           <Button type="submit" disabled={pending} className="rounded-full px-5 font-semibold">
-            {pending ? "Firmando…" : "Firmar"}
+            {pending ? "Firmando…" : "Firmar contrato"}
           </Button>
         </div>
       </form>

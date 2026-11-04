@@ -177,6 +177,7 @@ export function DealPipeline({
           onDark={onDark}
           center={hideWaitingCue}
           canSign={canSign}
+          signKind={signKindFor}
           canAccept={canAccept}
           onSign={() => {
             if (signKindFor) {
@@ -233,6 +234,7 @@ function TurnCue({
   onDark,
   center,
   canSign,
+  signKind,
   canAccept,
   onSign,
   onAccept,
@@ -241,6 +243,7 @@ function TurnCue({
   onDark: boolean;
   center: boolean;
   canSign: boolean;
+  signKind: "nda" | "loi" | null;
   canAccept: boolean;
   onSign: () => void;
   onAccept: () => void;
@@ -260,7 +263,7 @@ function TurnCue({
           </span>
           <span className="text-sm leading-5 text-white">{cue.action}</span>
           {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
-          {canSign ? <SignNow onSign={onSign} /> : null}
+          {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
           <HelpCall onDark />
         </div>
       );
@@ -281,7 +284,7 @@ function TurnCue({
           <span className="mt-0.5 block text-sm text-[#1c2740]">{cue.action}</span>
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
-        {canSign ? <SignNow onSign={onSign} /> : null}
+        {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
         <HelpCall onDark={false} />
       </div>
     );
@@ -295,7 +298,7 @@ function TurnCue({
         </span>
         <p className={onDark ? "text-sm leading-5 text-white" : "text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
-        {canSign ? <SignNow onSign={onSign} /> : null}
+        {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
       </div>
     );
   }
@@ -313,7 +316,7 @@ function TurnCue({
         <DealWaitingCue cue={cue} className="min-w-0 flex-1" />
       )}
       {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
-      {canSign ? <SignNow onSign={onSign} /> : null}
+      {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
     </div>
   );
 }
@@ -330,14 +333,15 @@ function AcceptNow({ onAccept }: { onAccept: () => void }) {
   );
 }
 
-function SignNow({ onSign }: { onSign: () => void }) {
+/** t92: the button names what gets signed. */
+function SignNow({ onSign, kind }: { onSign: () => void; kind: "nda" | "loi" | null }) {
   return (
     <button
       type="button"
       onClick={onSign}
       className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
     >
-      Firmar
+      {kind === "loi" ? "Firmar LOI" : "Firmar NDA"}
     </button>
   );
 }
@@ -412,6 +416,7 @@ export function ProcessHeaderCue({
         ) : null}
         {canSign && signKindFor ? (
           <SignNow
+            kind={signKindFor}
             onSign={() => {
               setSignKind(signKindFor);
             }}

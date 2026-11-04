@@ -176,7 +176,7 @@ export function AdvisorNdaTurn({ engagementId, text }: { engagementId: string; t
           }}
           className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
         >
-          Firmar
+          Firmar NDA
         </button>
       </span>
       {open ? (
