@@ -42,7 +42,7 @@ type AdminHeader = {
 };
 
 /**
- * t81/t88b: admin company page. The header is the shared CompanyBanner, compact variant (no hero), with the
+ * t81/t88b: admin company page. The header is the shared CompanyBanner, hero variant (t91, as buyer and seller see it), with the
  * status, readiness chip and deal progress in its slots; "Subir/Reimportar SABI" and "Notificar al vendedor" live at
  * the right end of the tab row. Header and tab row together are the SABI drop zone.
  */
@@ -254,9 +254,8 @@ export function AdminSabiPanel({
 
   return (
     <div {...dropProps} className="relative flex flex-col gap-4">
-      {/* t88b: shared CompanyBanner in its compact variant (t81: no hero banner on admin); admin extras ride in its slots. */}
+      {/* t91: the same hero sector banner buyer and seller see; admin extras (status, readiness, deal progress, cue) ride in its slots. */}
       <CompanyBanner
-        variant="compact"
         title={header.title}
         subtitle={header.chips && header.chips.length > 0 ? undefined : (header.subtitle ?? undefined)}
         sector={header.sector ?? null}

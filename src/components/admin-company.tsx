@@ -67,10 +67,10 @@ export function AdminCompany({
           chips: bannerChips({ sector: adminSector, region: view.profile.region, foundedYear: view.profile.foundedYear }),
           status: { label: statusLabel(view.status), live: view.status === "published" },
           statusNote: view.publishChecks ? <PublishReadinessChip checks={view.publishChecks} /> : null,
-          cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} /> : null,
+          cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null,
           progress:
             selected && selected.steps.length > 0 ? (
-              <DealPipeline steps={selected.steps} role="advisor" hideAsideCue hideWaitingCue />
+              <DealPipeline steps={selected.steps} role="advisor" onDark hideAsideCue hideWaitingCue />
             ) : null,
         }}
         between={
