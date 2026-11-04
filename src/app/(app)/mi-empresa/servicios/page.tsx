@@ -10,7 +10,6 @@ import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
 import { listSellerAdvisoryCompanies } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
-import { Card } from "@/components/ui/form";
 
 export const metadata: Metadata = {
   title: sellerCopy.servicesTitle,
@@ -37,15 +36,14 @@ async function SellerServicesPageContent({
 
   return (
     <>
-      <Card className="p-6">
-        <AdvisoryPicker
-          key={selectedEngagementCompany(companies, query.empresa) || "empresa"}
-          layout="cards"
-          advisors={advisors}
-          companies={companies}
-          initialCompany={selectedEngagementCompany(companies, query.empresa)}
-        />
-      </Card>
+      {/* t93: same shared picker as /asesoramiento, cards directly on the page (no wrapper card). */}
+      <AdvisoryPicker
+        key={selectedEngagementCompany(companies, query.empresa) || "empresa"}
+        layout="cards"
+        advisors={advisors}
+        companies={companies}
+        initialCompany={selectedEngagementCompany(companies, query.empresa)}
+      />
     </>
   );
 }
