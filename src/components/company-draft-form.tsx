@@ -92,6 +92,7 @@ import {
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
+import { sellerStayLabels, sellerStayOptions } from "@/lib/seller-stay";
 import { sellerFinancingChip, storedSellerFinancing, sellerFinancingLabels, sellerFinancingModes } from "@/lib/seller-financing";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
@@ -543,6 +544,43 @@ function SellerFinancingField({
             </button>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** t93: ¿Te quedarías como asesor tras la venta? Recommended; same card style as the financing question. */
+function SellerStayField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div id="panel-seller-stay" className="mt-3 scroll-mt-24 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <input type="hidden" name="sellerStay" value={value} />
+      <p id="seller-stay-label" className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1c2740]">
+        ¿Te quedarías como asesor tras la venta?
+        {value === "" ? <span className="rounded-full bg-[#fff4d6] px-2 py-px text-[11px] leading-4 font-semibold text-[#8a6112]">Recomendado</span> : null}
+      </p>
+      <p id="seller-stay-help" className="mt-1 max-w-prose text-xs leading-5 text-[#667085]">
+        Ayudar al comprador durante el traspaso da confianza. Los compradores lo verán en tu ficha.
+      </p>
+      <div
+        role="radiogroup"
+        aria-labelledby="seller-stay-label"
+        aria-describedby="seller-stay-help"
+        className="mt-3 grid grid-cols-4 gap-1 rounded-xl border border-[#e7eaee] bg-white p-1 sm:grid-cols-7"
+      >
+        {sellerStayOptions.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={value === option}
+            onClick={() => onChange(option)}
+            className={`h-9 rounded-lg px-2 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+              value === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
+            }`}
+          >
+            {sellerStayLabels[option]}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -1265,6 +1303,7 @@ export function CompanyDraftForm({
   const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
   const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
   const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
+  const [sellerStay, setSellerStay] = useState<string>(initial.sellerStay);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
@@ -1343,6 +1382,7 @@ export function CompanyDraftForm({
     sellerFinancing: initial.sellerFinancing as string,
     sellerFinancingPct: initial.sellerFinancingPct,
     sellerFinancingYears: initial.sellerFinancingYears,
+    sellerStay: initial.sellerStay as string,
     closedYears: initial.closedYears,
     forecastYear: initial.forecastYear,
   }));
@@ -1372,6 +1412,7 @@ export function CompanyDraftForm({
     sellerFinancing,
     sellerFinancingPct,
     sellerFinancingYears,
+    sellerStay,
     closedYears,
     forecastYear,
   };
@@ -1410,7 +1451,8 @@ export function CompanyDraftForm({
     askingPrice !== baseline.askingPrice ||
     sellerFinancing !== baseline.sellerFinancing ||
     sellerFinancingPct !== baseline.sellerFinancingPct ||
-    sellerFinancingYears !== baseline.sellerFinancingYears;
+    sellerFinancingYears !== baseline.sellerFinancingYears ||
+    sellerStay !== baseline.sellerStay;
 
   function closedIndex(index: number): 0 | 1 | 2 {
     if (index === 1) {
@@ -1454,6 +1496,7 @@ export function CompanyDraftForm({
     setCustomerBase(baseline.customerBase);
     setAskingPrice(baseline.askingPrice);
     setSellerFinancing(baseline.sellerFinancing);
+    setSellerStay(baseline.sellerStay);
     setClosedYears(baseline.closedYears);
     setForecastYear(baseline.forecastYear);
     setClientError(null);
@@ -1631,6 +1674,7 @@ export function CompanyDraftForm({
     sellerFinancing: sellerFinancing as CompanyDraftInput["sellerFinancing"],
     sellerFinancingPct,
     sellerFinancingYears,
+    sellerStay: sellerStay as CompanyDraftInput["sellerStay"],
     opex,
     capitalPercents,
     productPercents,
@@ -1676,6 +1720,7 @@ export function CompanyDraftForm({
     clientPercents,
     askingPrice,
     sellerFinancing,
+    sellerStay,
   });
   // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
   const basicDone = sectionComplete(requiredFields, "basic");
@@ -2005,6 +2050,7 @@ export function CompanyDraftForm({
               years={sellerFinancingYears}
               onMode={setSellerFinancing}
             />
+            <SellerStayField value={sellerStay} onChange={setSellerStay} />
           </PublicFicha>
       </Panel>
 

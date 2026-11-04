@@ -38,7 +38,7 @@ describe("seller completion (t78)", () => {
   });
 
   it("basic needs sale reason, description and sector; deal needs the asking price", () => {
-    const fields = sellerRequiredFields({ ...empty, saleReason: "retirement", description: "Obrador", principalCnae: "1071", askingPrice: "500000", sellerFinancing: "no" });
+    const fields = sellerRequiredFields({ ...empty, saleReason: "retirement", description: "Obrador", principalCnae: "1071", askingPrice: "500000", sellerFinancing: "no", sellerStay: "3m" });
     expect(sectionComplete(fields, "basic")).toBe(true);
     expect(sectionComplete(fields, "deal")).toBe(true);
   });
@@ -56,7 +56,7 @@ describe("askingPriceSet (t83)", () => {
   it("t88: counts required and recommended gaps apart, matching the Inicio checklist", () => {
     const progress = completionProgress(sellerRequiredFields({ ...empty, saleReason: "retirement", customerBase: "business" }));
     expect(progress.missingRequired).toBe(3);
-    expect(progress.missingRecommended).toBe(3);
+    expect(progress.missingRecommended).toBe(4);
     expect(sellerRequiredFields(empty).filter((field) => field.required).map((field) => field.id)).toEqual([
       "panel-sale-reason",
       "panel-description",

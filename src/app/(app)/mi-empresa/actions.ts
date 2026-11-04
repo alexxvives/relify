@@ -86,6 +86,7 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     sellerFinancing: readText(formData, "sellerFinancing"),
     sellerFinancingPct: readText(formData, "sellerFinancingPct"),
     sellerFinancingYears: readText(formData, "sellerFinancingYears"),
+    sellerStay: readText(formData, "sellerStay"),
     opex: readText(formData, "opex"),
     capitalPercents: readList(formData, "capitalPercent"),
     productPercents: readList(formData, "productPercent"),

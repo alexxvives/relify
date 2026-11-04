@@ -1,4 +1,5 @@
 import { storedSellerFinancing, type SellerFinancing } from "./seller-financing";
+import { storedSellerStay, type SellerStay } from "./seller-stay";
 import { storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import type { Prisma } from "@/generated/prisma/client";
 import { cnaeTitle } from "./cnae-2009";
@@ -38,6 +39,7 @@ export const investorProjectSelect = {
   sellerFinancing: true,
   sellerFinancingMaxPct: true,
   sellerFinancingYears: true,
+  sellerStay: true,
   opexCents: true,
   headcountRange: true,
   customerBase: true,
@@ -154,6 +156,8 @@ export type InvestorProjectProfile = {
   ebitdaAdjustments: EbitdaAdjustment[] | null;
   /** t90: seller financing terms; deal terms, not identifying, so visible before the NDA. null = not answered. */
   sellerFinancing: SellerFinancing | null;
+  /** t93: would the seller stay on as an adviser; deal term, visible before the NDA. null = not answered. */
+  sellerStay: SellerStay | null;
   askingPriceCents: number;
   opexCents: number | null;
   ebitdaMarginBp: number | null;
@@ -200,6 +204,7 @@ type InvestorProjectRecord = {
   sellerFinancing?: string | null;
   sellerFinancingMaxPct?: number | null;
   sellerFinancingYears?: number | null;
+  sellerStay?: string | null;
   opexCents: number | null;
   headcountRange: string | null;
   customerBase: "business" | "consumer" | "mixed" | null;
@@ -448,6 +453,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     ebitdaAdjustments: storedEbitdaAdjustments(record.ebitdaAdjustments),
     askingPriceCents: record.askingPriceCents,
     sellerFinancing: storedSellerFinancing(record),
+    sellerStay: storedSellerStay(record.sellerStay),
     opexCents: record.opexCents,
     ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
     principalCnae: principal ? cnaeChip(principal.code) : null,

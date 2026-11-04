@@ -27,6 +27,8 @@ export type CompletionInput = {
   askingPrice: string;
   /** t92: "" until the seller answers ¿Aceptarías financiar parte del precio? (any answer completes it). */
   sellerFinancing?: string;
+  /** t93: "" until the seller answers ¿Te quedarías como asesor? (recommended). */
+  sellerStay?: string;
 };
 
 function splitDone(values: string[]): boolean {
@@ -50,6 +52,7 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
       : []),
     { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: askingPriceSet(input.askingPrice), required: true },
     { id: "panel-seller-financing", label: "Financiación del vendedor", section: "deal", done: (input.sellerFinancing ?? "") !== "", required: true },
+    { id: "panel-seller-stay", label: "Asesoría tras la venta", section: "deal", done: (input.sellerStay ?? "") !== "", required: false },
   ];
 }
 

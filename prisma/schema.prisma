@@ -209,6 +209,8 @@ model Project {
   sellerFinancing        String? @map("seller_financing")
   sellerFinancingMaxPct  Int?    @map("seller_financing_max_pct")
   sellerFinancingYears   Int?    @map("seller_financing_years")
+  /// t93: would the seller stay on as an adviser: "no" | "1w" | "1m" | "3m" | "6m" | "1y" | "2y"; null = not answered.
+  sellerStay             String? @map("seller_stay")
   verifiedAt          DateTime?            @map("verified_at")
   netDebtCents        BigInt                  @map("net_debt_cents")
   workingCapitalCents BigInt                  @map("working_capital_cents")

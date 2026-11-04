@@ -1,3 +1,4 @@
+import { storedSellerStay } from "@/lib/seller-stay";
 import { sellerFinancingToInput, storedSellerFinancing } from "@/lib/seller-financing";
 import { adjustmentsToFormJson, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
 import {
@@ -177,6 +178,7 @@ export async function getCompanyDraft(
             sellerFinancing: true,
             sellerFinancingMaxPct: true,
             sellerFinancingYears: true,
+            sellerStay: true,
             opexCents: true,
             headcountRange: true,
             customerBase: true,
@@ -242,6 +244,7 @@ export async function getCompanyDraft(
     ebitdaAdjustments: adjustmentsToFormJson(storedEbitdaAdjustments(draft.ebitdaAdjustments)),
     askingPrice: centsToEuroInput(draft.askingPriceCents),
     ...(sellerFinancingToInput(storedSellerFinancing(draft)) as Pick<CompanyDraftInput, "sellerFinancing" | "sellerFinancingPct" | "sellerFinancingYears">),
+    sellerStay: storedSellerStay(draft.sellerStay) ?? "",
     opex: money(draft.opexCents),
     capitalPercents: percents("capital"),
     productPercents: percents("product"),

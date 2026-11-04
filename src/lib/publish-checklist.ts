@@ -105,13 +105,14 @@ export function adminChecksMessage(checks: AdminPublishChecks): string {
  * t85: steps that make the ficha stronger but never block publishing (the auto-publish rule above
  * stays as is). The client split only applies when the company sells to businesses.
  */
-export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda";
+export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda" | "sellerStay";
 
 export const recommendedCheckLabels: Record<RecommendedCheckKey, string> = {
   customer: "¿A quién vendes?",
   productSplit: "Productos y servicios",
   clientSplit: "Reparto por clientes",
   adjustedEbitda: "EBITDA ajustado",
+  sellerStay: "Asesoría tras la venta",
 };
 
 export function recommendedChecklist(input: {
@@ -119,6 +120,8 @@ export function recommendedChecklist(input: {
   productSlices: number;
   clientSlices: number;
   adjustments: number;
+  /** t93: answered ¿Te quedarías como asesor? (any answer, No included). */
+  sellerStay?: boolean;
 }): CheckItem<RecommendedCheckKey>[] {
   const items: Omit<CheckItem<RecommendedCheckKey>, "label">[] = [
     { key: "customer", done: input.customerBase !== null, href: detailHref("structure", "panel-customer") },
@@ -133,5 +136,8 @@ export function recommendedChecklist(input: {
     href: detailHref("price", "ebitda-ajustado"),
     hint: "Si hay gastos o ingresos que un comprador no tendría, añádelos como ajustes para mostrar lo que el negocio gana de verdad.",
   });
+  if (input.sellerStay !== undefined) {
+    items.push({ key: "sellerStay", done: input.sellerStay, href: detailHref("price", "panel-seller-stay") });
+  }
   return items.map((item) => ({ ...item, label: recommendedCheckLabels[item.key] }));
 }

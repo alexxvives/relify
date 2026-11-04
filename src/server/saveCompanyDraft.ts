@@ -177,6 +177,7 @@ export async function saveCompanyDraft(
       const financing = sellerFinancingWrite(input);
       return financing.ok ? financing.data : {};
     })(),
+    sellerStay: input.sellerStay === "" ? null : input.sellerStay,
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,
   };

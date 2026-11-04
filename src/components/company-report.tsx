@@ -1,4 +1,5 @@
 import { sellerFinancingText } from "@/lib/seller-financing";
+import { sellerStayText } from "@/lib/seller-stay";
 import { profitabilityStyles } from "@/lib/profitability-styles";
 import { detailCard, detailCardHead } from "@/components/detail-card";
 import { cloneElement, Fragment, isValidElement, type ReactNode } from "react";
@@ -29,6 +30,7 @@ import {
   Phone,
   IdCard,
   FileCheck2,
+  UserRoundCheck,
 } from "lucide-react";
 import { ReportNav } from "@/components/report-nav";
 import {
@@ -861,6 +863,7 @@ export function CompanyReport({
           {project.sellerFinancing ? (
             <Fact icon={HandCoins} label="Financiación del vendedor" value={sellerFinancingText(project.sellerFinancing)} source="seller" />
           ) : null}
+          {project.sellerStay ? <Fact icon={UserRoundCheck} label="Asesoría tras la venta" value={sellerStayText(project.sellerStay)} source="seller" /> : null}
         </div>
       </ReportSection>
 

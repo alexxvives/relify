@@ -24,6 +24,7 @@ const investorKeys = [
   "sellerFinancing",
   "sellerFinancingMaxPct",
   "sellerFinancingYears",
+  "sellerStay",
   "slug",
   "years",
 ] as const;

@@ -1,4 +1,5 @@
 import { sellerFinancingInputSchema } from "./seller-financing";
+import { sellerStayInputSchema } from "./seller-stay";
 import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
@@ -118,6 +119,7 @@ export const companyDraftSchema = z
     ebitdaAdjustments: z.string().max(8000, "adjustment-format"),
     askingPrice: optionalEuroText,
     ...sellerFinancingInputSchema,
+    ...sellerStayInputSchema,
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
@@ -307,6 +309,7 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     sellerFinancing: "",
     sellerFinancingPct: "",
     sellerFinancingYears: "",
+    sellerStay: "",
     opex: "",
     capitalPercents: [],
     productPercents: [],
