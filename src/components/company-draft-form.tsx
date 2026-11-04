@@ -74,7 +74,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { scrollToCenter } from "@/components/use-scroll-spy";
-import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
+import { DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -189,6 +189,33 @@ function marginText(revenue: string, ebitda: string): string {
   return basisPoints === null ? companyCopy.unavailable : formatBasisPoints(basisPoints);
 }
 
+type AutoSaveState = "saving" | "saved" | "error" | null;
+
+/** t95: inline autosave status: Guardando… / Guardado / Error al guardar · Reintentar. */
+function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null>; onRetry?: () => void }) {
+  if (state === "error") {
+    return (
+      <span role="alert" className="inline-flex items-center gap-1 rounded-full bg-[#fdecea] px-2.5 py-1 text-xs font-medium text-[#a12f2f]">
+        {companyCopy.autosaveError}
+        {onRetry ? (
+          <>
+            <span aria-hidden>·</span>
+            <button type="button" onClick={onRetry} className="font-semibold underline underline-offset-2 hover:text-[#7a1f1f] focus-visible:outline-2 focus-visible:outline-[#a12f2f]">
+              {companyCopy.autosaveRetry}
+            </button>
+          </>
+        ) : null}
+      </span>
+    );
+  }
+  return (
+    <span role="status" className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${state === "saved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#eef1f5] text-[#475467]"}`}>
+      {state === "saved" ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5 motion-safe:animate-pulse" aria-hidden />}
+      {state === "saved" ? companyCopy.autosaveSaved : companyCopy.autosaveSaving}
+    </span>
+  );
+}
+
 function Panel({
   id,
   step,
@@ -198,6 +225,8 @@ function Panel({
   open,
   done,
   dirty,
+  saveState = null,
+  onRetry,
   onEdit,
   onCollapse,
   fixed = false,
@@ -216,6 +245,9 @@ function Panel({
   open: boolean;
   done: boolean;
   dirty: boolean;
+  /** t95: autosave status shown next to the title instead of the old save bar. */
+  saveState?: AutoSaveState;
+  onRetry?: () => void;
   onEdit: () => void;
   onCollapse: () => void;
   children: ReactNode;
@@ -232,11 +264,8 @@ function Panel({
           {open ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {open && dirty ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#fff4d6] px-2.5 py-1 text-xs font-medium text-[#8a6112]">
-              <Pencil className="size-3.5" aria-hidden />
-              {companyCopy.unsaved}
-            </span>
+          {saveState || dirty ? (
+            <AutoSaveStatus state={saveState ?? "saving"} onRetry={onRetry} />
           ) : !chip ? null : (
             <span
               className={
@@ -1395,7 +1424,7 @@ export function CompanyDraftForm({
   const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
   const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [sellerStay, setSellerStay] = useState<string>(initial.sellerStay);
-  const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
+  const [capitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
   const startingCustomer: CompanyDraftInput["customerBase"] =
@@ -1423,7 +1452,6 @@ export function CompanyDraftForm({
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
 
-  const [closedAfterSave, setClosedAfterSave] = useState("");
   const [saveTarget, setSaveTarget] = useState("");
   const [rejectedSave, setRejectedSave] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -1432,13 +1460,8 @@ export function CompanyDraftForm({
   // t78: /mi-empresa/detalles is only reachable with a verified NIF (stored CIF); the server enforces the lock too.
   const identityLocked = cif.trim().length > 0;
   const [changeField, setChangeField] = useState<IdentityField | null>(null);
-  const saveStamp = state?.saved && !pending && saveTarget.length > 0 ? `${saveTarget}:${attempt}` : "";
   const [saveClosed, setSaveClosed] = useState("");
 
-  if (saveStamp.length > 0 && saveStamp !== closedAfterSave) {
-    setClosedAfterSave(saveStamp);
-    setSaveClosed(saveTarget);
-  }
 
   useEffect(() => {
     const key = panelStorageKey(saveClosed);
@@ -1478,6 +1501,7 @@ export function CompanyDraftForm({
     forecastYear: initial.forecastYear,
   }));
   const [seenSave, setSeenSave] = useState<CompanyDraftState>(null);
+  const [submittedDraft, setSubmittedDraft] = useState<typeof baseline | null>(null);
   const currentDraft = {
     legalName,
     address,
@@ -1510,7 +1534,8 @@ export function CompanyDraftForm({
 
   if (state?.saved && state !== seenSave) {
     setSeenSave(state);
-    setBaseline(currentDraft);
+    // t95: autosave can run while the seller keeps typing; only what was sent counts as saved.
+    setBaseline(submittedDraft ?? currentDraft);
   }
 
   const basicDirty =
@@ -1569,36 +1594,7 @@ export function CompanyDraftForm({
     window.history.replaceState(window.history.state, "", url);
   }
 
-  // t92: "Descartar" in the save bar puts every field back to the last saved values (adjustments save in their own dialog).
-  function discardChanges() {
-    setLegalName(baseline.legalName);
-    setAddress(baseline.address);
-    setCodename(baseline.codename);
-    setFoundedYear(baseline.foundedYear);
-    setDescription(baseline.description);
-    setSaleReason(baseline.saleReason);
-    setPrincipalCnae(baseline.principalCnae);
-    setSecondaryCnaes(baseline.secondaryCnaes);
-    setNif(baseline.nif);
-    setHeadcount(baseline.headcount);
-    setCapitalPercents(baseline.capitalPercents);
-    setProductPercents(baseline.productPercents);
-    setClientPercents(baseline.clientPercents);
-    setCustomerBase(baseline.customerBase);
-    setAskingPrice(baseline.askingPrice);
-    setSellerFinancing(baseline.sellerFinancing);
-    setSellerStay(baseline.sellerStay);
-    setClosedYears(baseline.closedYears);
-    setForecastYear(baseline.forecastYear);
-    setClientError(null);
-    setRejectedSave("");
-    setSuppressStatus(true);
-  }
 
-  function chooseSave(id: string) {
-    setSaveTarget(id);
-    setRejectedSave("");
-  }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     const native = event.nativeEvent;
@@ -1851,6 +1847,106 @@ export function CompanyDraftForm({
     { id: "deal", label: companyCopy.fichaFieldsTitle, dirty: dealDirty },
   ].filter((section) => section.dirty);
 
+  // t95: autosave replaces the "Cambios sin guardar" bar. Text saves ~800 ms after typing stops (or on blur); selects,
+  // toggles and option menus save at once. A field that fails the browser's own validation keeps its last saved value in
+  // the request, so one bad field never blocks the others; the field itself stays marked until fixed.
+  const draftKey = JSON.stringify(currentDraft);
+  const [savingSections, setSavingSections] = useState<string[]>([]);
+  const [lastSentKey, setLastSentKey] = useState("");
+  const typedAt = useRef(0);
+  const saveTimer = useRef<number | null>(null);
+  const savedForm = useRef<FormData | null>(null);
+  const sentForm = useRef<FormData | null>(null);
+  const [, startAutoSave] = useTransition();
+
+  function runAutoSave() {
+    if (saveTimer.current !== null) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    const form = formRef.current;
+    if (!form || pending || !formDirty) return;
+    const blocked = saveBlockReason([capitalPercents, productPercents, clientPercents]);
+    const data = new FormData(form);
+    if (blocked) {
+      // Percent splits that do not add up stay local until fixed (the message shows in Estructura); the rest saves.
+      for (const name of ["capitalPercent", "productPercent", "clientPercent"]) {
+        data.delete(name);
+        for (const value of savedForm.current?.getAll(name) ?? []) data.append(name, value);
+      }
+    }
+    for (const element of Array.from(form.elements)) {
+      if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) continue;
+      if (!element.name || element.validity.valid) continue;
+      const kept = savedForm.current?.getAll(element.name);
+      if (kept) {
+        data.delete(element.name);
+        for (const value of kept) data.append(element.name, value);
+      }
+    }
+    const ids = dirtySections.map((section) => section.id);
+    setSavingSections(ids);
+    setSaveTarget(ids[0] ?? "basic");
+    setAttempt((current) => current + 1);
+    setRejectedSave(blocked ? "structure" : "");
+    setSuppressStatus(Boolean(blocked));
+    setClientError(blocked);
+    setSubmittedDraft(
+      blocked
+        ? { ...currentDraft, capitalPercents: baseline.capitalPercents, productPercents: baseline.productPercents, clientPercents: baseline.clientPercents }
+        : currentDraft,
+    );
+    setLastSentKey(draftKey);
+    sentForm.current = data;
+    startAutoSave(() => action(data));
+  }
+  const autoSaveRef = useRef(runAutoSave);
+  useEffect(() => {
+    autoSaveRef.current = runAutoSave;
+  });
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (form && savedForm.current === null) savedForm.current = new FormData(form);
+  }, []);
+
+  useEffect(() => {
+    if (state?.saved && sentForm.current) savedForm.current = sentForm.current;
+  }, [state]);
+
+  useEffect(() => {
+    if (!formDirty || pending) return;
+    // Each edit is sent once: a failed save waits for a new edit or "Reintentar", and a draft that stays dirty after
+    // saving (a percent split that does not add up) is not re-sent in a loop.
+    if (draftKey === lastSentKey) return;
+    const typing = Date.now() - typedAt.current < 150;
+    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => autoSaveRef.current(), typing ? 800 : 0);
+    return () => {
+      if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    };
+  }, [draftKey, formDirty, pending, lastSentKey]);
+
+  // t95: closing or reloading the tab flushes a pending save (the browser still asks while it is in flight).
+  useEffect(() => {
+    function flush() {
+      if (saveTimer.current !== null) autoSaveRef.current();
+    }
+    window.addEventListener("beforeunload", flush);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, []);
+
+  function sectionSaveState(...ids: string[]): AutoSaveState {
+    if (!ids.some((id) => savingSections.includes(id))) return null;
+    if (pending) return "saving";
+    if (!state) return null;
+    return state.saved ? "saved" : "error";
+  }
+
   // t88: deep links from Inicio (/mi-empresa/detalles?seccion=x#anchor). The browser's own hash jump fires before
   // hydration, while panels are still closed, so it landed at the bottom of the page. After render: open the panel that
   // holds the anchor, wait for the element, expand any <details> around it, centre it and highlight it.
@@ -1904,21 +2000,39 @@ export function CompanyDraftForm({
     return true;
   }
 
+  // t95: leaving flushes the pending autosave, then navigates once it lands (stays put with the error if it fails).
   function saveAndLeave(href: string) {
-    const form = formRef.current;
-    if (!form || !form.checkValidity()) {
-      form?.reportValidity();
+    leaveHrefRef.current = href;
+    if (pending) {
+      sawLeavePending.current = true;
       return;
     }
-
-    leaveHrefRef.current = href;
-    form.requestSubmit();
+    if (!formDirty) {
+      leaveHrefRef.current = null;
+      router.push(href);
+      return;
+    }
+    runAutoSave();
   }
 
   return (
     <>
-    <form ref={formRef} action={action} onSubmit={onSubmit} className="flex flex-col gap-4">
-      <UnsavedChangesGuard dirty={formDirty} onSave={saveAndLeave} />
+    <form
+      ref={formRef}
+      action={action}
+      onSubmit={onSubmit}
+      onInput={(event) => {
+        const target = event.target;
+        if (target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && target.type !== "checkbox" && target.type !== "radio")) {
+          typedAt.current = Date.now();
+        }
+      }}
+      onBlur={() => {
+        if (saveTimer.current !== null) autoSaveRef.current();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
       <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
       <FloatingSegmentedTabs
@@ -1941,6 +2055,8 @@ export function CompanyDraftForm({
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
         id="panel-basic"
+        saveState={sectionSaveState("basic")}
+        onRetry={() => autoSaveRef.current()}
         step={1}
         title={companyCopy.basicTitle}
         intro="Nombre, motivo de venta, descripción y sector."
@@ -2091,6 +2207,8 @@ export function CompanyDraftForm({
       {/* t87: Datos de la ficha (apodo, fotos, precio, EBITDA ajustado) is step 2, right under Tu empresa, so sellers find the price early. */}
       <Panel
         id="panel-price"
+        saveState={sectionSaveState("deal")}
+        onRetry={() => autoSaveRef.current()}
         step={2}
         title={companyCopy.fichaFieldsTitle}
         intro={companyCopy.dealFold}
@@ -2156,6 +2274,8 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-structure"
+        saveState={sectionSaveState("structure")}
+        onRetry={() => autoSaveRef.current()}
         step={3}
         title={companyCopy.structureHeading}
         intro={companyCopy.structureFold}
@@ -2169,6 +2289,11 @@ export function CompanyDraftForm({
         }}
         onCollapse={() => setOpenStructure(false)}
       >
+        {clientError ? (
+          <p role="alert" className="mb-3 rounded-xl bg-[#fdecea] px-3 py-2 text-sm text-[#a12f2f]">
+            {clientError} No se guarda este bloque hasta que cuadre; el resto sí.
+          </p>
+        ) : null}
         <div id="panel-customer" className="scroll-mt-24">
           <CustomerChoice customerBase={customerBase} onCustomerBase={setCustomerBase} />
         </div>
@@ -2215,6 +2340,8 @@ export function CompanyDraftForm({
       <div hidden>
       <Panel
         id="panel-income"
+        saveState={sectionSaveState("income")}
+        onRetry={() => autoSaveRef.current()}
         title={companyCopy.incomeHeading}
         intro={companyCopy.incomeFold}
         hint={`${companyCopy.incomeIntro} ${companyCopy.signedEuroHint}\n\n${companyCopy.incomeWindowNote}`}
@@ -2316,6 +2443,8 @@ export function CompanyDraftForm({
 
       <Panel
         id="panel-balance"
+        saveState={sectionSaveState("income")}
+        onRetry={() => autoSaveRef.current()}
         title={companyCopy.balanceHeading}
         intro={companyCopy.balanceFold}
         hint={companyCopy.balanceIntro}
@@ -2484,17 +2613,6 @@ export function CompanyDraftForm({
         </div>
       </Panel>
       </div>
-      <UnsavedBar
-        sections={dirtySections.map((section) => section.label)}
-        saving={pending}
-        rejected={dirtySections.length > 0 && panelRejected(dirtySections[0].id)}
-        shake={attempt}
-        value={dirtySections[0]?.id ?? "basic"}
-        onChoose={chooseSave}
-        onDiscard={discardChanges}
-        error={pending ? null : (clientError ?? (state && !state.saved ? state.message : null))}
-        savedStamp={state?.saved && !pending ? attempt : null}
-      />
       </div>
       </div>
 

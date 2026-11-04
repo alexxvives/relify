@@ -18,9 +18,12 @@ const secondary =
 export function UnsavedChangesGuard({
   dirty,
   onSave,
+  autoSave = false,
 }: {
   dirty: boolean;
   onSave?: (href: string) => void;
+  /** t95: autosaving forms skip the dialog: the click flushes the save and navigates once it lands. */
+  autoSave?: boolean;
 }) {
   const router = useRouter();
   const [href, setHref] = useState<string | null>(null);
@@ -63,6 +66,10 @@ export function UnsavedChangesGuard({
 
       event.preventDefault();
       event.stopPropagation();
+      if (autoSave && onSave) {
+        onSave(next);
+        return;
+      }
       setHref(next);
     }
 
@@ -77,7 +84,7 @@ export function UnsavedChangesGuard({
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("beforeunload", onLeave);
     };
-  }, [dirty]);
+  }, [dirty, autoSave, onSave]);
 
   useEffect(() => {
     if (!href) {
