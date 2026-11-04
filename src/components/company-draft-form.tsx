@@ -22,7 +22,7 @@ import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
-import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
+import { estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
 import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -916,6 +916,16 @@ function salesGrowth(years: ClosedYearInput[]): number | null {
   return sales[0].cents / sales[1].cents - 1;
 }
 
+/** t93: EBITDA trend of the last two consecutive closed years; null without a positive earlier year. */
+function ebitdaGrowth(years: ClosedYearInput[]): number | null {
+  const rows = years
+    .map((year) => ({ year: Number(year.year), cents: incomeValue("ebitda", previewPnl(year)) }))
+    .filter((row): row is { year: number; cents: number } => Number.isInteger(row.year) && typeof row.cents === "number" && Number.isFinite(row.cents))
+    .sort((a, b) => b.year - a.year);
+  if (rows.length < 2 || rows[0].year - rows[1].year !== 1 || rows[1].cents <= 0) return null;
+  return rows[0].cents / rows[1].cents - 1;
+}
+
 function wholeEur(cents: number): string {
   return formatEur(cents).replace(/,00 €$/, " €");
 }
@@ -926,19 +936,59 @@ const standingCopy = {
   above: { text: "Por encima del rango", short: "Sobre rango", className: "bg-[#fff4e0] text-[#8a5300]" },
 } as const;
 
-/** Suggested price as a status pill under the price input; the range and the why live in a popover. */
+/** Suggested price as a status pill under the price input; the range, the bar and the why live in a popover. */
+// t93: the popover is position:fixed (the metric tile clips overflow), stays open while the pointer crosses the gap,
+// and closes with Esc. It shows a red→orange→yellow→green→…→red bar with the asking price as a black dot.
 function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate | null; askingCents: number | null; basis: string }) {
-  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const shown = open || pinned;
+  const [place, setPlace] = useState<{ top: number; right: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shown = hovered || pinned;
   const standing = estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
+
+  const enter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setHovered(true);
+  };
+  const leave = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setHovered(false), 150);
+  };
+
+  useEffect(() => {
+    if (!shown) return;
+    const measure = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPlace({ top: rect.bottom + 8, right: Math.max(12, window.innerWidth - rect.right) });
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPinned(false);
+        setHovered(false);
+      }
+    };
+    measure();
+    window.addEventListener("scroll", measure, true);
+    window.addEventListener("resize", measure);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("scroll", measure, true);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [shown]);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div className="relative" onMouseEnter={enter} onMouseLeave={leave}>
       <button
+        ref={buttonRef}
         type="button"
         aria-expanded={shown}
         aria-controls="price-guide"
@@ -951,34 +1001,76 @@ function PriceStatus({ estimate, askingCents, basis }: { estimate: PriceEstimate
         <Info className="size-3 shrink-0" aria-hidden />
         <span className="sr-only">{standing ? standing.text : ""} · Ver rango de precio orientativo</span>
       </button>
-      {shown ? (
+      {shown && place ? (
         <div
           id="price-guide"
           role="tooltip"
-          className="absolute top-full right-0 z-30 mt-2 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
+          onMouseEnter={enter}
+          onMouseLeave={leave}
+          style={{ top: place.top, right: place.right }}
+          className="fixed z-50 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
         >
           {estimate ? (
             <>
-              <p className="text-sm font-semibold text-[#1c2740]">
-                Rango estimado: <span className="tabular-nums">{wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}</span>
+              <p className="text-sm font-semibold text-[#1c2740]">Rango orientativo de precio</p>
+              <PriceBar estimate={estimate} askingCents={askingCents} />
+              <p className="mt-3 text-xs leading-5 text-[#3d4a63]">
+                {basis} × múltiplo de <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span> (
+                <span className="tabular-nums">{formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}</span>
+                {estimate.adjustments.length > 0 ? <>, ajustado por {estimate.adjustments.join(", ")}</> : null}).
               </p>
-              <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
-                En <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span>, las empresas suelen venderse por{" "}
-                <span className="tabular-nums">{formatMultiple(estimate.sectorLow)} – {formatMultiple(estimate.sectorHigh)}</span> su {basis}.
-              </p>
-              {estimate.adjustments.length > 0 ? (
-                <p className="mt-1 text-sm leading-6 text-[#3d4a63]">
-                  Ajustado por {estimate.adjustments.join(" y ")}: <span className="tabular-nums">{formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}</span>.
-                </p>
-              ) : null}
               <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
                 Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
               </p>
             </>
           ) : (
-            <p className="text-sm leading-6 text-[#3d4a63]">Añade el EBITDA (o sube tus cuentas) y te mostraremos un rango de precio orientativo para tu sector.</p>
+            <p className="text-sm leading-6 text-[#3d4a63]">
+              Para calcular el rango necesitamos un EBITDA positivo (de tus cuentas o ajustado). Con él te mostraremos un rango orientativo para tu sector.
+            </p>
           )}
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+const priceBarGradient = `linear-gradient(to right, #d92d20 0%, #f79009 ${priceBarZone.low * 45}%, #fdb022 ${priceBarZone.low * 85}%, #12b76a ${priceBarZone.low * 100}%, #12b76a ${priceBarZone.high * 100}%, #fdb022 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 15}%, #f79009 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 55}%, #d92d20 100%)`;
+
+function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCents: number | null }) {
+  const { minCents, maxCents } = priceBarEnds(estimate);
+  const dot = askingCents !== null && askingCents > 0 ? priceBarPosition(askingCents, estimate) : null;
+  return (
+    <div className="mt-3">
+      <div className="relative h-2.5 rounded-full" style={{ background: priceBarGradient }}>
+        {dot !== null ? (
+          <span
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#101828] shadow"
+            style={{ left: `${dot * 100}%` }}
+            aria-hidden
+          />
+        ) : null}
+      </div>
+      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
+        <span>
+          Mín.
+          <br />
+          {wholeEur(minCents)}
+        </span>
+        <span className="text-center font-semibold text-[#17663a]">
+          Rango
+          <br />
+          {wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}
+        </span>
+        <span className="text-right">
+          Máx.
+          <br />
+          {wholeEur(maxCents)}
+        </span>
+      </div>
+      {dot !== null ? (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#475467]">
+          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="tabular-nums font-semibold text-[#1c2740]">{wholeEur(askingCents!)}</span>
+        </p>
       ) : null}
     </div>
   );
@@ -1648,6 +1740,7 @@ export function CompanyDraftForm({
     ebitdaCents: ebitdaBasisCents,
     headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
     revenueGrowth: salesGrowth(closedYears),
+    ebitdaGrowth: ebitdaGrowth(closedYears),
   });
   const dealNote = `${
     accountYear && salesFromAccounts

@@ -35,6 +35,9 @@ const headcountAdjustment: Record<HeadcountRangeId, number> = {
 /** Ajuste según el crecimiento de ventas del último año cerrado. */
 const growthAdjustment = { strongGrowth: 0.1, decline: -0.05, up: 0.5, down: -0.5 };
 
+/** t93: same idea for the EBITDA trend (last two closed years), with half the weight of sales. */
+const ebitdaGrowthAdjustment = { strongGrowth: 0.1, decline: -0.05, up: 0.25, down: -0.25 };
+
 const minimumMultiple = 1;
 
 export function valuationSectorFromCnae(code: string | null | undefined): ValuationSector {
@@ -59,6 +62,8 @@ export type PriceEstimateInput = {
   headcount?: HeadcountRangeId | null;
   /** Crecimiento de ventas del último año, en fracción (0.12 = +12 %). */
   revenueGrowth?: number | null;
+  /** t93: crecimiento del EBITDA del último año, en fracción; null si no hay dos cierres comparables. */
+  ebitdaGrowth?: number | null;
 };
 
 export type PriceEstimate = {
@@ -76,7 +81,7 @@ export type PriceEstimate = {
 
 export type PriceEstimator = (input: PriceEstimateInput) => PriceEstimate | null;
 
-export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcount, revenueGrowth }) => {
+export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcount, revenueGrowth, ebitdaGrowth }) => {
   if (ebitdaCents === null || !Number.isFinite(ebitdaCents) || ebitdaCents <= 0) return null;
   const sector = valuationSectorFromCnae(cnae);
   const base = sectorMultiples[sector];
@@ -97,6 +102,16 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
     } else if (revenueGrowth <= growthAdjustment.decline) {
       shift += growthAdjustment.down;
       adjustments.push("ventas en descenso (−)");
+    }
+  }
+
+  if (typeof ebitdaGrowth === "number" && Number.isFinite(ebitdaGrowth)) {
+    if (ebitdaGrowth >= ebitdaGrowthAdjustment.strongGrowth) {
+      shift += ebitdaGrowthAdjustment.up;
+      adjustments.push("EBITDA en crecimiento (+)");
+    } else if (ebitdaGrowth <= ebitdaGrowthAdjustment.decline) {
+      shift += ebitdaGrowthAdjustment.down;
+      adjustments.push("EBITDA en descenso (−)");
     }
   }
 
@@ -126,4 +141,23 @@ export function priceStanding(askingCents: number, estimate: Pick<PriceEstimate,
 
 export function formatMultiple(value: number): string {
   return `${String(Math.round(value * 100) / 100).replace(".", ",")}x`;
+}
+
+/**
+ * t93: the price bar. Its ends sit at half the low estimate and 1.5x the high one; the estimated range always fills
+ * the green middle (35 %–65 % of the bar) so the colours never move. Returns where a price falls, 0..1, clamped.
+ */
+export const priceBarZone = { low: 0.35, high: 0.65 } as const;
+
+export function priceBarEnds(estimate: Pick<PriceEstimate, "lowCents" | "highCents">): { minCents: number; maxCents: number } {
+  return { minCents: Math.round(estimate.lowCents * 0.5), maxCents: Math.round(estimate.highCents * 1.5) };
+}
+
+export function priceBarPosition(cents: number, estimate: Pick<PriceEstimate, "lowCents" | "highCents">): number {
+  const { minCents, maxCents } = priceBarEnds(estimate);
+  const { lowCents, highCents } = estimate;
+  const share = (value: number, from: number, to: number) => (to > from ? Math.min(1, Math.max(0, (value - from) / (to - from))) : 0.5);
+  if (cents <= lowCents) return priceBarZone.low * share(cents, minCents, lowCents);
+  if (cents <= highCents) return priceBarZone.low + (priceBarZone.high - priceBarZone.low) * share(cents, lowCents, highCents);
+  return priceBarZone.high + (1 - priceBarZone.high) * share(cents, highCents, maxCents);
 }
