@@ -26,8 +26,13 @@ function scoreText(value: number): string {
 export function AdminAdvisors({ advisors }: { advisors: AdminAdvisorRow[] }) {
   const [query, setQuery] = useState("");
   const [rank, setRank] = useState<RankFilter>("all");
+  // t91: an action (e.g. verifying) refreshes the data and can change the ranking. The place label updates at once,
+  // but cards keep the order they had on load so nothing jumps under the cursor; a page refresh re-sorts them.
+  const [order] = useState(() => advisors.map((advisor) => advisor.id));
+  const position = new Map(order.map((id, index) => [id, index]));
+  const stable = [...advisors].sort((a, b) => (position.get(a.id) ?? order.length) - (position.get(b.id) ?? order.length));
   const needle = query.trim().toLocaleLowerCase("es");
-  const visible = advisors.filter((advisor) => {
+  const visible = stable.filter((advisor) => {
     if (rank === "ranked" && advisor.place === null) {
       return false;
     }
