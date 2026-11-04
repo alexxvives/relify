@@ -364,7 +364,7 @@ export function MarketCard({
             </span>
           ) : null}
         </div>
-        <p className="mt-1 h-5 truncate text-sm leading-5 font-medium text-[#1c2740]" title={project.cnaeTitle ?? undefined}>
+        <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 font-medium text-[#1c2740]" title={project.cnaeTitle ?? undefined}>
           {project.cnaeTitle ?? ""}
         </p>
         {/* t73: the description block always takes exactly two lines, so every card in a row has the same height. */}
