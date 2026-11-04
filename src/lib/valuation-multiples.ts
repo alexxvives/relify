@@ -35,8 +35,51 @@ const headcountAdjustment: Record<HeadcountRangeId, number> = {
 /** Ajuste según el crecimiento de ventas del último año cerrado. */
 const growthAdjustment = { strongGrowth: 0.1, decline: -0.05, up: 0.5, down: -0.5 };
 
-/** t93: same idea for the EBITDA trend (last two closed years), with half the weight of sales. */
-const ebitdaGrowthAdjustment = { strongGrowth: 0.1, decline: -0.05, up: 0.25, down: -0.25 };
+/**
+ * t94: EBITDA trendline. Least-squares slope over the last (up to) 3 consecutive closed years,
+ * divided by the absolute mean EBITDA of those years, so it reads as "% change per year".
+ */
+const ebitdaTrendSteps = [
+  { atLeast: 0.1, shift: 0.5 },
+  { atLeast: 0.05, shift: 0.25 },
+] as const;
+const ebitdaTrendCap = 1;
+/** Sales and EBITDA trend together never move the multiple more than this. */
+const trendShiftCap = 0.75;
+
+export type YearAmount = { year: number; cents: number };
+
+/** Relative EBITDA trendline (slope ÷ |mean|) of the last 3 consecutive years (2 minimum); null when not computable. */
+export function ebitdaTrend(rows: readonly YearAmount[]): number | null {
+  const sorted = rows.filter((row) => Number.isInteger(row.year) && Number.isFinite(row.cents)).sort((a, b) => b.year - a.year);
+  const run: YearAmount[] = [];
+  for (const row of sorted) {
+    if (run.length === 3) break;
+    if (run.length > 0 && run[run.length - 1].year - row.year !== 1) break;
+    run.push(row);
+  }
+  if (run.length < 2) return null;
+  const n = run.length;
+  const meanX = run.reduce((sum, row) => sum + row.year, 0) / n;
+  const meanY = run.reduce((sum, row) => sum + row.cents, 0) / n;
+  if (Math.abs(meanY) < 1_000_00) return null;
+  let num = 0;
+  let den = 0;
+  for (const row of run) {
+    num += (row.year - meanX) * (row.cents - meanY);
+    den += (row.year - meanX) ** 2;
+  }
+  const relative = num / den / Math.abs(meanY);
+  return Math.max(-ebitdaTrendCap, Math.min(ebitdaTrendCap, relative));
+}
+
+function ebitdaTrendShift(trend: number): number {
+  for (const step of ebitdaTrendSteps) {
+    if (trend >= step.atLeast) return step.shift;
+    if (trend <= -step.atLeast) return -step.shift;
+  }
+  return 0;
+}
 
 const minimumMultiple = 1;
 
@@ -62,8 +105,8 @@ export type PriceEstimateInput = {
   headcount?: HeadcountRangeId | null;
   /** Crecimiento de ventas del último año, en fracción (0.12 = +12 %). */
   revenueGrowth?: number | null;
-  /** t93: crecimiento del EBITDA del último año, en fracción; null si no hay dos cierres comparables. */
-  ebitdaGrowth?: number | null;
+  /** t94: tendencia del EBITDA (pendiente de mínimos cuadrados ÷ |media|, últimos 3 cierres); ver ebitdaTrend. */
+  ebitdaTrend?: number | null;
 };
 
 export type PriceEstimate = {
@@ -81,7 +124,7 @@ export type PriceEstimate = {
 
 export type PriceEstimator = (input: PriceEstimateInput) => PriceEstimate | null;
 
-export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcount, revenueGrowth, ebitdaGrowth }) => {
+export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcount, revenueGrowth, ebitdaTrend: trend }) => {
   if (ebitdaCents === null || !Number.isFinite(ebitdaCents) || ebitdaCents <= 0) return null;
   const sector = valuationSectorFromCnae(cnae);
   const base = sectorMultiples[sector];
@@ -95,25 +138,25 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
       adjustments.push(size > 0 ? "tamaño de la plantilla (+)" : "tamaño reducido (−)");
     }
   }
+  let trendShift = 0;
   if (typeof revenueGrowth === "number" && Number.isFinite(revenueGrowth)) {
     if (revenueGrowth >= growthAdjustment.strongGrowth) {
-      shift += growthAdjustment.up;
+      trendShift += growthAdjustment.up;
       adjustments.push("ventas en crecimiento (+)");
     } else if (revenueGrowth <= growthAdjustment.decline) {
-      shift += growthAdjustment.down;
+      trendShift += growthAdjustment.down;
       adjustments.push("ventas en descenso (−)");
     }
   }
 
-  if (typeof ebitdaGrowth === "number" && Number.isFinite(ebitdaGrowth)) {
-    if (ebitdaGrowth >= ebitdaGrowthAdjustment.strongGrowth) {
-      shift += ebitdaGrowthAdjustment.up;
-      adjustments.push("EBITDA en crecimiento (+)");
-    } else if (ebitdaGrowth <= ebitdaGrowthAdjustment.decline) {
-      shift += ebitdaGrowthAdjustment.down;
-      adjustments.push("EBITDA en descenso (−)");
+  if (typeof trend === "number" && Number.isFinite(trend)) {
+    const ebitdaShift = ebitdaTrendShift(trend);
+    if (ebitdaShift !== 0) {
+      trendShift += ebitdaShift;
+      adjustments.push(ebitdaShift > 0 ? "tendencia del EBITDA al alza (+)" : "tendencia del EBITDA a la baja (−)");
     }
   }
+  shift += Math.max(-trendShiftCap, Math.min(trendShiftCap, trendShift));
 
   const multipleLow = Math.max(minimumMultiple, base.low + shift);
   const multipleHigh = Math.max(multipleLow + 0.5, base.high + shift);

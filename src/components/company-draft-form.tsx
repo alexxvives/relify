@@ -23,7 +23,7 @@ import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
-import { estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
+import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -910,14 +910,11 @@ function salesGrowth(years: ClosedYearInput[]): number | null {
   return sales[0].cents / sales[1].cents - 1;
 }
 
-/** t93: EBITDA trend of the last two consecutive closed years; null without a positive earlier year. */
-function ebitdaGrowth(years: ClosedYearInput[]): number | null {
-  const rows = years
+/** t94: EBITDA per closed year, fed to the 3-year least-squares trendline. */
+function ebitdaByYear(years: ClosedYearInput[]): YearAmount[] {
+  return years
     .map((year) => ({ year: Number(year.year), cents: incomeValue("ebitda", previewPnl(year)) }))
-    .filter((row): row is { year: number; cents: number } => Number.isInteger(row.year) && typeof row.cents === "number" && Number.isFinite(row.cents))
-    .sort((a, b) => b.year - a.year);
-  if (rows.length < 2 || rows[0].year - rows[1].year !== 1 || rows[1].cents <= 0) return null;
-  return rows[0].cents / rows[1].cents - 1;
+    .filter((row): row is YearAmount => Number.isInteger(row.year) && typeof row.cents === "number" && Number.isFinite(row.cents));
 }
 
 function wholeEur(cents: number): string {
@@ -1734,7 +1731,7 @@ export function CompanyDraftForm({
     ebitdaCents: ebitdaBasisCents,
     headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
     revenueGrowth: salesGrowth(closedYears),
-    ebitdaGrowth: ebitdaGrowth(closedYears),
+    ebitdaTrend: ebitdaTrend(ebitdaByYear(closedYears)),
   });
   const dealNote = `${
     accountYear && salesFromAccounts
