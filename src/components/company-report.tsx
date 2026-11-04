@@ -215,7 +215,7 @@ function Kpi({
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <span className={`mt-2 text-2xl leading-tight font-bold tracking-tight tabular-nums sm:text-4xl ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
+      <span className={`mt-2 leading-tight font-bold tracking-tight tabular-nums ${tone === "pending" || value.length > 12 ? "text-base sm:text-xl" : "text-2xl sm:text-4xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
       {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
     </div>
   );
