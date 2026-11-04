@@ -397,12 +397,13 @@ function MetricTile({
 }) {
   return (
     <div className="relative flex min-h-[6.5rem] min-w-0 flex-col justify-between gap-3 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <div className="flex min-h-7 items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1">
-          <span className="truncate text-sm font-semibold text-[#667085]">{label}</span>
+      {/* t91: the label never truncates; when space is short the corner note wraps under it instead. */}
+      <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {action}
         </div>
-        {corner ? <div className="-mr-1 shrink-0">{corner}</div> : null}
+        {corner ? <div className="-mr-1 ml-auto shrink-0">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
