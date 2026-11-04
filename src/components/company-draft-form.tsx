@@ -3,6 +3,7 @@
 import { MarketCard } from "@/components/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
+import { useModal } from "@/components/use-modal";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
@@ -615,14 +616,7 @@ function EbitdaAdjustmentsDialog({
   const [serverError, setServerError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startSave] = useTransition();
-  useEffect(() => {
-    panel.current?.focus();
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useModal(panel, onClose);
   const update = (index: number, patch: Partial<EbitdaAdjustmentFormRow>) => {
     setServerError(null);
     setRows((current) => current.map((row, position) => (position === index ? { ...row, ...patch } : row)));
@@ -665,9 +659,9 @@ function EbitdaAdjustmentsDialog({
         aria-labelledby="ebitda-adjustments-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl focus:outline-none sm:w-[min(46rem,100%)] sm:rounded-2xl"
+        className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl focus:outline-none sm:w-[min(64rem,100%)] sm:rounded-2xl"
       >
-        <header className="border-b border-[#eef0f4] px-4 pt-4 pb-4 sm:px-6 sm:pt-5">
+        <header className="shrink-0 border-b border-[#eef0f4] px-4 pt-4 pb-4 sm:px-6 sm:pt-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 id="ebitda-adjustments-title" className="text-base font-semibold text-[#1c2740]">
@@ -851,7 +845,7 @@ function EbitdaAdjustmentsDialog({
             {companyCopy.adjustmentsAdd}
           </button>
         </div>
-        <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-[#eef0f4] px-4 py-3 sm:px-6">
+        <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-[#eef0f4] px-4 py-3 sm:px-6">
           <p role="status" className="mr-auto min-w-0 text-sm">
             {serverError ? (
               <span className="text-[#b42318]">{serverError}</span>
