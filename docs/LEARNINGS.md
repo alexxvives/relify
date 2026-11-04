@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-04: the seller marketplace preview hid Ajustado on a negative adjusted EBITDA — `MarketPreview` parses that figure with the unsigned euro pattern, so a minus becomes 0 and the card treats 0 as unknown — parse it with the signed pattern, the same way the accounts EBITDA is parsed.
+- 2026-11-04: sign-in as test_deale found no row in Docker — that seller and the SABI import live on itsrelify.com, and the local seed only has the itsreleva.com demo accounts — use production for that company.
 - 2026-11-04: `tsc` could not find `src/app/admin/page.js` — `.next/dev/types/validator.ts` still pointed at routes from before the `(app)` group — delete `.next`, run `npx next typegen`, then typecheck. Do not edit that generated file.
 - 2026-11-04: a new control copied the shadcn button or a new hex — the signed-in shell is Costa and the form controls are the indigo kit in `src/components/ui/form` — read `docs/DESIGN.md` and do not restyle one palette into the other.
 - 2026-10-23: the home city glass vanished — class names were renamed Relify-* while CSS stayed .releva-* — keep the CSS prefix as releva- even when the visible brand says Relify.

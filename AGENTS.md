@@ -4,7 +4,7 @@ Confidential marketplace for buying and selling SME businesses. Public pages loo
 
 ## Session start
 
-1. Read `docs/STATUS.md`. If a behavior is missing there, check `git log` before assuming it was never built. Rounds t94 and t95 are on `main` and are not rewritten into that file yet.
+1. Read `docs/STATUS.md`. If a behavior is missing there, check `git log` before assuming it was never built.
 2. Read the latest entries in `docs/LEARNINGS.md`.
 3. Read `docs/DESIGN.md` before any UI change. Color, type, and which component to reuse live there, and the tokens live in `src/app/globals.css`.
 4. Read `TECH_STACK.md` and `ARCHITECTURE.md` before adding a dependency or a new directory.
