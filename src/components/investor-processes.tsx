@@ -264,16 +264,21 @@ export function CancelledList({ items, extra = 0, children }: { items: Cancelled
         Procesos cerrados · {items.length + extra}
         <ChevronDown className="size-4 shrink-0 text-[#64748b] transition-transform group-open/cancel:rotate-180" aria-hidden />
       </summary>
-      <ul className="mt-2 flex flex-col divide-y divide-[#eceff4]">
+      <ul className="mt-2 flex flex-col">
         {children}
         {items.map((item) => (
-          <li key={item.accessId} className="flex items-center justify-between gap-3 py-2 text-sm">
-            <Link href={`/proyectos/${item.slug}`} className="min-w-0 truncate font-medium text-[#465ab4] hover:underline">
-              {item.codename}
-            </Link>
-            <span className="shrink-0 text-[#64748b]">
-              Cancelado el {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" })}
-            </span>
+          <li key={item.accessId} className="py-2">
+            {/* t94: same muted card as a sold/finished process (ClosedProcessRow). */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm">
+              <span className="font-semibold text-[#2b3b4a]">{item.codename}</span>
+              <span className="rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]">Cancelado</span>
+              <span className="text-[#667085]">
+                {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" })}
+              </span>
+              <Link href={`/proyectos/${item.slug}`} className="ml-auto font-medium text-[#465ab4]">
+                Ver ficha
+              </Link>
+            </div>
           </li>
         ))}
       </ul>
