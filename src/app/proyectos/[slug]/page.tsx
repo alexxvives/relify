@@ -14,7 +14,7 @@ import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import { madridToday } from "@/lib/meeting";
 import { otherPublishedProjects } from "@/lib/public-project";
 import type { ProjectAccessView } from "@/lib/project-access";
-import { adjustmentsForBuyer } from "@/lib/ebitda-adjustments";
+import { buyerProjectView } from "@/lib/report-veil";
 import { prisma } from "@/server/db";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { buyerMatchBudget } from "@/server/buyerPlan";
@@ -116,7 +116,7 @@ async function InvestorProjectContent({
   const registry = await getBuyerRegistry(profile.slug, access === "accepted");
   return (
     <InvestorProject
-      project={{ ...profile, ebitdaAdjustments: adjustmentsForBuyer(profile.ebitdaAdjustments, access === "accepted") }}
+      project={buyerProjectView(profile, access === "accepted")}
       registry={registry}
       recommendations={otherPublishedProjects(published, profile.slug)}
       access={access}

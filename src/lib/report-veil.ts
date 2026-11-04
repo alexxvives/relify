@@ -1,6 +1,7 @@
 import { figureVeilCapital, figureVeilCents, figureVeilClient, figureVeilProduct, figureVeilYears } from "./figure-veil";
 import type { InvestorProjectProfile } from "./investor-project";
 import type { SabiYear } from "./sabi/insights";
+import { adjustmentsForBuyer } from "./ebitda-adjustments";
 
 /**
  * t91: the locked (pre-NDA) ficha renders the SAME sections, blocks and order as after the NDA, so it is
@@ -67,4 +68,14 @@ export function veilReportFigures(project: InvestorProjectProfile): InvestorProj
     products: veilSlices(project.products, figureVeilProduct),
     clients: veilSlices(project.clients, figureVeilClient),
   };
+}
+
+/**
+ * t91-sec: the ONE gate for what a buyer's ficha page receives. Before the NDA every locked figure is swapped
+ * for an invented one and adjustment motives are dropped here, on the server, so the HTML/RSC payload never
+ * carries a real locked value (the report's blur is presentation only). After the NDA the profile is unchanged.
+ */
+export function buyerProjectView(project: InvestorProjectProfile, ndaAccepted: boolean): InvestorProjectProfile {
+  const ebitdaAdjustments = adjustmentsForBuyer(project.ebitdaAdjustments, ndaAccepted);
+  return ndaAccepted ? { ...project, ebitdaAdjustments } : { ...veilReportFigures(project), ebitdaAdjustments };
 }
