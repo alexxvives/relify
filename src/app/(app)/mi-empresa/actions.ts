@@ -24,6 +24,7 @@ import { publishSellerProject } from "@/server/publishSellerProject";
 import { requestFigureCorrection } from "@/server/requestFigureCorrection";
 import { requestIdentityChange } from "@/server/requestIdentityChange";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
+import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/server/saveEbitdaAdjustments";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
 import { uniqueCodename } from "@/server/uniqueCodename";
@@ -140,6 +141,20 @@ export async function saveCompanyDraftAction(
   revalidatePath("/mi-empresa");
   revalidatePath("/mi-empresa/detalles");
   return { message: companyCopy.saved, saved: true };
+}
+
+/** t89: the EBITDA adjustments modal saves on its own, so the seller never leaves it with unsaved rows. */
+export async function saveEbitdaAdjustmentsAction(raw: string): Promise<SaveEbitdaAdjustmentsResult> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/entrar");
+  }
+  const result = await saveEbitdaAdjustments(user, typeof raw === "string" ? raw.slice(0, 8000) : "");
+  if (result.ok) {
+    revalidatePath("/mi-empresa");
+    revalidatePath("/mi-empresa/detalles");
+  }
+  return result;
 }
 
 export type SellerPublishState = { ok: true } | { ok: false; message: string } | null;

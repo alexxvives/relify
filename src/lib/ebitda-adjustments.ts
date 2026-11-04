@@ -5,15 +5,47 @@ import * as z from "zod";
  * The seller lists each adjustment (type, signed amount, short reason); the adjusted figure is always
  * computed on the server as accounts EBITDA + sum of adjustments. A total sent by the client is never read.
  */
-export const ebitdaAdjustmentTypes = ["owner_salary", "one_off", "personal", "rent", "other"] as const;
+export const ebitdaAdjustmentTypes = ["owner_salary", "personal", "one_off", "one_off_income", "rent", "litigation", "other"] as const;
 export type EbitdaAdjustmentType = (typeof ebitdaAdjustmentTypes)[number];
 
+/**
+ * t89: sellers may only pick a predefined type. "other" stays a known stored value so old rows still display and
+ * still save, but it is no longer offered; the editor asks the seller to reclassify it before saving.
+ */
+export const selectableEbitdaAdjustmentTypes = ebitdaAdjustmentTypes.filter(
+  (type): type is Exclude<EbitdaAdjustmentType, "other"> => type !== "other",
+);
+
 export const ebitdaAdjustmentLabels: Record<EbitdaAdjustmentType, string> = {
-  owner_salary: "Sueldo del propietario por encima de mercado",
-  one_off: "Gastos extraordinarios / no recurrentes",
-  personal: "Gastos personales cargados a la empresa",
-  rent: "Alquiler a precio no de mercado",
+  owner_salary: "Sueldo del propietario fuera de mercado",
+  personal: "Gastos personales del propietario",
+  one_off: "Gastos extraordinarios no recurrentes",
+  one_off_income: "Ingresos extraordinarios no recurrentes",
+  rent: "Alquiler fuera de mercado",
+  litigation: "Indemnizaciones o litigios puntuales",
   other: "Otro",
+};
+
+/** Expected sign of each type: "+" adds to the EBITDA, "-" subtracts, "±" depends on the case. */
+export const ebitdaAdjustmentSign: Record<EbitdaAdjustmentType, "+" | "-" | "±"> = {
+  owner_salary: "±",
+  personal: "+",
+  one_off: "+",
+  one_off_income: "-",
+  rent: "±",
+  litigation: "+",
+  other: "±",
+};
+
+/** t89: one line per type telling the seller what it covers and which sign it usually takes. */
+export const ebitdaAdjustmentHints: Record<EbitdaAdjustmentType, string> = {
+  owner_salary: "Diferencia con lo que costaría un gerente contratado. Suma (+) si cobras de más, resta (−) si cobras de menos.",
+  personal: "Gastos tuyos pagados por la empresa (coche, viajes…) que un comprador no tendría. Suma (+).",
+  one_off: "Gastos puntuales que no se repetirán (una reforma, una mudanza…). Suma (+).",
+  one_off_income: "Ingresos puntuales que no se repetirán (venta de un activo, una subvención única…). Resta (−).",
+  rent: "Diferencia con un alquiler de mercado, p. ej. si el local es tuyo. Suma (+) si pagas de más, resta (−) si pagas de menos.",
+  litigation: "Despidos, indemnizaciones o pleitos puntuales ya cerrados. Suma (+).",
+  other: "Tipo antiguo: elige uno de la lista para poder guardar.",
 };
 
 export const maxEbitdaAdjustments = 10;
@@ -156,4 +188,31 @@ export function formRowAmountCents(amount: string): number | null {
   const [whole, fraction = ""] = text.replace("-", "").split(",");
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
   return negative ? -cents : cents;
+}
+
+/** t89: per-field problems of one editable row, shown inline in the adjustments modal. */
+export type AdjustmentRowErrors = { type?: string; amount?: string; reason?: string };
+
+export function adjustmentRowErrors(row: EbitdaAdjustmentFormRow): AdjustmentRowErrors {
+  const errors: AdjustmentRowErrors = {};
+  if (row.type === "other") {
+    errors.type = "Elige un tipo de la lista.";
+  }
+  const cents = formRowAmountCents(row.amount);
+  if (row.amount.trim() === "" || cents === null) {
+    errors.amount = "Indica un importe, p. ej. 12000 o -3500.";
+  } else if (cents === 0) {
+    errors.amount = "El importe no puede ser 0.";
+  }
+  const reason = row.reason.trim().length;
+  if (reason < 3) {
+    errors.reason = "Justifica el ajuste (mínimo 3 caracteres).";
+  } else if (reason > ebitdaAdjustmentReasonMax) {
+    errors.reason = `Máximo ${ebitdaAdjustmentReasonMax} caracteres.`;
+  }
+  return errors;
+}
+
+export function adjustmentRowsValid(rows: EbitdaAdjustmentFormRow[]): boolean {
+  return rows.every((row) => Object.keys(adjustmentRowErrors(row)).length === 0);
 }

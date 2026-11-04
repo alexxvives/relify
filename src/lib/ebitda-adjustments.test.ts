@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   adjustedEbitdaCents,
+  adjustmentRowErrors,
+  adjustmentRowsValid,
+  selectableEbitdaAdjustmentTypes,
   adjustmentsForBuyer,
   parseEbitdaAdjustments,
   storedEbitdaAdjustments,
@@ -45,5 +48,19 @@ describe("ebitda adjustments", () => {
     expect(storedEbitdaAdjustments(null)).toBeNull();
     expect(adjustmentsForBuyer(rows, false)).toEqual([{ type: "personal", amountCents: 5000, reason: null }]);
     expect(adjustmentsForBuyer(rows, true)).toEqual(rows);
+  });
+
+  it("t89: offers only predefined types, keeps legacy 'other' readable and flags it in the editor", () => {
+    expect(selectableEbitdaAdjustmentTypes).not.toContain("other");
+    expect(selectableEbitdaAdjustmentTypes).toContain("one_off_income");
+    expect(parseEbitdaAdjustments(JSON.stringify([{ type: "other", amount: "10", reason: "Antiguo" }])).ok).toBe(true);
+    expect(adjustmentRowErrors({ type: "other", amount: "10", reason: "Antiguo" })).toEqual({ type: "Elige un tipo de la lista." });
+  });
+
+  it("t89: reports each invalid field of a row", () => {
+    expect(Object.keys(adjustmentRowErrors({ type: "rent", amount: "", reason: "" }))).toEqual(["amount", "reason"]);
+    expect(adjustmentRowErrors({ type: "rent", amount: "0", reason: "Local propio" }).amount).toBe("El importe no puede ser 0.");
+    expect(adjustmentRowsValid([{ type: "one_off_income", amount: "-3.500", reason: "Venta de una furgoneta" }])).toBe(true);
+    expect(adjustmentRowsValid([])).toBe(true);
   });
 });

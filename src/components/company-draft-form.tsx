@@ -10,7 +10,7 @@ import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/component
 import { useRouter } from "next/navigation";
 import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { generateCodenameAction, saveCompanyDraftAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
+import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -75,12 +75,16 @@ import { scrollToCenter } from "@/components/use-scroll-spy";
 import { DetailSectionNav, UnsavedBar, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
+  adjustmentRowErrors,
+  adjustmentRowsValid,
+  ebitdaAdjustmentHints,
   ebitdaAdjustmentLabels,
   ebitdaAdjustmentReasonMax,
-  ebitdaAdjustmentTypes,
+  ebitdaAdjustmentSign,
   formRowAmountCents,
   formRowsFromJson,
   maxEbitdaAdjustments,
+  selectableEbitdaAdjustmentTypes,
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
@@ -425,7 +429,7 @@ function FichaMetrics({
   netResult: string;
   priceStatus?: ReactNode;
   adjustmentCount: number;
-  adjustments: ReactNode;
+  adjustments: (close: () => void) => ReactNode;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -469,13 +473,37 @@ function FichaMetrics({
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
-      {adjustOpen ? <AdjustmentsModal onClose={() => setAdjustOpen(false)}>{adjustments}</AdjustmentsModal> : null}
+      {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
     </div>
   );
 }
 
-function AdjustmentsModal({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+/**
+ * t89: the adjustments editor is a self-contained dialog. It edits a copy of the saved rows, validates each field
+ * inline and saves through its own server action; closing or cancelling discards the copy, so the page never
+ * holds half-edited adjustments (and never shows a page-level adjustments error).
+ */
+function EbitdaAdjustmentsDialog({
+  rows: savedRows,
+  onSaved,
+  onClose,
+  baseCents,
+  year,
+  legacyCents,
+}: {
+  rows: EbitdaAdjustmentFormRow[];
+  onSaved: (rows: EbitdaAdjustmentFormRow[], json: string) => void;
+  onClose: () => void;
+  baseCents: number | null;
+  year: string | null;
+  legacyCents: number | null;
+}) {
   const panel = useRef<HTMLDivElement>(null);
+  const [rows, setRows] = useState<EbitdaAdjustmentFormRow[]>(savedRows);
+  const [attempted, setAttempted] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [pending, startSave] = useTransition();
   useEffect(() => {
     panel.current?.focus();
     function onKey(event: KeyboardEvent) {
@@ -484,8 +512,42 @@ function AdjustmentsModal({ onClose, children }: { onClose: () => void; children
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  const update = (index: number, patch: Partial<EbitdaAdjustmentFormRow>) => {
+    setServerError(null);
+    setRows((current) => current.map((row, position) => (position === index ? { ...row, ...patch } : row)));
+  };
+  const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row) : {}));
+  const sum = rows.reduce<number>((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
+  const unchanged = adjustmentRowsJson(rows) === adjustmentRowsJson(savedRows);
+  function save() {
+    setAttempted(true);
+    setServerError(null);
+    if (!adjustmentRowsValid(rows)) {
+      const first = rows.findIndex((row) => Object.keys(adjustmentRowErrors(row)).length > 0);
+      panel.current?.querySelector<HTMLElement>(`[data-adjustment-row="${first}"] [aria-invalid="true"]`)?.focus();
+      return;
+    }
+    if (unchanged) {
+      onClose();
+      return;
+    }
+    startSave(async () => {
+      const result = await saveEbitdaAdjustmentsAction(adjustmentRowsJson(rows));
+      if (!result.ok) {
+        setServerError(result.message);
+        return;
+      }
+      const stored = formRowsFromJson(result.json);
+      onSaved(stored, adjustmentRowsJson(stored));
+      setSaved(true);
+      window.setTimeout(onClose, 700);
+    });
+  }
+  const inputClass =
+    "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+  const signed = (cents: number) => `${cents > 0 ? "+" : ""}${formatEur(cents)}`;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 p-0 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 sm:items-center sm:p-4" onClick={onClose}>
       <div
         ref={panel}
         role="dialog"
@@ -493,145 +555,183 @@ function AdjustmentsModal({ onClose, children }: { onClose: () => void; children
         aria-labelledby="ebitda-adjustments-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="relative max-h-[90vh] w-[min(44rem,100%)] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl focus:outline-none sm:rounded-2xl sm:p-5"
+        className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl focus:outline-none sm:w-[min(46rem,100%)] sm:rounded-2xl"
       >
-        <button
-          type="button"
-          aria-label="Cerrar"
-          onClick={onClose}
-          className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-        >
-          <X className="size-4" aria-hidden />
-        </button>
-        {children}
-        <div className="mt-4 flex justify-end">
-          <KitButton type="button" size="sm" onClick={onClose}>
-            Hecho
-          </KitButton>
+        <header className="border-b border-[#eef0f4] px-4 pt-4 pb-4 sm:px-6 sm:pt-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 id="ebitda-adjustments-title" className="text-base font-semibold text-[#1c2740]">
+                {companyCopy.adjustmentsTitle}
+              </h3>
+              {year ? <p className="mt-0.5 text-sm text-[#667085]">{companyCopy.adjustmentsYear.replace("{year}", year)}</p> : null}
+            </div>
+            <button
+              type="button"
+              aria-label="Cerrar sin guardar"
+              onClick={onClose}
+              className="-mt-1 -mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
+              <X className="size-4" aria-hidden />
+            </button>
+          </div>
+          <dl className="mt-4 grid grid-cols-3 overflow-hidden rounded-xl border border-[#e7eaee] text-center tabular-nums" aria-live="polite">
+            <div className="px-2 py-2.5">
+              <dt className="text-[11px] font-medium tracking-wide text-[#667085] uppercase sm:text-xs">EBITDA cuentas</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-[#1c2740] sm:text-base">{baseCents === null ? "—" : formatEur(baseCents)}</dd>
+            </div>
+            <div className="border-x border-[#e7eaee] px-2 py-2.5">
+              <dt className="text-[11px] font-medium tracking-wide text-[#667085] uppercase sm:text-xs">{companyCopy.adjustmentsTotal}</dt>
+              <dd className={`mt-0.5 text-sm font-semibold sm:text-base ${sum < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{signed(sum)}</dd>
+            </div>
+            <div className="bg-[#f0faf8] px-2 py-2.5">
+              <dt className="text-[11px] font-medium tracking-wide text-[#0f766e] uppercase sm:text-xs">EBITDA ajustado</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-[#0f766e] sm:text-base">{baseCents === null ? "—" : formatEur(baseCents + sum)}</dd>
+            </div>
+          </dl>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+          {rows.length === 0 ? (
+            legacyCents !== null ? (
+              <p className="text-sm text-[#667085]">
+                <span className="font-semibold text-[#1c2740]">{companyCopy.adjustmentsLegacy}: {formatEur(legacyCents)}.</span> {companyCopy.adjustmentsLegacyNote}
+              </p>
+            ) : (
+              <p className="text-sm text-[#667085]">{companyCopy.adjustmentsEmpty}</p>
+            )
+          ) : (
+            <ol className="flex flex-col gap-3">
+              {rows.map((row, index) => {
+                const rowErrors = errors[index] ?? {};
+                const id = `adjustment-${index}`;
+                return (
+                  <li key={index} data-adjustment-row={index} className="rounded-xl border border-[#e7eaee] bg-[#fbfcfd] p-3">
+                    <div className="flex items-start gap-2">
+                      <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_9.5rem]">
+                        <div className="min-w-0">
+                          <label htmlFor={`${id}-type`} className="text-xs font-medium text-[#475467]">
+                            {companyCopy.adjustmentTypeLabel}
+                          </label>
+                          <select
+                            id={`${id}-type`}
+                            value={row.type}
+                            aria-invalid={rowErrors.type ? true : undefined}
+                            aria-describedby={`${id}-type-hint`}
+                            onChange={(event) => update(index, { type: event.target.value as EbitdaAdjustmentType })}
+                            className={`${inputClass} mt-1`}
+                          >
+                            {row.type === "other" ? (
+                              <option value="other" disabled>
+                                Otro (elige un tipo)
+                              </option>
+                            ) : null}
+                            {selectableEbitdaAdjustmentTypes.map((type) => (
+                              <option key={type} value={type}>
+                                {ebitdaAdjustmentLabels[type]}
+                              </option>
+                            ))}
+                          </select>
+                          <p id={`${id}-type-hint`} className={`mt-1 text-xs ${rowErrors.type ? "text-[#b42318]" : "text-[#667085]"}`}>
+                            {rowErrors.type ?? ebitdaAdjustmentHints[row.type]}
+                          </p>
+                        </div>
+                        <div className="min-w-0">
+                          <label htmlFor={`${id}-amount`} className="text-xs font-medium text-[#475467]">
+                            {companyCopy.adjustmentAmountLabel}
+                          </label>
+                          <input
+                            id={`${id}-amount`}
+                            inputMode="decimal"
+                            value={row.amount}
+                            placeholder={ebitdaAdjustmentSign[row.type] === "-" ? "-0" : ebitdaAdjustmentSign[row.type] === "+" ? "+0" : "+/-"}
+                            aria-invalid={rowErrors.amount ? true : undefined}
+                            aria-describedby={rowErrors.amount ? `${id}-amount-error` : undefined}
+                            onChange={(event) => update(index, { amount: keepSignedEuro(event.target.value) })}
+                            className={`${inputClass} mt-1 text-right tabular-nums`}
+                          />
+                          {rowErrors.amount ? (
+                            <p id={`${id}-amount-error`} className="mt-1 text-xs text-[#b42318]">
+                              {rowErrors.amount}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0 sm:col-span-2">
+                          <label htmlFor={`${id}-reason`} className="flex items-baseline justify-between text-xs font-medium text-[#475467]">
+                            <span>Justificación</span>
+                            <span className="font-normal text-[#98a2b3] tabular-nums">
+                              {row.reason.length}/{ebitdaAdjustmentReasonMax}
+                            </span>
+                          </label>
+                          <input
+                            id={`${id}-reason`}
+                            value={row.reason}
+                            maxLength={ebitdaAdjustmentReasonMax}
+                            placeholder={companyCopy.adjustmentReasonPlaceholder}
+                            aria-invalid={rowErrors.reason ? true : undefined}
+                            aria-describedby={rowErrors.reason ? `${id}-reason-error` : undefined}
+                            onChange={(event) => update(index, { reason: event.target.value })}
+                            className={`${inputClass} mt-1`}
+                          />
+                          {rowErrors.reason ? (
+                            <p id={`${id}-reason-error`} className="mt-1 text-xs text-[#b42318]">
+                              {rowErrors.reason}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={companyCopy.adjustmentsRemove}
+                        title={companyCopy.adjustmentsRemove}
+                        onClick={() => {
+                          setServerError(null);
+                          setRows((current) => current.filter((_, position) => position !== index));
+                        }}
+                        className="mt-5 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#b42318] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+                      >
+                        <X className="size-4" aria-hidden />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          <button
+            type="button"
+            disabled={rows.length >= maxEbitdaAdjustments}
+            onClick={() => {
+              setServerError(null);
+              setRows((current) => [...current, { type: "owner_salary", amount: "", reason: "" }]);
+            }}
+            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#c5ccd8] text-sm font-medium text-[#0f766e] hover:border-[#0f766e] hover:bg-[#f0faf8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="size-4" aria-hidden />
+            {companyCopy.adjustmentsAdd}
+          </button>
+          {rows.length > 0 ? <p className="mt-3 text-xs text-[#667085]">{companyCopy.adjustmentsReasonsLocked}</p> : null}
         </div>
+        <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-[#eef0f4] px-4 py-3 sm:px-6">
+          <p role="status" className="mr-auto min-w-0 text-sm">
+            {serverError ? (
+              <span className="text-[#b42318]">{serverError}</span>
+            ) : saved ? (
+              <span className="inline-flex items-center gap-1 font-medium text-[#0f766e]">
+                <CircleCheck className="size-4" aria-hidden />
+                Guardado
+              </span>
+            ) : attempted && !adjustmentRowsValid(rows) ? (
+              <span className="text-[#b42318]">Revisa los campos marcados.</span>
+            ) : null}
+          </p>
+          <KitButton type="button" tone="outline" size="sm" onClick={onClose} disabled={pending}>
+            Cancelar
+          </KitButton>
+          <KitButton type="button" tone="navy" size="sm" onClick={save} disabled={pending || saved}>
+            {pending ? "Guardando…" : "Guardar"}
+          </KitButton>
+        </footer>
       </div>
     </div>
-  );
-}
-
-/**
- * t82: the seller itemises the adjusted EBITDA instead of typing a total. The bridge is a live preview only; the
- * server recomputes it from the stored accounts EBITDA when saving.
- */
-function EbitdaAdjustmentsEditor({
-  rows,
-  onRows,
-  baseCents,
-  year,
-  legacyCents,
-}: {
-  rows: EbitdaAdjustmentFormRow[];
-  onRows: (rows: EbitdaAdjustmentFormRow[]) => void;
-  baseCents: number | null;
-  year: string | null;
-  legacyCents: number | null;
-}) {
-  const update = (index: number, patch: Partial<EbitdaAdjustmentFormRow>) =>
-    onRows(rows.map((row, position) => (position === index ? { ...row, ...patch } : row)));
-  const amounts = rows.map((row) => formRowAmountCents(row.amount));
-  const sum = amounts.reduce<number>((total, cents) => total + (cents ?? 0), 0);
-  const inputClass =
-    "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none";
-  return (
-    <section aria-labelledby="ebitda-adjustments-title" className="pr-8">
-      {/* t83: the + sits right after the title, like every other add icon. */}
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 id="ebitda-adjustments-title" className="text-sm font-semibold text-[#1c2740]">
-            {companyCopy.adjustmentsTitle}
-            {year ? <span className="ml-2 font-normal text-[#667085]">· {companyCopy.adjustmentsYear.replace("{year}", year)}</span> : null}
-          </h3>
-          <AddIconButton
-            label={companyCopy.adjustmentsAdd}
-            disabled={rows.length >= maxEbitdaAdjustments}
-            onClick={() => onRows([...rows, { type: "owner_salary", amount: "", reason: "" }])}
-          />
-        </div>
-        <p className="mt-1 text-sm text-[#667085]">{companyCopy.adjustmentsIntro}</p>
-      </div>
-      {rows.length === 0 ? (
-        legacyCents !== null ? (
-          <p className="mt-3 text-sm text-[#667085]">
-            <span className="font-semibold text-[#1c2740]">{companyCopy.adjustmentsLegacy}: {formatEur(legacyCents)}.</span>{" "}
-            {companyCopy.adjustmentsLegacyNote}
-          </p>
-        ) : (
-          <p className="mt-3 text-sm text-[#667085]">{companyCopy.adjustmentsEmpty}</p>
-        )
-      ) : (
-        <ul className="mt-3 flex flex-col gap-2">
-          {rows.map((row, index) => (
-            <li key={index} className="grid gap-2 rounded-xl border border-[#e7eaee] bg-white p-2 sm:grid-cols-[minmax(0,19rem)_8.5rem_minmax(0,1fr)_2rem] sm:items-center">
-              <label className="min-w-0">
-                <span className="sr-only">{companyCopy.adjustmentTypeLabel}</span>
-                <select
-                  value={row.type}
-                  onChange={(event) => update(index, { type: event.target.value as EbitdaAdjustmentType })}
-                  className={inputClass}
-                >
-                  {ebitdaAdjustmentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {ebitdaAdjustmentLabels[type]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="min-w-0">
-                <span className="sr-only">{companyCopy.adjustmentAmountLabel}</span>
-                <input
-                  inputMode="decimal"
-                  value={row.amount}
-                  placeholder="+/- €"
-                  title={companyCopy.adjustmentAmountHint}
-                  aria-invalid={row.amount.trim() !== "" && (amounts[index] === null || amounts[index] === 0)}
-                  onChange={(event) => update(index, { amount: keepSignedEuro(event.target.value) })}
-                  className={`${inputClass} text-right tabular-nums`}
-                />
-              </label>
-              <label className="min-w-0">
-                <span className="sr-only">{companyCopy.adjustmentReasonLabel}</span>
-                <input
-                  value={row.reason}
-                  maxLength={ebitdaAdjustmentReasonMax}
-                  placeholder={companyCopy.adjustmentReasonPlaceholder}
-                  onChange={(event) => update(index, { reason: event.target.value })}
-                  className={inputClass}
-                />
-              </label>
-              <button
-                type="button"
-                aria-label={companyCopy.adjustmentsRemove}
-                title={companyCopy.adjustmentsRemove}
-                onClick={() => onRows(rows.filter((_, position) => position !== index))}
-                className="inline-flex size-8 items-center justify-center justify-self-end rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-              >
-                <X className="size-4" aria-hidden />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {rows.length > 0 ? (
-        <>
-          <p className="mt-2 text-xs text-[#667085]">{companyCopy.adjustmentAmountHint}</p>
-          <dl className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm tabular-nums" aria-live="polite">
-            <dt className="text-[#667085]">{companyCopy.ebitdaLabel}</dt>
-            <dd className="font-semibold text-[#1c2740]">{baseCents === null ? "—" : formatEur(baseCents)}</dd>
-            <dt className="text-[#667085]" aria-hidden>→</dt>
-            <dt className="text-[#667085]">{companyCopy.adjustmentsTotal}</dt>
-            <dd className="font-semibold text-[#1c2740]">{sum > 0 ? "+" : ""}{formatEur(sum)}</dd>
-            <dt className="text-[#667085]" aria-hidden>→</dt>
-            <dt className="text-[#0f766e]">{companyCopy.adjustedEbitdaLabel}</dt>
-            <dd className="font-semibold text-[#0f766e]">{baseCents === null ? "—" : formatEur(baseCents + sum)}</dd>
-          </dl>
-        </>
-      ) : null}
-    </section>
   );
 }
 
@@ -1053,7 +1153,7 @@ export function CompanyDraftForm({
   // t82: itemised adjustments replace the typed adjusted EBITDA. "" in the draft means legacy (never itemised).
   const [adjustmentRows, setAdjustmentRows] = useState<EbitdaAdjustmentFormRow[]>(() => formRowsFromJson(initial.ebitdaAdjustments));
   const adjustmentsJson = adjustmentRowsJson(adjustmentRows);
-  const hadAdjustmentList = initial.ebitdaAdjustments.trim() !== "";
+  const [hadAdjustmentList, setHadAdjustmentList] = useState(() => initial.ebitdaAdjustments.trim() !== "");
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
@@ -1726,17 +1826,20 @@ export function CompanyDraftForm({
               ebitda={ebitdaFromAccounts ?? ebitda}
               adjustedEbitda={adjustedEbitda}
               adjustmentCount={adjustmentRows.length}
-              adjustments={
-                <>
-                  <EbitdaAdjustmentsEditor
-                    rows={adjustmentRows}
-                    onRows={setAdjustmentRows}
-                    baseCents={adjustmentBaseCents}
-                    year={accountYear?.year ?? null}
-                    legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
-                  />
-                </>
-              }
+              adjustments={(close) => (
+                <EbitdaAdjustmentsDialog
+                  rows={adjustmentRows}
+                  onSaved={(rows, json) => {
+                    setAdjustmentRows(rows);
+                    setHadAdjustmentList(json !== "");
+                    setBaseline((current) => ({ ...current, ebitdaAdjustments: json }));
+                  }}
+                  onClose={close}
+                  baseCents={adjustmentBaseCents}
+                  year={accountYear?.year ?? null}
+                  legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                />
+              )}
               margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
               netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
               priceStatus={

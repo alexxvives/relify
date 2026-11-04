@@ -23,7 +23,6 @@ export const companyCopy = {
   ebitdaLabel: "EBITDA",
   adjustedEbitdaLabel: "EBITDA ajustado",
   adjustmentsTitle: "Ajustes al EBITDA",
-  adjustmentsIntro: "Un ajuste corrige un gasto o ingreso que un comprador no tendría, para mostrar lo que el negocio gana de verdad.",
   adjustmentsYear: "Sobre las cuentas de {year}",
   adjustmentsAdd: "Añadir ajuste",
   adjustmentsRemove: "Quitar ajuste",
