@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { sabiJobStageLabel, sabiJobStartedEvent, sabiJobUpdateEvent, type SabiJobUpdate } from "@/lib/sabi/job-events";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, RefreshCw, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { approveProjectAction } from "@/app/(app)/admin/actions";
+import { adminCopy } from "@/lib/admin-copy";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
 import { parseSabiWorkbookStaged, sabiStages, type SabiStage } from "@/lib/sabi/parse";
@@ -51,10 +53,12 @@ export function AdminSabiPanel({
   header,
   panels,
   between = null,
+  listingStatus = "draft",
 }: {
   sabi: AdminSabiView;
   header: AdminHeader;
   panels: ComponentProps<typeof InvestorProjectTabs>["panels"];
+  listingStatus?: "draft" | "pending" | "published";
   /** Rendered between the header and the tabs (e.g. the buyer label of the selected process). */
   between?: ReactNode;
 }) {
@@ -64,6 +68,7 @@ export function AdminSabiPanel({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [approveState, approveAction, approvePending] = useActionState(approveProjectAction, null);
   const [dragging, setDragging] = useState(false);
   const [stages, setStages] = useState<Partial<Record<SabiStage, number>>>({});
   const [saving, setSaving] = useState(false);
@@ -226,6 +231,23 @@ export function AdminSabiPanel({
 
   const actions = (
     <>
+      {listingStatus === "pending" ? (
+        <form
+          action={approveAction}
+          onSubmit={(event) => {
+            if (!window.confirm(adminCopy.publishConfirm)) event.preventDefault();
+          }}
+        >
+          <input type="hidden" name="projectId" value={sabi.projectId} />
+          <button
+            type="submit"
+            disabled={approvePending}
+            className="inline-flex h-9 items-center rounded-full bg-[#465ab4] px-3.5 text-sm font-medium text-white hover:bg-[#3a4d9e] disabled:opacity-60"
+          >
+            {approvePending ? adminCopy.approving : adminCopy.approve}
+          </button>
+        </form>
+      ) : null}
       <label
         title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo a la cabecera.`}
         className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium focus-within:ring-2 focus-within:ring-[#0f766e]/40 ${
@@ -249,6 +271,11 @@ export function AdminSabiPanel({
         />
       </label>
       <AdminReportNotice variant="page" projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
+      {approveState ? (
+        <p role={approveState.ok ? "status" : "alert"} className={`text-xs font-medium ${approveState.ok ? "text-[#17663a]" : "text-[#b42318]"}`}>
+          {approveState.message}
+        </p>
+      ) : null}
     </>
   );
 

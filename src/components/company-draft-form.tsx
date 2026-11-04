@@ -2589,6 +2589,7 @@ export function CompanyDraftForm({
             revenue={salesFromAccounts ?? revenue}
             ebitda={ebitdaFromAccounts ?? ebitda}
             adjustedEbitda={adjustedEbitda}
+            hasAdjustments={adjustmentRows.length > 0}
             askingPrice={askingPrice}
             principalCnae={principalCnae}
             summary={description}
@@ -2745,6 +2746,7 @@ function MarketPreview({
   revenue,
   ebitda,
   adjustedEbitda,
+  hasAdjustments = false,
   askingPrice,
   principalCnae = "",
   summary = "",
@@ -2756,6 +2758,7 @@ function MarketPreview({
   revenue: string;
   ebitda: string;
   adjustedEbitda: string;
+  hasAdjustments?: boolean;
   askingPrice: string;
   principalCnae?: string;
   summary?: string;
@@ -2770,6 +2773,7 @@ function MarketPreview({
     revenueCents: previewCents(revenue) ?? 0,
     ebitdaCents: signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : 0,
     adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : 0,
+    hasAdjustments,
     askingPriceCents: previewCents(askingPrice) ?? 0,
     sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,
     cnaeCode: principalCnae || null,

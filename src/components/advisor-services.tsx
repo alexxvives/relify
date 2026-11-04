@@ -335,6 +335,10 @@ export function AdvisorServices({
                 />
               </label>
             </div>
+            <div className="border-t border-[#eef0f4] pt-5">
+              <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
+              <p className="mt-1 text-sm font-normal text-[#64748b]">{advisorCopy.listingFaceBody}</p>
+            </div>
             <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
               {advisorCopy.description}
               <Textarea
@@ -415,6 +419,26 @@ export function AdvisorServices({
               </div>
             </div>
           </dl>
+        )}
+        {editing === "corporate" ? null : (
+          <div className="mt-6 border-t border-[#eef0f4] pt-5">
+            <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
+            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingFaceBody}</p>
+            <p className={`mt-3 text-sm leading-6 ${profile.description ? "text-[#2b3b4a]" : "text-[#8b95a7]"}`}>
+              {profile.description || "Aún no has escrito la descripción."}
+            </p>
+            {profile.sectors.length > 0 ? (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {profile.sectors.map((id) => (
+                  <li key={id} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]" title={advisorSectorName(id)}>
+                    {advisorSectorShort(id)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-[#8b95a7]">Aún no has elegido sectores.</p>
+            )}
+          </div>
         )}
       </Card>
 

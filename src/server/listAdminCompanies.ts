@@ -1,4 +1,4 @@
-import { ebitdaPublishable } from "@/lib/seller-draft-guard";
+import { ebitdaPublishable, projectHasAdjustments } from "@/lib/seller-draft-guard";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { materializePendingCompanies } from "@/server/sellerCompany";
@@ -100,6 +100,7 @@ export async function listAdminCompanies(
       revenueCents: project.revenueCents,
       ebitdaCents: project.ebitdaCents,
       adjustedEbitdaCents: project.adjustedEbitdaCents,
+      hasAdjustments: projectHasAdjustments(project),
       askingPriceCents: project.askingPriceCents,
       sectorKey: sectorKeyFromCnae(code ?? undefined),
       verified: project.verifiedAt !== null,

@@ -107,7 +107,7 @@ export function StatusPillToggle({
   const [state, action, pending] = useActionState(status === "published" ? unpublishProjectAction : approveProjectAction, null);
   const pill = `rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${tone}`;
 
-  if (status === "draft") {
+  if (status !== "published") {
     return <span className={`pointer-events-none ${pill}`}>{label}</span>;
   }
 

@@ -30,12 +30,15 @@ export async function notifyReportReady(
       legalName: true,
       codename: true,
       sabiImportedAt: true,
+      reportNotifiedAt: true,
     },
   });
 
   if (!project) return { ok: false, message: "No encontramos la empresa." };
   if (!project.sabiImportedAt)
     return { ok: false, message: "Importa primero el SABI de esta empresa." };
+  if (project.reportNotifiedAt)
+    return { ok: false, message: "Ya se avisó al vendedor." };
 
   const owner = await ownerContact(project.ownerId);
   if (!owner)

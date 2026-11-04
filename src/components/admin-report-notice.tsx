@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
 import { notifyReportReadyAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
-import { InfoHint } from "@/components/ui/info-hint";
 
 /**
  * t73b: "Notificar al vendedor" (informe financiero listo). Enabled only once SABI is imported;
@@ -27,7 +26,8 @@ export function AdminReportNotice({
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const disabled = !imported || !report.hasOwner || pending;
+  const sent = report.sentAt !== null;
+  const disabled = !imported || !report.hasOwner || pending || sent;
   const reason = !imported
     ? "Importa el SABI para poder avisar al vendedor"
     : !report.hasOwner
@@ -54,23 +54,25 @@ export function AdminReportNotice({
 
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <button
-        type="button"
-        disabled={disabled}
-        title={reason}
-        onClick={() => setConfirming(true)}
-        className={
-          banner
-            ? "inline-flex h-8 items-center gap-2 rounded-full border border-white/35 bg-white/10 px-3 text-xs font-medium text-white backdrop-blur hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-white/15 disabled:text-white/45 disabled:hover:bg-white/10"
-            : "inline-flex h-8 items-center gap-2 rounded-full border border-[#0f766e]/30 bg-white px-3 text-xs font-medium text-[#0f766e] hover:bg-[#effaf8] disabled:cursor-not-allowed disabled:border-[#e7eaee] disabled:text-[#9aa5b1] disabled:hover:bg-white"
-        }
-      >
-        <Mail className="size-3.5" aria-hidden />
-        {report.sentAt ? "Volver a notificar" : "Notificar al vendedor"}
-      </button>
-      {sentLabel ? (
-        <InfoHint text={sentLabel} side="bottom" align="center" width="lg" tone={banner ? "light" : "ink"} />
-      ) : reason ? (
+      <span title={sentLabel ?? reason} className="inline-flex">
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={sentLabel ? `Notificar al vendedor. ${sentLabel}` : "Notificar al vendedor"}
+          onClick={() => {
+            if (!sent) setConfirming(true);
+          }}
+          className={
+            banner
+              ? "inline-flex h-8 items-center gap-2 rounded-full border border-white/35 bg-white/10 px-3 text-xs font-medium text-white backdrop-blur hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-white/15 disabled:text-white/45 disabled:hover:bg-white/10"
+              : "inline-flex h-8 items-center gap-2 rounded-full border border-[#0f766e]/30 bg-white px-3 text-xs font-medium text-[#0f766e] hover:bg-[#effaf8] disabled:cursor-not-allowed disabled:border-[#e7eaee] disabled:text-[#9aa5b1] disabled:hover:bg-white"
+          }
+        >
+          <Mail className="size-3.5" aria-hidden />
+          Notificar al vendedor
+        </button>
+      </span>
+      {!sent && reason ? (
         <span className={banner ? "sr-only" : "text-xs text-[#5c6b78]"}>{reason}</span>
       ) : null}
       {confirming

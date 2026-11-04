@@ -92,14 +92,27 @@ export function askingPriceAllowed(basisCents: number | null): boolean {
  * non-empty list, or (legacy, no list) a non-zero adjusted EBITDA. Used by the price lock, the seller overview and
  * the review/publish gate so they always agree.
  */
+/** A saved adjustment list, or a legacy non-zero adjusted EBITDA with no list at all. */
+export function projectHasAdjustments(project: { adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): boolean {
+  if (Array.isArray(project.ebitdaAdjustments)) {
+    return project.ebitdaAdjustments.length > 0;
+  }
+
+  if (project.ebitdaAdjustments === null || project.ebitdaAdjustments === undefined) {
+    const adjusted = project.adjustedEbitdaCents === null ? null : Number(project.adjustedEbitdaCents);
+    return adjusted !== null && adjusted !== 0;
+  }
+
+  return false;
+}
+
 export function storedPriceBasisCents(project: { ebitdaCents: number | bigint | null; adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): number | null {
   const adjusted = project.adjustedEbitdaCents === null ? null : Number(project.adjustedEbitdaCents);
-  const hasAdjustments = Array.isArray(project.ebitdaAdjustments)
-    ? project.ebitdaAdjustments.length > 0
-    : project.ebitdaAdjustments === null || project.ebitdaAdjustments === undefined
-      ? adjusted !== null && adjusted !== 0
-      : false;
-  return priceBasisCents({ hasAdjustments, adjustedEbitdaCents: adjusted, ebitdaCents: project.ebitdaCents === null ? null : Number(project.ebitdaCents) });
+  return priceBasisCents({
+    hasAdjustments: projectHasAdjustments(project),
+    adjustedEbitdaCents: adjusted,
+    ebitdaCents: project.ebitdaCents === null ? null : Number(project.ebitdaCents),
+  });
 }
 
 /** t95: a company is publishable only with a positive basis (adjusted EBITDA when adjusted, else EBITDA). */

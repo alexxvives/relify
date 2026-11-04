@@ -283,9 +283,17 @@ export function AdminHomeSkeleton() {
     <Shell>
       <Card>
         <CardTitle width="w-32" />
-        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
           {[0, 1, 2, 3, 4].map((index) => (
-            <B key={index} className="h-[72px] w-full rounded-xl" />
+            <div key={index} className="w-full rounded-2xl border border-[#e7eaee] p-4 sm:w-[calc((100%-0.75rem)/2)] xl:w-[calc((100%-3rem)/5)]">
+              <div className="flex items-center justify-between">
+                <B className="size-9 rounded-xl" />
+                <B className="h-6 w-8" />
+              </div>
+              <B className="mt-2 h-3 w-24" />
+              <B className="mt-3 h-1.5 w-full rounded-full" />
+              <B className="mt-2 h-3 w-20" />
+            </div>
           ))}
         </div>
       </Card>

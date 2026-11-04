@@ -73,6 +73,7 @@ export function AdminCompany({
               <DealPipeline steps={selected.steps} role="advisor" onDark hideAsideCue hideWaitingCue />
             ) : null,
         }}
+        listingStatus={view.status}
         between={
           selected && !view.investor ? (
             <p className="text-sm text-[#3d4a63]">

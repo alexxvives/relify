@@ -69,6 +69,7 @@ import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
 import { veilReportFigures } from "@/lib/report-veil";
+import { figureVeilYears } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
 import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
@@ -166,7 +167,7 @@ function LockedFigures({ open, kind, note, action = null, children }: { open: bo
 
   return (
     <div className="relative min-h-40" data-locked={kind}>
-      <div className="pointer-events-none select-none opacity-60 blur-md grayscale" aria-hidden inert>
+      <div className="pointer-events-none select-none blur-md" aria-hidden inert>
         {children}
       </div>
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -197,6 +198,7 @@ function Kpi({
   value,
   hint,
   sub,
+  action = null,
   tone = "ink",
   source,
 }: {
@@ -204,20 +206,27 @@ function Kpi({
   value: string;
   hint: string;
   sub?: ReactNode;
+  /** Sits on the title row, beside the label. */
+  action?: ReactNode;
   tone?: "ink" | "loss" | "pending";
   source?: FigureSource;
 }) {
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-3 sm:p-4">
       <div className="flex items-start justify-between gap-1">
-        <span className="text-xs leading-4 font-medium text-[#5c6b78]">{label}</span>
+        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className="text-xs leading-4 font-medium text-[#5c6b78]">{label}</span>
+          {action}
+        </span>
         <span className="flex shrink-0 items-center gap-1">
           {source ? <SourceBadge source={source} /> : null}
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <span className={`mt-2 leading-tight font-bold tracking-tight tabular-nums ${tone === "pending" || value.length > 12 ? "text-base sm:text-xl" : "text-2xl sm:text-4xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
-      {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <span className={`min-w-0 leading-tight font-bold tracking-tight tabular-nums ${tone === "pending" || value.length > 12 ? "text-base sm:text-xl" : "text-2xl sm:text-4xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
+        {sub ? <div className="flex shrink-0 flex-col items-end gap-1 pb-0.5 text-right text-[11px] text-[#8b95a7]">{sub}</div> : null}
+      </div>
     </div>
   );
 }
@@ -562,6 +571,28 @@ function BuyerRegistryBlock({ view }: { view: BuyerRegistry }) {
   );
 }
 
+/** Invented plantilla charts for a locked ficha that has no employee series yet. Not the company's numbers. */
+function SampleTeamCharts() {
+  const years = figureVeilYears();
+  const employees = years.map((year) => year.employees);
+  const revenue = years.map((year) => (year.revenueCents !== null && year.employees ? Math.round(year.revenueCents / year.employees / 100_000) : null));
+  const cost = years.map((year) => (year.staffCostsCents !== null && year.employees ? Math.round(year.staffCostsCents / year.employees / 100_000) : null));
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <ChartBox title="Plantilla media" hint="Empleados declarados en las cuentas de cada ejercicio." legend={<LegendDot color={teal} label="Empleados" />}>
+        <ColumnBars years={years} series={[{ label: "Empleados", color: teal, values: employees }]} unit="people" />
+      </ChartBox>
+      <ChartBox
+        title="Ingresos frente a coste por empleado"
+        hint="Miles de euros por empleado y año."
+        legend={<><LegendDot color={navy} label="Ingresos por empleado" /><LegendDot color={teal} label="Coste por empleado" /></>}
+      >
+        <LineChart years={years} series={[{ label: "Ingresos por empleado", color: navy, values: revenue }, { label: "Coste por empleado", color: teal, values: cost }]} unit="keur" slots />
+      </ChartBox>
+    </div>
+  );
+}
+
 export function CompanyReport({
   project: realProject,
   role,
@@ -704,37 +735,42 @@ export function CompanyReport({
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
-          <Kpi label={companyCopy.ebitdaLabel} value={compactEur(project.ebitdaCents)} tone={project.ebitdaCents < 0 ? "loss" : "ink"} hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`} sub={
+          <Kpi
+            label={companyCopy.ebitdaLabel}
+            value={compactEur(project.ebitdaCents)}
+            tone={project.ebitdaCents < 0 ? "loss" : "ink"}
+            hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`}
+            action={
+              project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
+                <details className="group relative">
+                  <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-[11px] font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                    Ver ajustes
+                  </summary>
+                  <div className="absolute left-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
+                    <AdjustmentBridge
+                      ebitdaCents={project.ebitdaCents}
+                      adjustedCents={project.adjustedEbitdaCents}
+                      rows={project.ebitdaAdjustments}
+                      showReasons={figuresOpen || role === "admin"}
+                    />
+                  </div>
+                </details>
+              ) : null
+            }
+            sub={
               <>
                 <span>Margen {margin}</span>
-                {/* t95: adjusted EBITDA as a quieter second line; "Ver ajustes" opens the bridge. Hidden without adjustments. */}
                 {deal.adjustedSet ? (
-                  <span className="flex w-full flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-[#5c6b78]">
-                    <span className="tabular-nums">
-                      Ajustado{" "}
-                      <span className={`font-semibold ${project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
-                        {compactEur(project.adjustedEbitdaCents)}
-                      </span>
+                  <span className="tabular-nums text-[#5c6b78]">
+                    Ajustado{" "}
+                    <span className={`font-semibold ${project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
+                      {compactEur(project.adjustedEbitdaCents)}
                     </span>
-                    {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-                      <details className="group relative">
-                        <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-                          Ver ajustes
-                        </summary>
-                        <div className="absolute left-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
-                          <AdjustmentBridge
-                            ebitdaCents={project.ebitdaCents}
-                            adjustedCents={project.adjustedEbitdaCents}
-                            rows={project.ebitdaAdjustments}
-                            showReasons={figuresOpen || role === "admin"}
-                          />
-                        </div>
-                      </details>
-                    ) : null}
                   </span>
                 ) : null}
               </>
-            } />
+            }
+          />
           <Kpi
             label={companyCopy.askingPriceLabel}
             value={priceBlocked ? companyCopy.priceNotPublishable : project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
@@ -752,13 +788,14 @@ export function CompanyReport({
         </div>
         {/* t94: plantilla, financiación y asesoría as compact chips under the headline numbers. */}
         <ul className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-          <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
+          <li className={`inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63] ${figuresOpen ? "" : "pointer-events-none blur-md select-none"}`} aria-hidden={figuresOpen ? undefined : true}>
             <Users className="size-3.5 text-[#0f766e]" aria-hidden />
-            <span className="text-[#5c6b78]">{lastEmployees ? "Empleados" : companyCopy.workersLabel}</span>
+            <span className="text-[#5c6b78]">{figuresOpen && lastEmployees ? "Empleados" : companyCopy.workersLabel}</span>
             <span className="font-semibold text-[#1c2740]">
-              {lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
+              {figuresOpen ? (lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable) : "18"}
             </span>
-            {age !== null ? <span className="text-[#8b95a7]">· {age} años de actividad (desde {project.foundedYear})</span> : null}
+            {figuresOpen && age !== null ? <span className="text-[#8b95a7]">· {age} años de actividad (desde {project.foundedYear})</span> : null}
+            {figuresOpen ? null : <span className="text-[#8b95a7]">· 10 años de actividad</span>}
           </li>
           {project.sellerFinancing ? (
             <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
@@ -1059,7 +1096,7 @@ export function CompanyReport({
         </ReportSection>
       ) : null}
 
-      <ReportSection id="equipo" icon={Users} title={companyReportCopy.team} aside={project.headcountRange ? headcountLabels[project.headcountRange] : undefined}>
+      <ReportSection id="equipo" icon={Users} title={companyReportCopy.team} aside={figuresOpen && project.headcountRange ? headcountLabels[project.headcountRange] : undefined}>
         {employees.some((value) => value !== null) || staff.length > 0 ? (
           lock(
             "team",
@@ -1091,8 +1128,13 @@ export function CompanyReport({
               </div>
             </div>,
           )
-        ) : (
+        ) : figuresOpen ? (
           <Fact icon={Users} label={companyCopy.workersLabel} value={project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable} />
+        ) : (
+          lock(
+            "team",
+            <SampleTeamCharts />,
+          )
         )}
       </ReportSection>
 

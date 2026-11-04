@@ -209,8 +209,9 @@ export function MarketCard({
     typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
   const card = (cents: number | null | undefined): string | null =>
     known(cents) ? formatCardEur(cents) : null;
-  // The tile shows the seller's adjusted EBITDA when it differs; the payback chip uses that same figure.
-  const adjustedKnown = known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents;
+  // No saved adjustments: the tile is the accounts EBITDA. With adjustments, it is EBITDA aj.
+  const adjustedKnown = project.hasAdjustments === true
+    || (project.hasAdjustments === undefined && known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents);
   const profitCents = adjustedKnown ? project.adjustedEbitdaCents : project.ebitdaCents;
   const years = blocked ? null : recoveryYears(project.askingPriceCents, profitCents);
   const headcount =

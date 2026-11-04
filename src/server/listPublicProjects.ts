@@ -10,6 +10,7 @@ import {
 } from "@/lib/valuation-multiples";
 import { foundedDecade } from "@/lib/market-filters";
 import { cardCovers } from "@/server/projectCardCover";
+import { projectHasAdjustments } from "@/lib/seller-draft-guard";
 
 export async function listPublicProjects(): Promise<PublicProjectCard[]> {
   const rows = await prisma.project.findMany({
@@ -25,6 +26,7 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       sellerFinancing: true,
       sellerFinancingMaxPct: true,
       sellerFinancingYears: true,
+      ebitdaAdjustments: true,
     },
     orderBy: { codename: "asc" },
   });
@@ -42,6 +44,7 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       revenueCents: row.revenueCents,
       ebitdaCents: row.ebitdaCents,
       adjustedEbitdaCents: row.adjustedEbitdaCents,
+      hasAdjustments: projectHasAdjustments(row),
       askingPriceCents: row.askingPriceCents,
       sectorKey: sectorKeyFromCnae(row.cnaes[0]?.code),
       verified: row.verifiedAt !== null,

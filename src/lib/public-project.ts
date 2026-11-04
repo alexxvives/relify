@@ -23,6 +23,8 @@ export type PublicProjectCard = {
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
+  /** True when the seller saved EBITDA adjustments. The card then shows EBITDA aj. */
+  hasAdjustments?: boolean;
   askingPriceCents: number;
   coverSrc?: string | null;
   sectorKey?: SectorImageKey;

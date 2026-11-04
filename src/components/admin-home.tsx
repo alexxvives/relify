@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from "lucide-react";
 import { CountBars, type DonutPalette } from "@/components/admin-charts";
+import { ActivityTiles, share } from "@/components/activity-tiles";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { CountBadge } from "@/components/ui/badge";
 import { adminCopy } from "@/lib/admin-copy";
@@ -33,26 +34,23 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
     label: adminCopy.plans[row.plan],
     value: row.count,
   }));
-  const activity = [
-    { label: adminCopy.funnel.accesses, value: overview.accesses, fresh: overview.fresh.accesses, href: "/admin/conexiones", icon: Unlock, tone: "bg-[#eef2ff] text-[#163a8a]" },
-    { label: adminCopy.funnel.ndas, value: overview.ndas, fresh: overview.fresh.ndas, href: "/admin/conexiones", icon: ShieldCheck, tone: "bg-[#e8f6ee] text-[#0d5c38]" },
-    { label: adminCopy.funnel.messages, value: overview.messages, fresh: overview.fresh.messages, href: "/admin/conexiones", icon: MessageSquare, tone: "bg-[#f4f5f8] text-[#1c2740]" },
-    { label: adminCopy.favoritesTitle, value: overview.favorites, fresh: overview.fresh.favorites, href: null, icon: Heart, tone: "bg-[#fdeeee] text-[#8d2424]" },
-    { label: adminCopy.quotesTitle, value: overview.quotes, fresh: overview.fresh.quotes, href: "/admin/facturacion", icon: Wallet, tone: "bg-[#fff4e8] text-[#9a4a08]" },
-  ];
+  const freshNote = (count: number, rest: string) => (count > 0 ? `${count} ${count === 1 ? "nuevo" : "nuevos"} · ${rest}` : rest);
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
-        <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {activity.map((item) => (
-            <li key={item.label}>
-              <ActivityTile item={item} />
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
+        <h2 className="text-lg font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
+        <p className="mt-1 text-sm text-[#667085]">De los accesos a los mensajes y los presupuestos.</p>
+        <ActivityTiles
+          tiles={[
+            { label: adminCopy.funnel.accesses, value: overview.accesses, icon: Unlock, tone: "sky", ratio: overview.accesses > 0 ? 1 : 0, caption: freshNote(overview.fresh.accesses, "Peticiones de acceso"), href: "/admin/conexiones" },
+            { label: adminCopy.funnel.ndas, value: overview.ndas, icon: ShieldCheck, tone: "emerald", ratio: share(overview.ndas, overview.accesses), caption: freshNote(overview.fresh.ndas, `${overview.ndas} de ${overview.accesses} accesos`), href: "/admin/conexiones" },
+            { label: adminCopy.funnel.messages, value: overview.messages, icon: MessageSquare, tone: "indigo", ratio: share(overview.messages, overview.ndas), caption: freshNote(overview.fresh.messages, `${overview.messages} tras el NDA`), href: "/admin/conexiones" },
+            { label: adminCopy.favoritesTitle, value: overview.favorites, icon: Heart, tone: "orange", ratio: share(overview.favorites, overview.accesses), caption: freshNote(overview.fresh.favorites, "Empresas guardadas") },
+            { label: adminCopy.quotesTitle, value: overview.quotes, icon: Wallet, tone: "amber", ratio: share(overview.quotes, Math.max(overview.accesses, overview.quotes)), caption: freshNote(overview.fresh.quotes, "Presupuestos pedidos"), href: "/admin/facturacion" },
+          ]}
+        />
+      </section>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={userAccounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
@@ -142,32 +140,3 @@ function SectionLink({ href, title }: { href: string; title: string }) {
   );
 }
 
-function ActivityTile({
-  item,
-}: {
-  item: { label: string; value: number; fresh: number; href: string | null; icon: typeof Heart; tone: string };
-}) {
-  const body = (
-    <>
-      {item.fresh > 0 ? (
-        <CountBadge count={item.fresh} ring className="absolute -top-2 -right-2" label={`${item.fresh} nuevos`} />
-      ) : null}
-      <div className="min-w-0">
-        <p className="text-3xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{item.value}</p>
-        <p className="mt-1 text-sm text-[#3d4a63]">{item.label}</p>
-      </div>
-      <item.icon className="size-8 shrink-0" aria-hidden />
-    </>
-  );
-  const className = `relative flex h-full items-center justify-between gap-3 rounded-2xl px-4 py-4 ${item.tone}`;
-
-  if (!item.href) {
-    return <div className={className}>{body}</div>;
-  }
-
-  return (
-    <Link href={item.href} className={`${className} transition hover:opacity-80`}>
-      {body}
-    </Link>
-  );
-}
