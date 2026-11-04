@@ -1,3 +1,4 @@
+import { sellerFinancingText } from "@/lib/seller-financing";
 import { profitabilityStyles } from "@/lib/profitability-styles";
 import { detailCard, detailCardHead } from "@/components/detail-card";
 import { cloneElement, Fragment, isValidElement, type ReactNode } from "react";
@@ -909,6 +910,10 @@ export function CompanyReport({
             ) : null}
           </div>
           {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
+          {/* t90: deal terms from the seller; hidden when the seller has not answered. */}
+          {project.sellerFinancing ? (
+            <Fact icon={HandCoins} label="Financiación del vendedor" value={sellerFinancingText(project.sellerFinancing)} source="seller" />
+          ) : null}
         </div>
       </ReportSection>
 

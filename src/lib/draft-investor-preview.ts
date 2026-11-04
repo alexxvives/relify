@@ -1,3 +1,4 @@
+import { sellerFinancingWrite, storedSellerFinancing } from "./seller-financing";
 import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
 import { cnaeTitle } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
@@ -135,6 +136,10 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     adjustedEbitdaCents: unsignedCents(input.adjustedEbitda),
     ebitdaAdjustments: previewAdjustments(input.ebitdaAdjustments),
     askingPriceCents: unsignedCents(input.askingPrice),
+    sellerFinancing: (() => {
+      const financing = sellerFinancingWrite(input);
+      return financing.ok ? storedSellerFinancing(financing.data) : null;
+    })(),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
     principalCnae: principalTitle ? { code: principal, title: principalTitle } : null,

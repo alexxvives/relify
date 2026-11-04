@@ -21,6 +21,9 @@ const investorKeys = [
   "region",
   "revenueCents",
   "saleReason",
+  "sellerFinancing",
+  "sellerFinancingMaxPct",
+  "sellerFinancingYears",
   "slug",
   "years",
 ] as const;
