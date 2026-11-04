@@ -332,7 +332,7 @@ function MarketCardBone() {
               </div>
             ))}
           </div>
-          <div className="flex items-center justify-between border-t border-[#eceff4] px-4 py-3">
+          <div className="flex flex-col items-center gap-2 border-t border-[#eceff4] px-4 py-3">
             <B className="h-3 w-24" />
             <B className="h-5 w-28" />
           </div>
@@ -545,7 +545,7 @@ function AdvisorCardBone({ rank = false }: { rank?: boolean }) {
             <div className="h-4 w-48 rounded-lg bg-[#c4ccd8]" />
             <div className="h-8 w-20 rounded-lg bg-[#c4ccd8]" />
           </div>
-          <div className="mt-4 flex h-[4.25rem] flex-col gap-1.5">
+          <div className="mt-3 flex max-h-[3.5rem] flex-col gap-1.5">
             <div className="flex gap-1.5">
               <div className="h-6 w-28 rounded-full bg-[#c4ccd8]" />
               <div className="h-6 w-24 rounded-full bg-[#c4ccd8]" />

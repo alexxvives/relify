@@ -9,7 +9,7 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -480,7 +480,7 @@ function FichaMetrics({
   adjustmentCount: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
-  recommended?: { label: string; onUse: () => void } | null;
+  recommended?: { amount: string; onUse: () => void } | null;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -500,9 +500,12 @@ function FichaMetrics({
               <button
                 type="button"
                 onClick={recommended.onUse}
-                className="self-start text-left text-xs font-semibold text-[#465ab4] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#465ab4]"
+                aria-label={`${companyCopy.recommendedPrice}: ${recommended.amount}`}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#e4e7ec] bg-white px-2.5 py-1 text-xs font-medium whitespace-nowrap text-[#667085] hover:border-[#c5cce0] hover:text-[#1c2740] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
               >
-                {recommended.label}
+                <Sparkles className="size-3.5 shrink-0 text-[#465ab4]" aria-hidden />
+                <span>Usar</span>
+                <span className="font-semibold text-[#1c2740] tabular-nums">{recommended.amount}</span>
               </button>
             ) : null
           }
@@ -2292,7 +2295,7 @@ export function CompanyDraftForm({
               recommended={
                 priceEstimate
                   ? {
-                      label: `${companyCopy.recommendedPrice}: ${wholeEur(recommendedPriceCents(priceEstimate))}`,
+                      amount: wholeEur(recommendedPriceCents(priceEstimate)),
                       onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
                     }
                   : null

@@ -204,12 +204,15 @@ export function MarketCard({
   const style = sectorStyles[key];
   const Icon = style.icon;
   const blocked = project.publishable === false;
-  const years = blocked ? null : recoveryYears(project.askingPriceCents, project.ebitdaCents);
   // t73: 0 means "not known yet" on these cards (no SABI, no seller figure), never a real 0 €.
   const known = (cents: number | null | undefined): cents is number =>
     typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
   const card = (cents: number | null | undefined): string | null =>
     known(cents) ? formatCardEur(cents) : null;
+  // The tile shows the seller's adjusted EBITDA when it differs; the payback chip uses that same figure.
+  const adjustedKnown = known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents;
+  const profitCents = adjustedKnown ? project.adjustedEbitdaCents : project.ebitdaCents;
+  const years = blocked ? null : recoveryYears(project.askingPriceCents, profitCents);
   const headcount =
     project.headcount && isHeadcountRange(project.headcount)
       ? `${headcountLabels[project.headcount]} trab.`
@@ -361,27 +364,28 @@ export function MarketCard({
             : `${sectorName && !project.cnaeCode ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El vendedor aún no ha añadido una descripción.`}
         </p>
 
-        {/* t95: Facturación | EBITDA (adjusted underneath), then the price across both columns with its ROI pill. */}
+        {/* Facturación | EBITDA (ajustado when the seller added one), then the price under its label. */}
         <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure
             label="Facturación"
             value={card(project.revenueCents)}
           />
           <Figure
-            label="EBITDA"
-            value={card(project.ebitdaCents)}
+            label={adjustedKnown ? "EBITDA aj." : "EBITDA"}
+            value={card(profitCents)}
             edge="left"
-            extra={
-              known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents ? (
-                <span className="tabular-nums" title="EBITDA ajustado por el vendedor">
-                  · {formatCardEur(project.adjustedEbitdaCents)}
-                </span>
-              ) : null
+            ink={adjustedKnown && project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : undefined}
+            hint={
+              adjustedKnown && known(project.ebitdaCents)
+                ? `EBITDA ajustado por el vendedor. EBITDA de las cuentas: ${formatCardEur(project.ebitdaCents)}.`
+                : adjustedKnown
+                  ? "EBITDA ajustado por el vendedor."
+                  : undefined
             }
           />
-          <div className="col-span-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#eceff4] px-4 py-3">
+          <div className="col-span-2 flex flex-col items-center gap-1 border-t border-[#eceff4] px-4 py-3 text-center">
             <dt className="text-xs font-medium text-[#667085]">Precio de venta</dt>
-            <dd className="flex min-w-0 items-center gap-2">
+            <dd className="flex min-w-0 items-center justify-center gap-2">
               <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${!blocked && known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
                 {blocked ? companyCopy.priceNotPublishable : (card(project.askingPriceCents) ?? priceUnset)}
               </span>
@@ -407,7 +411,8 @@ function Figure({
   edge,
   strong = false,
   note = null,
-  extra = null,
+  ink = "text-[#1c2740]",
+  hint,
 }: {
   label: string;
   /** Null when unknown: shows "—" with a "No disponible" tooltip instead of a fake 0. */
@@ -415,8 +420,8 @@ function Figure({
   edge?: "left" | "top" | "both";
   strong?: boolean;
   note?: ReactNode;
-  /** Adjusted EBITDA, kept on the same line so the cell never grows a second row. */
-  extra?: ReactNode;
+  ink?: string;
+  hint?: string;
 }) {
   const border =
     edge === "left"
@@ -428,10 +433,11 @@ function Figure({
           : "";
   return (
     <div
+      title={hint}
       className={`@container min-w-0 border-[#eceff4] px-2.5 py-3 text-center ${border}`}
     >
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 flex min-w-0 items-baseline justify-center gap-x-1 text-[#1c2740]">
+      <dd className={`mt-0.5 flex min-w-0 items-baseline justify-center gap-x-1 ${ink}`}>
         <span
           className={`${strong ? "text-base @[9.5rem]:text-lg" : "text-base"} shrink-0 leading-6 font-semibold whitespace-nowrap tabular-nums`}
         >
@@ -443,7 +449,6 @@ function Figure({
             value
           )}
         </span>
-        {extra ? <span className="min-w-0 truncate text-[11px] leading-4 font-medium text-[#667085]">{extra}</span> : null}
         {note}
       </dd>
     </div>

@@ -38,8 +38,8 @@ function ReviewMark({ cases }: { cases: number }) {
 }
 
 /**
- * t95: the sectors always take exactly two tag lines, so every banner ends at the same height. When they do not fit,
- * they lay out in two rows that drift gently left and back (paused on hover; static and scrollable with reduced motion).
+ * Sector tags use one line when they fit, and at most two. Extra tags drift left and back on those two rows
+ * (paused on hover; static and scrollable with reduced motion).
  */
 function SectorTags({ sectors }: { sectors: string[] }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -68,7 +68,7 @@ function SectorTags({ sectors }: { sectors: string[] }) {
   }, [sectors, strip]);
 
   return (
-    <div ref={hostRef} className="relify-tag-drift-host mt-4 h-[4.25rem] overflow-hidden">
+    <div ref={hostRef} className="relify-tag-drift-host mt-3 max-h-[3.5rem] overflow-hidden">
       <ul
         ref={listRef}
         data-mode={strip ? "strip" : "wrap"}

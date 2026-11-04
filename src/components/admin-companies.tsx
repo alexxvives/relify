@@ -8,6 +8,7 @@ import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
 import { MarketCard, marketGridClass } from "@/components/market-card";
+import { InfoHint } from "@/components/ui/info-hint";
 import type { AdminCompanyRow } from "@/server/listAdminCompanies";
 import { adminNewRing } from "@/components/admin-new";
 
@@ -157,27 +158,39 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
   const since = project.sabiPending && project.sabiRequestedAt
     ? new Date(project.sabiRequestedAt).toLocaleString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
     : null;
-  const ring = project.sabiPending
-    ? "border-[#e5484d] bg-[#fff5f5] shadow-[0_0_0_3px_rgba(229,72,77,0.18),0_0_18px_rgba(229,72,77,0.25)]"
-    : project.isNew
-      ? adminNewRing
-      : "border-transparent";
+  const ring = project.isNew ? adminNewRing : "border-transparent";
+  const sabiHint = project.sabiPending
+    ? `${adminCopy.sabiPendingBadge}. ${since ? `${adminCopy.sabiPendingSince} ${since}. ` : ""}Falta el Excel de SABI.`
+    : null;
 
   return (
     <div
       data-sabi-pending={project.sabiPending ? "true" : undefined}
-      title={project.sabiPending ? `${adminCopy.sabiPendingBadge}${since ? ` · ${adminCopy.sabiPendingSince} ${since}` : ""}` : undefined}
       className={`flex h-full flex-col rounded-2xl border p-2 ${ring}`}
     >
       {/* t91: legal name and CIF lead the card so admin can scan them first. */}
-      <p className="mb-2 truncate px-1 text-sm text-[#5c6b78]" title={project.legalName || undefined}>
-        <span className="font-semibold text-[#1c2740]">{project.legalName || "Razón social pendiente"}</span>
-        {project.cif ? <span> · {project.cif}</span> : null}
+      <p className="mb-2 flex min-w-0 items-center gap-2 px-1 text-sm text-[#5c6b78]">
+        <span className="min-w-0 truncate" title={project.legalName || undefined}>
+          <span className="font-semibold text-[#1c2740]">{project.legalName || "Razón social pendiente"}</span>
+          {project.cif ? <span> · {project.cif}</span> : null}
+        </span>
+        {sabiHint ? (
+          <InfoHint text={sabiHint} side="bottom" align="end" width="md">
+            <span className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-[11px] leading-4 font-semibold whitespace-nowrap text-[#7a4700]">
+              SABI
+            </span>
+          </InfoHint>
+        ) : null}
       </p>
       <div className="relative flex-1">
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} hidePhotoTags />
         <div className="absolute top-3 right-3 z-10">
-          <StatusPillToggle projectId={project.id} status={project.status} label={projectStatus(project.status)} tone={statusTone[project.status]} />
+          <StatusPillToggle
+            projectId={project.id}
+            status={project.status}
+            label={project.status === "pending" ? adminCopy.approve : projectStatus(project.status)}
+            tone={project.status === "pending" ? "bg-[#465ab4] text-white" : statusTone[project.status]}
+          />
         </div>
       </div>
       {project.sabiPending ? <span className="sr-only">{adminCopy.sabiPendingBadge}</span> : null}

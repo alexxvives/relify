@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, Mail } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { notifyReportReadyAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
+import { InfoHint } from "@/components/ui/info-hint";
 
 /**
  * t73b: "Notificar al vendedor" (informe financiero listo). Enabled only once SABI is imported;
@@ -48,21 +49,15 @@ export function AdminReportNotice({
 
   const banner = variant === "banner";
   const sentLabel = report.sentAt
-    ? `Enviado el ${report.sentAt}${report.sentBy ? ` por ${report.sentBy}` : ""}`
+    ? `Informe notificado · enviado el ${report.sentAt}${report.sentBy ? ` por ${report.sentBy}` : ""}`
     : null;
 
   return (
-    <div
-      className={
-        banner
-          ? "flex flex-col items-center gap-1"
-          : "flex flex-wrap items-center gap-x-3 gap-y-1"
-      }
-    >
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <button
         type="button"
         disabled={disabled}
-        title={reason ?? sentLabel ?? undefined}
+        title={reason}
         onClick={() => setConfirming(true)}
         className={
           banner
@@ -70,29 +65,13 @@ export function AdminReportNotice({
             : "inline-flex h-8 items-center gap-2 rounded-full border border-[#0f766e]/30 bg-white px-3 text-xs font-medium text-[#0f766e] hover:bg-[#effaf8] disabled:cursor-not-allowed disabled:border-[#e7eaee] disabled:text-[#9aa5b1] disabled:hover:bg-white"
         }
       >
-        {banner && report.sentAt ? (
-          <CheckCircle2 className="size-3.5 text-[#7fd6cc]" aria-hidden />
-        ) : (
-          <Mail className="size-3.5" aria-hidden />
-        )}
+        <Mail className="size-3.5" aria-hidden />
         {report.sentAt ? "Volver a notificar" : "Notificar al vendedor"}
       </button>
-      {banner ? (
-        sentLabel ? (
-          <span className="hidden text-[11px] leading-4 text-[#7fd6cc] sm:block">
-            {sentLabel}
-          </span>
-        ) : reason ? (
-          <span className="sr-only">{reason}</span>
-        ) : null
-      ) : report.sentAt ? (
-        <span className="inline-flex items-center gap-1.5 text-xs text-[#0f766e]">
-          <CheckCircle2 className="size-3.5" aria-hidden />
-          Informe notificado · enviado el {report.sentAt}
-          {report.sentBy ? ` por ${report.sentBy}` : ""}
-        </span>
+      {sentLabel ? (
+        <InfoHint text={sentLabel} side="bottom" align="center" width="lg" tone={banner ? "light" : "ink"} />
       ) : reason ? (
-        <span className="text-xs text-[#5c6b78]">{reason}</span>
+        <span className={banner ? "sr-only" : "text-xs text-[#5c6b78]"}>{reason}</span>
       ) : null}
       {confirming
         ? createPortal(
