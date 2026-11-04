@@ -40,7 +40,7 @@ export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> 
   income: "Pérdidas y ganancias",
   balance: "Balance",
   structure: "Estructura (empleados)",
-  ebitda: "EBITDA positivo (ajustado si hay ajustes)",
+  ebitda: "EBITDA positivo",
 };
 
 export const ebitdaCheckHint = "Solo publicamos empresas con un EBITDA mayor que cero: el ajustado si hay ajustes, si no el del último cierre.";
