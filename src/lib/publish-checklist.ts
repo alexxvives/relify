@@ -102,13 +102,14 @@ export function adminChecksMessage(checks: AdminPublishChecks): string {
  * t85: steps that make the ficha stronger but never block publishing (the auto-publish rule above
  * stays as is). The client split only applies when the company sells to businesses.
  */
-export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda";
+export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda" | "sellerFinancing";
 
 export const recommendedCheckLabels: Record<RecommendedCheckKey, string> = {
   customer: "¿A quién vendes?",
   productSplit: "Productos y servicios",
   clientSplit: "Reparto por clientes",
   adjustedEbitda: "EBITDA ajustado",
+  sellerFinancing: "Financiación del vendedor",
 };
 
 export function recommendedChecklist(input: {
@@ -116,6 +117,8 @@ export function recommendedChecklist(input: {
   productSlices: number;
   clientSlices: number;
   adjustments: number;
+  /** t90: answered the "¿Aceptarías financiar parte del precio?" question (any answer counts). */
+  sellerFinancing?: boolean;
 }): CheckItem<RecommendedCheckKey>[] {
   const items: Omit<CheckItem<RecommendedCheckKey>, "label">[] = [
     { key: "customer", done: input.customerBase !== null, href: detailHref("structure", "panel-customer") },
@@ -129,6 +132,12 @@ export function recommendedChecklist(input: {
     done: input.adjustments > 0,
     href: detailHref("price", "ebitda-ajustado"),
     hint: "Si hay gastos o ingresos que un comprador no tendría, añádelos como ajustes para mostrar lo que el negocio gana de verdad.",
+  });
+  items.push({
+    key: "sellerFinancing",
+    done: input.sellerFinancing === true,
+    href: detailHref("price", "panel-seller-financing"),
+    hint: "Indica si aceptarías que el comprador te pague una parte del precio más adelante.",
   });
   return items.map((item) => ({ ...item, label: recommendedCheckLabels[item.key] }));
 }

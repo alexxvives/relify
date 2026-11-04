@@ -40,7 +40,7 @@ describe("recommendedChecklist (t85)", () => {
   it("adds the client split only for business sellers and never touches ready", async () => {
     const { recommendedChecklist } = await import("./publish-checklist");
     const consumer = recommendedChecklist({ customerBase: "consumer", productSlices: 1, clientSlices: 0, adjustments: 0 });
-    expect(consumer.map((item) => item.key)).toEqual(["customer", "productSplit", "adjustedEbitda"]);
+    expect(consumer.map((item) => item.key)).toEqual(["customer", "productSplit", "adjustedEbitda", "sellerFinancing"]);
     const business = recommendedChecklist({ customerBase: "business", productSlices: 0, clientSlices: 2, adjustments: 1 });
     expect(business.find((item) => item.key === "clientSplit")?.done).toBe(true);
     expect(business.every((item) => item.href.startsWith("/mi-empresa/detalles?seccion="))).toBe(true);

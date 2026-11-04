@@ -1,3 +1,4 @@
+import { storedSellerFinancing } from "@/lib/seller-financing";
 import { centsToEuroInput } from "@/lib/company-draft";
 import { incomeLabels } from "@/lib/company-copy";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -74,6 +75,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
           cif: true,
           description: true,
           saleReason: true,
+          sellerFinancing: true,
           ebitdaCents: true,
           askingPriceCents: true,
           customerBase: true,
@@ -172,6 +174,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
       productSlices: project.activitySlices.filter((slice) => slice.kind === "product").length,
       clientSlices: project.activitySlices.filter((slice) => slice.kind === "client").length,
       adjustments: storedEbitdaAdjustments(project.ebitdaAdjustments)?.length ?? 0,
+      sellerFinancing: storedSellerFinancing(project) !== null,
     }),
     payBlocked: admin.ready ? null : adminChecksMessage(admin),
     series,
