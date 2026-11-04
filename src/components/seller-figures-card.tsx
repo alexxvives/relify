@@ -1,5 +1,7 @@
 "use client";
 
+import { detailCard, detailCardHead } from "@/components/detail-card";
+
 import type { ReactNode } from "react";
 
 import { useState, useTransition } from "react";
@@ -109,9 +111,24 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
 
       {detail ? (
         // t80: two clearly separated tables, each titled in its own header, same column grid, key rows only.
-        <div className="mt-4 flex flex-col gap-8">
-          {hasIncome ? <FinancialTable title="Cuenta de resultados" aligned years={figures.incomeYears} rows={keyRows(figures.incomeRows)} /> : null}
-          {hasBalance ? <FinancialTable title="Balance" aligned years={figures.balanceYears} rows={keyRows(figures.balanceRows)} /> : null}
+        <div className="mt-4 flex flex-col gap-6">
+          {/* t92: same grey-headed card as the ficha's Detalle de cuentas (shared detailCard styles). */}
+          {hasIncome ? (
+            <div className={detailCard}>
+              <h3 className={detailCardHead}>Cuenta de resultados</h3>
+              <div className="p-3 sm:p-4">
+                <FinancialTable aligned years={figures.incomeYears} rows={keyRows(figures.incomeRows)} />
+              </div>
+            </div>
+          ) : null}
+          {hasBalance ? (
+            <div className={detailCard}>
+              <h3 className={detailCardHead}>Balance</h3>
+              <div className="p-3 sm:p-4">
+                <FinancialTable aligned years={figures.balanceYears} rows={keyRows(figures.balanceRows)} />
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
