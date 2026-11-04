@@ -8,7 +8,6 @@ import { advisoryCopy } from "@/lib/advisory";
 import { listInvestorNdaCompanies } from "@/server/listInvestorNdaCompanies";
 import { listPublicAdvisors } from "@/server/listPublicAdvisors";
 import { requireRole } from "@/server/requireRole";
-import { Card } from "@/components/ui/form";
 
 export const metadata: Metadata = {
   title: advisoryCopy.title,
@@ -29,15 +28,14 @@ async function AdvisoryPageContent({
 
   return (
     <>
-      <Card className="p-6">
-        <AdvisoryPicker
+      {/* t91: cards sit directly on the page, like the companies marketplace. */}
+      <AdvisoryPicker
           key={selectedEngagementCompany(companies, query.empresa) || "empresa"}
           layout="cards"
           advisors={advisors}
           companies={companies}
           initialCompany={selectedEngagementCompany(companies, query.empresa)}
         />
-      </Card>
     </>
   );
 }
