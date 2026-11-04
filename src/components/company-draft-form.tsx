@@ -1930,7 +1930,7 @@ export function CompanyDraftForm({
         }}
       />
       {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
+      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}

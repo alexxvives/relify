@@ -84,7 +84,6 @@ export function DetailSectionNav({
     items.map((item) => item.id),
     120,
   );
-  const complete = progress.done >= progress.total;
   const fields = progress.fields ?? [];
   const groups = items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) }));
 
@@ -123,14 +122,8 @@ export function DetailSectionNav({
 
       <aside className="hidden lg:order-last lg:block">
         <nav aria-label="Tu progreso" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
-          <div className="flex items-center gap-3">
+          <div className="flex justify-center">
             <CompletionRing done={progress.done} total={progress.total} />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#1c2740]">{complete ? "Todo listo" : "Tu progreso"}</p>
-              <p className="text-xs text-[#64748b]">
-                {complete ? "Has completado lo imprescindible." : missingSummary(progress)}
-              </p>
-            </div>
           </div>
           <ul className="flex flex-col gap-3 border-t border-[#eef0f4] pt-3">
             {groups.map(({ item, fields: groupFields }) => {
@@ -204,18 +197,6 @@ function RequirementTag({ required }: { required: boolean }) {
   );
 }
 
-/** t88: "Te faltan 2 obligatorios · 1 recomendado" (required counted apart, as on Inicio). */
-export function missingSummary(progress: { missing: Array<unknown>; total: number; missingRequired?: number; missingRecommended?: number }): string {
-  if (progress.missingRequired === undefined || progress.missingRecommended === undefined) {
-    return `Te faltan ${progress.missing.length} de ${progress.total} datos`;
-  }
-  const parts: string[] = [];
-  const required = progress.missingRequired;
-  const recommended = progress.missingRecommended;
-  if (required > 0) parts.push(`${required} ${required === 1 ? "obligatorio" : "obligatorios"}`);
-  if (recommended > 0) parts.push(`${recommended} ${recommended === 1 ? "recomendado" : "recomendados"}`);
-  return parts.length > 0 ? `Te faltan ${parts.join(" · ")}` : "Todo completo";
-}
 
 /**
  * t77/t78/t92: sticky save bar. A slim bar pinned to the bottom of the content column while the form has unsaved
