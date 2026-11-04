@@ -218,8 +218,9 @@ export function missingSummary(progress: { missing: Array<unknown>; total: numbe
 }
 
 /**
- * t77/t78: sticky save bar. Shown while the form has unsaved changes or the last save failed (with the reason),
- * and briefly after a successful save ("Cambios guardados").
+ * t77/t78/t92: sticky save bar. A slim bar pinned to the bottom of the content column while the form has unsaved
+ * changes or the last save failed (with the reason), with Descartar / Guardar; briefly "Cambios guardados" after a save.
+ * The one pattern for every unsaved-changes state on the page.
  */
 export function UnsavedBar({
   sections,
@@ -228,6 +229,7 @@ export function UnsavedBar({
   shake,
   value,
   onChoose,
+  onDiscard,
   error = null,
   savedStamp = null,
 }: {
@@ -237,6 +239,7 @@ export function UnsavedBar({
   shake: number;
   value: string;
   onChoose: (id: string) => void;
+  onDiscard?: () => void;
   error?: string | null;
   savedStamp?: number | null;
 }) {
@@ -253,11 +256,13 @@ export function UnsavedBar({
     return () => window.clearTimeout(timer);
   }, [shownStamp]);
   const justSaved = savedStamp !== null && savedStamp === shownStamp && hiddenStamp !== shownStamp && sections.length === 0;
+  const shell = "sticky bottom-0 z-30 -mx-1 mt-3 px-1 pb-3";
+  const bar = "flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-white/95 py-2 pr-2 pl-4 shadow-[0_4px_16px_-8px_rgba(28,39,64,0.3)] backdrop-blur";
 
   if (justSaved) {
     return (
-      <div className="sticky bottom-3 z-30 mt-2">
-        <p role="status" className="flex items-center gap-2 rounded-2xl border border-[#bfe6df] bg-[#e6f4f2] px-4 py-3 text-sm font-semibold text-[#0f766e] shadow-[0_8px_30px_-10px_rgba(28,39,64,0.25)]">
+      <div className={shell}>
+        <p role="status" className={`${bar} border-[#bfe6df] text-sm font-medium text-[#0f766e]`}>
           <CircleCheck className="size-4" aria-hidden />
           Cambios guardados
         </p>
@@ -268,8 +273,8 @@ export function UnsavedBar({
     return null;
   }
   return (
-    <div role="region" aria-label="Guardar cambios" className="sticky bottom-3 z-30 mt-2">
-      <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-white/95 px-4 py-3 shadow-[0_8px_30px_-10px_rgba(28,39,64,0.35)] backdrop-blur ${error ? "border-[#f0c2c2]" : "border-[#e6e9f0]"}`}>
+    <div role="region" aria-label="Guardar cambios" className={shell}>
+      <div className={`${bar} ${error ? "border-[#f0c2c2]" : "border-[#e6e9f0]"}`}>
         <div className="min-w-0 flex-1 text-sm text-[#3d4a63]">
           {error ? (
             <p role="alert" className="flex items-start gap-2 font-medium text-[#b42318]">
@@ -279,27 +284,39 @@ export function UnsavedBar({
           ) : (
             <p className="flex min-w-0 items-center gap-2">
               <span className="size-2 shrink-0 rounded-full bg-[#e0a526]" aria-hidden />
-              <span className="min-w-0">
-                <span className="font-semibold text-[#1c2740]">Cambios sin guardar</span>
-                <span className="hidden sm:inline"> en {sections.join(", ")}</span>
+              <span className="min-w-0 truncate">
+                <span className="font-medium text-[#1c2740]">Cambios sin guardar</span>
+                <span className="hidden text-[#64748b] sm:inline"> · {sections.join(", ")}</span>
               </span>
             </p>
           )}
         </div>
         {sections.length > 0 ? (
-          <button
-            key={rejected ? `${value}-${shake}` : value}
-            type="submit"
-            name="savePanel"
-            value={value}
-            disabled={saving}
-            onClick={() => onChoose(value)}
-            className={`inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-semibold text-white disabled:opacity-60 ${
-              rejected ? "releva-shake bg-[#c0362c]" : "bg-[#0f766e] hover:bg-[#0c5f59]"
-            }`}
-          >
-            {saving ? "Guardando…" : "Guardar cambios"}
-          </button>
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            {onDiscard ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onDiscard}
+                className="inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-60"
+              >
+                Descartar
+              </button>
+            ) : null}
+            <button
+              key={rejected ? `${value}-${shake}` : value}
+              type="submit"
+              name="savePanel"
+              value={value}
+              disabled={saving}
+              onClick={() => onChoose(value)}
+              className={`inline-flex h-9 items-center justify-center rounded-lg px-4 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:ring-offset-1 focus-visible:outline-none disabled:opacity-60 ${
+                rejected ? "releva-shake bg-[#c0362c]" : "bg-[#0f766e] hover:bg-[#0c5f59]"
+              }`}
+            >
+              {saving ? "Guardando…" : "Guardar"}
+            </button>
+          </div>
         ) : null}
       </div>
     </div>

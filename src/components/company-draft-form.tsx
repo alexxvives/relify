@@ -1493,6 +1493,33 @@ export function CompanyDraftForm({
     window.history.replaceState(window.history.state, "", url);
   }
 
+  // t92: "Descartar" in the save bar puts every field back to the last saved values (adjustments save in their own dialog).
+  function discardChanges() {
+    setLegalName(baseline.legalName);
+    setAddress(baseline.address);
+    setCodename(baseline.codename);
+    setFoundedYear(baseline.foundedYear);
+    setDescription(baseline.description);
+    setSaleReason(baseline.saleReason);
+    setPrincipalCnae(baseline.principalCnae);
+    setSecondaryCnaes(baseline.secondaryCnaes);
+    setNif(baseline.nif);
+    setHeadcount(baseline.headcount);
+    setCapitalPercents(baseline.capitalPercents);
+    setProductPercents(baseline.productPercents);
+    setClientPercents(baseline.clientPercents);
+    setCustomerBase(baseline.customerBase);
+    setAskingPrice(baseline.askingPrice);
+    setSellerFinancing(baseline.sellerFinancing);
+    setSellerFinancingPct(baseline.sellerFinancingPct);
+    setSellerFinancingYears(baseline.sellerFinancingYears);
+    setClosedYears(baseline.closedYears);
+    setForecastYear(baseline.forecastYear);
+    setClientError(null);
+    setRejectedSave("");
+    setSuppressStatus(true);
+  }
+
   function chooseSave(id: string) {
     setSaveTarget(id);
     setRejectedSave("");
@@ -2380,6 +2407,7 @@ export function CompanyDraftForm({
         shake={attempt}
         value={dirtySections[0]?.id ?? "basic"}
         onChoose={chooseSave}
+        onDiscard={discardChanges}
         error={pending ? null : (clientError ?? (state && !state.saved ? state.message : null))}
         savedStamp={state?.saved && !pending ? attempt : null}
       />
