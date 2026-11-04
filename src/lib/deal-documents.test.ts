@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { advisorNdaAgreement, loiAgreement, ndaAgreement, projectTitle, regionPlace, spanishDate } from "./deal-documents";
+import {
+  advisorNdaAgreement,
+  legacyAdvisorNdaAgreement,
+  legacyNdaAgreement,
+  loiAgreement,
+  ndaAgreement,
+  projectTitle,
+  regionPlace,
+  signerName,
+  spanishDate,
+} from "./deal-documents";
 
 const sample = {
   buyerName: "Laura Vidal",
@@ -43,5 +53,20 @@ describe("deal documents", () => {
     expect(projectTitle("Olivo")).toBe("Proyecto Olivo");
     expect(projectTitle("proyecto  Olivo")).toBe("Proyecto Olivo");
     expect(regionPlace("Canarias")).toBe("Canarias");
+  });
+});
+
+describe("t93 stored NDA text", () => {
+  it("keeps the pre-t92 wording for backfilled NDAs", () => {
+    const text = legacyNdaAgreement({ buyerName: "Laura Vidal", codename: "Olivo", region: "Andalucía", dateLabel: "3 de octubre de 2026" });
+    expect(text).toContain("Laura Vidal, como comprador en Relify, y el titular del proyecto Olivo (Andalucía) acuerdan:");
+    expect(text).toContain("1. El comprador usará la información del proyecto Olivo solo para valorar una posible compra.");
+    const advisor = legacyAdvisorNdaAgreement({ advisorName: "Marc Puig", codename: "Olivo", region: "Andalucía", dateLabel: "3 de octubre de 2026" });
+    expect(advisor).toContain("Marc Puig, como asesor en Relify, y el titular del proyecto Olivo (Andalucía) acuerdan:");
+  });
+
+  it("joins the signer name without stray spaces", () => {
+    expect(signerName(" Laura ", " Vidal ")).toBe("Laura Vidal");
+    expect(signerName("Laura", null)).toBe("Laura");
   });
 });

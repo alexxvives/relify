@@ -25,6 +25,14 @@ export function regionPlace(region: string): string {
   return /^(comunidad|comunitat|región|regi[oó]n|ciudad|rioja)\b/i.test(name) ? `la ${name}` : name;
 }
 
+/** t93: the signer's name as printed on signed documents ("Ana García"). */
+export function signerName(name: string, lastName: string | null): string {
+  return [name, lastName ?? ""]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
 function partiesLine(person: string, role: "Comprador" | "Asesor", codename: string, region: string): string {
   return `${person} (el ${role}) y el titular de ${projectTitle(codename)}, empresa ubicada en ${regionPlace(region)} (el Vendedor), acuerdan lo siguiente:`;
 }
@@ -86,6 +94,47 @@ export function advisorNdaAgreement(input: {
     partiesLine(input.advisorName, "Asesor", input.codename, input.region),
     "",
     `1. El Asesor usará la información de ${projectTitle(input.codename)} solo para el encargo.`,
+    "2. La firma del comprador no abre esta ficha. El asesor firma la suya.",
+    "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
+    "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa.",
+    "5. Firmar en Relify deja constancia de la aceptación. Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI).",
+  ].join("\n");
+}
+
+/**
+ * t93: wording in force before t92 (from git tag pre-t92), kept so NDAs signed then can be backfilled with the exact
+ * text that was on screen. Mirrored in prisma/migrations/20261104210000_signed_nda_text (the SQL backfill).
+ */
+export function legacyNdaAgreement(input: { buyerName: string; codename: string; region: string; dateLabel: string }): string {
+  return [
+    "ACUERDO DE CONFIDENCIALIDAD",
+    "",
+    `Fecha: ${input.dateLabel}`,
+    "",
+    `${input.buyerName}, como comprador en Relify, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
+    "",
+    `1. El comprador usará la información del proyecto ${input.codename} solo para valorar una posible compra.`,
+    "2. No la revelará a terceros, salvo a asesores que acepten esta misma confidencialidad.",
+    "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos.",
+    "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa ni impide hablar con otros compradores.",
+    "5. Firmar en Relify deja constancia de la aceptación. Este acuerdo es jurídicamente vinculante desde su aceptación (art. 23 de la Ley 34/2002, LSSI).",
+  ].join("\n");
+}
+
+export function legacyAdvisorNdaAgreement(input: {
+  advisorName: string;
+  codename: string;
+  region: string;
+  dateLabel: string;
+}): string {
+  return [
+    "ACUERDO DE CONFIDENCIALIDAD DEL ASESOR",
+    "",
+    `Fecha: ${input.dateLabel}`,
+    "",
+    `${input.advisorName}, como asesor en Relify, y el titular del proyecto ${input.codename} (${input.region}) acuerdan:`,
+    "",
+    `1. El asesor usará la información del proyecto ${input.codename} solo para el encargo.`,
     "2. La firma del comprador no abre esta ficha. El asesor firma la suya.",
     "3. Este acuerdo no entrega la razón social, el CIF, el domicilio ni los nombres de los archivos antes de esta firma.",
     "4. La confidencialidad dura dos años desde esta firma. No reserva la empresa.",

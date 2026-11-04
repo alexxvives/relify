@@ -6,9 +6,9 @@ import {
   type SignedDocumentKind,
 } from "@/lib/agreement-pdf";
 import {
-  advisorNdaAgreement,
+  legacyAdvisorNdaAgreement,
+  legacyNdaAgreement,
   loiAgreement,
-  ndaAgreement,
   spanishDate,
 } from "@/lib/deal-documents";
 import { jpegSize } from "@/lib/signature-image";
@@ -90,6 +90,7 @@ async function render(
       select: {
         advisorNdaAcceptedAt: true,
         advisorNdaSignature: true,
+        advisorNdaText: true,
         advisor: {
           select: { id: true, name: true, lastName: true, nationalId: true },
         },
@@ -101,12 +102,15 @@ async function render(
     }
     const name = fullName(row.advisor.name, row.advisor.lastName);
     const date = spanishDate(row.advisorNdaAcceptedAt);
-    const text = advisorNdaAgreement({
-      advisorName: name,
-      codename: row.project.codename,
-      region: row.project.region,
-      dateLabel: date,
-    });
+    // t93: the stored text is what was signed; regenerate only for rows that predate the column and its backfill.
+    const text =
+      row.advisorNdaText ??
+      legacyAdvisorNdaAgreement({
+        advisorName: name,
+        codename: row.project.codename,
+        region: row.project.region,
+        dateLabel: date,
+      });
     return {
       userId: row.advisor.id,
       pdf: dealDocumentPdf({
@@ -131,6 +135,7 @@ async function render(
       projectId: true,
       ndaAcceptedAt: true,
       ndaSignature: true,
+      ndaText: true,
       loiSignature: true,
       loiSignedAt: true,
       investor: {
@@ -154,12 +159,14 @@ async function render(
       return null;
     }
     const date = spanishDate(access.ndaAcceptedAt);
-    const text = ndaAgreement({
-      buyerName: name,
-      codename: access.project.codename,
-      region: access.project.region,
-      dateLabel: date,
-    });
+    const text =
+      access.ndaText ??
+      legacyNdaAgreement({
+        buyerName: name,
+        codename: access.project.codename,
+        region: access.project.region,
+        dateLabel: date,
+      });
     return {
       userId: access.investor.id,
       pdf: dealDocumentPdf({

@@ -5,7 +5,7 @@ import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { randomUUID } from "node:crypto";
 import { advisorIsListed } from "@/lib/advisor-directory";
 import { advisorInterestBody, advisoryServices } from "@/lib/advisory";
-import { advisorNdaAgreement, spanishDate } from "@/lib/deal-documents";
+import { advisorNdaAgreement, signerName, spanishDate } from "@/lib/deal-documents";
 import type { DealStep } from "@/lib/deal-pipeline";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { platformTermsCopy } from "@/lib/platform-terms";
@@ -883,6 +883,7 @@ export async function acceptAdvisorNda(
       client: true,
       advisorNdaAcceptedAt: true,
       depositPaidAt: true,
+      project: { select: { codename: true, region: true } },
     },
   });
   const outcome = advisorNdaOutcome({
@@ -917,12 +918,20 @@ export async function acceptAdvisorNda(
     return { ok: false, message: platformTermsCopy.signRequired };
   }
 
-  if (outcome.stamp && signature) {
+  if (outcome.stamp && signature && row) {
+    const signedAt = new Date();
     await prisma.advisoryEngagement.update({
       where: { id: row.id },
       data: {
-        advisorNdaAcceptedAt: new Date(),
+        advisorNdaAcceptedAt: signedAt,
         advisorNdaSignature: signatureBytes(signature),
+        // t93: freeze the wording signed; the PDF is rendered from this text.
+        advisorNdaText: advisorNdaAgreement({
+          advisorName: signerName(user.name, user.lastName),
+          codename: row.project.codename,
+          region: row.project.region,
+          dateLabel: spanishDate(signedAt),
+        }),
       },
     });
     await storeSignedDocumentQuietly("advisor_nda", row.id);

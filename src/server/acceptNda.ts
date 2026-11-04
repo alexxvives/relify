@@ -1,3 +1,4 @@
+import { ndaAgreement, signerName, spanishDate } from "@/lib/deal-documents";
 import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
 import { incomingNdaNotice, ndaAcceptedNotice } from "@/lib/notifications";
 import { platformTermsCopy } from "@/lib/platform-terms";
@@ -25,6 +26,7 @@ export async function acceptNda(
       id: true,
       status: true,
       codename: true,
+      region: true,
       ownerId: true,
       slug: true,
     },
@@ -74,6 +76,13 @@ export async function acceptNda(
       data: {
         ndaAcceptedAt: acceptedAt,
         ndaSignature: signatureBytes(signature),
+        // t93: freeze the wording signed, like the LOI body; later copy edits never change a signed NDA.
+        ndaText: ndaAgreement({
+          buyerName: signerName(user.name, user.lastName),
+          codename: project.codename,
+          region: project.region,
+          dateLabel: spanishDate(acceptedAt),
+        }),
       },
     });
     await storeSignedDocumentQuietly("nda", existing.id);
