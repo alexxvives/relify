@@ -21,7 +21,7 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
-import { cnaeClasses } from "@/lib/cnae-2009";
+import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
 import { estimatePriceRange, formatMultiple, priceStanding, type PriceEstimate } from "@/lib/valuation-multiples";
 import { formatEur, formatEurTrimmed } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -2433,6 +2433,7 @@ function MarketPreview({
     askingPriceCents: previewCents(askingPrice) ?? 0,
     sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,
     cnaeCode: principalCnae || null,
+    cnaeTitle: principalCnae ? cnaeTitleOf(principalCnae) : null,
     summary: summary.trim() || null,
   };
 

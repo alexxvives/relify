@@ -352,26 +352,18 @@ export function MarketCard({
       ) : null}
 
       <div className="flex flex-1 flex-col px-5 pb-5">
-        {/* The CNAE line starts right of the sector badge that hangs from the photo. */}
-        <div className="mt-3 flex min-h-11 items-start gap-2 pl-[6.75rem]">
+        {/* The CNAE code chip starts right of the sector badge that hangs from the photo. */}
+        <div className="mt-3 flex min-h-8 items-start gap-2 pl-[6.75rem]">
           {project.cnaeCode ? (
-            <p
-              className="line-clamp-2 min-h-10 min-w-0 flex-1 text-xs leading-5 text-[#3d4a63]"
-              title={
-                project.cnaeTitle
-                  ? `CNAE ${project.cnaeCode} · ${project.cnaeTitle}`
-                  : undefined
-              }
-            >
-              <span className="mr-1.5 rounded-md bg-[#f1f3f8] px-1.5 py-0.5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
-                CNAE {project.cnaeCode}
-              </span>
-              {project.cnaeTitle}
-            </p>
-          ) : (
-            <span className="flex-1" />
-          )}
+            <span className="rounded-md bg-[#f1f3f8] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
+              CNAE {project.cnaeCode}
+            </span>
+          ) : null}
         </div>
+        {/* t91: the activity name on its own line, right above the description; one line, full name on hover. */}
+        <p className="mt-2 h-5 truncate text-sm leading-5 font-medium text-[#1c2740]" title={project.cnaeTitle ?? undefined}>
+          {project.cnaeTitle ?? ""}
+        </p>
         {/* t73: the description block always takes exactly two lines, so every card in a row has the same height. */}
         <p
           className={`mt-2 line-clamp-2 h-10 text-sm leading-5 ${project.summary ? "text-[#5c6b78]" : "text-[#8a96a3] italic"}`}
