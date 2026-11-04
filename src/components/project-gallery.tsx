@@ -56,20 +56,21 @@ export function PhotoLightbox({ photos, index, onIndex, onClose }: { photos: Gal
     "absolute top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1c2740] shadow hover:bg-white focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none";
   return (
     <div role="dialog" aria-modal="true" aria-label={`Foto ${index + 1} de ${count}`} className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1220]/85 p-4" onClick={onClose}>
-      <div className="relative flex max-h-full w-full max-w-5xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
+      {/* t89: any click outside the photo and its controls (backdrop or empty space around it) closes the viewer. */}
+      <div className="relative flex max-h-full w-full max-w-5xl items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photoSrc(photo.id)} alt={`Foto del negocio ${index + 1}`} className="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl" />
+        <img src={photoSrc(photo.id)} alt={`Foto del negocio ${index + 1}`} onClick={(event) => event.stopPropagation()} className="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl" />
         {count > 1 ? (
           <>
-            <button type="button" aria-label="Foto anterior" onClick={() => step(-1)} className={`${navButton} left-2`}>
+            <button type="button" aria-label="Foto anterior" onClick={(event) => { event.stopPropagation(); step(-1); }} className={`${navButton} left-2`}>
               <ChevronLeft className="size-5" aria-hidden />
             </button>
-            <button type="button" aria-label="Foto siguiente" onClick={() => step(1)} className={`${navButton} right-2`}>
+            <button type="button" aria-label="Foto siguiente" onClick={(event) => { event.stopPropagation(); step(1); }} className={`${navButton} right-2`}>
               <ChevronRight className="size-5" aria-hidden />
             </button>
           </>
         ) : null}
-        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#1c2740]/85 px-2.5 py-0.5 text-xs font-medium text-white tabular-nums">
+        <span onClick={(event) => event.stopPropagation()} className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#1c2740]/85 px-2.5 py-0.5 text-xs font-medium text-white tabular-nums">
           {index + 1} / {count}
         </span>
       </div>
