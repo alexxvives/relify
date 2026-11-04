@@ -28,6 +28,11 @@ export const ebitdaAdjustmentLabels: Record<EbitdaAdjustmentType, string> = {
 export const ebitdaAdjustmentDirections = ["cost", "income"] as const;
 export type EbitdaAdjustmentDirection = (typeof ebitdaAdjustmentDirections)[number];
 
+/** t92: colour of the adjusted-EBITDA pill: red below the accounting EBITDA, green above, neutral when equal. */
+export function adjustedEbitdaTone(ebitdaCents: number, adjustedCents: number): "down" | "up" | "flat" {
+  return adjustedCents < ebitdaCents ? "down" : adjustedCents > ebitdaCents ? "up" : "flat";
+}
+
 export const ebitdaAdjustmentDirectionLabels: Record<EbitdaAdjustmentDirection, string> = {
   cost: "Coste",
   income: "Ingreso",

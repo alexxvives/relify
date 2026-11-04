@@ -80,3 +80,12 @@ describe("ebitda adjustments", () => {
     expect(adjustmentRowsValid([])).toBe(true);
   });
 });
+
+describe("adjustedEbitdaTone (t92)", () => {
+  it("red below, green above, neutral when equal", async () => {
+    const { adjustedEbitdaTone } = await import("./ebitda-adjustments");
+    expect(adjustedEbitdaTone(100, 90)).toBe("down");
+    expect(adjustedEbitdaTone(100, 120)).toBe("up");
+    expect(adjustedEbitdaTone(100, 100)).toBe("flat");
+  });
+});

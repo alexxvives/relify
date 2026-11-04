@@ -61,7 +61,7 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
-import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { adjustedEbitdaTone, ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
@@ -219,6 +219,23 @@ function Kpi({
   );
 }
 
+const adjustedPillTone = {
+  down: "bg-[#fdecea] text-[#a12f2f]",
+  up: "bg-[#e3f4ea] text-[#17663a]",
+  flat: "bg-[#eef0f4] text-[#475467]",
+} as const;
+
+/** t92: the adjustments' net effect as a pill: red when they lower the EBITDA, green when they raise it, grey when equal. */
+function AdjustedPill({ ebitdaCents, adjustedCents }: { ebitdaCents: number; adjustedCents: number }) {
+  const tone = adjustedEbitdaTone(ebitdaCents, adjustedCents);
+  const delta = adjustedCents - ebitdaCents;
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${adjustedPillTone[tone]}`}>
+      {tone === "flat" ? "Igual al EBITDA" : `${delta > 0 ? "+" : "−"}${compactEur(Math.abs(delta))} de ajustes`}
+    </span>
+  );
+}
+
 /** t82: EBITDA → itemised seller adjustments → adjusted EBITDA. Reasons only after the NDA (or for admin). */
 function AdjustmentBridge({
   ebitdaCents,
@@ -261,7 +278,7 @@ function AdjustmentBridge({
   );
 }
 
-function Fact({ icon: Icon, label, value, source, note, raised = false }: { icon: typeof Building2; label: string; value: string; source?: FigureSource; note?: string; raised?: boolean }) {
+function Fact({ icon: Icon, label, value, source, note, raised = false, pill }: { icon: typeof Building2; label: string; value: string; source?: FigureSource; note?: string; raised?: boolean; pill?: ReactNode }) {
   return (
     <div className={`flex min-w-0 items-start gap-3 rounded-xl p-3 ${raised ? "border border-[#d5dbe3] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.06)]" : "bg-[#f7f8fb]"}`}>
       <Icon className="mt-0.5 size-4 shrink-0 text-[#0f766e]" aria-hidden />
@@ -270,7 +287,10 @@ function Fact({ icon: Icon, label, value, source, note, raised = false }: { icon
           {label}
           {source ? <SourceBadge source={source} /> : null}
         </span>
-        <span className="block text-sm font-semibold break-words text-[#1c2740]">{value}</span>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold break-words text-[#1c2740]">
+          {value}
+          {pill}
+        </span>
         {note ? <span className="mt-0.5 block text-[11px] leading-4 text-[#8b95a7]">{note}</span> : null}
       </span>
     </div>
@@ -815,7 +835,8 @@ export function CompanyReport({
             <Fact
               icon={Receipt}
               label={companyCopy.adjustedEbitdaLabel}
-              value={deal.adjustedSet ? `${formatEur(project.adjustedEbitdaCents)}${adjustment !== 0 ? ` (${adjustment > 0 ? "+" : ""}${compactEur(adjustment)} de ajustes)` : ""}` : "Pendiente del vendedor"}
+              value={deal.adjustedSet ? formatEur(project.adjustedEbitdaCents) : "Pendiente del vendedor"}
+              pill={deal.adjustedSet ? <AdjustedPill ebitdaCents={project.ebitdaCents} adjustedCents={project.adjustedEbitdaCents} /> : null}
               source="seller"
               note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
             />
