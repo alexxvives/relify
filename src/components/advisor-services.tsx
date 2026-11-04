@@ -14,7 +14,7 @@ import {
   type AdvisorServiceId,
   type StoredService,
 } from "@/lib/advisor-profile";
-import { advisorSectorName, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
+import { advisorSectorName, advisorSectorShort, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 import { Button, Card, Input, Textarea } from "@/components/ui/form";
 
@@ -59,7 +59,7 @@ function PriceField({
 function SectorMenu({ selected, onToggle }: { selected: string[]; onToggle: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const options = [...advisorSectors].sort((left, right) => left.name.localeCompare(right.name, "es"));
+  const options = [...advisorSectors].sort((left, right) => left.short.localeCompare(right.short, "es"));
 
   useEffect(() => {
     if (!open) {
@@ -130,7 +130,7 @@ function SectorMenu({ selected, onToggle }: { selected: string[]; onToggle: (id:
                   >
                     {checked ? <Check className="size-3" /> : null}
                   </span>
-                  {sector.name}
+                  <span title={sector.name}>{sector.short}</span>
                 </button>
               </li>
             );
@@ -365,7 +365,7 @@ export function AdvisorServices({
                         onClick={() => setSectors((current) => current.filter((sector) => sector !== id))}
                         className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]"
                       >
-                        {advisorSectorName(id)}
+                        <span title={advisorSectorName(id)}>{advisorSectorShort(id)}</span>
                       </button>
                     </li>
                   ))}

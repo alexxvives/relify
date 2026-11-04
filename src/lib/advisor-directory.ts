@@ -1,7 +1,7 @@
 import { formatDecimal } from "./money";
 import { advisorCopy } from "./advisor-copy";
 import { corporateIsComplete, formatAdvisorEuros, readStoredOperations, readStoredServices, type AdvisorServiceId } from "./advisor-profile";
-import { advisorSectorName } from "./advisor-sectors";
+import { advisorSectorShort } from "./advisor-sectors";
 
 export const publicAdvisorFields = ["userId", "description", "sectors", "services", "cases"] as const;
 
@@ -83,7 +83,7 @@ export function toPublicAdvisorCard(profile: {
     fromCents: service.priceFromCents,
   }));
   const cases = readStoredOperations(profile.closedOperations).map((operation) => ({
-    sector: advisorSectorName(operation.sectorId),
+    sector: advisorSectorShort(operation.sectorId),
     closedOn: caseDate(operation.closingDate),
     value: formatAdvisorEuros(operation.enterpriseValueCents),
   }));
@@ -93,7 +93,7 @@ export function toPublicAdvisorCard(profile: {
     name: profile.businessName.trim(),
     verified: profile.verifiedAt != null,
     description: profile.description.trim(),
-    sectors: profile.sectors.map((sector) => advisorSectorName(sector)),
+    sectors: profile.sectors.map((sector) => advisorSectorShort(sector)),
     services,
     cases,
   };

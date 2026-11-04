@@ -29,7 +29,7 @@ describe("toPublicAdvisorCard", () => {
     const card = toPublicAdvisorCard(complete);
 
     expect(card?.description).toContain("compraventa");
-    expect(card?.sectors).toEqual(["Actividades profesionales, científicas y técnicas"]);
+    expect(card?.sectors).toEqual(["Servicios profesionales"]);
     expect(card?.services[0]?.title).toBe("Due Diligence");
     expect(card?.services[0]?.fromCents).toBe(100_000);
     expect(card?.cases).toEqual([]);
