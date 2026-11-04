@@ -123,8 +123,8 @@ export function DealPipeline({
             const labelClass =
               step.state === "current"
                 ? onDark
-                  ? "rounded-full bg-white px-3 py-1 text-center text-sm font-semibold text-[#1c2740] shadow-sm"
-                  : "rounded-full bg-[#e8f6ee] px-3 py-1 text-center text-sm font-semibold text-[#17663a]"
+                  ? "text-center text-sm font-bold text-white"
+                  : "text-center text-sm font-bold text-[#17663a]"
                 : step.state === "done"
                   ? onDark
                     ? "text-center text-xs font-medium text-[#b8ffd8]"
