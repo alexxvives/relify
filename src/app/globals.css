@@ -2662,7 +2662,10 @@
   color: #ffffff;
 }
 
-.shell-dark .shell-tools > a {
+.shell-dark .shell-tools > a,
+.shell-dark .shell-tools > a:hover,
+.shell-dark .shell-tools > a:focus-visible {
+  /* t91: the premium crown stays gold on hover/focus (and on /premium) instead of turning white. */
   color: #e9c46a;
 }
 
