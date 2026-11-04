@@ -205,6 +205,10 @@ model Project {
   /// t82: seller adjustments [{type, amountCents, reason}]; null = legacy declared figure without detail.
   ebitdaAdjustments   Json?                @map("ebitda_adjustments")
   askingPriceCents    BigInt                  @map("asking_price_cents")
+  /// t90: seller financing: "yes" | "no" | "negotiable"; null = not answered. Terms only for yes/negotiable.
+  sellerFinancing        String? @map("seller_financing")
+  sellerFinancingMaxPct  Int?    @map("seller_financing_max_pct")
+  sellerFinancingYears   Int?    @map("seller_financing_years")
   verifiedAt          DateTime?            @map("verified_at")
   netDebtCents        BigInt                  @map("net_debt_cents")
   workingCapitalCents BigInt                  @map("working_capital_cents")
