@@ -308,6 +308,17 @@ export function AppFrame({
 
   const saleItem = destinations.find((item) => goldPillHrefs.includes(item.href));
   const navItems = destinations.filter((item) => !goldPillHrefs.includes(item.href));
+  // t93: navigating into a collapsed section opens it, so the current page is always visible after a route change.
+  const [expandedFor, setExpandedFor] = useState(routePath);
+  if (expandedFor !== routePath) {
+    setExpandedFor(routePath);
+    const currentSection = navItems.find((item) => destinationIsCurrent(item.href, routePath))?.section;
+    if (currentSection && collapsed.has(currentSection)) {
+      const next = new Set(collapsed);
+      next.delete(currentSection);
+      setCollapsed(next);
+    }
+  }
 
   function closeMenu() {
     setOpen(false);
@@ -354,7 +365,10 @@ export function AppFrame({
             const previous = navItems[index - 1];
             const showSection = item.section !== undefined && item.section !== previous?.section;
             const sectionId = item.section ? `nav-section-${item.section.replace(/\W+/g, "-")}` : undefined;
-            const hidden = item.section !== undefined && collapsed.has(item.section) && !selected;
+            // t93: a collapsed section hides all its rows, the current one too; its header carries a teal dot instead.
+            const hidden = item.section !== undefined && collapsed.has(item.section);
+            const sectionCurrent =
+              item.section !== undefined && navItems.some((other) => other.section === item.section && destinationIsCurrent(other.href, pathname));
             const seenIds = new Set(seen.split(",").filter((id) => id.length > 0));
             const alert =
               ready &&
@@ -374,7 +388,15 @@ export function AppFrame({
                     }}
                     className="shell-label flex w-full items-center justify-between rounded-lg px-4 pt-5 pb-2 text-[11px] font-semibold tracking-[0.08em] text-[#8a93a8] uppercase hover:text-[#d6dbe6] focus-visible:outline-2 focus-visible:outline-[#2fc4b2]"
                   >
-                    {item.section}
+                    <span className="inline-flex items-center gap-2">
+                      {item.section}
+                      {sectionCurrent && collapsed.has(item.section) ? (
+                        <>
+                          <span className="size-1.5 rounded-full bg-[#2fc4b2]" aria-hidden />
+                          <span className="sr-only">(contiene la página actual)</span>
+                        </>
+                      ) : null}
+                    </span>
                     <ChevronDownIcon
                       size={14}
                       className={`shrink-0 transition-transform duration-200 ${collapsed.has(item.section) ? "-rotate-90" : ""}`}
