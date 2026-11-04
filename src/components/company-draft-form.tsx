@@ -2401,33 +2401,36 @@ function PublicFicha({
     <>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="flex flex-col gap-2">
-          <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
-            <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
-            <FieldHint text={companyCopy.codenameHint} />
-          </span>
-          <div className="flex items-center gap-2">
-            <Input
-              id="project-codename"
-              name="codename"
-              required
-              readOnly
-              value={codename}
-              className={`min-w-0 flex-1 bg-[#f7f8fb] text-[#1c2740]`}
-            />
+          {/* t91: "Generar otro" is a small link on the label row, top right of the name field. */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
+              <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
+              <FieldHint text={companyCopy.codenameHint} />
+            </span>
             <button
               type="button"
               disabled={regenerating}
+              aria-controls="project-codename"
               onClick={() => {
                 startRegenerate(async () => {
                   onCodename(await generateCodenameAction(codename));
                 });
               }}
-              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#d5dbe3] bg-white px-3 text-sm font-medium text-[#465ab4] hover:bg-[#f4f7ff] disabled:opacity-60"
+              className="inline-flex shrink-0 items-center gap-1 rounded text-xs font-medium text-[#0f766e] hover:text-[#1c2740] hover:underline focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-60"
             >
-              <RefreshCw className={`size-4 ${regenerating ? "animate-spin" : ""}`} aria-hidden />
+              <RefreshCw className={`size-3.5 ${regenerating ? "animate-spin" : ""}`} aria-hidden />
               {companyCopy.codenameRegenerate}
             </button>
           </div>
+          <Input
+            id="project-codename"
+            name="codename"
+            required
+            readOnly
+            value={codename}
+            aria-live="polite"
+            className="min-w-0 bg-[#f7f8fb] text-[#1c2740]"
+          />
         </div>
         <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
       </div>
