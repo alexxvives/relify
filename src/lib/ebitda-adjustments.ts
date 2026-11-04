@@ -29,8 +29,8 @@ export const ebitdaAdjustmentDirections = ["cost", "income"] as const;
 export type EbitdaAdjustmentDirection = (typeof ebitdaAdjustmentDirections)[number];
 
 export const ebitdaAdjustmentDirectionLabels: Record<EbitdaAdjustmentDirection, string> = {
-  cost: "Coste a sumar",
-  income: "Ingreso a restar",
+  cost: "Coste",
+  income: "Ingreso",
 };
 
 /** Sensible starting point per type; the seller can always switch it. */

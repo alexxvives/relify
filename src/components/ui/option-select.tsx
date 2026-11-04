@@ -17,6 +17,7 @@ export function OptionSelect({
   invalid = false,
   id,
   describedBy,
+  placeholder,
 }: {
   name?: string;
   label: string;
@@ -31,6 +32,8 @@ export function OptionSelect({
   /** t91: lets a visible <label htmlFor> name the trigger. */
   id?: string;
   describedBy?: string;
+  /** t92: muted prompt for an empty value, so the trigger never repeats the field label in larger type. */
+  placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -126,7 +129,7 @@ export function OptionSelect({
             : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
         }
       >
-        <span className="truncate">{selected?.label ?? label}</span>
+        <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"}>{selected?.label ?? placeholder ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />
       </button>
       {open ? (

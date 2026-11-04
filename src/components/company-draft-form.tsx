@@ -586,6 +586,9 @@ function SellerFinancingField({
  * inline and saves through its own server action; closing or cancelling discards the copy, so the page never
  * holds half-edited adjustments (and never shows a page-level adjustments error).
  */
+// t92: one label style for every field in the adjustments dialog.
+const adjustmentLabelClass = "block text-xs font-medium text-[#475467]";
+
 function EbitdaAdjustmentsDialog({
   rows: savedRows,
   onSaved,
@@ -711,13 +714,14 @@ function EbitdaAdjustmentsDialog({
                     <div className="flex items-start gap-2">
                       <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_8.5rem]">
                         <div className="min-w-0">
-                          <label htmlFor={`${id}-type`} className="text-xs font-medium text-[#475467]">
+                          <label htmlFor={`${id}-type`} className={adjustmentLabelClass}>
                             {companyCopy.adjustmentTypeLabel}
                           </label>
                           <div className="mt-1">
                             <OptionSelect
                               id={`${id}-type`}
                               label={companyCopy.adjustmentTypeLabel}
+                              placeholder="Elige un tipo"
                               value={row.type}
                               invalid={Boolean(rowErrors.type)}
                               describedBy={rowErrors.type ? `${id}-type-error` : undefined}
@@ -737,8 +741,8 @@ function EbitdaAdjustmentsDialog({
                           ) : null}
                         </div>
                         <div className="min-w-0">
-                          <span id={`${id}-direction-label`} className="text-xs font-medium text-[#475467]">
-                            Qué es
+                          <span id={`${id}-direction-label`} className={adjustmentLabelClass}>
+                            Coste / Ingreso
                           </span>
                           <div role="radiogroup" aria-labelledby={`${id}-direction-label`} className="mt-1 flex h-11 rounded-xl border border-[#e7eaee] bg-white p-1">
                             {ebitdaAdjustmentDirections.map((direction) => {
@@ -762,7 +766,7 @@ function EbitdaAdjustmentsDialog({
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <label htmlFor={`${id}-amount`} className="text-xs font-medium text-[#475467]">
+                          <label htmlFor={`${id}-amount`} className={adjustmentLabelClass}>
                             {companyCopy.adjustmentAmountLabel}
                           </label>
                           <div className="relative mt-1">
@@ -789,7 +793,7 @@ function EbitdaAdjustmentsDialog({
                           ) : null}
                         </div>
                         <div className="min-w-0 sm:col-span-3">
-                          <label htmlFor={`${id}-reason`} className="flex items-baseline justify-between text-xs font-medium text-[#475467]">
+                          <label htmlFor={`${id}-reason`} className={`flex items-baseline justify-between ${adjustmentLabelClass}`}>
                             <span>Justificación</span>
                             <span className="font-normal text-[#98a2b3] tabular-nums">
                               {row.reason.length}/{ebitdaAdjustmentReasonMax}
