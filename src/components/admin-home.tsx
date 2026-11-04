@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from "lucide-react";
+import { ChevronRight, Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from "lucide-react";
 import { CountBars, type DonutPalette } from "@/components/admin-charts";
 import { SectorTreemap } from "@/components/sector-treemap";
 import { CountBadge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { adminCopy } from "@/lib/admin-copy";
 import type { AdminDashboard } from "@/server/getAdminDashboard";
 import { Card } from "@/components/ui/form";
 
-const cardClass = "block rounded-2xl border border-[#e7eaee] bg-white p-5 hover:border-[#465ab4]";
+const cardClass = "block rounded-2xl border border-[#e7eaee] bg-white p-5";
 
 export function AdminHome({ overview }: { overview: AdminDashboard }) {
   const accounts = overview.roles.reduce((sum, row) => sum + row.count, 0);
@@ -72,11 +72,10 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
         />
       </div>
       <Card>
-        <h2 className="text-2xl font-semibold text-[#1c2740]">
-          <Link href="/admin/empresas" className="hover:text-[#465ab4]">
-            {adminCopy.sectorsTitle}
-          </Link>
-        </h2>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="text-2xl font-semibold text-[#1c2740]">{adminCopy.sectorsTitle}</h2>
+          <SectionLink href="/admin/empresas" title={adminCopy.sectorsTitle} />
+        </div>
         <SectorTreemap sectors={overview.sectors} empty={adminCopy.sectorsEmpty} />
       </Card>
     </div>
@@ -101,12 +100,16 @@ function ChartLink({
   aside?: string;
 }) {
   return (
-    <Link href={href} className={cardClass}>
+    // t91: the card is read-only; only the small "Ver sección" link beside the title navigates.
+    <section className={cardClass}>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#1c2740]">
-          {title}
-          {fresh > 0 ? <CountBadge count={fresh} label={`${fresh} nuevos`} /> : null}
-        </h2>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#1c2740]">
+            {title}
+            {fresh > 0 ? <CountBadge count={fresh} label={`${fresh} nuevos`} /> : null}
+          </h2>
+          <SectionLink href={href} title={title} />
+        </div>
         <div className="flex items-start gap-4">
           {aside ? (
             <p className="text-right">
@@ -121,6 +124,19 @@ function ChartLink({
         </div>
       </div>
       {total === 0 ? <p className="mt-4 text-sm text-[#667085]">{adminCopy.empty}</p> : <CountBars rows={rows} palette={palette} />}
+    </section>
+  );
+}
+
+function SectionLink({ href, title }: { href: string; title: string }) {
+  return (
+    <Link
+      href={href}
+      aria-label={`Ver sección: ${title}`}
+      className="inline-flex items-center gap-0.5 rounded text-sm font-medium text-[#0f766e] hover:text-[#1c2740] hover:underline focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+    >
+      Ver sección
+      <ChevronRight className="size-4" aria-hidden />
     </Link>
   );
 }
