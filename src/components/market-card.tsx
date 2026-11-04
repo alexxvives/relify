@@ -346,14 +346,9 @@ export function MarketCard({
       ) : null}
 
       <div className="flex flex-1 flex-col px-5 pb-5">
-        {/* The CNAE code chip starts right of the sector badge that hangs from the photo. */}
+        {/* t93: this row (right of the sector badge) holds only the financing chip; the CNAE code sits above the activity name. */}
         {/* t92: the seller-financing chip shares this row, so cards with and without it keep the same height. */}
         <div className="mt-3 flex min-h-8 min-w-0 flex-wrap items-start gap-1.5 pl-[6.75rem]">
-          {project.cnaeCode ? (
-            <span className="rounded-md bg-[#f1f3f8] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
-              CNAE {project.cnaeCode}
-            </span>
-          ) : null}
           {project.financingChip ? (
             <span className="inline-flex min-w-0 items-center gap-1 rounded-md bg-[#e6f4f2] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#0f766e]">
               <HandCoins className="size-3.5 shrink-0" aria-hidden />
@@ -362,7 +357,14 @@ export function MarketCard({
           ) : null}
         </div>
         {/* t91: the activity name on its own line, right above the description; one line, full name on hover. */}
-        <p className="mt-2 h-5 truncate text-sm leading-5 font-medium text-[#1c2740]" title={project.cnaeTitle ?? undefined}>
+        <div className="mt-2 flex h-6 items-center">
+          {project.cnaeCode ? (
+            <span className="rounded-md bg-[#f1f3f8] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
+              CNAE {project.cnaeCode}
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-1 h-5 truncate text-sm leading-5 font-medium text-[#1c2740]" title={project.cnaeTitle ?? undefined}>
           {project.cnaeTitle ?? ""}
         </p>
         {/* t73: the description block always takes exactly two lines, so every card in a row has the same height. */}
