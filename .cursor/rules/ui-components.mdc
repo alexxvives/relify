@@ -6,9 +6,12 @@ alwaysApply: false
 
 # UI
 
-Public pages and the signed-in shell use the Costa tokens in `src/app/globals.css` (`--public-*`): fog, ink, secondary text, and accent, with DM Sans. The word Releva uses Instrument Serif italic. Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA ajustado, precio). Do not build a dense listings table.
+Public pages and the signed-in shell use the Costa tokens in `src/app/globals.css` (`--public-*`): fog, ink, secondary text, and accent, with DM Sans. The word Releva uses Instrument Serif italic. Controls inside a signed-in page use the indigo kit in `src/components/ui/form` (`#465ab4`). Read `docs/DESIGN.md` before a visual change. Do not restyle one palette into the other.
+
+Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA ajustado, precio). Do not build a dense listings table.
 
 - Server Components by default. Add `"use client"` only for state, events, or browser APIs.
+- Fields, buttons, cards, and tags come from `src/components/ui/form`. Custom dropdowns are `OptionSelect`. Do not use `src/components/ui/button.tsx` on a product screen, and do not add a second menu.
 - Style with Tailwind utilities. No CSS-in-JS and no new component library.
 - Primitives stay in `src/components/ui`. Feature components stay in `src/components`.
 - Named exports only.

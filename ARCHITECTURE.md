@@ -1,6 +1,6 @@
 # Architecture
 
-Target layout. These directories do not exist until the scaffolding session creates them. Do not invent parallel folders.
+The app lives in these directories. Do not invent parallel folders.
 
 ```
 src/app/                routes, layouts, route handlers

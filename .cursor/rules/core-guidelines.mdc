@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Core guidelines
 
-Facts live in `TECH_STACK.md`, `ARCHITECTURE.md`, `docs/STATUS.md`, and `docs/DECISIONS.md`. Do not contradict them.
+Facts live in `TECH_STACK.md`, `ARCHITECTURE.md`, `docs/STATUS.md`, `docs/DECISIONS.md`, and `docs/DESIGN.md`. Do not contradict them. Read `docs/DESIGN.md` before a UI change.
 
 ## Code
 

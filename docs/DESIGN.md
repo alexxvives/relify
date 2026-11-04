@@ -16,7 +16,16 @@ Full rule text: `.cursor/skills/ui-ux-pro-max/references/quick-reference.md`; pr
 
 - B2B marketplace for buying and selling Spanish SMEs (pymes). Tone: trustworthy, calm, financial. Spanish copy, `es-ES` number and currency formats (`999.999,00 €`).
 - Style: clean "trust and authority" flat UI with soft depth. No glassmorphism on app pages, no emoji as icons (use `lucide-react`), no decorative gradients behind data.
-- Stack: Next 16 via vinext on Cloudflare Workers, React 19, Tailwind v4. Use utility classes and the tokens below; do not add a CSS framework or component library.
+- Stack: Next 16, React 19, Tailwind v4. Local dev is `npm run dev`. Production is vinext on Cloudflare Workers. Use utility classes and the tokens below. Do not add a CSS framework or a second component library.
+
+## Two surfaces, two palettes
+
+Do not restyle one into the other unless the task says so.
+
+| Surface | Use |
+| --- | --- |
+| Public pages and the signed-in shell (sidebar, page background, the word Releva) | Costa tokens in `src/app/globals.css`: `public-paper`, `public-ink`, `public-muted`, `public-clay`, `public-line`, `public-sand`. Decision: 2026-10-05. |
+| Controls inside a signed-in page (fields, buttons, cards, links, focus) | The indigo kit below, implemented in `src/components/ui/form`. One app primary: `#465ab4`. |
 
 ## Tokens
 
@@ -27,14 +36,27 @@ Full rule text: `.cursor/skills/ui-ux-pro-max/references/quick-reference.md`; pr
 | Card border | `#e7eaee` |
 | Soft panel | `#f4f7ff`, `#eef1f8` |
 | Success / verified | text `#1b7a45`, bg `#e7f6ee` |
-| Public (marketing) ink / paper | `public-ink #12343a`, `public-paper #e5eef0` |
+| Public (marketing and shell) ink / paper | `public-ink #12343a`, `public-paper #e5eef0` |
 | Public primary (clay) | `public-clay #0f6e73`, hover `public-clay-deep #0b5559` |
-| Seller CTA | `#0c7c78` |
-| App primary button (signed-in pages) | `#465ab4`; every other button is secondary (white, `border-[#e1e6ee]`). Green `#17663a` only for sign/accept steps; teal `public-clay` only on public pages. |
-| Fonts | DM Sans (UI, `font-sans`), Instrument Serif (public display only) |
-| Radius | cards `rounded-2xl`/`rounded-3xl`, buttons and chips `rounded-full` |
+| Seller CTA on public pages | `#0c7c78` |
+| App primary button | `#465ab4` via `Button` from `src/components/ui/form`. Secondary is `tone="outline"`. Green `#17663a` only for sign/accept steps. `public-clay` on public pages and the shell, not on an in-app form button. |
+| Fonts | DM Sans (UI, `font-sans`). Instrument Serif is the word Releva, on public pages and in the signed-in shell. |
+| Radius | cards `rounded-2xl`/`rounded-3xl`, buttons and chips `rounded-full` or the form kit's `rounded-xl` |
 
-Prefer the `public-*` Tailwind tokens on marketing pages. On app pages, reuse the hex values above rather than inventing new shades.
+Do not invent a new hex. Match the surface you are editing.
+
+## Reuse these
+
+| Need | Use |
+| --- | --- |
+| Text field, password, textarea, native select, button, card, tag | `src/components/ui/form` (`Field`, `Input`, `PasswordInput`, `Textarea`, `Select`, `Button`, `buttonClass`, `Card`, `Tag`) |
+| Custom dropdown | `OptionSelect` in `src/components/ui/option-select.tsx`. One menu open at a time. Do not add another menu. |
+| Hover hint | `InfoHint` and `tooltipBubble` in `src/components/ui/info-hint.tsx` |
+| Phone | `PhoneField` |
+| Signed-in chrome | `AppFrame`. Page width: `.layout-page`, `.layout-cards`, `.layout-table` in `src/app/globals.css` |
+| Marketplace card | `MarketCard` |
+
+`src/components/ui/button.tsx` is the shadcn primitive. Its size and color are not Relify. Do not use it on a product screen.
 
 ## Rules (priority order)
 

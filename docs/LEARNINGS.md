@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-04: `tsc` could not find `src/app/admin/page.js` — `.next/dev/types/validator.ts` still pointed at routes from before the `(app)` group — delete `.next`, run `npx next typegen`, then typecheck. Do not edit that generated file.
+- 2026-11-04: a new control copied the shadcn button or a new hex — the signed-in shell is Costa and the form controls are the indigo kit in `src/components/ui/form` — read `docs/DESIGN.md` and do not restyle one palette into the other.
 - 2026-10-23: the home city glass vanished — class names were renamed Relify-* while CSS stayed .releva-* — keep the CSS prefix as releva- even when the visible brand says Relify.
 - 2026-10-23: onboarding accepted a company CIF as a personal id — the person step and the company NIF are different checks — keep DNI and NIE on the person step, and the CIF checksum on Verifica tu empresa.
 - 2026-10-23: a real DNI failed onboarding with the letter error — the field used the company CIF checksum — accept DNI, NIE, and CIF through isValidSpanishTaxId.
