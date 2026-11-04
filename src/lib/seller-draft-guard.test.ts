@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lockedIdentity } from "./seller-draft-guard";
+import { ebitdaPublishable, lockedIdentity } from "./seller-draft-guard";
 
 describe("lockedIdentity (t78)", () => {
   it("keeps the stored legal name and CIF once the NIF is verified", () => {
@@ -85,5 +85,20 @@ describe("sellerAdjustmentWrite (t82)", () => {
 
   it("rejects invalid rows", () => {
     expect(sellerAdjustmentWrite('[{"type":"other","amount":"0","reason":"abc"}]', null).ok).toBe(false);
+  });
+});
+
+describe("t95 ebitdaPublishable", () => {
+  it("uses the adjusted EBITDA when a list is stored", () => {
+    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -1_000_00, ebitdaAdjustments: [{}] })).toBe(false);
+    expect(ebitdaPublishable({ ebitdaCents: -500_00, adjustedEbitdaCents: 1_000_00, ebitdaAdjustments: [{}] })).toBe(true);
+  });
+  it("falls back to EBITDA without adjustments", () => {
+    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: 0, ebitdaAdjustments: null })).toBe(true);
+    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -9, ebitdaAdjustments: [] })).toBe(true);
+    expect(ebitdaPublishable({ ebitdaCents: 0, adjustedEbitdaCents: 0, ebitdaAdjustments: null })).toBe(false);
+  });
+  it("honours a legacy adjusted value with no list", () => {
+    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -1, ebitdaAdjustments: null })).toBe(false);
   });
 });

@@ -40,10 +40,10 @@ export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> 
   income: "Pérdidas y ganancias",
   balance: "Balance",
   structure: "Estructura (empleados)",
-  ebitda: "EBITDA positivo",
+  ebitda: "EBITDA positivo (ajustado si hay ajustes)",
 };
 
-export const ebitdaCheckHint = "Solo publicamos empresas con un EBITDA del último cierre mayor que cero.";
+export const ebitdaCheckHint = "Solo publicamos empresas con un EBITDA mayor que cero: el ajustado si hay ajustes, si no el del último cierre.";
 
 function list<K extends SellerCheckKey | AdminCheckKey>(items: Omit<CheckItem<K>, "label">[]): CheckList<K> {
   const labelled = items.map((item) => ({ ...item, label: publishCheckLabels[item.key] }));

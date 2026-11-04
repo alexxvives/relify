@@ -318,7 +318,7 @@ function FigureField({
   corner?: ReactNode;
   /** t83: shown instead of "0 €" while the figure is empty or 0 (e.g. "Sin definir" for the price). */
   unsetText?: string;
-  /** t94: when set the figure is read-only and this short reason is shown under it. */
+  /** t95: when set the figure is read-only and shows this text (e.g. "No publicable") instead of any stored value. */
   disabledReason?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
@@ -358,7 +358,9 @@ function FigureField({
       }
     >
       <input type="hidden" name={name} value={value} />
-      {(editable || disabledReason) && unset ? (
+      {disabledReason ? (
+        <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
+      ) : editable && unset ? (
         <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
       ) : editable ? (
         <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
@@ -386,7 +388,6 @@ function FigureField({
           {amount === "—" ? amount : `${amount}\u00a0€`}
         </span>
       )}
-      {disabledReason ? <p className="mt-1 text-xs leading-5 text-[#667085]">{disabledReason}</p> : null}
     </MetricTile>
   );
 }
@@ -458,7 +459,7 @@ function FichaMetrics({
           onChange={onAskingPrice}
           corner={priceStatus}
           unsetText={companyCopy.priceUnset}
-          disabledReason={priceBlocked ? companyCopy.priceNeedsEbitda : null}
+          disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
         />
       </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
@@ -931,14 +932,14 @@ const standingCopy = {
 /** Suggested price as a status pill under the price input; the range, the bar and the why live in a popover. */
 // t93: the popover is position:fixed (the metric tile clips overflow), stays open while the pointer crosses the gap,
 // and closes with Esc. It shows a red→orange→yellow→green→…→red bar with the asking price as a black dot.
-function PriceStatus({ estimate, askingCents }: { estimate: PriceEstimate | null; askingCents: number | null }) {
+function PriceStatus({ estimate, askingCents, blocked = false }: { estimate: PriceEstimate | null; askingCents: number | null; blocked?: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [place, setPlace] = useState<{ top: number; right: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shown = hovered || pinned;
-  const standing = estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
+  const standing = !blocked && estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
 
   const enter = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -988,10 +989,10 @@ function PriceStatus({ estimate, askingCents }: { estimate: PriceEstimate | null
         onBlur={() => setPinned(false)}
         className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] leading-none font-semibold whitespace-nowrap ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
       >
-        <span className="sm:hidden">{standing ? standing.short : "Rango"}</span>
-        <span className="hidden sm:inline">{standing ? standing.text : "Rango orientativo"}</span>
+        <span className="sm:hidden">{standing ? standing.short : blocked ? "No disponible" : "Rango"}</span>
+        <span className="hidden sm:inline">{standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}</span>
         <Info className="size-3 shrink-0" aria-hidden />
-        <span className="sr-only">{standing ? standing.text : ""} · Ver rango de precio orientativo</span>
+        <span className="sr-only">{standing ? standing.text : ""} · {blocked ? "Por qué no hay rango" : "Ver rango de precio orientativo"}</span>
       </button>
       {shown && place ? (
         <div
@@ -1002,7 +1003,12 @@ function PriceStatus({ estimate, askingCents }: { estimate: PriceEstimate | null
           style={{ top: place.top, right: place.right }}
           className="fixed z-50 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
         >
-          {estimate ? (
+          {blocked ? (
+            <>
+              <p className="text-sm font-semibold text-[#1c2740]">Rango no disponible</p>
+              <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{companyCopy.priceBlockedHint}</p>
+            </>
+          ) : estimate ? (
             <>
               <p className="text-sm font-semibold text-[#1c2740]">Rango orientativo de precio</p>
               <PriceBar estimate={estimate} askingCents={askingCents} />
@@ -1726,8 +1732,6 @@ export function CompanyDraftForm({
       : hadAdjustmentList
         ? "0"
         : initial.adjustedEbitda;
-  const adjustedEbitdaCents = euroCentsOrNull(adjustedEbitda);
-  const ebitdaBasisCents = adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? adjustedEbitdaCents : euroCentsOrNull(ebitdaFromAccounts ?? ebitda);
   // t94: same basis as the server (seller-draft-guard): adjusted when there are adjustments, else accounts EBITDA.
   const priceBasis = priceBasisCents({
     hasAdjustments: adjustmentRows.length > 0 || legacyAdjustedCents !== 0,
@@ -1737,7 +1741,7 @@ export function CompanyDraftForm({
   const priceBlocked = !askingPriceAllowed(priceBasis);
   const priceEstimate = estimatePriceRange({
     cnae: principalCnae,
-    ebitdaCents: ebitdaBasisCents,
+    ebitdaCents: priceBlocked ? null : priceBasis,
     headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
     revenueGrowth: salesGrowth(closedYears),
     ebitdaTrend: ebitdaTrend(ebitdaByYear(closedYears)),
@@ -2134,6 +2138,7 @@ export function CompanyDraftForm({
                 <PriceStatus
                   estimate={priceEstimate}
                   askingCents={euroCentsOrNull(askingPrice)}
+                  blocked={priceBlocked}
                 />
               }
             />

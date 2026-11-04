@@ -1,3 +1,4 @@
+import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { centsToEuroInput } from "@/lib/company-draft";
 import { sellerPanelFlags } from "@/lib/company-profile";
 import { adminPublishChecks, publishChecklist, type AdminPublishChecks, type PublishChecklist } from "@/lib/publish-checklist";
@@ -15,6 +16,8 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
       saleReason: true,
       sellerFinancing: true,
       ebitdaCents: true,
+      adjustedEbitdaCents: true,
+      ebitdaAdjustments: true,
       askingPriceCents: true,
       headcountRange: true,
       cnaes: { select: { role: true, code: true } },
@@ -44,6 +47,6 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
 
   return {
     seller: publishChecklist({ panels, saleReason: (project.saleReason ?? "").trim().length > 0, sellerFinancing: storedSellerFinancing(project) !== null }),
-    admin: adminPublishChecks({ panels, ebitdaPositive: project.ebitdaCents > 0 }),
+    admin: adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) }),
   };
 }

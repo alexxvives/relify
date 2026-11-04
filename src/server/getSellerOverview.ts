@@ -1,3 +1,4 @@
+import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { storedSellerFinancing } from "@/lib/seller-financing";
 import { centsToEuroInput } from "@/lib/company-draft";
 import { incomeLabels } from "@/lib/company-copy";
@@ -81,6 +82,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
           askingPriceCents: true,
           customerBase: true,
           ebitdaAdjustments: true,
+          adjustedEbitdaCents: true,
           headcountRange: true,
           cnaes: { select: { role: true, code: true } },
           activitySlices: {
@@ -148,7 +150,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     saleReason: (project.saleReason ?? "").trim().length > 0,
     sellerFinancing: storedSellerFinancing(project) !== null,
   });
-  const admin = adminPublishChecks({ panels, ebitdaPositive: project.ebitdaCents > 0 });
+  const admin = adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) });
   const series: SellerYearPoint[] = [];
 
   for (const year of [...project.years].sort(

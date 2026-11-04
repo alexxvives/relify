@@ -86,3 +86,23 @@ export function priceBasisCents(input: { hasAdjustments: boolean; adjustedEbitda
 export function askingPriceAllowed(basisCents: number | null): boolean {
   return basisCents !== null && Number.isFinite(basisCents) && basisCents > 0;
 }
+
+/**
+ * t95: the one publishability rule, from what is stored on the project. Adjustments count when the seller saved a
+ * non-empty list, or (legacy, no list) a non-zero adjusted EBITDA. Used by the price lock, the seller overview and
+ * the review/publish gate so they always agree.
+ */
+export function storedPriceBasisCents(project: { ebitdaCents: number | bigint | null; adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): number | null {
+  const adjusted = project.adjustedEbitdaCents === null ? null : Number(project.adjustedEbitdaCents);
+  const hasAdjustments = Array.isArray(project.ebitdaAdjustments)
+    ? project.ebitdaAdjustments.length > 0
+    : project.ebitdaAdjustments === null || project.ebitdaAdjustments === undefined
+      ? adjusted !== null && adjusted !== 0
+      : false;
+  return priceBasisCents({ hasAdjustments, adjustedEbitdaCents: adjusted, ebitdaCents: project.ebitdaCents === null ? null : Number(project.ebitdaCents) });
+}
+
+/** t95: a company is publishable only with a positive basis (adjusted EBITDA when adjusted, else EBITDA). */
+export function ebitdaPublishable(project: Parameters<typeof storedPriceBasisCents>[0]): boolean {
+  return askingPriceAllowed(storedPriceBasisCents(project));
+}
