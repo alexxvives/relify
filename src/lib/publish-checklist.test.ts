@@ -5,15 +5,15 @@ const full = { identity: true, description: true, cnae: true, income: true, bala
 
 describe("publishChecklist (seller)", () => {
   it("lists only what the seller provides, and hides name/NIF once verified", () => {
-    const list = publishChecklist({ panels: { ...full, income: false, balance: false, cnae: false, structure: false }, saleReason: true });
-    expect(list.items.map((item) => item.key)).toEqual(["saleReason", "description", "price"]);
+    const list = publishChecklist({ panels: { ...full, income: false, balance: false, cnae: false, structure: false }, saleReason: true, sellerFinancing: true });
+    expect(list.items.map((item) => item.key)).toEqual(["saleReason", "description", "price", "sellerFinancing"]);
     expect(list.ready).toBe(true);
   });
 
   it("shows name/NIF while missing and requires the sale reason", () => {
-    const list = publishChecklist({ panels: { ...full, identity: false }, saleReason: false });
+    const list = publishChecklist({ panels: { ...full, identity: false }, saleReason: false, sellerFinancing: false });
     expect(list.items[0].key).toBe("identity");
-    expect(list.missing).toEqual(["Nombre y NIF", "Motivo de venta"]);
+    expect(list.missing).toEqual(["Nombre y NIF", "Motivo de venta", "Financiación del vendedor"]);
   });
 });
 
@@ -40,7 +40,7 @@ describe("recommendedChecklist (t85)", () => {
   it("adds the client split only for business sellers and never touches ready", async () => {
     const { recommendedChecklist } = await import("./publish-checklist");
     const consumer = recommendedChecklist({ customerBase: "consumer", productSlices: 1, clientSlices: 0, adjustments: 0 });
-    expect(consumer.map((item) => item.key)).toEqual(["customer", "productSplit", "adjustedEbitda", "sellerFinancing"]);
+    expect(consumer.map((item) => item.key)).toEqual(["customer", "productSplit", "adjustedEbitda"]);
     const business = recommendedChecklist({ customerBase: "business", productSlices: 0, clientSlices: 2, adjustments: 1 });
     expect(business.find((item) => item.key === "clientSplit")?.done).toBe(true);
     expect(business.every((item) => item.href.startsWith("/mi-empresa/detalles?seccion="))).toBe(true);

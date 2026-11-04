@@ -25,6 +25,8 @@ export type CompletionInput = {
   productPercents: string[];
   clientPercents: string[];
   askingPrice: string;
+  /** t92: "" until the seller answers ¿Aceptarías financiar parte del precio? (any answer completes it). */
+  sellerFinancing?: string;
 };
 
 function splitDone(values: string[]): boolean {
@@ -47,6 +49,7 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
       ? [{ id: "panel-client-split", label: "Ventas por cliente", section: "structure" as const, done: splitDone(input.clientPercents), required: false }]
       : []),
     { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: askingPriceSet(input.askingPrice), required: true },
+    { id: "panel-seller-financing", label: "Financiación del vendedor", section: "deal", done: (input.sellerFinancing ?? "") !== "", required: true },
   ];
 }
 

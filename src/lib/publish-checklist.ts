@@ -7,7 +7,7 @@ import type { SellerFocusPanel, SellerPanelFlags } from "./company-profile";
  * - The admin checks (financials loaded, EBITDA > 0) are ours: we fill them within 24 h, admin sees
  *   them on the company page and the server enforces them before approval and before payment.
  */
-export type SellerCheckKey = "identity" | "saleReason" | "description" | "price";
+export type SellerCheckKey = "identity" | "saleReason" | "description" | "price" | "sellerFinancing";
 export type AdminCheckKey = "cnae" | "income" | "balance" | "structure" | "ebitda";
 
 export type CheckItem<K extends string> = {
@@ -35,6 +35,7 @@ export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> 
   saleReason: "Motivo de venta",
   description: "Descripción",
   price: "Precio de venta",
+  sellerFinancing: "Financiación del vendedor",
   cnae: "CNAE principal",
   income: "Pérdidas y ganancias",
   balance: "Balance",
@@ -50,7 +51,7 @@ function list<K extends SellerCheckKey | AdminCheckKey>(items: Omit<CheckItem<K>
   return { items: labelled, missing, ready: missing.length === 0 };
 }
 
-export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: boolean }): PublishChecklist {
+export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: boolean; sellerFinancing: boolean }): PublishChecklist {
   const items: Omit<CheckItem<SellerCheckKey>, "label">[] = [];
   // Name and NIF come from the NIF step; they only show while still missing.
   if (!input.panels.identity) {
@@ -60,6 +61,8 @@ export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: 
     { key: "saleReason", done: input.saleReason, href: detailHref("identity") },
     { key: "description", done: input.panels.description, href: detailHref("description") },
     { key: "price", done: input.panels.price, href: detailHref("price") },
+    // t92: required; any answer (Sí, No or Negociable) completes it.
+    { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("price", "panel-seller-financing") },
   );
   return list(items);
 }
@@ -102,14 +105,13 @@ export function adminChecksMessage(checks: AdminPublishChecks): string {
  * t85: steps that make the ficha stronger but never block publishing (the auto-publish rule above
  * stays as is). The client split only applies when the company sells to businesses.
  */
-export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda" | "sellerFinancing";
+export type RecommendedCheckKey = "customer" | "productSplit" | "clientSplit" | "adjustedEbitda";
 
 export const recommendedCheckLabels: Record<RecommendedCheckKey, string> = {
   customer: "¿A quién vendes?",
   productSplit: "Productos y servicios",
   clientSplit: "Reparto por clientes",
   adjustedEbitda: "EBITDA ajustado",
-  sellerFinancing: "Financiación del vendedor",
 };
 
 export function recommendedChecklist(input: {
@@ -117,8 +119,6 @@ export function recommendedChecklist(input: {
   productSlices: number;
   clientSlices: number;
   adjustments: number;
-  /** t90: answered the "¿Aceptarías financiar parte del precio?" question (any answer counts). */
-  sellerFinancing?: boolean;
 }): CheckItem<RecommendedCheckKey>[] {
   const items: Omit<CheckItem<RecommendedCheckKey>, "label">[] = [
     { key: "customer", done: input.customerBase !== null, href: detailHref("structure", "panel-customer") },
@@ -132,12 +132,6 @@ export function recommendedChecklist(input: {
     done: input.adjustments > 0,
     href: detailHref("price", "ebitda-ajustado"),
     hint: "Si hay gastos o ingresos que un comprador no tendría, añádelos como ajustes para mostrar lo que el negocio gana de verdad.",
-  });
-  items.push({
-    key: "sellerFinancing",
-    done: input.sellerFinancing === true,
-    href: detailHref("price", "panel-seller-financing"),
-    hint: "Indica si aceptarías que el comprador te pague una parte del precio más adelante.",
   });
   return items.map((item) => ({ ...item, label: recommendedCheckLabels[item.key] }));
 }

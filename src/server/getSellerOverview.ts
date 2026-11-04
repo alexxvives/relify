@@ -114,7 +114,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
   if (!project) {
     return {
       panels: emptyPanels,
-      checklist: publishChecklist({ panels: emptyPanels, saleReason: false }),
+      checklist: publishChecklist({ panels: emptyPanels, saleReason: false, sellerFinancing: false }),
       recommended: recommendedChecklist({ customerBase: null, productSlices: 0, clientSlices: 0, adjustments: 0 }),
       payBlocked: null,
       series: [],
@@ -145,6 +145,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
   const checklist = publishChecklist({
     panels,
     saleReason: (project.saleReason ?? "").trim().length > 0,
+    sellerFinancing: storedSellerFinancing(project) !== null,
   });
   const admin = adminPublishChecks({ panels, ebitdaPositive: project.ebitdaCents > 0 });
   const series: SellerYearPoint[] = [];
@@ -174,7 +175,6 @@ export async function getSellerOverview(ownerId: string): Promise<{
       productSlices: project.activitySlices.filter((slice) => slice.kind === "product").length,
       clientSlices: project.activitySlices.filter((slice) => slice.kind === "client").length,
       adjustments: storedEbitdaAdjustments(project.ebitdaAdjustments)?.length ?? 0,
-      sellerFinancing: storedSellerFinancing(project) !== null,
     }),
     payBlocked: admin.ready ? null : adminChecksMessage(admin),
     series,

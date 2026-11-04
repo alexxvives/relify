@@ -489,6 +489,10 @@ function FichaMetrics({
  * form like the other Datos de la ficha fields. Format errors show once a field is filled; "Sí" with a missing term
  * only shows after a save attempt flagged it.
  */
+// t92: shared text-input style for the ficha fields and the adjustments dialog.
+const fieldInputClass =
+  "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+
 function SellerFinancingField({
   mode,
   pct,
@@ -515,25 +519,32 @@ function SellerFinancingField({
       <input type="hidden" name="sellerFinancing" value={mode} />
       <input type="hidden" name="sellerFinancingPct" value={terms ? pct : ""} />
       <input type="hidden" name="sellerFinancingYears" value={terms ? years : ""} />
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+      {/* t92: question and helper on the left, a Sí / No / Negociable segmented control on the right (stacks on mobile). */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
-          <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
+          <p id="seller-financing-label" className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1c2740]">
             ¿Aceptarías financiar parte del precio?
+            {mode === "" ? <span className="rounded-full bg-[#fdecea] px-2 py-px text-[11px] leading-4 font-semibold text-[#a12f2f]">Obligatorio</span> : null}
           </p>
-          <p className="mt-1 text-xs text-[#667085]">
-            El comprador te paga una parte más adelante, en plazos. Facilita la venta y lo verán los compradores en tu ficha.
+          <p id="seller-financing-help" className="mt-1 max-w-prose text-xs leading-5 text-[#667085]">
+            El comprador te pagaría una parte más adelante, a plazos. Los compradores lo verán en tu ficha.
           </p>
         </div>
-        <div role="radiogroup" aria-labelledby="seller-financing-label" className="inline-flex shrink-0 rounded-full border border-[#d5dbe3] bg-white p-0.5">
+        <div
+          role="radiogroup"
+          aria-labelledby="seller-financing-label"
+          aria-describedby="seller-financing-help"
+          className="grid h-11 w-full shrink-0 grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1 sm:w-auto sm:min-w-[19rem]"
+        >
           {sellerFinancingModes.map((option) => (
             <button
               key={option}
               type="button"
               role="radio"
               aria-checked={mode === option}
-              onClick={() => onMode(mode === option ? "" : option)}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                mode === option ? "bg-[#0f766e] text-white" : "text-[#475467] hover:bg-[#e6f4f2]"
+              onClick={() => onMode(option)}
+              className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
               }`}
             >
               {sellerFinancingLabels[option]}
@@ -542,39 +553,52 @@ function SellerFinancingField({
         </div>
       </div>
       {terms ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-[#475467]">
-            <span>% máximo del precio{mode === "negotiable" ? " (opcional)" : ""}</span>
-            <span className="relative">
-              <input
-                inputMode="numeric"
-                value={pct}
-                onChange={(event) => onPct(event.target.value.replace(/[^\d]/g, "").slice(0, 3))}
-                placeholder="20"
-                aria-invalid={pctError ? true : undefined}
-                className={`w-full rounded-lg border bg-white px-3 py-2 pr-8 text-sm text-[#1c2740] tabular-nums focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${pctError ? "border-[#b42318]" : "border-[#d5dbe3]"}`}
-              />
-              <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#667085]">%</span>
-            </span>
-            {pctError ? <span className="text-xs text-[#b42318]">{pctError}</span> : null}
-          </label>
-          <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-[#475467]">
-            <span>Plazo{mode === "negotiable" ? " (opcional)" : ""}</span>
-            <select
-              value={years}
-              onChange={(event) => onYears(event.target.value)}
-              aria-invalid={yearsError ? true : undefined}
-              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${yearsError ? "border-[#b42318]" : "border-[#d5dbe3]"}`}
-            >
-              <option value="">Elige el plazo</option>
-              {sellerFinancingYearOptions.map((option) => (
-                <option key={option} value={String(option)}>
-                  {option === 5 ? "5 años o más" : option === 1 ? "1 año" : `${option} años`}
-                </option>
-              ))}
-            </select>
-            {yearsError ? <span className="text-xs text-[#b42318]">{yearsError}</span> : null}
-          </label>
+        <div className="mt-4 border-t border-[#eef0f4] pt-4">
+          <p className="text-xs leading-5 text-[#667085]">
+            {mode === "yes" ? "Indica hasta qué parte del precio y en qué plazo." : "Opcional: da una orientación para que el comprador sepa por dónde empezar."}
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <label htmlFor="seller-financing-pct" className="block text-xs font-medium text-[#475467]">
+                % máximo del precio{mode === "negotiable" ? " (opcional)" : ""}
+              </label>
+              <div className="relative mt-1">
+                <input
+                  id="seller-financing-pct"
+                  inputMode="numeric"
+                  value={pct}
+                  onChange={(event) => onPct(event.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                  placeholder="20"
+                  aria-invalid={pctError ? true : undefined}
+                  aria-describedby={pctError ? "seller-financing-pct-error" : undefined}
+                  className={`${fieldInputClass} h-11 pr-8 tabular-nums`}
+                />
+                <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#667085]">%</span>
+              </div>
+              {pctError ? <p id="seller-financing-pct-error" className="mt-1 text-xs text-[#b42318]">{pctError}</p> : null}
+            </div>
+            <div className="min-w-0">
+              <label htmlFor="seller-financing-years" className="block text-xs font-medium text-[#475467]">
+                Plazo{mode === "negotiable" ? " (opcional)" : ""}
+              </label>
+              <div className="mt-1">
+                <OptionSelect
+                  id="seller-financing-years"
+                  label="Plazo"
+                  placeholder="Elige el plazo"
+                  value={years}
+                  invalid={Boolean(yearsError)}
+                  describedBy={yearsError ? "seller-financing-years-error" : undefined}
+                  options={sellerFinancingYearOptions.map((option) => ({
+                    value: String(option),
+                    label: option === 5 ? "5 años o más" : option === 1 ? "1 año" : `${option} años`,
+                  }))}
+                  onValueChange={onYears}
+                />
+              </div>
+              {yearsError ? <p id="seller-financing-years-error" className="mt-1 text-xs text-[#b42318]">{yearsError}</p> : null}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
@@ -649,8 +673,7 @@ function EbitdaAdjustmentsDialog({
       window.setTimeout(onClose, 700);
     });
   }
-  const inputClass =
-    "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+  const inputClass = fieldInputClass;
   const signed = (cents: number) => `${cents > 0 ? "+" : ""}${formatEur(cents)}`;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 sm:items-center sm:p-4" onClick={onClose}>
@@ -1684,6 +1707,7 @@ export function CompanyDraftForm({
     productPercents,
     clientPercents,
     askingPrice,
+    sellerFinancing,
   });
   // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
   const basicDone = sectionComplete(requiredFields, "basic");

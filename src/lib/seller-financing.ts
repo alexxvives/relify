@@ -11,7 +11,7 @@ export type SellerFinancingMode = (typeof sellerFinancingModes)[number];
 export const sellerFinancingLabels: Record<SellerFinancingMode, string> = {
   yes: "Sí",
   no: "No",
-  negotiable: "A negociar",
+  negotiable: "Negociable",
 };
 
 /** Plazo options in years; 5 means "5 años o más". */

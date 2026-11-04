@@ -1,6 +1,7 @@
 import { centsToEuroInput } from "@/lib/company-draft";
 import { sellerPanelFlags } from "@/lib/company-profile";
 import { adminPublishChecks, publishChecklist, type AdminPublishChecks, type PublishChecklist } from "@/lib/publish-checklist";
+import { storedSellerFinancing } from "@/lib/seller-financing";
 import { prisma } from "@/server/db";
 
 /** t75: one loader for the seller checklist and the admin checks, so every gate agrees. */
@@ -12,6 +13,7 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
       cif: true,
       description: true,
       saleReason: true,
+      sellerFinancing: true,
       ebitdaCents: true,
       askingPriceCents: true,
       headcountRange: true,
@@ -41,7 +43,7 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
   });
 
   return {
-    seller: publishChecklist({ panels, saleReason: (project.saleReason ?? "").trim().length > 0 }),
+    seller: publishChecklist({ panels, saleReason: (project.saleReason ?? "").trim().length > 0, sellerFinancing: storedSellerFinancing(project) !== null }),
     admin: adminPublishChecks({ panels, ebitdaPositive: project.ebitdaCents > 0 }),
   };
 }
