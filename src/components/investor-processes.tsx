@@ -173,7 +173,7 @@ export function InvestorProcesses({
   return (
     <div>
       <LiveRefresh />
-      {items.length > 0 ? <h2 className="mt-6 text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
+      {items.length > 0 ? <h2 className="text-lg font-semibold text-[#2b3b4a]">{sellerCopy.active}</h2> : null}
       <ul className="mt-3 flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.slug}>
@@ -249,6 +249,12 @@ export function InvestorProcesses({
         ) : null,
       )}
       </ul>
+      {/* t91: cancelled processes are a secondary, collapsed row under the active ones. */}
+      {cancelled.length > 0 ? (
+        <div className="mt-4">
+          <CancelledList items={cancelled} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -257,8 +263,8 @@ export function InvestorProcesses({
 export function CancelledList({ items }: { items: CancelledProcess[] }) {
   return (
     <details className="group/cancel rounded-xl border border-[#e7eaee] bg-[#fafbfd] px-4 py-2 open:pb-3">
-      <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-[#2b3b4a] [&::-webkit-details-marker]:hidden">
-        Procesos cancelados ({items.length})
+      <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 rounded text-sm font-medium text-[#5c6b78] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+        Procesos cancelados · {items.length}
         <ChevronDown className="size-4 shrink-0 text-[#64748b] transition-transform group-open/cancel:rotate-180" aria-hidden />
       </summary>
       <ul className="mt-2 flex flex-col divide-y divide-[#eceff4]">
