@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
-import type { SellerFunnel } from "@/server/activityFunnel";
 import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
@@ -15,7 +14,6 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { InvestorPublicCard } from "@/components/investor-public-card";
 import { MeetingDesk } from "@/components/meeting-desk";
 import { ProjectThread } from "@/components/project-thread";
-import { SellerActivitySummary } from "@/components/seller-activity-summary";
 import { DeskToggles } from "@/components/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
@@ -366,7 +364,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
 }
 
 export function SellerProcesses({
-  funnel,
   threads,
   pendingMatches,
   today,
@@ -381,13 +378,11 @@ export function SellerProcesses({
   advisors?: AdvisorContactView[];
   companyName?: string;
   elsewhere?: string | null;
-  funnel: SellerFunnel;
 }) {
   return (
     <div>
       <LiveRefresh />
       <div className="flex flex-col gap-4">
-          <SellerActivitySummary funnel={funnel} />
           <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-2">
             <Card>
               <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length)}</h2>

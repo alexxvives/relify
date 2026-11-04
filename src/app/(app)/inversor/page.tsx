@@ -6,6 +6,7 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
 import { loadInvestorDesk } from "@/server/investorDesk";
+import { investorFunnel } from "@/server/activityFunnel";
 import { listNotifications } from "@/server/listNotifications";
 import { listPublishedSectors } from "@/server/listPublishedSectors";
 import { requireRole } from "@/server/requireRole";
@@ -17,20 +18,19 @@ export const metadata: Metadata = {
 
 async function InvestorHomePageContent() {
   const user = await requireRole("investor");
-  const [notifications, sectors, desk] = await Promise.all([
+  const [notifications, sectors, desk, funnel] = await Promise.all([
     listNotifications(user.id),
     listPublishedSectors(),
     loadInvestorDesk(user.id, user.email),
+    investorFunnel(user.id),
   ]);
 
   return (
     <>
       <InvestorHome
         notifications={notifications}
-        favorites={desk.favorites}
-        interests={desk.interests}
-        questions={desk.questions}
-        meetings={desk.meetings}
+        funnel={funnel}
+        processes={desk.processes}
         profileChecks={desk.profileChecks}
         sectors={sectors}
         pending={homePendingActions(

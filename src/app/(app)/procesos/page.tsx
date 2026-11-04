@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { investorFunnel } from "@/server/activityFunnel";
 import { ProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { CancelledList, InvestorProcesses } from "@/components/investor-processes";
@@ -30,7 +29,6 @@ async function InvestorProcessesPageContent() {
     listClientContacts(user),
     listCancelledProcesses(user.id),
   ]);
-  const funnel = await investorFunnel(user.id);
 
   return (
     <>
@@ -43,7 +41,7 @@ async function InvestorProcessesPageContent() {
         </div>
       ) : null}
       {desk.processes.length > 0 ? (
-        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} advisors={advisors} cancelled={cancelled} funnel={funnel} />
+        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} advisors={advisors} cancelled={cancelled} />
       ) : null}
     </>
   );

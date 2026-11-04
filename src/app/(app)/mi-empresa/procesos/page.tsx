@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { sellerFunnel } from "@/server/activityFunnel";
 import { SellerProcessesSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -28,18 +27,16 @@ async function ProcessesPageContent() {
     redirect("/mi-empresa");
   }
 
-  const [messages, pendingMatches, advisors, scope, funnel] = await Promise.all([
+  const [messages, pendingMatches, advisors, scope] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
     listClientContacts(user),
     sellerProcessScope(user.id),
-    sellerFunnel(user.id, projectId),
   ]);
 
   return (
     <>
       <SellerProcesses
-        funnel={funnel}
         threads={messages.threads}
         counts={messages.counts}
         pendingMatches={pendingMatches}

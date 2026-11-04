@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Camera, Check, HandHeart, Heart, MapPin, MessageCircleQuestion, Search, Send, UserRound } from "lucide-react";
-import { ActivityStatTiles } from "@/components/activity-tiles";
+import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
+import { BuyerActivitySummary } from "@/components/activity-summary";
+import type { InvestorFunnel } from "@/server/activityFunnel";
+import type { DealStep } from "@/lib/deal-pipeline";
 import { CompletionMeter } from "@/components/completion-meter";
 import { PendingActions } from "@/components/pending-actions";
 import { SectorTreemap } from "@/components/sector-treemap";
@@ -21,29 +23,19 @@ const checklist = [
 ] as const;
 
 export function InvestorHome({
-  favorites,
-  interests,
-  questions,
-  meetings,
+  funnel,
+  processes,
   profileChecks,
   sectors,
   pending,
 }: {
   notifications: NotificationView[];
-  favorites: number;
-  interests: number;
-  questions: number;
-  meetings: number;
+  funnel: InvestorFunnel;
+  processes: { closed: unknown; steps: DealStep[] }[];
   profileChecks: InvestorProfileChecks;
   sectors: IndustrySector[];
   pending: HomePendingAction[];
 }) {
-  const stats = [
-    { label: investorCopy.favoritesStat, value: favorites, icon: Heart },
-    { label: investorCopy.interestsSent, value: interests, icon: Send },
-    { label: investorCopy.questionsSent, value: questions, icon: MessageCircleQuestion },
-    { label: investorCopy.meetingsDone, value: meetings, icon: CalendarCheck },
-  ];
   const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
   const profileComplete = filled === checklist.length;
@@ -51,11 +43,7 @@ export function InvestorHome({
   return (
     <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
-        <Card>
-          <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.activityTitle}</h2>
-          <p className="mt-1 text-sm text-[#64748b]">{investorCopy.activityIntro}</p>
-          <ActivityStatTiles stats={stats} className="mt-4" />
-        </Card>
+        <BuyerActivitySummary funnel={funnel} processes={processes} />
         <Card>
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.sectorsTitle}</h2>
           <SectorTreemap sectors={sectors} empty={investorCopy.sectorsEmpty} />
