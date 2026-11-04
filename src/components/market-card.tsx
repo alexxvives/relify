@@ -147,7 +147,7 @@ export function RoiChip({
   fit?: boolean;
 }) {
   const value = formatDecimal(years);
-  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`;
+  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`; // t95: tooltip carries the unit
   const tone = recoveryClass[recoveryTone(years)];
   if (!fit) {
     return (
@@ -164,11 +164,9 @@ export function RoiChip({
       className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap tabular-nums @[9.5rem]:px-2 @[9.5rem]:text-xs ${tone}`}
       title={title}
     >
-      <span className="hidden @[7rem]:inline">ROI&nbsp;</span>
-      {value}
-      <span className="hidden @[11rem]:inline">&nbsp;años</span>
-      <span className="@[11rem]:hidden">&nbsp;a</span>
-      <span className="sr-only"> de ROI</span>
+      {/* t95: just "ROI 2,6"; the tooltip says it is the years to recover the price. */}
+      ROI&nbsp;{value}
+      <span className="sr-only"> años para recuperar el precio</span>
     </span>
   );
 }
@@ -377,6 +375,7 @@ export function MarketCard({
             : `${sectorName && !project.cnaeCode ? `Empresa de ${sectorName.toLowerCase()}. ` : ""}El vendedor aún no ha añadido una descripción.`}
         </p>
 
+        {/* t95: Facturación | EBITDA (adjusted underneath), then the price across both columns with its ROI pill. */}
         <dl className="mt-3 mb-auto grid grid-cols-2 overflow-hidden rounded-2xl border border-[#eceff4] bg-[#fafbfd]">
           <Figure
             label="Facturación"
@@ -387,20 +386,24 @@ export function MarketCard({
             value={card(project.ebitdaCents)}
             share={margin}
             edge="left"
+            extra={
+              known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents ? (
+                <span className="tabular-nums" title="EBITDA ajustado por el vendedor">
+                  Ajustado {formatCardEur(project.adjustedEbitdaCents)}
+                  {adjustedMargin !== null ? ` · ${adjustedMargin} %` : ""}
+                </span>
+              ) : null
+            }
           />
-          <Figure
-            label="EBITDA ajustado"
-            value={card(project.adjustedEbitdaCents)}
-            share={adjustedMargin}
-            edge="top"
-          />
-          <Figure
-            label="Precio de venta"
-            value={card(project.askingPriceCents) ?? priceUnset}
-            edge="both"
-            strong
-            note={years === null ? null : <RoiChip years={years} fit />}
-          />
+          <div className="col-span-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#e0ece9] bg-[#f0f8f6] px-4 py-3">
+            <dt className="text-xs font-medium text-[#0f766e]">Precio de venta</dt>
+            <dd className="flex min-w-0 items-center gap-2">
+              <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
+                {card(project.askingPriceCents) ?? priceUnset}
+              </span>
+              {years === null ? null : <RoiChip years={years} fit />}
+            </dd>
+          </div>
         </dl>
       </div>
     </article>
@@ -421,6 +424,7 @@ function Figure({
   edge,
   strong = false,
   note = null,
+  extra = null,
 }: {
   label: string;
   /** Null when unknown: shows "—" with a "No disponible" tooltip instead of a fake 0. */
@@ -429,6 +433,8 @@ function Figure({
   edge?: "left" | "top" | "both";
   strong?: boolean;
   note?: ReactNode;
+  /** t95: a smaller second line under the value (the adjusted EBITDA). Reserved so cells keep one height. */
+  extra?: ReactNode;
 }) {
   const border =
     edge === "left"
@@ -467,6 +473,7 @@ function Figure({
         ) : null}
         {note}
       </dd>
+      {extra !== undefined ? <dd className="mt-0.5 min-h-4 truncate text-[11px] leading-4 text-[#667085]">{extra}</dd> : null}
     </div>
   );
 }
