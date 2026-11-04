@@ -78,10 +78,13 @@ import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
   adjustmentRowsValid,
-  ebitdaAdjustmentHints,
+  defaultAdjustmentDirection,
+  ebitdaAdjustmentDirectionLabels,
+  ebitdaAdjustmentDirections,
+  joinAdjustmentAmount,
+  splitAdjustmentAmount,
   ebitdaAdjustmentLabels,
   ebitdaAdjustmentReasonMax,
-  ebitdaAdjustmentSign,
   formRowAmountCents,
   formRowsFromJson,
   maxEbitdaAdjustments,
@@ -705,55 +708,86 @@ function EbitdaAdjustmentsDialog({
                 return (
                   <li key={index} data-adjustment-row={index} className="rounded-xl border border-[#e7eaee] bg-[#fbfcfd] p-3">
                     <div className="flex items-start gap-2">
-                      <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_9.5rem]">
+                      <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_8.5rem]">
                         <div className="min-w-0">
                           <label htmlFor={`${id}-type`} className="text-xs font-medium text-[#475467]">
                             {companyCopy.adjustmentTypeLabel}
                           </label>
-                          <select
-                            id={`${id}-type`}
-                            value={row.type}
-                            aria-invalid={rowErrors.type ? true : undefined}
-                            aria-describedby={`${id}-type-hint`}
-                            onChange={(event) => update(index, { type: event.target.value as EbitdaAdjustmentType })}
-                            className={`${inputClass} mt-1`}
-                          >
-                            {row.type === "other" ? (
-                              <option value="other" disabled>
-                                Otro (elige un tipo)
-                              </option>
-                            ) : null}
-                            {selectableEbitdaAdjustmentTypes.map((type) => (
-                              <option key={type} value={type}>
-                                {ebitdaAdjustmentLabels[type]}
-                              </option>
-                            ))}
-                          </select>
-                          <p id={`${id}-type-hint`} className={`mt-1 text-xs ${rowErrors.type ? "text-[#b42318]" : "text-[#667085]"}`}>
-                            {rowErrors.type ?? ebitdaAdjustmentHints[row.type]}
-                          </p>
+                          <div className="mt-1">
+                            <OptionSelect
+                              id={`${id}-type`}
+                              label={companyCopy.adjustmentTypeLabel}
+                              value={row.type}
+                              invalid={Boolean(rowErrors.type)}
+                              describedBy={rowErrors.type ? `${id}-type-error` : undefined}
+                              options={selectableEbitdaAdjustmentTypes.map((type) => ({ value: type, label: ebitdaAdjustmentLabels[type] }))}
+                              onValueChange={(value) => {
+                                const type = value as EbitdaAdjustmentType;
+                                const parts = splitAdjustmentAmount(row.amount, row.type);
+                                // t91: an untouched row follows the new type's usual direction; a typed amount keeps the seller's choice.
+                                update(index, parts.amount === "" ? { type, amount: joinAdjustmentAmount("", defaultAdjustmentDirection(type)) } : { type });
+                              }}
+                            />
+                          </div>
+                          {rowErrors.type ? (
+                            <p id={`${id}-type-error`} className="mt-1 text-xs text-[#b42318]">
+                              {rowErrors.type}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0">
+                          <span id={`${id}-direction-label`} className="text-xs font-medium text-[#475467]">
+                            Qué es
+                          </span>
+                          <div role="radiogroup" aria-labelledby={`${id}-direction-label`} className="mt-1 flex h-11 rounded-xl border border-[#e7eaee] bg-white p-1">
+                            {ebitdaAdjustmentDirections.map((direction) => {
+                              const parts = splitAdjustmentAmount(row.amount, row.type);
+                              const active = parts.direction === direction;
+                              return (
+                                <button
+                                  key={direction}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={active}
+                                  onClick={() => update(index, { amount: joinAdjustmentAmount(parts.amount, direction) })}
+                                  className={`flex-1 rounded-lg px-2.5 text-xs font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                                    active ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
+                                  }`}
+                                >
+                                  {ebitdaAdjustmentDirectionLabels[direction]}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                         <div className="min-w-0">
                           <label htmlFor={`${id}-amount`} className="text-xs font-medium text-[#475467]">
                             {companyCopy.adjustmentAmountLabel}
                           </label>
-                          <input
-                            id={`${id}-amount`}
-                            inputMode="decimal"
-                            value={row.amount}
-                            placeholder={ebitdaAdjustmentSign[row.type] === "-" ? "-0" : ebitdaAdjustmentSign[row.type] === "+" ? "+0" : "+/-"}
-                            aria-invalid={rowErrors.amount ? true : undefined}
-                            aria-describedby={rowErrors.amount ? `${id}-amount-error` : undefined}
-                            onChange={(event) => update(index, { amount: keepSignedEuro(event.target.value) })}
-                            className={`${inputClass} mt-1 text-right tabular-nums`}
-                          />
+                          <div className="relative mt-1">
+                            <span aria-hidden className={`pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold ${splitAdjustmentAmount(row.amount, row.type).direction === "income" ? "text-[#b42318]" : "text-[#0f766e]"}`}>
+                              {splitAdjustmentAmount(row.amount, row.type).direction === "income" ? "−" : "+"}
+                            </span>
+                            <input
+                              id={`${id}-amount`}
+                              inputMode="decimal"
+                              value={splitAdjustmentAmount(row.amount, row.type).amount}
+                              placeholder="0"
+                              aria-invalid={rowErrors.amount ? true : undefined}
+                              aria-describedby={rowErrors.amount ? `${id}-amount-error` : undefined}
+                              onChange={(event) =>
+                                update(index, { amount: joinAdjustmentAmount(keepUnsignedEuro(event.target.value), splitAdjustmentAmount(row.amount, row.type).direction) })
+                              }
+                              className={`${inputClass} h-11 pl-7 text-right tabular-nums`}
+                            />
+                          </div>
                           {rowErrors.amount ? (
                             <p id={`${id}-amount-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.amount}
                             </p>
                           ) : null}
                         </div>
-                        <div className="min-w-0 sm:col-span-2">
+                        <div className="min-w-0 sm:col-span-3">
                           <label htmlFor={`${id}-reason`} className="flex items-baseline justify-between text-xs font-medium text-[#475467]">
                             <span>Justificación</span>
                             <span className="font-normal text-[#98a2b3] tabular-nums">
@@ -800,14 +834,13 @@ function EbitdaAdjustmentsDialog({
             disabled={rows.length >= maxEbitdaAdjustments}
             onClick={() => {
               setServerError(null);
-              setRows((current) => [...current, { type: "owner_salary", amount: "", reason: "" }]);
+              setRows((current) => [...current, { type: "owner_salary", amount: joinAdjustmentAmount("", defaultAdjustmentDirection("owner_salary")), reason: "" }]);
             }}
             className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#c5ccd8] text-sm font-medium text-[#0f766e] hover:border-[#0f766e] hover:bg-[#f0faf8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="size-4" aria-hidden />
             {companyCopy.adjustmentsAdd}
           </button>
-          {rows.length > 0 ? <p className="mt-3 text-xs text-[#667085]">{companyCopy.adjustmentsReasonsLocked}</p> : null}
         </div>
         <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-[#eef0f4] px-4 py-3 sm:px-6">
           <p role="status" className="mr-auto min-w-0 text-sm">

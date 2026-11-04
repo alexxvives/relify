@@ -15,6 +15,8 @@ export function OptionSelect({
   emptyLabel = "",
   menuClassName = "w-full",
   invalid = false,
+  id,
+  describedBy,
 }: {
   name?: string;
   label: string;
@@ -26,11 +28,16 @@ export function OptionSelect({
   emptyLabel?: string;
   menuClassName?: string;
   invalid?: boolean;
+  /** t91: lets a visible <label htmlFor> name the trigger. */
+  id?: string;
+  describedBy?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
   const selected = options.find((option) => option.value === value);
   const needle = query.trim().toLocaleLowerCase("es-ES");
@@ -53,8 +60,21 @@ export function OptionSelect({
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        // t91: inside a dialog, Escape closes only the menu, not the dialog behind it.
+        event.stopPropagation();
         setOpen(false);
         setQuery("");
+        triggerRef.current?.focus();
+        return;
+      }
+      if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Home" || event.key === "End") {
+        const items = Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+        if (items.length === 0) return;
+        event.preventDefault();
+        const at = items.findIndex((item) => item === document.activeElement);
+        const next =
+          event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : event.key === "ArrowDown" ? (at + 1) % items.length : at <= 0 ? items.length - 1 : at - 1;
+        items[next]?.focus();
       }
     }
 
@@ -69,6 +89,11 @@ export function OptionSelect({
   useEffect(() => {
     if (open && searchable) {
       searchRef.current?.focus();
+    } else if (open) {
+      // t91: keyboard users land on the selected option and move with the arrows.
+      const items = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+      const current = listRef.current?.querySelector<HTMLButtonElement>('[aria-selected="true"]');
+      (current ?? items?.[0])?.focus();
     }
   }, [open, searchable]);
 
@@ -76,11 +101,20 @@ export function OptionSelect({
     <div ref={rootRef} className="relative min-w-0">
       {name ? <input type="hidden" name={name} value={value} /> : null}
       <button
+        ref={triggerRef}
+        id={id}
         type="button"
+        aria-describedby={describedBy}
+        onKeyDown={(event) => {
+          if (!open && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-label={label}
+        aria-label={id ? undefined : label}
         onClick={() => {
           setOpen((current) => !current);
           setQuery("");
@@ -109,7 +143,7 @@ export function OptionSelect({
               />
             </div>
           ) : null}
-          <ul id={listId} role="listbox" aria-label={label} className="max-h-64 overflow-auto py-1">
+          <ul ref={listRef} id={listId} role="listbox" aria-label={label} className="max-h-64 overflow-auto py-1">
             {visible.length === 0 ? (
               <li className="px-3 py-2 text-sm text-[#64748b]">{emptyLabel}</li>
             ) : (
@@ -125,11 +159,12 @@ export function OptionSelect({
                         onValueChange(option.value);
                         setOpen(false);
                         setQuery("");
+                        triggerRef.current?.focus();
                       }}
                       className={
                         current
-                          ? "flex w-full px-3 py-2 text-left text-sm font-medium text-[#3d34b8]"
-                          : "flex w-full px-3 py-2 text-left text-sm text-[#1c2740] hover:bg-[#f5f6fa]"
+                          ? "flex w-full px-3 py-2 text-left text-sm font-medium text-[#3d34b8] focus-visible:bg-[#f5f6fa] focus-visible:outline-none"
+                          : "flex w-full px-3 py-2 text-left text-sm text-[#1c2740] hover:bg-[#f5f6fa] focus-visible:bg-[#f5f6fa] focus-visible:outline-none"
                       }
                     >
                       {option.label}

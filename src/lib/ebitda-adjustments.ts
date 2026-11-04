@@ -8,13 +8,8 @@ import * as z from "zod";
 export const ebitdaAdjustmentTypes = ["owner_salary", "personal", "one_off", "one_off_income", "rent", "litigation", "other"] as const;
 export type EbitdaAdjustmentType = (typeof ebitdaAdjustmentTypes)[number];
 
-/**
- * t89: sellers may only pick a predefined type. "other" stays a known stored value so old rows still display and
- * still save, but it is no longer offered; the editor asks the seller to reclassify it before saving.
- */
-export const selectableEbitdaAdjustmentTypes = ebitdaAdjustmentTypes.filter(
-  (type): type is Exclude<EbitdaAdjustmentType, "other"> => type !== "other",
-);
+/** t91: every type is offered again, "Otro" included (it always needs its justification, like the rest). */
+export const selectableEbitdaAdjustmentTypes = ebitdaAdjustmentTypes;
 
 export const ebitdaAdjustmentLabels: Record<EbitdaAdjustmentType, string> = {
   owner_salary: "Sueldo del propietario fuera de mercado",
@@ -26,27 +21,38 @@ export const ebitdaAdjustmentLabels: Record<EbitdaAdjustmentType, string> = {
   other: "Otro",
 };
 
-/** Expected sign of each type: "+" adds to the EBITDA, "-" subtracts, "±" depends on the case. */
-export const ebitdaAdjustmentSign: Record<EbitdaAdjustmentType, "+" | "-" | "±"> = {
-  owner_salary: "±",
-  personal: "+",
-  one_off: "+",
-  one_off_income: "-",
-  rent: "±",
-  litigation: "+",
-  other: "±",
+/**
+ * t91: the seller types a positive amount and says what it is. Removing a non-recurring COST raises the EBITDA (+);
+ * removing a non-recurring INCOME lowers it (−). Amounts stay stored signed, so old rows and the buyer view are unchanged.
+ */
+export const ebitdaAdjustmentDirections = ["cost", "income"] as const;
+export type EbitdaAdjustmentDirection = (typeof ebitdaAdjustmentDirections)[number];
+
+export const ebitdaAdjustmentDirectionLabels: Record<EbitdaAdjustmentDirection, string> = {
+  cost: "Coste a sumar",
+  income: "Ingreso a restar",
 };
 
-/** t89: one line per type telling the seller what it covers and which sign it usually takes. */
-export const ebitdaAdjustmentHints: Record<EbitdaAdjustmentType, string> = {
-  owner_salary: "Diferencia con lo que costaría un gerente contratado. Suma (+) si cobras de más, resta (−) si cobras de menos.",
-  personal: "Gastos tuyos pagados por la empresa (coche, viajes…) que un comprador no tendría. Suma (+).",
-  one_off: "Gastos puntuales que no se repetirán (una reforma, una mudanza…). Suma (+).",
-  one_off_income: "Ingresos puntuales que no se repetirán (venta de un activo, una subvención única…). Resta (−).",
-  rent: "Diferencia con un alquiler de mercado, p. ej. si el local es tuyo. Suma (+) si pagas de más, resta (−) si pagas de menos.",
-  litigation: "Despidos, indemnizaciones o pleitos puntuales ya cerrados. Suma (+).",
-  other: "Tipo antiguo: elige uno de la lista para poder guardar.",
-};
+/** Sensible starting point per type; the seller can always switch it. */
+export function defaultAdjustmentDirection(type: EbitdaAdjustmentType): EbitdaAdjustmentDirection {
+  return type === "one_off_income" ? "income" : "cost";
+}
+
+/** Signed form amount ("-1200" / "1200") → the direction it encodes and the positive text the seller edits. */
+export function splitAdjustmentAmount(amount: string, type: EbitdaAdjustmentType): { direction: EbitdaAdjustmentDirection; amount: string } {
+  const text = amount.trim();
+  if (text === "" || text === "-") {
+    return { direction: text === "-" ? "income" : defaultAdjustmentDirection(type), amount: "" };
+  }
+  return text.startsWith("-") ? { direction: "income", amount: text.slice(1) } : { direction: "cost", amount: text.replace(/^\+/, "") };
+}
+
+/** Positive text + direction → the signed form amount the server parses. */
+export function joinAdjustmentAmount(amount: string, direction: EbitdaAdjustmentDirection): string {
+  const text = amount.trim().replace(/^[-+]/, "");
+  // An empty income row keeps a bare "-" so the chosen direction survives until the seller types the amount.
+  return direction === "income" ? `-${text}` : text;
+}
 
 export const maxEbitdaAdjustments = 10;
 export const ebitdaAdjustmentReasonMax = 140;
@@ -195,12 +201,9 @@ export type AdjustmentRowErrors = { type?: string; amount?: string; reason?: str
 
 export function adjustmentRowErrors(row: EbitdaAdjustmentFormRow): AdjustmentRowErrors {
   const errors: AdjustmentRowErrors = {};
-  if (row.type === "other") {
-    errors.type = "Elige un tipo de la lista.";
-  }
   const cents = formRowAmountCents(row.amount);
   if (row.amount.trim() === "" || cents === null) {
-    errors.amount = "Indica un importe, p. ej. 12000 o -3500.";
+    errors.amount = "Indica un importe, p. ej. 12000.";
   } else if (cents === 0) {
     errors.amount = "El importe no puede ser 0.";
   }

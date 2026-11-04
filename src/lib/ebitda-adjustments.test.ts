@@ -4,6 +4,9 @@ import {
   adjustmentRowErrors,
   adjustmentRowsValid,
   selectableEbitdaAdjustmentTypes,
+  defaultAdjustmentDirection,
+  joinAdjustmentAmount,
+  splitAdjustmentAmount,
   adjustmentsForBuyer,
   parseEbitdaAdjustments,
   storedEbitdaAdjustments,
@@ -50,11 +53,24 @@ describe("ebitda adjustments", () => {
     expect(adjustmentsForBuyer(rows, true)).toEqual(rows);
   });
 
-  it("t89: offers only predefined types, keeps legacy 'other' readable and flags it in the editor", () => {
-    expect(selectableEbitdaAdjustmentTypes).not.toContain("other");
+  it("t91: offers 'Otro' again and still requires a justification for every type", () => {
+    expect(selectableEbitdaAdjustmentTypes).toContain("other");
     expect(selectableEbitdaAdjustmentTypes).toContain("one_off_income");
     expect(parseEbitdaAdjustments(JSON.stringify([{ type: "other", amount: "10", reason: "Antiguo" }])).ok).toBe(true);
-    expect(adjustmentRowErrors({ type: "other", amount: "10", reason: "Antiguo" })).toEqual({ type: "Elige un tipo de la lista." });
+    expect(adjustmentRowErrors({ type: "other", amount: "10", reason: "Antiguo" })).toEqual({});
+    expect(adjustmentRowErrors({ type: "other", amount: "10", reason: "" }).reason).toBeDefined();
+  });
+
+  it("t91: cost/income direction round-trips through the signed amount", () => {
+    expect(splitAdjustmentAmount("-1200", "one_off")).toEqual({ direction: "income", amount: "1200" });
+    expect(splitAdjustmentAmount("1200", "one_off_income")).toEqual({ direction: "cost", amount: "1200" });
+    expect(splitAdjustmentAmount("", "one_off_income")).toEqual({ direction: "income", amount: "" });
+    expect(splitAdjustmentAmount("", "personal")).toEqual({ direction: "cost", amount: "" });
+    expect(joinAdjustmentAmount("1200", "income")).toBe("-1200");
+    expect(joinAdjustmentAmount("1200", "cost")).toBe("1200");
+    expect(joinAdjustmentAmount("", "income")).toBe("-");
+    expect(splitAdjustmentAmount("-", "personal")).toEqual({ direction: "income", amount: "" });
+    expect(defaultAdjustmentDirection("one_off_income")).toBe("income");
   });
 
   it("t89: reports each invalid field of a row", () => {

@@ -1,6 +1,6 @@
-import { figureVeilCapital, figureVeilCents, figureVeilClient, figureVeilProduct, figureVeilYears } from "@/lib/figure-veil";
-import type { InvestorProjectProfile } from "@/lib/investor-project";
-import type { SabiYear } from "@/lib/sabi/insights";
+import { figureVeilCapital, figureVeilCents, figureVeilClient, figureVeilProduct, figureVeilYears } from "./figure-veil";
+import type { InvestorProjectProfile } from "./investor-project";
+import type { SabiYear } from "./sabi/insights";
 
 /**
  * t91: the locked (pre-NDA) ficha renders the SAME sections, blocks and order as after the NDA, so it is
