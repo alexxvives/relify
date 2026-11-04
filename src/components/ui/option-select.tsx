@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/form";
 
@@ -18,6 +19,7 @@ export function OptionSelect({
   id,
   describedBy,
   placeholder,
+  textSize = "base",
 }: {
   name?: string;
   label: string;
@@ -34,6 +36,8 @@ export function OptionSelect({
   describedBy?: string;
   /** t92: muted prompt for an empty value, so the trigger never repeats the field label in larger type. */
   placeholder?: string;
+  /** t94: "sm" matches the 14px text inputs (fieldInputClass); default keeps the 16px form inputs. */
+  textSize?: "base" | "sm";
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -41,6 +45,10 @@ export function OptionSelect({
   const searchRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // t94: the menu renders in a body portal with fixed coordinates, so no card or dialog can clip it; it opens upward
+  // when there is not enough room below the trigger.
+  const [place, setPlace] = useState<{ left: number; width: number; top?: number; bottom?: number; maxHeight: number } | null>(null);
   const listId = useId();
   const selected = options.find((option) => option.value === value);
   const needle = query.trim().toLocaleLowerCase("es-ES");
@@ -55,7 +63,7 @@ export function OptionSelect({
     }
 
     function onPointer(event: MouseEvent) {
-      if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) {
+      if (!(event.target instanceof Node) || (!rootRef.current?.contains(event.target) && !menuRef.current?.contains(event.target))) {
         setOpen(false);
         setQuery("");
       }
@@ -86,6 +94,34 @@ export function OptionSelect({
     return () => {
       document.removeEventListener("mousedown", onPointer);
       document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const gap = 4;
+      const margin = 8;
+      const wanted = Math.min(menuRef.current?.scrollHeight ?? 280, 320);
+      const left = Math.min(rect.left, window.innerWidth - margin - (menuRef.current?.offsetWidth ?? rect.width));
+      const below = window.innerHeight - rect.bottom - gap - margin;
+      const above = rect.top - gap - margin;
+      const up = below < wanted && above > below;
+      setPlace({
+        left: Math.max(margin, left),
+        width: rect.width,
+        ...(up ? { bottom: window.innerHeight - rect.top + gap } : { top: rect.bottom + gap }),
+        maxHeight: Math.max(120, up ? above : below),
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
     };
   }, [open]);
 
@@ -125,15 +161,24 @@ export function OptionSelect({
         style={invalid ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
         className={
           invalid
-            ? "releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none"
-            : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left text-base text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+            ? `releva-shake flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none`
+            : `flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20`
         }
       >
         <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"}>{selected?.label ?? placeholder ?? label}</span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />
       </button>
-      {open ? (
-        <div className={`absolute z-30 mt-1 overflow-hidden rounded-xl border border-[#e6e9f0] bg-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)] ${menuClassName}`}>
+      {open && typeof document !== "undefined"
+        ? createPortal(
+        <div
+          ref={menuRef}
+          style={
+            place
+              ? { position: "fixed", left: place.left, ...(menuClassName === "w-full" ? { width: place.width } : { minWidth: place.width }), top: place.top, bottom: place.bottom, maxHeight: place.maxHeight }
+              : { position: "fixed", visibility: "hidden" }
+          }
+          className={`z-[70] flex flex-col overflow-hidden rounded-xl border border-[#e6e9f0] bg-white shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)] ${menuClassName}`}
+        >
           {searchable ? (
             <div className="border-b border-[#eef0f3] p-2">
               <Input
@@ -146,7 +191,7 @@ export function OptionSelect({
               />
             </div>
           ) : null}
-          <ul ref={listRef} id={listId} role="listbox" aria-label={label} className="max-h-64 overflow-auto py-1">
+          <ul ref={listRef} id={listId} role="listbox" aria-label={label} className="max-h-64 min-h-0 overflow-auto py-1">
             {visible.length === 0 ? (
               <li className="px-3 py-2 text-sm text-[#64748b]">{emptyLabel}</li>
             ) : (
@@ -177,8 +222,10 @@ export function OptionSelect({
               })
             )}
           </ul>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
