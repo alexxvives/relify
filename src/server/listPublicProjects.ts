@@ -2,6 +2,7 @@ import { prisma } from "@/server/db";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { publicProjectSelect, publicProjectWhere } from "@/lib/public-project";
 import { cnaeTitle } from "@/lib/cnae-2009";
+import { sellerFinancingChip, storedSellerFinancing } from "@/lib/seller-financing";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import {
   sectorMultiples,
@@ -21,6 +22,9 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       foundedYear: true,
       description: true,
       cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
+      sellerFinancing: true,
+      sellerFinancingMaxPct: true,
+      sellerFinancingYears: true,
     },
     orderBy: { codename: "asc" },
   });
@@ -48,6 +52,7 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       cnaeCode: code,
       cnaeTitle: code ? cnaeTitle(code) : null,
       summary: row.description?.trim() || null,
+      financingChip: sellerFinancingChip(storedSellerFinancing(row)),
       coverSrc: covers.get(row.id) ?? null,
     };
   });

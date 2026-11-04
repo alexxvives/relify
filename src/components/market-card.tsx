@@ -19,8 +19,7 @@ import {
   Users,
   UtensilsCrossed,
   Wheat,
-  type LucideIcon,
-} from "lucide-react";
+  type LucideIcon, HandCoins } from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import {
   formatCardEur,
@@ -353,10 +352,17 @@ export function MarketCard({
 
       <div className="flex flex-1 flex-col px-5 pb-5">
         {/* The CNAE code chip starts right of the sector badge that hangs from the photo. */}
-        <div className="mt-3 flex min-h-8 items-start gap-2 pl-[6.75rem]">
+        {/* t92: the seller-financing chip shares this row, so cards with and without it keep the same height. */}
+        <div className="mt-3 flex min-h-8 min-w-0 flex-wrap items-start gap-1.5 pl-[6.75rem]">
           {project.cnaeCode ? (
             <span className="rounded-md bg-[#f1f3f8] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">
               CNAE {project.cnaeCode}
+            </span>
+          ) : null}
+          {project.financingChip ? (
+            <span className="inline-flex min-w-0 items-center gap-1 rounded-md bg-[#e6f4f2] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#0f766e]">
+              <HandCoins className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{project.financingChip}</span>
             </span>
           ) : null}
         </div>

@@ -99,6 +99,14 @@ function yearsText(years: number): string {
   return years >= 5 ? "5 años o más" : years === 1 ? "1 año" : `${years} años`;
 }
 
+/** t92: marketplace card chip. Only for Sí or Negociable; nothing for No or unanswered. */
+export function sellerFinancingChip(value: SellerFinancing | null): string | null {
+  if (!value || value.mode === "no") {
+    return null;
+  }
+  return value.maxPct !== null ? `Financia hasta ${value.maxPct} %` : "Financiación vendedor";
+}
+
 /** Buyer-facing sentence, e.g. "Acepta financiar hasta un 20 % a 3 años". */
 export function sellerFinancingText(value: SellerFinancing): string {
   if (value.mode === "no") {

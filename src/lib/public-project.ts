@@ -39,6 +39,8 @@ export type PublicProjectCard = {
   cnaeTitle?: string | null;
   /** The seller's short public description, clamped on the card. */
   summary?: string | null;
+  /** t92: "Financia hasta 20 %" / "Financiación vendedor" when the seller accepts (or would negotiate) a vendor loan. */
+  financingChip?: string | null;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

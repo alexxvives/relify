@@ -30,3 +30,13 @@ describe("seller financing", () => {
     expect(storedSellerFinancing({ sellerFinancing: "no", sellerFinancingMaxPct: 10, sellerFinancingYears: 2 })).toEqual({ mode: "no", maxPct: null, years: null });
   });
 });
+
+describe("sellerFinancingChip (t92)", () => {
+  it("shows only for Sí or Negociable", async () => {
+    const { sellerFinancingChip } = await import("./seller-financing");
+    expect(sellerFinancingChip(null)).toBeNull();
+    expect(sellerFinancingChip({ mode: "no", maxPct: null, years: null })).toBeNull();
+    expect(sellerFinancingChip({ mode: "yes", maxPct: 20, years: 3 })).toBe("Financia hasta 20 %");
+    expect(sellerFinancingChip({ mode: "negotiable", maxPct: null, years: null })).toBe("Financiación vendedor");
+  });
+});

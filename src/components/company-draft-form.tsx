@@ -92,7 +92,7 @@ import {
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
-import { sellerFinancingErrors, sellerFinancingLabels, sellerFinancingModes, sellerFinancingYearOptions } from "@/lib/seller-financing";
+import { sellerFinancingChip, storedSellerFinancing, sellerFinancingErrors, sellerFinancingLabels, sellerFinancingModes, sellerFinancingYearOptions } from "@/lib/seller-financing";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -2313,6 +2313,7 @@ export function CompanyDraftForm({
             askingPrice={askingPrice}
             principalCnae={principalCnae}
             summary={description}
+            financingChip={sellerFinancingChip(storedSellerFinancing({ sellerFinancing, sellerFinancingMaxPct: Number(sellerFinancingPct) || null }))}
           />
         </div>
         <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
@@ -2477,6 +2478,7 @@ function MarketPreview({
   askingPrice,
   principalCnae = "",
   summary = "",
+  financingChip = null,
 }: {
   codename: string;
   region: string;
@@ -2486,6 +2488,7 @@ function MarketPreview({
   askingPrice: string;
   principalCnae?: string;
   summary?: string;
+  financingChip?: string | null;
 }) {
   // The preview is the real marketplace card, so it can never drift from it.
   const card: PublicProjectCard = {
@@ -2500,6 +2503,7 @@ function MarketPreview({
     cnaeCode: principalCnae || null,
     cnaeTitle: principalCnae ? cnaeTitleOf(principalCnae) : null,
     summary: summary.trim() || null,
+    financingChip,
   };
 
   const filters = [

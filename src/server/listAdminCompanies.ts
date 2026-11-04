@@ -3,6 +3,7 @@ import { prisma } from "@/server/db";
 import { materializePendingCompanies } from "@/server/sellerCompany";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { cnaeTitle } from "@/lib/cnae-2009";
+import { sellerFinancingChip, storedSellerFinancing } from "@/lib/seller-financing";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import {
   sectorMultiples,
@@ -79,6 +80,9 @@ export async function listAdminCompanies(
       description: true,
       successFee: { select: { id: true } },
       cnaes: { select: { code: true }, orderBy: { position: "asc" }, take: 1 },
+      sellerFinancing: true,
+      sellerFinancingMaxPct: true,
+      sellerFinancingYears: true,
     },
   });
 
@@ -105,6 +109,7 @@ export async function listAdminCompanies(
       cnaeCode: code,
       cnaeTitle: code ? cnaeTitle(code) : null,
       summary: project.description?.trim() || null,
+      financingChip: sellerFinancingChip(storedSellerFinancing(project)),
       coverSrc: covers.get(project.id) ?? null,
     };
 
