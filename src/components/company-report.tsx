@@ -65,13 +65,7 @@ import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adju
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
-import {
-  figureVeilCapital,
-  figureVeilClient,
-  figureVeilMargins,
-  figureVeilProduct,
-  figureVeilYears,
-} from "@/lib/figure-veil";
+import { veilReportFigures } from "@/lib/report-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
 import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
@@ -121,7 +115,7 @@ const privateIcons: Record<string, typeof Building2> = {
   created: CalendarDays,
 };
 
-type VeilKind = "mix" | "capital" | "income" | "balance" | "profitability" | "health" | "team";
+type VeilKind = "summary" | "mix" | "capital" | "income" | "balance" | "profitability" | "health" | "team";
 
 function ReportSection({
   id,
@@ -158,15 +152,19 @@ function ReportSection({
   );
 }
 
+/**
+ * t91: children are already built from invented figures (veilReportFigures) when locked, so the block keeps
+ * exactly its post-NDA layout and is only blurred and greyed under the overlay.
+ */
 function LockedFigures({ open, kind, note, action = null, children }: { open: boolean; kind: VeilKind; note: string; action?: ReactNode; children: ReactNode }) {
   if (open) {
     return <>{children}</>;
   }
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none select-none blur-md" aria-hidden>
-        <FigureVeil kind={kind} />
+    <div className="relative min-h-40" data-locked={kind}>
+      <div className="pointer-events-none select-none opacity-60 blur-md grayscale" aria-hidden inert>
+        {children}
       </div>
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="pointer-events-auto z-10 flex flex-col items-center gap-3 px-6 text-center">
@@ -179,76 +177,6 @@ function LockedFigures({ open, kind, note, action = null, children }: { open: bo
   );
 }
 
-function FigureVeil({ kind }: { kind: VeilKind }) {
-  if (kind === "mix") {
-    return (
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
-        <ShareDonut title={companyCopy.chartProduct} slices={figureVeilProduct} palette="product" />
-        <ShareDonut title={companyCopy.chartClient} slices={figureVeilClient} palette="client" />
-      </div>
-    );
-  }
-
-  if (kind === "capital") {
-    return <ShareDonut title={companyCopy.chartCapital} slices={figureVeilCapital} palette="capital" />;
-  }
-
-  // t84: placeholders mirror the current section designs, drawn from invented numbers only.
-  const fake = figureVeilYears();
-  const tiles = (labels: string[]) => (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-      {labels.map((label) => (
-        <div key={label} className="flex flex-col gap-1.5 rounded-xl border border-[#e7eaee] bg-white p-3">
-          <span className="text-xs text-[#5c6b78]">{label}</span>
-          <span className="text-lg font-semibold text-[#1c2740]">99,9 %</span>
-          <span className="h-1.5 w-2/3 rounded-full bg-[#e6f4f2]" />
-        </div>
-      ))}
-    </div>
-  );
-  if (kind === "income") {
-    return (
-      <div className="grid gap-4 xl:grid-cols-2">
-        <ColumnBars
-          years={fake}
-          unit="eur"
-          series={[
-            { label: "Ingresos", color: navy, values: fake.map((year) => year.revenueCents) },
-            { label: "EBITDA", color: teal, values: fake.map((year) => year.ebitdaCents) },
-            { label: "Resultado", color: tealLight, values: fake.map((year) => year.netResultCents) },
-          ]}
-        />
-        <LineChart years={fake} unit="eur" series={[{ label: "Ingresos", color: navy, values: fake.map((year) => year.revenueCents) }]} />
-      </div>
-    );
-  }
-  if (kind === "profitability") {
-    const styles = [
-      { color: "#0f766e" },
-      { color: "#d55e00", dash: "6 4" },
-      { color: "#1c2740", dash: "2 3" },
-      { color: "#56b4e9", dash: "10 3 2 3" },
-    ];
-    return (
-      <div className="space-y-4">
-        {tiles(["Margen EBITDA", "Margen de beneficio", "ROA", "ROE"])}
-        <LineChart years={fake} unit="pct" series={figureVeilMargins.map((values, index) => ({ label: `Serie ${index + 1}`, values, ...styles[index]! }))} />
-      </div>
-    );
-  }
-  if (kind === "health") {
-    return tiles(["Liquidez", "Endeudamiento", "Autonomía", "Cobertura"]);
-  }
-  if (kind === "team") {
-    return (
-      <div className="flex flex-col gap-4">
-        {tiles(["Empleados", "Ingresos por empleado", "Coste por empleado", "Peso del personal"])}
-        <ColumnBars years={fake} unit="people" series={[{ label: "Empleados", color: teal, values: fake.map((year) => year.employees) }]} />
-      </div>
-    );
-  }
-  return <BalanceStacks years={fake} />;
-}
 
 type FigureSource = "seller" | "sabi" | "calc";
 const sourceBadge: Record<FigureSource, { label: string; className: string }> = {
@@ -629,7 +557,7 @@ function BuyerRegistryBlock({ view }: { view: BuyerRegistry }) {
 }
 
 export function CompanyReport({
-  project,
+  project: realProject,
   role,
   figuresOpen = true,
   lockedNote = companyCopy.figuresLocked,
@@ -661,6 +589,9 @@ export function CompanyReport({
   /** t83: seller's own preview: "Sin definir" price and an empty "Qué vende y a quién" with a fill action. */
   sellerPreview?: { mixAction: ReactNode } | null;
 }) {
+  // t91: locked = the same report built from invented figures (same shape), blurred under the lock overlay.
+  const project = figuresOpen ? realProject : veilReportFigures(realProject);
+  const realYears = (realProject.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
   const registry = registryForRole(fullRegistry, role);
   const buyerView = role === "buyer" ? buyerRegistry : null;
   const shownCnaes = new Set([project.principalCnae?.code, ...project.secondaryCnaes.map((cnae) => cnae.code)].filter(Boolean));
@@ -684,10 +615,11 @@ export function CompanyReport({
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
   const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
-  const lastEmployees = lastValue(years, (year) => year.employees);
+  // Headcount is public (Resumen), so it reads the real years even while the figures are locked.
+  const lastEmployees = lastValue(realYears, (year) => year.employees);
   const age = project.foundedYear !== null ? new Date().getFullYear() - project.foundedYear : null;
-  const summary = figuresOpen ? reportSummaryMarked(years) : [];
-  const flags = figuresOpen ? reportFlags(years) : [];
+  const summary = reportSummaryMarked(years);
+  const flags = reportFlags(years);
   const signals = healthSignals(years);
   const { kpis, debt } = metrics(years);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
@@ -794,7 +726,7 @@ export function CompanyReport({
             </div>
           </div>
         ) : null}
-        {summary.length > 0 || flags.length > 0 ? (
+        {summary.length > 0 || flags.length > 0 ? lock("summary",
           <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             {summary.length > 0 ? (
               <div className="rounded-xl bg-[#f3faf9] p-4">
@@ -832,13 +764,7 @@ export function CompanyReport({
                 </ul>
               </div>
             ) : null}
-          </div>
-        ) : null}
-        {!figuresOpen ? (
-          <p className="mt-4 flex items-center gap-2 rounded-xl bg-[#f7f8fb] px-4 py-3 text-sm text-[#3d4a63]">
-            <EyeOff className="size-4 shrink-0 text-[#0f766e]" aria-hidden />
-            {lockedNote}
-          </p>
+          </div>,
         ) : null}
       </ReportSection>
 
@@ -1225,7 +1151,8 @@ export function CompanyReport({
 
       <ReportSection id="detalle" icon={FileSpreadsheet} title={companyReportCopy.detail} intro={companyReportCopy.detailHint} aside={periodAside}>
         <div className="flex flex-col gap-6">
-          {figuresOpen ? (
+          {lock(
+            "balance",
             <>
               {/* t85: every table is its own card with a header bar, so the four tables never run together. */}
               <div className={detailCard}>
@@ -1257,9 +1184,7 @@ export function CompanyReport({
                   </div>
                 </div>
               ) : null}
-            </>
-          ) : (
-            lock("balance", null)
+            </>,
           )}
           {registry ? <RegistryRecords registry={registry} /> : null}
           {role === "admin" ? adminDetail : null}

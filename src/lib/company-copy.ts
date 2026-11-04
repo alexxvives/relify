@@ -99,7 +99,6 @@ export const companyCopy = {
   previewAfter: "Tras aceptar el NDA",
   previewLockNote:
     "La estructura de la empresa, la cuenta de resultados y el balance solo se muestran cuando tú aceptas la solicitud del comprador y él firma el NDA. Antes, el comprador ve estas secciones difuminadas.",
-  previewLockedSeller: "Privado: se abre cuando aceptas al comprador y firma el NDA.",
   openFichaHint: "La misma ficha que ve un comprador al pulsar la tarjeta: descripción, sectores, cifras, estructura y cuentas.",
   cardPreviewMark: "Antes de conectar",
   cardPhotos: "Subir fotos",

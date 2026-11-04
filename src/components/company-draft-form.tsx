@@ -28,6 +28,7 @@ import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@
 import { projectImageSrc } from "@/lib/project-image";
 import { CardPhotoUploader, type GalleryPhoto } from "@/components/project-gallery";
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
+import { accessCopy } from "@/lib/access-copy";
 import { marketCopy } from "@/lib/market-copy";
 import { keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
 import {
@@ -2300,7 +2301,12 @@ export function CompanyDraftForm({
                 {companyCopy.fillMixAction}
               </KitButton>
             ),
-          }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.previewLockedSeller} navBelowTabs />
+          }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.figuresLocked} lockAction={
+            // t91: the real pre-NDA buyer view, CTA included; in the preview it is only a picture of the button.
+            <span className="inline-flex h-11 cursor-default items-center justify-center rounded-xl bg-[#1c2740] px-5 text-sm font-medium text-white" title="Vista previa: así ve el botón el comprador">
+              {accessCopy.connect}
+            </span>
+          } navBelowTabs />
         </div>
       </Panel>
       </div>
