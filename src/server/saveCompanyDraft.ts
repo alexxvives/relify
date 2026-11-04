@@ -15,7 +15,7 @@ import {
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { lockedIdentity, sellerAdjustmentWrite, sellerMoneyFields } from "@/lib/seller-draft-guard";
+import { askingPriceAllowed, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields } from "@/lib/seller-draft-guard";
 import { Prisma } from "@/generated/prisma/client";
 
 export type SaveCompanyDraftResult =
@@ -91,7 +91,9 @@ export async function saveCompanyDraft(
             cif: true,
             address: true,
             ebitdaCents: true,
+            adjustedEbitdaCents: true,
             ebitdaAdjustments: true,
+            years: { where: { kind: "closed" }, orderBy: { year: "desc" }, take: 1, select: { ebitdaCents: true } },
             shareholders: { select: { name: true } },
             dataRoomFiles: { select: { fileName: true } },
           },
@@ -128,6 +130,19 @@ export async function saveCompanyDraft(
       : adjustments.write.kind === "clear"
         ? { ebitdaAdjustments: Prisma.DbNull, adjustedEbitdaCents: 0 }
         : {};
+
+  // t94: the asking price only sticks while its EBITDA basis is positive (adjusted if listed, else accounts).
+  const storedEbitda = existing ? Number(existing.ebitdaCents) : null;
+  const accountsEbitda = existing?.years[0]?.ebitdaCents ?? null;
+  const ebitdaBasis = storedEbitda !== null && storedEbitda !== 0 ? storedEbitda : accountsEbitda !== null ? Number(accountsEbitda) : storedEbitda;
+  const keptList = existing && Array.isArray(existing.ebitdaAdjustments) && existing.ebitdaAdjustments.length > 0;
+  const legacyAdjusted = existing && existing.ebitdaAdjustments === null && Number(existing.adjustedEbitdaCents) !== 0;
+  const basis =
+    adjustments.write.kind === "set"
+      ? priceBasisCents({ hasAdjustments: true, adjustedEbitdaCents: adjustments.write.adjustedEbitdaCents, ebitdaCents: ebitdaBasis })
+      : adjustments.write.kind === "clear"
+        ? ebitdaBasis
+        : priceBasisCents({ hasAdjustments: Boolean(keptList || legacyAdjusted), adjustedEbitdaCents: existing ? Number(existing.adjustedEbitdaCents) : null, ebitdaCents: ebitdaBasis });
 
   const secrets = [
     input.legalName,
@@ -167,7 +182,7 @@ export async function saveCompanyDraft(
     codename,
     region: input.region,
     // t78: revenue, EBITDA, OPEX and yearly accounts are never taken from a seller submission.
-    ...sellerMoneyFields(input, existing === null),
+    ...sellerMoneyFields(input, existing === null, askingPriceAllowed(basis)),
     ...adjustmentFields,
     foundedYear: input.foundedYear === "" ? null : Number(input.foundedYear),
     description: input.description === "" ? null : input.description,

@@ -35,8 +35,10 @@ function euroCents(value: string): number | null {
 export function sellerMoneyFields(
   input: { askingPrice: string },
   isNew: boolean,
+  priceAllowed = true,
 ): { askingPriceCents?: number; adjustedEbitdaCents?: number; revenueCents?: number; ebitdaCents?: number; opexCents?: null } {
-  const askingPriceCents = euroCents(input.askingPrice);
+  // t94: without a positive EBITDA basis the submitted price is ignored (the stored one is kept, a new project gets 0).
+  const askingPriceCents = priceAllowed ? euroCents(input.askingPrice) : null;
   return {
     ...(askingPriceCents !== null ? { askingPriceCents } : isNew ? { askingPriceCents: 0 } : {}),
     ...(isNew ? { adjustedEbitdaCents: 0, revenueCents: 0, ebitdaCents: 0, opexCents: null } : {}),
@@ -71,4 +73,16 @@ export function sellerAdjustmentWrite(
     ok: true,
     write: { kind: "set", rows: parsed.rows, adjustedEbitdaCents: adjustedEbitdaCents(stored?.ebitdaCents ?? 0, parsed.rows) },
   };
+}
+
+/**
+ * t94: the EBITDA the asking price rests on: the adjusted EBITDA when the seller has adjustments, otherwise the
+ * accounts EBITDA (the same basis as the orientative range). A price may only be set while it is positive.
+ */
+export function priceBasisCents(input: { hasAdjustments: boolean; adjustedEbitdaCents: number | null; ebitdaCents: number | null }): number | null {
+  return input.hasAdjustments ? input.adjustedEbitdaCents : input.ebitdaCents;
+}
+
+export function askingPriceAllowed(basisCents: number | null): boolean {
+  return basisCents !== null && Number.isFinite(basisCents) && basisCents > 0;
 }

@@ -95,6 +95,7 @@ import {
 } from "@/lib/ebitda-adjustments";
 import { sellerStayLabels, sellerStayOptions } from "@/lib/seller-stay";
 import { sellerFinancingChip, storedSellerFinancing, sellerFinancingLabels, sellerFinancingModes } from "@/lib/seller-financing";
+import { askingPriceAllowed, priceBasisCents } from "@/lib/seller-draft-guard";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -307,6 +308,7 @@ function FigureField({
   locked = false,
   corner = null,
   unsetText,
+  disabledReason = null,
 }: {
   label: string;
   name: string;
@@ -316,13 +318,15 @@ function FigureField({
   corner?: ReactNode;
   /** t83: shown instead of "0 €" while the figure is empty or 0 (e.g. "Sin definir" for the price). */
   unsetText?: string;
+  /** t94: when set the figure is read-only and this short reason is shown under it. */
+  disabledReason?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
   const unset = unsetText !== undefined && !editing && !askingPriceSet(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const shown = editing ? value : groupedEuro(value);
   const amount = shown.length > 0 ? shown : "—";
-  const editable = !locked && onChange !== undefined;
+  const editable = !locked && onChange !== undefined && !disabledReason;
 
   return (
     <MetricTile
@@ -354,7 +358,7 @@ function FigureField({
       }
     >
       <input type="hidden" name={name} value={value} />
-      {editable && unset ? (
+      {(editable || disabledReason) && unset ? (
         <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
       ) : editable ? (
         <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
@@ -382,6 +386,7 @@ function FigureField({
           {amount === "—" ? amount : `${amount}\u00a0€`}
         </span>
       )}
+      {disabledReason ? <p className="mt-1 text-xs leading-5 text-[#667085]">{disabledReason}</p> : null}
     </MetricTile>
   );
 }
@@ -425,6 +430,7 @@ function FichaMetrics({
   margin,
   netResult,
   priceStatus = null,
+  priceBlocked = false,
   adjustmentCount,
   adjustments,
 }: {
@@ -436,6 +442,7 @@ function FichaMetrics({
   margin: string;
   netResult: string;
   priceStatus?: ReactNode;
+  priceBlocked?: boolean;
   adjustmentCount: number;
   adjustments: (close: () => void) => ReactNode;
 }) {
@@ -444,7 +451,15 @@ function FichaMetrics({
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div id="panel-asking-price" className="scroll-mt-24">
-        <FigureField label={companyCopy.askingPriceLabel} name="askingPrice" value={askingPrice} onChange={onAskingPrice} corner={priceStatus} unsetText={companyCopy.priceUnset} />
+        <FigureField
+          label={companyCopy.askingPriceLabel}
+          name="askingPrice"
+          value={askingPrice}
+          onChange={onAskingPrice}
+          corner={priceStatus}
+          unsetText={companyCopy.priceUnset}
+          disabledReason={priceBlocked ? companyCopy.priceNeedsEbitda : null}
+        />
       </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
@@ -1727,6 +1742,13 @@ export function CompanyDraftForm({
         : initial.adjustedEbitda;
   const adjustedEbitdaCents = euroCentsOrNull(adjustedEbitda);
   const ebitdaBasisCents = adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? adjustedEbitdaCents : euroCentsOrNull(ebitdaFromAccounts ?? ebitda);
+  // t94: same basis as the server (seller-draft-guard): adjusted when there are adjustments, else accounts EBITDA.
+  const priceBasis = priceBasisCents({
+    hasAdjustments: adjustmentRows.length > 0 || legacyAdjustedCents !== 0,
+    adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null,
+    ebitdaCents: storedEbitdaCents !== null && storedEbitdaCents !== 0 ? storedEbitdaCents : ebitdaCentsFromAccounts,
+  });
+  const priceBlocked = !askingPriceAllowed(priceBasis);
   const priceEstimate = estimatePriceRange({
     cnae: principalCnae,
     ebitdaCents: ebitdaBasisCents,
@@ -2121,6 +2143,7 @@ export function CompanyDraftForm({
               )}
               margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
               netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
+              priceBlocked={priceBlocked}
               priceStatus={
                 <PriceStatus
                   estimate={priceEstimate}

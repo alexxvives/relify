@@ -23,7 +23,7 @@ describe("lockedIdentity (t78)", () => {
 
 });
 
-import { sellerAdjustmentWrite, sellerMoneyFields } from "./seller-draft-guard";
+import { askingPriceAllowed, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields } from "./seller-draft-guard";
 
 describe("sellerMoneyFields (t78)", () => {
   it("never writes revenue, EBITDA or OPEX for an existing project", () => {
@@ -40,6 +40,23 @@ describe("sellerMoneyFields (t78)", () => {
       ebitdaCents: 0,
       opexCents: null,
     });
+  });
+});
+
+describe("asking price needs a positive EBITDA basis (t94)", () => {
+  it("uses the adjusted EBITDA when there are adjustments, else the EBITDA", () => {
+    expect(priceBasisCents({ hasAdjustments: true, adjustedEbitdaCents: 89_000_112, ebitdaCents: -10_999_888 })).toBe(89_000_112);
+    expect(priceBasisCents({ hasAdjustments: false, adjustedEbitdaCents: 89_000_112, ebitdaCents: -10_999_888 })).toBe(-10_999_888);
+    expect(askingPriceAllowed(1)).toBe(true);
+    expect(askingPriceAllowed(0)).toBe(false);
+    expect(askingPriceAllowed(-5)).toBe(false);
+    expect(askingPriceAllowed(null)).toBe(false);
+  });
+
+  it("ignores the submitted price when not allowed, keeping the stored one", () => {
+    expect(sellerMoneyFields({ askingPrice: "500000" }, false, false)).toEqual({});
+    expect(sellerMoneyFields({ askingPrice: "500000" }, true, false)).toMatchObject({ askingPriceCents: 0 });
+    expect(sellerMoneyFields({ askingPrice: "500000" }, false, true)).toEqual({ askingPriceCents: 50_000_000 });
   });
 });
 
