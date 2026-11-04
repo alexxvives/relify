@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
@@ -236,23 +236,20 @@ export function InvestorProcesses({
           </Card>
         </li>
       ))}
-      {closed.map((item) =>
-        item.closed ? (
-          <li key={item.slug}>
-            <ClosedProcessRow
-              codename={item.codename}
-              slug={item.slug}
-              closed={item.closed}
-              contractHref={item.contract?.signedHref ?? null}
-            />
-          </li>
-        ) : null,
-      )}
       </ul>
-      {/* t91: cancelled processes are a secondary, collapsed row under the active ones. */}
-      {cancelled.length > 0 ? (
+      
+      {/* t92: "Procesos cerrados" gathers cancelled and finished (closed) processes in one collapsed row. */}
+      {cancelled.length > 0 || closed.length > 0 ? (
         <div className="mt-4">
-          <CancelledList items={cancelled} />
+          <CancelledList items={cancelled} extra={closed.length}>
+            {closed.map((item) =>
+              item.closed ? (
+                <li key={item.slug} className="py-2">
+                  <ClosedProcessRow codename={item.codename} slug={item.slug} closed={item.closed} contractHref={item.contract?.signedHref ?? null} />
+                </li>
+              ) : null,
+            )}
+          </CancelledList>
         </div>
       ) : null}
     </div>
@@ -260,14 +257,15 @@ export function InvestorProcesses({
 }
 
 /** Closed processes stay reachable (read-only, via the ficha) instead of silently disappearing. */
-export function CancelledList({ items }: { items: CancelledProcess[] }) {
+export function CancelledList({ items, extra = 0, children }: { items: CancelledProcess[]; extra?: number; children?: ReactNode }) {
   return (
     <details className="group/cancel rounded-xl border border-[#e7eaee] bg-[#fafbfd] px-4 py-2 open:pb-3">
       <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 rounded text-sm font-medium text-[#5c6b78] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-        Procesos cancelados · {items.length}
+        Procesos cerrados · {items.length + extra}
         <ChevronDown className="size-4 shrink-0 text-[#64748b] transition-transform group-open/cancel:rotate-180" aria-hidden />
       </summary>
       <ul className="mt-2 flex flex-col divide-y divide-[#eceff4]">
+        {children}
         {items.map((item) => (
           <li key={item.accessId} className="flex items-center justify-between gap-3 py-2 text-sm">
             <Link href={`/proyectos/${item.slug}`} className="min-w-0 truncate font-medium text-[#465ab4] hover:underline">
