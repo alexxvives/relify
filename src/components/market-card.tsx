@@ -35,8 +35,13 @@ import {
 } from "@/lib/sector-image";
 
 /** Shared marketplace grid: as many ≥21rem columns as fit, so cards never get cramped at any width. */
+/**
+ * t93: column count from fixed px viewport breakpoints, so it only ever grows with width. The old auto-fill on 21rem
+ * flipped 3→4→3 (and 4→5→4) because the root font size steps up at 1800px and 2300px, which makes 21rem wider.
+ * Four columns hold until 2560px.
+ */
 export const marketGridClass =
-  "grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-5";
+  "grid grid-cols-1 gap-5 min-[768px]:grid-cols-2 min-[1360px]:grid-cols-3 min-[1760px]:grid-cols-4 min-[2560px]:grid-cols-5";
 
 type SectorStyle = {
   icon: LucideIcon;
