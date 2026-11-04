@@ -88,6 +88,7 @@ import {
   type EbitdaAdjustmentFormRow,
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
+import { sellerFinancingErrors, sellerFinancingLabels, sellerFinancingModes, sellerFinancingYearOptions } from "@/lib/seller-financing";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
 const cnaeOptions = [
@@ -474,6 +475,103 @@ function FichaMetrics({
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
+    </div>
+  );
+}
+
+/**
+ * t90: seller financing (pago aplazado). One question plus two optional terms; the hidden inputs post with the page
+ * form like the other Datos de la ficha fields. Format errors show once a field is filled; "Sí" with a missing term
+ * only shows after a save attempt flagged it.
+ */
+function SellerFinancingField({
+  mode,
+  pct,
+  years,
+  onMode,
+  onPct,
+  onYears,
+  showMissing,
+}: {
+  mode: string;
+  pct: string;
+  years: string;
+  onMode: (value: string) => void;
+  onPct: (value: string) => void;
+  onYears: (value: string) => void;
+  showMissing: boolean;
+}) {
+  const errors = sellerFinancingErrors({ sellerFinancing: mode, sellerFinancingPct: pct, sellerFinancingYears: years });
+  const pctError = errors.pct && (pct.trim() !== "" || showMissing) ? errors.pct : null;
+  const yearsError = errors.years && (years.trim() !== "" || showMissing) ? errors.years : null;
+  const terms = mode === "yes" || mode === "negotiable";
+  return (
+    <div id="panel-seller-financing" className="mt-3 scroll-mt-24 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <input type="hidden" name="sellerFinancing" value={mode} />
+      <input type="hidden" name="sellerFinancingPct" value={terms ? pct : ""} />
+      <input type="hidden" name="sellerFinancingYears" value={terms ? years : ""} />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+        <div className="min-w-0">
+          <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
+            ¿Aceptarías financiar parte del precio?
+          </p>
+          <p className="mt-1 text-xs text-[#667085]">
+            El comprador te paga una parte más adelante, en plazos. Facilita la venta y lo verán los compradores en tu ficha.
+          </p>
+        </div>
+        <div role="radiogroup" aria-labelledby="seller-financing-label" className="inline-flex shrink-0 rounded-full border border-[#d5dbe3] bg-white p-0.5">
+          {sellerFinancingModes.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={mode === option}
+              onClick={() => onMode(mode === option ? "" : option)}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                mode === option ? "bg-[#0f766e] text-white" : "text-[#475467] hover:bg-[#e6f4f2]"
+              }`}
+            >
+              {sellerFinancingLabels[option]}
+            </button>
+          ))}
+        </div>
+      </div>
+      {terms ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-[#475467]">
+            <span>% máximo del precio{mode === "negotiable" ? " (opcional)" : ""}</span>
+            <span className="relative">
+              <input
+                inputMode="numeric"
+                value={pct}
+                onChange={(event) => onPct(event.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                placeholder="20"
+                aria-invalid={pctError ? true : undefined}
+                className={`w-full rounded-lg border bg-white px-3 py-2 pr-8 text-sm text-[#1c2740] tabular-nums focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${pctError ? "border-[#b42318]" : "border-[#d5dbe3]"}`}
+              />
+              <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#667085]">%</span>
+            </span>
+            {pctError ? <span className="text-xs text-[#b42318]">{pctError}</span> : null}
+          </label>
+          <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-[#475467]">
+            <span>Plazo{mode === "negotiable" ? " (opcional)" : ""}</span>
+            <select
+              value={years}
+              onChange={(event) => onYears(event.target.value)}
+              aria-invalid={yearsError ? true : undefined}
+              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${yearsError ? "border-[#b42318]" : "border-[#d5dbe3]"}`}
+            >
+              <option value="">Elige el plazo</option>
+              {sellerFinancingYearOptions.map((option) => (
+                <option key={option} value={String(option)}>
+                  {option === 5 ? "5 años o más" : option === 1 ? "1 año" : `${option} años`}
+                </option>
+              ))}
+            </select>
+            {yearsError ? <span className="text-xs text-[#b42318]">{yearsError}</span> : null}
+          </label>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1156,6 +1254,9 @@ export function CompanyDraftForm({
   const [hadAdjustmentList, setHadAdjustmentList] = useState(() => initial.ebitdaAdjustments.trim() !== "");
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
+  const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
+  const [sellerFinancingPct, setSellerFinancingPct] = useState(initial.sellerFinancingPct);
+  const [sellerFinancingYears, setSellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
@@ -1236,6 +1337,9 @@ export function CompanyDraftForm({
     ebitdaAdjustments: adjustmentRowsJson(formRowsFromJson(initial.ebitdaAdjustments)),
     opex: initial.opex,
     askingPrice: initial.askingPrice,
+    sellerFinancing: initial.sellerFinancing as string,
+    sellerFinancingPct: initial.sellerFinancingPct,
+    sellerFinancingYears: initial.sellerFinancingYears,
     closedYears: initial.closedYears,
     forecastYear: initial.forecastYear,
   }));
@@ -1262,6 +1366,9 @@ export function CompanyDraftForm({
     ebitdaAdjustments: adjustmentsJson,
     opex,
     askingPrice,
+    sellerFinancing,
+    sellerFinancingPct,
+    sellerFinancingYears,
     closedYears,
     forecastYear,
   };
@@ -1297,7 +1404,10 @@ export function CompanyDraftForm({
     ebitda !== baseline.ebitda ||
     adjustmentsJson !== baseline.ebitdaAdjustments ||
     opex !== baseline.opex ||
-    askingPrice !== baseline.askingPrice;
+    askingPrice !== baseline.askingPrice ||
+    sellerFinancing !== baseline.sellerFinancing ||
+    sellerFinancingPct !== baseline.sellerFinancingPct ||
+    sellerFinancingYears !== baseline.sellerFinancingYears;
 
   function closedIndex(index: number): 0 | 1 | 2 {
     if (index === 1) {
@@ -1483,6 +1593,9 @@ export function CompanyDraftForm({
     adjustedEbitda,
     ebitdaAdjustments: adjustmentsJson,
     askingPrice,
+    sellerFinancing: sellerFinancing as CompanyDraftInput["sellerFinancing"],
+    sellerFinancingPct,
+    sellerFinancingYears,
     opex,
     capitalPercents,
     productPercents,
@@ -1849,6 +1962,15 @@ export function CompanyDraftForm({
                   basis={adjustedEbitdaCents !== null && adjustedEbitdaCents > 0 ? "EBITDA ajustado" : "EBITDA"}
                 />
               }
+            />
+            <SellerFinancingField
+              mode={sellerFinancing}
+              pct={sellerFinancingPct}
+              years={sellerFinancingYears}
+              onMode={setSellerFinancing}
+              onPct={setSellerFinancingPct}
+              onYears={setSellerFinancingYears}
+              showMissing={Boolean(state && !state.saved && state.message.startsWith("Financiación del vendedor"))}
             />
           </PublicFicha>
       </Panel>

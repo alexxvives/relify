@@ -1,3 +1,4 @@
+import { sellerFinancingErrors, sellerFinancingInputSchema } from "./seller-financing";
 import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
@@ -116,6 +117,7 @@ export const companyDraftSchema = z
     adjustedEbitda: optionalEuroText,
     ebitdaAdjustments: z.string().max(8000, "adjustment-format"),
     askingPrice: optionalEuroText,
+    ...sellerFinancingInputSchema,
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
@@ -127,6 +129,14 @@ export const companyDraftSchema = z
   })
   .superRefine((input, ctx) => {
     validateCnaes(input.principalCnae, input.secondaryCnaes, ctx);
+    // t90: seller financing terms are checked field by field; "Sí" needs share and term.
+    const financing = sellerFinancingErrors(input);
+    if (financing.pct) {
+      ctx.addIssue({ code: "custom", message: "seller-financing-pct", path: ["sellerFinancingPct"] });
+    }
+    if (financing.years) {
+      ctx.addIssue({ code: "custom", message: "seller-financing-years", path: ["sellerFinancingYears"] });
+    }
     validatePercents(input.capitalPercents, "capitalPercents", "percent-sum-capital", ctx);
     validatePercents(input.productPercents, "productPercents", "percent-sum-product", ctx);
     // t78: drafts save partially; "Por qué se vende" is required for completion (seller progress), not to save.
@@ -183,6 +193,8 @@ const draftMessages = {
   "adjustment-amount": companyCopy.adjustmentsInvalid,
   "adjustment-reason": companyCopy.adjustmentsInvalid,
   "adjustment-count": companyCopy.adjustmentsCount,
+  "seller-financing-pct": "Financiación del vendedor: indica un porcentaje entero entre 1 y 100.",
+  "seller-financing-years": "Financiación del vendedor: elige el plazo.",
 } as const;
 
 export function companyDraftFieldMessage(error: z.ZodError): string {
@@ -300,6 +312,9 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     adjustedEbitda: "",
     ebitdaAdjustments: "",
     askingPrice: "",
+    sellerFinancing: "",
+    sellerFinancingPct: "",
+    sellerFinancingYears: "",
     opex: "",
     capitalPercents: [],
     productPercents: [],

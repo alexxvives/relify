@@ -1,3 +1,4 @@
+import { sellerFinancingWrite } from "@/lib/seller-financing";
 import { randomUUID } from "node:crypto";
 import { codenameIsFree, uniqueCodename } from "@/server/uniqueCodename";
 import { isCuratedNickname } from "@/lib/nickname";
@@ -171,6 +172,11 @@ export async function saveCompanyDraft(
     foundedYear: input.foundedYear === "" ? null : Number(input.foundedYear),
     description: input.description === "" ? null : input.description,
     saleReason: input.saleReason === "" ? null : input.saleReason,
+    // t90: deal terms the seller may always edit (not financials). The schema already rejected invalid terms.
+    ...(() => {
+      const financing = sellerFinancingWrite(input);
+      return financing.ok ? financing.data : {};
+    })(),
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,
   };
