@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CompanyDetailsSkeleton } from "@/components/page-skeletons";
+import { CompanyDetailsSkeleton, FichaPublicaSkeleton } from "@/components/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerCompanyPanel } from "@/components/seller-company-panel";
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 async function CompanyDetailsPageContent({
   searchParams,
 }: {
-  searchParams: Promise<{ seccion?: string; session_id?: string }>;
+  searchParams: Promise<{ seccion?: string; session_id?: string; tab?: string }>;
 }) {
   const query = await searchParams;
   const focus = query.seccion && isSellerFocusPanel(query.seccion) ? query.seccion : null;
@@ -58,6 +58,7 @@ async function CompanyDetailsPageContent({
         draft={draft}
         cif={cif}
         focus={focus}
+        initialTab={!focus && query.tab === "ficha" ? "deal" : "company"}
         coverSrc={coverSrc}
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
@@ -67,10 +68,13 @@ async function CompanyDetailsPageContent({
   );
 }
 
-export default function CompanyDetailsPage(props: Parameters<typeof CompanyDetailsPageContent>[0]) {
+export default async function CompanyDetailsPage(props: Parameters<typeof CompanyDetailsPageContent>[0]) {
+  // t91: the skeleton matches the tab in the URL, so a refresh on Ficha pública never flashes Información empresa.
+  const query = await props.searchParams;
+  const ficha = !query.seccion && query.tab === "ficha";
   return (
     <SignedInPage title={sellerCopy.detailsTitle} showTitle={false}>
-      <Suspense fallback={<CompanyDetailsSkeleton />}>
+      <Suspense fallback={ficha ? <FichaPublicaSkeleton /> : <CompanyDetailsSkeleton />}>
         <CompanyDetailsPageContent {...props} />
       </Suspense>
     </SignedInPage>

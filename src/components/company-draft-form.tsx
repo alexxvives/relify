@@ -6,7 +6,7 @@ import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
-import { rememberSessionFlag, usePanelOpen, useSessionChoice } from "@/components/session-flag";
+import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -1215,6 +1215,7 @@ export function CompanyDraftForm({
   draft,
   cif,
   focus = null,
+  initialTab = "company",
   coverSrc = null,
   financeExtra = null,
   reportYears = null,
@@ -1223,6 +1224,8 @@ export function CompanyDraftForm({
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
+  /** t91: read from ?tab= on the server. */
+  initialTab?: "company" | "deal";
   coverSrc?: string | null;
   /** t62: SABI detail block, rendered under the balance sheet. */
   financeExtra?: ReactNode;
@@ -1267,13 +1270,8 @@ export function CompanyDraftForm({
   const [nif, setNif] = useState(cif);
   const [closedYears, setClosedYears] = useState(initial.closedYears);
   const [forecastYear, setForecastYear] = useState(initial.forecastYear);
-  const [storedTab, setStoredTab] = useSessionChoice(
-    "Relify:seller-tab",
-    "company",
-    ["company", "deal"],
-  );
-  const [tabPin, setTabPin] = useState<"company" | "deal" | null>(focus === "price" ? "company" : null);
-  const tab = tabPin ?? storedTab;
+  // t91: the tab lives in the URL (?tab=ficha) and the server reads it, so the first paint is already the right tab.
+  const [tab, setTabState] = useState<"company" | "deal">(focus === null && initialTab === "deal" ? "deal" : "company");
   const [openBasic, setOpenBasic] = usePanelOpen(
     "Relify:panel:basic",
     focus === null || focus === "identity" || focus === "description" || focus === "cnae",
@@ -1422,8 +1420,15 @@ export function CompanyDraftForm({
   }
 
   function setTab(next: "company" | "deal") {
-    setTabPin(null);
-    setStoredTab(next);
+    setTabState(next);
+    const url = new URL(window.location.href);
+    if (next === "deal") {
+      url.searchParams.set("tab", "ficha");
+      url.searchParams.delete("seccion");
+    } else {
+      url.searchParams.delete("tab");
+    }
+    window.history.replaceState(window.history.state, "", url);
   }
 
   function chooseSave(id: string) {

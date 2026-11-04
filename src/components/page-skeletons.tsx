@@ -717,13 +717,14 @@ export function CompanyDetailsSkeleton() {
       <Bare className="h-9 w-48" />
       <Tabs />
       {/* t77: mirrors the section rail (desktop) / pills (mobile) + cards layout. */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+      {/* t91: matches the real layout: form left, progress/section panel on the RIGHT (16rem). */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-stretch lg:gap-6">
         <div className="flex gap-1.5 overflow-hidden lg:hidden">
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="hidden lg:block">
+        <div className="hidden lg:order-last lg:block">
           <div className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4">
             <div className="flex items-center gap-3">
               <B className="size-14 rounded-full" />
@@ -1056,5 +1057,44 @@ export function AdminCompanySkeleton() {
         ))}
       </div>
     </div>
+  );
+}
+
+/** t91: Ficha pública tab of /mi-empresa/detalles: marketplace card preview, then the buyer ficha sections. */
+export function FichaPublicaSkeleton() {
+  return (
+    <Shell>
+      <Bare className="h-9 w-48" />
+      <Tabs />
+      <Card>
+        <B className="h-7 w-40" />
+        <B className="mt-3 h-4 w-2/3" />
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[#e7eaee] bg-white sm:max-w-sm">
+          <B className="h-40 w-full rounded-none" />
+          <div className="flex flex-col gap-2 p-4">
+            <B className="h-5 w-40" />
+            <B className="h-3 w-24" />
+            <B className="h-3 w-56" />
+            <B className="h-3 w-full" />
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {[0, 1, 2, 3].map((index) => (
+                <B key={index} className="h-12 w-full rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+        <B className="mt-8 h-5 w-56" />
+        <B className="mt-4 h-12 w-full rounded-2xl" />
+        <div className="mt-4 flex flex-col gap-3">
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <div key={index} className="flex items-center gap-3 rounded-2xl border border-[#e7eaee] bg-white px-4 py-4">
+              <B className="size-8 rounded-xl" />
+              <B className="h-5 w-44" />
+              <B className="ml-auto h-4 w-24" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </Shell>
   );
 }
