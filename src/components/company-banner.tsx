@@ -80,7 +80,7 @@ export function CompanyBanner({
 
   return (
     <header
-      className="relative overflow-hidden rounded-[1.75rem] px-6 py-[4.625rem] text-white sm:px-8 sm:py-[5.125rem]"
+      className="relative overflow-hidden rounded-[1.75rem] px-6 py-8 text-white sm:px-8 sm:py-10"
       style={
         themed && sector
           ? { background: sectorBannerBackground(sector) }
@@ -102,18 +102,18 @@ export function CompanyBanner({
           aria-hidden
         />
       ) : null}
-      {children ? <div className="absolute top-6 right-6 z-10 flex items-center gap-2">{children}</div> : null}
-      <div className="relative z-10 mx-auto max-w-3xl pt-2 text-center">
+      {children ? <div className="absolute top-5 right-5 z-10 flex items-center gap-2">{children}</div> : null}
+      <div className="relative z-10 mx-auto max-w-3xl text-center">
         {themed && SectorIcon ? (
-          <span className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/25" aria-hidden>
-            <SectorIcon className="size-6 text-white" />
+          <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/25" aria-hidden>
+            <SectorIcon className="size-5 text-white" />
           </span>
         ) : null}
-        <Title className="releva-page-title text-6xl leading-[0.96] text-white sm:text-7xl">
+        <Title className="releva-page-title text-5xl leading-[0.96] text-white sm:text-6xl">
           {title}
         </Title>
         {chips.length > 0 ? (
-          <ul className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label="Datos generales">
+          <ul className="mt-4 flex flex-wrap items-center justify-center gap-2" aria-label="Datos generales">
             {chips.map((chip) => (
               <li key={chip} className="rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white ring-1 ring-white/20 sm:text-sm">
                 {chip}
@@ -154,7 +154,7 @@ export function CompanyBanner({
         </p>
         ) : null}
       </div>
-      {progress ? <div className="relative z-10 mt-16 sm:mt-20">{progress}</div> : null}
+      {progress ? <div className="relative z-10 mt-8 sm:mt-10">{progress}</div> : null}
       {cue ? <div className={`relative z-10 mx-auto flex max-w-xl justify-center text-left ${progress ? "mt-6" : "mt-8"}`}>{cue}</div> : null}
     </header>
   );
