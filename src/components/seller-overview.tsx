@@ -96,7 +96,7 @@ export function SellerOverview({
                   : listing === "published"
                   ? "text-xl font-semibold whitespace-nowrap text-[#17663a]"
                   : listing === "pending"
-                    ? "inline-flex items-center gap-1.5 text-xl font-semibold whitespace-nowrap text-[#0f766e]"
+                    ? "flex w-full items-center justify-center gap-1.5 text-center text-xl font-semibold whitespace-nowrap text-[#0f766e]"
                     : "text-lg font-semibold whitespace-nowrap text-[#c0362c]"
               }
             >
