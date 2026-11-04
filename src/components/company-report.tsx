@@ -215,7 +215,7 @@ function Kpi({
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <span className={`mt-1.5 text-lg font-semibold tabular-nums sm:text-xl ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
+      <span className={`mt-2 text-2xl leading-tight font-bold tracking-tight tabular-nums sm:text-4xl ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
       {sub ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[#8b95a7]">{sub}</div> : null}
     </div>
   );
@@ -699,7 +699,6 @@ export function CompanyReport({
 
   const sections = [
     { id: "resumen", label: companyReportCopy.summary },
-    { id: "operacion", label: companyReportCopy.deal },
     { id: "negocio", label: companyReportCopy.business },
     { id: "evolucion", label: companyReportCopy.evolution },
     profitability.length > 0 ? { id: "rentabilidad", label: companyReportCopy.profitability } : null,
@@ -729,11 +728,82 @@ export function CompanyReport({
             sub={multiple !== null ? <RoiChip years={multiple} /> : project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
           />
           <Kpi
-            label={lastEmployees ? "Empleados" : companyCopy.workersLabel}
-            value={lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
-            hint={lastEmployees ? "Plantilla media declarada en las últimas cuentas." : "Tramo de plantilla indicado por el vendedor."}
-            sub={age !== null ? <span>{age} años de actividad (desde {project.foundedYear})</span> : null}
+            label={companyCopy.saleReasonLabel}
+            value={saleReasonText(project.saleReason)}
+            tone={project.saleReason ? "ink" : "pending"}
+            source="seller"
+            hint="Motivo de venta indicado por el vendedor. El registro no lo publica."
           />
+        </div>
+        {/* t94: plantilla, financiación y asesoría as compact chips under the headline numbers. */}
+        <ul className="mt-3 flex flex-wrap gap-2 text-xs">
+          <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
+            <Users className="size-3.5 text-[#0f766e]" aria-hidden />
+            <span className="text-[#5c6b78]">{lastEmployees ? "Empleados" : companyCopy.workersLabel}</span>
+            <span className="font-semibold text-[#1c2740]">
+              {lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable}
+            </span>
+            {age !== null ? <span className="text-[#8b95a7]">· {age} años de actividad (desde {project.foundedYear})</span> : null}
+          </li>
+          {project.sellerFinancing ? (
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
+              <HandCoins className="size-3.5 text-[#0f766e]" aria-hidden />
+              <span className="text-[#5c6b78]">Financiación del vendedor</span>
+              <span className="font-semibold text-[#1c2740]">{sellerFinancingText(project.sellerFinancing)}</span>
+            </li>
+          ) : null}
+          {project.sellerStay ? (
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
+              <UserRoundCheck className="size-3.5 text-[#0f766e]" aria-hidden />
+              <span className="text-[#5c6b78]">Asesoría tras la venta</span>
+              <span className="font-semibold text-[#1c2740]">{sellerStayText(project.sellerStay)}</span>
+            </li>
+          ) : null}
+        </ul>
+        {/* t94: the old "Operación de venta" figures live here now (múltiplo, rentabilidad, EBITDA exacto y ajustado, OPEX). */}
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <Fact
+            icon={HandCoins}
+            label="Múltiplo de EBITDA"
+            value={deal.multipleText}
+            source="calc"
+            note={deal.multipleNote ?? (multiple === null ? "Solo se calcula con precio y EBITDA positivos." : "Precio ÷ EBITDA.")}
+          />
+          <Fact
+            icon={HandCoins}
+            label="Rentabilidad sobre el precio"
+            value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : deal.priceSet ? "No aplica" : "Pendiente"}
+            source="calc"
+            note={yieldPct === null ? (deal.priceSet ? "EBITDA negativo" : "Falta el precio") : "EBITDA ÷ precio × 100."}
+          />
+          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} source={deal.figuresSource} />
+          {/* t85: "Ver ajustes" popover on the EBITDA ajustado tile: types and amounts before the NDA, plus motives after. */}
+          <div className="relative min-w-0">
+            <Fact
+              icon={Receipt}
+              label={companyCopy.adjustedEbitdaLabel}
+              value={deal.adjustedSet ? formatEur(project.adjustedEbitdaCents) : "Pendiente del vendedor"}
+              pill={deal.adjustedSet ? <AdjustedPill ebitdaCents={project.ebitdaCents} adjustedCents={project.adjustedEbitdaCents} /> : null}
+              source="seller"
+              note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
+            />
+            {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
+              <details className="group absolute top-2 right-2">
+                <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                  Ver ajustes
+                </summary>
+                <div className="absolute right-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
+                  <AdjustmentBridge
+                    ebitdaCents={project.ebitdaCents}
+                    adjustedCents={project.adjustedEbitdaCents}
+                    rows={project.ebitdaAdjustments}
+                    showReasons={figuresOpen || role === "admin"}
+                  />
+                </div>
+              </details>
+            ) : null}
+          </div>
+          {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
         </div>
         {facts && facts.length > 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-[#aab4c3] bg-[#eef1f5] p-4">
@@ -790,82 +860,6 @@ export function CompanyReport({
         ) : null}
       </ReportSection>
 
-      {/* t87: the deal comes right after the summary, before the business and the numbers. */}
-      <ReportSection id="operacion" icon={HandCoins} title={companyReportCopy.deal} intro={companyReportCopy.dealHint}>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <Kpi
-            label={companyCopy.askingPriceLabel}
-            value={deal.priceSet ? formatEur(project.askingPriceCents) : priceUnset}
-            tone={deal.priceSet ? "ink" : "pending"}
-            source="seller"
-            hint="Precio que pide el vendedor por la empresa. No sale del registro: lo indica el vendedor."
-            sub={deal.priceSet ? null : <span>{priceUnsetNote}</span>}
-          />
-          <Kpi
-            label="Múltiplo de EBITDA"
-            value={deal.multipleText}
-            tone={multiple !== null ? "ink" : "pending"}
-            source="calc"
-            hint={"Precio ÷ EBITDA: cuántos años del EBITDA actual equivale el precio. También son los años para recuperar la compra si el EBITDA se mantuviera.\nSolo se calcula con precio y EBITDA positivos."}
-            sub={
-              <>
-                {multiple !== null ? <RoiChip years={multiple} /> : null}
-                {deal.multipleNote ? <span>{deal.multipleNote}</span> : null}
-              </>
-            }
-          />
-          <Kpi
-            label="Rentabilidad sobre el precio"
-            value={yieldPct !== null ? `${yieldPct.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : deal.priceSet ? "No aplica" : "Pendiente"}
-            tone={yieldPct !== null ? "ink" : "pending"}
-            source="calc"
-            hint="EBITDA ÷ precio × 100: lo que el negocio genera cada año por cada 100 € pagados, antes de impuestos e intereses."
-            sub={yieldPct === null ? <span>{deal.priceSet ? "EBITDA negativo" : "Falta el precio"}</span> : null}
-          />
-          <Kpi
-            label={companyCopy.saleReasonLabel}
-            value={saleReasonText(project.saleReason)}
-            tone={project.saleReason ? "ink" : "pending"}
-            source="seller"
-            hint="Motivo de venta indicado por el vendedor. El registro no lo publica."
-          />
-        </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Fact icon={Receipt} label={companyCopy.ebitdaLabel} value={formatEur(project.ebitdaCents)} source={deal.figuresSource} />
-          {/* t85: "Ver ajustes" popover on the EBITDA ajustado tile: types and amounts before the NDA, plus motives after. */}
-          <div className="relative min-w-0">
-            <Fact
-              icon={Receipt}
-              label={companyCopy.adjustedEbitdaLabel}
-              value={deal.adjustedSet ? formatEur(project.adjustedEbitdaCents) : "Pendiente del vendedor"}
-              pill={deal.adjustedSet ? <AdjustedPill ebitdaCents={project.ebitdaCents} adjustedCents={project.adjustedEbitdaCents} /> : null}
-              source="seller"
-              note={deal.adjustedNote ?? (project.ebitdaAdjustments === null && adjustment !== 0 ? companyCopy.adjustmentsLegacy : undefined)}
-            />
-            {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-              <details className="group absolute top-2 right-2">
-                <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-xs font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-                  Ver ajustes
-                </summary>
-                <div className="absolute right-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
-                  <AdjustmentBridge
-                    ebitdaCents={project.ebitdaCents}
-                    adjustedCents={project.adjustedEbitdaCents}
-                    rows={project.ebitdaAdjustments}
-                    showReasons={figuresOpen || role === "admin"}
-                  />
-                </div>
-              </details>
-            ) : null}
-          </div>
-          {project.opexCents !== null ? <Fact icon={Receipt} label={companyCopy.opexLabel} value={formatEur(project.opexCents)} source={deal.figuresSource} /> : null}
-          {/* t90: deal terms from the seller; hidden when the seller has not answered. */}
-          {project.sellerFinancing ? (
-            <Fact icon={HandCoins} label="Financiación del vendedor" value={sellerFinancingText(project.sellerFinancing)} source="seller" />
-          ) : null}
-          {project.sellerStay ? <Fact icon={UserRoundCheck} label="Asesoría tras la venta" value={sellerStayText(project.sellerStay)} source="seller" /> : null}
-        </div>
-      </ReportSection>
 
       <ReportSection id="negocio" icon={Briefcase} title={companyReportCopy.business} aside={project.principalCnae ? `${project.principalCnae.code} · ${project.principalCnae.title}` : undefined}>
         <div className="flex flex-col gap-4">
