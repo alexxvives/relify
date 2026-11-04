@@ -255,7 +255,7 @@ function TurnCue({
               : "mx-auto mt-4 flex max-w-xl flex-wrap items-center gap-3 text-left"
           }
         >
-          <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">
+          <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">
             Tu turno
           </span>
           <span className="text-sm leading-5 text-white">{cue.action}</span>
@@ -290,7 +290,7 @@ function TurnCue({
   if (center) {
     return (
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-center">
-        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
+        <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
           Qué sigue
         </span>
         <p className={onDark ? "text-sm leading-5 text-white" : "text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
@@ -304,10 +304,10 @@ function TurnCue({
     <div className="mt-4 flex items-start justify-between gap-3">
       {onDark ? (
         <div className="flex min-w-0 items-start gap-3">
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
             Qué sigue
           </span>
-          <p className="pt-0.5 text-sm leading-5 text-white">{cue.action}</p>
+          <p className="pt-1 text-sm leading-5 text-white">{cue.action}</p>
         </div>
       ) : (
         <DealWaitingCue cue={cue} className="min-w-0 flex-1" />
@@ -369,8 +369,8 @@ export function ProcessHeaderCue({
   if (contractNext && (current?.id === "documents" || current?.id === "close")) {
     return contractNext.who === "you" ? (
       <span className="flex min-w-0 items-start gap-3">
-        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">Tu turno</span>
-        <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
+        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">Tu turno</span>
+        <p className="pt-1 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
       </span>
     ) : (
       <DealWaitingCue cue={{ action: contractNext.text }} />
@@ -390,10 +390,10 @@ export function ProcessHeaderCue({
       <div className="flex min-w-0 flex-wrap items-center gap-3">
         {cue.yours ? (
           <span className="flex min-w-0 items-start gap-3">
-            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs font-semibold text-[#b42318]">
+            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">
               Tu turno
             </span>
-            <p className="pt-0.5 text-sm leading-5 text-[#1c2740]">{cue.action}</p>
+            <p className="pt-1 text-sm leading-5 text-[#1c2740]">{cue.action}</p>
           </span>
         ) : (
           <DealWaitingCue cue={cue} />
@@ -443,10 +443,10 @@ export function DealWaitingCue({
 }) {
   return (
     <div className={`flex items-start gap-3 ${className}`}>
-      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
+      <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
         Qué sigue
       </span>
-      <p className={onDark ? "pt-0.5 text-sm leading-5 text-white" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
+      <p className={onDark ? "pt-1 text-sm leading-5 text-white" : "pt-1 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
     </div>
   );
 }
@@ -470,12 +470,12 @@ function DiligenceChoice({
     <div className={inline ? "flex min-w-0 flex-wrap items-center gap-3" : onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
       <div className="flex min-w-0 items-start gap-3">
         {hideWaitingCue || inline ? null : (
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-semibold text-[#17663a]">
+          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
             Qué sigue
           </span>
         )}
         {inline ? null : (
-          <p className={onDark ? "pt-0.5 text-sm leading-5 text-white/85" : "pt-0.5 text-sm leading-5 text-[#3d4a63]"}>
+          <p className={onDark ? "pt-1 text-sm leading-5 text-white/85" : "pt-1 text-sm leading-5 text-[#3d4a63]"}>
             Revisa con un asesor de Relify, o sigue a la documentación. El contrato lo sube el vendedor.
           </p>
         )}
