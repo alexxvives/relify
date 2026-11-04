@@ -3,6 +3,9 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/* t93: short, wide screens (laptops with browser chrome, split windows). Desktop layout only. */
+@custom-variant short (@media (min-width: 1024px) and (max-height: 820px));
+@custom-variant tiny (@media (min-width: 1024px) and (max-height: 640px));
 
 @theme inline {
   --color-background: var(--background);

@@ -25,7 +25,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
   return (
     <form
       action={action}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-4 short:gap-3"
       onSubmit={(event) => {
         if (role === "") {
           event.preventDefault();

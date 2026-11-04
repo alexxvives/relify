@@ -39,7 +39,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-4 short:gap-3">
       <EmailField />
       {state?.message ? (
         <p role="alert" className="text-sm text-destructive">
@@ -62,7 +62,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
 
   if (state?.message === "ok") {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 short:gap-3">
         <Notice>
           Tu contraseña se ha actualizado. Ya puedes entrar con la nueva.
         </Notice>
@@ -75,7 +75,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
 
   if (!token || state?.invalid) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 short:gap-3">
         <p role="alert" className="text-sm text-destructive">
           {authCopy.resetInvalid}
         </p>
@@ -87,7 +87,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
   }
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-4 short:gap-3">
       <input type="hidden" name="token" value={token} />
       <PasswordField
         autoComplete="new-password"
