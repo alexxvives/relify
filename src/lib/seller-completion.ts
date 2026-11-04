@@ -51,8 +51,8 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
       ? [{ id: "panel-client-split", label: "Ventas por cliente", section: "structure" as const, done: splitDone(input.clientPercents), required: false }]
       : []),
     { id: "panel-asking-price", label: "Precio de venta", section: "deal", done: askingPriceSet(input.askingPrice), required: true },
-    { id: "panel-seller-financing", label: "Financiación del vendedor", section: "deal", done: (input.sellerFinancing ?? "") !== "", required: true },
-    { id: "panel-seller-stay", label: "Asesoría tras la venta", section: "deal", done: (input.sellerStay ?? "") !== "", required: false },
+    { id: "panel-seller-financing", label: "Financiación del vendedor", section: "basic", done: (input.sellerFinancing ?? "") !== "", required: true },
+    { id: "panel-seller-stay", label: "Asesoría tras la venta", section: "basic", done: (input.sellerStay ?? "") !== "", required: false },
   ];
 }
 

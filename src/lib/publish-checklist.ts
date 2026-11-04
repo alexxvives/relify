@@ -62,7 +62,7 @@ export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: 
     { key: "description", done: input.panels.description, href: detailHref("description") },
     { key: "price", done: input.panels.price, href: detailHref("price") },
     // t92: required; any answer (Sí, No or Negociable) completes it.
-    { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("price", "panel-seller-financing") },
+    { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("cnae", "panel-seller-financing") },
   );
   return list(items);
 }
@@ -137,7 +137,7 @@ export function recommendedChecklist(input: {
     hint: "Si hay gastos o ingresos que un comprador no tendría, añádelos como ajustes para mostrar lo que el negocio gana de verdad.",
   });
   if (input.sellerStay !== undefined) {
-    items.push({ key: "sellerStay", done: input.sellerStay, href: detailHref("price", "panel-seller-stay") });
+    items.push({ key: "sellerStay", done: input.sellerStay, href: detailHref("cnae", "panel-seller-stay") });
   }
   return items.map((item) => ({ ...item, label: recommendedCheckLabels[item.key] }));
 }

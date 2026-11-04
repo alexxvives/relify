@@ -68,7 +68,7 @@ function SectorTags({ sectors }: { sectors: string[] }) {
   }, [sectors, strip]);
 
   return (
-    <div ref={hostRef} className="relify-tag-drift-host mt-4 h-[54px] overflow-hidden">
+    <div ref={hostRef} className="relify-tag-drift-host mt-4 h-[4.25rem] overflow-hidden">
       <ul
         ref={listRef}
         data-mode={strip ? "strip" : "wrap"}

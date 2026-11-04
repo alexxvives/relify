@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-04: the seller ficha Resumen hid a negative adjusted EBITDA — `draftInvestorPreview` parsed that figure as unsigned, so the minus became 0 and the card treated 0 as unknown — parse adjusted EBITDA with the signed pattern, same as the accounts EBITDA.
+- 2026-11-04: the stay dropdown opened from its title — a `label htmlFor` activates the `OptionSelect` button — use a plain heading, the same way CNAE does, so only the field opens the menu.
 - 2026-11-04: the seller marketplace preview hid Ajustado on a negative adjusted EBITDA — `MarketPreview` parses that figure with the unsigned euro pattern, so a minus becomes 0 and the card treats 0 as unknown — parse it with the signed pattern, the same way the accounts EBITDA is parsed.
 - 2026-11-04: sign-in as test_deale found no row in Docker — that seller and the SABI import live on itsrelify.com, and the local seed only has the itsreleva.com demo accounts — use production for that company.
 - 2026-11-04: `tsc` could not find `src/app/admin/page.js` — `.next/dev/types/validator.ts` still pointed at routes from before the `(app)` group — delete `.next`, run `npx next typegen`, then typecheck. Do not edit that generated file.

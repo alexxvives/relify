@@ -58,10 +58,10 @@ function pageList(page: number, pages: number): (number | "…")[] {
 const base =
   "inline-flex size-10 items-center justify-center rounded-xl text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-[#465ab4]/30";
 
-export function Pagination({ page, pages, onChange, label = "Paginación" }: { page: number; pages: number; onChange: (page: number) => void; label?: string }) {
+export function Pagination({ page, pages, onChange, label = "Paginación", className = "mt-8" }: { page: number; pages: number; onChange: (page: number) => void; label?: string; className?: string }) {
   if (pages <= 1) return null;
   return (
-    <nav aria-label={label} className="mt-8 flex items-center justify-center gap-1">
+    <nav aria-label={label} className={`${className} flex items-center justify-center gap-1`}>
       <button type="button" className={`${base} text-[#1c2740] hover:bg-[#eef1f6] disabled:opacity-40`} onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Página anterior">
         <ChevronLeft className="size-4" aria-hidden />
       </button>

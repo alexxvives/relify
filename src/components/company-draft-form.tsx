@@ -338,6 +338,7 @@ function FigureField({
   corner = null,
   unsetText,
   disabledReason = null,
+  footer = null,
 }: {
   label: string;
   name: string;
@@ -349,6 +350,7 @@ function FigureField({
   unsetText?: string;
   /** t95: when set the figure is read-only and shows this text (e.g. "No publicable") instead of any stored value. */
   disabledReason?: string | null;
+  footer?: ReactNode;
 }) {
   const [editing, setEditing] = useState(false);
   const unset = unsetText !== undefined && !editing && !askingPriceSet(value);
@@ -417,6 +419,7 @@ function FigureField({
           {amount === "—" ? amount : `${amount}\u00a0€`}
         </span>
       )}
+      {footer}
     </MetricTile>
   );
 }
@@ -463,6 +466,7 @@ function FichaMetrics({
   priceBlocked = false,
   adjustmentCount,
   adjustments,
+  recommended = null,
 }: {
   revenue: string;
   askingPrice: string;
@@ -475,6 +479,8 @@ function FichaMetrics({
   priceBlocked?: boolean;
   adjustmentCount: number;
   adjustments: (close: () => void) => ReactNode;
+  /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
+  recommended?: { label: string; onUse: () => void } | null;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -489,6 +495,17 @@ function FichaMetrics({
           corner={priceStatus}
           unsetText={companyCopy.priceUnset}
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
+          footer={
+            recommended && !priceBlocked ? (
+              <button
+                type="button"
+                onClick={recommended.onUse}
+                className="self-start text-left text-xs font-semibold text-[#465ab4] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#465ab4]"
+              >
+                {recommended.label}
+              </button>
+            ) : null
+          }
         />
       </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
@@ -594,9 +611,9 @@ function SellerFinancingField({
 function SellerStayField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
     <div id="panel-seller-stay" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <label htmlFor="seller-stay-select" className="text-sm font-semibold text-[#1c2740]">
+      <p id="seller-stay-label" className="text-sm font-semibold text-[#1c2740]">
         ¿Te quedarías como asesor tras la venta?
-      </label>
+      </p>
       <p id="seller-stay-help" className="mt-1 text-xs leading-5 text-[#667085]">
         Ayudar al comprador durante el traspaso da confianza.
       </p>
@@ -680,6 +697,13 @@ function EbitdaAdjustmentsDialog({
   }
   const inputClass = fieldInputClass;
   const signed = (cents: number) => `${cents > 0 ? "+" : ""}${formatEur(cents)}`;
+  const adjustedTotal = baseCents === null ? null : baseCents + sum;
+  const adjustedTone =
+    adjustedTotal === null || adjustedTotal === 0
+      ? { cell: "bg-[#fafbfd]", ink: "text-[#667085]" }
+      : adjustedTotal < 0
+        ? { cell: "bg-[#fdecec]", ink: "text-[#b42318]" }
+        : { cell: "bg-[#e7f6ee]", ink: "text-[#17663a]" };
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 sm:items-center sm:p-4" onClick={onClose}>
       <div
@@ -717,9 +741,9 @@ function EbitdaAdjustmentsDialog({
               <dt className="text-[11px] font-medium tracking-wide text-[#667085] uppercase sm:text-xs">{companyCopy.adjustmentsTotal}</dt>
               <dd className={`mt-0.5 text-sm font-semibold sm:text-base ${sum < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{signed(sum)}</dd>
             </div>
-            <div className="bg-[#f0faf8] px-2 py-2.5">
-              <dt className="text-[11px] font-medium tracking-wide text-[#0f766e] uppercase sm:text-xs">EBITDA ajustado</dt>
-              <dd className="mt-0.5 text-sm font-semibold text-[#0f766e] sm:text-base">{baseCents === null ? "—" : formatEur(baseCents + sum)}</dd>
+            <div className={`${adjustedTone.cell} px-2 py-2.5`}>
+              <dt className={`text-[11px] font-medium tracking-wide uppercase sm:text-xs ${adjustedTone.ink}`}>EBITDA ajustado</dt>
+              <dd className={`mt-0.5 text-sm font-semibold sm:text-base ${adjustedTone.ink}`}>{adjustedTotal === null ? "—" : formatEur(adjustedTotal)}</dd>
             </div>
           </dl>
         </header>
@@ -950,6 +974,15 @@ function ebitdaByYear(years: ClosedYearInput[]): YearAmount[] {
 
 function wholeEur(cents: number): string {
   return formatEur(cents).replace(/,00 €$/, " €");
+}
+
+/** Midpoint of the orientative range, rounded to the nearest euro, as the asking-price field stores it. */
+function recommendedPriceCents(estimate: PriceEstimate): number {
+  return Math.round((estimate.lowCents + estimate.highCents) / 200) * 100;
+}
+
+function recommendedPriceInput(estimate: PriceEstimate): string {
+  return String(recommendedPriceCents(estimate) / 100);
 }
 
 const standingCopy = {
@@ -1564,7 +1597,11 @@ export function CompanyDraftForm({
     principalCnae !== baseline.principalCnae ||
     nif !== baseline.nif ||
     headcount !== baseline.headcount ||
-    !sameList(secondaryCnaes, baseline.secondaryCnaes);
+    !sameList(secondaryCnaes, baseline.secondaryCnaes) ||
+    sellerFinancing !== baseline.sellerFinancing ||
+    sellerFinancingPct !== baseline.sellerFinancingPct ||
+    sellerFinancingYears !== baseline.sellerFinancingYears ||
+    sellerStay !== baseline.sellerStay;
   const structureDirty =
     !sameList(capitalPercents, baseline.capitalPercents) ||
     !sameList(productPercents, baseline.productPercents) ||
@@ -1580,11 +1617,7 @@ export function CompanyDraftForm({
     ebitda !== baseline.ebitda ||
     adjustmentsJson !== baseline.ebitdaAdjustments ||
     opex !== baseline.opex ||
-    askingPrice !== baseline.askingPrice ||
-    sellerFinancing !== baseline.sellerFinancing ||
-    sellerFinancingPct !== baseline.sellerFinancingPct ||
-    sellerFinancingYears !== baseline.sellerFinancingYears ||
-    sellerStay !== baseline.sellerStay;
+    askingPrice !== baseline.askingPrice;
 
   function closedIndex(index: number): 0 | 1 | 2 {
     if (index === 1) {
@@ -2054,7 +2087,7 @@ export function CompanyDraftForm({
         onRetry={() => autoSaveRef.current()}
         step={1}
         title={companyCopy.basicTitle}
-        intro="Nombre, motivo de venta, descripción y sector."
+        intro="Nombre, motivo de venta, descripción, sector y cómo sería el traspaso."
         open={saveClosed === "basic" ? false : openBasic}
         dirty={basicDirty}
         done={basicDone}
@@ -2197,6 +2230,15 @@ export function CompanyDraftForm({
             ))}
           </div>
         </div>
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <SellerFinancingField
+            mode={sellerFinancing}
+            pct={sellerFinancingPct}
+            years={sellerFinancingYears}
+            onMode={setSellerFinancing}
+          />
+          <SellerStayField value={sellerStay} onChange={setSellerStay} />
+        </div>
       </Panel>
 
       {/* t87: Datos de la ficha (apodo, fotos, precio, EBITDA ajustado) is step 2, right under Tu empresa, so sellers find the price early. */}
@@ -2247,6 +2289,14 @@ export function CompanyDraftForm({
               margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
               netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
               priceBlocked={priceBlocked}
+              recommended={
+                priceEstimate
+                  ? {
+                      label: `${companyCopy.recommendedPrice}: ${wholeEur(recommendedPriceCents(priceEstimate))}`,
+                      onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
+                    }
+                  : null
+              }
               priceStatus={
                 <PriceStatus
                   estimate={priceEstimate}
@@ -2255,15 +2305,6 @@ export function CompanyDraftForm({
                 />
               }
             />
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <SellerFinancingField
-                mode={sellerFinancing}
-                pct={sellerFinancingPct}
-                years={sellerFinancingYears}
-                onMode={setSellerFinancing}
-              />
-              <SellerStayField value={sellerStay} onChange={setSellerStay} />
-            </div>
           </PublicFicha>
       </Panel>
 
@@ -2725,7 +2766,7 @@ function MarketPreview({
     region: region.trim().length > 0 ? region : companyCopy.regionLabel,
     revenueCents: previewCents(revenue) ?? 0,
     ebitdaCents: signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : 0,
-    adjustedEbitdaCents: previewCents(adjustedEbitda) ?? 0,
+    adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : 0,
     askingPriceCents: previewCents(askingPrice) ?? 0,
     sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,
     cnaeCode: principalCnae || null,

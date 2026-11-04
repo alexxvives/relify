@@ -708,11 +708,13 @@ export function CompanyReport({
               <>
                 <span>Margen {margin}</span>
                 {/* t95: adjusted EBITDA as a quieter second line; "Ver ajustes" opens the bridge. Hidden without adjustments. */}
-                {deal.adjustedSet && project.adjustedEbitdaCents !== project.ebitdaCents ? (
+                {deal.adjustedSet ? (
                   <span className="flex w-full flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-[#5c6b78]">
                     <span className="tabular-nums">
-                      Ajustado <span className="font-semibold text-[#1c2740]">{compactEur(project.adjustedEbitdaCents)}</span>
-                      {project.revenueCents > 0 ? ` · ${Math.round((project.adjustedEbitdaCents / project.revenueCents) * 100)} %` : ""}
+                      Ajustado{" "}
+                      <span className={`font-semibold ${project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
+                        {compactEur(project.adjustedEbitdaCents)}
+                      </span>
                     </span>
                     {project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
                       <details className="group relative">

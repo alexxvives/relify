@@ -269,10 +269,10 @@ export function CancelledList({ items, extra = 0, children }: { items: Cancelled
         {items.map((item) => (
           <li key={item.accessId} className="py-2">
             {/* t94: same muted card as a sold/finished process (ClosedProcessRow). */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm">
+            <div className="grid items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm sm:grid-cols-[minmax(8rem,1.2fr)_12.5rem_8.5rem_minmax(0,auto)]">
               <span className="font-semibold text-[#2b3b4a]">{item.codename}</span>
-              <span className="rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]">Cancelado</span>
-              <span className="text-[#667085]">
+              <span className="w-fit rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]">Cancelado</span>
+              <span className="text-[#667085] tabular-nums">
                 {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" })}
               </span>
               <Link href={`/proyectos/${item.slug}`} className="ml-auto font-medium text-[#465ab4]">

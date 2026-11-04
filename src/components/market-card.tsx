@@ -176,13 +176,6 @@ function sentence(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function percent(part: number, whole: number): number | null {
-  if (whole <= 0) {
-    return null;
-  }
-  return Math.round((part / whole) * 100);
-}
-
 /**
  * Marketplace listing card. Every company in a sector shares the same AI-generated sector photo
  * (labelled as such), so the banner says "what kind of business" at a glance without ever showing
@@ -215,15 +208,6 @@ export function MarketCard({
   // t73: 0 means "not known yet" on these cards (no SABI, no seller figure), never a real 0 €.
   const known = (cents: number | null | undefined): cents is number =>
     typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
-  const hasRevenue = known(project.revenueCents);
-  const margin =
-    hasRevenue && known(project.ebitdaCents)
-      ? percent(project.ebitdaCents, project.revenueCents)
-      : null;
-  const adjustedMargin =
-    hasRevenue && known(project.adjustedEbitdaCents)
-      ? percent(project.adjustedEbitdaCents, project.revenueCents)
-      : null;
   const card = (cents: number | null | undefined): string | null =>
     known(cents) ? formatCardEur(cents) : null;
   const headcount =
@@ -386,19 +370,17 @@ export function MarketCard({
           <Figure
             label="EBITDA"
             value={card(project.ebitdaCents)}
-            share={margin}
             edge="left"
             extra={
               known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents ? (
                 <span className="tabular-nums" title="EBITDA ajustado por el vendedor">
-                  Ajustado {formatCardEur(project.adjustedEbitdaCents)}
-                  {adjustedMargin !== null ? ` · ${adjustedMargin} %` : ""}
+                  · {formatCardEur(project.adjustedEbitdaCents)}
                 </span>
               ) : null
             }
           />
-          <div className="col-span-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#e0ece9] bg-[#f0f8f6] px-4 py-3">
-            <dt className="text-xs font-medium text-[#0f766e]">Precio de venta</dt>
+          <div className="col-span-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#eceff4] px-4 py-3">
+            <dt className="text-xs font-medium text-[#667085]">Precio de venta</dt>
             <dd className="flex min-w-0 items-center gap-2">
               <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${!blocked && known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
                 {blocked ? companyCopy.priceNotPublishable : (card(project.askingPriceCents) ?? priceUnset)}
@@ -422,7 +404,6 @@ export function marginTone(share: number): string {
 function Figure({
   label,
   value,
-  share = null,
   edge,
   strong = false,
   note = null,
@@ -431,11 +412,10 @@ function Figure({
   label: string;
   /** Null when unknown: shows "—" with a "No disponible" tooltip instead of a fake 0. */
   value: string | null;
-  share?: number | null;
   edge?: "left" | "top" | "both";
   strong?: boolean;
   note?: ReactNode;
-  /** t95: a smaller second line under the value (the adjusted EBITDA). Reserved so cells keep one height. */
+  /** Adjusted EBITDA, kept on the same line so the cell never grows a second row. */
   extra?: ReactNode;
 }) {
   const border =
@@ -451,11 +431,9 @@ function Figure({
       className={`@container min-w-0 border-[#eceff4] px-2.5 py-3 text-center ${border}`}
     >
       <dt className="truncate text-xs text-[#667085]">{label}</dt>
-      <dd
-        className={`mt-0.5 flex items-baseline justify-center gap-x-1.5 text-[#1c2740] ${note ? "flex-nowrap" : "flex-wrap"}`}
-      >
+      <dd className="mt-0.5 flex min-w-0 items-baseline justify-center gap-x-1 text-[#1c2740]">
         <span
-          className={`${strong ? "text-base @[9.5rem]:text-lg" : "text-base"} leading-6 font-semibold whitespace-nowrap tabular-nums`}
+          className={`${strong ? "text-base @[9.5rem]:text-lg" : "text-base"} shrink-0 leading-6 font-semibold whitespace-nowrap tabular-nums`}
         >
           {value === null ? (
             <span className="text-[#9aa5b1]" title="No disponible">
@@ -465,17 +443,9 @@ function Figure({
             value
           )}
         </span>
-        {share !== null && value !== null ? (
-          <span
-            className={`text-xs font-semibold whitespace-nowrap tabular-nums ${marginTone(share)}`}
-            title={`Margen sobre facturación: ${share} %`}
-          >
-            {share} %<span className="sr-only"> de margen</span>
-          </span>
-        ) : null}
+        {extra ? <span className="min-w-0 truncate text-[11px] leading-4 font-medium text-[#667085]">{extra}</span> : null}
         {note}
       </dd>
-      {extra !== undefined ? <dd className="mt-0.5 min-h-4 truncate text-[11px] leading-4 text-[#667085]">{extra}</dd> : null}
     </div>
   );
 }

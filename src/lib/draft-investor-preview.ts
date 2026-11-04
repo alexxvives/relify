@@ -134,7 +134,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     saleReason: input.saleReason === "" ? null : input.saleReason,
     revenueCents,
     ebitdaCents,
-    adjustedEbitdaCents: unsignedCents(input.adjustedEbitda),
+    adjustedEbitdaCents: signedCents(input.adjustedEbitda) ?? 0,
     ebitdaAdjustments: previewAdjustments(input.ebitdaAdjustments),
     askingPriceCents: unsignedCents(input.askingPrice),
     sellerFinancing: (() => {

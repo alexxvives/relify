@@ -30,8 +30,10 @@ describe("draftInvestorPreview", () => {
       ...emptyCompanyDraft(new Date("2026-06-01T00:00:00.000Z")),
       revenue: "1654133,67",
       ebitda: "-109998,88",
+      adjustedEbitda: "-80000",
     });
     expect(preview.ebitdaCents).toBe(-10_999_888);
+    expect(preview.adjustedEbitdaCents).toBe(-8_000_000);
     expect(preview.ebitdaMarginBp).toBe(-665);
   });
 });

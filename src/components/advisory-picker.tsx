@@ -177,15 +177,20 @@ function AdvisorMarket({
           </li>
         ))}
       </ul>
-      <Pagination page={paging.page} pages={paging.pages} onChange={paging.setPage} />
-      <div className="flex justify-center pt-2">
-        <button
-          type="button"
-          onClick={onAsk}
-          className="inline-flex h-12 items-center rounded-full border border-[#c5d0f5] bg-[#f4f7ff] px-6 text-base font-semibold text-[#465ab4] hover:bg-[#e8eeff]"
-        >
-          {engagementCopy.missingAsk}
-        </button>
+      <div className="mt-8 grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+        <span className="hidden sm:block" />
+        <div className="flex justify-center">
+          <Pagination className="" page={paging.page} pages={paging.pages} onChange={paging.setPage} />
+        </div>
+        <div className="flex sm:justify-end">
+          <button
+            type="button"
+            onClick={onAsk}
+            className="inline-flex h-10 items-center rounded-full border border-[#c5d0f5] bg-[#f4f7ff] px-5 text-sm font-semibold text-[#465ab4] hover:bg-[#e8eeff] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
+          >
+            {engagementCopy.missingAsk}
+          </button>
+        </div>
       </div>
     </section>
   );
