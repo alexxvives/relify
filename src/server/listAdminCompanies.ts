@@ -1,3 +1,4 @@
+import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { materializePendingCompanies } from "@/server/sellerCompany";
@@ -63,6 +64,7 @@ export async function listAdminCompanies(
       revenueCents: true,
       ebitdaCents: true,
       adjustedEbitdaCents: true,
+      ebitdaAdjustments: true,
       legalName: true,
       cif: true,
       address: true,
@@ -111,6 +113,7 @@ export async function listAdminCompanies(
       summary: project.description?.trim() || null,
       financingChip: sellerFinancingChip(storedSellerFinancing(project)),
       coverSrc: covers.get(project.id) ?? null,
+      publishable: ebitdaPublishable(project),
     };
 
     return {

@@ -27,6 +27,7 @@ import {
   recoveryYears,
 } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
+import { companyCopy } from "@/lib/company-copy";
 import {
   aiImageLabel,
   referencePhotoLabel,
@@ -209,7 +210,8 @@ export function MarketCard({
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
   const Icon = style.icon;
-  const years = recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  const blocked = project.publishable === false;
+  const years = blocked ? null : recoveryYears(project.askingPriceCents, project.ebitdaCents);
   // t73: 0 means "not known yet" on these cards (no SABI, no seller figure), never a real 0 €.
   const known = (cents: number | null | undefined): cents is number =>
     typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
@@ -398,8 +400,8 @@ export function MarketCard({
           <div className="col-span-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#e0ece9] bg-[#f0f8f6] px-4 py-3">
             <dt className="text-xs font-medium text-[#0f766e]">Precio de venta</dt>
             <dd className="flex min-w-0 items-center gap-2">
-              <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
-                {card(project.askingPriceCents) ?? priceUnset}
+              <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${!blocked && known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
+                {blocked ? companyCopy.priceNotPublishable : (card(project.askingPriceCents) ?? priceUnset)}
               </span>
               {years === null ? null : <RoiChip years={years} fit />}
             </dd>

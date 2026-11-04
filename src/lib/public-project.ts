@@ -41,6 +41,8 @@ export type PublicProjectCard = {
   summary?: string | null;
   /** t92: "Financia hasta 20 %" / "Financiación vendedor" when the seller accepts (or would negotiate) a vendor loan. */
   financingChip?: string | null;
+  /** t95b: false when the stored basis (adjusted EBITDA if adjusted, else EBITDA) is not positive; seller/admin views only. */
+  publishable?: boolean;
 };
 
 export type PublicProjectDetail = PublicProjectCard & {

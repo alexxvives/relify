@@ -63,6 +63,7 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
+import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
@@ -614,7 +615,10 @@ export function CompanyReport({
     </LockedFigures>
   );
 
-  const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  // t95b: a seller preview or admin view of a company that cannot be published never shows its stored price or ROI.
+  // Buyers only reach published companies, and their EBITDA can be veiled, so the check stays off for them.
+  const priceBlocked = (sellerPreview !== null || role === "admin") && !ebitdaPublishable(project);
+  const multiple = priceBlocked ? null : recoveryYears(project.askingPriceCents, project.ebitdaCents);
   // t83: never "0 €"; the seller sees it as missing, buyers as "A consultar".
   const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
@@ -731,10 +735,10 @@ export function CompanyReport({
             } />
           <Kpi
             label={companyCopy.askingPriceLabel}
-            value={project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
-            tone={project.askingPriceCents > 0 ? "ink" : "pending"}
-            hint={project.askingPriceCents > 0 ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.` : "El vendedor aún no ha indicado precio. El registro no lo publica."}
-            sub={multiple !== null ? <RoiChip years={multiple} /> : project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
+            value={priceBlocked ? companyCopy.priceNotPublishable : project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
+            tone={!priceBlocked && project.askingPriceCents > 0 ? "ink" : "pending"}
+            hint={priceBlocked ? companyCopy.priceBlockedHint : project.askingPriceCents > 0 ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.` : "El vendedor aún no ha indicado precio. El registro no lo publica."}
+            sub={multiple !== null ? <RoiChip years={multiple} /> : priceBlocked || project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
           />
           <Kpi
             label={companyCopy.saleReasonLabel}

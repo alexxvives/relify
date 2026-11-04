@@ -2549,6 +2549,7 @@ export function CompanyDraftForm({
             principalCnae={principalCnae}
             summary={description}
             financingChip={sellerFinancingChip(storedSellerFinancing({ sellerFinancing }))}
+            publishable={!priceBlocked}
           />
         </div>
         <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
@@ -2704,6 +2705,7 @@ function MarketPreview({
   principalCnae = "",
   summary = "",
   financingChip = null,
+  publishable = true,
 }: {
   codename: string;
   region: string;
@@ -2714,6 +2716,7 @@ function MarketPreview({
   principalCnae?: string;
   summary?: string;
   financingChip?: string | null;
+  publishable?: boolean;
 }) {
   // The preview is the real marketplace card, so it can never drift from it.
   const card: PublicProjectCard = {
@@ -2729,6 +2732,7 @@ function MarketPreview({
     cnaeTitle: principalCnae ? cnaeTitleOf(principalCnae) : null,
     summary: summary.trim() || null,
     financingChip,
+    publishable,
   };
 
   const filters = [
