@@ -30,8 +30,8 @@ export function IndicatorTable({ years, rows, aligned = false }: { years: { year
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
             <th className={`py-3 pr-4 text-left font-medium ${aligned ? "font-semibold text-[#1c2740]" : ""}`}>{companyCopy.evolutionLabel}</th>
-            {years.map((year) => (
-              <th key={year.year} className="px-3 py-3 text-right font-medium">
+            {years.map((year, index) => (
+              <th key={`${index}-${year.year}`} className="px-3 py-3 text-right font-medium">
                 {year.year}
               </th>
             ))}
@@ -49,7 +49,7 @@ export function IndicatorTable({ years, rows, aligned = false }: { years: { year
               <th className="py-3 pr-4 text-left font-medium text-[#3d4a63]">{row.label}</th>
               {row.values.map((value, index) => (
                 <td
-                  key={`${row.key}-${years[index]?.year ?? index}`}
+                  key={`${row.key}-${index}`}
                   className={value !== null && value < 0 ? "px-3 py-3 text-right tabular-nums text-[#9b3b2f]" : "px-3 py-3 text-right tabular-nums"}
                 >
                   {value === null ? companyCopy.unavailable : formatIndicator(value, row.unit)}

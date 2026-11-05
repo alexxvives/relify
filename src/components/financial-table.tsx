@@ -76,7 +76,7 @@ export function FinancialTable({
               {row.values.map((value, index) => {
                 const column = years[index];
                 return (
-                  <td key={`${row.key}-${column?.year ?? index}`} className={amountClass(row.emphasis, column?.forecast === true, value)}>
+                  <td key={`${row.key}-${index}-${column?.forecast === true ? "forecast" : "closed"}`} className={amountClass(row.emphasis, column?.forecast === true, value)}>
                     {value === null ? companyCopy.unavailable : formatEur(value)}
                   </td>
                 );

@@ -349,7 +349,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
     ...(points.some((point) => point.forecast) ? [{ label: `* ${sellerCopy.financeForecast}`, color: null }] : []),
   ];
 
-  const tip = findTip(groups.map((group) => ({ key: group.point.year, year: group.point.forecast ? `${group.point.year}*` : String(group.point.year), bars: group.bars })), hover);
+  const tip = findTip(groups.map((group, groupIndex) => ({ key: groupIndex, year: group.point.forecast ? `${group.point.year}*` : String(group.point.year), bars: group.bars })), hover);
 
   return (
     <div className="@container">
@@ -388,9 +388,9 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         {groups.map((group, groupIndex) => {
           const offset = groups.slice(0, groupIndex).reduce((sum, item) => sum + item.bars.length, 0);
           return (
-            <g key={group.point.year}>
+            <g key={`${groupIndex}-${group.point.forecast ? "forecast" : "closed"}`}>
               {group.bars.map((bar, barIndex) => {
-                const key = `${group.point.year}-${barIndex}`;
+                const key = `${groupIndex}-${barIndex}`;
                 const show = hover === key || resting[offset + barIndex] === true;
                 return (
                   <g key={key}>
@@ -497,7 +497,7 @@ export function GroupedYearBars({
   });
   const flatBars = groups.flatMap((group) => group.bars);
   const resting = restingLabels(flatBars);
-  const tip = findTip(groups.map((group) => ({ key: group.year.year, year: group.year.forecast ? `${group.year.year}*` : String(group.year.year), bars: group.bars })), hover);
+  const tip = findTip(groups.map((group, groupIndex) => ({ key: groupIndex, year: group.year.forecast ? `${group.year.year}*` : String(group.year.year), bars: group.bars })), hover);
 
   return (
     <div className={paired ? "@container" : "@container mt-6"}>
@@ -547,9 +547,9 @@ export function GroupedYearBars({
         {groups.map((group, groupIndex) => {
           const offset = groups.slice(0, groupIndex).reduce((sum, item) => sum + item.bars.length, 0);
           return (
-            <g key={group.year.year}>
+            <g key={`${groupIndex}-${group.year.forecast ? "forecast" : "closed"}`}>
               {group.bars.map((bar, barIndex) => {
-                const key = `${group.year.year}-${barIndex}`;
+                const key = `${groupIndex}-${barIndex}`;
                 const show = hover === key || resting[offset + barIndex] === true;
                 return (
                   <g key={key}>

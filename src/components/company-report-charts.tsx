@@ -134,8 +134,8 @@ export function YearTable({ years, rows }: { years: SabiYear[]; rows: { label: s
       <thead className="bg-[#f7f8fb] text-[#5c6b78]">
         <tr>
           <th className="px-3 py-2 font-semibold">Concepto</th>
-          {years.map((year) => (
-            <th key={year.year} className="px-3 py-2 text-right font-semibold tabular-nums">
+          {years.map((year, index) => (
+            <th key={`${year.year}-${index}`} className="px-3 py-2 text-right font-semibold tabular-nums">
               {yearLabel(year)}
             </th>
           ))}
@@ -199,7 +199,7 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
         {/* t81: equal slots without flex gap, so each year sits at (i + 0.5) / n like LineChart's slot mode. */}
         <div className="absolute inset-0 flex">
           {years.map((year, yearIndex) => (
-            <div key={year.year} className="flex h-full min-w-0 flex-1 justify-center gap-1 px-1 sm:px-2">
+            <div key={`${year.year}-${yearIndex}`} className="flex h-full min-w-0 flex-1 justify-center gap-1 px-1 sm:px-2">
               {series.map((item) => {
                 const value = item.values[yearIndex] ?? null;
                 if (value === null) {
@@ -226,8 +226,8 @@ export function ColumnBars({ years, series, unit }: { years: SabiYear[]; series:
         </div>
       </div>
       <div className="mt-1.5 flex text-center text-[11px] text-[#5c6b78] tabular-nums">
-        {years.map((year) => (
-          <span key={year.year} className="min-w-0 flex-1 truncate px-1">
+        {years.map((year, index) => (
+          <span key={`${year.year}-${index}`} className="min-w-0 flex-1 truncate px-1">
             {yearLabel(year)}
           </span>
         ))}
@@ -295,7 +295,7 @@ export function LineChart({ years, series, unit, slots = false }: { years: SabiY
       </div>
       <div className="relative mt-1.5 h-4 text-[11px] text-[#5c6b78] tabular-nums">
         {years.map((year, index) => (
-          <span key={year.year} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${x(index)}%` }}>
+          <span key={`${year.year}-${index}`} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${x(index)}%` }}>
             {yearLabel(year)}
           </span>
         ))}
@@ -323,8 +323,8 @@ export function BalanceStacks({ years }: { years: SabiYear[] }) {
   return (
     <div>
       <div className="flex h-48 gap-3 sm:gap-6">
-        {usable.map((year) => (
-          <div key={year.year} className="flex h-full min-w-0 flex-1 items-end justify-center gap-1">
+        {usable.map((year, index) => (
+          <div key={`${year.year}-${index}`} className="flex h-full min-w-0 flex-1 items-end justify-center gap-1">
             <div className="flex h-full w-full max-w-10 flex-col justify-end">
               {segment("Activo no corriente", navy, year.nonCurrentAssetsCents, year)}
               {segment("Activo corriente", "#5b6b8c", year.currentAssetsCents, year)}
@@ -338,8 +338,8 @@ export function BalanceStacks({ years }: { years: SabiYear[] }) {
         ))}
       </div>
       <div className="mt-1.5 flex gap-3 text-center text-[11px] text-[#5c6b78] tabular-nums sm:gap-6">
-        {usable.map((year) => (
-          <span key={year.year} className="min-w-0 flex-1 truncate">
+        {usable.map((year, index) => (
+          <span key={`${year.year}-${index}`} className="min-w-0 flex-1 truncate">
             {yearLabel(year)}
             <span className="block text-[10px] text-[#8b95a7]">Activo · Pasivo</span>
           </span>
