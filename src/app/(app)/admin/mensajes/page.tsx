@@ -4,6 +4,7 @@ import { Mail, MessageSquare } from "lucide-react";
 import { AdminListSkeleton } from "@/components/page-skeletons";
 import { EmptySkeleton } from "@/components/ui/empty-skeleton";
 import { SignedInPage } from "@/components/signed-in-page";
+import { markAdminSeen } from "@/server/adminSeen";
 import { listPublicInbox } from "@/server/publicInbox";
 import { requireRole } from "@/server/requireRole";
 
@@ -12,7 +13,8 @@ export const metadata: Metadata = { title: "Mensajes", robots: { index: false, f
 const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Madrid" });
 
 async function Inbox() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
+  await markAdminSeen(user.id, "mensajes");
   const { messages, subscribers } = await listPublicInbox();
 
   return (

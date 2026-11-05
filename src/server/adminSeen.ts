@@ -6,6 +6,8 @@ export const adminSeenPages = [
   "cuentas",
   "asesores",
   "conexiones",
+  "mensajes",
+  "waitlist",
 ] as const;
 export type AdminSeenPage = (typeof adminSeenPages)[number];
 
@@ -48,7 +50,8 @@ export type AdminNavCount = {
 
 /**
  * Sidebar bubbles: a total per page, plus a red bubble. Empresas: CIFs waiting for the SABI import
- * plus companies pending review (stays until imported / approved). Cuentas, Asesores, Conexiones: created since the admin last opened the page
+ * plus companies pending review (stays until imported / approved). Cuentas, Asesores, Conexiones,
+ * Mensajes and Lista de espera: created since the admin last opened the page
  * (cleared on visit, stored per admin in AdminSeen).
  */
 export async function adminNavCounts(
@@ -65,6 +68,12 @@ export async function adminNavCounts(
     newAdvisors,
     accesses,
     newAccesses,
+    messages,
+    newMessages,
+    subscribers,
+    newSubscribers,
+    waitlist,
+    newWaitlist,
   ] = await Promise.all([
     prisma.project.count(),
     // t75: plus companies waiting for approval (auto-submitted when the seller list is complete).
@@ -79,6 +88,12 @@ export async function adminNavCounts(
     prisma.projectAccess.count({
       where: { requestedAt: { gt: since("conexiones") } },
     }),
+    prisma.contactMessage.count(),
+    prisma.contactMessage.count({ where: { createdAt: { gt: since("mensajes") } } }),
+    prisma.newsletterSubscriber.count(),
+    prisma.newsletterSubscriber.count({ where: { createdAt: { gt: since("mensajes") } } }),
+    prisma.waitlistEntry.count(),
+    prisma.waitlistEntry.count({ where: { createdAt: { gt: since("waitlist") } } }),
   ]);
   return {
     "/admin/empresas": {
@@ -99,6 +114,16 @@ export async function adminNavCounts(
     "/admin/conexiones": {
       total: accesses,
       alert: newAccesses,
+      alertLabel: "nuevas desde tu última visita",
+    },
+    "/admin/mensajes": {
+      total: messages + subscribers,
+      alert: newMessages + newSubscribers,
+      alertLabel: "nuevos desde tu última visita",
+    },
+    "/admin/lista-de-espera": {
+      total: waitlist,
+      alert: newWaitlist,
       alertLabel: "nuevas desde tu última visita",
     },
   };
