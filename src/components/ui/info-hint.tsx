@@ -61,6 +61,7 @@ export function InfoHint({
   side = "top",
   width = "md",
   size = "md",
+  hoverOnly = false,
   children,
 }: {
   text: string;
@@ -70,6 +71,8 @@ export function InfoHint({
   side?: "top" | "bottom";
   width?: "auto" | "md" | "lg";
   size?: "sm" | "md";
+  /** Wrap an existing control. Hover and focus open the bubble; the control keeps its own click. */
+  hoverOnly?: boolean;
   /** Optional custom trigger instead of the icon. */
   children?: ReactNode;
 }) {
@@ -130,25 +133,30 @@ export function InfoHint({
     <span className="relative inline-flex">
       <span
         ref={trigger}
-        tabIndex={0}
-        role="button"
-        aria-label={text}
+        tabIndex={hoverOnly ? undefined : 0}
+        role={hoverOnly ? undefined : "button"}
+        aria-label={hoverOnly ? undefined : text}
         aria-describedby={open ? id : undefined}
         onMouseEnter={show}
         onMouseLeave={hide}
-        onFocus={show}
+        onFocus={hoverOnly ? undefined : show}
+        onFocusCapture={hoverOnly ? show : undefined}
         onBlur={() => {
           setPinned(false);
           setOpen(false);
           setPos(null);
         }}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setPinned(!pinned);
-          setOpen(!pinned);
-        }}
-        className={`inline-flex cursor-help items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 ${children ? "" : `${size === "sm" ? "size-4" : "size-5"} ${iconTone[tone]}`}`}
+        onClick={
+          hoverOnly
+            ? undefined
+            : (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setPinned(!pinned);
+                setOpen(!pinned);
+              }
+        }
+        className={`inline-flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 ${hoverOnly ? "" : "cursor-help rounded-full"} ${children ? "" : `${size === "sm" ? "size-4" : "size-5"} ${iconTone[tone]}`}`}
       >
         {children ?? <Icon className={size === "sm" ? "size-3.5" : "size-4"} aria-hidden />}
       </span>

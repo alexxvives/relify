@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ListFilter } from "lucide-react";
 import { StatusPillToggle } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -35,19 +35,13 @@ function projectStatus(status: AdminCompanyRow["status"]): string {
   return adminCopy.statusDraft;
 }
 
-export function AdminCompanies({ projects, sabiOnly = false }: { projects: AdminCompanyRow[]; sabiOnly?: boolean }) {
+export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
   const [query, setQuery] = useState("");
-  const [sabi, setSabi] = useState(sabiOnly);
-  const sabiCount = projects.filter((project) => project.sabiPending).length;
   const [status, setStatus] = useState<CompanyStatusFilter>("all");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "createdMs", dir: -1 });
   const needle = query.trim().toLocaleLowerCase("es");
   const visible = projects.filter((project) => {
     if (status !== "all" && project.status !== status) {
-      return false;
-    }
-
-    if (sabi && !project.sabiPending) {
       return false;
     }
 
@@ -98,44 +92,18 @@ export function AdminCompanies({ projects, sabiOnly = false }: { projects: Admin
             }}
           />
         </div>
-        <button
-          type="button"
-          aria-pressed={sabi}
-          onClick={() => {
-            setSabi((current) => !current);
-          }}
-          className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium ${sabi ? "border-[#9a5b00] bg-[#fff4e5] text-[#7a4700]" : "border-[#e7eaee] bg-white text-[#1c2740]"}`}
-        >
-          {adminCopy.sabiPendingFilter}
-          <span className={`rounded-full px-1.5 text-xs font-semibold ${sabi ? "bg-[#9a5b00] text-white" : "bg-[#f4f5f7] text-[#667085]"}`}>{sabiCount}</span>
-        </button>
+        <SortMenu sort={sort} onSort={sortBy} />
       </AdminPageHeader>
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <>
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[#667085]">
-            <span>Ordenar:</span>
-            {sortOptions.map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => sortBy(option.key)}
-                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 ${sort.key === option.key ? "border-[#465ab4] text-[#1c2740]" : "border-[#e7eaee] bg-white"}`}
-              >
-                {option.label}
-                {sort.key === option.key ? (sort.dir === 1 ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />) : <ArrowUpDown className="size-3.5" aria-hidden />}
-              </button>
-            ))}
-          </div>
-          <ul className={marketGridClass}>
+        <ul className={marketGridClass}>
             {sorted.map((project) => (
               <li key={project.id}>
                 <CompanyCard project={project} />
               </li>
             ))}
-          </ul>
-        </>
+        </ul>
       )}
     </div>
   );
@@ -152,6 +120,84 @@ const sortOptions: { key: SortKey; label: string }[] = [
   { key: "askingPriceCents", label: companyCopy.askingPriceLabel },
 ];
 
+function SortMenu({ sort, onSort }: { sort: { key: SortKey; dir: 1 | -1 }; onSort: (key: SortKey) => void }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const current = sortOptions.find((option) => option.key === sort.key);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function onPointer(event: MouseEvent) {
+      if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-label={current ? `Ordenar: ${current.label}` : "Ordenar"}
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
+        className="inline-flex size-9 items-center justify-center rounded-full border border-[#e7eaee] bg-white text-[#1c2740] outline-none hover:border-[#465ab4] focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+      >
+        <ListFilter className="size-4" aria-hidden />
+      </button>
+      {open ? (
+        <div
+          id={listId}
+          role="menu"
+          aria-label="Ordenar"
+          className="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-[#e6e9f0] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]"
+        >
+          <p className="px-3 py-1.5 text-xs font-medium text-[#667085]">Ordenar</p>
+          {sortOptions.map((option) => {
+            const selected = option.key === sort.key;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                role="menuitem"
+                aria-current={selected ? "true" : undefined}
+                onClick={() => {
+                  onSort(option.key);
+                }}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm ${selected ? "font-semibold text-[#1c2740]" : "text-[#3d4a63]"} hover:bg-[#f4f7ff]`}
+              >
+                {option.label}
+                {selected ? (sort.dir === 1 ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />) : <ArrowUpDown className="size-3.5 text-[#98a2b3]" aria-hidden />}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** Marketplace-style card (unblurred for admin) linking to the admin company page, plus admin status and actions. */
 function CompanyCard({ project }: { project: AdminCompanyRow }) {
   const ring = project.isNew ? adminNewRing : "border-transparent";
@@ -167,7 +213,7 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
       data-sabi-pending={project.sabiPending ? "true" : undefined}
       className={`flex h-full flex-col rounded-2xl border p-2 ${ring}`}
     >
-      <p className="mb-2 truncate px-1 text-sm text-[#5c6b78]" title={project.legalName || undefined}>
+      <p className="mb-2 truncate px-1 text-center text-sm text-[#5c6b78]" title={project.legalName || undefined}>
         <span className="font-semibold text-[#1c2740]">{project.legalName || "Razón social pendiente"}</span>
         {project.cif ? <span> · {project.cif}</span> : null}
       </p>

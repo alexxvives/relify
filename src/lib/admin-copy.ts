@@ -115,7 +115,6 @@ export const adminCopy = {
   sabiPendingBadge: "Pendiente SABI",
   sabiPendingTag: "SABI pendiente",
   approvalRequired: "Aprobación requerida",
-  sabiPendingFilter: "Pendiente SABI",
   sabiPendingSince: "CIF introducido el",
   statusPending: "Revisión pendiente",
   legalName: "Razón social",

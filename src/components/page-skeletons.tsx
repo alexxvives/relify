@@ -947,16 +947,10 @@ export function AdminListSkeleton({
   }
 
   if (kind === "companies") {
-    // Mirrors AdminCompanies: header (title + search + filters), sort chips, then marketplace cards with the legal line centred under each.
+    // Mirrors AdminCompanies: header (title + search + status + sort icon), then marketplace cards with the legal line centred above each.
     return (
       <Shell>
         <AdminToolbar title="w-36" controls={3} sub={false} />
-        <div className="-mt-3 flex flex-wrap items-center gap-2">
-          <Bare className="h-4 w-14" />
-          {[0, 1, 2, 3, 4, 5].map((chip) => (
-            <Bare key={chip} className="h-7 w-24 rounded-full" />
-          ))}
-        </div>
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-5">
           {Array.from({ length: 6 }, (_, index) => (
             <li

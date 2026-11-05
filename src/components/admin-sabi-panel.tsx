@@ -4,7 +4,8 @@ import { useActionState, useEffect, useRef, useState, useTransition, type Compon
 import { sabiJobStageLabel, sabiJobStartedEvent, sabiJobUpdateEvent, type SabiJobUpdate } from "@/lib/sabi/job-events";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, RefreshCw, UploadCloud } from "lucide-react";
 import { confirmSabiAction } from "@/app/(app)/admin/empresas/[slug]/sabi-actions";
-import { approveProjectAction } from "@/app/(app)/admin/actions";
+import { approveProjectAction, unpublishProjectAction } from "@/app/(app)/admin/actions";
+import { AppToast } from "@/components/app-toast";
 import { adminCopy } from "@/lib/admin-copy";
 import { sabiFailureMessages, sabiMaxBytes } from "@/lib/sabi/failures";
 import { mapSabiReport } from "@/lib/sabi/mapping";
@@ -69,6 +70,7 @@ export function AdminSabiPanel({
   const [done, setDone] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [approveState, approveAction, approvePending] = useActionState(approveProjectAction, null);
+  const [unpublishState, unpublishAction, unpublishPending] = useActionState(unpublishProjectAction, null);
   const [dragging, setDragging] = useState(false);
   const [stages, setStages] = useState<Partial<Record<SabiStage, number>>>({});
   const [saving, setSaving] = useState(false);
@@ -248,6 +250,23 @@ export function AdminSabiPanel({
           </button>
         </form>
       ) : null}
+      {listingStatus === "published" ? (
+        <form
+          action={unpublishAction}
+          onSubmit={(event) => {
+            if (!window.confirm(adminCopy.unpublishConfirm)) event.preventDefault();
+          }}
+        >
+          <input type="hidden" name="projectId" value={sabi.projectId} />
+          <button
+            type="submit"
+            disabled={unpublishPending}
+            className="inline-flex h-9 items-center rounded-full bg-[#c0362c] px-3.5 text-sm font-semibold text-white hover:bg-[#a52d24] disabled:opacity-60"
+          >
+            {unpublishPending ? adminCopy.unpublishing : adminCopy.unpublish}
+          </button>
+        </form>
+      ) : null}
       <label
         title={`${status}${sabi.fileName ? ` · Último archivo: ${sabi.fileName}` : ""} · Excel de SABI (.xlsx), máx. ${maxMb} MB. También puedes arrastrarlo a la cabecera.`}
         className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium focus-within:ring-2 focus-within:ring-[#0f766e]/40 ${
@@ -271,11 +290,17 @@ export function AdminSabiPanel({
         />
       </label>
       <AdminReportNotice variant="page" projectId={sabi.projectId} imported={sabi.importedAt !== null} report={sabi.report} />
-      {approveState ? (
-        <p role={approveState.ok ? "status" : "alert"} className={`text-xs font-medium ${approveState.ok ? "text-[#17663a]" : "text-[#b42318]"}`}>
+      {approveState && !approveState.ok ? (
+        <p role="alert" className="text-xs font-medium text-[#b42318]">
           {approveState.message}
         </p>
       ) : null}
+      {unpublishState && !unpublishState.ok ? (
+        <p role="alert" className="text-xs font-medium text-[#b42318]">
+          {unpublishState.message}
+        </p>
+      ) : null}
+      <AppToast message={approveState?.ok ? approveState.message : unpublishState?.ok ? unpublishState.message : null} />
     </>
   );
 

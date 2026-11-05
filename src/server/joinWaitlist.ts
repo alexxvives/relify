@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Prisma } from "@/generated/prisma/client";
 import { waitlistCopy, type WaitlistInput } from "@/lib/waitlist";
 import { prisma } from "@/server/db";
-import { notifyWaitlistLead } from "@/server/notifyWaitlistLead";
+import { confirmWaitlistSignup, notifyWaitlistLead } from "@/server/notifyWaitlistLead";
 
 export type WaitlistResult = { ok: true } | { ok: false; message: string };
 
@@ -31,5 +31,6 @@ export async function joinWaitlist(
   }
 
   await notifyWaitlistLead(input);
+  await confirmWaitlistSignup(input);
   return { ok: true };
 }
