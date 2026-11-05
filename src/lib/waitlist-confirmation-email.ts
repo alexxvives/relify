@@ -42,6 +42,7 @@ export function waitlistConfirmationEmail(input: WaitlistInput & { siteUrl: stri
     title: name ? `Hola, ${name}` : "Hemos recibido tu solicitud",
     paragraphs: [
       `Tu solicitud como ${role.toLowerCase()} ya está en la lista de espera de Relify.`,
+      "Esto no abre una cuenta para entrar. Guardamos el correo y el perfil, nada más.",
       `Te escribiremos a este correo cuando abramos, el ${openingDay()}. No hay cargo ni compromiso.`,
       roleNote[input.role],
     ],

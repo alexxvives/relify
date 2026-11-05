@@ -14,6 +14,7 @@ describe("waitlistConfirmationEmail", () => {
     expect(mail.subject).toBe("Hemos recibido tu solicitud en Relify");
     expect(mail.text).toContain("Hola, Alexandre");
     expect(mail.text).toContain("empresa");
+    expect(mail.text).toContain("Esto no abre una cuenta para entrar.");
     expect(mail.text).toContain("21 de noviembre de 2026");
     expect(mail.text).toContain("https://itsrelify.com/");
     expect(mail.html).toContain("https://itsrelify.com/brand/email-logo-white.png");

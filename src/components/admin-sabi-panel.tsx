@@ -272,9 +272,7 @@ export function AdminSabiPanel({
         className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium focus-within:ring-2 focus-within:ring-[#0f766e]/40 ${
           dragging
             ? "border-[#0f766e] bg-[#e6f4f1] text-[#0f766e]"
-            : sabi.hasCif && !sabi.importedAt
-              ? "border-[#e8a39b] bg-[#fdf1ef] text-[#a12f2f] hover:bg-[#fbe4e0]"
-              : "border-[#d5dbe3] bg-white text-[#1c2740] hover:border-[#0f766e] hover:text-[#0f766e]"
+            : "border-[#d5dbe3] bg-white text-[#1c2740] hover:border-[#0f766e] hover:text-[#0f766e]"
         }`}
       >
         {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : sabi.importedAt ? <RefreshCw className="size-3.5" aria-hidden /> : <FileSpreadsheet className="size-4" aria-hidden />}

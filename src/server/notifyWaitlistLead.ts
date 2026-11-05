@@ -9,7 +9,10 @@ export async function notifyWaitlistLead(input: WaitlistInput): Promise<void> {
   try {
     const adminUrl = new URL("/admin/lista-de-espera", emailSiteUrl()).toString();
     const { to, ...mail } = waitlistLeadEmail({ ...input, adminUrl });
-    await sendMail({ to, tag: "waitlist-lead", ...mail });
+    const result = await sendMail({ to, tag: "waitlist-lead", ...mail });
+    if (result.status !== "sent") {
+      console.warn(`[mail] waitlist-lead ${result.status}`);
+    }
   } catch {
     console.warn("[mail] waitlist-lead could not be sent");
   }
@@ -19,7 +22,10 @@ export async function notifyWaitlistLead(input: WaitlistInput): Promise<void> {
 export async function confirmWaitlistSignup(input: WaitlistInput): Promise<void> {
   try {
     const { to, ...mail } = waitlistConfirmationEmail({ ...input, siteUrl: emailSiteUrl().origin });
-    await sendMail({ to, tag: "waitlist-confirmation", notice: true, ...mail });
+    const result = await sendMail({ to, tag: "waitlist-confirmation", ...mail });
+    if (result.status !== "sent") {
+      console.warn(`[mail] waitlist-confirmation ${result.status}`);
+    }
   } catch {
     console.warn("[mail] waitlist-confirmation could not be sent");
   }

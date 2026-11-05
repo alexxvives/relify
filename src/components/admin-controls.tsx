@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RotateCcw, UserX } from "lucide-react";
 import {
-  approveProjectAction,
   grantPlanAction,
   reactivateAccountAction,
   suspendAccountAction,
@@ -92,42 +91,35 @@ const quietButtonClass =
 const dangerButtonClass =
   "inline-flex h-8 items-center rounded-full bg-[#c0362c] px-3 text-xs font-semibold text-white hover:bg-[#a52d24] disabled:opacity-60";
 
-/** The status pill on an admin company card: Publicada unpublishes, Pendiente publishes, each after a confirm. */
-export function StatusPillToggle({
-  projectId,
-  status,
-  label,
-  tone,
-}: {
-  projectId: string;
-  status: "published" | "pending" | "draft";
-  label: string;
-  tone: string;
-}) {
-  const [state, action, pending] = useActionState(status === "published" ? unpublishProjectAction : approveProjectAction, null);
-  const pill = `rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${tone}`;
-
-  if (status !== "published") {
-    return <span className={`pointer-events-none ${pill}`}>{label}</span>;
-  }
-
-  const question = status === "published" ? adminCopy.unpublishConfirm : adminCopy.publishConfirm;
-  const hint = status === "published" ? adminCopy.unpublish : adminCopy.approve;
+/** Visible unpublish control. The status chip stays a label; this button is the action. */
+export function UnpublishButton({ projectId }: { projectId: string }) {
+  const [state, action, pending] = useActionState(unpublishProjectAction, null);
 
   return (
     <form
       action={action}
       onSubmit={(event) => {
-        if (!window.confirm(question)) event.preventDefault();
+        if (!window.confirm(adminCopy.unpublishConfirm)) event.preventDefault();
       }}
       className="flex flex-col items-end gap-1"
     >
       <input type="hidden" name="projectId" value={projectId} />
-      <button type="submit" disabled={pending} title={hint} aria-label={`${label}: ${hint}`} className={`${pill} cursor-pointer hover:brightness-95 disabled:opacity-60`}>
-        {pending ? (status === "published" ? adminCopy.unpublishing : adminCopy.approving) : label}
+      <button type="submit" disabled={pending} className={dangerButtonClass}>
+        {pending ? adminCopy.unpublishing : adminCopy.unpublish}
       </button>
-      <span className="rounded bg-white/90 px-1"><Note state={state} /></span>
+      <span className="rounded bg-white/90 px-1">
+        <Note state={state} />
+      </span>
     </form>
+  );
+}
+
+/** Status chip on an admin company card. It does not publish or unpublish. */
+export function StatusPillToggle({ label, tone }: { label: string; tone: string }) {
+  return (
+    <span className={`pointer-events-none rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-white/70 ${tone}`}>
+      {label}
+    </span>
   );
 }
 

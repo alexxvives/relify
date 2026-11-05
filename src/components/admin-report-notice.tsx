@@ -29,11 +29,6 @@ export function AdminReportNotice({
   const [pending, start] = useTransition();
   const sent = report.sentAt !== null;
   const disabled = !imported || !report.hasOwner || pending || sent;
-  const reason = !imported
-    ? "Importa el SABI para poder avisar al vendedor"
-    : !report.hasOwner
-      ? "Esta empresa no tiene vendedor"
-      : undefined;
 
   function send() {
     setError(null);
@@ -79,13 +74,8 @@ export function AdminReportNotice({
           {button}
         </InfoHint>
       ) : (
-        <span title={reason} className="inline-flex">
-          {button}
-        </span>
+        button
       )}
-      {!sent && reason ? (
-        <span className={banner ? "sr-only" : "text-xs text-[#5c6b78]"}>{reason}</span>
-      ) : null}
       {confirming
         ? createPortal(
             <div

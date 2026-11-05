@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-05: a waitlist row was saved and neither the person nor info@ got the mail — the Worker was still the 4 Nov deploy, from before those emails existed, and a saved row does not mean a mail left — deploy after a mail change and read the Worker log for `[mail]` before calling it spam.
 - 2026-11-04: the seller ficha Resumen hid a negative adjusted EBITDA — `draftInvestorPreview` parsed that figure as unsigned, so the minus became 0 and the card treated 0 as unknown — parse adjusted EBITDA with the signed pattern, same as the accounts EBITDA.
 - 2026-11-04: the stay dropdown opened from its title — a `label htmlFor` activates the `OptionSelect` button — use a plain heading, the same way CNAE does, so only the field opens the menu.
 - 2026-11-04: the seller marketplace preview hid Ajustado on a negative adjusted EBITDA — `MarketPreview` parses that figure with the unsigned euro pattern, so a minus becomes 0 and the card treats 0 as unknown — parse it with the signed pattern, the same way the accounts EBITDA is parsed.

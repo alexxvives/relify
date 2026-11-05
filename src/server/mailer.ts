@@ -46,9 +46,27 @@ async function emailBinding(): Promise<SendEmailBinding | null> {
   }
 }
 
+function readMailerooKey(value: unknown): string | null {
+  return typeof value === "string" && value.length > 10 ? value : null;
+}
+
 function mailerooKey(): string | null {
-  const key = process.env.MAILEROO_API_KEY;
-  return typeof key === "string" && key.length > 10 ? key : null;
+  return readMailerooKey(process.env.MAILEROO_API_KEY);
+}
+
+/** Worker secrets are also on the EMAIL-style binding object. process.env is the usual path. */
+async function mailerooKeyFromBinding(): Promise<string | null> {
+  const fromProcess = mailerooKey();
+  if (fromProcess) {
+    return fromProcess;
+  }
+
+  try {
+    const workers = await import("cloudflare:workers");
+    return readMailerooKey((workers.env as Record<string, unknown>).MAILEROO_API_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function mailConfigured(): boolean {
@@ -109,7 +127,7 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
     return { status: "skipped", transport: null, referenceId: null };
   }
 
-  const key = mailerooKey();
+  const key = await mailerooKeyFromBinding();
   if (key) {
     try {
       const reference = await viaMaileroo(key, mail);

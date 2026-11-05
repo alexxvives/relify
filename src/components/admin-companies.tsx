@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ListFilter } from "lucide-react";
-import { StatusPillToggle } from "@/components/admin-controls";
+import { StatusPillToggle, UnpublishButton } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
@@ -219,8 +219,9 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
       </p>
       <div className="relative flex-1">
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} hidePhotoTags />
-        <div className="absolute top-3 right-3 z-10" title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}>
-          <StatusPillToggle projectId={project.id} status={project.status} label={label} tone={tone} />
+        <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2" title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}>
+          <StatusPillToggle label={label} tone={tone} />
+          {project.status === "published" ? <UnpublishButton projectId={project.id} /> : null}
         </div>
       </div>
     </div>
