@@ -30,20 +30,25 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Ajustes al EBITDA"
+        aria-labelledby="adjustment-review-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="relative max-h-[min(28rem,calc(100vh-2rem))] w-full max-w-sm overflow-y-auto rounded-xl shadow-xl outline-none"
+        className="flex max-h-[min(32rem,calc(100dvh-2rem))] w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-        >
-          <X className="size-4" aria-hidden />
-        </button>
-        {children}
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#eef0f4] px-4 py-3">
+          <h2 id="adjustment-review-title" className="text-sm font-semibold text-[#1c2740]">
+            Ajustes al EBITDA
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="inline-flex size-9 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        </header>
+        <div className="min-h-0 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -259,59 +259,64 @@ function AdjustmentBridge({
   role: ReportRole;
   slug: string;
 }) {
+  const signed = (cents: number) => `${cents > 0 ? "+" : ""}${formatEur(cents)}`;
   return (
-    <div className="rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
-      <p className="pr-8 text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{companyCopy.adjustmentsTitle}</p>
-      <dl className="mt-2 divide-y divide-[#eef1f4] tabular-nums">
-        <div className="flex items-baseline justify-between gap-3 py-1.5">
-          <dt className="text-[#5c6b78]">{companyCopy.ebitdaLabel}</dt>
-          <dd className="font-semibold text-[#1c2740]">{formatEur(ebitdaCents)}</dd>
+    <div className="text-sm">
+      <dl className="grid grid-cols-3 border-b border-[#eef0f4] text-center tabular-nums">
+        <div className="px-2 py-2.5">
+          <dt className="text-[11px] font-medium text-[#667085]">Cuentas</dt>
+          <dd className="mt-0.5 text-xs font-semibold text-[#1c2740]">{formatEur(ebitdaCents)}</dd>
         </div>
+        <div className="border-x border-[#eef0f4] px-2 py-2.5">
+          <dt className="text-[11px] font-medium text-[#667085]">Ajustes</dt>
+          <dd className={`mt-0.5 text-xs font-semibold ${adjustedCents - ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{signed(adjustedCents - ebitdaCents)}</dd>
+        </div>
+        <div className="bg-[#f4f7ff] px-2 py-2.5">
+          <dt className="text-[11px] font-medium text-[#465ab4]">Ajustado</dt>
+          <dd className={`mt-0.5 text-xs font-semibold ${adjustedCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{formatEur(adjustedCents)}</dd>
+        </div>
+      </dl>
+      <ul>
         {rows.map((row) => {
           const href = row.documentId ? adjustmentDocumentHref(role, slug, row.documentId) : null;
           return (
-          <div key={row.id} className="py-1.5">
-            <div className="flex items-baseline justify-between gap-3">
-            <dt className="min-w-0 text-[#1c2740]">
-              <span>{ebitdaAdjustmentLabels[row.type]}</span>
+            <li key={row.id} className="border-b border-[#f2f4f7] px-4 py-3 last:border-b-0">
+              <div className="flex items-start justify-between gap-3">
+                <p className="min-w-0 text-sm leading-5 font-medium text-[#1c2740]">{ebitdaAdjustmentLabels[row.type]}</p>
+                <p className={`shrink-0 text-sm font-semibold tabular-nums ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
+                  {signed(row.amountCents)}
+                </p>
+              </div>
               {showReasons ? (
-                <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-[#5c6b78]">
-                  <span>Justificación</span>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-normal uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
-                    {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
-                  </span>
-                </span>
+                <div className="mt-1.5">
+                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-[#475467]">
+                    <span className="font-medium">Justificación</span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
+                      {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                    </span>
+                  </p>
+                  {row.reason ? <p className="mt-1 text-sm leading-5 break-words text-[#3d4a63]">{row.reason}</p> : null}
+                  {href && row.documentName ? (
+                    <a href={href} target="_blank" rel="noreferrer" className="mt-1.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
+                      {row.documentName}
+                    </a>
+                  ) : null}
+                  {role === "admin" && row.status === "pending" ? (
+                    <form action={approveEbitdaAdjustmentAction} className="mt-2">
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="rowId" value={row.id} />
+                      <button type="submit" className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-xs font-semibold text-white hover:bg-[#2a3a5c] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none">
+                        {companyCopy.adjustmentAccept}
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
               ) : null}
-              {showReasons && row.reason ? <span className="mt-0.5 block text-xs text-[#5c6b78]">{row.reason}</span> : null}
-              {href && row.documentName ? (
-                <a href={href} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
-                  {row.documentName}
-                </a>
-              ) : null}
-            </dt>
-            <dd className={`shrink-0 font-semibold ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
-              {row.amountCents > 0 ? "+" : ""}
-              {formatEur(row.amountCents)}
-            </dd>
-            </div>
-            {role === "admin" && row.status === "pending" ? (
-              <form action={approveEbitdaAdjustmentAction} className="mt-1.5">
-                <input type="hidden" name="slug" value={slug} />
-                <input type="hidden" name="rowId" value={row.id} />
-                <button type="submit" className="inline-flex h-8 items-center rounded-full bg-[#1c2740] px-3 text-xs font-semibold text-white hover:bg-[#2a3a5c]">
-                  {companyCopy.adjustmentAccept}
-                </button>
-              </form>
-            ) : null}
-          </div>
+            </li>
           );
         })}
-        <div className="flex items-baseline justify-between gap-3 py-1.5">
-          <dt className="font-semibold text-[#0f766e]">{companyCopy.adjustedEbitdaLabel}</dt>
-          <dd className="font-semibold text-[#0f766e]">{formatEur(adjustedCents)}</dd>
-        </div>
-      </dl>
-      {!showReasons ? <p className="mt-2 text-xs text-[#5c6b78]">{companyCopy.adjustmentsReasonsLocked}</p> : null}
+      </ul>
+      {!showReasons ? <p className="px-4 py-3 text-xs leading-5 text-[#5c6b78]">{companyCopy.adjustmentsReasonsLocked}</p> : null}
     </div>
   );
 }

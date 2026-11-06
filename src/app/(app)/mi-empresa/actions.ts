@@ -178,15 +178,15 @@ export async function storeAdjustmentDocumentAction(formData: FormData): Promise
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+      return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };
     }
     const file = uploadedFile(formData.get("file"));
     if (!file || file.size === 0) {
-      return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+      return { ok: false, message: companyCopy.adjustmentDocumentType };
     }
     return await storeAdjustmentDocument(user, file.name, await file.read());
   } catch {
-    return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+    return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };
   }
 }
 

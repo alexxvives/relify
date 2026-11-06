@@ -86,6 +86,7 @@ import {
   splitAdjustmentAmount,
   ebitdaAdjustmentLabels,
   adjustmentDocumentByteLimit,
+  adjustmentDocumentExtension,
   ebitdaAdjustmentReasonMax,
   formRowAmountCents,
   formRowsFromJson,
@@ -685,8 +686,12 @@ function EbitdaAdjustmentsDialog({
   };
   async function attach(index: number, file: File) {
     setServerError(null);
-    if (file.size === 0 || file.size > adjustmentDocumentByteLimit) {
-      setServerError(companyCopy.adjustmentDocumentInvalid);
+    if (file.size === 0 || !adjustmentDocumentExtension(file.name)) {
+      setServerError(companyCopy.adjustmentDocumentType);
+      return;
+    }
+    if (file.size > adjustmentDocumentByteLimit) {
+      setServerError(companyCopy.adjustmentDocumentTooBig);
       return;
     }
     setUploading(index);
@@ -700,7 +705,7 @@ function EbitdaAdjustmentsDialog({
       }
       update(index, { documentId: result.documentId, documentName: result.documentName, status: "pending" });
     } catch {
-      setServerError(companyCopy.adjustmentDocumentInvalid);
+      setServerError(companyCopy.adjustmentDocumentSaveFailed);
     } finally {
       setUploading(null);
     }
@@ -911,7 +916,7 @@ function EbitdaAdjustmentsDialog({
                               {uploading === index ? companyCopy.adjustmentAttachBusy : companyCopy.adjustmentAttach}
                               <input
                                 type="file"
-                                accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+                                accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.doc,.docx,.xls,.xlsx,.csv"
                                 className="sr-only"
                                 disabled={uploading !== null}
                                 onChange={(event) => {
@@ -941,7 +946,9 @@ function EbitdaAdjustmentsDialog({
                                 {companyCopy.adjustmentRemoveFile}
                               </button>
                             </p>
-                          ) : null}
+                          ) : (
+                            <p className="mt-1 text-xs text-[#98a2b3]">{companyCopy.adjustmentDocumentHint}</p>
+                          )}
                           {rowErrors.reason ? (
                             <p id={`${id}-reason-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.reason}

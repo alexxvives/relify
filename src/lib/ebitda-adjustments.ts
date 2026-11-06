@@ -62,8 +62,14 @@ export function joinAdjustmentAmount(amount: string, direction: EbitdaAdjustment
 export const maxEbitdaAdjustments = 10;
 export const ebitdaAdjustmentReasonMax = 140;
 
-/** Same ceiling as `serverActions.bodySizeLimit`. A larger file is rejected before the action runs. */
-export const adjustmentDocumentByteLimit = 8 * 1024 * 1024;
+/** Same ceiling as `serverActions.bodySizeLimit` and the data room. A larger file is rejected before the action runs. */
+export const adjustmentDocumentByteLimit = 20 * 1024 * 1024;
+const adjustmentDocumentExtensions = new Set(["pdf", "png", "jpg", "jpeg", "webp", "gif", "txt", "doc", "docx", "xls", "xlsx", "csv"]);
+
+export function adjustmentDocumentExtension(fileName: string): string | null {
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+  return adjustmentDocumentExtensions.has(extension) ? extension : null;
+}
 export const adjustmentStatuses = ["pending", "approved"] as const;
 export type AdjustmentStatus = (typeof adjustmentStatuses)[number];
 

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { companyCopy } from "@/lib/company-copy";
-import { adjustmentDocumentExtension, writeAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
+import { adjustmentDocumentExtension } from "@/lib/ebitda-adjustments";
+import { writeAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -19,7 +20,7 @@ export async function storeAdjustmentDocument(
   }
   const name = fileName.replace(/[\r\n\u0000]/g, "").trim().slice(0, 180);
   if (!adjustmentDocumentExtension(name)) {
-    return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+    return { ok: false, message: companyCopy.adjustmentDocumentType };
   }
   const activeId = await activeSellerProjectId(user.id);
   const project = activeId
@@ -30,8 +31,14 @@ export async function storeAdjustmentDocument(
   }
   const documentId = randomUUID();
   const written = await writeAdjustmentDocument(project.id, documentId, name, bytes);
-  if (!written) {
-    return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+  if (written === "type") {
+    return { ok: false, message: companyCopy.adjustmentDocumentType };
+  }
+  if (written === "size") {
+    return { ok: false, message: companyCopy.adjustmentDocumentTooBig };
+  }
+  if (written !== "ok") {
+    return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };
   }
   return { ok: true, documentId, documentName: name };
 }

@@ -1,13 +1,14 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { readFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import { adjustmentDocumentByteLimit, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { adjustmentDocumentByteLimit, adjustmentDocumentExtension, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { prisma } from "@/server/db";
 
 const projectIdPattern = /^[a-zA-Z0-9_-]{1,80}$/;
 const fileIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root = path.join(process.cwd(), "data", "adjustment-docs");
 
-const extensions = new Set(["pdf", "png", "jpg", "jpeg", "webp", "gif", "txt", "doc", "docx", "xls", "xlsx"]);
+export type AdjustmentDocumentWrite = "ok" | "type" | "size" | "failed";
 
 function pair(projectId: string, fileId: string): { bytes: string; name: string } | null {
   if (!projectIdPattern.test(projectId) || !fileIdPattern.test(fileId)) {
@@ -17,36 +18,64 @@ function pair(projectId: string, fileId: string): { bytes: string; name: string 
   return { bytes: path.join(dir, fileId), name: path.join(dir, `${fileId}.name`) };
 }
 
-export function adjustmentDocumentExtension(fileName: string): string | null {
-  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
-  return extensions.has(extension) ? extension : null;
-}
-
-export function adjustmentDocumentIsStored(projectId: string, fileId: string): boolean {
+export async function adjustmentDocumentIsStored(projectId: string, fileId: string): Promise<boolean> {
+  if (!projectIdPattern.test(projectId) || !fileIdPattern.test(fileId)) {
+    return false;
+  }
+  const row = await prisma.adjustmentDocument.findFirst({ where: { id: fileId, projectId }, select: { id: true } });
+  if (row) {
+    return true;
+  }
   const target = pair(projectId, fileId);
   return target !== null && existsSync(target.bytes);
 }
 
 export async function missingAdjustmentDocument(projectId: string, rows: readonly EbitdaAdjustment[]): Promise<boolean> {
-  return rows.some((row) => row.documentId !== null && !adjustmentDocumentIsStored(projectId, row.documentId));
+  for (const row of rows) {
+    if (row.documentId !== null && !(await adjustmentDocumentIsStored(projectId, row.documentId))) {
+      return true;
+    }
+  }
+  return false;
 }
 
-export async function writeAdjustmentDocument(projectId: string, fileId: string, fileName: string, bytes: Uint8Array): Promise<boolean> {
-  const target = pair(projectId, fileId);
-  if (!target || bytes.byteLength === 0 || bytes.byteLength > adjustmentDocumentByteLimit || !adjustmentDocumentExtension(fileName)) {
-    return false;
+export async function writeAdjustmentDocument(
+  projectId: string,
+  fileId: string,
+  fileName: string,
+  bytes: Uint8Array,
+): Promise<AdjustmentDocumentWrite> {
+  if (!projectIdPattern.test(projectId) || !fileIdPattern.test(fileId)) {
+    return "failed";
+  }
+  if (!adjustmentDocumentExtension(fileName)) {
+    return "type";
+  }
+  if (bytes.byteLength === 0 || bytes.byteLength > adjustmentDocumentByteLimit) {
+    return "size";
   }
   try {
-    await mkdir(path.dirname(target.bytes), { recursive: true });
-    await writeFile(target.bytes, bytes);
-    await writeFile(target.name, fileName, "utf8");
-    return true;
+    await prisma.adjustmentDocument.create({
+      data: { id: fileId, projectId, fileName, bytes: Buffer.from(bytes) },
+    });
+    return "ok";
   } catch {
-    return false;
+    return "failed";
   }
 }
 
 export async function readAdjustmentDocument(projectId: string, fileId: string): Promise<{ bytes: Buffer; fileName: string } | null> {
+  if (!projectIdPattern.test(projectId) || !fileIdPattern.test(fileId)) {
+    return null;
+  }
+  const row = await prisma.adjustmentDocument.findFirst({
+    where: { id: fileId, projectId },
+    select: { bytes: true, fileName: true },
+  });
+  if (row) {
+    const name = row.fileName.replace(/[\r\n]/g, "").trim();
+    return { bytes: Buffer.from(row.bytes), fileName: name.length > 0 ? name : "documento" };
+  }
   const target = pair(projectId, fileId);
   if (!target) {
     return null;
@@ -61,6 +90,9 @@ export async function readAdjustmentDocument(projectId: string, fileId: string):
 }
 
 export async function deleteAdjustmentDocument(projectId: string, fileId: string): Promise<void> {
+  if (projectIdPattern.test(projectId) && fileIdPattern.test(fileId)) {
+    await prisma.adjustmentDocument.deleteMany({ where: { id: fileId, projectId } });
+  }
   const target = pair(projectId, fileId);
   if (!target) {
     return;
