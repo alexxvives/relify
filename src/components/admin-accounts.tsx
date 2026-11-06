@@ -5,7 +5,7 @@ import { AccountToastHost, PlanPicker, SuspensionButton } from "@/components/adm
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
-import { NewPill, adminNewRing } from "@/components/admin-new";
+import { NewPill } from "@/components/admin-new";
 import type { AdminAccountRow } from "@/server/listAdminAccounts";
 
 type RoleFilter = "all" | "seller" | "investor" | "advisor";
@@ -148,7 +148,7 @@ function InfoRow({ label, children, open = false }: { label: string; children: R
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   const state = accountState(account);
   return (
-    <article className={`group/account relative flex w-full flex-col rounded-2xl border p-4 ${account.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
+    <article className="group/account relative flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4">
       <header className="flex min-w-0 items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1c2740] text-sm font-semibold text-white">
           {initialOf(account.name)}

@@ -40,7 +40,6 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
     <div className="flex flex-col gap-6">
       <section className="rounded-2xl border border-[#e6e9f0] bg-white p-5">
         <h2 className="text-lg font-semibold text-[#1c2740]">{adminCopy.activityTitle}</h2>
-        <p className="mt-1 text-sm text-[#667085]">De los accesos a los mensajes y los presupuestos.</p>
         <ActivityTiles
           tiles={[
             { label: adminCopy.funnel.accesses, value: overview.accesses, icon: Unlock, tone: "sky", ratio: overview.accesses > 0 ? 1 : 0, caption: freshNote(overview.fresh.accesses, "Peticiones de acceso"), href: "/admin/conexiones" },
@@ -101,7 +100,7 @@ function ChartLink({
   return (
     // t91: the card is read-only; only the small "Ver sección" link beside the title navigates.
     <section className={cardClass}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#1c2740]">
             {title}
@@ -109,16 +108,16 @@ function ChartLink({
           </h2>
           <SectionLink href={href} title={title} />
         </div>
-        <div className="flex items-start gap-4">
+        <div className="flex shrink-0 items-baseline gap-4">
           {aside ? (
-            <p className="text-right">
-              <span className="block text-xs text-[#667085]">{adminCopy.asking}</span>
+            <p className="flex items-baseline gap-2 whitespace-nowrap">
               <span className="text-sm font-semibold tracking-tight text-[#1c2740] tabular-nums">{aside}</span>
+              <span className="text-xs text-[#667085]">{adminCopy.asking}</span>
             </p>
           ) : null}
-          <p className="text-right">
-            <span className="block text-xs text-[#667085]">{adminCopy.totalLabel}</span>
+          <p className="flex items-baseline gap-2 whitespace-nowrap">
             <span className="text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{total}</span>
+            <span className="text-xs text-[#667085]">{adminCopy.totalLabel}</span>
           </p>
         </div>
       </div>

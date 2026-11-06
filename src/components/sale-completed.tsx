@@ -249,6 +249,10 @@ export function BuyerPurchaseCompleted({ purchase }: { purchase: BuyerPurchase }
   );
 }
 
+/** Shared columns so Comprada and Cancelado line up, with the date kept on one line. */
+export const closedProcessRowClass =
+  "flex flex-col gap-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm sm:flex-row sm:items-center sm:gap-4";
+
 /** Compact end-of-list row for a buyer process that ended in a sale (won or lost). */
 export function ClosedProcessRow({
   codename,
@@ -262,20 +266,22 @@ export function ClosedProcessRow({
   contractHref: string | null;
 }) {
   return (
-    <div className="grid items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm sm:grid-cols-[minmax(8rem,1.2fr)_12.5rem_8.5rem_minmax(0,auto)]">
-      <span className="font-semibold text-[#2b3b4a]">{shortNickname(codename)}</span>
-      <span
-        className={
-          closed.won
-            ? "inline-flex w-fit items-center gap-1 rounded-full bg-[#dff3e7] px-2.5 py-0.5 text-xs font-semibold text-[#17663a]"
-            : "w-fit rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]"
-        }
-      >
-        {closed.won ? <CircleCheck className="size-3.5" aria-hidden /> : null}
-        {closed.won ? "Comprada" : "Vendida a otro comprador"}
+    <div className={closedProcessRowClass}>
+      <span className="min-w-0 font-semibold text-[#2b3b4a] sm:flex-1 sm:truncate">{shortNickname(codename)}</span>
+      <span className="shrink-0 sm:w-48">
+        <span
+          className={
+            closed.won
+              ? "inline-flex w-fit items-center gap-1 rounded-full bg-[#dff3e7] px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-[#17663a]"
+              : "inline-flex w-fit items-center rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]"
+          }
+        >
+          {closed.won ? <CircleCheck className="size-3.5" aria-hidden /> : null}
+          {closed.won ? "Comprada" : "Vendida a otro comprador"}
+        </span>
       </span>
-      <span className="text-[#667085] tabular-nums">{closed.date}</span>
-      <span className="ml-auto flex items-center gap-4">
+      <span className="shrink-0 text-[#667085] tabular-nums whitespace-nowrap sm:w-56">{closed.date}</span>
+      <span className="flex shrink-0 items-center justify-end gap-4 sm:w-64">
         {closed.won ? (
           <Link href="/inversor/compra" className="font-medium text-[#465ab4]">Ver compra</Link>
         ) : null}

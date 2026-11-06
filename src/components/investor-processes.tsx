@@ -4,7 +4,7 @@ import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor-contact-desk";
-import { ClosedProcessRow } from "@/components/sale-completed";
+import { ClosedProcessRow, closedProcessRowClass } from "@/components/sale-completed";
 import { CancelProcessButton } from "@/components/cancel-process-button";
 import { ProcessFichaLink } from "@/components/process-ficha-link";
 import { ContractStage } from "@/components/contract-stage";
@@ -269,15 +269,19 @@ export function CancelledList({ items, extra = 0, children }: { items: Cancelled
         {items.map((item) => (
           <li key={item.accessId} className="py-2">
             {/* t94: same muted card as a sold/finished process (ClosedProcessRow). */}
-            <div className="grid items-center gap-x-4 gap-y-2 rounded-2xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-3 text-sm sm:grid-cols-[minmax(8rem,1.2fr)_12.5rem_8.5rem_minmax(0,auto)]">
-              <span className="font-semibold text-[#2b3b4a]">{item.codename}</span>
-              <span className="w-fit rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold text-[#475467]">Cancelado</span>
-              <span className="text-[#667085] tabular-nums">
-                {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Madrid" })}
+            <div className={closedProcessRowClass}>
+              <span className="min-w-0 font-semibold text-[#2b3b4a] sm:flex-1 sm:truncate">{item.codename}</span>
+              <span className="shrink-0 sm:w-48">
+                <span className="inline-flex w-fit items-center rounded-full bg-[#f2f4f7] px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-[#475467]">Cancelado</span>
               </span>
-              <Link href={`/proyectos/${item.slug}`} className="ml-auto font-medium text-[#465ab4]">
-                Ver ficha
-              </Link>
+              <span className="shrink-0 text-[#667085] tabular-nums whitespace-nowrap sm:w-56">
+                {new Date(item.cancelledAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Madrid" })}
+              </span>
+              <span className="flex shrink-0 items-center justify-end sm:w-64">
+                <Link href={`/proyectos/${item.slug}`} className="font-medium text-[#465ab4]">
+                  Ver ficha
+                </Link>
+              </span>
             </div>
           </li>
         ))}

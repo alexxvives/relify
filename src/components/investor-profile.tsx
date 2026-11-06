@@ -7,7 +7,7 @@ import { AppToast } from "@/components/app-toast";
 import { FieldHint } from "@/components/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor-public-card";
-import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft } from "@/lib/demo-profile";
+import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft, type PublicInvestorCard } from "@/lib/demo-profile";
 import { cnaeSectionLabels } from "@/lib/cnae-section";
 import { investorDisplayPhoto, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
@@ -96,6 +96,7 @@ export function InvestorProfile({
   const [stake, setStake] = useState(draft.stake);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
   const shownPhoto = investorDisplayPhoto(photo, avatarUrl);
@@ -228,7 +229,7 @@ export function InvestorProfile({
       </p>
       {professional}
       <AppToast message={saveError} tone="error" />
-      <div className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <div className="@container rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -237,9 +238,14 @@ export function InvestorProfile({
             </h2>
             <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.publicHint}</p>
           </div>
-          <Chip done={publicDone} />
+          <div className="flex shrink-0 items-center gap-2">
+            <Button type="button" tone="outline" size="md" className="@[68rem]:hidden" onClick={() => setPreviewOpen(true)}>
+              {investorCopy.showCard}
+            </Button>
+            <Chip done={publicDone} />
+          </div>
         </div>
-        <div className="mt-5 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,71fr)_minmax(0,29fr)]">
+        <div className="mt-5 grid min-w-0 items-start gap-6 @[68rem]:grid-cols-[minmax(0,71fr)_minmax(26rem,29fr)]">
         <div className="min-w-0">
         <fieldset id="lugar" className="scroll-mt-8 border-0 p-0">
           <legend className="text-sm">{investorCopy.locationLabel}</legend>
@@ -309,7 +315,7 @@ export function InvestorProfile({
         </label>
         </div>
         </div>
-        <div id="foto" className="min-w-0 scroll-mt-24 lg:sticky lg:top-6">
+        <div id="foto" className={`min-w-0 scroll-mt-24 @[68rem]:sticky @[68rem]:top-6 ${hidePhotoControl ? "hidden @[68rem]:block" : ""}`}>
           {hidePhotoControl ? null : (
             <InvestorPhotoDrop
               photo={photo}
@@ -324,13 +330,71 @@ export function InvestorProfile({
               }}
             />
           )}
-          <div className={hidePhotoControl ? "" : "mt-4"}>
+          <div className={hidePhotoControl ? "hidden @[68rem]:block" : "mt-4 hidden @[68rem]:block"}>
             <InvestorPublicCard label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName} profile={preview} />
           </div>
         </div>
         </div>
+        <SellerCardDialog
+          open={previewOpen}
+          label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName}
+          profile={preview}
+          onClose={() => setPreviewOpen(false)}
+        />
       </div>
     </div>
+  );
+}
+
+function SellerCardDialog({
+  open,
+  label,
+  profile,
+  onClose,
+}: {
+  open: boolean;
+  label: string;
+  profile: PublicInvestorCard | null;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) {
+      return;
+    }
+
+    if (open && !dialog.open) {
+      dialog.showModal();
+    }
+
+    if (!open && dialog.open) {
+      dialog.close();
+    }
+  }, [open]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-label={investorCopy.cardPreview}
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 open:block backdrop:bg-[#1c2740]/40"
+      onClose={onClose}
+    >
+      <div className="relative">
+        <form method="dialog" className="absolute top-3 right-3 z-10">
+          <button
+            type="submit"
+            aria-label={investorCopy.closeCard}
+            className="flex size-11 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        </form>
+        <InvestorPublicCard label={label} profile={profile} />
+      </div>
+    </dialog>
   );
 }
 

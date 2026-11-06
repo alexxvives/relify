@@ -48,6 +48,8 @@ export const investorCopy = {
   publicTitle: "Lo que ve el vendedor",
   publicHint: "Foto, lugar, tipo y qué buscas. El nombre, el NIF, el email y el teléfono no salen.",
   cardPreview: "Así ve el vendedor tu ficha",
+  showCard: "Ver ficha",
+  closeCard: "Cerrar",
   cardPreviewName: "Comprador",
   photoLabel: "Foto",
   photoDrop: "Arrastra tu foto",

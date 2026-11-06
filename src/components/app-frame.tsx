@@ -420,8 +420,12 @@ export function AppFrame({
                     item.href === "/mi-empresa/procesos" || item.href === "/procesos"
                       ? activePending
                       : navCounts[item.href]
-                        ? // "New since last visit" clears on the page itself; SABI pending stays until imported.
-                          item.href !== "/admin/empresas" && selected
+                        ? // Visit-cleared counts drop while that page is open. Empresas (SABI), Cuentas
+                          // and Lista de espera keep their bubble: those counts are not "since last visit".
+                          selected &&
+                          item.href !== "/admin/empresas" &&
+                          item.href !== "/admin/cuentas" &&
+                          item.href !== "/admin/lista-de-espera"
                           ? 0
                           : navCounts[item.href].alert
                         : 0
