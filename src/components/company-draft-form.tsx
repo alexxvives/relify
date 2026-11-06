@@ -391,37 +391,41 @@ function FigureField({
       }
     >
       <input type="hidden" name={name} value={value} />
-      {disabledReason ? (
-        <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
-      ) : editable && unset ? (
-        <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
-      ) : editable ? (
-        <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
-          <input
-            ref={inputRef}
-            inputMode="decimal"
-            aria-label={label}
-            value={shown}
-            placeholder="0"
-            className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
-            onFocus={() => {
-              setEditing(true);
-            }}
-            onBlur={() => {
-              setEditing(false);
-            }}
-            onChange={(event) => {
-              onChange(keepUnsignedEuro(event.target.value));
-            }}
-          />
-          <span className="text-2xl font-semibold text-[#1c2740]">€</span>
-        </span>
-      ) : (
-        <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
-          {amount === "—" ? amount : `${amount}\u00a0€`}
-        </span>
-      )}
-      {footer}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          {disabledReason ? (
+            <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
+          ) : editable && unset ? (
+            <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
+          ) : editable ? (
+            <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
+              <input
+                ref={inputRef}
+                inputMode="decimal"
+                aria-label={label}
+                value={shown}
+                placeholder="0"
+                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
+                onFocus={() => {
+                  setEditing(true);
+                }}
+                onBlur={() => {
+                  setEditing(false);
+                }}
+                onChange={(event) => {
+                  onChange(keepUnsignedEuro(event.target.value));
+                }}
+              />
+              <span className="text-2xl font-semibold text-[#1c2740]">€</span>
+            </span>
+          ) : (
+            <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+              {amount === "—" ? amount : `${amount}\u00a0€`}
+            </span>
+          )}
+        </div>
+        {footer ? <div className="shrink-0">{footer}</div> : null}
+      </div>
     </MetricTile>
   );
 }
@@ -505,7 +509,7 @@ function FichaMetrics({
                 type="button"
                 onClick={recommended.onUse}
                 aria-label={`${companyCopy.recommendedPrice}: ${recommended.amount}`}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#e4e7ec] bg-white px-2.5 py-1 text-xs font-medium whitespace-nowrap text-[#667085] hover:border-[#c5cce0] hover:text-[#1c2740] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#e4e7ec] bg-white px-2.5 py-1 text-xs font-medium whitespace-nowrap text-[#667085] hover:border-[#c5cce0] hover:text-[#1c2740] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
               >
                 <Sparkles className="size-3.5 shrink-0 text-[#465ab4]" aria-hidden />
                 <span>Usar</span>

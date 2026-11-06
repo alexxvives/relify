@@ -282,27 +282,31 @@ function AdjustmentBridge({
           return (
             <li key={row.id} className="border-b border-[#f2f4f7] px-4 py-3 last:border-b-0">
               <div className="flex items-start justify-between gap-3">
-                <p className="min-w-0 text-sm leading-5 font-medium text-[#1c2740]">{ebitdaAdjustmentLabels[row.type]}</p>
-                <p className={`shrink-0 text-sm font-semibold tabular-nums ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
-                  {signed(row.amountCents)}
-                </p>
-              </div>
-              {showReasons ? (
-                <div className="mt-1.5">
-                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-[#475467]">
-                    <span className="font-medium">Justificación</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
-                      {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
-                    </span>
-                  </p>
-                  {row.reason ? <p className="mt-1 text-sm leading-5 break-words text-[#3d4a63]">{row.reason}</p> : null}
-                  {href && row.documentName ? (
-                    <a href={href} target="_blank" rel="noreferrer" className="mt-1.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
-                      {row.documentName}
-                    </a>
+                <div className="min-w-0">
+                  <p className="text-sm leading-5 font-medium text-[#1c2740]">{ebitdaAdjustmentLabels[row.type]}</p>
+                  {showReasons ? (
+                    <div className="mt-1.5">
+                      <p className="flex flex-wrap items-center gap-1.5 text-xs text-[#475467]">
+                        <span className="font-medium">Justificación</span>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
+                          {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                        </span>
+                      </p>
+                      {row.reason ? <p className="mt-1 text-sm leading-5 break-words text-[#3d4a63]">{row.reason}</p> : null}
+                      {href && row.documentName ? (
+                        <a href={href} target="_blank" rel="noreferrer" className="mt-1.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
+                          {row.documentName}
+                        </a>
+                      ) : null}
+                    </div>
                   ) : null}
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <p className={`text-sm font-semibold tabular-nums ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
+                    {signed(row.amountCents)}
+                  </p>
                   {role === "admin" && row.status === "pending" ? (
-                    <form action={approveEbitdaAdjustmentAction} className="mt-2">
+                    <form action={approveEbitdaAdjustmentAction}>
                       <input type="hidden" name="slug" value={slug} />
                       <input type="hidden" name="rowId" value={row.id} />
                       <button type="submit" className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-xs font-semibold text-white hover:bg-[#2a3a5c] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none">
@@ -311,7 +315,7 @@ function AdjustmentBridge({
                     </form>
                   ) : null}
                 </div>
-              ) : null}
+              </div>
             </li>
           );
         })}
