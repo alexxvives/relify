@@ -147,6 +147,9 @@ function InfoRow({ label, children, open = false }: { label: string; children: R
 
 function AccountCard({ account, self }: { account: AdminAccountRow; self: boolean }) {
   const state = accountState(account);
+  const role = roleLabel(account.role);
+  // The pending line already says "Alta pendiente"; the role pill would repeat it.
+  const showRole = role !== state?.label;
   return (
     <article className="group/account relative flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4">
       <header className="flex min-w-0 items-start gap-3">
@@ -161,9 +164,11 @@ function AccountCard({ account, self }: { account: AdminAccountRow; self: boolea
           <p className="truncate text-xs text-[#667085]" title={account.email}>{account.email}</p>
         </div>
         <span className="flex shrink-0 flex-col items-end gap-1">
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleTones[account.role ?? ""] ?? "bg-[#eef1f5] text-[#475467]"}`}>
-            {roleLabel(account.role)}
-          </span>
+          {showRole ? (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleTones[account.role ?? ""] ?? "bg-[#eef1f5] text-[#475467]"}`}>
+              {role}
+            </span>
+          ) : null}
           {state ? (
             <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${state.tone}`}>
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />

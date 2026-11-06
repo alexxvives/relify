@@ -238,12 +238,7 @@ export function InvestorProfile({
             </h2>
             <p className="mt-1 max-w-3xl text-sm text-[#64748b]">{investorCopy.publicHint}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" tone="outline" size="md" className="@[68rem]:hidden" onClick={() => setPreviewOpen(true)}>
-              {investorCopy.showCard}
-            </Button>
-            <Chip done={publicDone} />
-          </div>
+          <Chip done={publicDone} />
         </div>
         <div className="mt-5 grid min-w-0 items-start gap-6 @[68rem]:grid-cols-[minmax(0,71fr)_minmax(26rem,29fr)]">
         <div className="min-w-0">
@@ -313,6 +308,11 @@ export function InvestorProfile({
           {investorCopy.searchLabel}
           <Textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} />
         </label>
+        <div className="flex justify-center @[68rem]:hidden">
+          <Button type="button" tone="navy" size="md" onClick={() => setPreviewOpen(true)}>
+            {investorCopy.showCard}
+          </Button>
+        </div>
         </div>
         </div>
         <div id="foto" className={`min-w-0 scroll-mt-24 @[68rem]:sticky @[68rem]:top-6 ${hidePhotoControl ? "hidden @[68rem]:block" : ""}`}>
