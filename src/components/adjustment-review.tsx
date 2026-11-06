@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useModal } from "@/components/use-modal";
 
@@ -24,7 +25,7 @@ export function AdjustmentReview({ children }: { children: ReactNode }) {
 function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   const panel = useRef<HTMLDivElement>(null);
   useModal(panel, onClose);
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 p-4 sm:items-center" onClick={onClose}>
       <div
         ref={panel}
@@ -33,7 +34,8 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
         aria-labelledby="adjustment-review-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="flex max-h-[min(32rem,calc(100dvh-2rem))] w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none"
+        style={{ width: "min(100%, 24rem)", maxWidth: "24rem" }}
+        className="flex max-h-[min(32rem,calc(100dvh-2rem))] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none"
       >
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#eef0f4] px-4 py-3">
           <h2 id="adjustment-review-title" className="text-sm font-semibold text-[#1c2740]">
@@ -50,6 +52,7 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
         </header>
         <div className="min-h-0 overflow-y-auto">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
