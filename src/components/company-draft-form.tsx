@@ -85,6 +85,7 @@ import {
   joinAdjustmentAmount,
   splitAdjustmentAmount,
   ebitdaAdjustmentLabels,
+  adjustmentDocumentByteLimit,
   ebitdaAdjustmentReasonMax,
   formRowAmountCents,
   formRowsFromJson,
@@ -684,16 +685,25 @@ function EbitdaAdjustmentsDialog({
   };
   async function attach(index: number, file: File) {
     setServerError(null);
-    setUploading(index);
-    const data = new FormData();
-    data.set("file", file);
-    const result = await storeAdjustmentDocumentAction(data);
-    setUploading(null);
-    if (!result.ok) {
-      setServerError(result.message);
+    if (file.size === 0 || file.size > adjustmentDocumentByteLimit) {
+      setServerError(companyCopy.adjustmentDocumentInvalid);
       return;
     }
-    update(index, { documentId: result.documentId, documentName: result.documentName, status: "pending" });
+    setUploading(index);
+    try {
+      const data = new FormData();
+      data.set("file", file);
+      const result = await storeAdjustmentDocumentAction(data);
+      if (!result.ok) {
+        setServerError(result.message);
+        return;
+      }
+      update(index, { documentId: result.documentId, documentName: result.documentName, status: "pending" });
+    } catch {
+      setServerError(companyCopy.adjustmentDocumentInvalid);
+    } finally {
+      setUploading(null);
+    }
   }
   const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row) : {}));
   const sum = rows.reduce<number>((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
@@ -874,8 +884,13 @@ function EbitdaAdjustmentsDialog({
                           ) : null}
                         </div>
                         <div className="min-w-0 sm:col-span-3">
-                          <label htmlFor={`${id}-reason`} className={`flex items-baseline justify-between ${adjustmentLabelClass}`}>
-                            <span>Justificación</span>
+                          <label htmlFor={`${id}-reason`} className={`flex flex-wrap items-center justify-between gap-2 ${adjustmentLabelClass}`}>
+                            <span className="inline-flex items-center gap-2">
+                              Justificación
+                              <span className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
+                                {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                              </span>
+                            </span>
                             <span className="font-normal text-[#98a2b3] tabular-nums">
                               {row.reason.length}/{ebitdaAdjustmentReasonMax}
                             </span>
@@ -908,9 +923,6 @@ function EbitdaAdjustmentsDialog({
                                 }}
                               />
                             </label>
-                            <span className={`inline-flex h-7 items-center rounded-full px-2 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
-                              {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
-                            </span>
                           </div>
                           {row.documentName ? (
                             <p className="mt-1 flex items-center gap-2 text-xs text-[#3d4a63]">

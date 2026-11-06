@@ -1,17 +1,16 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { adjustmentDocumentByteLimit, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 
-const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const projectIdPattern = /^[a-zA-Z0-9_-]{1,80}$/;
+const fileIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root = path.join(process.cwd(), "data", "adjustment-docs");
-
-export const adjustmentDocumentByteLimit = 10 * 1024 * 1024;
 
 const extensions = new Set(["pdf", "png", "jpg", "jpeg", "webp", "gif", "txt", "doc", "docx", "xls", "xlsx"]);
 
 function pair(projectId: string, fileId: string): { bytes: string; name: string } | null {
-  if (!idPattern.test(projectId) || !idPattern.test(fileId)) {
+  if (!projectIdPattern.test(projectId) || !fileIdPattern.test(fileId)) {
     return null;
   }
   const dir = path.join(root, projectId);
@@ -37,10 +36,14 @@ export async function writeAdjustmentDocument(projectId: string, fileId: string,
   if (!target || bytes.byteLength === 0 || bytes.byteLength > adjustmentDocumentByteLimit || !adjustmentDocumentExtension(fileName)) {
     return false;
   }
-  await mkdir(path.dirname(target.bytes), { recursive: true });
-  await writeFile(target.bytes, bytes);
-  await writeFile(target.name, fileName, "utf8");
-  return true;
+  try {
+    await mkdir(path.dirname(target.bytes), { recursive: true });
+    await writeFile(target.bytes, bytes);
+    await writeFile(target.name, fileName, "utf8");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function readAdjustmentDocument(projectId: string, fileId: string): Promise<{ bytes: Buffer; fileName: string } | null> {

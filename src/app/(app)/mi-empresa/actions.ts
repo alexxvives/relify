@@ -162,16 +162,32 @@ export async function saveEbitdaAdjustmentsAction(raw: string): Promise<SaveEbit
   return result;
 }
 
-export async function storeAdjustmentDocumentAction(formData: FormData): Promise<StoreAdjustmentDocumentResult> {
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect("/entrar");
+function uploadedFile(value: FormDataEntryValue | null): { name: string; size: number; read: () => Promise<Uint8Array> } | null {
+  if (!(value instanceof Blob) || !("name" in value) || typeof value.name !== "string" || value.name.length === 0) {
+    return null;
   }
-  const file = formData.get("file");
-  if (!(file instanceof File)) {
+  const blob = value;
+  return {
+    name: value.name,
+    size: blob.size,
+    read: async () => new Uint8Array(await blob.arrayBuffer()),
+  };
+}
+
+export async function storeAdjustmentDocumentAction(formData: FormData): Promise<StoreAdjustmentDocumentResult> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+    }
+    const file = uploadedFile(formData.get("file"));
+    if (!file || file.size === 0) {
+      return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+    }
+    return await storeAdjustmentDocument(user, file.name, await file.read());
+  } catch {
     return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
   }
-  return storeAdjustmentDocument(user, file.name, new Uint8Array(await file.arrayBuffer()));
 }
 
 export type SellerPublishState = { ok: true } | { ok: false; message: string } | null;

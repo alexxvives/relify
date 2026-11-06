@@ -65,6 +65,7 @@ import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-st
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { AdjustmentReview } from "@/components/adjustment-review";
 import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
@@ -260,7 +261,7 @@ function AdjustmentBridge({
 }) {
   return (
     <div className="rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#5c6b78]">{companyCopy.adjustmentsTitle}</p>
+      <p className="pr-8 text-xs font-semibold tracking-wide text-[#5c6b78] uppercase">{companyCopy.adjustmentsTitle}</p>
       <dl className="mt-2 divide-y divide-[#eef1f4] tabular-nums">
         <div className="flex items-baseline justify-between gap-3 py-1.5">
           <dt className="text-[#5c6b78]">{companyCopy.ebitdaLabel}</dt>
@@ -272,13 +273,16 @@ function AdjustmentBridge({
           <div key={row.id} className="py-1.5">
             <div className="flex items-baseline justify-between gap-3">
             <dt className="min-w-0 text-[#1c2740]">
-              <span className="flex flex-wrap items-center gap-1.5">
-                {ebitdaAdjustmentLabels[row.type]}
-                {row.status === "pending" ? (
-                  <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-normal text-[#7a4700] uppercase">{companyCopy.adjustmentPending}</span>
-                ) : null}
-              </span>
-              {showReasons && row.reason ? <span className="block text-xs text-[#5c6b78]">{row.reason}</span> : null}
+              <span>{ebitdaAdjustmentLabels[row.type]}</span>
+              {showReasons ? (
+                <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-[#5c6b78]">
+                  <span>Justificación</span>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-normal uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
+                    {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                  </span>
+                </span>
+              ) : null}
+              {showReasons && row.reason ? <span className="mt-0.5 block text-xs text-[#5c6b78]">{row.reason}</span> : null}
               {href && row.documentName ? (
                 <a href={href} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
                   {row.documentName}
@@ -781,21 +785,16 @@ export function CompanyReport({
             hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`}
             action={
               project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-                <details className="group relative">
-                  <summary className="cursor-pointer list-none rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-[11px] font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-                    Ver ajustes
-                  </summary>
-                  <div className="absolute left-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] shadow-xl">
-                    <AdjustmentBridge
-                      ebitdaCents={project.ebitdaCents}
-                      adjustedCents={project.adjustedEbitdaCents}
-                      rows={project.ebitdaAdjustments}
-                      showReasons={figuresOpen || role === "admin"}
-                      role={role}
-                      slug={project.slug}
-                    />
-                  </div>
-                </details>
+                <AdjustmentReview>
+                  <AdjustmentBridge
+                    ebitdaCents={project.ebitdaCents}
+                    adjustedCents={project.adjustedEbitdaCents}
+                    rows={project.ebitdaAdjustments}
+                    showReasons={figuresOpen || role === "admin"}
+                    role={role}
+                    slug={project.slug}
+                  />
+                </AdjustmentReview>
               ) : null
             }
             sub={

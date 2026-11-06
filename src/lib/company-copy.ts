@@ -38,7 +38,7 @@ export const companyCopy = {
   adjustmentApproved: "Aprobado",
   adjustmentAccept: "Aceptar",
   adjustmentPendingNote: "Relify revisa cada ajuste antes de publicarlo. Hasta entonces el comprador ve el EBITDA de las cuentas.",
-  adjustmentDocumentInvalid: "Adjunta un PDF, una imagen o una hoja de cálculo de hasta 10 MB.",
+  adjustmentDocumentInvalid: "Adjunta un PDF, una imagen o una hoja de cálculo de hasta 8 MB.",
   adjustmentDocumentMissing: "El documento del ajuste no se ha guardado. Vuelve a adjuntarlo.",
   adjustmentsPendingChip: "Ajustes por aprobar",
   adjustmentsEmpty: "Sin ajustes, el comprador verá solo el EBITDA de las cuentas.",

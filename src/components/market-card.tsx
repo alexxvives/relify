@@ -135,11 +135,7 @@ const recoveryClass = {
   high: "bg-[#fdecec] text-[#b42318]",
 } as const;
 
-/**
- * "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price.
- * `fit` lets the chip shorten to "ROI 3,2 a" (and "3,2 a" in very narrow cells) via the nearest
- * `@container`, so it never wraps under the price.
- */
+/** "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price. */
 export function RoiChip({
   years,
   fit = false,
@@ -148,26 +144,14 @@ export function RoiChip({
   fit?: boolean;
 }) {
   const value = formatDecimal(years);
-  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`; // t95: tooltip carries the unit
+  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`;
   const tone = recoveryClass[recoveryTone(years)];
-  if (!fit) {
-    return (
-      <span
-        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums ${tone}`}
-        title={title}
-      >
-        ROI {value} años
-      </span>
-    );
-  }
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap tabular-nums @[9.5rem]:px-2 @[9.5rem]:text-xs ${tone}`}
+      className={`inline-flex shrink-0 items-center rounded-full font-semibold whitespace-nowrap tabular-nums ${tone} ${fit ? "px-1.5 py-0.5 text-[11px] @[9.5rem]:px-2 @[9.5rem]:text-xs" : "px-2 py-0.5 text-xs"}`}
       title={title}
     >
-      {/* t95: just "ROI 2,6"; the tooltip says it is the years to recover the price. */}
-      ROI&nbsp;{value}
-      <span className="sr-only"> años para recuperar el precio</span>
+      ROI {value} años
     </span>
   );
 }
