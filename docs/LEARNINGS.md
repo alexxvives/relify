@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-06: `npx vinext-cloudflare deploy` aborted with "remove the `--strict` flag" after a successful build — `cf deploy` hardcodes `strict: true`, and this Worker was last updated via the script API — set `strict:!1` on the deploy command in `node_modules/cf/dist/deploy-input-BAhS5LYx.mjs`, then run the same deploy. There is no CLI flag for it.
 - 2026-11-06: the Cuentas and Lista de espera red bubbles vanished on those pages — SideLink sets the alert to 0 while that admin link is selected, except Empresas — keep /admin/cuentas and /admin/lista-de-espera on the same stay-visible path as Empresas.
 
 - 2026-11-06: team alerts still landed in Hostinger spam when sent from notificaciones@ to info@ — the working Lumia pattern is the inbox writing to itself (From and To both info@) — send alerts to info@itsrelify.com from info@itsrelify.com. Leave person mail on notificaciones@.
