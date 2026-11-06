@@ -65,6 +65,7 @@ import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-st
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
@@ -232,16 +233,30 @@ function Kpi({
 }
 
 /** t82: EBITDA → itemised seller adjustments → adjusted EBITDA. Reasons only after the NDA (or for admin). */
+function adjustmentDocumentHref(role: ReportRole, slug: string, fileId: string): string | null {
+  if (role === "admin") {
+    return `/admin/empresas/${slug}/ajuste/${fileId}`;
+  }
+  if (role === "seller") {
+    return `/mi-empresa/ajustes/${fileId}`;
+  }
+  return null;
+}
+
 function AdjustmentBridge({
   ebitdaCents,
   adjustedCents,
   rows,
   showReasons,
+  role,
+  slug,
 }: {
   ebitdaCents: number;
   adjustedCents: number;
   rows: EbitdaAdjustment[];
   showReasons: boolean;
+  role: ReportRole;
+  slug: string;
 }) {
   return (
     <div className="rounded-xl border border-[#e3e8ee] bg-white p-3 text-sm">
@@ -251,18 +266,42 @@ function AdjustmentBridge({
           <dt className="text-[#5c6b78]">{companyCopy.ebitdaLabel}</dt>
           <dd className="font-semibold text-[#1c2740]">{formatEur(ebitdaCents)}</dd>
         </div>
-        {rows.map((row, index) => (
-          <div key={index} className="flex items-baseline justify-between gap-3 py-1.5">
+        {rows.map((row) => {
+          const href = row.documentId ? adjustmentDocumentHref(role, slug, row.documentId) : null;
+          return (
+          <div key={row.id} className="py-1.5">
+            <div className="flex items-baseline justify-between gap-3">
             <dt className="min-w-0 text-[#1c2740]">
-              {ebitdaAdjustmentLabels[row.type]}
+              <span className="flex flex-wrap items-center gap-1.5">
+                {ebitdaAdjustmentLabels[row.type]}
+                {row.status === "pending" ? (
+                  <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-normal text-[#7a4700] uppercase">{companyCopy.adjustmentPending}</span>
+                ) : null}
+              </span>
               {showReasons && row.reason ? <span className="block text-xs text-[#5c6b78]">{row.reason}</span> : null}
+              {href && row.documentName ? (
+                <a href={href} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
+                  {row.documentName}
+                </a>
+              ) : null}
             </dt>
             <dd className={`shrink-0 font-semibold ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
               {row.amountCents > 0 ? "+" : ""}
               {formatEur(row.amountCents)}
             </dd>
+            </div>
+            {role === "admin" && row.status === "pending" ? (
+              <form action={approveEbitdaAdjustmentAction} className="mt-1.5">
+                <input type="hidden" name="slug" value={slug} />
+                <input type="hidden" name="rowId" value={row.id} />
+                <button type="submit" className="inline-flex h-8 items-center rounded-full bg-[#1c2740] px-3 text-xs font-semibold text-white hover:bg-[#2a3a5c]">
+                  {companyCopy.adjustmentAccept}
+                </button>
+              </form>
+            ) : null}
           </div>
-        ))}
+          );
+        })}
         <div className="flex items-baseline justify-between gap-3 py-1.5">
           <dt className="font-semibold text-[#0f766e]">{companyCopy.adjustedEbitdaLabel}</dt>
           <dd className="font-semibold text-[#0f766e]">{formatEur(adjustedCents)}</dd>
@@ -752,6 +791,8 @@ export function CompanyReport({
                       adjustedCents={project.adjustedEbitdaCents}
                       rows={project.ebitdaAdjustments}
                       showReasons={figuresOpen || role === "admin"}
+                      role={role}
+                      slug={project.slug}
                     />
                   </div>
                 </details>

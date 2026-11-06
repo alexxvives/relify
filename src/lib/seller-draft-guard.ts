@@ -1,4 +1,4 @@
-import { adjustedEbitdaCents, parseEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { adjustedEbitdaCents, approvedAdjustments, mergePostedAdjustments, parseEbitdaAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 
 /**
  * t78: what a seller submission may change. Once the company's NIF is verified (stored CIF), the legal name and CIF
@@ -57,7 +57,7 @@ export type AdjustmentWrite =
  */
 export function sellerAdjustmentWrite(
   raw: string,
-  stored: { ebitdaCents: number; hasList: boolean } | null,
+  stored: { ebitdaCents: number; rows: EbitdaAdjustment[] | null } | null,
 ): { ok: true; write: AdjustmentWrite } | { ok: false; code: string } {
   if (raw.trim() === "") {
     return { ok: true, write: { kind: "keep" } };
@@ -67,12 +67,26 @@ export function sellerAdjustmentWrite(
     return parsed;
   }
   if (parsed.rows.length === 0) {
-    return { ok: true, write: stored?.hasList ? { kind: "clear" } : { kind: "keep" } };
+    return { ok: true, write: stored?.rows !== null && stored?.rows !== undefined ? { kind: "clear" } : { kind: "keep" } };
   }
+  const rows = mergePostedAdjustments(parsed.rows, stored?.rows ?? []);
+  const published = approvedAdjustments(rows);
   return {
     ok: true,
-    write: { kind: "set", rows: parsed.rows, adjustedEbitdaCents: adjustedEbitdaCents(stored?.ebitdaCents ?? 0, parsed.rows) },
+    write: {
+      kind: "set",
+      rows,
+      adjustedEbitdaCents: adjustedEbitdaCents(stored?.ebitdaCents ?? 0, published),
+    },
   };
+}
+
+/** A stored list, or null when the seller never itemised (legacy declared number). */
+export function storedAdjustmentList(value: unknown): EbitdaAdjustment[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  return storedEbitdaAdjustments(value) ?? [];
 }
 
 /**
@@ -95,7 +109,7 @@ export function askingPriceAllowed(basisCents: number | null): boolean {
 /** A saved adjustment list, or a legacy non-zero adjusted EBITDA with no list at all. */
 export function projectHasAdjustments(project: { adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): boolean {
   if (Array.isArray(project.ebitdaAdjustments)) {
-    return project.ebitdaAdjustments.length > 0;
+    return approvedAdjustments(storedEbitdaAdjustments(project.ebitdaAdjustments) ?? []).length > 0;
   }
 
   if (project.ebitdaAdjustments === null || project.ebitdaAdjustments === undefined) {

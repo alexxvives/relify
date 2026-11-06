@@ -32,7 +32,10 @@ describe("ebitda adjustments", () => {
     const parsed = parseEbitdaAdjustments(
       JSON.stringify([{ type: "one_off", amount: "1000", reason: "Litigio cerrado", total: "999999999", amountCents: 1 }]),
     );
-    expect(parsed).toEqual({ ok: true, rows: [{ type: "one_off", amountCents: 100_000, reason: "Litigio cerrado" }] });
+    expect(parsed).toEqual({
+      ok: true,
+      rows: [{ id: null, type: "one_off", amountCents: 100_000, reason: "Litigio cerrado", documentId: null, documentName: null }],
+    });
     if (parsed.ok) expect(adjustedEbitdaCents(500_000, parsed.rows)).toBe(600_000);
   });
 
@@ -47,10 +50,16 @@ describe("ebitda adjustments", () => {
 
   it("reads stored rows defensively and hides reasons before the NDA", () => {
     const rows = storedEbitdaAdjustments([{ type: "personal", amountCents: 5000, reason: "Coche" }, { type: "bad" }, null]);
-    expect(rows).toEqual([{ type: "personal", amountCents: 5000, reason: "Coche" }]);
+    expect(rows).toEqual([
+      { id: "legacy-0", type: "personal", amountCents: 5000, reason: "Coche", status: "approved", documentId: null, documentName: null },
+    ]);
     expect(storedEbitdaAdjustments(null)).toBeNull();
-    expect(adjustmentsForBuyer(rows, false)).toEqual([{ type: "personal", amountCents: 5000, reason: null }]);
+    expect(adjustmentsForBuyer(rows, false)).toEqual([
+      { id: "legacy-0", type: "personal", amountCents: 5000, reason: null, status: "approved", documentId: null, documentName: null },
+    ]);
     expect(adjustmentsForBuyer(rows, true)).toEqual(rows);
+    const pending = storedEbitdaAdjustments([{ id: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f50", type: "other", amountCents: 100, reason: "Nuevo", status: "pending", documentId: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f51", documentName: "soporte.pdf" }]);
+    expect(adjustmentsForBuyer(pending, true)).toBeNull();
   });
 
   it("t91: offers 'Otro' again and still requires a justification for every type", () => {

@@ -25,6 +25,7 @@ import { requestFigureCorrection } from "@/server/requestFigureCorrection";
 import { requestIdentityChange } from "@/server/requestIdentityChange";
 import { saveCompanyDraft } from "@/server/saveCompanyDraft";
 import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/server/saveEbitdaAdjustments";
+import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/server/storeAdjustmentDocument";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
 import { uniqueCodename } from "@/server/uniqueCodename";
@@ -153,12 +154,24 @@ export async function saveEbitdaAdjustmentsAction(raw: string): Promise<SaveEbit
   if (!user) {
     redirect("/entrar");
   }
-  const result = await saveEbitdaAdjustments(user, typeof raw === "string" ? raw.slice(0, 8000) : "");
+  const result = await saveEbitdaAdjustments(user, typeof raw === "string" ? raw.slice(0, 20000) : "");
   if (result.ok) {
     revalidatePath("/mi-empresa");
     revalidatePath("/mi-empresa/detalles");
   }
   return result;
+}
+
+export async function storeAdjustmentDocumentAction(formData: FormData): Promise<StoreAdjustmentDocumentResult> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/entrar");
+  }
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    return { ok: false, message: companyCopy.adjustmentDocumentInvalid };
+  }
+  return storeAdjustmentDocument(user, file.name, new Uint8Array(await file.arrayBuffer()));
 }
 
 export type SellerPublishState = { ok: true } | { ok: false; message: string } | null;

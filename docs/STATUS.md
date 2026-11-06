@@ -6,6 +6,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
+- An EBITDA adjustment stays Por aprobar until an admin accepts it on the company ficha. Beside Justificación the seller can attach a document. Only accepted rows change the published EBITDA. The help line is +34 689 99 43 85. `npm run typecheck` exited 0 and `npm run lint` exited 0.
 - The homepage favicon is the R mark as a square PNG and ICO. Google Search ignores SVG icons, so `src/app/icon.svg` is gone and the tab icon is `src/app/icon.png` plus `src/app/favicon.ico`. `npm run typecheck` exited 0 and `npm run lint` exited 0. Deployed to the `releva` Worker on 2026-11-06 (version `1c39efec-5ade-4f6d-9ed8-f3be50f5b564`). https://itsrelify.com no longer links an SVG icon.
 - On Admin Cuentas, an unfinished account no longer repeats Alta pendiente on the role pill; the status line keeps it. On `/cuenta`, Ver ficha sits centered under Qué busca and uses the navy button. `npm run typecheck` exited 0 and `npm run lint` exited 0.
 - Admin Cuentas and Lista de espera keep the red sidebar bubble while those pages are open. Cuentas no longer paints a new account blue. Admin Inicio drops the activity subtitle, and each chart shows the count beside Total. Closed investor processes line up Comprada and Cancelado, with the date on one line. On a narrow account page the seller preview hides behind Ver ficha and opens as a dialog. `npm run typecheck` exited 0 and `npm run lint` exited 0.

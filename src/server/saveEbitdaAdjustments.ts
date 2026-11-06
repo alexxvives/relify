@@ -1,6 +1,7 @@
 import { companyCopy } from "@/lib/company-copy";
 import { adjustmentsToFormJson, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
-import { sellerAdjustmentWrite } from "@/lib/seller-draft-guard";
+import { sellerAdjustmentWrite, storedAdjustmentList } from "@/lib/seller-draft-guard";
+import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -26,19 +27,26 @@ export async function saveEbitdaAdjustments(user: CurrentUser, raw: string): Pro
   if (!project) {
     return { ok: false, message: "Guarda primero los datos de tu empresa." };
   }
-  const write = sellerAdjustmentWrite(raw, { ebitdaCents: Number(project.ebitdaCents), hasList: Array.isArray(project.ebitdaAdjustments) });
+  const previous = storedAdjustmentList(project.ebitdaAdjustments);
+  const write = sellerAdjustmentWrite(raw, { ebitdaCents: Number(project.ebitdaCents), rows: previous });
   if (!write.ok) {
     return { ok: false, message: write.code === "adjustment-count" ? companyCopy.adjustmentsCount : companyCopy.adjustmentsInvalid };
+  }
+  const missing = write.write.kind === "set" ? await missingAdjustmentDocument(project.id, write.write.rows) : false;
+  if (missing) {
+    return { ok: false, message: companyCopy.adjustmentDocumentMissing };
   }
   if (write.write.kind === "set") {
     await prisma.project.update({
       where: { id: project.id },
       data: { ebitdaAdjustments: write.write.rows, adjustedEbitdaCents: write.write.adjustedEbitdaCents },
     });
+    await deleteUnusedAdjustmentDocuments(project.id, previous ?? [], write.write.rows);
     return { ok: true, json: adjustmentsToFormJson(write.write.rows) };
   }
   if (write.write.kind === "clear") {
     await prisma.project.update({ where: { id: project.id }, data: { ebitdaAdjustments: Prisma.DbNull, adjustedEbitdaCents: 0 } });
+    await deleteUnusedAdjustmentDocuments(project.id, previous ?? [], []);
     return { ok: true, json: "" };
   }
   return { ok: true, json: adjustmentsToFormJson(storedEbitdaAdjustments(project.ebitdaAdjustments)) };

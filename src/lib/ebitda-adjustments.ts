@@ -61,18 +61,45 @@ export function joinAdjustmentAmount(amount: string, direction: EbitdaAdjustment
 
 export const maxEbitdaAdjustments = 10;
 export const ebitdaAdjustmentReasonMax = 140;
+export const adjustmentStatuses = ["pending", "approved"] as const;
+export type AdjustmentStatus = (typeof adjustmentStatuses)[number];
+
+const adjustmentIdPattern = /^(?:legacy-\d+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const documentIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Stored shape (Project.ebitdaAdjustments). `reason` is null when hidden from a buyer before the NDA. */
-export type EbitdaAdjustment = { type: EbitdaAdjustmentType; amountCents: number; reason: string | null };
+export type EbitdaAdjustment = {
+  id: string;
+  type: EbitdaAdjustmentType;
+  amountCents: number;
+  reason: string | null;
+  /** Missing on rows saved before review: those stay approved. A new or edited row is pending until an admin accepts it. */
+  status: AdjustmentStatus;
+  documentId: string | null;
+  documentName: string | null;
+};
+
+/** What the form posts per row. Status is not read: the server decides pending or approved. */
+export type PostedAdjustment = {
+  id: string | null;
+  type: EbitdaAdjustmentType;
+  amountCents: number;
+  reason: string;
+  documentId: string | null;
+  documentName: string | null;
+};
 
 /** What the form posts per row: amount as Spanish euro text ("-12000" or "1500,50"). */
 const rowSchema = z.object({
+  id: z.string().trim().max(80).optional(),
   type: z.enum(ebitdaAdjustmentTypes),
   amount: z
     .string()
     .trim()
     .regex(/^-?\d{1,12}(,\d{1,2})?$/, "adjustment-amount"),
   reason: z.string().trim().min(3, "adjustment-reason").max(ebitdaAdjustmentReasonMax, "adjustment-reason"),
+  documentId: z.string().trim().max(80).optional(),
+  documentName: z.string().trim().max(180).optional(),
 });
 
 function centsOf(value: string): number {
@@ -82,10 +109,18 @@ function centsOf(value: string): number {
   return negative ? -cents : cents;
 }
 
-export type ParsedAdjustments = { ok: true; rows: EbitdaAdjustment[] } | { ok: false; code: string };
+function cleanDocumentName(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  const name = value.replace(/[\r\n\u0000]/g, "").trim().slice(0, 180);
+  return name.length > 0 ? name : null;
+}
+
+export type ParsedAdjustments = { ok: true; rows: PostedAdjustment[] } | { ok: false; code: string };
 
 /**
- * Parses the posted JSON list. Unknown keys (e.g. a client-side "total") are dropped; zero amounts are rejected
+ * Parses the posted JSON list. Unknown keys (a client status, a forged total) are dropped; zero amounts are rejected
  * because they explain nothing.
  */
 export function parseEbitdaAdjustments(raw: string): ParsedAdjustments {
@@ -102,11 +137,57 @@ export function parseEbitdaAdjustments(raw: string): ParsedAdjustments {
   if (!parsed.success) {
     return { ok: false, code: parsed.error.issues[0]?.message ?? "adjustment-format" };
   }
-  const rows = parsed.data.map((row) => ({ type: row.type, amountCents: centsOf(row.amount), reason: row.reason }));
+  const rows = parsed.data.map((row) => {
+    const documentId = row.documentId && documentIdPattern.test(row.documentId) ? row.documentId : null;
+    return {
+      id: row.id && adjustmentIdPattern.test(row.id) ? row.id : null,
+      type: row.type,
+      amountCents: centsOf(row.amount),
+      reason: row.reason,
+      documentId,
+      documentName: documentId ? cleanDocumentName(row.documentName) : null,
+    };
+  });
   if (rows.some((row) => row.amountCents === 0)) {
     return { ok: false, code: "adjustment-amount" };
   }
   return { ok: true, rows };
+}
+
+/** Rows an admin has accepted. A stored row with no status was published before review and stays approved. */
+export function approvedAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
+  return rows.filter((row) => row.status === "approved");
+}
+
+/**
+ * Keeps approval only when the seller did not change the row. A new row, or a change of type, amount, reason, or
+ * document, waits for an admin. The client cannot send "approved".
+ */
+export function mergePostedAdjustments(posted: readonly PostedAdjustment[], stored: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
+  return posted.map((row) => {
+    const previous = row.id ? stored.find((item) => item.id === row.id) : undefined;
+    const unchanged =
+      previous !== undefined &&
+      previous.type === row.type &&
+      previous.amountCents === row.amountCents &&
+      (previous.reason ?? "") === row.reason &&
+      (previous.documentId ?? null) === row.documentId;
+    const id =
+      previous && !previous.id.startsWith("legacy-")
+        ? previous.id
+        : row.id && documentIdPattern.test(row.id)
+          ? row.id
+          : crypto.randomUUID();
+    return {
+      id,
+      type: row.type,
+      amountCents: row.amountCents,
+      reason: row.reason,
+      status: unchanged && previous ? previous.status : "pending",
+      documentId: row.documentId,
+      documentName: row.documentId ? row.documentName : null,
+    };
+  });
 }
 
 export function sumEbitdaAdjustments(rows: readonly Pick<EbitdaAdjustment, "amountCents">[]): number {
@@ -123,7 +204,7 @@ export function storedEbitdaAdjustments(value: unknown): EbitdaAdjustment[] | nu
   if (!Array.isArray(value)) {
     return null;
   }
-  return value.flatMap((item) => {
+  return value.flatMap((item, index) => {
     if (!item || typeof item !== "object") {
       return [];
     }
@@ -133,20 +214,56 @@ export function storedEbitdaAdjustments(value: unknown): EbitdaAdjustment[] | nu
     if (!type || amount === null) {
       return [];
     }
-    return [{ type, amountCents: amount, reason: typeof row.reason === "string" ? row.reason : null }];
+    const documentId = typeof row.documentId === "string" && documentIdPattern.test(row.documentId) ? row.documentId : null;
+    return [
+      {
+        id: typeof row.id === "string" && adjustmentIdPattern.test(row.id) ? row.id : `legacy-${index}`,
+        type,
+        amountCents: amount,
+        reason: typeof row.reason === "string" ? row.reason : null,
+        status: row.status === "pending" ? "pending" : "approved",
+        documentId,
+        documentName: documentId && typeof row.documentName === "string" ? cleanDocumentName(row.documentName) : null,
+      },
+    ];
   });
 }
 
-/** Before the NDA a buyer sees type and amount only: the reason is free seller text and may identify the company. */
+/**
+ * A buyer never sees a row still waiting for Relify, and never sees the supporting document.
+ * Before the NDA the reason is dropped too: it is free seller text and may identify the company.
+ * When nothing has to be hidden, the same array is returned so an unchanged profile stays unchanged.
+ */
 export function adjustmentsForBuyer(rows: EbitdaAdjustment[] | null, ndaSigned: boolean): EbitdaAdjustment[] | null {
-  if (!rows || ndaSigned) {
+  if (!rows) {
     return rows;
   }
-  return rows.map((row) => ({ ...row, reason: null }));
+  const visible = rows.filter((row) => row.status !== "pending");
+  const hideDocument = visible.some((row) => row.documentId != null || row.documentName != null);
+  if (visible.length === rows.length && !hideDocument && ndaSigned) {
+    return rows;
+  }
+  if (visible.length === 0) {
+    return null;
+  }
+  return visible.map((row) => ({
+    ...row,
+    reason: ndaSigned ? row.reason : null,
+    documentId: null,
+    documentName: null,
+  }));
 }
 
 /** Editable row as the seller form holds it (amount as typed euro text). */
-export type EbitdaAdjustmentFormRow = { type: EbitdaAdjustmentType; amount: string; reason: string };
+export type EbitdaAdjustmentFormRow = {
+  id: string;
+  type: EbitdaAdjustmentType;
+  amount: string;
+  reason: string;
+  status: AdjustmentStatus;
+  documentId: string;
+  documentName: string;
+};
 
 export function centsToAdjustmentAmount(cents: number): string {
   const sign = cents < 0 ? "-" : "";
@@ -162,7 +279,15 @@ export function adjustmentsToFormJson(rows: EbitdaAdjustment[] | null): string {
     return "";
   }
   return JSON.stringify(
-    rows.map((row) => ({ type: row.type, amount: centsToAdjustmentAmount(row.amountCents), reason: row.reason ?? "" })),
+    rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      amount: centsToAdjustmentAmount(row.amountCents),
+      reason: row.reason ?? "",
+      status: row.status,
+      documentId: row.documentId ?? "",
+      documentName: row.documentName ?? "",
+    })),
   );
 }
 
@@ -182,7 +307,18 @@ export function formRowsFromJson(raw: string): EbitdaAdjustmentFormRow[] {
       }
       const row = item as Record<string, unknown>;
       const type = ebitdaAdjustmentTypes.find((known) => known === row.type) ?? "other";
-      return [{ type, amount: typeof row.amount === "string" ? row.amount : "", reason: typeof row.reason === "string" ? row.reason : "" }];
+      const documentId = typeof row.documentId === "string" ? row.documentId : "";
+      return [
+        {
+          id: typeof row.id === "string" ? row.id : "",
+          type,
+          amount: typeof row.amount === "string" ? row.amount : "",
+          reason: typeof row.reason === "string" ? row.reason : "",
+          status: row.status === "approved" ? "approved" : "pending",
+          documentId,
+          documentName: typeof row.documentName === "string" ? row.documentName : "",
+        },
+      ];
     });
   } catch {
     return [];
@@ -204,7 +340,7 @@ export function formRowAmountCents(amount: string): number | null {
 /** t89: per-field problems of one editable row, shown inline in the adjustments modal. */
 export type AdjustmentRowErrors = { type?: string; amount?: string; reason?: string };
 
-export function adjustmentRowErrors(row: EbitdaAdjustmentFormRow): AdjustmentRowErrors {
+export function adjustmentRowErrors(row: { type?: string; amount: string; reason: string }): AdjustmentRowErrors {
   const errors: AdjustmentRowErrors = {};
   const cents = formRowAmountCents(row.amount);
   if (row.amount.trim() === "" || cents === null) {
@@ -221,6 +357,6 @@ export function adjustmentRowErrors(row: EbitdaAdjustmentFormRow): AdjustmentRow
   return errors;
 }
 
-export function adjustmentRowsValid(rows: EbitdaAdjustmentFormRow[]): boolean {
+export function adjustmentRowsValid(rows: readonly { type?: string; amount: string; reason: string }[]): boolean {
   return rows.every((row) => Object.keys(adjustmentRowErrors(row)).length === 0);
 }

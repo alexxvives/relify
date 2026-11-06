@@ -116,7 +116,7 @@ export const companyDraftSchema = z
     revenue: optionalEuroText,
     ebitda: optionalEuroText,
     adjustedEbitda: optionalEuroText,
-    ebitdaAdjustments: z.string().max(8000, "adjustment-format"),
+    ebitdaAdjustments: z.string().max(20000, "adjustment-format"),
     askingPrice: optionalEuroText,
     ...sellerFinancingInputSchema,
     ...sellerStayInputSchema,

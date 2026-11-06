@@ -176,7 +176,19 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
 function previewAdjustments(raw: string): EbitdaAdjustment[] | null {
   const rows = formRowsFromJson(raw).flatMap((row) => {
     const amountCents = formRowAmountCents(row.amount);
-    return amountCents === null || amountCents === 0 ? [] : [{ type: row.type, amountCents, reason: row.reason.trim() || null }];
+    return amountCents === null || amountCents === 0
+      ? []
+      : [
+          {
+            id: row.id,
+            type: row.type,
+            amountCents,
+            reason: row.reason.trim() || null,
+            status: row.status,
+            documentId: row.documentId || null,
+            documentName: row.documentName || null,
+          },
+        ];
   });
   return rows.length > 0 ? rows : null;
 }

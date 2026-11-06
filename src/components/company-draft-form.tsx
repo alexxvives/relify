@@ -9,9 +9,9 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
+import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -465,6 +465,7 @@ function FichaMetrics({
   priceStatus = null,
   priceBlocked = false,
   adjustmentCount,
+  pendingCount = 0,
   adjustments,
   recommended = null,
 }: {
@@ -478,6 +479,7 @@ function FichaMetrics({
   priceStatus?: ReactNode;
   priceBlocked?: boolean;
   adjustmentCount: number;
+  pendingCount?: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
   recommended?: { amount: string; onUse: () => void } | null;
@@ -529,7 +531,15 @@ function FichaMetrics({
               <Pencil className="size-3.5" aria-hidden />
             </button>
           }
-          corner={adjustmentCount > 0 ? <span className="text-xs text-[#667085]">{adjustmentCount} {adjustmentCount === 1 ? "ajuste" : "ajustes"}</span> : null}
+          corner={
+            pendingCount > 0 ? (
+              <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase">
+                {pendingCount} {companyCopy.adjustmentPending}
+              </span>
+            ) : adjustmentCount > 0 ? (
+              <span className="text-xs text-[#667085]">{adjustmentCount} {adjustmentCount === 1 ? "ajuste" : "ajustes"}</span>
+            ) : null
+          }
         >
           <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
             {adjustedCents !== null ? (
@@ -665,12 +675,26 @@ function EbitdaAdjustmentsDialog({
   const [attempted, setAttempted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState<number | null>(null);
   const [pending, startSave] = useTransition();
   useModal(panel, onClose);
   const update = (index: number, patch: Partial<EbitdaAdjustmentFormRow>) => {
     setServerError(null);
-    setRows((current) => current.map((row, position) => (position === index ? { ...row, ...patch } : row)));
+    setRows((current) => current.map((row, position) => (position === index ? { ...row, ...patch, status: patch.status ?? "pending" } : row)));
   };
+  async function attach(index: number, file: File) {
+    setServerError(null);
+    setUploading(index);
+    const data = new FormData();
+    data.set("file", file);
+    const result = await storeAdjustmentDocumentAction(data);
+    setUploading(null);
+    if (!result.ok) {
+      setServerError(result.message);
+      return;
+    }
+    update(index, { documentId: result.documentId, documentName: result.documentName, status: "pending" });
+  }
   const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row) : {}));
   const sum = rows.reduce<number>((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
   const unchanged = adjustmentRowsJson(rows) === adjustmentRowsJson(savedRows);
@@ -725,6 +749,7 @@ function EbitdaAdjustmentsDialog({
                 {companyCopy.adjustmentsTitle}
               </h3>
               {year ? <p className="mt-0.5 text-sm text-[#667085]">{companyCopy.adjustmentsYear.replace("{year}", year)}</p> : null}
+              <p className="mt-1 text-sm text-[#667085]">{companyCopy.adjustmentPendingNote}</p>
             </div>
             <button
               type="button"
@@ -855,16 +880,56 @@ function EbitdaAdjustmentsDialog({
                               {row.reason.length}/{ebitdaAdjustmentReasonMax}
                             </span>
                           </label>
-                          <input
-                            id={`${id}-reason`}
-                            value={row.reason}
-                            maxLength={ebitdaAdjustmentReasonMax}
-                            placeholder={companyCopy.adjustmentReasonPlaceholder}
-                            aria-invalid={rowErrors.reason ? true : undefined}
-                            aria-describedby={rowErrors.reason ? `${id}-reason-error` : undefined}
-                            onChange={(event) => update(index, { reason: event.target.value })}
-                            className={`${inputClass} mt-1`}
-                          />
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <input
+                              id={`${id}-reason`}
+                              value={row.reason}
+                              maxLength={ebitdaAdjustmentReasonMax}
+                              placeholder={companyCopy.adjustmentReasonPlaceholder}
+                              aria-invalid={rowErrors.reason ? true : undefined}
+                              aria-describedby={rowErrors.reason ? `${id}-reason-error` : undefined}
+                              onChange={(event) => update(index, { reason: event.target.value })}
+                              className={`${inputClass} min-w-0 flex-1 basis-48`}
+                            />
+                            <label className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#1c2740] hover:bg-[#f4f7ff]">
+                              <Paperclip className="size-4 text-[#465ab4]" aria-hidden />
+                              {uploading === index ? companyCopy.adjustmentAttachBusy : companyCopy.adjustmentAttach}
+                              <input
+                                type="file"
+                                accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+                                className="sr-only"
+                                disabled={uploading !== null}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  event.target.value = "";
+                                  if (file) {
+                                    void attach(index, file);
+                                  }
+                                }}
+                              />
+                            </label>
+                            <span className={`inline-flex h-7 items-center rounded-full px-2 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
+                              {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                            </span>
+                          </div>
+                          {row.documentName ? (
+                            <p className="mt-1 flex items-center gap-2 text-xs text-[#3d4a63]">
+                              {row.documentId ? (
+                                <a href={`/mi-empresa/ajustes/${row.documentId}`} target="_blank" rel="noreferrer" className="truncate font-medium text-[#3d34b8] hover:underline">
+                                  {row.documentName}
+                                </a>
+                              ) : (
+                                <span className="truncate">{row.documentName}</span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => update(index, { documentId: "", documentName: "", status: "pending" })}
+                                className="shrink-0 font-medium text-[#b42318] hover:underline"
+                              >
+                                {companyCopy.adjustmentRemoveFile}
+                              </button>
+                            </p>
+                          ) : null}
                           {rowErrors.reason ? (
                             <p id={`${id}-reason-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.reason}
@@ -895,7 +960,18 @@ function EbitdaAdjustmentsDialog({
             disabled={rows.length >= maxEbitdaAdjustments}
             onClick={() => {
               setServerError(null);
-              setRows((current) => [...current, { type: "owner_salary", amount: joinAdjustmentAmount("", defaultAdjustmentDirection("owner_salary")), reason: "" }]);
+              setRows((current) => [
+                ...current,
+                {
+                  id: crypto.randomUUID(),
+                  type: "owner_salary",
+                  amount: joinAdjustmentAmount("", defaultAdjustmentDirection("owner_salary")),
+                  reason: "",
+                  status: "pending",
+                  documentId: "",
+                  documentName: "",
+                },
+              ]);
             }}
             className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#c5ccd8] text-sm font-medium text-[#0f766e] hover:border-[#0f766e] hover:bg-[#f0faf8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -949,7 +1025,16 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
 }
 
 function adjustmentRowsJson(rows: EbitdaAdjustmentFormRow[]): string {
-  return JSON.stringify(rows.map((row) => ({ type: row.type, amount: row.amount.trim().replace(/[.\s]/g, ""), reason: row.reason.trim() })));
+  return JSON.stringify(
+    rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      amount: row.amount.trim().replace(/[.\s]/g, ""),
+      reason: row.reason.trim(),
+      documentId: row.documentId,
+      documentName: row.documentName,
+    })),
+  );
 }
 
 function euroCentsOrNull(value: string): number | null {
@@ -1751,19 +1836,23 @@ export function CompanyDraftForm({
   const storedEbitdaCents = signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : null;
   const adjustmentBaseCents =
     storedEbitdaCents !== null && (storedEbitdaCents !== 0 || ebitdaCentsFromAccounts === null) ? storedEbitdaCents : ebitdaCentsFromAccounts;
-  const adjustmentSumCents = adjustmentRows.reduce((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
+  const approvedSumCents = adjustmentRows.reduce((total, row) => (row.status === "approved" ? total + (formRowAmountCents(row.amount) ?? 0) : total), 0);
+  const pendingAdjustments = adjustmentRows.filter((row) => row.status !== "approved").length;
+  const approvedAdjustmentsCount = adjustmentRows.length - pendingAdjustments;
   const legacyAdjustedCents = !hadAdjustmentList && signedEuroPattern.test(initial.adjustedEbitda.trim()) ? eurosToCents(initial.adjustedEbitda.trim()) : 0;
   const adjustedEbitda =
-    adjustmentRows.length > 0
+    approvedAdjustmentsCount > 0
       ? adjustmentBaseCents === null
         ? ""
-        : eurosToCentsLabel(adjustmentBaseCents + adjustmentSumCents)
-      : hadAdjustmentList
+        : eurosToCentsLabel(adjustmentBaseCents + approvedSumCents)
+      : adjustmentRows.length === 0 && hadAdjustmentList
         ? "0"
-        : initial.adjustedEbitda;
-  // t94: same basis as the server (seller-draft-guard): adjusted when there are adjustments, else accounts EBITDA.
+        : adjustmentRows.length > 0
+          ? ""
+          : initial.adjustedEbitda;
+  // Published figure: only rows an admin has accepted. Pending rows stay on the tile as "por aprobar".
   const priceBasis = priceBasisCents({
-    hasAdjustments: adjustmentRows.length > 0 || legacyAdjustedCents !== 0,
+    hasAdjustments: approvedAdjustmentsCount > 0 || (adjustmentRows.length === 0 && legacyAdjustedCents !== 0),
     adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null,
     ebitdaCents: storedEbitdaCents !== null && storedEbitdaCents !== 0 ? storedEbitdaCents : ebitdaCentsFromAccounts,
   });
@@ -2274,7 +2363,8 @@ export function CompanyDraftForm({
               onAskingPrice={setAskingPrice}
               ebitda={ebitdaFromAccounts ?? ebitda}
               adjustedEbitda={adjustedEbitda}
-              adjustmentCount={adjustmentRows.length}
+              adjustmentCount={approvedAdjustmentsCount}
+              pendingCount={pendingAdjustments}
               adjustments={(close) => (
                 <EbitdaAdjustmentsDialog
                   rows={adjustmentRows}
@@ -2589,7 +2679,7 @@ export function CompanyDraftForm({
             revenue={salesFromAccounts ?? revenue}
             ebitda={ebitdaFromAccounts ?? ebitda}
             adjustedEbitda={adjustedEbitda}
-            hasAdjustments={adjustmentRows.length > 0}
+            hasAdjustments={approvedAdjustmentsCount > 0}
             askingPrice={askingPrice}
             principalCnae={principalCnae}
             summary={description}

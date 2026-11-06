@@ -8,6 +8,7 @@ import { requireRole } from "@/server/requireRole";
 import { setAccountSuspension } from "@/server/setAccountSuspension";
 import { setVerified } from "@/server/setVerified";
 import { unpublishProject } from "@/server/unpublishProject";
+import { approveEbitdaAdjustment } from "@/server/approveEbitdaAdjustment";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -32,6 +33,17 @@ function refreshCatalog(): void {
   revalidatePath("/mi-empresa");
   revalidatePath("/mi-empresa/detalles");
   revalidatePath("/mandatos");
+}
+
+export async function approveEbitdaAdjustmentAction(formData: FormData): Promise<void> {
+  const user = await requireRole("admin");
+  const slug = readText(formData, "slug");
+  await approveEbitdaAdjustment(user, slug, readText(formData, "rowId"));
+  refreshCatalog();
+  if (slug) {
+    revalidatePath(`/admin/empresas/${slug}`);
+    revalidatePath(`/proyectos/${slug}`);
+  }
 }
 
 export async function unpublishProjectAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {

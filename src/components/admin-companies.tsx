@@ -221,6 +221,11 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
         <MarketCard project={project.card} href={`/admin/empresas/${project.slug}`} hidePhotoTags />
         <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2" title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}>
           <StatusPillToggle label={label} tone={tone} />
+          {project.pendingAdjustments > 0 ? (
+            <span className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase">
+              {companyCopy.adjustmentsPendingChip}
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

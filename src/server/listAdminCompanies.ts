@@ -1,3 +1,4 @@
+import { storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
 import { ebitdaPublishable, projectHasAdjustments } from "@/lib/seller-draft-guard";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -35,6 +36,7 @@ export type AdminCompanyRow = {
   /** CIF entered, SABI financials not imported yet. */
   sabiPending: boolean;
   sabiRequestedAt: string | null;
+  pendingAdjustments: number;
   /** Marketplace card data, unblurred for admin. */
   card: PublicProjectCard;
 };
@@ -143,6 +145,7 @@ export async function listAdminCompanies(
       sabiPending:
         project.cif.trim().length > 0 && project.sabiImportedAt === null,
       sabiRequestedAt: project.sabiRequestedAt?.toISOString() ?? null,
+      pendingAdjustments: (storedEbitdaAdjustments(project.ebitdaAdjustments) ?? []).filter((row) => row.status === "pending").length,
       card,
     };
   });

@@ -66,21 +66,32 @@ describe("sellerAdjustmentWrite (t82)", () => {
     { type: "one_off", amount: "-5000", reason: "Subvención puntual" },
   ]);
 
-  it("computes the adjusted EBITDA from the stored accounts EBITDA, not from the client", () => {
-    const result = sellerAdjustmentWrite(rows, { ebitdaCents: 10_000_000, hasList: false });
-    expect(result).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: 12_500_000 } });
+  it("stores a new list as pending, so it does not change the published EBITDA", () => {
+    const result = sellerAdjustmentWrite(rows, { ebitdaCents: 10_000_000, rows: null });
+    expect(result).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: 10_000_000 } });
+    if (result.ok && result.write.kind === "set") {
+      expect(result.write.rows.every((row) => row.status === "pending")).toBe(true);
+    }
+  });
+
+  it("keeps an unchanged approved row in the published figure and ignores a forged approval", () => {
+    const stored = [{ id: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f50", type: "other" as const, amountCents: 10_000, reason: "Ajuste", status: "approved" as const, documentId: null, documentName: null }];
+    const same = JSON.stringify([{ id: stored[0]?.id, type: "other", amount: "100", reason: "Ajuste", status: "approved" }]);
+    const edited = JSON.stringify([{ id: stored[0]?.id, type: "other", amount: "250", reason: "Ajuste", status: "approved" }]);
+    expect(sellerAdjustmentWrite(same, { ebitdaCents: 0, rows: stored })).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: 10_000 } });
+    expect(sellerAdjustmentWrite(edited, { ebitdaCents: 0, rows: stored })).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: 0 } });
   });
 
   it("ignores a forged total in the posted rows", () => {
-    const forged = JSON.stringify([{ type: "other", amount: "100", reason: "Ajuste", adjustedEbitda: "99999999", total: 1 }]);
-    const result = sellerAdjustmentWrite(forged, { ebitdaCents: -50_000, hasList: false });
-    expect(result).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: -40_000 } });
+    const forged = JSON.stringify([{ type: "other", amount: "100", reason: "Ajuste", adjustedEbitda: "99999999", total: 1, status: "approved" }]);
+    const result = sellerAdjustmentWrite(forged, { ebitdaCents: -50_000, rows: null });
+    expect(result).toMatchObject({ ok: true, write: { kind: "set", adjustedEbitdaCents: -50_000 } });
   });
 
   it("keeps a legacy figure when the field is absent or the list stays empty, clears a removed list", () => {
-    expect(sellerAdjustmentWrite("", { ebitdaCents: 1, hasList: true })).toEqual({ ok: true, write: { kind: "keep" } });
-    expect(sellerAdjustmentWrite("[]", { ebitdaCents: 1, hasList: false })).toEqual({ ok: true, write: { kind: "keep" } });
-    expect(sellerAdjustmentWrite("[]", { ebitdaCents: 1, hasList: true })).toEqual({ ok: true, write: { kind: "clear" } });
+    expect(sellerAdjustmentWrite("", { ebitdaCents: 1, rows: [] })).toEqual({ ok: true, write: { kind: "keep" } });
+    expect(sellerAdjustmentWrite("[]", { ebitdaCents: 1, rows: null })).toEqual({ ok: true, write: { kind: "keep" } });
+    expect(sellerAdjustmentWrite("[]", { ebitdaCents: 1, rows: [] })).toEqual({ ok: true, write: { kind: "clear" } });
   });
 
   it("rejects invalid rows", () => {
@@ -89,9 +100,11 @@ describe("sellerAdjustmentWrite (t82)", () => {
 });
 
 describe("t95 ebitdaPublishable", () => {
-  it("uses the adjusted EBITDA when a list is stored", () => {
-    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -1_000_00, ebitdaAdjustments: [{}] })).toBe(false);
-    expect(ebitdaPublishable({ ebitdaCents: -500_00, adjustedEbitdaCents: 1_000_00, ebitdaAdjustments: [{}] })).toBe(true);
+  it("uses the adjusted EBITDA when an approved list is stored", () => {
+    const approved = [{ type: "other", amountCents: 1, reason: "x" }];
+    expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -1_000_00, ebitdaAdjustments: approved })).toBe(false);
+    expect(ebitdaPublishable({ ebitdaCents: -500_00, adjustedEbitdaCents: 1_000_00, ebitdaAdjustments: approved })).toBe(true);
+    expect(ebitdaPublishable({ ebitdaCents: -500_00, adjustedEbitdaCents: 1_000_00, ebitdaAdjustments: [{ type: "other", amountCents: 1, status: "pending" }] })).toBe(false);
   });
   it("falls back to EBITDA without adjustments", () => {
     expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: 0, ebitdaAdjustments: null })).toBe(true);

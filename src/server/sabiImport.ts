@@ -249,7 +249,7 @@ export async function confirmSabiImport(
           : {}),
         // t82: an itemised adjusted EBITDA follows the newly imported accounts EBITDA.
         ...(useFigures && figures.ebitdaCents !== null && listedAdjustments
-          ? { adjustedEbitdaCents: adjustedEbitdaCents(figures.ebitdaCents, listedAdjustments) }
+          ? { adjustedEbitdaCents: adjustedEbitdaCents(figures.ebitdaCents, listedAdjustments.filter((row) => row.status === "approved")) }
           : {}),
         ...(useFigures && figures.netIncomeCents !== null
           ? { netIncomeCents: figures.netIncomeCents }

@@ -15,7 +15,9 @@ import {
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
-import { askingPriceAllowed, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields } from "@/lib/seller-draft-guard";
+import { approvedAdjustments } from "@/lib/ebitda-adjustments";
+import { askingPriceAllowed, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields, storedAdjustmentList } from "@/lib/seller-draft-guard";
+import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import { Prisma } from "@/generated/prisma/client";
 
 export type SaveCompanyDraftResult =
@@ -117,12 +119,16 @@ export async function saveCompanyDraft(
   const writtenCif = identity.cif;
 
   // t82: adjusted EBITDA = stored accounts EBITDA + listed adjustments, computed here only.
+  const previousAdjustments = existing ? storedAdjustmentList(existing.ebitdaAdjustments) : null;
   const adjustments = sellerAdjustmentWrite(
     input.ebitdaAdjustments,
-    existing ? { ebitdaCents: Number(existing.ebitdaCents), hasList: Array.isArray(existing.ebitdaAdjustments) } : null,
+    existing ? { ebitdaCents: Number(existing.ebitdaCents), rows: previousAdjustments } : null,
   );
   if (!adjustments.ok) {
     return { ok: false, message: adjustments.code === "adjustment-count" ? companyCopy.adjustmentsCount : companyCopy.adjustmentsInvalid };
+  }
+  if (existing && adjustments.write.kind === "set" && (await missingAdjustmentDocument(existing.id, adjustments.write.rows))) {
+    return { ok: false, message: companyCopy.adjustmentDocumentMissing };
   }
   const adjustmentFields =
     adjustments.write.kind === "set"
@@ -135,11 +141,15 @@ export async function saveCompanyDraft(
   const storedEbitda = existing ? Number(existing.ebitdaCents) : null;
   const accountsEbitda = existing?.years[0]?.ebitdaCents ?? null;
   const ebitdaBasis = storedEbitda !== null && storedEbitda !== 0 ? storedEbitda : accountsEbitda !== null ? Number(accountsEbitda) : storedEbitda;
-  const keptList = existing && Array.isArray(existing.ebitdaAdjustments) && existing.ebitdaAdjustments.length > 0;
+  const keptList = previousAdjustments !== null && approvedAdjustments(previousAdjustments).length > 0;
   const legacyAdjusted = existing && existing.ebitdaAdjustments === null && Number(existing.adjustedEbitdaCents) !== 0;
   const basis =
     adjustments.write.kind === "set"
-      ? priceBasisCents({ hasAdjustments: true, adjustedEbitdaCents: adjustments.write.adjustedEbitdaCents, ebitdaCents: ebitdaBasis })
+      ? priceBasisCents({
+          hasAdjustments: approvedAdjustments(adjustments.write.rows).length > 0,
+          adjustedEbitdaCents: adjustments.write.adjustedEbitdaCents,
+          ebitdaCents: ebitdaBasis,
+        })
       : adjustments.write.kind === "clear"
         ? ebitdaBasis
         : priceBasisCents({ hasAdjustments: Boolean(keptList || legacyAdjusted), adjustedEbitdaCents: existing ? Number(existing.adjustedEbitdaCents) : null, ebitdaCents: ebitdaBasis });
@@ -275,6 +285,11 @@ export async function saveCompanyDraft(
     }
 
   });
+
+  if (existing && adjustments.write.kind !== "keep") {
+    const next = adjustments.write.kind === "set" ? adjustments.write.rows : [];
+    await deleteUnusedAdjustmentDocuments(existing.id, previousAdjustments ?? [], next);
+  }
 
   return { ok: true };
 }
