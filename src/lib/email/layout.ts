@@ -9,7 +9,7 @@ export type EmailRow = { label: string; value: string };
 export type EmailContent = {
   /** Hidden inbox preview line. */
   preheader: string;
-  /** Small pill above the title, e.g. "Cuenta" or "Tu empresa". */
+  /** Small pill on the right of the navy banner, e.g. "Cuenta" or "Lista de espera". */
   eyebrow?: string;
   title: string;
   /** Plain paragraphs; never HTML. */
@@ -88,8 +88,7 @@ export function renderEmail(
         .join("")}</table></td></tr>`
     : "";
   const button = cta
-    ? `<tr><td class="px" style="padding:18px 36px 6px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:999px;background:${teal}"><a href="${escapeHtml(cta.url)}" style="display:inline-block;padding:14px 26px;border-radius:999px;font-family:${font};font-size:15px;font-weight:700;color:#ffffff;text-decoration:none">${escapeHtml(cta.label)}</a></td></tr></table></td></tr>
-<tr><td class="px" style="padding:10px 36px 0;font-size:12px;line-height:1.5;color:${muted}">Si el botón no funciona, copia este enlace en el navegador:<br><a href="${escapeHtml(cta.url)}" style="color:${teal};word-break:break-all">${escapeHtml(cta.url)}</a></td></tr>`
+    ? `<tr><td class="px" align="center" style="padding:18px 36px 6px;text-align:center"><table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto"><tr><td style="border-radius:999px;background:${teal}"><a href="${escapeHtml(cta.url)}" style="display:inline-block;padding:14px 26px;border-radius:999px;font-family:${font};font-size:15px;font-weight:700;color:#ffffff;text-decoration:none">${escapeHtml(cta.label)}</a></td></tr></table></td></tr>`
     : "";
   const note = content.note
     ? `<tr><td class="px" style="padding:16px 36px 0;font-size:13px;line-height:1.55;color:#5c6b78">${escapeHtml(content.note)}</td></tr>`
@@ -98,7 +97,7 @@ export function renderEmail(
     ? `<img src="${escapeHtml(new URL("/brand/email-logo-white.png", cta.url).toString())}" width="88" height="32" alt="Relify" style="display:block;border:0;outline:none;height:32px;width:88px;font-size:22px;font-weight:800;color:#ffffff;font-family:${font}">`
     : `<span style="font-size:24px;font-weight:800;letter-spacing:-0.5px;color:#ffffff">Relify</span><span style="display:inline-block;width:8px;height:8px;margin-left:3px;border-radius:999px;background:${tealBright}"></span>`;
   const eyebrow = content.eyebrow
-    ? `<span style="display:inline-block;margin-bottom:12px;padding:4px 12px;border-radius:999px;background:#e6f4f2;color:${teal};font-size:12px;font-weight:700;letter-spacing:0.2px">${escapeHtml(content.eyebrow)}</span><br>`
+    ? `<td align="right" valign="middle" style="vertical-align:middle;text-align:right"><span style="display:inline-block;padding:5px 12px;border-radius:999px;background:#e6f4f2;color:${teal};font-size:12px;font-weight:700;letter-spacing:0.2px">${escapeHtml(content.eyebrow)}</span></td>`
     : "";
 
   const html = `<!doctype html>
@@ -112,11 +111,9 @@ export function renderEmail(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f5;font-family:${font}">
 <tr><td align="center" style="padding:32px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e1e6ee">
-<tr><td class="px" style="background:${navy};padding:24px 36px">
-${logo}
-</td></tr>
+<tr><td class="px" style="background:${navy};padding:22px 36px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td valign="middle" style="vertical-align:middle">${logo}</td>${eyebrow}</tr></table></td></tr>
 <tr><td style="height:4px;background:${teal};line-height:4px;font-size:0">&nbsp;</td></tr>
-<tr><td class="px" style="padding:32px 36px 6px">${eyebrow}<h1 class="title" style="margin:0 0 14px;font-size:24px;line-height:1.3;font-weight:700;color:${navy}">${escapeHtml(content.title)}</h1>${paragraphs}</td></tr>
+<tr><td class="px" style="padding:32px 36px 6px"><h1 class="title" style="margin:0 0 14px;font-size:24px;line-height:1.3;font-weight:700;color:${navy}">${escapeHtml(content.title)}</h1>${paragraphs}</td></tr>
 ${table}
 ${button}
 ${note}

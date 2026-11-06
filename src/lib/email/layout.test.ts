@@ -24,6 +24,26 @@ describe("renderEmail", () => {
     expect(mail.text).toContain("Abrir: https://itsrelify.com/a?b=1&c=2");
   });
 
+  it("centers the button and keeps the raw link out of the body", () => {
+    expect(mail.html).not.toContain("Si el botón no funciona");
+    expect(mail.html).toContain('align="center"');
+    expect(mail.html).toContain(">Abrir</a>");
+  });
+
+  it("puts the category pill on the right of the banner", () => {
+    const tagged = renderEmail("Asunto", {
+      preheader: "pre",
+      eyebrow: "Lista de espera",
+      title: "Hola, Alexandre",
+      paragraphs: ["Uno"],
+      reason: "Porque sí.",
+    });
+    const banner = tagged.html.slice(0, tagged.html.indexOf("<h1"));
+    expect(banner).toContain("Lista de espera");
+    expect(banner).toContain('align="right"');
+    expect(tagged.html).not.toContain("Lista de espera</span><br>");
+  });
+
   it("refuses non-http links", () => {
     expect(() =>
       renderEmail("x", {
