@@ -1,11 +1,19 @@
 import type { RenderedEmail } from "@/lib/email/layout";
 
-/** t73b: every outgoing email leaves from this one sender on the verified itsrelify.com domain. */
+/** People hear from this address. Team alerts do not: those are the inbox writing to itself. */
 export const MAIL_FROM = {
   address: "notificaciones@itsrelify.com",
   name: "Relify",
 } as const;
 export const TEAM_INBOX = "info@itsrelify.com";
+
+/** Hostinger spam-files mail from notificaciones@ into info@. Alerts use the inbox as sender. */
+export function senderFor(to: string): { address: string; name: string } {
+  if (to.trim().toLowerCase() === TEAM_INBOX) {
+    return { address: TEAM_INBOX, name: "Relify" };
+  }
+  return MAIL_FROM;
+}
 const MAILEROO_URL = "https://smtp.maileroo.com/api/v2/emails";
 
 export type MailResult =
@@ -79,11 +87,12 @@ async function viaMaileroo(
   key: string,
   mail: OutgoingMail,
 ): Promise<string | null | false> {
+  const from = senderFor(mail.to);
   const response = await fetch(MAILEROO_URL, {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key },
     body: JSON.stringify({
-      from: { address: MAIL_FROM.address, display_name: MAIL_FROM.name },
+      from: { address: from.address, display_name: from.name },
       to: { address: mail.to },
       reply_to: { address: TEAM_INBOX, display_name: "Relify" },
       subject: mail.subject.slice(0, 255),
@@ -137,9 +146,10 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
   const binding = await emailBinding();
   if (binding) {
     try {
+      const from = senderFor(mail.to);
       await binding.send({
         to: mail.to,
-        from: { email: MAIL_FROM.address, name: MAIL_FROM.name },
+        from: { email: from.address, name: from.name },
         subject: mail.subject,
         html: mail.html,
         text: mail.text,

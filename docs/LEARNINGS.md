@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-06: team alerts still landed in Hostinger spam when sent from notificaciones@ to info@ — the working Lumia pattern is the inbox writing to itself (From and To both info@) — send alerts to info@itsrelify.com from info@itsrelify.com. Leave person mail on notificaciones@.
 - 2026-11-06: alerts to info@itsrelify.com still land in Hostinger spam after Gmail files the same sender under Notifications — Hostinger's MX treats mail from itsrelify.com that did not come through Hostinger SMTP as spoofed, even when SPF includes Maileroo, DKIM is at mta._domainkey, and DMARC is p=none — whitelist notificaciones@itsrelify.com on the info@ mailbox. Do not chase it in the template.
 - 2026-11-06: Relify mail landed in spam while other Maileroo apps did not — the notice mails added a mailto List-Unsubscribe header, which marks the message as a mailing list — do not put that header on a one-to-one receipt. SPF already includes Maileroo and DKIM is at mta._domainkey.
 - 2026-11-05: a waitlist row was saved and neither the person nor info@ got the mail — the Worker was still the 4 Nov deploy, from before those emails existed, and a saved row does not mean a mail left — deploy after a mail change and read the Worker log for `[mail]` before calling it spam.
