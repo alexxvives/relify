@@ -20,8 +20,6 @@ export type OutgoingMail = RenderedEmail & {
   to: string;
   /** Short tag for logs and Maileroo tags, e.g. "password-reset". Never personal data. */
   tag: string;
-  /** Notification-type mails get a List-Unsubscribe header pointing at the team inbox. */
-  notice?: boolean;
 };
 
 type SendEmailBinding = {
@@ -93,13 +91,6 @@ async function viaMaileroo(
       plain: mail.text,
       tracking: false,
       tags: { type: mail.tag },
-      ...(mail.notice
-        ? {
-            headers: {
-              "List-Unsubscribe": `<mailto:${TEAM_INBOX}?subject=Baja%20de%20avisos>`,
-            },
-          }
-        : {}),
     }),
   });
   const body = (await response.json().catch(() => null)) as {

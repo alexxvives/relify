@@ -38,7 +38,6 @@ export function emailOwnerConnectionRequest(
     await sendMail({
       to: owner.email,
       tag: "connection-request",
-      notice: true,
       ...connectionRequestEmail(
         owner.firstName,
         codename,
@@ -62,7 +61,6 @@ export function emailOwnerNewMessages(
     await sendMail({
       to: owner.email,
       tag: "new-messages",
-      notice: true,
       ...newMessagesEmail(
         owner.firstName,
         codename,
@@ -86,7 +84,6 @@ export function emailBuyerAccepted(
     await sendMail({
       to: buyer.email,
       tag: "request-accepted",
-      notice: true,
       ...requestAcceptedEmail(
         buyer.name.trim().split(/\s+/)[0] ?? "",
         codename,
@@ -106,7 +103,6 @@ export function emailOwnerPublished(
     await sendMail({
       to: owner.email,
       tag: "project-published",
-      notice: true,
       ...projectPublishedEmail(
         owner.firstName,
         codename,

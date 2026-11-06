@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Download, ListChecks } from "lucide-react";
+import { deleteWaitlistAction } from "@/app/(app)/admin/lista-de-espera/actions";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { EmptySkeleton } from "@/components/ui/empty-skeleton";
 import { waitlistCsv } from "@/lib/waitlist-csv";
@@ -22,6 +23,33 @@ const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: 
 
 function formatWhen(iso: string): string {
   return when.format(new Date(iso));
+}
+
+function DeleteEntry({ id, name }: { id: string; name: string }) {
+  const [state, action, pending] = useActionState(deleteWaitlistAction, null);
+
+  return (
+    <form
+      action={action}
+      onSubmit={(event) => {
+        if (!window.confirm(`¿Quitar a ${name} de la lista de espera?`)) event.preventDefault();
+      }}
+    >
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex h-8 items-center rounded-full border border-[#f1d4d1] bg-white px-3 text-xs font-semibold text-[#c0362c] hover:bg-[#fdecec] disabled:opacity-60"
+      >
+        {pending ? "Borrando…" : "Borrar"}
+      </button>
+      {state && !state.ok ? (
+        <p role="alert" className="mt-1 text-xs text-[#b42318]">
+          {state.message}
+        </p>
+      ) : null}
+    </form>
+  );
 }
 
 export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
@@ -93,6 +121,9 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
                     </th>
                   );
                 })}
+                <th scope="col" className="px-4 py-2.5 font-medium">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#eef1f5]">
@@ -107,6 +138,9 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
                   </td>
                   <td className="px-4 py-3 text-[#3d4a63]">{entry.city || "—"}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-[#667085] tabular-nums">{formatWhen(entry.createdAt)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteEntry id={entry.id} name={entry.name} />
+                  </td>
                 </tr>
               ))}
             </tbody>

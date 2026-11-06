@@ -52,7 +52,6 @@ export async function notifyReportReady(
   const sent = await sendMail({
     to: owner.email,
     tag: "report-ready",
-    notice: true,
     ...reportReadyEmail(owner.firstName, companyName, url),
   });
 
