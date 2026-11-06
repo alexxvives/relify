@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-06: Resumen cards stacked one letter per line and Ver ajustes stopped taking clicks — `lg:` counts the whole window, the sidebar already takes ~250px, and the figure had `min-w-0` beside a `shrink-0` sub — size that grid with `auto-fit` / `minmax(16rem)`, keep the figure `whitespace-nowrap`, and put Margen and Ajustado under it.
 - 2026-11-06: the admin adjustment dialog stayed full width after `max-w-sm` — `.shell-content .w-full` sets `max-width: 100%` and beats a single utility — do not put `w-full` on a dialog inside the shell; set the width in style and portal it to `document.body`.
 - 2026-11-06: a ~100 KB EBITDA justification showed "hasta 8 MB" — Workers have no persistent disk, the write failed, and every failure used the size sentence — store the bytes in Postgres (`adjustment_document`), and use a separate sentence for type, size, and save.
 - 2026-11-06: `npx vinext-cloudflare deploy` aborted with "remove the `--strict` flag" after a successful build — `cf deploy` hardcodes `strict: true`, and this Worker was last updated via the script API — set `strict:!1` on the deploy command in `node_modules/cf/dist/deploy-input-BAhS5LYx.mjs`, then run the same deploy. There is no CLI flag for it.

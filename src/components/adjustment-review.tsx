@@ -12,8 +12,11 @@ export function AdjustmentReview({ children }: { children: ReactNode }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="cursor-pointer rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-[11px] font-medium text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(true);
+        }}
+        className="relative z-10 shrink-0 cursor-pointer rounded-full border border-[#d5dbe3] bg-white px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
       >
         Ver ajustes
       </button>
@@ -26,7 +29,12 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
   const panel = useRef<HTMLDivElement>(null);
   useModal(panel, onClose);
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 p-4 sm:items-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 p-4 sm:items-center"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div
         ref={panel}
         role="dialog"

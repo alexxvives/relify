@@ -213,10 +213,11 @@ function Kpi({
   tone?: "ink" | "loss" | "pending";
   source?: FigureSource;
 }) {
+  const long = tone === "pending" || value.length > 9;
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-[#e7eaee] bg-white p-3 sm:p-4">
-      <div className="flex items-start justify-between gap-1">
-        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+      <div className="flex items-start justify-between gap-2">
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-xs leading-4 font-medium text-[#5c6b78]">{label}</span>
           {action}
         </span>
@@ -225,10 +226,8 @@ function Kpi({
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <span className={`min-w-0 leading-tight font-bold tracking-tight tabular-nums ${tone === "pending" || value.length > 12 ? "text-base sm:text-xl" : "text-2xl sm:text-4xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
-        {sub ? <div className="flex shrink-0 flex-col items-end gap-1 pb-0.5 text-right text-[11px] text-[#8b95a7]">{sub}</div> : null}
-      </div>
+      <span className={`mt-2 block whitespace-nowrap leading-none font-bold tracking-tight tabular-nums ${long ? "text-xl" : "text-3xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
+      {sub ? <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8b95a7]">{sub}</div> : null}
     </div>
   );
 }
@@ -785,7 +784,7 @@ export function CompanyReport({
       <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
           <Kpi
             label={companyCopy.ebitdaLabel}
