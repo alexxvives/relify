@@ -7,7 +7,6 @@ import {
   reactivateAccountAction,
   suspendAccountAction,
   toggleVerifiedAction,
-  unpublishProjectAction,
   type AdminActionState,
 } from "@/app/(app)/admin/actions";
 import { AppToast } from "@/components/app-toast";
@@ -90,29 +89,6 @@ const quietButtonClass =
 
 const dangerButtonClass =
   "inline-flex h-8 items-center rounded-full bg-[#c0362c] px-3 text-xs font-semibold text-white hover:bg-[#a52d24] disabled:opacity-60";
-
-/** Visible unpublish control. The status chip stays a label; this button is the action. */
-export function UnpublishButton({ projectId }: { projectId: string }) {
-  const [state, action, pending] = useActionState(unpublishProjectAction, null);
-
-  return (
-    <form
-      action={action}
-      onSubmit={(event) => {
-        if (!window.confirm(adminCopy.unpublishConfirm)) event.preventDefault();
-      }}
-      className="flex flex-col items-end gap-1"
-    >
-      <input type="hidden" name="projectId" value={projectId} />
-      <button type="submit" disabled={pending} className={dangerButtonClass}>
-        {pending ? adminCopy.unpublishing : adminCopy.unpublish}
-      </button>
-      <span className="rounded bg-white/90 px-1">
-        <Note state={state} />
-      </span>
-    </form>
-  );
-}
 
 /** Status chip on an admin company card. It does not publish or unpublish. */
 export function StatusPillToggle({ label, tone }: { label: string; tone: string }) {

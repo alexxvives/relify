@@ -1,4 +1,5 @@
 import { waitlistCopy } from "@/lib/waitlist";
+import { recentSince } from "@/server/adminSeen";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
@@ -10,6 +11,8 @@ export type AdminWaitlistRow = {
   roleLabel: string;
   city: string;
   createdAt: string;
+  /** Joined in the last 7 days. */
+  isNew: boolean;
 };
 
 const roleLabels: Record<string, string> = Object.fromEntries(
@@ -23,6 +26,7 @@ export async function listWaitlist(
     return [];
   }
 
+  const since = recentSince();
   const entries = await prisma.waitlistEntry.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -43,5 +47,6 @@ export async function listWaitlist(
     roleLabel: roleLabels[entry.role] ?? entry.role,
     city: entry.city,
     createdAt: entry.createdAt.toISOString(),
+    isNew: entry.createdAt > since,
   }));
 }

@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Download, ListChecks } from "lucide-react";
 import { deleteWaitlistAction } from "@/app/(app)/admin/lista-de-espera/actions";
+import { NewPill } from "@/components/admin-new";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
 import { EmptySkeleton } from "@/components/ui/empty-skeleton";
 import { waitlistCsv } from "@/lib/waitlist-csv";
@@ -129,7 +130,12 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
             <tbody className="divide-y divide-[#eef1f5]">
               {visible.map((entry) => (
                 <tr key={entry.id} className="hover:bg-[#f8f9fb]">
-                  <td className="px-4 py-3 font-medium text-[#1c2740]">{entry.name}</td>
+                  <td className="px-4 py-3 font-medium text-[#1c2740]">
+                    <span className="inline-flex items-center gap-2">
+                      {entry.name}
+                      {entry.isNew ? <NewPill /> : null}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">
                     <a className="text-[#0f6e73] underline-offset-4 hover:underline" href={`mailto:${entry.email}`}>{entry.email}</a>
                   </td>

@@ -11,9 +11,14 @@ export const adminSeenPages = [
 ] as const;
 export type AdminSeenPage = (typeof adminSeenPages)[number];
 
+/** Rolling week. Cuentas and Lista de espera keep this window even after a visit. */
+export function recentSince(now = Date.now()): Date {
+  return new Date(now - 7 * 24 * 60 * 60 * 1000);
+}
+
 /** First visit ever: only the last week counts as new, so a fresh admin is not flooded. */
 function defaultSince(): Date {
-  return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return recentSince();
 }
 
 async function seenMap(adminId: string): Promise<Map<string, Date>> {
@@ -50,9 +55,9 @@ export type AdminNavCount = {
 
 /**
  * Sidebar bubbles: a total per page, plus a red bubble. Empresas: CIFs waiting for the SABI import
- * plus companies pending review (stays until imported / approved). Cuentas, Asesores, Conexiones,
- * Mensajes and Lista de espera: created since the admin last opened the page
- * (cleared on visit, stored per admin in AdminSeen).
+ * plus companies pending review (stays until imported / approved). Cuentas and Lista de espera:
+ * created in the last 7 days (stays for the week). Asesores, Conexiones and Mensajes: created
+ * since the admin last opened the page (cleared on visit, stored per admin in AdminSeen).
  */
 export async function adminNavCounts(
   adminId: string,
@@ -79,7 +84,7 @@ export async function adminNavCounts(
     // t75: plus companies waiting for approval (auto-submitted when the seller list is complete).
     prisma.project.count({ where: { OR: [{ NOT: { cif: "" }, sabiImportedAt: null }, { status: "pending" }] } }),
     prisma.user.count(),
-    prisma.user.count({ where: { createdAt: { gt: since("cuentas") } } }),
+    prisma.user.count({ where: { createdAt: { gt: recentSince() } } }),
     prisma.user.count({ where: { role: "advisor" } }),
     prisma.user.count({
       where: { role: "advisor", createdAt: { gt: since("asesores") } },
@@ -93,7 +98,7 @@ export async function adminNavCounts(
     prisma.newsletterSubscriber.count(),
     prisma.newsletterSubscriber.count({ where: { createdAt: { gt: since("mensajes") } } }),
     prisma.waitlistEntry.count(),
-    prisma.waitlistEntry.count({ where: { createdAt: { gt: since("waitlist") } } }),
+    prisma.waitlistEntry.count({ where: { createdAt: { gt: recentSince() } } }),
   ]);
   return {
     "/admin/empresas": {
@@ -104,7 +109,7 @@ export async function adminNavCounts(
     "/admin/cuentas": {
       total: accounts,
       alert: newAccounts,
-      alertLabel: "nuevas desde tu última visita",
+      alertLabel: "nuevas en los últimos 7 días",
     },
     "/admin/asesores": {
       total: advisors,
@@ -124,7 +129,7 @@ export async function adminNavCounts(
     "/admin/lista-de-espera": {
       total: waitlist,
       alert: newWaitlist,
-      alertLabel: "nuevas desde tu última visita",
+      alertLabel: "nuevas en los últimos 7 días",
     },
   };
 }

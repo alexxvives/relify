@@ -1,5 +1,5 @@
 import { renderEmail } from "./email/layout";
-import { waitlistCopy, waitlistOpensAt, type WaitlistInput } from "./waitlist";
+import { waitlistCopy, type WaitlistInput } from "./waitlist";
 
 const roleNote: Record<WaitlistInput["role"], string> = {
   company: "Cuando abramos podrás publicar tu empresa gratis, y la sociedad se queda en privado.",
@@ -14,15 +14,6 @@ const roleLabel = Object.fromEntries(waitlistCopy.roles.map((role) => [role.id, 
 
 function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] ?? name.trim();
-}
-
-function openingDay(): string {
-  return new Intl.DateTimeFormat("es-ES", {
-    timeZone: "Europe/Madrid",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(waitlistOpensAt));
 }
 
 /** Confirmation to the person who just joined. The team notice is a separate email. */
@@ -43,7 +34,7 @@ export function waitlistConfirmationEmail(input: WaitlistInput & { siteUrl: stri
     paragraphs: [
       `Tu solicitud como ${role.toLowerCase()} ya está en la lista de espera de Relify.`,
       "Esto no abre una cuenta para entrar. Guardamos el correo y el perfil, nada más.",
-      `Te escribiremos a este correo cuando abramos, el ${openingDay()}. No hay cargo ni compromiso.`,
+      "Te escribiremos a este correo cuando abramos. No hay cargo ni compromiso.",
       roleNote[input.role],
     ],
     cta: { label: "Ir a Relify", url: home },
