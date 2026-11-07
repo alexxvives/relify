@@ -89,7 +89,7 @@ export function MarketBrowser({
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+      <div className="flex items-center justify-between gap-3 sm:grid sm:grid-cols-[1fr_auto_1fr]">
         {heading ? <h1 className="text-2xl sm:text-3xl tracking-tight text-public-ink sm:justify-self-start">{heading}</h1> : <span />}
         <button
           type="button"
@@ -98,7 +98,7 @@ export function MarketBrowser({
           onClick={() => {
             setFavoritesOnly((current) => !current);
           }}
-          className="inline-flex items-center justify-center sm:justify-self-center gap-2 sm:gap-3 min-h-[44px]"
+          className="inline-flex items-center justify-center sm:justify-self-center gap-2 sm:gap-3 min-h-[44px] shrink-0"
         >
           <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
           <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>
