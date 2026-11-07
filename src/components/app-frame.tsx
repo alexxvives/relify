@@ -506,7 +506,7 @@ export function AppFrame({
         </div>
       </aside>
       <main className="shell-main">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-public-line bg-white px-3 lg:hidden">
+        <header className="sticky top-0 z-20 flex h-14 sm:h-16 items-center justify-between gap-2 border-b border-public-line bg-white px-3 sm:px-4 lg:hidden">
           <button
             type="button"
             aria-expanded={open}
@@ -514,12 +514,12 @@ export function AppFrame({
             onClick={() => {
               setOpen(true);
             }}
-            className="inline-flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-public-ink hover:bg-public-sand"
+            className="inline-flex h-11 min-w-[44px] items-center gap-2 rounded-full px-3 text-sm sm:text-base font-medium text-public-ink hover:bg-public-sand active:bg-public-sand/70"
           >
             <PanelLeftIcon size={20} aria-hidden />
-            <span>Menú</span>
+            <span className="hidden xs:inline">Menú</span>
           </button>
-          <Link href={home} aria-label="Relify">
+          <Link href={home} aria-label="Relify" className="min-w-0 shrink">
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
@@ -528,12 +528,12 @@ export function AppFrame({
             <NotificationBell items={notifications} pendingGroups={pendingGroups} />
           </div>
         </header>
-        <div className="shell-content pb-28 lg:pb-[var(--layout-pad)]">
+        <div className="shell-content pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-[var(--layout-pad)]">
           {children}
         </div>
         <nav
           aria-label="Accesos rápidos"
-          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-public-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-public-line bg-white pb-[env(safe-area-inset-bottom)] safe-area-pb lg:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
         >
           {tabs.map((item) => {
             const Icon = (iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon;
@@ -544,17 +544,20 @@ export function AppFrame({
                 key={item.href}
                 href={item.href}
                 aria-current={selected ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium ${selected ? "text-[#0c7c78]" : "text-public-muted"}`}
+                className={`flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium transition-colors active:bg-public-sand/50 ${selected ? "text-[#0c7c78]" : "text-public-muted hover:text-public-ink"}`}
               >
                 <Icon size={22} isAnimated={false} aria-hidden />
-                {tabLabelForHref[item.href] ?? item.label}
+                <span className="truncate max-w-full px-1">{tabLabelForHref[item.href] ?? item.label}</span>
               </Link>
             );
           })}
           {showHelp ? (
-            <a href={shellCopy.helpPhoneHref} className="flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium text-public-muted">
+            <a 
+              href={shellCopy.helpPhoneHref} 
+              className="flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium text-public-muted hover:text-public-ink transition-colors active:bg-public-sand/50"
+            >
               <PhoneIcon size={22} aria-hidden />
-              Ayuda
+              <span className="truncate">Ayuda</span>
             </a>
           ) : (
             <button
@@ -562,10 +565,10 @@ export function AppFrame({
               onClick={() => {
                 setOpen(true);
               }}
-              className="flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium text-public-muted"
+              className="flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium text-public-muted hover:text-public-ink transition-colors active:bg-public-sand/50"
             >
               <PanelLeftIcon size={22} aria-hidden />
-              Más
+              <span className="truncate">Más</span>
             </button>
           )}
         </nav>

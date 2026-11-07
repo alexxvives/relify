@@ -23,17 +23,19 @@ export function PlatformTermsDialog() {
   return (
     <dialog
       ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border-0 bg-white p-6 text-[#1c2740] open:block backdrop:bg-[#1c2740]/40"
+      className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(40rem,calc(100%-1rem))] max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl sm:rounded-2xl border-0 bg-white p-4 sm:p-6 text-[#1c2740] open:flex open:flex-col backdrop:bg-[#1c2740]/40"
       onCancel={(event) => {
         event.preventDefault();
       }}
     >
-      <h2 className="text-2xl font-semibold tracking-tight">{platformTermsCopy.title}</h2>
-      <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{platformTermsCopy.intro}</p>
-      <div className="mt-5 max-h-[50vh] overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-5">
+      <h2 className="text-xl sm:text-2xl font-semibold tracking-tight shrink-0">{platformTermsCopy.title}</h2>
+      <p className="mt-2 text-sm leading-6 text-[#5c6b78] shrink-0">{platformTermsCopy.intro}</p>
+      <div className="mt-4 sm:mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-4 py-4 sm:px-5 sm:py-5 -webkit-overflow-scrolling-touch">
         <PlatformTermsText />
       </div>
-      <PlatformTermsForm />
+      <div className="shrink-0">
+        <PlatformTermsForm />
+      </div>
     </dialog>
   );
 }

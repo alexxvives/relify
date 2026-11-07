@@ -174,6 +174,20 @@
   dialog:not([open]) {
     display: none;
   }
+  
+  /* Mobile: ensure dialogs fit within viewport and scroll internally */
+  dialog {
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+  
+  @media (max-width: 639px) {
+    /* Mobile: dialogs take more of the screen */
+    dialog {
+      max-width: calc(100vw - 0.5rem);
+      max-height: calc(100dvh - 0.5rem);
+    }
+  }
 }
 
 @keyframes releva-reel {
@@ -334,16 +348,24 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  margin: 0 0.75rem 0.5rem;
-  padding: 3.25rem 1.25rem 3.5rem;
+  margin: 0 0.5rem 0.5rem;
+  padding: 2.5rem 1rem 3rem;
   border: 1px solid var(--public-line);
-  border-radius: 2rem;
+  border-radius: 1.5rem;
   background:
     radial-gradient(980px 620px at -8% -12%, #7ed9d0 0%, transparent 56%),
     radial-gradient(760px 540px at 108% 0%, #0f6e73 0%, transparent 52%),
     radial-gradient(640px 460px at 72% 118%, #9fe3dc 0%, transparent 58%),
     linear-gradient(128deg, #f4fbfa 0%, #d2eeeb 34%, #eef8f7 62%, #b9e0dc 100%);
   box-shadow: var(--public-shadow);
+}
+
+@media (min-width: 640px) {
+  .releva-hero {
+    margin: 0 0.75rem 0.5rem;
+    padding: 3.25rem 1.25rem 3.5rem;
+    border-radius: 2rem;
+  }
 }
 
 .releva-word {
@@ -356,16 +378,24 @@
 .releva-hero-stage {
   position: relative;
   display: flex;
-  height: 28rem;
+  height: 24rem;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 1.75rem;
+  border-radius: 1.25rem;
   background:
     radial-gradient(280px 220px at 80% 12%, rgb(126 208 203 / 0.28), transparent 70%),
     radial-gradient(240px 200px at 10% 88%, rgb(15 110 115 / 0.55), transparent 68%),
     var(--public-ink);
-  padding: 1.25rem 1rem 0;
+  padding: 1rem 0.875rem 0;
   box-shadow: var(--public-shadow);
+}
+
+@media (min-width: 640px) {
+  .releva-hero-stage {
+    height: 28rem;
+    border-radius: 1.75rem;
+    padding: 1.25rem 1rem 0;
+  }
 }
 
 .releva-hero-kicker {
@@ -2031,10 +2061,16 @@
   Do not add a fixed width, or a four-column grid that stays four columns on a phone or a tablet.
 */
 :root {
-  --layout-pad: 1.5rem;
+  --layout-pad: 1rem;
 }
 
 @media (min-width: 640px) {
+  :root {
+    --layout-pad: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
   :root {
     --layout-pad: 2rem;
   }
@@ -2057,6 +2093,20 @@
   z-index: 30;
   border: 0;
   background: rgb(18 52 58 / 0.3);
+  /* Mobile: smooth fade-in */
+  animation: fadeIn 0.3s ease-out;
+  /* Mobile: prevent body scroll when sidebar is open */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Mobile and tablet: the sidebar is an off-canvas drawer. */
@@ -2066,16 +2116,28 @@
   left: 0;
   z-index: 40;
   display: none;
-  width: min(18rem, calc(100% - 3rem));
+  width: min(20rem, calc(100vw - 3rem));
+  max-width: 85vw;
   height: 100dvh;
   flex-direction: column;
   border-right: 1px solid var(--public-line);
   background: var(--public-card);
   box-shadow: 0 24px 48px rgb(18 52 58 / 0.18);
+  /* Mobile: smooth slide-in animation */
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .shell-sidebar[data-open="true"] {
   display: flex;
+  transform: translateX(0);
+}
+
+/* Mobile: smaller devices get narrower sidebar for better overlay UX */
+@media (max-width: 390px) {
+  .shell-sidebar {
+    width: min(18rem, calc(100vw - 2.5rem));
+  }
 }
 
 .shell-main {
@@ -2089,6 +2151,8 @@
   max-width: 100%;
   padding: var(--layout-pad);
   overflow-wrap: break-word;
+  /* Mobile: ensure no unexpected horizontal overflow */
+  overflow-x: hidden;
 }
 
 .shell-content > * {
@@ -2103,6 +2167,33 @@
 .shell-content .w-full {
   min-width: 0;
   max-width: 100%;
+}
+
+/* Mobile-specific utilities */
+@media (max-width: 639px) {
+  .shell-content {
+    /* Tighter padding on small phones for more content space */
+    --layout-pad: 0.875rem;
+  }
+  
+  /* Mobile: larger tap targets for interactive elements */
+  button:not([aria-hidden]), 
+  a:not([aria-hidden]),
+  [role="button"]:not([aria-hidden]),
+  [role="tab"]:not([aria-hidden]) {
+    min-height: 44px;
+  }
+  
+  /* Mobile: prevent text from being too small */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Mobile: improve input field usability */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
 }
 
 @media (min-width: 1024px) {
@@ -2160,11 +2251,57 @@
   min-width: 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  /* Mobile: momentum scrolling for smoother experience */
+  -webkit-overflow-scrolling: touch;
+  /* Mobile: ensure table doesn't break out */
+  position: relative;
 }
 
 .layout-table > table {
   width: max-content;
   min-width: 100%;
+}
+
+/* Mobile: reduce table min-widths to allow better mobile viewing */
+@media (max-width: 639px) {
+  .layout-table > table {
+    /* Allow tables to be narrower on mobile, but still scrollable */
+    min-width: max-content;
+  }
+  
+  /* Reduce padding in table cells on mobile */
+  .layout-table table td,
+  .layout-table table th {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Make first column sticky on mobile for context while scrolling */
+  .layout-table table th:first-child,
+  .layout-table table td:first-child {
+    position: sticky;
+    left: 0;
+    background: inherit;
+    z-index: 1;
+  }
+  
+  /* Add shadow to indicate more content */
+  .layout-table::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .layout-table[data-scrolled="true"]::after {
+    opacity: 1;
+  }
 }
 
 .layout-track {
@@ -2633,6 +2770,18 @@
   .layout-track > li {
     flex: 1 1 0;
     min-width: 0;
+  }
+  
+  /* Mobile: ensure touch targets are at least 44px */
+  button, a, [role="button"], [role="tab"], [role="switch"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Exception for inline text links */
+  p > a, span > a, li > a:not([role]) {
+    min-height: auto;
+    min-width: auto;
   }
 }
 

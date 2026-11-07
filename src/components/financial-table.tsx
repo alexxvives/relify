@@ -46,7 +46,7 @@ export function FinancialTable({
     <div className="layout-table">
       <table
         className={
-          grid ? "w-full! min-w-[44rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : aligned ? "w-full! min-w-[30rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"
+          grid ? "w-full! min-w-[min(44rem,100vw)] sm:min-w-[44rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : aligned ? "w-full! min-w-[min(30rem,100vw)] sm:min-w-[30rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"
         }
       >
         {grid ? <AlignedColumns years={years.length} /> : null}

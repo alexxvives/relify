@@ -25,7 +25,7 @@ export function formatIndicator(value: number, unit: IndicatorUnit): string {
 export function IndicatorTable({ years, rows, aligned = false }: { years: { year: number }[]; rows: InvestorIndicatorRow[]; /** t81: same columns as the aligned FinancialTable (Tendencia, blank share column: a ratio has no share). */ aligned?: boolean }) {
   return (
     <div className="layout-table">
-      <table className={aligned ? "w-full! min-w-[44rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"}>
+      <table className={aligned ? "w-full! min-w-[min(44rem,100vw)] sm:min-w-[44rem] table-fixed border-collapse text-sm [&_td]:whitespace-nowrap" : "border-collapse text-sm"}>
         {aligned ? <AlignedColumns years={years.length} /> : null}
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">

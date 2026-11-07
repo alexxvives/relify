@@ -51,11 +51,11 @@ export function AuthScreen({
 
   return (
     <div className="flex min-h-dvh flex-col bg-[#e7eef6] lg:h-dvh lg:max-h-dvh lg:overflow-hidden font-public text-[#16324f]">
-      <div className="shrink-0 px-5 pt-4 sm:px-8 short:pt-2">
+      <div className="shrink-0 px-4 pt-3 sm:px-5 sm:pt-4 lg:px-8 short:pt-2">
         <PublicMenu signedIn={false} />
       </div>
-      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-6 xl:max-w-[80%] pt-3 pb-8 sm:px-10 lg:pb-10 lg:px-16 xl:px-24 short:pt-2 short:lg:pb-4">
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-4 pt-2 pb-6 sm:px-6 sm:pt-3 sm:pb-8 lg:px-10 lg:pb-10 xl:max-w-[80%] xl:px-16 2xl:px-24 short:pt-2 short:lg:pb-4">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl sm:rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
           <Image
             src="/auth/login-background.jpg"
             alt=""
@@ -104,7 +104,7 @@ export function AuthScreen({
                 </ul>
               </section>
               <div className="flex w-full flex-col items-center justify-center lg:absolute lg:top-1/2 lg:left-[78%] lg:w-[min(30rem,46%)] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:max-h-full short:lg:w-[min(27rem,44%)]">
-                <section className="w-full rounded-[1.75rem] border border-white/80 bg-white/95 px-8 py-9 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm sm:px-9 sm:py-10 lg:max-h-full lg:overflow-y-auto short:px-7 short:py-5 tiny:py-4">
+                <section className="w-full max-w-md mx-auto rounded-2xl sm:rounded-[1.75rem] border border-white/80 bg-white/95 px-6 py-7 sm:px-8 sm:py-9 lg:px-9 lg:py-10 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm lg:max-h-full lg:overflow-y-auto short:px-7 short:py-5 tiny:px-5 tiny:py-4">
                   <h2 className="text-center text-3xl short:text-2xl font-semibold tracking-tight text-[#16324f]">
                     {card.title}
                   </h2>

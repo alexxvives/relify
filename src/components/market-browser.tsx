@@ -73,9 +73,9 @@ export function MarketBrowser({
   const regionValue = regions[0] ?? "";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-        {heading ? <h1 className="text-3xl tracking-tight text-public-ink sm:justify-self-start">{heading}</h1> : <span />}
+        {heading ? <h1 className="text-2xl sm:text-3xl tracking-tight text-public-ink sm:justify-self-start">{heading}</h1> : <span />}
         <button
           type="button"
           role="switch"
@@ -83,25 +83,25 @@ export function MarketBrowser({
           onClick={() => {
             setFavoritesOnly((current) => !current);
           }}
-          className="inline-flex items-center justify-self-center gap-3"
+          className="inline-flex items-center justify-center sm:justify-self-center gap-2 sm:gap-3 min-h-[44px]"
         >
           <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
           <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>
-          <span className={favoritesOnly ? "relative h-7 w-12 rounded-full bg-[#465ab4]" : "relative h-7 w-12 rounded-full bg-[#d5dbe3]"}>
+          <span className={favoritesOnly ? "relative h-7 w-12 shrink-0 rounded-full bg-[#465ab4]" : "relative h-7 w-12 shrink-0 rounded-full bg-[#d5dbe3]"}>
             <span
               className={
                 favoritesOnly
-                  ? "absolute top-0.5 left-5 size-6 rounded-full bg-white shadow-sm"
-                  : "absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm"
+                  ? "absolute top-0.5 left-5 size-6 rounded-full bg-white shadow-sm transition-transform"
+                  : "absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm transition-transform"
               }
             />
           </span>
         </button>
       </div>
       {/* t92: the filter bar stacks above the cards so its open dropdowns cover the cards' heart buttons (z-20). */}
-      <div className="relative z-40 rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
-          <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
+      <div className="relative z-40 rounded-xl sm:rounded-2xl border border-[#e7eaee] bg-white p-3 sm:p-4">
+        <div className="grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
             {marketCopy.searchLabel}
             <Input
               type="search"
@@ -112,7 +112,7 @@ export function MarketBrowser({
               }}
             />
           </label>
-          <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-1">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {marketCopy.regionLabel}
             <FilterSelect
               label={marketCopy.regionLabel}
@@ -126,7 +126,7 @@ export function MarketBrowser({
               }}
             />
           </label>
-          <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-1">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             Sector
             <FilterSelect
               label="Sector"
