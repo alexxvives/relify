@@ -35,7 +35,7 @@ export function InvestorPublicCard({
         <ProfilePhoto photo={profile?.photo ?? ""} />
         {profile ? (
           <>
-            <dl className="mt-5 grid grid-cols-2 gap-3">
+            <dl className="mt-5 grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
               <ProfileFact label={sellerCopy.investorTypeLabel} value={profile.investorType} />
               <ProfileFact label={sellerCopy.investorTicketLabel} value={profile.ticket} />
               <ProfileFact label={sellerCopy.investorStakeLabel} value={profile.stake} />
