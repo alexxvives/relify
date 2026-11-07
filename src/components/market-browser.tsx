@@ -47,6 +47,7 @@ export function MarketBrowser({
   const [regions, setRegions] = useState<string[]>([]);
   const [sector, setSector] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState(favoriteSlugs);
   function rememberFavorite(slug: string, favorited: boolean) {
     setSavedSlugs((current) => {
@@ -71,6 +72,20 @@ export function MarketBrowser({
   const paging = usePageParam(shown.length, MARKET_PAGE_SIZE, JSON.stringify([query, sort, revenueBand, regions, sector, favoritesOnly]));
   const visible = shown.slice(paging.start, paging.end);
   const regionValue = regions[0] ?? "";
+  
+  const activeFilterCount = [
+    revenueBand !== "any",
+    regions.length > 0,
+    sector !== "",
+    sort !== "recommended",
+  ].filter(Boolean).length;
+  
+  function clearFilters() {
+    setRevenueBand("any");
+    setRegions([]);
+    setSector("");
+    setSort("recommended");
+  }
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -100,7 +115,90 @@ export function MarketBrowser({
       </div>
       {/* t92: the filter bar stacks above the cards so its open dropdowns cover the cards' heart buttons (z-20). */}
       <div className="relative z-40 rounded-xl sm:rounded-2xl border border-[#e7eaee] bg-white p-3 sm:p-4">
-        <div className="grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+        {/* Mobile compact filter UI */}
+        <div className="sm:hidden">
+          <div className="flex items-center gap-2">
+            <label className="flex-1 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+              {marketCopy.searchLabel}
+              <Input
+                type="search"
+                value={query}
+                placeholder={marketCopy.searchPlaceholder}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(!filtersOpen)}
+              className="mt-auto min-h-[44px] flex items-center gap-2 rounded-lg border border-[#d5dbe3] bg-white px-3 py-2 text-sm font-medium text-[#1c2740] hover:bg-[#f8f9fa] active:bg-[#e7eaee]"
+              aria-expanded={filtersOpen}
+              aria-controls="mobile-filters"
+            >
+              <span>Filtros</span>
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#465ab4] px-1.5 text-xs font-semibold text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+          {filtersOpen && (
+            <div id="mobile-filters" className="mt-3 flex flex-col gap-3 border-t border-[#e7eaee] pt-3">
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+                {marketCopy.regionLabel}
+                <FilterSelect
+                  label={marketCopy.regionLabel}
+                  value={regionValue}
+                  options={[
+                    { value: "", label: marketCopy.regionAll },
+                    ...regionOptions.map((region) => ({ value: region, label: region })),
+                  ]}
+                  onValueChange={(next) => {
+                    setRegions(next.length > 0 ? [next] : []);
+                  }}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+                Sector
+                <FilterSelect
+                  label="Sector"
+                  value={sector}
+                  options={[{ value: "", label: "Todos los sectores" }, ...sectorOptions.map(([value, label]) => ({ value, label: sentence(label) }))]}
+                  onValueChange={setSector}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+                {marketCopy.revenueLabel}
+                <FilterSelect
+                  label={marketCopy.revenueLabel}
+                  value={revenueBand}
+                  options={revenueBandIds.map((option) => ({ value: option, label: marketCopy.revenueBands[option] }))}
+                  onValueChange={(next) => {
+                    if (isRevenueBand(next)) {
+                      setRevenueBand(next);
+                    }
+                  }}
+                />
+              </label>
+              <div className="flex items-center justify-between">
+                <SortMenu value={sort} onChange={setSort} />
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="text-sm text-[#465ab4] hover:text-[#3648a3] font-medium"
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Desktop full filter toolbar */}
+        <div className="hidden sm:grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
             {marketCopy.searchLabel}
             <Input
