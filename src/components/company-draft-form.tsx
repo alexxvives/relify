@@ -751,7 +751,7 @@ function EbitdaAdjustmentsDialog({
         ? { cell: "bg-[#fdecec]", ink: "text-[#b42318]" }
         : { cell: "bg-[#e7f6ee]", ink: "text-[#17663a]" };
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b1220]/55 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-[#0b1220]/55 sm:items-center sm:p-4" onClick={onClose}>
       <div
         ref={panel}
         role="dialog"

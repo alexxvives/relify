@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  devIndicators: false,
   async redirects() {
     return [
       { source: "/inversor/procesos", destination: "/procesos", permanent: false },
