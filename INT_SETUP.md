@@ -30,10 +30,39 @@ This document describes the INT (integration/staging) environment for Relify mob
    - All required INT-specific variables
    - Clear separation from production
 
-3. **Deploy Guard**: `scripts/deploy-int-guard.sh`
-   - Prevents production DB URL usage
-   - Validates INT environment variables
-   - Confirms worker name and domain isolation
+3. **Deployment Script**: `scripts/deploy-int.sh`
+   - Mandatory INT_ENVIRONMENT=true check
+   - Validates INT_DATABASE_URL, INT_BETTER_AUTH_SECRET, INT_BETTER_AUTH_URL
+   - Prevents production DB/domain usage (fail-closed validation)
+   - Redacted output (masks DB credentials)
+   - Human confirmation prompt
+   - Wrangler authentication check
+
+4. **Runtime Isolation**: `src/lib/int-env.ts`
+   - Fail-closed environment detection
+   - INT_ prefixed variables required in INT mode
+   - Production variables forbidden in INT mode
+   - Validates DB URLs don't contain production indicators
+   - Validates auth URLs contain 'int' and no production domains
+   - Email disabled by default in INT
+   - Stripe forced to test mode in INT
+   - Site origin isolation (never falls back to production)
+
+5. **INT Badge & Noindex**: `src/app/layout.tsx`
+   - Visible orange INT badge (z-[100])
+   - Noindex meta tag in INT mode
+   - Title prefix: [INT]
+
+6. **Email Isolation**: `src/server/mailer.ts`
+   - Checks isEmailDisabled() before sending
+   - Logs but skips email in INT mode
+
+7. **Validation Tests**: `src/lib/int-env.test.ts`
+   - 18 negative isolation tests
+   - Validates INT variables required
+   - Validates production DB/domains rejected
+   - Validates email/Stripe isolation
+   - All tests passing
 
 ### ❌ Missing for Deployment
 

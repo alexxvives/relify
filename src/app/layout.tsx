@@ -29,11 +29,18 @@ const instrumentSerif = Instrument_Serif({
 
 export function generateMetadata(): Metadata {
   const siteUrl = readSiteUrl();
+  const isInt = process.env.INT_ENVIRONMENT === "true";
 
   return {
     metadataBase: siteUrl,
-    title: landingCopy.title,
+    title: isInt ? `[INT] ${landingCopy.title}` : landingCopy.title,
     description: landingCopy.description,
+    ...(isInt && {
+      robots: {
+        index: false,
+        follow: false,
+      },
+    }),
     alternates: {
       canonical: "/",
     },
@@ -60,6 +67,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <HashCleaner />
         </Suspense>
+        {/* INT environment badge */}
+        {process.env.INT_ENVIRONMENT === "true" && (
+          <div className="fixed top-2 right-2 z-[100] rounded-md bg-orange-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
+            INT
+          </div>
+        )}
       </body>
     </html>
   );

@@ -122,6 +122,13 @@ async function viaMaileroo(
  * Logs carry the tag and status only, never the address or the body.
  */
 export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
+  // Check if email is disabled (INT mode default)
+  const { isEmailDisabled } = await import("@/lib/int-env");
+  if (isEmailDisabled()) {
+    console.log(`[mail] DISABLED - would send: ${mail.tag} to ${mail.to.substring(0, 3)}***`);
+    return { status: "skipped", transport: null, referenceId: null };
+  }
+  
   if (!isEmail(mail.to)) {
     console.warn(`[mail] invalid recipient for ${mail.tag}; skipped`);
     return { status: "skipped", transport: null, referenceId: null };

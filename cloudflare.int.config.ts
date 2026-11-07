@@ -22,10 +22,6 @@ export default defineConfig({
     // INT can run in any region (no need for Neon EU proximity)
     placement: { mode: "smart" },
     env: {
-      // Environment indicator
-      NODE_ENV: "staging",
-      INT_ENVIRONMENT: "true",
-      
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
       // Workers AI for PDF reading (no API key needed)
@@ -37,13 +33,8 @@ export default defineConfig({
       INT_BETTER_AUTH_SECRET: bindings.secret(),
       INT_BETTER_AUTH_URL: bindings.secret(),
       
-      // Email disabled by default in INT (no MAILEROO_API_KEY)
-      // Set EMAIL_DISABLED to skip mail sending
-      EMAIL_DISABLED: "true",
-      
-      // Stripe sandbox mode
-      STRIPE_MODE: "test",
-      INT_STRIPE_SECRET_KEY: bindings.secret(), // Optional: test mode key
+      // Optional: test Stripe key
+      INT_STRIPE_SECRET_KEY: bindings.secret(),
       
       // External API keys (optional, can be empty for INT)
       CONTEXT7_API_KEY: bindings.secret(),

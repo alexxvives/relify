@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { getDatabaseUrl, getBetterAuthSecret, getBetterAuthUrl, getSiteOrigin } from "./int-env";
 
 const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -9,10 +10,15 @@ const serverEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function readServerEnv(): ServerEnv {
+  // Use INT-aware getters that handle INT_* variables
+  const DATABASE_URL = getDatabaseUrl();
+  const BETTER_AUTH_SECRET = getBetterAuthSecret();
+  const BETTER_AUTH_URL = getBetterAuthUrl();
+  
   const parsed = serverEnvSchema.safeParse({
-    DATABASE_URL: process.env.DATABASE_URL,
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
-    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    DATABASE_URL,
+    BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL,
   });
 
   if (!parsed.success) {
@@ -28,8 +34,11 @@ const siteUrlSchema = z.object({
 });
 
 export function readSiteUrl(): URL {
+  // Use INT-aware getter
+  const BETTER_AUTH_URL = getBetterAuthUrl();
+  
   const parsed = siteUrlSchema.safeParse({
-    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    BETTER_AUTH_URL,
   });
 
   if (parsed.success) {
@@ -47,16 +56,8 @@ export function readSiteUrl(): URL {
 export const CANONICAL_SITE_URL = "https://itsrelify.com";
 
 export function emailSiteUrl(): URL {
-  const raw = process.env.PUBLIC_SITE_URL;
-  if (raw) {
-    try {
-      const url = new URL(raw);
-      if (url.protocol === "https:") return new URL(url.origin);
-    } catch {
-      // fall through to the canonical domain
-    }
-  }
-  return new URL(CANONICAL_SITE_URL);
+  // Use INT-aware origin (never falls back to production in INT mode)
+  return new URL(getSiteOrigin());
 }
 
 /** Link on the canonical email domain: a path, or a full URL (e.g. Better Auth's verify link) moved onto that origin. */
