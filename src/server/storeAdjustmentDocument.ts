@@ -15,6 +15,10 @@ export async function storeAdjustmentDocument(
   fileName: string,
   bytes: Uint8Array,
 ): Promise<StoreAdjustmentDocumentResult> {
+  // INT guard: uploads disabled until isolated storage wired
+  const { assertUploadsEnabled } = await import("./int-guards");
+  assertUploadsEnabled();
+  
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: companyCopy.notSeller };
   }

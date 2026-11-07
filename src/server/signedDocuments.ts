@@ -13,6 +13,7 @@ import {
 } from "@/lib/deal-documents";
 import { jpegSize } from "@/lib/signature-image";
 import { prisma } from "@/server/db";
+import { assertUploadsEnabled } from "@/server/int-guards";
 
 export type StoredDocument = { fileName: string; pdf: Uint8Array<ArrayBuffer> };
 
@@ -221,6 +222,8 @@ export async function storeSignedDocument(
   kind: SignedDocumentKind,
   refId: string,
 ): Promise<StoredDocument | null> {
+  // INT guard: uploads disabled
+  assertUploadsEnabled();
   const rendered = await render(kind, refId);
   if (!rendered) {
     return null;
@@ -263,6 +266,8 @@ export async function storeSignedDocumentQuietly(
   kind: SignedDocumentKind,
   refId: string,
 ): Promise<void> {
+  // INT guard: uploads disabled
+  assertUploadsEnabled();
   try {
     await storeSignedDocument(kind, refId);
   } catch (error) {

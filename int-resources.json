@@ -1,0 +1,16 @@
+{
+  "comment": "Approved INT resources - exact match required, no substring fallback",
+  "databases": {
+    "comment": "Approved INT database endpoints (full connection string patterns)",
+    "approved_hosts": [
+      "localhost:5432",
+      "127.0.0.1:5432"
+    ],
+    "approved_neon_branches": []
+  },
+  "origins": {
+    "comment": "Approved INT worker origins",
+    "approved_workers_dev": [],
+    "approved_custom_domains": []
+  }
+}

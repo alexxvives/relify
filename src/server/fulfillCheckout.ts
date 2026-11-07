@@ -6,6 +6,7 @@ import { prisma } from "@/server/db";
 import { recordNotification } from "@/server/recordNotification";
 import { stripeClient } from "@/server/stripe";
 import type Stripe from "stripe";
+import { assertPaymentsEnabled } from "@/server/int-guards";
 
 export type FulfillResult =
   { ok: true; kind?: "advisor_inbox" } | { ok: false; message: string };
@@ -133,6 +134,9 @@ export async function fulfillCheckout(
   sessionId: string,
   expectedUserId?: string,
 ): Promise<FulfillResult> {
+  // INT guard: payment webhooks disabled
+  assertPaymentsEnabled();
+  
   const stripe = stripeClient();
 
   if (stripe === null || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) {

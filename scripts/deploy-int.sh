@@ -51,10 +51,10 @@ if echo "$INT_BETTER_AUTH_URL" | grep -qiE "itsreleva\.com|itsrelify\.com|releva
   exit 1
 fi
 
-# Redacted output (show only prefix/host)
-echo "✅ INT_DATABASE_URL: ${INT_DATABASE_URL%%@*}@***"
-echo "✅ INT_BETTER_AUTH_URL: $INT_BETTER_AUTH_URL"
-echo "✅ INT_BETTER_AUTH_SECRET: *** (set)"
+# Safe status (never log connection strings or credentials)
+echo "✅ INT_DATABASE_URL: configured"
+echo "✅ INT_BETTER_AUTH_URL: configured"
+echo "✅ INT_BETTER_AUTH_SECRET: configured"
 echo ""
 
 # Check Prisma migrations status (DO NOT run db push)
@@ -97,8 +97,8 @@ echo "Target configuration:"
 echo "  - Worker: releva-int"
 echo "  - Config: cloudflare.int.config.ts"
 echo "  - Environment: int"
-echo "  - Database: ${INT_DATABASE_URL%%@*}@***"
-echo "  - Auth URL: $INT_BETTER_AUTH_URL"
+echo "  - Database: [configured]"
+echo "  - Auth URL: [configured]"
 echo ""
 read -p "Deploy to INT? (yes/NO) " -r
 echo ""
@@ -108,7 +108,24 @@ if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
   exit 1
 fi
 
-# Deploy
+echo ""
+echo "⚠️  DATABASE MIGRATION REQUIRED"
+echo ""
+echo "Run migrations MANUALLY before first deploy:"
+echo "  npx prisma db push"
+echo ""
+echo "This deploy script does NOT run migrations automatically."
+echo "Review schema changes and approve migrations separately."
+echo ""
+read -p "Continue with worker deployment? (y/N) " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo "Deployment cancelled."
+  exit 1
+fi
+echo ""
+
+# Deploy (NO migration inside deploy)
 echo "🚀 Deploying to INT..."
 npx vinext-cloudflare deploy --config cloudflare.int.config.ts --env int
 

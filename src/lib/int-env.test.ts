@@ -44,14 +44,14 @@ describe("INT environment isolation", () => {
       process.env.INT_ENVIRONMENT = "true";
       process.env.INT_DATABASE_URL = "postgresql://user@releva.neon.tech/db";
       
-      expect(() => getDatabaseUrl()).toThrow("must not point to production");
+      expect(() => getDatabaseUrl()).toThrow("not approved");
     });
 
     it("rejects itsreleva domains in INT mode", () => {
       process.env.INT_ENVIRONMENT = "true";
       process.env.INT_DATABASE_URL = "postgresql://user@itsreleva.com/db";
       
-      expect(() => getDatabaseUrl()).toThrow("must not point to production");
+      expect(() => getDatabaseUrl()).toThrow("not approved");
     });
 
     it("accepts valid INT database URL", () => {

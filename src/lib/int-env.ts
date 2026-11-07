@@ -11,8 +11,45 @@ export function isIntEnvironment(): boolean {
 }
 
 /**
+ * Validate INT database URL against approved resources.
+ * Exact match required - no production fallback, no substring guessing.
+ */
+function validateIntDatabaseUrl(url: string): void {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    const port = parsed.port || "5432";
+    const hostPort = `${host}:${port}`;
+    
+    // Local development hosts (always approved)
+    const localHosts = ["localhost:5432", "127.0.0.1:5432", "[::1]:5432"];
+    if (localHosts.includes(hostPort)) {
+      return;
+    }
+    
+    // Check INT_APPROVED_DB_HOST if explicitly set
+    const approvedHost = process.env.INT_APPROVED_DB_HOST;
+    if (approvedHost && hostPort === approvedHost) {
+      return;
+    }
+    
+    // Reject by default if not explicitly approved
+    throw new Error(
+      `INT_DATABASE_URL host "${hostPort}" not approved. ` +
+      `Set INT_APPROVED_DB_HOST="${hostPort}" to approve, or use localhost. ` +
+      `Never use production database endpoints.`
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("not approved")) {
+      throw error;
+    }
+    throw new Error("INT_DATABASE_URL must be a valid PostgreSQL URL");
+  }
+}
+
+/**
  * Get database URL with INT isolation.
- * INT mode: requires INT_DATABASE_URL (never falls back to DATABASE_URL)
+ * INT mode: requires INT_DATABASE_URL + explicit approval
  * Production mode: uses DATABASE_URL
  */
 export function getDatabaseUrl(): string {
@@ -21,10 +58,10 @@ export function getDatabaseUrl(): string {
     if (!intUrl) {
       throw new Error("INT_DATABASE_URL required in INT environment");
     }
-    // Validate it's NOT production
-    if (intUrl.includes("@releva.") || intUrl.includes("itsreleva") || intUrl.includes("itsrelify")) {
-      throw new Error("INT_DATABASE_URL must not point to production database");
-    }
+    
+    // Mandatory exact approved resource validation
+    validateIntDatabaseUrl(intUrl);
+    
     return intUrl;
   }
   
@@ -166,9 +203,9 @@ export function validateIntEnvironment(): void {
   getBetterAuthUrl();
   
   console.log("[INT] Environment validated");
-  console.log(`[INT] Database: ${getDatabaseUrl().split("@")[0]}@***`);
-  console.log(`[INT] Auth URL: ${getBetterAuthUrl()}`);
-  console.log(`[INT] Site Origin: ${getSiteOrigin()}`);
+  console.log("[INT] Database: configured");
+  console.log("[INT] Auth URL: configured");
+  console.log("[INT] Site Origin: configured");
   console.log(`[INT] Email: ${isEmailDisabled() ? "DISABLED" : "ENABLED"}`);
   console.log(`[INT] Stripe: ${getStripeMode()} mode`);
 }

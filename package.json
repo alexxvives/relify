@@ -16,7 +16,9 @@
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
     "postinstall": "prisma generate",
-    "deploy:vinext": "prisma generate && prisma db push && vinext-cloudflare deploy"
+    "deploy:vinext": "prisma generate && prisma db push && vinext-cloudflare deploy",
+    "seed:int": "node --loader ts-node/esm scripts/seed-int.ts",
+    "verify:int": "node --loader ts-node/esm scripts/verify-int-runtime.ts"
   },
   "dependencies": {
     "@animateicons/react": "^0.12.0",
