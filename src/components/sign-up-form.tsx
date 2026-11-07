@@ -38,7 +38,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
     >
       <div
         key={roleAlert}
-        className={roleMissing ? "releva-shake grid grid-cols-3 gap-2" : "grid grid-cols-3 gap-2"}
+        className={roleMissing ? "releva-shake grid grid-cols-1 min-[400px]:grid-cols-3 gap-2" : "grid grid-cols-1 min-[400px]:grid-cols-3 gap-2"}
         role="group"
         aria-label="Empresa, comprador o asesor"
       >

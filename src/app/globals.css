@@ -2176,23 +2176,17 @@
     --layout-pad: 0.875rem;
   }
   
-  /* Mobile: larger tap targets for interactive elements */
-  button:not([aria-hidden]), 
-  a:not([aria-hidden]),
-  [role="button"]:not([aria-hidden]),
-  [role="tab"]:not([aria-hidden]) {
-    min-height: 44px;
-  }
-  
   /* Mobile: prevent text from being too small */
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
   
-  /* Mobile: improve input field usability */
-  input, select, textarea {
-    font-size: 16px !important; /* Prevents zoom on iOS */
+  /* Mobile: prevent zoom on iOS when focusing inputs */
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(16px, 1rem);
   }
 }
 
@@ -2770,18 +2764,6 @@
   .layout-track > li {
     flex: 1 1 0;
     min-width: 0;
-  }
-  
-  /* Mobile: ensure touch targets are at least 44px */
-  button, a, [role="button"], [role="tab"], [role="switch"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Exception for inline text links */
-  p > a, span > a, li > a:not([role]) {
-    min-height: auto;
-    min-width: auto;
   }
 }
 

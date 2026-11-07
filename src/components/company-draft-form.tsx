@@ -2911,7 +2911,7 @@ function MarketPreview({
         <FieldHint text={companyCopy.cardPreviewBody} />
       </span>
       <div className="rounded-2xl border border-[#e7eaee] bg-[#f7f8fb] p-4">
-        <div className="grid gap-3 lg:grid-cols-5">
+        <div className="grid gap-2.5 sm:gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {filters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-[#5c6b78]">{filter.label}</span>
@@ -2922,7 +2922,7 @@ function MarketPreview({
             </div>
           ))}
         </div>
-        <div className="mt-4 grid items-stretch gap-4 md:grid-cols-3">
+        <div className="mt-4 grid items-stretch gap-3 lg:grid-cols-3">
           <SampleListing side="left" />
           <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div inert className="h-full">
