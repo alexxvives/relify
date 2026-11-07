@@ -10,6 +10,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:responsive": "node tests/e2e/responsive.test.mjs",
+    "test:responsive:auth": "node tests/e2e/authenticated-responsive.test.mjs",
     "dev:vinext": "vite dev --port 3001",
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
