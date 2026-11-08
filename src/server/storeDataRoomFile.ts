@@ -24,6 +24,10 @@ export async function storeDataRoomFile(
   input: StoreDataRoomFileInput,
   bytes: Uint8Array,
 ): Promise<DataRoomWriteResult> {
+  // Import at function level to avoid circular dependency
+  const { assertUploadsEnabled } = await import("./int-guards.js");
+  assertUploadsEnabled();
+
   if (!user.onboarded || user.role !== "seller") {
     return { ok: false, message: sellerCopy.documentForbidden };
   }

@@ -17,26 +17,25 @@ export function isIntEnvironment(): boolean {
 function validateIntDatabaseUrl(url: string): void {
   try {
     const parsed = new URL(url);
-    const host = parsed.hostname;
-    const port = parsed.port || "5432";
-    const hostPort = `${host}:${port}`;
+    const hostname = parsed.hostname;
     
-    // Local development hosts (always approved)
-    const localHosts = ["localhost:5432", "127.0.0.1:5432", "[::1]:5432"];
-    if (localHosts.includes(hostPort)) {
+    // Local development hosts (always approved, hostname only)
+    const localHosts = ["localhost", "127.0.0.1", "::1"];
+    if (localHosts.includes(hostname)) {
       return;
     }
     
-    // Check INT_APPROVED_DB_HOST if explicitly set
+    // Check INT_APPROVED_DB_HOST if explicitly set (hostname only, no port)
+    // Neon uses port 443 (not 5432), so we compare hostname only
     const approvedHost = process.env.INT_APPROVED_DB_HOST;
-    if (approvedHost && hostPort === approvedHost) {
+    if (approvedHost && hostname === approvedHost) {
       return;
     }
     
     // Reject by default if not explicitly approved
     throw new Error(
-      `INT_DATABASE_URL host "${hostPort}" not approved. ` +
-      `Set INT_APPROVED_DB_HOST="${hostPort}" to approve, or use localhost. ` +
+      `INT_DATABASE_URL hostname "${hostname}" not approved. ` +
+      `Set INT_APPROVED_DB_HOST="${hostname}" to approve, or use localhost. ` +
       `Never use production database endpoints.`
     );
   } catch (error) {
@@ -96,9 +95,28 @@ export function getBetterAuthSecret(): string {
 
 /**
  * Validate INT auth URL with exact origin matching (no suffix spoofing).
+ * Rejects: non-443 ports, userinfo, paths, production domains
  */
 function validateIntAuthUrl(url: string): void {
   const parsed = new URL(url);
+
+  // Must use HTTPS on default port (443)
+  if (parsed.protocol !== "https:") {
+    throw new Error(`INT auth URL must use HTTPS, got: ${parsed.protocol}`);
+  }
+  if (parsed.port !== "" && parsed.port !== "443") {
+    throw new Error(`INT auth URL must not specify custom port, got: ${parsed.port}`);
+  }
+
+  // Must not contain userinfo
+  if (parsed.username !== "" || parsed.password !== "") {
+    throw new Error("INT auth URL must not contain userinfo (username/password)");
+  }
+
+  // Must not contain path (only origin allowed)
+  if (parsed.pathname !== "/" || parsed.search !== "" || parsed.hash !== "") {
+    throw new Error(`INT auth URL must be origin only (no path/query/hash), got: ${url}`);
+  }
 
   // Must exactly match releva-int.*.workers.dev (prevent suffix spoofing)
   const allowedPattern = /^releva-int\.[a-z0-9-]+\.workers\.dev$/;
@@ -106,11 +124,6 @@ function validateIntAuthUrl(url: string): void {
     throw new Error(
       `INT auth URL must exactly match releva-int.*.workers.dev pattern, got: ${parsed.hostname}`
     );
-  }
-
-  // Must use HTTPS
-  if (parsed.protocol !== "https:") {
-    throw new Error(`INT auth URL must use HTTPS, got: ${parsed.protocol}`);
   }
 
   // Must NOT be production domains
@@ -214,8 +227,22 @@ export function getStripeSecretKey(): string | undefined {
 /**
  * Validate INT environment at startup.
  * Throws if INT environment is misconfigured.
+ * 
+ * CRITICAL: If this worker was built for INT but INT_ENVIRONMENT is not set,
+ * refuse to start (fail-closed). Never fall back to production config.
  */
 export function validateIntEnvironment(): void {
+  // Check if this is an INT-compiled worker by looking for INT-specific wrangler vars
+  const hasIntConfig = process.env.INT_APPROVED_DB_HOST !== undefined;
+  
+  if (hasIntConfig && !isIntEnvironment()) {
+    throw new Error(
+      "FATAL: INT worker detected but INT_ENVIRONMENT not set. " +
+      "This worker was compiled for INT. Set INT_ENVIRONMENT=true at runtime. " +
+      "Never run INT workers with production config or vice versa."
+    );
+  }
+  
   if (!isIntEnvironment()) {
     return;
   }
@@ -231,4 +258,6 @@ export function validateIntEnvironment(): void {
   console.log("[INT] Site Origin: configured");
   console.log(`[INT] Email: ${isEmailDisabled() ? "DISABLED" : "ENABLED"}`);
   console.log(`[INT] Stripe: ${getStripeMode()} mode`);
+  console.log("[INT] Uploads: BLOCKED (no INT storage)");
+  console.log("[INT] External APIs: BLOCKED");
 }
