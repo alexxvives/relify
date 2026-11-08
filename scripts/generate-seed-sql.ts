@@ -89,7 +89,7 @@ async function generateSeedSql() {
     // Better Auth account with password
     const accountId = randomUUID();
     lines.push(`INSERT INTO "account" (id, account_id, provider_id, user_id, password, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlString(accountId)}, ${sqlString(email)}, 'credential', ${sqlString(userId)}, ${sqlString(passwordHash)}, ${sqlTimestamp(now)}, ${sqlTimestamp(now)})`);
+    lines.push(`VALUES (${sqlString(accountId)}, ${sqlString(userId)}, 'credential', ${sqlString(userId)}, ${sqlString(passwordHash)}, ${sqlTimestamp(now)}, ${sqlTimestamp(now)})`);
     lines.push(`ON CONFLICT (provider_id, account_id) DO UPDATE SET password = EXCLUDED.password;`);
     lines.push("");
   }

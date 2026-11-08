@@ -148,13 +148,12 @@ async function generateCorrectedSeed() {
     lines.push(`  onboarded_at = EXCLUDED.onboarded_at,`);
     lines.push(`  terms_accepted_at = EXCLUDED.terms_accepted_at;`);
     
-    // Account - note: no unique constraint on (provider_id, account_id), only PK on id
-    // Use deterministic account ID
-    const accountId = deterministicUUID("int-account", email);
+    // Account PK is id. Better Auth signInEmail matches account_id to user.id, not email.
+    const accountRowId = deterministicUUID("int-account", email);
     lines.push("");
     lines.push(`INSERT INTO "account" (id, account_id, provider_id, user_id, password, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlString(accountId)}, ${sqlString(email)}, 'credential', ${sqlString(userId)}, ${sqlString(passwordHash)}, ${sqlTimestamp(now)}, ${sqlTimestamp(now)})`);
-    lines.push(`ON CONFLICT (id) DO UPDATE SET password = EXCLUDED.password, updated_at = EXCLUDED.updated_at;`);
+    lines.push(`VALUES (${sqlString(accountRowId)}, ${sqlString(userId)}, 'credential', ${sqlString(userId)}, ${sqlString(passwordHash)}, ${sqlTimestamp(now)}, ${sqlTimestamp(now)})`);
+    lines.push(`ON CONFLICT (id) DO UPDATE SET account_id = EXCLUDED.account_id, password = EXCLUDED.password, updated_at = EXCLUDED.updated_at;`);
   }
   
   lines.push("");

@@ -7,7 +7,7 @@ import {
   type UserRoleName,
 } from "@/lib/auth-input";
 import { normalizeCif } from "@/lib/spanish-cif";
-import { auth } from "@/server/auth";
+import { getAuthoritativeAuthSession } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { emailSiteUrl } from "@/lib/env";
 import { welcomeEmail } from "@/lib/email/messages";
@@ -20,9 +20,7 @@ export type CompleteOnboardingResult =
 export async function completeOnboarding(
   input: OnboardingInput,
 ): Promise<CompleteOnboardingResult> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getAuthoritativeAuthSession(await headers());
 
   if (!session) {
     return { ok: false, code: "signed_out", message: authCopy.signInFailed };

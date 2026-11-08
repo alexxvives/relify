@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { authSessionOptions } from "@/lib/auth-session";
 import { emailLink, readServerEnv } from "@/lib/env";
 import { prisma } from "@/server/db";
 import { passwordResetEmail, verifyEmail } from "@/lib/email/messages";
@@ -57,13 +58,7 @@ function createAuth() {
         });
       },
     },
-    session: {
-      freshAge: 60 * 60 * 24 * 30,
-      // Signed session snapshot in a cookie: skips the session-table round
-      // trip on most requests. The user row (role, suspension) is still read
-      // live in getCurrentUser, so a suspended account is cut off at once.
-      cookieCache: { enabled: true, maxAge: 5 * 60 },
-    },
+    session: authSessionOptions,
     user: {
       changeEmail: {
         enabled: true,

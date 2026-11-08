@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { headers } from "next/headers";
+import { authoritativeSessionQuery } from "@/lib/auth-session";
 import {
   accountDisplayName,
   readUserRole,
@@ -23,13 +24,20 @@ export type CurrentUser = {
   nationalIdMissing: boolean;
 };
 
+export async function getAuthoritativeAuthSession(
+  headerList: Awaited<ReturnType<typeof headers>>,
+) {
+  return auth.api.getSession({
+    headers: headerList,
+    query: authoritativeSessionQuery,
+  });
+}
+
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   let session: Awaited<ReturnType<typeof auth.api.getSession>>;
 
   try {
-    session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    session = await getAuthoritativeAuthSession(await headers());
   } catch {
     return null;
   }

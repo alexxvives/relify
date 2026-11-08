@@ -6,6 +6,8 @@ import { hashPassword, verifyPassword } from "better-auth/crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client.js";
+import { authSessionOptions, authoritativeSessionQuery } from "./auth-session";
+import { betterAuthCredentialAccountId } from "./better-auth-credential";
 import { ndaAccessGate } from "./project-access";
 import { buyerProjectView } from "./report-veil";
 import { figureVeilYears } from "./figure-veil";
@@ -29,16 +31,132 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
 
   const pool = new pg.Pool({ connectionString: databaseUrl });
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+  const authSecret = "int-local-test-secret-min-32-characters";
+  const origin = "http://127.0.0.1:3000";
   const auth = betterAuth({
-    secret: "int-local-test-secret-min-32-characters",
-    baseURL: "http://127.0.0.1:3000",
+    secret: authSecret,
+    baseURL: origin,
     database: prismaAdapter(prisma, { provider: "postgresql" }),
     emailAndPassword: { enabled: true },
+    session: authSessionOptions,
+  });
+  const cachedAuth = betterAuth({
+    secret: authSecret,
+    baseURL: origin,
+    database: prismaAdapter(prisma, { provider: "postgresql" }),
+    emailAndPassword: { enabled: true },
+    session: {
+      freshAge: authSessionOptions.freshAge,
+      cookieCache: { enabled: true, maxAge: 5 * 60 },
+    },
   });
 
   const ids: Record<string, string> = {};
   let sabiProjectId = "";
   let manualProjectId = "";
+
+  type SessionPayload = {
+    user?: { id?: string; email?: string; role?: string };
+    session?: { token?: string };
+  };
+
+  function cookieHeaderFrom(response: Response): string {
+    const pairs: string[] = [];
+    for (const entry of response.headers.getSetCookie()) {
+      const pair = entry.split(";", 1)[0];
+      if (pair === undefined) {
+        continue;
+      }
+      const trimmed = pair.trim();
+      if (trimmed.length === 0) {
+        continue;
+      }
+      pairs.push(trimmed);
+    }
+    return pairs.join("; ");
+  }
+
+  function readSessionPayload(value: unknown): SessionPayload | null {
+    if (value === null || typeof value !== "object") {
+      return null;
+    }
+    return value as SessionPayload;
+  }
+
+  type AuthHttp = {
+    handler: (request: Request) => Promise<Response>;
+  };
+
+  async function authHttp(
+    instance: AuthHttp,
+    path: string,
+    init: RequestInit,
+  ): Promise<Response> {
+    return instance.handler(new Request(`${origin}${path}`, init));
+  }
+
+  async function signInCookies(
+    instance: AuthHttp,
+    email: string,
+    password: string,
+  ): Promise<{ status: number; cookie: string }> {
+    const response = await authHttp(instance, "/api/auth/sign-in/email", {
+      method: "POST",
+      headers: {
+        origin,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    return { status: response.status, cookie: cookieHeaderFrom(response) };
+  }
+
+  async function getSessionHttp(
+    instance: AuthHttp,
+    cookie: string,
+    query = "",
+  ): Promise<{ status: number; body: SessionPayload | null }> {
+    const response = await authHttp(instance, `/api/auth/get-session${query}`, {
+      method: "GET",
+      headers: { origin, cookie },
+    });
+    return {
+      status: response.status,
+      body: readSessionPayload(await response.json()),
+    };
+  }
+
+  async function signOutHttp(instance: AuthHttp, cookie: string): Promise<number> {
+    const response = await authHttp(instance, "/api/auth/sign-out", {
+      method: "POST",
+      headers: {
+        origin,
+        cookie,
+        "content-type": "application/json",
+      },
+      body: "{}",
+    });
+    return response.status;
+  }
+
+  async function protectedUserFromCookie(
+    instance: AuthHttp,
+    cookie: string,
+  ): Promise<{ id: string; role: string } | null> {
+    const session = await getSessionHttp(instance, cookie);
+    const userId = session.body?.user?.id;
+    if (session.status !== 200 || userId === undefined) {
+      return null;
+    }
+    const stored = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, suspendedAt: true },
+    });
+    if (!stored || stored.suspendedAt !== null || stored.role === null) {
+      return null;
+    }
+    return { id: stored.id, role: stored.role };
+  }
 
   beforeAll(async () => {
     const hashed = await hashPassword(fixturePassword);
@@ -70,7 +188,7 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
           id: randomUUID(),
           userId: user.id,
           providerId: "credential",
-          accountId: user.id,
+          accountId: betterAuthCredentialAccountId(user.id),
           password: hashed,
         },
       });
@@ -159,6 +277,35 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
         password: "wrong-password",
       });
       expect(wrong, fixture.email).toBe(false);
+    }
+  });
+
+  it("pre-fix INT seed (account_id=email) 401s signInEmail while the scrypt hash still matches", async () => {
+    for (const fixture of fixtures) {
+      const userId = ids[fixture.key];
+      await prisma.account.updateMany({
+        where: { userId, providerId: "credential" },
+        data: { accountId: fixture.email },
+      });
+      const account = await prisma.account.findFirst({
+        where: { userId, providerId: "credential" },
+      });
+      expect(
+        await verifyPassword({
+          hash: account?.password ?? "",
+          password: fixturePassword,
+        }),
+      ).toBe(true);
+      await expect(
+        auth.api.signInEmail({
+          body: { email: fixture.email, password: fixturePassword },
+          headers: new Headers({ origin: "http://127.0.0.1:3000" }),
+        }),
+      ).rejects.toMatchObject({ status: "UNAUTHORIZED" });
+      await prisma.account.updateMany({
+        where: { userId, providerId: "credential" },
+        data: { accountId: betterAuthCredentialAccountId(userId) },
+      });
     }
   });
 
@@ -267,5 +414,84 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
     expect(veiled).not.toContain("Motivo secreto");
     const open = JSON.stringify(buyerProjectView(project, true));
     expect(open).toContain("Motivo secreto");
+  });
+
+  it("rejects a replayed cookie on get-session and the getCurrentUser path after logout", async () => {
+    expect(authSessionOptions.cookieCache.enabled).toBe(false);
+    expect(authoritativeSessionQuery.disableCookieCache).toBe(true);
+
+    const fixture = fixtures[0];
+    const signed = await signInCookies(auth, fixture.email, fixturePassword);
+    expect(signed.status).toBe(200);
+    expect(signed.cookie).toMatch(/session_token/);
+
+    const live = await getSessionHttp(auth, signed.cookie);
+    expect(live.status).toBe(200);
+    expect(live.body?.user?.email).toBe(fixture.email);
+    const liveToken = live.body?.session?.token;
+    expect(liveToken).toBeTruthy();
+
+    const liveGuard = await protectedUserFromCookie(auth, signed.cookie);
+    expect(liveGuard?.id).toBe(ids[fixture.key]);
+    expect(liveGuard?.role).toBe(fixture.role);
+
+    const logoutStatus = await signOutHttp(auth, signed.cookie);
+    expect(logoutStatus).toBe(200);
+    const remaining = await prisma.session.count({
+      where: { token: liveToken ?? "" },
+    });
+    expect(remaining).toBe(0);
+
+    const replay = await getSessionHttp(auth, signed.cookie);
+    expect(replay.status).toBe(200);
+    expect(replay.body).toBeNull();
+
+    const replayNoCache = await getSessionHttp(
+      auth,
+      signed.cookie,
+      "?disableCookieCache=true",
+    );
+    expect(replayNoCache.status).toBe(200);
+    expect(replayNoCache.body).toBeNull();
+
+    const replayGuard = await protectedUserFromCookie(auth, signed.cookie);
+    expect(replayGuard).toBeNull();
+    const userStillThere = await prisma.user.findUnique({
+      where: { id: ids[fixture.key] },
+      select: { id: true },
+    });
+    expect(userStillThere?.id).toBe(ids[fixture.key]);
+  });
+
+  it("documents that cookieCache would still authenticate a revoked cookie", async () => {
+    const fixture = fixtures[0];
+    const signed = await signInCookies(cachedAuth, fixture.email, fixturePassword);
+    expect(signed.status).toBe(200);
+    expect(signed.cookie).toMatch(/session_data/);
+
+    const live = await getSessionHttp(cachedAuth, signed.cookie);
+    expect(live.status).toBe(200);
+    expect(live.body?.user?.email).toBe(fixture.email);
+
+    const cachedToken = live.body?.session?.token;
+    expect(cachedToken).toBeTruthy();
+    expect(await signOutHttp(cachedAuth, signed.cookie)).toBe(200);
+    const remaining = await prisma.session.count({
+      where: { token: cachedToken ?? "" },
+    });
+    expect(remaining).toBe(0);
+
+    const replay = await getSessionHttp(cachedAuth, signed.cookie);
+    expect(replay.status).toBe(200);
+    expect(replay.body?.user?.email).toBe(fixture.email);
+
+    const replayNoCache = await getSessionHttp(
+      cachedAuth,
+      signed.cookie,
+      "?disableCookieCache=true",
+    );
+    expect(replayNoCache.status).toBe(200);
+    expect(replayNoCache.body).toBeNull();
+    expect(authSessionOptions.cookieCache.enabled).toBe(false);
   });
 });

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-08 — Logout must revoke the session row, not only the browser cookie
+
+Better Auth `session.cookieCache` (default 5 minutes, signed `session_data`) answers `/get-session` without reading the session table. Logout deletes the row and clears cookies, but a replayed cookie still authenticates until that cache expires. Releva stores sessions in Postgres, so cookieCache stays off and `getCurrentUser` / onboarding pass `disableCookieCache`. One extra unique lookup on `session.token` per request. Do not turn the cache back on for INT only.
+
 ## 2026-10-11 — Encargos are the request, and Mis procesos start after the deposit
 
 An encargo is a hire the advisor has not accepted yet. It stays on `/mandatos/encargos` until the deposit is paid. Mis procesos, at `/mandatos/venta`, lists a company only after that deposit, or when the job is already closed. Opening the encargo shows the same company banner the investor sees. The investor card stays on the side. The deposit floats there, and the advisor can reject the request from that card. A rejection stores `declinedAt`, tells the person who asked, and takes the row off both lists. It does not refund anything, because nothing has been paid.

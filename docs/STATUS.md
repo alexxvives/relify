@@ -6,6 +6,7 @@ Phase: signed-in product. New accounts finish onboarding before a role home. Inv
 
 ## Done
 
+- Logout deletes the session row and `/get-session` plus `getCurrentUser` refuse a replayed cookie. Better Auth `cookieCache` is off in production session options (not INT-only); `getSession` passes `disableCookieCache`. INT credential seeds store `account.account_id` as the user id, matching compiled `signInEmail`. `npm run typecheck` exited 0. `npm run lint` exited 0 (14 existing warnings, 0 errors). `INT_TEST_DATABASE_URL` local PG `npm run test` exited 0 (384 passed).
 - Resumen cards drop a column before the figure can wrap. Margen and Ajustado sit under the number, and Ver ajustes stays clickable beside EBITDA. `npm run typecheck` exited 0 and `npm run lint` exited 0. Checked on the seller ficha at a 1100px window: two columns, amounts on one line. Deployed to the `releva` Worker on 2026-11-06 (version `72423e16-7b6c-41f6-8a59-4678b3bcc204`).
 - On Datos de la ficha, Usar sits on the right of the price card, level with the amount. In the admin adjustment dialog, Aceptar sits under that row's importe, on the right. `npm run typecheck` exited 0 and `npm run lint` exited 0. Deployed to the `releva` Worker on 2026-11-06 (version `d97ed0af-0ce2-4c40-966b-7e4780301b7e`).
 - Ver ajustes stays a 24rem dialog. The shell was stretching it to the full page because `.w-full` forces `max-width: 100%`. `npm run typecheck` exited 0 and `npm run lint` exited 0. Deployed to the `releva` Worker on 2026-11-06 (version `d1d5fa26-79f6-4fd8-ac11-fad5c1aba705`).
