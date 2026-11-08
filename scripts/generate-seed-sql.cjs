@@ -2,7 +2,7 @@
  * Generate idempotent seed SQL for INT database.
  * Produces SQL with proper Better Auth password hashing (bcrypt).
  */
-
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { randomBytes, randomUUID } = require("crypto");
 const { writeFileSync } = require("fs");
 const bcrypt = require("bcryptjs");

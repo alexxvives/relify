@@ -95,6 +95,35 @@ export function getBetterAuthSecret(): string {
 }
 
 /**
+ * Validate INT auth URL with exact origin matching (no suffix spoofing).
+ */
+function validateIntAuthUrl(url: string): void {
+  const parsed = new URL(url);
+
+  // Must exactly match releva-int.*.workers.dev (prevent suffix spoofing)
+  const allowedPattern = /^releva-int\.[a-z0-9-]+\.workers\.dev$/;
+  if (!allowedPattern.test(parsed.hostname)) {
+    throw new Error(
+      `INT auth URL must exactly match releva-int.*.workers.dev pattern, got: ${parsed.hostname}`
+    );
+  }
+
+  // Must use HTTPS
+  if (parsed.protocol !== "https:") {
+    throw new Error(`INT auth URL must use HTTPS, got: ${parsed.protocol}`);
+  }
+
+  // Must NOT be production domains
+  if (
+    parsed.hostname.includes("itsreleva.com") ||
+    parsed.hostname.includes("itsrelify.com") ||
+    parsed.hostname.includes("releva.com")
+  ) {
+    throw new Error("INT_BETTER_AUTH_URL must not use production domains");
+  }
+}
+
+/**
  * Get Better Auth URL with INT isolation.
  */
 export function getBetterAuthUrl(): string {
@@ -103,13 +132,7 @@ export function getBetterAuthUrl(): string {
     if (!intUrl) {
       throw new Error("INT_BETTER_AUTH_URL required in INT environment");
     }
-    // Validate it contains "int" and NOT production domains
-    if (!intUrl.includes("int")) {
-      throw new Error("INT_BETTER_AUTH_URL must contain 'int'");
-    }
-    if (intUrl.includes("itsreleva.com") || intUrl.includes("itsrelify.com") || intUrl.includes("releva.com")) {
-      throw new Error("INT_BETTER_AUTH_URL must not use production domains");
-    }
+    validateIntAuthUrl(intUrl);
     return intUrl;
   }
   

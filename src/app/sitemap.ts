@@ -3,9 +3,16 @@ import { blogPosts } from "@/lib/blog";
 import { readSiteUrl } from "@/lib/env";
 import { listPublicProjects } from "@/server/listPublicProjects";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = readSiteUrl();
-  const projects = await listPublicProjects();
+  let projects: Awaited<ReturnType<typeof listPublicProjects>> = [];
+  try {
+    projects = await listPublicProjects();
+  } catch {
+    // Build-time DB unavailable; skip project URLs
+  }
 
   return [
     {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import pg from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
 /**
  * Security Test Suite: Authentication, Ownership & NDA Access Control
@@ -10,8 +10,11 @@ import { PrismaClient } from "../generated/prisma/client.js";
  * DOES NOT access production database.
  */
 
+// Use direct connection without SCRAM
 const pool = new pg.Pool({
-  connectionString: "postgresql://postgres@localhost/releva_int_test",
+  host: "/var/run/postgresql", // Unix socket
+  database: "releva_int_test",
+  user: "postgres",
 });
 
 const adapter = new PrismaPg(pool);

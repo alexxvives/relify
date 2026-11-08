@@ -107,7 +107,7 @@ async function seedInt() {
     { key: "admin", email: "int-admin@test.local", name: "Admin INT", role: "admin" },
   ] as const;
   
-  const users: Record<string, any> = {};
+  const users: Record<string, { id: string; email: string }> = {};
   const credentials: string[] = [];
   
   for (const { key, email, name, role } of testUsers) {
@@ -118,7 +118,7 @@ async function seedInt() {
         id: userId,
         email,
         name,
-        role: role as any,
+        role,
         emailVerified: true,
         onboardedAt: new Date(),
         termsAcceptedAt: new Date(),

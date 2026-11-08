@@ -207,8 +207,7 @@ async function generateCorrectedSeed() {
   lines.push(`  ${sqlTimestamp(now)}`);
   lines.push(`)`);
   lines.push(`ON CONFLICT (slug) DO UPDATE SET`);
-  lines.push(`  sabi_data = EXCLUDED.sabi_data,`);
-  lines.push(`  updated_at = EXCLUDED.updated_at;`);
+  lines.push(`  sabi_data = EXCLUDED.sabi_data;`);
   
   // CNAE
   const sabiCnaeId = deterministicUUID("int-cnae", `${sabiProjectId}-6201`);
@@ -217,22 +216,22 @@ async function generateCorrectedSeed() {
   lines.push(`VALUES (${sqlString(sabiCnaeId)}, ${sqlString(sabiProjectId)}, '6201', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
   
-  // Years with meaningful financials
+  // Years with meaningful financials (semantic correct: EBITDA not EBIT, total assets not non-current only)
   const financials = [
-    { year: 2021, revenue: 450000000, ebitda: 65000000, netIncome: 50000000, assets: 280000000, equity: 200000000 },
-    { year: 2022, revenue: 475000000, ebitda: 70000000, netIncome: 55000000, assets: 310000000, equity: 225000000 },
-    { year: 2023, revenue: 500000000, ebitda: 75000000, netIncome: 60000000, assets: 340000000, equity: 250000000 },
+    { year: 2021, sales: 450000000, ebitda: 65000000, netResult: 50000000, totalAssets: 280000000, equity: 200000000 },
+    { year: 2022, sales: 475000000, ebitda: 70000000, netResult: 55000000, totalAssets: 310000000, equity: 225000000 },
+    { year: 2023, sales: 500000000, ebitda: 75000000, netResult: 60000000, totalAssets: 340000000, equity: 250000000 },
   ];
   
-  for (const { year, revenue, ebitda, netIncome, assets, equity } of financials) {
+  for (const { year, sales, ebitda, netResult, totalAssets, equity } of financials) {
     const yearId = deterministicUUID("int-year", `${sabiProjectId}-${year}`);
     lines.push("");
-    lines.push(`INSERT INTO "project_year" (id, project_id, year, kind, sales_cents, operating_profit_cents, profit_after_tax_cents, fixed_assets_cents, shareholders_funds_cents)`);
-    lines.push(`VALUES (${sqlString(yearId)}, ${sqlString(sabiProjectId)}, ${year}, 'closed', ${revenue}, ${ebitda}, ${netIncome}, ${assets}, ${equity})`);
+    lines.push(`INSERT INTO "project_year" (id, project_id, year, kind, sales_cents, ebitda_cents, net_result_cents, total_assets_cents, equity_cents)`);
+    lines.push(`VALUES (${sqlString(yearId)}, ${sqlString(sabiProjectId)}, ${year}, 'closed', ${sales}, ${ebitda}, ${netResult}, ${totalAssets}, ${equity})`);
     lines.push(`ON CONFLICT (project_id, year) DO UPDATE SET`);
     lines.push(`  sales_cents = EXCLUDED.sales_cents,`);
-    lines.push(`  operating_profit_cents = EXCLUDED.operating_profit_cents,`);
-    lines.push(`  profit_after_tax_cents = EXCLUDED.profit_after_tax_cents;`);
+    lines.push(`  ebitda_cents = EXCLUDED.ebitda_cents,`);
+    lines.push(`  net_result_cents = EXCLUDED.net_result_cents;`);
   }
   
   // Project manual
@@ -271,7 +270,7 @@ async function generateCorrectedSeed() {
   lines.push(`  15,`);
   lines.push(`  ${sqlTimestamp(now)}`);
   lines.push(`)`);
-  lines.push(`ON CONFLICT (slug) DO UPDATE SET updated_at = EXCLUDED.updated_at;`);
+  lines.push(`ON CONFLICT (slug) DO NOTHING;`);
   
   const manualCnaeId = deterministicUUID("int-cnae", `${manualProjectId}-7022`);
   lines.push("");
