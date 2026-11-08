@@ -29,6 +29,7 @@
     "@prisma/client": "^7.10.0",
     "@radix-ui/react-switch": "^1.4.1",
     "@vinext/cloudflare": "^1.0.1",
+    "bcryptjs": "^3.0.3",
     "better-auth": "^1.7.6",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
