@@ -199,6 +199,8 @@ export async function uploadSaleContract(
   input: { accessId: string; priceCents: number; fileName: string },
   bytes: Uint8Array,
 ): Promise<ContractResult> {
+  const { assertUploadsEnabled } = await import("./int-guards");
+  assertUploadsEnabled();
   const access = await loadAccess(input.accessId);
   const party = access ? await partyFor(user, access) : null;
 

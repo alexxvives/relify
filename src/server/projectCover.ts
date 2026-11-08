@@ -1,6 +1,7 @@
 import { existsSync, statSync } from "node:fs";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertUploadsEnabled } from "./int-guards";
 
 const root = path.join(process.cwd(), "data", "project-covers");
 const idPattern = /^[a-zA-Z0-9_-]{1,80}$/;
@@ -72,6 +73,7 @@ export async function writeProjectCover(
   type: string,
   bytes: Uint8Array,
 ): Promise<boolean> {
+  assertUploadsEnabled();
   if (
     !isCoverType(type) ||
     bytes.byteLength === 0 ||

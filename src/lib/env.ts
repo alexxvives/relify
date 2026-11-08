@@ -1,5 +1,11 @@
 import * as z from "zod";
-import { getDatabaseUrl, getBetterAuthSecret, getBetterAuthUrl, getSiteOrigin } from "./int-env";
+import {
+  getDatabaseUrl,
+  getBetterAuthSecret,
+  getBetterAuthUrl,
+  getSiteOrigin,
+  validateIntEnvironment,
+} from "./int-env";
 
 const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
@@ -10,7 +16,7 @@ const serverEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function readServerEnv(): ServerEnv {
-  // Use INT-aware getters that handle INT_* variables
+  validateIntEnvironment();
   const DATABASE_URL = getDatabaseUrl();
   const BETTER_AUTH_SECRET = getBetterAuthSecret();
   const BETTER_AUTH_URL = getBetterAuthUrl();

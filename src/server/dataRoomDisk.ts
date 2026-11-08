@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertUploadsEnabled } from "./int-guards";
 
 const idPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,6 +26,7 @@ export async function writeDataRoomBytes(
   id: string,
   bytes: Uint8Array,
 ): Promise<boolean> {
+  assertUploadsEnabled();
   const target = filePath(id);
 
   if (

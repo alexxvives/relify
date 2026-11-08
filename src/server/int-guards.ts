@@ -3,7 +3,7 @@
  * Fail-closed enforcement for operations disabled in INT.
  */
 
-import { isIntEnvironment } from "@/lib/int-env";
+import { isIntEnvironment } from "../lib/int-env";
 
 /**
  * Block all file uploads in INT until dedicated persistent storage is wired.
@@ -24,42 +24,30 @@ export function assertUploadsEnabled(): void {
  * Returns true if email should be blocked.
  */
 export function shouldBlockEmail(): boolean {
-  if (!isIntEnvironment()) {
-    return false;
-  }
-  
-  // INT: blocked by default, explicit override required
-  return process.env.INT_EMAIL_ENABLED !== "true";
+  return isIntEnvironment();
 }
 
 /**
- * Block all payment creation/webhooks in INT (fail-closed).
- * Throws error in INT mode unless explicitly enabled.
+ * Block all payment creation/webhooks in INT (fail-closed, no override).
  */
 export function assertPaymentsEnabled(): void {
-  if (isIntEnvironment() && process.env.INT_PAYMENTS_ENABLED !== "true") {
+  if (isIntEnvironment()) {
     throw new Error(
       "Payment operations disabled in INT environment. " +
-      "Set INT_PAYMENTS_ENABLED=true only for explicit INT payment testing."
+      "No INT payment override is accepted.",
     );
   }
 }
 
 /**
- * Block external billable API calls in INT (fail-closed).
- * Returns true if external API should be blocked.
+ * Block external billable API calls in INT (fail-closed, no override).
  */
 export function shouldBlockExternalApi(apiName: string): boolean {
   if (!isIntEnvironment()) {
     return false;
   }
-  
-  // INT: external APIs blocked by default
-  const enabled = process.env.INT_EXTERNAL_APIS_ENABLED === "true";
-  if (!enabled) {
-    console.log(`[INT] External API blocked: ${apiName}`);
-  }
-  return !enabled;
+  console.log(`[INT] External API blocked: ${apiName}`);
+  return true;
 }
 
 /**

@@ -39,6 +39,10 @@ export async function fetchApiEmpresas(
   rawCif: string,
   apiKey: string,
 ): Promise<ApiEmpresasFetch> {
+  const { shouldBlockExternalApi } = await import("./int-guards");
+  if (shouldBlockExternalApi("APIEMPRESAS")) {
+    return { ok: false, code: "unavailable" };
+  }
   const cif = normalizeCif(rawCif);
 
   try {

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/server/db";
+import { assertUploadsEnabled } from "./int-guards";
 
 /** t84: seller gallery limits. Photos are resized in the browser before upload, so 2 MB is plenty. */
 export const projectPhotoLimit = 6;
@@ -23,6 +24,7 @@ export async function listProjectPhotos(projectId: string, includeHidden: boolea
 export type AddPhotoResult = { ok: true; added: number } | { ok: false; reason: "limit" | "type" | "size" };
 
 export async function addProjectPhotos(projectId: string, files: { type: string; bytes: Uint8Array }[]): Promise<AddPhotoResult> {
+  assertUploadsEnabled();
   const count = await prisma.projectPhoto.count({ where: { projectId } });
   if (count + files.length > projectPhotoLimit) {
     return { ok: false, reason: "limit" };

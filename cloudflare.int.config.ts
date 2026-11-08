@@ -23,24 +23,9 @@ export default defineConfig({
     placement: { mode: "smart" },
     env: {
       ASSETS: bindings.assets(),
-      IMAGES: bindings.images(),
-      // Workers AI for PDF reading (no API key needed)
-      AI: bindings.ai(),
-      
-      // INT-specific secrets (separate from production)
-      // These must be set via: wrangler secret put <NAME> --env int
       INT_DATABASE_URL: bindings.secret(),
       INT_BETTER_AUTH_SECRET: bindings.secret(),
       INT_BETTER_AUTH_URL: bindings.secret(),
-      
-      // Optional: test Stripe key
-      INT_STRIPE_SECRET_KEY: bindings.secret(),
-      
-      // External API keys (optional, can be empty for INT)
-      CONTEXT7_API_KEY: bindings.secret(),
-      EINFORMA_API_USER: bindings.secret(),
-      EINFORMA_API_KEY: bindings.secret(),
-      APIEMPRESAS_API_KEY: bindings.secret(),
     },
   }),
 });

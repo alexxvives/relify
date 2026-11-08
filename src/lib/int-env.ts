@@ -14,29 +14,39 @@ export function isIntEnvironment(): boolean {
  * Validate INT database URL against approved resources.
  * Exact match required - no production fallback, no substring guessing.
  */
+function canonicalHostPort(hostname: string, port: string): string {
+  const normalizedPort = port === "" ? "5432" : port;
+  return `${hostname.toLowerCase()}:${normalizedPort}`;
+}
+
+function canonicalApprovedHost(approved: string): string {
+  const value = approved.trim().toLowerCase();
+  if (value.includes(":")) {
+    return value;
+  }
+  return `${value}:5432`;
+}
+
 function validateIntDatabaseUrl(url: string): void {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname;
-    
-    // Local development hosts (always approved, hostname only)
-    const localHosts = ["localhost", "127.0.0.1", "::1"];
-    if (localHosts.includes(hostname)) {
+    const hostPort = canonicalHostPort(hostname, parsed.port);
+
+    const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+    if (localHosts.has(hostname.toLowerCase())) {
       return;
     }
-    
-    // Check INT_APPROVED_DB_HOST if explicitly set (hostname only, no port)
-    // Neon uses port 443 (not 5432), so we compare hostname only
+
     const approvedHost = process.env.INT_APPROVED_DB_HOST;
-    if (approvedHost && hostname === approvedHost) {
+    if (approvedHost && hostPort === canonicalApprovedHost(approvedHost)) {
       return;
     }
-    
-    // Reject by default if not explicitly approved
+
     throw new Error(
-      `INT_DATABASE_URL hostname "${hostname}" not approved. ` +
-      `Set INT_APPROVED_DB_HOST="${hostname}" to approve, or use localhost. ` +
-      `Never use production database endpoints.`
+      `INT_DATABASE_URL host "${hostPort}" not approved. ` +
+      `Set INT_APPROVED_DB_HOST to the exact hostname:port (postgres default 5432), or use localhost. ` +
+      `Never use production database endpoints.`,
     );
   } catch (error) {
     if (error instanceof Error && error.message.includes("not approved")) {
@@ -52,6 +62,14 @@ function validateIntDatabaseUrl(url: string): void {
  * Production mode: uses DATABASE_URL
  */
 export function getDatabaseUrl(): string {
+  if (process.env.INT_APPROVED_DB_HOST && !isIntEnvironment()) {
+    throw new Error(
+      "FATAL: INT worker detected but INT_ENVIRONMENT not set. " +
+      "This worker was compiled for INT. Set INT_ENVIRONMENT=true at runtime. " +
+      "Never run INT workers with production config or vice versa.",
+    );
+  }
+
   if (isIntEnvironment()) {
     const intUrl = process.env.INT_DATABASE_URL;
     if (!intUrl) {
