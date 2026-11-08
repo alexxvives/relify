@@ -17,7 +17,7 @@
     "start:vinext": "vite preview",
     "postinstall": "prisma generate",
     "deploy:vinext": "prisma generate && prisma db push && vinext-cloudflare deploy",
-    "seed:int": "node --loader ts-node/esm scripts/seed-int.ts",
+    "seed:int": "node --loader ts-node/esm scripts/seed-int-simple.ts",
     "verify:int": "node --loader ts-node/esm scripts/verify-int-runtime.ts"
   },
   "dependencies": {
