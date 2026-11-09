@@ -58,10 +58,10 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
 }
 
 /**
- * t77/t79: section navigation + progress for /mi-empresa/detalles. Desktop: one sticky panel on the RIGHT (as on Inicio)
- * with the completion ring and a checklist grouped by section: each section row scrolls there (scroll-spy highlight),
- * its required fields sit underneath with a check or an empty circle and a subtle "Ir" on hover. Merging the section nav
- * into this panel avoids two sidebars squeezing the form. Mobile: sticky horizontal section pills.
+ * Section navigation + progress for /mi-empresa/detalles.
+ * Mobile/tablet: sticky horizontal pills under the header.
+ * lg+: slim vertical index in a left content column (scroll-spy).
+ * xl+: detailed progress checklist stays on the right so the form is not squeezed at 1024.
  */
 export function DetailSectionNav({
   items,
@@ -82,7 +82,7 @@ export function DetailSectionNav({
 }) {
   const { active, go } = useScrollSpy(
     items.map((item) => item.id),
-    160,
+    120,
   );
   const fields = progress.fields ?? [];
   const groups = items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) }));
@@ -95,7 +95,7 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur xl:hidden">
+      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
         <ul className="flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const current = item.id === active;
@@ -120,7 +120,33 @@ export function DetailSectionNav({
         </ul>
       </nav>
 
-      <aside className="hidden xl:order-last xl:block">
+      <nav aria-label="Secciones" className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
+        <ul className="sticky top-16 flex flex-col gap-0.5 border-l border-[#e6e9f0]">
+          {items.map((item) => {
+            const current = item.id === active;
+            return (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  aria-current={current ? "location" : undefined}
+                  onClick={jump(item.id)}
+                  className={`flex min-h-11 items-center gap-2 border-l-2 px-3 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                    current
+                      ? "-ml-px border-[#0f766e] bg-[#e6f4f2] text-[#1c2740]"
+                      : "border-transparent text-[#3d4a63] hover:bg-[#f5f6f8]"
+                  }`}
+                >
+                  <StatusIcon status={item.status} className="size-3.5" />
+                  <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
+                  <span className="sr-only">{statusText[item.status]}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <aside className="hidden xl:col-start-3 xl:row-start-1 xl:block">
         <nav aria-label="Tu progreso" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
           <div className="flex justify-center">
             <CompletionRing done={progress.done} total={progress.total} />

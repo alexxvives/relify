@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, Lock, Share2 } from "lucide-react";
+import { InfoHint } from "@/components/ui/info-hint";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
@@ -633,9 +634,9 @@ export function SellerDocuments({
             <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[#465ab4]">
               <Lock className="size-4" aria-hidden />
             </span>
-            <p className="min-w-0 flex-1 text-sm leading-6 text-[#3d4a63]">
-              <span className="font-semibold text-[#1c2740]">{sellerCopy.documentsNoteTitle}.</span>{" "}
-              {sellerCopy.documentsNoteBody}
+            <p className="flex min-w-0 flex-1 items-center gap-2 text-sm leading-6 text-[#3d4a63]">
+              <span className="font-semibold text-[#1c2740]">{sellerCopy.documentsNoteShort}</span>
+              <InfoHint text={`${sellerCopy.documentsNoteTitle}. ${sellerCopy.documentsNoteBody}`} icon="info" width="lg" />
             </p>
           </div>
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />

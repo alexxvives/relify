@@ -9,7 +9,7 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, Check, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -193,6 +193,28 @@ function marginText(revenue: string, ebitda: string): string {
 
 type AutoSaveState = "saving" | "saved" | "error" | null;
 
+/** Icon stays; label text only when the nearest @container is wide enough to keep it on one line. */
+function CompactStatus({
+  label,
+  icon,
+  className,
+  reveal = "@[18rem]:inline",
+}: {
+  label: string;
+  icon: ReactNode;
+  className: string;
+  reveal?: string;
+}) {
+  return (
+    <InfoHint text={label} width="auto" size="sm">
+      <span className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${className}`}>
+        {icon}
+        <span className={`hidden min-w-0 truncate whitespace-nowrap ${reveal}`}>{label}</span>
+      </span>
+    </InfoHint>
+  );
+}
+
 /** t95: inline autosave status: Guardando… / Guardado / Error al guardar · Reintentar. */
 function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null>; onRetry?: () => void }) {
   if (state === "error") {
@@ -255,8 +277,8 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-32 xl:scroll-mt-6">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+    <Card id={id} className="scroll-mt-32 lg:scroll-mt-6">
+      <div className="@container flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             {step ? <StepNumber value={step} /> : null}
@@ -269,16 +291,12 @@ function Panel({
           {saveState || dirty ? (
             <AutoSaveStatus state={saveState ?? "saving"} onRetry={onRetry} />
           ) : !chip ? null : (
-            <span
-              className={
-                done
-                  ? "inline-flex items-center gap-1 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs font-medium text-[#17663a]"
-                  : "inline-flex items-center gap-1 rounded-full bg-[#fff4d6] px-2.5 py-1 text-xs font-medium text-[#8a6112]"
-              }
-            >
-              {done ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5" aria-hidden />}
-              {done ? companyCopy.doneChip : companyCopy.pendingChip}
-            </span>
+            <CompactStatus
+              label={done ? companyCopy.doneChip : companyCopy.pendingChip}
+              className={done ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4d6] text-[#8a6112]"}
+              icon={done ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5" aria-hidden />}
+              reveal="@[28rem]:inline"
+            />
           )}
           {fixed ? null : open ? (
             <KitButton
@@ -442,16 +460,15 @@ function MetricTile({
   children: ReactNode;
 }) {
   return (
-    <div className="@container relative flex min-h-[6.5rem] min-w-0 flex-col justify-between gap-3 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      {/* t91: the label never truncates; when space is short the corner note wraps under it instead. */}
-      <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-2 gap-y-1">
-        <div className="flex items-center gap-1">
+    <div className="@container relative flex h-full min-h-[7.5rem] min-w-0 flex-col justify-between gap-3 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <div className="flex min-h-7 min-w-0 items-center justify-between gap-x-2">
+        <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {action}
         </div>
-        {corner ? <div className="min-w-0">{corner}</div> : null}
+        {corner ? <div className="min-w-0 shrink">{corner}</div> : null}
       </div>
-      <div className="min-w-0">{children}</div>
+      <div className="flex min-h-[3.75rem] min-w-0 flex-1 flex-col justify-end">{children}</div>
     </div>
   );
 }
@@ -488,14 +505,14 @@ function FichaMetrics({
   pendingCount?: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
-  recommended?: { amount: string; onUse: () => void } | null;
+  recommended?: { amount: string; onUse: () => void; applied?: boolean } | null;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
   return (
     <div className="@container mt-6">
-    <div className="grid grid-cols-1 gap-3 @min-[22rem]:grid-cols-2 @min-[48rem]:grid-cols-3">
-      <div id="panel-asking-price" className="scroll-mt-24">
+    <div className="grid grid-cols-1 items-stretch gap-3 @min-[22rem]:grid-cols-2 @min-[48rem]:grid-cols-3">
+      <div id="panel-asking-price" className="h-full min-w-0 scroll-mt-24">
         <FigureField
           label={companyCopy.askingPriceLabel}
           name="askingPrice"
@@ -505,26 +522,36 @@ function FichaMetrics({
           unsetText={companyCopy.priceUnset}
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
           footer={
-            recommended && !priceBlocked ? (
-              <button
-                type="button"
-                onClick={recommended.onUse}
-                aria-label={`${companyCopy.recommendedPrice}: ${recommended.amount}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#e4e7ec] bg-white px-2.5 py-1 text-xs font-medium whitespace-nowrap text-[#667085] hover:border-[#c5cce0] hover:text-[#1c2740] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
-              >
-                <Sparkles className="size-3.5 shrink-0 text-[#465ab4]" aria-hidden />
-                <span>Usar</span>
-                <span className="font-semibold text-[#1c2740] tabular-nums">{recommended.amount}</span>
-              </button>
+            recommended && !priceBlocked && !recommended.applied ? (
+              <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#667085]">
+                <span className="inline-flex min-w-0 items-center gap-1">
+                  <Sparkles className="size-3.5 shrink-0 text-[#465ab4]" aria-hidden />
+                  <span>
+                    {companyCopy.suggestedPrice}:{" "}
+                    <span className="font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{recommended.amount}</span>
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={recommended.onUse}
+                  aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
+                  className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                >
+                  <Check className="size-3.5" aria-hidden />
+                  {companyCopy.applySuggested}
+                </button>
+              </p>
             ) : null
           }
         />
       </div>
+      <div className="h-full min-w-0">
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
         <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
+      </div>
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
-      <div id="ebitda-ajustado" className="scroll-mt-24">
+      <div id="ebitda-ajustado" className="h-full min-w-0 scroll-mt-24">
         <MetricTile
           label={companyCopy.adjustedEbitdaLabel}
           action={
@@ -540,11 +567,17 @@ function FichaMetrics({
           }
           corner={
             pendingCount > 0 ? (
-              <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase">
-                {pendingCount} {companyCopy.adjustmentPending}
-              </span>
+              <CompactStatus
+                label={`${pendingCount} ${companyCopy.adjustmentPending}`}
+                className="bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase"
+                icon={<Clock className="size-3" aria-hidden />}
+              />
             ) : adjustmentCount > 0 ? (
-              <span className="text-xs text-[#667085]">{adjustmentCount} {adjustmentCount === 1 ? "ajuste" : "ajustes"}</span>
+              <CompactStatus
+                label={`${adjustmentCount} ${adjustmentCount === 1 ? "ajuste" : "ajustes"}`}
+                className="bg-transparent px-0 text-[#667085]"
+                icon={<CircleCheck className="size-3 text-[#0f766e]" aria-hidden />}
+              />
             ) : null
           }
         >
@@ -1034,14 +1067,15 @@ function EbitdaAdjustmentsDialog({
 function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
   const cents = signedEuroPattern.test(value.trim()) ? eurosToCents(value.trim()) : null;
   return (
+    <div className="h-full min-w-0">
     <MetricTile
       label={label}
       corner={
-        // t80: the read-only note sits beside the tile title, not under the number.
-        <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-[#667085]">
-          <Lock className="size-3" aria-hidden />
-          De tus cuentas
-        </span>
+        <CompactStatus
+          label="De tus cuentas"
+          className="bg-transparent px-0 text-[#667085]"
+          icon={<Lock className="size-3" aria-hidden />}
+        />
       }
     >
       <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
@@ -1054,6 +1088,7 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
         )}
       </span>
     </MetricTile>
+    </div>
   );
 }
 
@@ -1170,12 +1205,15 @@ function PriceStatus({ estimate, askingCents, blocked = false }: { estimate: Pri
         aria-controls="price-guide"
         onClick={() => setPinned((value) => !value)}
         onBlur={() => setPinned(false)}
-        className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] leading-none font-semibold whitespace-nowrap ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
+        aria-label={standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
+        title={standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
+        className={`inline-flex h-6 max-w-full items-center gap-1 rounded-full px-1.5 text-[11px] leading-none font-semibold ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
       >
-        <span className="@[15rem]:hidden">{standing ? standing.short : blocked ? "No disponible" : "Rango"}</span>
-        <span className="hidden @[15rem]:inline">{standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}</span>
         <Info className="size-3 shrink-0" aria-hidden />
-        <span className="sr-only">{standing ? standing.text : ""} · {blocked ? "Por qué no hay rango" : "Ver rango de precio orientativo"}</span>
+        <span className="hidden min-w-0 truncate whitespace-nowrap @[18rem]:inline">
+          {standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
+        </span>
+        <span className="sr-only">{blocked ? "Por qué no hay rango" : "Ver rango de precio orientativo"}</span>
       </button>
       {shown && place ? (
         <div
@@ -2201,9 +2239,9 @@ export function CompanyDraftForm({
         }}
       />
       {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-stretch xl:gap-6" : "flex flex-col gap-4"}>
+      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6 xl:grid-cols-[12.5rem_minmax(0,1fr)_16rem]" : "flex flex-col gap-4"}>
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
@@ -2420,6 +2458,7 @@ export function CompanyDraftForm({
                   ? {
                       amount: wholeEur(recommendedPriceCents(priceEstimate)),
                       onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
+                      applied: euroCentsOrNull(askingPrice) === recommendedPriceCents(priceEstimate),
                     }
                   : null
               }
@@ -2823,10 +2862,10 @@ function PublicFicha({
 
   return (
     <>
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+        <div className="flex min-w-0 flex-[1_1_15rem] flex-col gap-2">
           {/* t91: "Generar otro" is a small link on the label row, top right of the name field. */}
-          <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-[#2b3b4a]">
               <label htmlFor="project-codename" className="whitespace-nowrap">
                 {companyCopy.codenameLabel}
@@ -2858,7 +2897,9 @@ function PublicFicha({
             className="min-w-0 bg-[#f7f8fb] text-[#1c2740]"
           />
         </div>
-        <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
+        <div className="min-w-0 flex-[1_1_15rem]">
+          <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
+        </div>
       </div>
       {children}
     </>

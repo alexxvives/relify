@@ -76,7 +76,7 @@ export function FloatingSegmentedTabs<T extends string>({
   }
 
   return (
-    <div className="pointer-events-none sticky top-2 z-40 flex justify-center lg:-mt-[3.5rem] lg:mb-10 lg:h-0 lg:items-start lg:overflow-visible">
+    <div className="pointer-events-none sticky top-2 z-40 flex justify-center xl:-mt-[3.5rem] xl:mb-10 xl:h-0 xl:items-start xl:overflow-visible">
       <div
         role="tablist"
         aria-label={label}

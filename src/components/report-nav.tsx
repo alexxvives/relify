@@ -96,49 +96,89 @@ export function ReportNav({
   }
 
   function keys(event: KeyboardEvent<HTMLAnchorElement>, index: number) {
-    const next = event.key === "ArrowRight" ? index + 1 : event.key === "ArrowLeft" ? index - 1 : event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : null;
+    const next =
+      event.key === "ArrowRight" || event.key === "ArrowDown"
+        ? index + 1
+        : event.key === "ArrowLeft" || event.key === "ArrowUp"
+          ? index - 1
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? items.length - 1
+              : null;
     if (next === null) {
       return;
     }
     event.preventDefault();
     const clamped = Math.min(items.length - 1, Math.max(0, next));
-    track.current?.querySelector<HTMLElement>(`[data-section="${items[clamped]?.id}"]`)?.focus();
+    const root = event.currentTarget.closest("nav");
+    const links = root?.querySelectorAll<HTMLAnchorElement>("a[href^='#']");
+    links?.[clamped]?.focus();
   }
 
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
 
   return (
-    <nav aria-label={label} className={`sticky z-20 -mx-1 px-1 py-2 ${belowFloatingTabs ? "top-[3.5rem]" : "top-0"}`}>
-      <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_4px_16px_-8px_rgba(28,39,64,0.12)]">
-        <ul
-          ref={track}
-          onScroll={measureEdges}
-          className="flex min-w-0 flex-1 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ maskImage: `linear-gradient(to right, ${fade})`, WebkitMaskImage: `linear-gradient(to right, ${fade})` }}
-        >
+    <>
+      <nav aria-label={label} className={`sticky z-20 -mx-1 px-1 py-2 lg:hidden ${belowFloatingTabs ? "top-[3.5rem]" : "top-0"}`}>
+        <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_4px_16px_-8px_rgba(28,39,64,0.12)]">
+          <ul
+            ref={track}
+            onScroll={measureEdges}
+            className="flex min-w-0 flex-1 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ maskImage: `linear-gradient(to right, ${fade})`, WebkitMaskImage: `linear-gradient(to right, ${fade})` }}
+          >
+            {items.map((item, index) => {
+              const Icon = icons[item.id] ?? Sparkles;
+              const current = item.id === active;
+              return (
+                <li key={item.id} className="shrink-0">
+                  <a
+                    href={`#${item.id}`}
+                    data-section={item.id}
+                    aria-current={current ? "location" : undefined}
+                    onClick={(event) => go(event, item.id)}
+                    onKeyDown={(event) => keys(event, index)}
+                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                      current ? "bg-[#1c2740] text-white shadow-sm" : "text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
+                    }`}
+                  >
+                    <Icon className={`size-4 shrink-0 ${current ? "text-[#7fd6cc]" : "text-[#8b95a7]"}`} aria-hidden />
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </nav>
+      <nav aria-label={label} className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
+        <ul className={`sticky flex flex-col gap-0.5 border-l border-[#e6e9f0] ${belowFloatingTabs ? "top-16" : "top-4"}`}>
           {items.map((item, index) => {
             const Icon = icons[item.id] ?? Sparkles;
             const current = item.id === active;
             return (
-              <li key={item.id} className="shrink-0">
+              <li key={item.id}>
                 <a
                   href={`#${item.id}`}
-                  data-section={item.id}
+                  data-section={`rail-${item.id}`}
                   aria-current={current ? "location" : undefined}
                   onClick={(event) => go(event, item.id)}
                   onKeyDown={(event) => keys(event, index)}
-                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                    current ? "bg-[#1c2740] text-white shadow-sm" : "text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
+                  className={`flex min-h-11 items-center gap-2 border-l-2 px-3 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                    current
+                      ? "-ml-px border-[#0f766e] bg-[#e6f4f2] text-[#1c2740]"
+                      : "border-transparent text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
                   }`}
                 >
-                  <Icon className={`size-4 shrink-0 ${current ? "text-[#7fd6cc]" : "text-[#8b95a7]"}`} aria-hidden />
-                  {item.label}
+                  <Icon className={`size-4 shrink-0 ${current ? "text-[#0f766e]" : "text-[#8b95a7]"}`} aria-hidden />
+                  <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
                 </a>
               </li>
             );
           })}
         </ul>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }

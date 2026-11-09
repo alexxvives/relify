@@ -141,7 +141,7 @@ function ReportSection({
   children: ReactNode;
 }) {
   return (
-    <details open={open} id={id} className="group/section scroll-mt-32 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+    <details open={open} id={id} className="group/section scroll-mt-32 lg:scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
       <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:px-6 [&::-webkit-details-marker]:hidden">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
           <Icon className="size-5" aria-hidden />
@@ -780,8 +780,9 @@ export function CompanyReport({
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
       <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
+      <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
@@ -1278,6 +1279,7 @@ export function CompanyReport({
           <PhotoGallery photos={galleryPhotos} moderate={role === "admin"} />
         </ReportSection>
       ) : null}
+      </div>
     </div>
   );
 }

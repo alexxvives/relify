@@ -3,6 +3,7 @@ export const sellerCopy = {
   detailsTitle: "Detalles de empresa",
   documentsTitle: "Mis documentos",
   documentsNoteTitle: "Nadie ve tus documentos hasta que tú los compartes",
+  documentsNoteShort: "Privados hasta que los compartas",
   documentsNoteBody:
     "Subirlos aquí no los muestra a nadie. Solo los verá quien elijas, de forma explícita con «Compartir todos» o carpeta a carpeta: un comprador que ya haya firmado el NDA, o tu asesor.",
   processesTitle: "Mis procesos",

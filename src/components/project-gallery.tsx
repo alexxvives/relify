@@ -186,14 +186,14 @@ export function CardPhotoUploader({ photos, recommended, onCount }: { photos: Ga
 
   return (
     <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
-      <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
-        {companyCopy.cardPhotos}
-        <span className="text-xs font-normal text-[#5c6b78] tabular-nums">
+      <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-[#2b3b4a]">
+        <span className="whitespace-nowrap">{companyCopy.cardPhotos}</span>
+        <span className="text-xs font-normal whitespace-nowrap text-[#5c6b78] tabular-nums">
           {photos.length} / {galleryLimit}
         </span>
         <FieldHint text={companyCopy.cardPhotosHint} />
         {recommended && photos.length === 0 ? (
-          <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
+          <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-[#8a6112]">{companyCopy.cardPhotosRecommended}</span>
         ) : null}
       </span>
       <div className="flex flex-wrap items-center gap-2">

@@ -749,13 +749,18 @@ export function CompanyDetailsSkeleton() {
       <Tabs />
       {/* t77: mirrors the section rail (desktop) / pills (mobile) + cards layout. */}
       {/* t91: matches the real layout: form left, progress/section panel on the RIGHT (16rem). */}
-      <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-stretch xl:gap-6">
-        <div className="flex gap-1.5 overflow-hidden xl:hidden">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6 xl:grid-cols-[12.5rem_minmax(0,1fr)_16rem]">
+        <div className="flex gap-1.5 overflow-hidden lg:hidden">
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="hidden xl:order-last xl:block">
+        <div className="hidden lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-2">
+          {[0, 1, 2, 3].map((index) => (
+            <B key={`rail-${index}`} className="h-9 w-full rounded-lg" />
+          ))}
+        </div>
+        <div className="hidden xl:col-start-3 xl:row-start-1 xl:block">
           <div className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4">
             <div className="flex items-center gap-3">
               <B className="size-14 rounded-full" />
@@ -772,7 +777,7 @@ export function CompanyDetailsSkeleton() {
             <B className="h-10 w-full rounded-xl" />
           </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
           {panel(true, 0)}
           {panel(false, 1)}
           {panel(false, 2)}
@@ -787,12 +792,10 @@ export function DocumentsSkeleton() {
     <Shell>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="flex items-center justify-between gap-4 rounded-xl bg-[#f4f6fb] px-4 py-3">
-          <div className="flex flex-1 gap-3">
-            <B className="size-5 shrink-0" />
-            <div className="flex-1">
-              <B className="h-3 w-full" />
-              <B className="mt-2 h-3 w-2/3" />
-            </div>
+          <div className="flex flex-1 items-center gap-3">
+            <B className="size-8 shrink-0 rounded-full" />
+            <B className="h-4 w-56 max-w-full" />
+            <B className="size-4 shrink-0 rounded-full" />
           </div>
           <B className="h-4 w-28" />
         </div>
