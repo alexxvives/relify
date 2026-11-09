@@ -41,6 +41,7 @@ export const companyCopy = {
   adjustmentDocumentType: "Adjunta un PDF, una imagen o una hoja de cálculo.",
   adjustmentDocumentTooBig: "El archivo supera los 20 MB.",
   adjustmentDocumentSaveFailed: "No se ha podido guardar el documento. Inténtalo de nuevo.",
+  adjustmentDocumentIntDisabled: "Subida de documentos desactivada en el entorno de pruebas",
   adjustmentDocumentHint: "PDF, imagen o Excel. Hasta 20 MB.",
   adjustmentDocumentMissing: "El documento del ajuste no se ha guardado. Vuelve a adjuntarlo.",
   adjustmentsPendingChip: "Ajustes por aprobar",

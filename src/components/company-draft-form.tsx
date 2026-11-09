@@ -193,6 +193,27 @@ function marginText(revenue: string, ebitda: string): string {
 
 type AutoSaveState = "saving" | "saved" | "error" | null;
 
+/** Lock on Datos de la ficha: text when the tile is wide (no tooltip); icon + tooltip + aria-label when it is not. */
+function AccountsChip() {
+  return (
+    <span className="inline-flex max-w-full items-center">
+      <span className="hidden min-w-0 items-center gap-1 text-xs font-medium whitespace-nowrap text-[#667085] @[12.5rem]:inline-flex">
+        <Lock className="size-3 shrink-0" aria-hidden />
+        De tus cuentas
+      </span>
+      <InfoHint text="De tus cuentas" width="auto" size="sm" hoverOnly>
+        <span
+          tabIndex={0}
+          aria-label="De tus cuentas"
+          className="inline-flex size-7 items-center justify-center rounded-full text-[#667085] @[12.5rem]:hidden"
+        >
+          <Lock className="size-3" aria-hidden />
+        </span>
+      </InfoHint>
+    </span>
+  );
+}
+
 /** Icon stays; label text only when the nearest @container is wide enough to keep it on one line. */
 function CompactStatus({
   label,
@@ -460,7 +481,7 @@ function MetricTile({
   children: ReactNode;
 }) {
   return (
-    <div className="@container relative flex h-full min-h-[7.5rem] min-w-0 flex-col justify-between gap-3 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+    <div className="@container relative flex h-full min-h-[6.5rem] min-w-0 flex-col gap-2 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <div className="flex min-h-7 min-w-0 items-center justify-between gap-x-2">
         <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
@@ -468,7 +489,7 @@ function MetricTile({
         </div>
         {corner ? <div className="min-w-0 shrink">{corner}</div> : null}
       </div>
-      <div className="flex min-h-[3.75rem] min-w-0 flex-1 flex-col justify-end">{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
@@ -581,17 +602,16 @@ function FichaMetrics({
             ) : null
           }
         >
-          <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
-            {adjustedCents !== null ? (
-              <span className={adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap"}>
-                {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
-              </span>
-            ) : (
-              <button type="button" onClick={() => setAdjustOpen(true)} className="text-base font-medium text-[#667085] underline-offset-2 hover:text-[#465ab4] hover:underline">
-                Sin ajustes
-              </button>
-            )}
-          </span>
+          {adjustedCents !== null ? (
+            <span className={`flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight tabular-nums ${adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap text-[#1c2740]"}`}>
+              {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
+            </span>
+          ) : (
+            <button type="button" onClick={() => setAdjustOpen(true)} className="flex flex-col items-start gap-0.5 text-left">
+              <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">—</span>
+              <span className="text-xs font-medium text-[#667085]">Sin ajustes</span>
+            </button>
+          )}
         </MetricTile>
       </div>
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
@@ -1070,13 +1090,7 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
     <div className="h-full min-w-0">
     <MetricTile
       label={label}
-      corner={
-        <CompactStatus
-          label="De tus cuentas"
-          className="bg-transparent px-0 text-[#667085]"
-          icon={<Lock className="size-3" aria-hidden />}
-        />
-      }
+      corner={<AccountsChip />}
     >
       <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
         {cents !== null && cents !== 0 ? (
@@ -2227,25 +2241,27 @@ export function CompanyDraftForm({
     >
       <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-        <h1 className="min-w-0 text-3xl tracking-tight text-public-ink lg:whitespace-nowrap">{sellerCopy.detailsTitle}</h1>
-        <FloatingSegmentedTabs
-          label={companyCopy.tabsLabel}
-          tabs={[
-            { id: "company", label: companyCopy.detailsCompanyTab },
-            { id: "deal", label: companyCopy.detailsDealTab },
-          ]}
-          value={tab}
-          onChange={(id) => {
-            setTab(id);
-            window.scrollTo({ top: 0 });
-          }}
-        />
+      <div className="grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <h1 className="min-w-0 text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
+        <div className="justify-self-center">
+          <FloatingSegmentedTabs
+            label={companyCopy.tabsLabel}
+            tabs={[
+              { id: "company", label: companyCopy.detailsCompanyTab },
+              { id: "deal", label: companyCopy.detailsDealTab },
+            ]}
+            value={tab}
+            onChange={(id) => {
+              setTab(id);
+              window.scrollTo({ top: 0 });
+            }}
+          />
+        </div>
+        <div className="hidden lg:block" aria-hidden />
       </div>
-      {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses its own left nav. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
+      <div className="flex flex-col gap-4">
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
-      <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
+      <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
@@ -2341,19 +2357,26 @@ export function CompanyDraftForm({
               *
             </span>
             <span className="sr-only">(obligatorio)</span>
-            {description.length > 80 ? <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" /> : null}
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
-          <Textarea
-            name="description"
-            rows={4}
-            maxLength={descriptionMaxLength}
-            placeholder={companyCopy.descriptionPlaceholder}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            aria-label={companyCopy.descriptionLabel}
-            aria-required="true"
-          />
+          <div className="relative">
+            {description.length > 80 ? (
+              <span className="absolute top-2.5 left-2.5 z-10">
+                <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" />
+              </span>
+            ) : null}
+            <Textarea
+              name="description"
+              rows={4}
+              maxLength={descriptionMaxLength}
+              placeholder={companyCopy.descriptionPlaceholder}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              aria-label={companyCopy.descriptionLabel}
+              aria-required="true"
+              className={description.length > 80 ? "pl-9" : undefined}
+            />
+          </div>
           <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
             <span>
               {description.length} / {descriptionMaxLength}

@@ -49,8 +49,8 @@ export function SellerTabs<T extends string>({
 
 /**
  * Segmented pill tablist (Información empresa / Ficha pública). The parent
- * places it on the title row from lg up (right-aligned); below lg it sits
- * under the heading. Same tablist semantics as SellerTabs, with arrow-key navigation.
+ * centers it in the header row from lg up (title stays left); below lg it sits
+ * centered under the heading. Same tablist semantics as SellerTabs, with arrow-key navigation.
  */
 export function FloatingSegmentedTabs<T extends string>({
   label,

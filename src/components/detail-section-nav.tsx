@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Pencil } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Pencil, X } from "lucide-react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 
 export type DetailSectionStatus = "done" | "pending" | "dirty" | "info";
@@ -67,10 +67,112 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
 }
 
 /**
+ * Compact floating overlay for section navigation at lg+. Sits bottom-left of
+ * the content (gutter / small footprint) so it does not reserve a column.
+ * Hover or click opens a popover; Esc and a click outside close it.
+ */
+export function FloatingSectionOverlay({
+  label,
+  trigger,
+  children,
+}: {
+  label: string;
+  trigger: ReactNode;
+  children: (close: () => void) => ReactNode;
+}) {
+  const panelId = useId();
+  const root = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+  const [hover, setHover] = useState(false);
+  const open = pinned || hover;
+
+  function close() {
+    setPinned(false);
+    setHover(false);
+  }
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setPinned(false);
+        setHover(false);
+      }
+    }
+    function onPointer(event: PointerEvent) {
+      if (root.current && !root.current.contains(event.target as Node)) {
+        setPinned(false);
+        setHover(false);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={root}
+      className="pointer-events-none fixed z-40 hidden lg:block"
+      style={{
+        left: "max(0.5rem, calc(var(--layout-sidebar, 0px) + 0.5rem))",
+        bottom: "max(1rem, calc(var(--shell-tabbar, 0px) + 1rem))",
+      }}
+    >
+      <div
+        className="pointer-events-auto relative"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
+        {open ? (
+          <div className="absolute bottom-full left-0 pb-2">
+          <div
+            id={panelId}
+            role="dialog"
+            aria-label={label}
+            className="flex max-h-[min(28rem,calc(100vh-8rem))] w-[16.5rem] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.35)]"
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2">
+              <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Cerrar"
+                className="inline-flex size-8 items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-2">{children(close)}</div>
+          </div>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={open ? panelId : undefined}
+          aria-haspopup="dialog"
+          onClick={() => setPinned((value) => !value)}
+          data-section-tracker="true"
+          className="inline-flex max-w-[11.5rem] min-h-11 items-center gap-1.5 rounded-full border border-[#e6e9f0] bg-white/95 py-1 pr-2.5 pl-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        >
+          {trigger}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Section navigation + progress for /mi-empresa/detalles.
  * Below lg: sticky horizontal pills plus a small completion ring.
- * lg+: one sticky left column with the ring, scroll-spy sections, and pending
- * sub-items expanded on the active section only (compact ~216px at 1024).
+ * lg+: floating overlay (ring, count, current section) that expands to the full list.
  */
 export function DetailSectionNav({
   items,
@@ -135,25 +237,32 @@ export function DetailSectionNav({
         </div>
       </nav>
 
-      <nav aria-label="Tu progreso" className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
-        <div className="sticky top-16 flex max-h-[calc(100vh-5.5rem)] flex-col gap-3 overflow-y-auto rounded-2xl border border-[#e6e9f0] bg-white p-3 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
-          <div className="flex flex-col items-center gap-1.5 border-b border-[#eef0f4] pb-3">
-            <CompletionRing done={progress.done} total={progress.total} size={52} />
-            <p className="text-center text-[11px] leading-4 font-medium text-[#64748b]">
-              {progress.done} de {progress.total} secciones
-            </p>
-          </div>
+      <FloatingSectionOverlay
+        label="Tu progreso"
+        trigger={
+          <>
+            <CompletionRing done={progress.done} total={progress.total} size={36} />
+            <span className="max-w-[7.5rem] truncate text-[13px] font-semibold text-[#1c2740]">
+              {items.find((item) => item.id === active)?.label ?? items[0]?.label ?? "Secciones"}
+            </span>
+          </>
+        }
+      >
+        {(close) => (
           <ul className="flex flex-col gap-0.5">
             {groups.map(({ item, pending }) => {
               const current = item.id === active;
-              const open = current;
+              const expanded = current;
               return (
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
-                    aria-expanded={pending.length > 0 ? open : undefined}
-                    onClick={jump(item.id)}
+                    aria-expanded={pending.length > 0 ? expanded : undefined}
+                    onClick={(event) => {
+                      jump(item.id)(event);
+                      close();
+                    }}
                     className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}
@@ -163,18 +272,21 @@ export function DetailSectionNav({
                     <span className="sr-only">{statusText[item.status]}</span>
                     {pending.length > 0 ? (
                       <ChevronDown
-                        className={`size-3.5 shrink-0 text-[#8b95a7] transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+                        className={`size-3.5 shrink-0 text-[#8b95a7] transition-transform duration-200 motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
                         aria-hidden
                       />
                     ) : null}
                   </a>
-                  {open && pending.length > 0 ? (
+                  {expanded && pending.length > 0 ? (
                     <ul className="mt-0.5 ml-[1.0625rem] flex flex-col border-l border-[#eef0f4] pl-2">
                       {pending.map((field) => (
                         <li key={field.id}>
                           <a
                             href={`#${field.id}`}
-                            onClick={jump(field.id)}
+                            onClick={(event) => {
+                              jump(field.id)(event);
+                              close();
+                            }}
                             className="group flex items-start gap-2 rounded-md px-1.5 py-1.5 text-[13px] leading-snug focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
                           >
                             <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
@@ -196,8 +308,8 @@ export function DetailSectionNav({
               );
             })}
           </ul>
-        </div>
-      </nav>
+        )}
+      </FloatingSectionOverlay>
     </>
   );
 }

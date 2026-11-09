@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { companyCopy } from "@/lib/company-copy";
+import { isIntEnvironment } from "@/lib/int-env";
 import { adjustmentDocumentExtension } from "@/lib/ebitda-adjustments";
 import { writeAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -15,7 +16,9 @@ export async function storeAdjustmentDocument(
   fileName: string,
   bytes: Uint8Array,
 ): Promise<StoreAdjustmentDocumentResult> {
-  // INT guard: uploads disabled until isolated storage wired
+  if (isIntEnvironment()) {
+    return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
+  }
   const { assertUploadsEnabled } = await import("./int-guards");
   assertUploadsEnabled();
   

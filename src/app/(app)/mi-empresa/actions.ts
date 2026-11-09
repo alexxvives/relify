@@ -4,6 +4,7 @@ import { submitForReviewIfReady } from "@/server/submitForReview";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
+import { isIntEnvironment } from "@/lib/int-env";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import {
   closedFieldName,
@@ -186,6 +187,9 @@ export async function storeAdjustmentDocumentAction(formData: FormData): Promise
     }
     return await storeAdjustmentDocument(user, file.name, await file.read());
   } catch {
+    if (isIntEnvironment()) {
+      return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
+    }
     return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };
   }
 }

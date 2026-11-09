@@ -745,30 +745,21 @@ export function CompanyDetailsSkeleton() {
   );
   return (
     <Shell>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      <div className="grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Bare className="h-9 w-48" />
-        <Tabs />
+        <div className="justify-self-center">
+          <Tabs />
+        </div>
+        <div className="hidden lg:block" aria-hidden />
       </div>
-      {/* Merged sticky left progress + section index; form takes the remaining width. */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 overflow-hidden lg:hidden">
           <B className="size-9 shrink-0 rounded-full" />
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="hidden lg:col-start-1 lg:row-start-1 lg:block">
-          <div className="flex flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-3">
-            <div className="flex flex-col items-center gap-2 border-b border-[#eef0f4] pb-3">
-              <B className="size-12 rounded-full" />
-              <B className="h-3 w-24" />
-            </div>
-            {[0, 1, 2, 3].map((index) => (
-              <B key={`rail-${index}`} className="h-9 w-full rounded-lg" />
-            ))}
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
+        <div className="flex min-w-0 flex-col gap-4">
           {panel(true, 0)}
           {panel(false, 1)}
           {panel(false, 2)}
@@ -1083,9 +1074,12 @@ export function AdminCompanySkeleton() {
 export function FichaPublicaSkeleton() {
   return (
     <Shell>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      <div className="grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Bare className="h-9 w-48" />
-        <Tabs />
+        <div className="justify-self-center">
+          <Tabs />
+        </div>
+        <div className="hidden lg:block" aria-hidden />
       </div>
       <Card>
         <B className="h-5 w-72" />
