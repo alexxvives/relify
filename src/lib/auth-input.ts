@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { authCopy } from "./auth-copy";
 import { isValidPhoneNational, phoneCountryByIso } from "./phone-countries";
+import { safeReturnPath } from "./sign-in-return";
 
 export { storedPhone } from "./phone-countries";
 import { isValidSpanishPersonId } from "./spanish-cif";
@@ -137,12 +138,15 @@ export function homeForRole(role: UserRoleName | null): string {
   return "/cuenta";
 }
 
-export function destinationForUser(user: { role: UserRoleName | null; onboarded: boolean }): string {
+export function destinationForUser(
+  user: { role: UserRoleName | null; onboarded: boolean },
+  next?: string | null,
+): string {
   if (!user.onboarded) {
     return "/onboarding";
   }
 
-  return homeForRole(user.role);
+  return safeReturnPath(next) ?? homeForRole(user.role);
 }
 
 export function accountDisplayName(name: string, lastName: string | null): string {

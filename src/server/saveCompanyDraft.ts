@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { codenameIsFree, uniqueCodename } from "@/server/uniqueCodename";
 import { isCuratedNickname } from "@/lib/nickname";
 import { companyCopy } from "@/lib/company-copy";
+import { canonicalCnaeCode } from "@/lib/cnae-2009";
 import {
   projectSlug,
   type CompanyDraftInput,
@@ -212,13 +213,13 @@ export async function saveCompanyDraft(
       ? []
       : [
           {
-            code: input.principalCnae,
+            code: canonicalCnaeCode(input.principalCnae) ?? input.principalCnae,
             role: "principal" as const,
             position: 1,
           },
         ]),
     ...input.secondaryCnaes.map((code, index) => ({
-      code,
+      code: canonicalCnaeCode(code) ?? code,
       role: "secondary" as const,
       position: index + 1,
     })),

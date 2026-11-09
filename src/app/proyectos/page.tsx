@@ -1,18 +1,44 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ProjectCard } from "@/components/project-card";
 import { PublicSite } from "@/components/public-site";
+import { authCopy } from "@/lib/auth-copy";
 import { catalogCopy } from "@/lib/catalog-copy";
+import { signInHref } from "@/lib/sign-in-return";
+import { getCurrentUser } from "@/server/getCurrentUser";
 import { listPublicProjects } from "@/server/listPublicProjects";
 
-export const metadata: Metadata = {
-  title: catalogCopy.indexTitle,
-  description: catalogCopy.indexDescription,
-  alternates: {
-    canonical: "/proyectos",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return {
+      title: authCopy.signInTitle,
+      robots: { index: false, follow: false },
+    };
+  }
+
+  return {
+    title: catalogCopy.indexTitle,
+    description: catalogCopy.indexDescription,
+    alternates: {
+      canonical: "/proyectos",
+    },
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function ProjectsPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(signInHref("/proyectos"));
+  }
+
+  if (!user.onboarded) {
+    redirect("/onboarding");
+  }
+
   const projects = await listPublicProjects();
 
   return (

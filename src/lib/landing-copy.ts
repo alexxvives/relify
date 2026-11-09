@@ -236,6 +236,36 @@ export const landingCopy = {
         ],
       ],
       cta: "Publicar mi empresa",
+      badge: "120 días de media",
+      dayLabel: "Día",
+      ofLabel: "de 120",
+      timeline: [
+        {
+          day: 1,
+          title: "Publicas la ficha",
+          body: "Sale con región, cifras y precio. La razón social se queda fuera.",
+        },
+        {
+          day: 30,
+          title: "Llega el interés",
+          body: "Compradores que ya buscan por ciudad y sector piden conexión.",
+        },
+        {
+          day: 60,
+          title: "Tú eliges con quién hablar",
+          body: "Tú marcas qué encaja. La operación no se convierte en un anuncio.",
+        },
+        {
+          day: 90,
+          title: "NDA y conversación",
+          body: "Tras el acuerdo se abren el chat, las cifras cerradas y los documentos.",
+        },
+        {
+          day: 120,
+          title: "Cierre",
+          body: "Relify te avisa en cada paso. Avanzas sin perder el control.",
+        },
+      ],
     },
     flow: {
       id: "como-funciona",

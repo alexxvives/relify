@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { BadgeCheck, Heart, Link2, Lock, MapPin } from "lucide-react";
+import { BadgeCheck, Lock, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { InvestorProject } from "@/components/investor-project";
 import { ProjectSkeleton } from "@/components/page-skeletons";
-import { PublicSite } from "@/components/public-site";
 import { ProjectFigures } from "@/components/project-card";
 import { catalogCopy } from "@/lib/catalog-copy";
+import { projectDetailMetadata, projectSignInHref } from "@/lib/project-page-access";
 import { spanishDate } from "@/lib/deal-documents";
 import { dealPipeline, processFlags, type DealStep } from "@/lib/deal-pipeline";
 import { madridToday } from "@/lib/meeting";
@@ -68,22 +68,18 @@ function readTab(value: string | string[] | undefined): ProjectTab {
 export async function generateMetadata({
   params,
 }: PageProps<"/proyectos/[slug]">): Promise<Metadata> {
-  const { slug } = await params;
-  const project = await getPublicProject(slug);
+  const user = await getCurrentUser();
 
-  if (!project) {
-    return { title: catalogCopy.missingTitle };
+  if (!user) {
+    return projectDetailMetadata({ signedIn: false, project: null });
   }
 
-  const description = `${project.codename} en ${project.region}. Facturación, EBITDA y precio en euros, sin el nombre legal.`;
-
-  return {
-    title: project.codename,
-    description,
-    alternates: {
-      canonical: `/proyectos/${project.slug}`,
-    },
-  };
+  const { slug } = await params;
+  const project = await getPublicProject(slug);
+  return projectDetailMetadata({
+    signedIn: true,
+    project: project ? { slug: project.slug, codename: project.codename, region: project.region } : null,
+  });
 }
 
 async function InvestorProjectContent({
@@ -164,16 +160,20 @@ export default async function ProjectDetailPage({
 }: PageProps<"/proyectos/[slug]">) {
   const { slug } = await params;
   const query = await searchParams;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(projectSignInHref(slug));
+  }
+
+  if (!user.onboarded) {
+    redirect("/onboarding");
+  }
+
   const project = await getPublicProject(slug);
 
   if (!project) {
     notFound();
-  }
-
-  const user = await getCurrentUser();
-
-  if (user && !user.onboarded) {
-    redirect("/onboarding");
   }
 
   // Sellers manage their own company from Mis procesos (company + buyer card per process);
@@ -192,16 +192,11 @@ export default async function ProjectDetailPage({
     );
   }
 
-  const signedIn = user !== null;
   if (project.sold) {
-    return signedIn ? (
+    return (
       <AppShell>
         <SoldNotice codename={project.codename} />
       </AppShell>
-    ) : (
-      <PublicSite>
-        <SoldNotice codename={project.codename} />
-      </PublicSite>
     );
   }
   const listing = (
@@ -218,29 +213,10 @@ export default async function ProjectDetailPage({
                 {project.region}
               </p>
             </div>
-            {signedIn ? null : (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/entrar"
-                aria-label={catalogCopy.saveCompany}
-                className="inline-flex size-11 items-center justify-center border border-public-ink text-public-ink hover:bg-public-sand"
-              >
-                <Heart className="size-4" aria-hidden />
-              </Link>
-              <Link
-                href="/entrar"
-                className="inline-flex h-11 items-center gap-2 bg-public-clay px-4 text-sm text-public-paper hover:bg-public-clay-deep"
-              >
-                <Link2 className="size-4" aria-hidden />
-                {catalogCopy.connect}
-              </Link>
-            </div>
-            )}
           </div>
           <div className="mt-6">
             <ProjectFigures project={project} tone="public" />
           </div>
-          {signedIn ? null : <p className="mt-4 text-sm text-public-muted">{catalogCopy.signInToAct}</p>}
         </section>
         <section aria-labelledby="cifras-bloqueadas">
           <h2 id="cifras-bloqueadas" className="flex items-center gap-2 text-2xl tracking-tight">
@@ -259,26 +235,13 @@ export default async function ProjectDetailPage({
               </div>
             ))}
           </dl>
-          {signedIn ? null : (
-            <Link
-              href="/entrar"
-              className="mt-6 inline-flex h-12 items-center gap-2 bg-public-clay px-6 text-base text-public-paper hover:bg-public-clay-deep"
-            >
-              <Lock className="size-4" aria-hidden />
-              Entra y conecta para ver las cifras
-            </Link>
-          )}
         </section>
       </main>
   );
 
-  if (signedIn) {
-    return (
-      <AppShell>
-        <div className="text-public-ink">{listing}</div>
-      </AppShell>
-    );
-  }
-
-  return <PublicSite>{listing}</PublicSite>;
+  return (
+    <AppShell>
+      <div className="text-public-ink">{listing}</div>
+    </AppShell>
+  );
 }

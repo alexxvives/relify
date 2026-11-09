@@ -212,7 +212,7 @@ async function generateCorrectedSeed() {
   const sabiCnaeId = deterministicUUID("int-cnae", `${sabiProjectId}-6201`);
   lines.push("");
   lines.push(`INSERT INTO "project_cnae" (id, project_id, code, role, position)`);
-  lines.push(`VALUES (${sqlString(sabiCnaeId)}, ${sqlString(sabiProjectId)}, '6201', 'principal', 0)`);
+  lines.push(`VALUES (${sqlString(sabiCnaeId)}, ${sqlString(sabiProjectId)}, '62.01', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
   
   // Years with meaningful financials (semantic correct: EBITDA not EBIT, total assets not non-current only)
@@ -274,7 +274,7 @@ async function generateCorrectedSeed() {
   const manualCnaeId = deterministicUUID("int-cnae", `${manualProjectId}-7022`);
   lines.push("");
   lines.push(`INSERT INTO "project_cnae" (id, project_id, code, role, position)`);
-  lines.push(`VALUES (${sqlString(manualCnaeId)}, ${sqlString(manualProjectId)}, '7022', 'principal', 0)`);
+  lines.push(`VALUES (${sqlString(manualCnaeId)}, ${sqlString(manualProjectId)}, '70.22', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
   
   // Buyer NDA states

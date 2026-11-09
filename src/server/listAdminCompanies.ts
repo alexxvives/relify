@@ -4,7 +4,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { materializePendingCompanies } from "@/server/sellerCompany";
 import type { PublicProjectCard } from "@/lib/public-project";
-import { cnaeTitle } from "@/lib/cnae-2009";
+import { cnaeCardFields } from "@/lib/cnae-2009";
 import { sellerFinancingChip, storedSellerFinancing } from "@/lib/seller-financing";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import {
@@ -111,8 +111,7 @@ export async function listAdminCompanies(
       sectorLabel: sectorMultiples[sector].label,
       headcount: project.headcountRange,
       foundedDecade: foundedDecade(project.foundedYear),
-      cnaeCode: code,
-      cnaeTitle: code ? cnaeTitle(code) : null,
+      ...(code ? cnaeCardFields(code, sectorMultiples[sector].label) : { cnaeCode: null, cnaeTitle: null }),
       summary: project.description?.trim() || null,
       financingChip: sellerFinancingChip(storedSellerFinancing(project)),
       coverSrc: covers.get(project.id) ?? null,

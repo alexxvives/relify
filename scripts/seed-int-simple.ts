@@ -197,13 +197,13 @@ async function seedInt() {
     where: {
       projectId_code: {
         projectId: projectSabi.id,
-        code: "6201"
+        code: "62.01"
       }
     },
     create: {
       id: randomUUID(),
       projectId: projectSabi.id,
-      code: "6201",
+      code: "62.01",
       role: "principal",
       position: 0,
     },
@@ -273,13 +273,13 @@ async function seedInt() {
     where: {
       projectId_code: {
         projectId: projectManual.id,
-        code: "7022"
+        code: "70.22"
       }
     },
     create: {
       id: randomUUID(),
       projectId: projectManual.id,
-      code: "7022",
+      code: "70.22",
       role: "principal",
       position: 0,
     },

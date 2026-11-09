@@ -27,6 +27,7 @@ If a check script does not exist yet, the task is not done.
 - Dependencies and product decisions change only through `docs/DECISIONS.md`.
 - Before calling a library API that this repo does not already use, look it up with the Context7 MCP. Do not invent APIs from memory.
 - Never commit secrets. Never print `.env` values into chat, logs, or source.
+- Never deploy to production. Only Alex deploys to prod after validating in INT. Do not run `npm run deploy`, `npm run deploy:vinext`, `vinext-cloudflare deploy`, or `wrangler deploy`.
 - Shell is Windows PowerShell. Do not use bash heredocs or `export`.
 
 ## Where things live

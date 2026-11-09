@@ -32,5 +32,7 @@ export async function signInAction(_state: SignInState, formData: FormData): Pro
     return { message: result.message };
   }
 
-  redirect(destinationForUser(result));
+  const rawNext = formData.get("siguiente");
+  const next = typeof rawNext === "string" ? rawNext : null;
+  redirect(destinationForUser(result, next));
 }

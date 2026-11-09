@@ -7,11 +7,12 @@ import { ArrowRight } from "lucide-react";
 import { authSubmitClassName, EmailField, PasswordField } from "@/components/auth-field";
 import { authCopy } from "@/lib/auth-copy";
 
-export function SignInForm() {
+export function SignInForm({ nextPath = null }: { nextPath?: string | null }) {
   const [state, action, pending] = useActionState<SignInState, FormData>(signInAction, null);
 
   return (
     <form action={action} className="flex flex-col gap-4 short:gap-3">
+      {nextPath ? <input type="hidden" name="siguiente" value={nextPath} /> : null}
       <EmailField />
       <PasswordField autoComplete="current-password" maxLength={128} placeholder={authCopy.passwordLabel} />
       <Link href="/olvide-contrasena" className="-mt-2 self-end text-sm font-medium text-[#14998a] hover:text-[#0f8578]">

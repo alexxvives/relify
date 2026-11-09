@@ -1,0 +1,13 @@
+---
+description: Never deploy Releva to production
+alwaysApply: true
+---
+
+# Never deploy to production
+
+Never deploy to production. Only Alex deploys to prod after validating in INT.
+
+- Do not run `npm run deploy`, `npm run deploy:vinext`, `npx vinext-cloudflare deploy`, `npx wrangler deploy`, or `wrangler deploy`.
+- Do not patch `node_modules/cf` (or any `strict` flag) to force a deploy.
+- Do not target Worker `releva`. INT, if ever asked, is `releva-int` via `scripts/deploy-int.sh` only.
+- Pushing this branch is not a deploy. Do not merge to `main` unless Alex asks.

@@ -154,7 +154,7 @@ async function generateSeedSql() {
   
   // CNAE for SABI project
   lines.push(`INSERT INTO "project_cnae" (id, project_id, code, role, position)`);
-  lines.push(`VALUES (${sqlString(randomUUID())}, ${sqlString(sabiProjectId)}, '6201', 'principal', 0)`);
+  lines.push(`VALUES (${sqlString(randomUUID())}, ${sqlString(sabiProjectId)}, '62.01', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
   lines.push("");
   
@@ -203,7 +203,7 @@ async function generateSeedSql() {
   lines.push("");
   
   lines.push(`INSERT INTO "project_cnae" (id, project_id, code, role, position)`);
-  lines.push(`VALUES (${sqlString(randomUUID())}, ${sqlString(manualProjectId)}, '7022', 'principal', 0)`);
+  lines.push(`VALUES (${sqlString(randomUUID())}, ${sqlString(manualProjectId)}, '70.22', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
   lines.push("");
   

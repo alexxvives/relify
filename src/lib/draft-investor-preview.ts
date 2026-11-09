@@ -1,7 +1,7 @@
 import { storedSellerStay } from "./seller-stay";
 import { sellerFinancingWrite, storedSellerFinancing } from "./seller-financing";
 import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
-import { cnaeTitle } from "./cnae-2009";
+import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
 import { eurosToCents, optionalEurosToCents, projectSlug, type CompanyDraftInput } from "./company-draft";
 import {
@@ -121,7 +121,6 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
   });
   const incomeYears: InvestorYearColumn[] = incomeSource.map((column) => ({ year: column.year, forecast: column.forecast }));
   const principal = input.principalCnae.trim();
-  const principalTitle = cnaeTitle(principal);
   const description = input.description.trim();
   const founded = /^\d{4}$/.test(input.foundedYear) ? Number(input.foundedYear) : null;
 
@@ -144,11 +143,10 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     sellerStay: storedSellerStay(input.sellerStay),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
-    principalCnae: principalTitle ? { code: principal, title: principalTitle } : null,
+    principalCnae: principal.length > 0 ? { code: formatCnaeCode(principal), title: cnaeDisplayTitle(principal) } : null,
     secondaryCnaes: input.secondaryCnaes.flatMap((code) => {
       const trimmed = code.trim();
-      const title = cnaeTitle(trimmed);
-      return title ? [{ code: trimmed, title }] : [];
+      return trimmed.length > 0 ? [{ code: formatCnaeCode(trimmed), title: cnaeDisplayTitle(trimmed) }] : [];
     }),
     capital: slicesFor("capital", input.capitalPercents),
     products: slicesFor("product", input.productPercents),

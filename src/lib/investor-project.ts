@@ -2,7 +2,7 @@ import { storedSellerFinancing, type SellerFinancing } from "./seller-financing"
 import { storedSellerStay, type SellerStay } from "./seller-stay";
 import { storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import type { Prisma } from "@/generated/prisma/client";
-import { cnaeTitle } from "./cnae-2009";
+import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { toSabiYear, type SabiYear } from "./sabi/insights";
 import { balanceLabels, incomeLabels } from "./company-copy";
 import {
@@ -338,13 +338,13 @@ function withData<T extends { values: Array<number | null> }>(rows: T[]): T[] {
 }
 
 function cnaeChip(code: string): InvestorCnae | null {
-  const title = cnaeTitle(code);
+  const trimmed = code.trim();
 
-  if (!title) {
+  if (trimmed.length === 0) {
     return null;
   }
 
-  return { code, title };
+  return { code: formatCnaeCode(trimmed), title: cnaeDisplayTitle(trimmed) };
 }
 
 function slicesFor(record: InvestorProjectRecord, kind: SliceKind): InvestorSlice[] {

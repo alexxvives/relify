@@ -18,10 +18,12 @@ export function AuthScreen({
   mode,
   intent = null,
   token = null,
+  nextPath = null,
 }: {
   mode: AuthMode;
   intent?: SignupIntent | null;
   token?: string | null;
+  nextPath?: string | null;
 }) {
   const signingUp = mode === "sign-up";
   const card =
@@ -46,7 +48,7 @@ export function AuthScreen({
           : {
               title: authCopy.signInCardTitle,
               intro: authCopy.signInIntro,
-              form: <SignInForm />,
+              form: <SignInForm nextPath={nextPath} />,
             };
 
   return (

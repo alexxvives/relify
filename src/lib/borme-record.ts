@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { isCnaeCode } from "./cnae-2009";
+import { canonicalCnaeCode } from "./cnae-2009";
 import { anonymousCodename, type RegistryCompany } from "./company-registry";
 import { isFoundedYear, type HeadcountRangeId } from "./company-profile";
 import { normalizeCif } from "./spanish-cif";
@@ -234,25 +234,7 @@ function principalCnae(fromSearch: string | null | undefined, fromCompany: strin
 }
 
 export function cnaeOrEmpty(raw: string | null | undefined): string {
-  if (!raw) {
-    return "";
-  }
-
-  const trimmed = raw.trim();
-
-  if (isCnaeCode(trimmed)) {
-    return trimmed;
-  }
-
-  const digits = trimmed.replace(/\D/g, "");
-
-  if (digits.length !== 4) {
-    return "";
-  }
-
-  const dotted = `${digits.slice(0, 2)}.${digits.slice(2)}`;
-
-  return isCnaeCode(dotted) ? dotted : "";
+  return canonicalCnaeCode(raw ?? "") ?? "";
 }
 
 function headcountFromWorkers(workers: string | number | null | undefined): HeadcountRangeId | null {

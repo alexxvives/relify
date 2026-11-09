@@ -21,21 +21,25 @@ export function LandingNav({
   const [mobile, setMobile] = useState(false);
 
   return (
-    <div className="relative ml-auto flex items-center gap-2">
-      <nav className="hidden items-center gap-1 lg:flex" aria-label="Secciones" onMouseLeave={() => setOpen(null)}>
+    <>
+      <nav
+        className="pointer-events-auto absolute top-1/2 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 lg:flex xl:gap-1"
+        aria-label="Secciones"
+        onMouseLeave={() => setOpen(null)}
+      >
         {landingCopy.nav.map((group) => (
           <div key={group.label} className="relative" onMouseEnter={() => setOpen(group.links.length > 1 ? group.label : null)}>
             {group.links.length === 1 && group.links[0] ? (
               <Link
                 href={group.links[0].href}
-                className={`flex min-h-11 items-center rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+                className={`flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
               >
                 {group.label}
               </Link>
             ) : (
             <button
               type="button"
-              className={`flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+              className={`flex min-h-11 items-center gap-1 rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
               aria-expanded={open === group.label}
             >
               {group.label}
@@ -44,7 +48,7 @@ export function LandingNav({
             )}
             {group.links.length > 1 ? (
             <div
-              className={`absolute top-full left-0 z-50 min-w-56 pt-3 transition ${open === group.label ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
+              className={`absolute top-full left-1/2 z-50 min-w-56 -translate-x-1/2 pt-3 transition ${open === group.label ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
             >
               <div className="rounded-3xl bg-public-card p-2 text-public-ink shadow-public">
                 {group.links.map((link) => (
@@ -59,11 +63,12 @@ export function LandingNav({
         ))}
         <Link
           href={landingCopy.waitlistNav.href}
-          className={`flex min-h-11 items-center rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:bg-white/15" : "text-public-ink hover:bg-public-sand"}`}
+          className={`flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:bg-white/15" : "text-public-ink hover:bg-public-sand"}`}
         >
           {landingCopy.waitlistNav.label}
         </Link>
       </nav>
+      <div className="relative z-20 ml-auto flex items-center gap-2">
       <Link href={accountHref} className={`${solidLink} max-lg:hidden`}>
         {accountLabel}
       </Link>
@@ -125,6 +130,7 @@ export function LandingNav({
           </Link>
         </div>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }

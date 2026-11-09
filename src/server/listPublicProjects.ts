@@ -1,7 +1,7 @@
 import { prisma } from "@/server/db";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { publicProjectSelect, publicProjectWhere } from "@/lib/public-project";
-import { cnaeTitle } from "@/lib/cnae-2009";
+import { cnaeCardFields } from "@/lib/cnae-2009";
 import { sellerFinancingChip, storedSellerFinancing } from "@/lib/seller-financing";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import {
@@ -52,8 +52,7 @@ export async function listPublicProjects(): Promise<PublicProjectCard[]> {
       sectorLabel: sectorMultiples[sector].label,
       headcount: row.headcountRange,
       foundedDecade: foundedDecade(row.foundedYear),
-      cnaeCode: code,
-      cnaeTitle: code ? cnaeTitle(code) : null,
+      ...(code ? cnaeCardFields(code, sectorMultiples[sector].label) : { cnaeCode: null, cnaeTitle: null }),
       summary: row.description?.trim() || null,
       financingChip: sellerFinancingChip(storedSellerFinancing(row)),
       coverSrc: covers.get(row.id) ?? null,

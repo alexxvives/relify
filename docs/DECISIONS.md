@@ -2,6 +2,14 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-09 — Only Alex deploys production, after INT
+
+Worker `releva` is production. `npm run deploy` and `npm run deploy:vinext` must refuse unless `RELIFY_DEPLOY_PROD=yes`, the git branch is `main`, stdin is a TTY, and the operator types `releva`. Agents never deploy, never run wrangler/vinext-cloudflare against `releva`, and never patch `node_modules/cf` to force a publish. INT stays on `scripts/deploy-int.sh` / Worker `releva-int`.
+
+## 2026-11-09 — Company fichas require a session
+
+`/proyectos/<slug>` is not a public page. A logged-out request redirects to `/entrar?siguiente=…` without loading the project, so the HTML, RSC payload, and metadata do not include codename, region, or figures. `/proyectos` is the same. Signed-in `(app)` routes already go through AppShell.
+
 ## 2026-11-08 — Logout must revoke the session row, not only the browser cookie
 
 Better Auth `session.cookieCache` (default 5 minutes, signed `session_data`) answers `/get-session` without reading the session table. Logout deletes the row and clears cookies, but a replayed cookie still authenticates until that cache expires. Releva stores sessions in Postgres, so cookieCache stays off and `getCurrentUser` / onboarding pass `disableCookieCache`. One extra unique lookup on `session.token` per request. Do not turn the cache back on for INT only.

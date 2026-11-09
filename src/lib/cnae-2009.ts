@@ -637,10 +637,71 @@ export const cnaeClasses: readonly CnaeClass[] = [
 
 const cnaeTitles = new Map(cnaeClasses.map((item) => [item.code, item.title]));
 
+/** Catalog codes are dotted (`62.01`). SABI and some seeds store four digits (`6201`). */
+export function canonicalCnaeCode(code: string): string | null {
+  const trimmed = code.trim();
+
+  if (cnaeTitles.has(trimmed)) {
+    return trimmed;
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
+
+  if (digits.length !== 4) {
+    return null;
+  }
+
+  const dotted = `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  return cnaeTitles.has(dotted) ? dotted : null;
+}
+
+export function formatCnaeCode(code: string): string {
+  const canonical = canonicalCnaeCode(code);
+
+  if (canonical) {
+    return canonical;
+  }
+
+  const digits = code.trim().replace(/\D/g, "");
+
+  if (digits.length === 4) {
+    return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  }
+
+  return code.trim();
+}
+
 export function cnaeTitle(code: string): string | null {
-  return cnaeTitles.get(code) ?? null;
+  const canonical = canonicalCnaeCode(code);
+  return canonical ? (cnaeTitles.get(canonical) ?? null) : null;
+}
+
+export function cnaeDisplayTitle(code: string, fallback?: string | null): string {
+  const title = cnaeTitle(code);
+
+  if (title) {
+    return title;
+  }
+
+  const extra = fallback?.trim() ?? "";
+
+  if (extra.length > 0) {
+    return extra;
+  }
+
+  return `Actividad CNAE ${formatCnaeCode(code)}`;
+}
+
+export function cnaeCardFields(
+  code: string,
+  fallbackTitle?: string | null,
+): { cnaeCode: string; cnaeTitle: string } {
+  return {
+    cnaeCode: formatCnaeCode(code),
+    cnaeTitle: cnaeDisplayTitle(code, fallbackTitle),
+  };
 }
 
 export function isCnaeCode(code: string): boolean {
-  return cnaeTitles.has(code);
+  return canonicalCnaeCode(code) !== null;
 }

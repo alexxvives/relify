@@ -14,7 +14,7 @@ Releva sells anonymized SME projects. Identity stays on the seller's own draft. 
 
 | Audience | Allowed | Kept off the response |
 | --- | --- | --- |
-| Public visitor | Codename, region, revenue, EBITDA, adjusted EBITDA, asking price. Deuda neta, capital circulante, and resultado neto render as bloqueado. | `legalName`, `cif`, address, shareholder names, `dataRoomFiles` / file names |
+| Public visitor | Marketing copy only. `/proyectos` and `/proyectos/[slug]` redirect to `/entrar` without loading the company, so HTML, RSC, and metadata must not include codename, region, or figures. | Live project rows, `legalName`, `cif`, address, shareholder names, `dataRoomFiles` / file names |
 | Signed-in investor | `investorProjectSelect` in `src/lib/investor-project.ts`: profile, CNAE, anonymous activity slices, headcount band, year statements | Same identity fields. NDA does not add them |
 | Seller, own draft | Legal name, CIF, and address on `/mi-empresa/detalles` only | Those fields on `/proyectos`, `/mercado`, notices, or another user's page |
 | Advisor, public list | Sectors, services, price range. The card says Asesor | Person's name, commercial name, NIF, email, documents, company legal name |
@@ -31,4 +31,4 @@ Seller notices say "Un inversor" plus the codename. They do not include the inve
 2. Reuse `publicProjectSelect` / `publicProjectWhere` or `investorProjectSelect`. Add a column to the select only when this table allows that audience to see it.
 3. Extend the matching test in `src/lib/public-project.test.ts` or `src/lib/investor-project.test.ts` so the private keys stay absent.
 4. Money stays integer cents and is formatted in the UI.
-5. For a rendered page, sign in as that role in the Cursor IDE browser and confirm the HTML does not contain the seeded identity strings: Duna Servicios, B11223344, Avenida Marítima, Lucía Herrera, impuestos-duna.pdf. A draft slug returns 404 on `/proyectos/[slug]`.
+5. For a rendered page, sign in as that role in the Cursor IDE browser and confirm the HTML does not contain the seeded identity strings: Duna Servicios, B11223344, Avenida Marítima, Lucía Herrera, impuestos-duna.pdf. A logged-out `/proyectos/[slug]` request redirects to login and must not embed those strings or the public figures. A draft slug returns 404 only after sign-in.
