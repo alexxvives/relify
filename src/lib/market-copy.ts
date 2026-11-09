@@ -10,6 +10,7 @@ export const marketCopy = {
   details: "Ver detalles",
   recoveryHint: "Años para recuperar el precio de venta con el EBITDA. Verde si el plazo es corto, naranja si es habitual y rojo si es largo.",
   empty: "Ningún proyecto coincide con esos filtros.",
+  clearFilters: "Limpiar filtros",
   favoritesOnly: "Favoritas",
   favoritesEmpty: "No tienes empresas favoritas con esos filtros.",
   sorts: {

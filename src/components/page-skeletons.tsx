@@ -752,14 +752,29 @@ export function CompanyDetailsSkeleton() {
         </div>
         <div className="hidden lg:block" aria-hidden />
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="relative flex flex-col gap-4">
         <div className="flex items-center gap-2 overflow-hidden lg:hidden">
           <B className="size-9 shrink-0 rounded-full" />
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="flex min-w-0 flex-col gap-4">
+        <div className="pointer-events-none absolute top-0 right-0 hidden lg:block">
+          <div className="hidden xl:block w-[17.25rem] rounded-2xl border border-[#e7eaee] bg-white p-3">
+            <div className="mb-3 flex items-center gap-3">
+              <B className="size-12 rounded-full" />
+              <div className="flex flex-col gap-2">
+                <B className="h-3.5 w-28" />
+                <B className="h-3 w-20" />
+              </div>
+            </div>
+            {[0, 1, 2, 3].map((index) => (
+              <B key={`rail-${index}`} className="mt-2 h-9 w-full rounded-lg" />
+            ))}
+          </div>
+          <B className="size-11 rounded-full xl:hidden" />
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 lg:pr-14 xl:pr-[18.5rem]">
           {panel(true, 0)}
           {panel(false, 1)}
           {panel(false, 2)}
@@ -1094,14 +1109,23 @@ export function FichaPublicaSkeleton() {
           ))}
         </div>
       </Card>
-      <Card>
-        <B className="h-5 w-64" />
-        <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
-          {[0, 1, 2, 3].map((index) => (
-            <B key={index} className="h-24 w-full rounded-xl" />
-          ))}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+        <div className="hidden lg:block">
+          <div className="flex flex-col gap-2 rounded-2xl border border-[#e7eaee] bg-white p-3">
+            {[0, 1, 2, 3, 4].map((index) => (
+              <B key={index} className="h-9 w-full rounded-lg" />
+            ))}
+          </div>
         </div>
-      </Card>
+        <Card className="lg:col-start-2">
+          <B className="h-5 w-64" />
+          <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((index) => (
+              <B key={index} className="h-24 w-full rounded-xl" />
+            ))}
+          </div>
+        </Card>
+      </div>
     </Shell>
   );
 }

@@ -17,6 +17,7 @@ import {
 } from "@/lib/market-filters";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { Input } from "@/components/ui/form";
+import { FilterEmptyState, MutedMarketCards } from "@/components/filter-empty-state";
 
 
 function isMarketSort(value: string): value is MarketSort {
@@ -81,10 +82,12 @@ export function MarketBrowser({
   ].filter(Boolean).length;
   
   function clearFilters() {
+    setQuery("");
     setRevenueBand("any");
     setRegions([]);
     setSector("");
     setSort("recommended");
+    setFavoritesOnly(false);
   }
 
   return (
@@ -250,7 +253,13 @@ export function MarketBrowser({
         </div>
       </div>
       {visible.length === 0 ? (
-        <p className="text-sm text-[#5c6b78]">{favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}</p>
+        <FilterEmptyState
+          message={favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}
+          actionLabel={marketCopy.clearFilters}
+          onClear={clearFilters}
+        >
+          <MutedMarketCards />
+        </FilterEmptyState>
       ) : (
         <div className={`isolate ${marketGridClass}`}>
           {visible.map((project) => {

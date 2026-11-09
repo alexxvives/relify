@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { FloatingSectionOverlay } from "@/components/detail-section-nav";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 import {
   Briefcase,
@@ -118,8 +117,6 @@ export function ReportNav({
   }
 
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
-  const currentItem = items.find((item) => item.id === active) ?? items[0];
-  const CurrentIcon = currentItem ? (icons[currentItem.id] ?? Sparkles) : Sparkles;
 
   return (
     <>
@@ -155,20 +152,8 @@ export function ReportNav({
           </ul>
         </div>
       </nav>
-      <FloatingSectionOverlay
-        label={label}
-        trigger={
-          <>
-            <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#e6f4f2] text-[#0f766e]">
-              <CurrentIcon className="size-4" aria-hidden />
-            </span>
-            <span className="max-w-[9.5rem] truncate text-[13px] font-semibold text-[#1c2740]">
-              {currentItem?.label ?? label}
-            </span>
-          </>
-        }
-      >
-        {(close) => (
+      <nav aria-label={label} className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
+        <div className={`sticky max-h-[calc(100vh-5.5rem)] overflow-y-auto rounded-2xl border border-[#e6e9f0] bg-white p-3 shadow-[0_1px_2px_rgba(28,39,64,0.04)] ${belowFloatingTabs ? "top-16" : "top-4"}`}>
           <ul className="flex flex-col gap-0.5">
             {items.map((item, index) => {
               const Icon = icons[item.id] ?? Sparkles;
@@ -179,10 +164,7 @@ export function ReportNav({
                     href={`#${item.id}`}
                     data-section={`rail-${item.id}`}
                     aria-current={current ? "location" : undefined}
-                    onClick={(event) => {
-                      go(event, item.id);
-                      close();
-                    }}
+                    onClick={(event) => go(event, item.id)}
                     onKeyDown={(event) => keys(event, index)}
                     className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current
@@ -197,8 +179,8 @@ export function ReportNav({
               );
             })}
           </ul>
-        )}
-      </FloatingSectionOverlay>
+        </div>
+      </nav>
     </>
   );
 }

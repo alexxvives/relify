@@ -41,6 +41,7 @@ export const engagementCopy = {
   marketplaceCompanyEmpty: "Sin empresa disponible",
   advisorRequested: "Hemos enviado tu solicitud. La verás en el chat con el asesor.",
   marketplaceEmpty: "Ningún asesor publicado encaja con esos filtros.",
+  clearFilters: "Limpiar filtros",
   noRatings: "Sin valoraciones",
   casesTitle: "Casos cerrados",
   noCases: "Todavía no ha publicado casos cerrados.",

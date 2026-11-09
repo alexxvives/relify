@@ -18,6 +18,7 @@ import {
   type PublicAdvisorCard,
 } from "@/lib/advisor-directory";
 import { engagementCopy } from "@/lib/engagement-copy";
+import { FilterEmptyState, MutedAdvisorCards } from "@/components/filter-empty-state";
 
 const serviceStyle = {
   "due-diligence": { icon: Search, wash: "bg-[#eef2ff] text-[#465ab4]", fill: "bg-[#e4ebff]", mark: "bg-[#465ab4]" },
@@ -169,7 +170,19 @@ function AdvisorMarket({
           </label>
         </div>
       </div>
-      {sorted.length === 0 ? <p className="text-sm text-[#5c6b78]">{engagementCopy.marketplaceEmpty}</p> : null}
+      {sorted.length === 0 ? (
+        <FilterEmptyState
+          message={engagementCopy.marketplaceEmpty}
+          actionLabel={engagementCopy.clearFilters}
+          onClear={() => {
+            setSector("");
+            setService("");
+            setSort("recommended");
+          }}
+        >
+          <MutedAdvisorCards />
+        </FilterEmptyState>
+      ) : (
       <ul className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,26rem),1fr))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
@@ -177,6 +190,7 @@ function AdvisorMarket({
           </li>
         ))}
       </ul>
+      )}
       <div className="mt-8 grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
         <span className="hidden sm:block" />
         <div className="flex justify-center">

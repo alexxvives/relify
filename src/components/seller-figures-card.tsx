@@ -18,7 +18,7 @@ import { sellerKeyFigures } from "@/lib/seller-key-figures";
 type Figures = Pick<InvestorProjectProfile, "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows">;
 
 /**
- * t76/t78: the seller's figures, read-only. Only the key numbers with their year; the charts live in the
+ * t76/t78: the seller's figures, read-only. Only the key numbers; the charts live in the
  * Ficha pública. The seller can open the detail tables or propose a correction.
  */
 export function SellerFiguresCard({ step, figures, reportYears = null }: { step: number; figures: Figures; reportYears?: SabiYear[] | null }) {
@@ -81,10 +81,6 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
                   : tile.unit === "percent"
                     ? `${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(tile.value)} %`
                     : new Intl.NumberFormat("es-ES").format(tile.value)}
-              </dd>
-              <dd className="mt-0.5 text-xs text-[#667085]">
-                {tile.year}
-                {tile.months !== null ? ` (${tile.months} m)` : ""}
               </dd>
             </div>
           ))}

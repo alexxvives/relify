@@ -24,7 +24,7 @@ import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
 import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
-import { formatEur, formatEurTrimmed } from "@/lib/money";
+import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
 import { CardPhotoUploader, type GalleryPhoto } from "@/components/project-gallery";
@@ -361,13 +361,15 @@ function RemoveRowButton({ onClick }: { onClick: () => void }) {
 }
 
 function groupedEuro(value: string): string {
-  const parsed = previewAmount(value);
-
-  if (value.trim().length === 0 || parsed === "—") {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
     return value;
   }
-
-  return parsed.replace(/ €$/, "");
+  const cents = optionalEurosToCents(trimmed);
+  if (cents === null) {
+    return value;
+  }
+  return formatWholeEur(cents).replace(/ €$/, "");
 }
 
 function FigureField({
@@ -433,9 +435,9 @@ function FigureField({
       <div className="flex min-w-0 flex-col items-start gap-2">
         <div className="min-w-0">
           {disabledReason ? (
-            <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
+            <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
           ) : editable && unset ? (
-            <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
+            <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
           ) : editable ? (
             <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
               <input
@@ -444,7 +446,7 @@ function FigureField({
                 aria-label={label}
                 value={shown}
                 placeholder="0"
-                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
+                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
                 onFocus={() => {
                   setEditing(true);
                 }}
@@ -455,10 +457,10 @@ function FigureField({
                   onChange(keepUnsignedEuro(event.target.value));
                 }}
               />
-              <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold text-[#1c2740]">€</span>
+              <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold text-[#1c2740]">€</span>
             </span>
           ) : (
-            <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
+            <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
               {amount === "—" ? amount : `${amount}\u00a0€`}
             </span>
           )}
@@ -568,7 +570,7 @@ function FichaMetrics({
       </div>
       <div className="h-full min-w-0">
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
       </div>
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
@@ -603,12 +605,12 @@ function FichaMetrics({
           }
         >
           {adjustedCents !== null ? (
-            <span className={`flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight tabular-nums ${adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap text-[#1c2740]"}`}>
+            <span className={`flex items-center gap-1.5 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight tabular-nums ${adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap text-[#1c2740]"}`}>
               {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
             </span>
           ) : (
             <button type="button" onClick={() => setAdjustOpen(true)} className="flex flex-col items-start gap-0.5 text-left">
-              <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">—</span>
+              <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">—</span>
               <span className="text-xs font-medium text-[#667085]">Sin ajustes</span>
             </button>
           )}
@@ -1092,7 +1094,7 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
       label={label}
       corner={<AccountsChip />}
     >
-      <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
+      <span className="flex items-center gap-1.5 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
         {cents !== null && cents !== 0 ? (
           <span className={cents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap"}>
             {wholeEur(cents).replace(" €", "\u00a0€")}
@@ -1143,7 +1145,7 @@ function ebitdaByYear(years: ClosedYearInput[]): YearAmount[] {
 }
 
 function wholeEur(cents: number): string {
-  return formatEur(cents).replace(/,00 €$/, " €");
+  return formatWholeEur(cents);
 }
 
 /** Midpoint of the orientative range, rounded to the nearest euro, as the asking-price field stores it. */
@@ -1344,7 +1346,7 @@ function CnaeSelect({
   // the label row is h-8 to line up with the "Secundarios" row and its + button.
   return (
     <div className="flex flex-col gap-3 text-sm font-medium">
-      <p className="flex h-8 items-center">{label}</p>
+      <p className="flex h-9 items-center">{label}</p>
       {select}
     </div>
   );
@@ -1494,9 +1496,11 @@ function AddIconButton({ label, disabled, onClick }: { label: string; disabled: 
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-[#d8dee8] text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#0f766e] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
     >
-      <Plus className="size-4" aria-hidden />
+      <span className="inline-flex size-6 items-center justify-center rounded-full border border-[#d8dee8] bg-white">
+        <Plus className="size-3.5" aria-hidden />
+      </span>
     </button>
   );
 }
@@ -2259,9 +2263,9 @@ export function CompanyDraftForm({
         </div>
         <div className="hidden lg:block" aria-hidden />
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="relative flex flex-col gap-4">
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className={`flex min-w-0 flex-col gap-4 ${tab === "company" ? "lg:pr-14 xl:pr-[18.5rem]" : ""}`}>
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
@@ -2386,7 +2390,7 @@ export function CompanyDraftForm({
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
           <div className="flex flex-col gap-3">
-            <div className="flex h-8 items-center justify-start gap-2">
+            <div className="flex h-9 items-center justify-start gap-2">
               <p className="text-sm font-medium">
                 {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
               </p>
@@ -3055,16 +3059,6 @@ function previewCents(value: string): number | null {
 
   return optionalEurosToCents(trimmed);
 }
-
-function previewAmount(value: string): string {
-  const trimmed = value.trim();
-  if (!/^-?\d{1,12}(,\d{1,2})?$/.test(trimmed)) {
-    return "—";
-  }
-
-  return formatEurTrimmed(optionalEurosToCents(trimmed) ?? 0);
-}
-
 
 function eurosToCentsLabel(cents: number): string {
   const negative = cents < 0;

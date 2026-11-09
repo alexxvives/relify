@@ -66,12 +66,14 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
   );
 }
 
+const trackerWidth = "17.25rem";
+
 /**
- * Compact floating overlay for section navigation at lg+. Sits bottom-left of
- * the content (gutter / small footprint) so it does not reserve a column.
- * Hover or click opens a popover; Esc and a click outside close it.
+ * Floating progress tracker for Información empresa.
+ * xl (≥1280): expanded sticky card at top-right (does not reserve a column; the form
+ * adds matching right padding). lg–xl: collapsed pill at top-right, expands on click.
  */
-export function FloatingSectionOverlay({
+function ProgressTrackerOverlay({
   label,
   trigger,
   children,
@@ -82,13 +84,10 @@ export function FloatingSectionOverlay({
 }) {
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
-  const [pinned, setPinned] = useState(false);
-  const [hover, setHover] = useState(false);
-  const open = pinned || hover;
+  const [open, setOpen] = useState(false);
 
   function close() {
-    setPinned(false);
-    setHover(false);
+    setOpen(false);
   }
 
   useEffect(() => {
@@ -98,14 +97,12 @@ export function FloatingSectionOverlay({
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        setPinned(false);
-        setHover(false);
+        setOpen(false);
       }
     }
     function onPointer(event: PointerEvent) {
       if (root.current && !root.current.contains(event.target as Node)) {
-        setPinned(false);
-        setHover(false);
+        setOpen(false);
       }
     }
     document.addEventListener("keydown", onKey);
@@ -116,63 +113,58 @@ export function FloatingSectionOverlay({
     };
   }, [open]);
 
-  return (
+  const panel = (id: string | undefined, closable: boolean) => (
     <div
-      ref={root}
-      className="pointer-events-none fixed z-40 hidden lg:block"
-      style={{
-        left: "max(0.5rem, calc(var(--layout-sidebar, 0px) + 0.5rem))",
-        bottom: "max(1rem, calc(var(--shell-tabbar, 0px) + 1rem))",
-      }}
+      id={id}
+      role="navigation"
+      aria-label={label}
+      className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[17.25rem] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]"
     >
-      <div
-        className="pointer-events-auto relative"
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-      >
-        {open ? (
-          <div className="absolute bottom-full left-0 pb-2">
-          <div
-            id={panelId}
-            role="dialog"
-            aria-label={label}
-            className="flex max-h-[min(28rem,calc(100vh-8rem))] w-[16.5rem] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.35)]"
+      <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2.5">
+        <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
+        {closable ? (
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Cerrar"
+            className="inline-flex size-8 items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
           >
-            <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2">
-              <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Cerrar"
-                className="inline-flex size-8 items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-              >
-                <X className="size-4" aria-hidden />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-2">{children(close)}</div>
-          </div>
-          </div>
+            <X className="size-4" aria-hidden />
+          </button>
         ) : null}
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={open ? panelId : undefined}
-          aria-haspopup="dialog"
-          onClick={() => setPinned((value) => !value)}
-          data-section-tracker="true"
-          className="inline-flex max-w-[11.5rem] min-h-11 items-center gap-1.5 rounded-full border border-[#e6e9f0] bg-white/95 py-1 pr-2.5 pl-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-        >
-          {trigger}
-        </button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">{children(closable ? close : () => undefined)}</div>
+    </div>
+  );
+
+  return (
+    <div ref={root} className="pointer-events-none absolute top-0 right-0 z-30 hidden lg:block" data-section-tracker="true">
+      <div className="pointer-events-auto sticky top-4 flex flex-col items-end">
+        <div className="hidden xl:block" style={{ width: trackerWidth }}>
+          {panel(undefined, false)}
+        </div>
+        <div className="relative xl:hidden">
+          {open ? <div className="absolute top-full right-0 z-10 pt-2">{panel(panelId, true)}</div> : null}
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={open ? panelId : undefined}
+            aria-haspopup="dialog"
+            onClick={() => setOpen((value) => !value)}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-[#e6e9f0] bg-white/95 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+          >
+            {trigger}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 /**
- * Section navigation + progress for /mi-empresa/detalles.
+ * Section navigation + progress for /mi-empresa/detalles (Información empresa only).
  * Below lg: sticky horizontal pills plus a small completion ring.
- * lg+: floating overlay (ring, count, current section) that expands to the full list.
+ * lg–xl: collapsed pill at top-right; xl: expanded sticky card at top-right.
  */
 export function DetailSectionNav({
   items,
@@ -237,18 +229,23 @@ export function DetailSectionNav({
         </div>
       </nav>
 
-      <FloatingSectionOverlay
+      <ProgressTrackerOverlay
         label="Tu progreso"
-        trigger={
-          <>
-            <CompletionRing done={progress.done} total={progress.total} size={36} />
-            <span className="max-w-[7.5rem] truncate text-[13px] font-semibold text-[#1c2740]">
-              {items.find((item) => item.id === active)?.label ?? items[0]?.label ?? "Secciones"}
-            </span>
-          </>
-        }
+        trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
       >
         {(close) => (
+          <>
+          <div className="mb-2 flex items-center gap-3 px-2 pt-1 pb-2">
+            <CompletionRing done={progress.done} total={progress.total} size={48} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[#1c2740]">
+                {progress.done} de {progress.total} secciones
+              </p>
+              <p className="truncate text-[13px] text-[#64748b]">
+                {items.find((item) => item.id === active)?.label ?? items[0]?.label ?? "Secciones"}
+              </p>
+            </div>
+          </div>
           <ul className="flex flex-col gap-0.5">
             {groups.map(({ item, pending }) => {
               const current = item.id === active;
@@ -263,7 +260,7 @@ export function DetailSectionNav({
                       jump(item.id)(event);
                       close();
                     }}
-                    className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                    className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}
                   >
@@ -308,8 +305,9 @@ export function DetailSectionNav({
               );
             })}
           </ul>
+          </>
         )}
-      </FloatingSectionOverlay>
+      </ProgressTrackerOverlay>
     </>
   );
 }

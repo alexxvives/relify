@@ -12,13 +12,14 @@ import {
   HeartPulse,
   MapPin,
   Palmtree,
-  Sparkles,
   Store,
   Truck,
   Users,
   UtensilsCrossed,
   Wheat,
-  type LucideIcon, HandCoins } from "lucide-react";
+  HandCoins,
+  type LucideIcon,
+} from "lucide-react";
 import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
 import {
   formatCardEur,
@@ -28,12 +29,7 @@ import {
 } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { companyCopy } from "@/lib/company-copy";
-import {
-  aiImageLabel,
-  referencePhotoLabel,
-  sectorImageSrc,
-  type SectorImageKey,
-} from "@/lib/sector-image";
+import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
 /** Shared marketplace grid: as many ≥21rem columns as fit, so cards never get cramped at any width. */
 /**
@@ -227,14 +223,12 @@ export function MarketCard({
             aria-hidden
           />
           <div className="absolute top-2.5 left-2.5 flex max-w-[calc(100%-6rem)] flex-nowrap items-center gap-1 overflow-hidden">
-            <span
-              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#0c1224]/55 px-1.5 py-px text-[11px] font-medium text-white backdrop-blur-sm"
-              title={aiImageLabel}
-            >
-              <Sparkles className="size-2.5" aria-hidden />
-              {referencePhotoLabel}
-              <span className="sr-only">. {aiImageLabel}</span>
-            </span>
+            {project.financingChip ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f4f2]/95 px-1.5 py-px text-[11px] font-semibold text-[#0f766e] shadow-sm backdrop-blur-sm">
+                <HandCoins className="size-2.5 shrink-0" aria-hidden />
+                <span className="truncate">{project.financingChip}</span>
+              </span>
+            ) : null}
             {project.verified ? (
               <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/95 px-1.5 py-px text-[11px] font-semibold text-[#1b7a45] shadow-sm">
                 <BadgeCheck className="size-3 shrink-0" aria-hidden />
@@ -318,16 +312,7 @@ export function MarketCard({
       ) : null}
 
       <div className="flex flex-1 flex-col px-5 pb-5">
-        {/* t93: this row (right of the sector badge) holds only the financing chip; the CNAE code sits above the activity name. */}
-        {/* t92: the seller-financing chip shares this row, so cards with and without it keep the same height. */}
-        <div className="mt-3 flex min-h-8 min-w-0 flex-wrap items-start gap-1.5 pl-[6.75rem]">
-          {project.financingChip ? (
-            <span className="inline-flex min-w-0 items-center gap-1 rounded-md bg-[#e6f4f2] px-1.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap text-[#0f766e]">
-              <HandCoins className="size-3.5 shrink-0" aria-hidden />
-              <span className="truncate">{project.financingChip}</span>
-            </span>
-          ) : null}
-        </div>
+        <div className="mt-3 min-h-8" aria-hidden />
         {/* t91: the activity name on its own line, right above the description; one line, full name on hover. */}
         <div className="mt-2 flex h-6 items-center">
           {project.cnaeCode ? (
