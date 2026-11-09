@@ -33,10 +33,10 @@ export function SellerTabs<T extends string>({
             }}
             className={
               off
-                ? "-mb-px cursor-not-allowed border-b-2 border-transparent px-3 py-2 text-base text-[#98a2b3]"
+                ? "-mb-px min-h-11 cursor-not-allowed border-b-2 border-transparent px-3 py-2 text-base text-[#98a2b3]"
                 : selected
-                  ? "-mb-px border-b-2 border-[#465ab4] px-3 py-2 text-base text-[#465ab4]"
-                  : "-mb-px border-b-2 border-transparent px-3 py-2 text-base text-[#64748b]"
+                  ? "-mb-px min-h-11 border-b-2 border-[#465ab4] px-3 py-2 text-base text-[#465ab4]"
+                  : "-mb-px min-h-11 border-b-2 border-transparent px-3 py-2 text-base text-[#64748b]"
             }
           >
             {item.label}
@@ -94,7 +94,7 @@ export function FloatingSegmentedTabs<T extends string>({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(item.id)}
-              className={`h-9 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-5 ${
+              className={`min-h-11 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-5 ${
                 selected ? "bg-[#1c2740] text-white" : "text-[#3d4a63] hover:bg-[#f1f4f8]"
               }`}
             >

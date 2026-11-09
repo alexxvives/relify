@@ -74,25 +74,27 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
           placeholder={adminCopy.searchCompanies}
           onChange={setQuery}
         />
-        <div className="w-44">
-          <FilterSelect
-            compact
-            label={adminCopy.statusLabel}
-            value={status}
-            options={[
-              { value: "all", label: adminCopy.statusAll },
-              { value: "published", label: adminCopy.statusPublished },
-              { value: "pending", label: adminCopy.statusPending },
-              { value: "draft", label: adminCopy.statusDraft },
-            ]}
-            onValueChange={(next) => {
-              if (isStatusFilter(next)) {
-                setStatus(next);
-              }
-            }}
-          />
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="min-w-0 flex-1 sm:w-44 sm:flex-none">
+            <FilterSelect
+              compact
+              label={adminCopy.statusLabel}
+              value={status}
+              options={[
+                { value: "all", label: adminCopy.statusAll },
+                { value: "published", label: adminCopy.statusPublished },
+                { value: "pending", label: adminCopy.statusPending },
+                { value: "draft", label: adminCopy.statusDraft },
+              ]}
+              onValueChange={(next) => {
+                if (isStatusFilter(next)) {
+                  setStatus(next);
+                }
+              }}
+            />
+          </div>
+          <SortMenu sort={sort} onSort={sortBy} />
         </div>
-        <SortMenu sort={sort} onSort={sortBy} />
       </AdminPageHeader>
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>

@@ -131,7 +131,7 @@ export function NotificationBell({ items, pendingGroups = [] }: { items: Notific
       currentPanel.style.top = `${top}px`;
       currentPanel.style.left = `${left}px`;
       currentPanel.style.width = `${width}px`;
-      currentPanel.style.maxHeight = `${Math.round(room / 2)}px`;
+      currentPanel.style.maxHeight = `${Math.min(room, Math.round(window.innerHeight * 0.7))}px`;
     }
 
     place();
@@ -156,7 +156,7 @@ export function NotificationBell({ items, pendingGroups = [] }: { items: Notific
           }
           setOpen((current) => !current);
         }}
-        className="group relative inline-flex size-10 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
+        className="group relative inline-flex size-11 items-center justify-center rounded-full text-public-ink hover:bg-public-sand"
       >
         <Bell className="nav-icon nav-motion-bell size-4" aria-hidden />
         {badge > 0 ? (

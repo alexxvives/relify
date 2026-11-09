@@ -258,7 +258,7 @@ export function Hero() {
     <section aria-labelledby="inicio" className="releva-hero releva-hero-sky">
       <div className="releva-hero-glass">
         {/* Alex (t32): city + spots share one 3:2 box so the price pins stay on their buildings at every width. */}
-        <div className="releva-city-box">
+        <div className="releva-city-box hidden lg:block">
         <div className="releva-city-frame" aria-hidden="true">
           <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
           {spots.map((spot) => (
@@ -299,6 +299,17 @@ export function Hero() {
             </span>
           </button>
         ))}
+        </div>
+        <div className="releva-city-static lg:hidden" aria-hidden="true">
+          <Image
+            src="/hero/city-2.png"
+            alt=""
+            width={1536}
+            height={1024}
+            priority
+            unoptimized
+            className="h-full w-full object-cover"
+          />
         </div>
         <div className="releva-hero-copy pointer-events-none">
           <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.96] text-public-ink">

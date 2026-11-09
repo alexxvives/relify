@@ -159,6 +159,7 @@
   html {
     @apply font-sans scroll-smooth;
     font-synthesis: none;
+    overflow-x: clip;
   }
   /* Large monitors: scale the rem-based UI up a little so the full-width layout does not look tiny. */
   @media (min-width: 1800px) {
@@ -682,6 +683,7 @@
 }
 
 .releva-menu {
+  overflow: visible;
   border: 1px solid rgb(255 255 255 / 0.55);
   background: rgb(255 255 255 / 0.22);
   box-shadow: 0 10px 40px rgb(18 52 58 / 0.08);
@@ -2080,6 +2082,8 @@
   min-width: 0;
   /* Same share of the screen at every desktop size, never so narrow that labels wrap. */
   --layout-sidebar: clamp(248px, 16vw, 320px);
+  /* Extra bottom inset for the mobile tab bar. Desktop stays 0 so padding matches main. */
+  --shell-tabbar: 0px;
   /* Readability for older owners: inside the app the smallest text size is 14px. */
   --text-xs: 0.875rem;
   --text-xs--line-height: 1.25rem;
@@ -2109,7 +2113,8 @@
   }
 }
 
-/* Mobile and tablet: the sidebar is an off-canvas drawer. */
+/* Mobile and tablet: the sidebar is an off-canvas drawer.
+   Do not put transform here — desktop inherits it and the menu slides off-screen. */
 .shell-sidebar {
   position: fixed;
   inset-block: 0;
@@ -2123,14 +2128,35 @@
   border-right: 1px solid var(--public-line);
   background: var(--public-card);
   box-shadow: 0 24px 48px rgb(18 52 58 / 0.18);
-  /* Mobile: smooth slide-in animation */
-  transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .shell-sidebar[data-open="true"] {
   display: flex;
-  transform: translateX(0);
+}
+
+@media (max-width: 1023px) {
+  .shell {
+    --shell-tabbar: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .shell[data-keyboard="true"] {
+    --shell-tabbar: 0px;
+  }
+
+  .shell-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .shell-sidebar[data-open="true"] {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
+  .shell-sidebar {
+    transition: none;
+  }
 }
 
 /* Mobile: smaller devices get narrower sidebar for better overlay UX */
@@ -2149,10 +2175,14 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  padding: var(--layout-pad);
+  padding-top: var(--layout-pad);
+  padding-inline: var(--layout-pad);
+  /* Sides and top from --layout-pad. Bottom adds the tab bar so utilities cannot
+     lose to this rule's shorthand (that is why content sat under the mobile nav). */
+  padding-bottom: calc(var(--layout-pad) + var(--shell-tabbar));
+  scroll-padding-bottom: var(--shell-tabbar);
   overflow-wrap: break-word;
-  /* Mobile: ensure no unexpected horizontal overflow */
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .shell-content > * {
@@ -2167,6 +2197,17 @@
 .shell-content .w-full {
   min-width: 0;
   max-width: 100%;
+}
+
+/* Tablet / large phone: tab items are min-h-16, so keep the same extra clearance. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .shell {
+    --shell-tabbar: calc(4rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .shell[data-keyboard="true"] {
+    --shell-tabbar: 0px;
+  }
 }
 
 /* Mobile-specific utilities */
@@ -2194,6 +2235,7 @@
   .shell-sidebar,
   .shell-sidebar[data-open="false"] {
     display: flex;
+    transform: none;
     width: var(--layout-sidebar);
     box-shadow: none;
     transition: width 200ms ease-out;
@@ -2210,6 +2252,42 @@
 
   .shell-backdrop {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .shell-sidebar,
+  .shell-sidebar[data-open="false"] {
+    transition: none;
+  }
+}
+
+.shell-tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.shell[data-keyboard="true"] .shell-tabbar {
+  display: none;
+}
+
+.releva-city-static {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 0 0 1.25rem 1.25rem;
+}
+
+.releva-city-static img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+}
+
+@media (min-width: 640px) {
+  .releva-city-static {
+    aspect-ratio: 16 / 10;
   }
 }
 
@@ -2764,6 +2842,29 @@
   .layout-track > li {
     flex: 1 1 0;
     min-width: 0;
+  }
+
+  .releva-flip {
+    --flip-h: 4rem;
+    width: 4.15rem;
+    border-radius: 0.85rem;
+  }
+
+  .releva-flip b,
+  .releva-flip-leaf span {
+    font-size: 1.6rem;
+  }
+
+  .releva-wait-clock ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center;
+    gap: 0.65rem 0.5rem;
+  }
+
+  .releva-wait-clock li > span {
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
   }
 }
 

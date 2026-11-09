@@ -42,7 +42,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     stored === "seller" || stored === "investor" || stored === "advisor" ? stored : "";
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-16">
+    <main className="relative flex min-h-dvh items-center justify-center overflow-y-auto px-4 py-16 pt-[max(4.5rem,calc(3rem+env(safe-area-inset-top,0px)))] pb-[max(2rem,calc(1.5rem+env(safe-area-inset-bottom,0px)))]">
       <Image src="/auth/login-background.jpg" alt="" fill priority unoptimized sizes="100vw" className="object-cover object-[54%_30%]" />
       <div
         aria-hidden

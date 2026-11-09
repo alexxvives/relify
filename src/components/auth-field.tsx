@@ -83,7 +83,7 @@ export function PasswordField({
           onClick={() => {
             setVisible((current) => !current);
           }}
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-[#8aa0b2] hover:text-[#16324f]"
+          className="absolute top-1/2 right-1 inline-flex size-11 -translate-y-1/2 items-center justify-center text-[#8aa0b2] hover:text-[#16324f]"
         >
           {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
         </button>

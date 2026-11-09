@@ -279,7 +279,28 @@ export function AppFrame({
     : [];
   const activePending = (companies.find((company) => company.id === activeCompanyId)?.pending ?? 0) + processPending;
   const [open, setOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+
+  useEffect(() => {
+    const liveViewport = window.visualViewport;
+    if (liveViewport === null) {
+      return;
+    }
+
+    function syncKeyboard() {
+      const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+      setKeyboardOpen(window.innerHeight - visibleHeight > 80);
+    }
+
+    syncKeyboard();
+    liveViewport.addEventListener("resize", syncKeyboard);
+    liveViewport.addEventListener("scroll", syncKeyboard);
+    return () => {
+      liveViewport.removeEventListener("resize", syncKeyboard);
+      liveViewport.removeEventListener("scroll", syncKeyboard);
+    };
+  }, []);
 
   function toggleSection(section: string) {
     setCollapsed((current) => {
@@ -325,7 +346,10 @@ export function AppFrame({
   }
 
   return (
-    <div className="shell min-h-screen bg-public-paper font-public text-public-ink">
+    <div
+      className="shell min-h-screen bg-public-paper font-public text-public-ink"
+      data-keyboard={keyboardOpen ? "true" : "false"}
+    >
       {open ? (
         <button type="button" aria-label={shellCopy.menuClose} className="shell-backdrop" onClick={closeMenu} />
       ) : null}
@@ -347,7 +371,7 @@ export function AppFrame({
               <button
                 type="button"
                 onClick={closeMenu}
-                className="shell-close inline-flex size-10 items-center justify-center rounded-full text-[#d6dbe6] hover:bg-[#262d40]"
+                className="shell-close inline-flex size-11 items-center justify-center rounded-full text-[#d6dbe6] hover:bg-[#262d40]"
               >
                 <XIcon size={16} aria-hidden />
                 <span className="sr-only">{shellCopy.menuClose}</span>
@@ -517,7 +541,7 @@ export function AppFrame({
             className="inline-flex h-11 min-w-[44px] items-center gap-2 rounded-full px-3 text-sm sm:text-base font-medium text-public-ink hover:bg-public-sand active:bg-public-sand/70"
           >
             <PanelLeftIcon size={20} aria-hidden />
-            <span className="hidden xs:inline">Menú</span>
+            <span className="hidden sm:inline">Menú</span>
           </button>
           <Link href={home} aria-label="Relify" className="min-w-0 shrink">
             <Logo />
@@ -528,12 +552,12 @@ export function AppFrame({
             <NotificationBell items={notifications} pendingGroups={pendingGroups} />
           </div>
         </header>
-        <div className="shell-content pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-[var(--layout-pad)]">
+        <div className="shell-content">
           {children}
         </div>
         <nav
           aria-label="Accesos rápidos"
-          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-public-line bg-white pb-[env(safe-area-inset-bottom)] safe-area-pb lg:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+          className="shell-tabbar fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-public-line bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] lg:hidden"
         >
           {tabs.map((item) => {
             const Icon = (iconForHref[item.href as keyof typeof iconForHref] ?? Building2Icon) as typeof HouseIcon;
@@ -544,7 +568,7 @@ export function AppFrame({
                 key={item.href}
                 href={item.href}
                 aria-current={selected ? "page" : undefined}
-                className={`flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium transition-colors active:bg-public-sand/50 ${selected ? "text-[#0c7c78]" : "text-public-muted hover:text-public-ink"}`}
+                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium transition-colors active:bg-public-sand/50 sm:min-h-16 sm:text-sm ${selected ? "text-[#0c7c78]" : "text-public-muted hover:text-public-ink"}`}
               >
                 <Icon size={22} isAnimated={false} aria-hidden />
                 <span className="truncate max-w-full px-1">{tabLabelForHref[item.href] ?? item.label}</span>
@@ -552,9 +576,9 @@ export function AppFrame({
             );
           })}
           {showHelp ? (
-            <a 
-              href={shellCopy.helpPhoneHref} 
-              className="flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium text-public-muted hover:text-public-ink transition-colors active:bg-public-sand/50"
+            <a
+              href={shellCopy.helpPhoneHref}
+              className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
             >
               <PhoneIcon size={22} aria-hidden />
               <span className="truncate">Ayuda</span>
@@ -565,7 +589,7 @@ export function AppFrame({
               onClick={() => {
                 setOpen(true);
               }}
-              className="flex min-h-[3.5rem] sm:min-h-16 flex-col items-center justify-center gap-1 text-xs sm:text-sm font-medium text-public-muted hover:text-public-ink transition-colors active:bg-public-sand/50"
+              className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
             >
               <PanelLeftIcon size={22} aria-hidden />
               <span className="truncate">Más</span>
@@ -584,7 +608,7 @@ function PremiumLink({ onClick }: { onClick?: () => void }) {
       href="/premium"
       onClick={onClick}
       aria-label={sellerCopy.premium}
-      className="group/premium relative inline-flex size-10 items-center justify-center rounded-full text-public-clay hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+      className="group/premium relative inline-flex size-11 items-center justify-center rounded-full text-public-clay hover:bg-public-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
     >
       <CrownIcon size={18} aria-hidden />
       <span

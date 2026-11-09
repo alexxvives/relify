@@ -8,7 +8,7 @@ import { landingCopy } from "@/lib/landing-copy";
 
 export function LandingFooter() {
   return (
-    <div className="px-5 pt-4 pb-10">
+    <div className="px-5 pt-4 pb-[max(2.5rem,calc(1.5rem+env(safe-area-inset-bottom,0px)))]">
       <ArcScope className="relify-footer mx-auto w-full max-w-[1440px] overflow-hidden rounded-[2rem] bg-public-card shadow-public">
         <SiteFooter
           variant="columns"

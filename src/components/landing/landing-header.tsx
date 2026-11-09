@@ -10,7 +10,7 @@ export async function LandingHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 px-5 py-4 sm:px-8">
+    <header className="sticky top-0 z-40 px-5 py-4 pt-[max(1rem,env(safe-area-inset-top,0px))] sm:px-8">
       <PublicMenu signedIn={Boolean(user)} />
     </header>
   );

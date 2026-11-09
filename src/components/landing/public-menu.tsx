@@ -6,9 +6,6 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { Logo } from "@/components/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
-const solidLink =
-  "inline-flex h-11 items-center rounded-full bg-public-clay px-4 text-sm text-white transition hover:bg-public-clay-deep";
-
 export function PublicMenu({ signedIn }: { signedIn: boolean }) {
   const [onDark, setOnDark] = useState(false);
 
@@ -37,17 +34,16 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
   return (
     <div
       data-releva-menu
-      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full px-2 py-2 sm:px-4"
+      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-2 sm:px-4"
     >
-      <Link href="/" className="pl-2" aria-label="Relify">
+      <Link href="/" className="shrink-0 pl-2" aria-label="Relify">
         <Logo />
       </Link>
-      <LandingNav onDark={onDark} />
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Link href={signedIn ? "/cuenta" : landingCopy.waitlistNav.href} className={solidLink}>
-          {signedIn ? landingCopy.accountCta : landingCopy.signInCta}
-        </Link>
-      </div>
+      <LandingNav
+        onDark={onDark}
+        accountHref={signedIn ? "/cuenta" : landingCopy.waitlistNav.href}
+        accountLabel={signedIn ? landingCopy.accountCta : landingCopy.signInCta}
+      />
     </div>
   );
 }

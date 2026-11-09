@@ -127,7 +127,7 @@ export function ReportNav({
                   aria-current={current ? "location" : undefined}
                   onClick={(event) => go(event, item.id)}
                   onKeyDown={(event) => keys(event, index)}
-                  className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                     current ? "bg-[#1c2740] text-white shadow-sm" : "text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
                   }`}
                 >

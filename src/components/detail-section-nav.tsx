@@ -96,7 +96,7 @@ export function DetailSectionNav({
   return (
     <>
       <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
-        <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const current = item.id === active;
             return (
@@ -107,7 +107,7 @@ export function DetailSectionNav({
                   onClick={(event) => {
                     if (go(item.id)) event.preventDefault();
                   }}
-                  className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                     current ? "border-[#1c2740] bg-[#1c2740] text-white" : "border-[#e6e9f0] bg-white text-[#3d4a63]"
                   }`}
                 >
@@ -237,7 +237,7 @@ export function UnsavedBar({
     return () => window.clearTimeout(timer);
   }, [shownStamp]);
   const justSaved = savedStamp !== null && savedStamp === shownStamp && hiddenStamp !== shownStamp && sections.length === 0;
-  const shell = "sticky bottom-0 z-30 -mx-1 mt-3 px-1 pb-3";
+  const shell = "sticky z-30 -mx-1 mt-3 px-1 pb-3 bottom-[var(--shell-tabbar)]";
   const bar = "flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-white/95 py-2 pr-2 pl-4 shadow-[0_4px_16px_-8px_rgba(28,39,64,0.3)] backdrop-blur";
 
   if (justSaved) {
