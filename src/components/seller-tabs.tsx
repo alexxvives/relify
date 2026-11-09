@@ -48,10 +48,9 @@ export function SellerTabs<T extends string>({
 }
 
 /**
- * t78/t79: floating segmented pill control, centred at the top of the page and sticky while scrolling.
- * From lg up it takes no row of its own: it overlays the page title row (h-0 + negative margins),
- * so there is no empty band under the title. On narrow screens the title is too wide to share the row.
- * Same tablist semantics as SellerTabs, with arrow-key navigation.
+ * Segmented pill tablist (Información empresa / Ficha pública). The parent
+ * places it on the title row from lg up (right-aligned); below lg it sits
+ * under the heading. Same tablist semantics as SellerTabs, with arrow-key navigation.
  */
 export function FloatingSegmentedTabs<T extends string>({
   label,
@@ -76,33 +75,31 @@ export function FloatingSegmentedTabs<T extends string>({
   }
 
   return (
-    <div className="pointer-events-none sticky top-2 z-40 flex justify-center xl:-mt-[3.5rem] xl:mb-10 xl:h-0 xl:items-start xl:overflow-visible">
-      <div
-        role="tablist"
-        aria-label={label}
-        onKeyDown={onKeyDown}
-        className="pointer-events-auto inline-flex gap-1 rounded-full border border-[#e6e9f0] bg-white/90 p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] backdrop-blur"
-      >
-        {tabs.map((item) => {
-          const selected = item.id === value;
-          return (
-            <button
-              key={item.id}
-              data-tab={item.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => onChange(item.id)}
-              className={`min-h-11 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-5 ${
-                selected ? "bg-[#1c2740] text-white" : "text-[#3d4a63] hover:bg-[#f1f4f8]"
-              }`}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
+    <div
+      role="tablist"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      className="inline-flex shrink-0 gap-1 self-start rounded-full border border-[#e6e9f0] bg-white p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] lg:self-auto"
+    >
+      {tabs.map((item) => {
+        const selected = item.id === value;
+        return (
+          <button
+            key={item.id}
+            data-tab={item.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(item.id)}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-5 ${
+              selected ? "bg-[#1c2740] text-white" : "text-[#3d4a63] hover:bg-[#f1f4f8]"
+            }`}
+          >
+            {item.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -780,7 +780,7 @@ export function CompanyReport({
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+    <div className="flex min-w-0 flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
       <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
       <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
 

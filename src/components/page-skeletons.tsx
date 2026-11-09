@@ -745,36 +745,27 @@ export function CompanyDetailsSkeleton() {
   );
   return (
     <Shell>
-      <Bare className="h-9 w-48" />
-      <Tabs />
-      {/* t77: mirrors the section rail (desktop) / pills (mobile) + cards layout. */}
-      {/* t91: matches the real layout: form left, progress/section panel on the RIGHT (16rem). */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6 xl:grid-cols-[12.5rem_minmax(0,1fr)_16rem]">
-        <div className="flex gap-1.5 overflow-hidden lg:hidden">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <Bare className="h-9 w-48" />
+        <Tabs />
+      </div>
+      {/* Merged sticky left progress + section index; form takes the remaining width. */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
+        <div className="flex items-center gap-2 overflow-hidden lg:hidden">
+          <B className="size-9 shrink-0 rounded-full" />
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="hidden lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-2">
-          {[0, 1, 2, 3].map((index) => (
-            <B key={`rail-${index}`} className="h-9 w-full rounded-lg" />
-          ))}
-        </div>
-        <div className="hidden xl:col-start-3 xl:row-start-1 xl:block">
-          <div className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4">
-            <div className="flex items-center gap-3">
-              <B className="size-14 rounded-full" />
-              <div className="flex-1">
-                <B className="h-4 w-24" />
-                <B className="mt-2 h-3 w-full" />
-              </div>
+        <div className="hidden lg:col-start-1 lg:row-start-1 lg:block">
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#e7eaee] bg-white p-3">
+            <div className="flex flex-col items-center gap-2 border-b border-[#eef0f4] pb-3">
+              <B className="size-12 rounded-full" />
+              <B className="h-3 w-24" />
             </div>
-            <div className="flex flex-col gap-2 border-t border-[#eef0f4] pt-3">
-              {[0, 1, 2, 3].map((index) => (
-                <B key={index} className="h-8 w-full rounded-xl" />
-              ))}
-            </div>
-            <B className="h-10 w-full rounded-xl" />
+            {[0, 1, 2, 3].map((index) => (
+              <B key={`rail-${index}`} className="h-9 w-full rounded-lg" />
+            ))}
           </div>
         </div>
         <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
@@ -1092,8 +1083,10 @@ export function AdminCompanySkeleton() {
 export function FichaPublicaSkeleton() {
   return (
     <Shell>
-      <Bare className="h-9 w-48" />
-      <Tabs />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <Bare className="h-9 w-48" />
+        <Tabs />
+      </div>
       <Card>
         <B className="h-5 w-72" />
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, Circle, CircleCheck, Clock, Info, Pencil } from "lucide-react";
+import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Pencil } from "lucide-react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 
 export type DetailSectionStatus = "done" | "pending" | "dirty" | "info";
@@ -30,10 +30,11 @@ function StatusIcon({ status, className = "size-4" }: { status: DetailSectionSta
 
 /** t77: completion ring for the seller's required sections. */
 export function CompletionRing({ done, total, size = 56 }: { done: number; total: number; size?: number }) {
-  const stroke = 6;
+  const stroke = size <= 40 ? 4 : 6;
   const radius = (size - stroke) / 2;
   const length = 2 * Math.PI * radius;
   const ratio = total > 0 ? Math.min(1, done / total) : 0;
+  const labelSize = size <= 40 ? 9 : 13;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${done} de ${total} secciones completas`} className="shrink-0">
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e6f4f2" strokeWidth={stroke} />
@@ -50,7 +51,15 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
         className="transition-[stroke-dashoffset] duration-500 motion-reduce:transition-none"
       />
-      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-[#1c2740] text-[13px] font-semibold">
+      <text
+        x="50%"
+        y="50%"
+        dominantBaseline="central"
+        textAnchor="middle"
+        fill="#1c2740"
+        fontSize={labelSize}
+        fontWeight="600"
+      >
         {done}/{total}
       </text>
     </svg>
@@ -59,9 +68,9 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
 
 /**
  * Section navigation + progress for /mi-empresa/detalles.
- * Mobile/tablet: sticky horizontal pills under the header.
- * lg+: slim vertical index in a left content column (scroll-spy).
- * xl+: detailed progress checklist stays on the right so the form is not squeezed at 1024.
+ * Below lg: sticky horizontal pills plus a small completion ring.
+ * lg+: one sticky left column with the ring, scroll-spy sections, and pending
+ * sub-items expanded on the active section only (compact ~216px at 1024).
  */
 export function DetailSectionNav({
   items,
@@ -85,7 +94,10 @@ export function DetailSectionNav({
     120,
   );
   const fields = progress.fields ?? [];
-  const groups = items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) }));
+  const groups = items.map((item) => ({
+    item,
+    pending: fields.filter((field) => field.group === item.id && !field.done),
+  }));
 
   function jump(id: string) {
     return (event: React.MouseEvent) => {
@@ -95,104 +107,86 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
-        <ul className="flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
-          {items.map((item) => {
-            const current = item.id === active;
-            return (
-              <li key={item.id} className="shrink-0">
-                <a
-                  href={`#${item.id}`}
-                  aria-current={current ? "location" : undefined}
-                  onClick={(event) => {
-                    if (go(item.id)) event.preventDefault();
-                  }}
-                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                    current ? "border-[#1c2740] bg-[#1c2740] text-white" : "border-[#e6e9f0] bg-white text-[#3d4a63]"
-                  }`}
-                >
-                  <StatusIcon status={item.status} className="size-3.5" />
-                  {item.label}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      <nav aria-label="Secciones" className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
-        <ul className="sticky top-16 flex flex-col gap-0.5 border-l border-[#e6e9f0]">
-          {items.map((item) => {
-            const current = item.id === active;
-            return (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  aria-current={current ? "location" : undefined}
-                  onClick={jump(item.id)}
-                  className={`flex min-h-11 items-center gap-2 border-l-2 px-3 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                    current
-                      ? "-ml-px border-[#0f766e] bg-[#e6f4f2] text-[#1c2740]"
-                      : "border-transparent text-[#3d4a63] hover:bg-[#f5f6f8]"
-                  }`}
-                >
-                  <StatusIcon status={item.status} className="size-3.5" />
-                  <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
-                  <span className="sr-only">{statusText[item.status]}</span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      <aside className="hidden xl:col-start-3 xl:row-start-1 xl:block">
-        <nav aria-label="Tu progreso" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
-          <div className="flex justify-center">
-            <CompletionRing done={progress.done} total={progress.total} />
-          </div>
-          <ul className="flex flex-col gap-3 border-t border-[#eef0f4] pt-3">
-            {groups.map(({ item, fields: groupFields }) => {
+      <nav aria-label="Secciones" className="sticky top-2 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
+        <div className="flex items-center gap-2">
+          <CompletionRing done={progress.done} total={progress.total} size={36} />
+          <ul className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
+            {items.map((item) => {
               const current = item.id === active;
+              return (
+                <li key={item.id} className="shrink-0">
+                  <a
+                    href={`#${item.id}`}
+                    aria-current={current ? "location" : undefined}
+                    onClick={(event) => {
+                      if (go(item.id)) event.preventDefault();
+                    }}
+                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                      current ? "border-[#1c2740] bg-[#1c2740] text-white" : "border-[#e6e9f0] bg-white text-[#3d4a63]"
+                    }`}
+                  >
+                    <StatusIcon status={item.status} className="size-3.5" />
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </nav>
+
+      <nav aria-label="Tu progreso" className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
+        <div className="sticky top-16 flex max-h-[calc(100vh-5.5rem)] flex-col gap-3 overflow-y-auto rounded-2xl border border-[#e6e9f0] bg-white p-3 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+          <div className="flex flex-col items-center gap-1.5 border-b border-[#eef0f4] pb-3">
+            <CompletionRing done={progress.done} total={progress.total} size={52} />
+            <p className="text-center text-[11px] leading-4 font-medium text-[#64748b]">
+              {progress.done} de {progress.total} secciones
+            </p>
+          </div>
+          <ul className="flex flex-col gap-0.5">
+            {groups.map(({ item, pending }) => {
+              const current = item.id === active;
+              const open = current;
               return (
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
+                    aria-expanded={pending.length > 0 ? open : undefined}
                     onClick={jump(item.id)}
-                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                    className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}
                   >
                     <StatusIcon status={item.status} className="size-3.5" />
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
                     <span className="sr-only">{statusText[item.status]}</span>
+                    {pending.length > 0 ? (
+                      <ChevronDown
+                        className={`size-3.5 shrink-0 text-[#8b95a7] transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+                        aria-hidden
+                      />
+                    ) : null}
                   </a>
-                  {groupFields.length > 0 ? (
+                  {open && pending.length > 0 ? (
                     <ul className="mt-0.5 ml-[1.0625rem] flex flex-col border-l border-[#eef0f4] pl-2">
-                      {groupFields.map((field) => (
+                      {pending.map((field) => (
                         <li key={field.id}>
                           <a
                             href={`#${field.id}`}
                             onClick={jump(field.id)}
-                            className="group flex items-start gap-2 rounded-md px-1.5 py-1 text-[13px] leading-snug focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
+                            className="group flex items-start gap-2 rounded-md px-1.5 py-1.5 text-[13px] leading-snug focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
                           >
-                            {field.done ? (
-                              <CircleCheck className="mt-0.5 size-3.5 shrink-0 text-[#0f766e]" aria-hidden />
-                            ) : (
-                              <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
-                            )}
-                            <span className={`flex min-w-0 flex-1 flex-col ${field.done ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>
+                            <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
+                            <span className="flex min-w-0 flex-1 flex-col text-[#1c2740]">
                               {field.label}
-                              {field.done || field.required === undefined ? null : <RequirementTag required={field.required} />}
+                              {field.required === undefined ? null : <RequirementTag required={field.required} />}
                             </span>
-                            <span className="sr-only">{field.done ? "Completo" : "Pendiente"}</span>
-                            {field.done ? null : (
-                              <span aria-hidden className="mt-px hidden items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] group-hover:inline-flex group-focus-visible:inline-flex">
-                                Ir
-                                <ArrowRight className="size-3" />
-                              </span>
-                            )}
+                            <span className="sr-only">Pendiente</span>
+                            <span aria-hidden className="mt-px hidden items-center gap-0.5 text-[11px] font-semibold text-[#0f766e] group-hover:inline-flex group-focus-visible:inline-flex">
+                              Ir
+                              <ArrowRight className="size-3" />
+                            </span>
                           </a>
                         </li>
                       ))}
@@ -202,8 +196,8 @@ export function DetailSectionNav({
               );
             })}
           </ul>
-        </nav>
-      </aside>
+        </div>
+      </nav>
     </>
   );
 }

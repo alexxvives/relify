@@ -1492,16 +1492,18 @@ function Fact({
   icon: Icon,
   label,
   required = false,
+  className = "",
   children,
 }: {
   id?: string;
   icon: typeof Building2;
   label: string;
   required?: boolean;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div id={id} className="grid scroll-mt-6 grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3">
+    <div id={id} className={`grid scroll-mt-6 grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3 ${className}`}>
       <span className="inline-flex size-11 items-center justify-center rounded-md bg-[#eef2ff] p-2.5 text-[#465ab4]">
         <Icon className="size-5" aria-hidden />
       </span>
@@ -2225,21 +2227,23 @@ export function CompanyDraftForm({
     >
       <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <h1 className="text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
-      <FloatingSegmentedTabs
-        label={companyCopy.tabsLabel}
-        tabs={[
-          { id: "company", label: companyCopy.detailsCompanyTab },
-          { id: "deal", label: companyCopy.detailsDealTab },
-        ]}
-        value={tab}
-        onChange={(id) => {
-          setTab(id);
-          window.scrollTo({ top: 0 });
-        }}
-      />
-      {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6 xl:grid-cols-[12.5rem_minmax(0,1fr)_16rem]" : "flex flex-col gap-4"}>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <h1 className="min-w-0 text-3xl tracking-tight text-public-ink lg:whitespace-nowrap">{sellerCopy.detailsTitle}</h1>
+        <FloatingSegmentedTabs
+          label={companyCopy.tabsLabel}
+          tabs={[
+            { id: "company", label: companyCopy.detailsCompanyTab },
+            { id: "deal", label: companyCopy.detailsDealTab },
+          ]}
+          value={tab}
+          onChange={(id) => {
+            setTab(id);
+            window.scrollTo({ top: 0 });
+          }}
+        />
+      </div>
+      {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses its own left nav. */}
+      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4 lg:col-start-2">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
@@ -2260,18 +2264,18 @@ export function CompanyDraftForm({
         }}
         onCollapse={() => setOpenBasic(false)}
       >
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="@container grid gap-6 md:grid-cols-2">
           {identityLocked ? (
-            <>
+            <div className="col-span-2 grid gap-6 @min-[40rem]:grid-cols-[minmax(0,1.6fr)_minmax(12rem,1fr)]">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <LockedIdentityInput name="legalName" value={legalName} />
               </Fact>
               <Fact icon={FileSpreadsheet} label={companyCopy.factNif}>
                 <LockedIdentityInput name="cif" value={nif} onRequest={() => setChangeField("cif")} />
               </Fact>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="col-span-2 grid gap-6 @min-[40rem]:grid-cols-[minmax(0,1.6fr)_minmax(12rem,1fr)]">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <Input name="legalName" value={legalName} onChange={(event) => setLegalName(event.target.value)} />
               </Fact>
@@ -2284,7 +2288,7 @@ export function CompanyDraftForm({
                   onChange={(event) => setNif(event.target.value.toUpperCase())}
                 />
               </Fact>
-            </>
+            </div>
           )}
           <Fact icon={MapPin} label={companyCopy.addressLabel}>
             <Input
@@ -2812,7 +2816,7 @@ export function CompanyDraftForm({
             <span className="inline-flex h-11 cursor-default items-center justify-center rounded-xl bg-[#1c2740] px-5 text-sm font-medium text-white" title="Vista previa: así ve el botón el comprador">
               {accessCopy.connect}
             </span>
-          } navBelowTabs />
+          } />
         </div>
       </Panel>
       </div>
