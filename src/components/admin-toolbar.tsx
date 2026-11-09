@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export function AdminPageHeader({ title, note, children }: { title: string; note?: string; children?: ReactNode }) {
   return (
-    <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
       <div className="min-w-0">
         <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1>
         {note ? <p className="mt-1 text-sm text-[#667085]">{note}</p> : null}

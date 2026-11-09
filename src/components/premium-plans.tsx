@@ -120,7 +120,7 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
           </button>
         </div>
       </div>
-      <div className="grid items-stretch gap-4 lg:grid-cols-3">
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
         {plans.map((item) => {
           const active = plan === item.id;
           const Icon = item.icon;

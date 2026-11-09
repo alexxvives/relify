@@ -105,7 +105,7 @@ export function AccountSettings({
   return (
     <div className="flex flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
-      <div className={agreement ? "grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] items-stretch" : ""}>
+      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_15rem]" : ""}>
       <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
           <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
@@ -184,20 +184,20 @@ export function AccountSettings({
       <Card>
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
-        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
           <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
           <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
           <Button
             type="submit"
             disabled={passwordPending}
-            className="lg:mt-7"
+            className="xl:mt-7 md:col-span-2 xl:col-span-1"
 >
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </Button>
           <AppToast message={passwordState?.saved ? passwordState.message : null} />
           {passwordState && !passwordState.saved ? (
-            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-4">
+            <p role="alert" className="text-sm text-[#c0362c] md:col-span-2 xl:col-span-4">
               {passwordState.message}
             </p>
           ) : null}
@@ -207,7 +207,7 @@ export function AccountSettings({
       <Card tone="danger">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
-        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
           <label className="flex flex-col gap-2 text-sm font-medium">
             {authCopy.deleteConfirmLabel}
@@ -221,7 +221,7 @@ export function AccountSettings({
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
           </Button>
           {deleteState ? (
-            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-3">
+            <p role="alert" className="text-sm text-[#c0362c] md:col-span-2 xl:col-span-3">
               {deleteState.message}
             </p>
           ) : null}

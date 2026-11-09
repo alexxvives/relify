@@ -508,7 +508,7 @@ function RegistryRecords({ registry }: { registry: SabiRegistry }) {
   // t80: one column per block present, so Bancos (admin only) and Códigos de actividad stay side by side and the
   // seller view (no banks) does not leave an empty third column.
   const blocks = [registry.audits.length > 0, registry.banks.length > 0, schemes.length > 0].filter(Boolean).length;
-  const cols = blocks >= 3 ? "lg:grid-cols-3" : blocks === 2 ? "md:grid-cols-2" : "";
+  const cols = blocks >= 3 ? "xl:grid-cols-3 md:grid-cols-2" : blocks === 2 ? "md:grid-cols-2" : "";
   return (
     <div className={`grid gap-4 ${cols}`}>
       {registry.audits.length > 0 ? (
@@ -963,7 +963,7 @@ export function CompanyReport({
             </div>
           ) : null}
           {legalFacts.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {legalFacts.map((fact) => (
                 <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
               ))}

@@ -368,8 +368,8 @@ export function MarketSkeleton({
         <Bare className="h-7 w-32 justify-self-center rounded-full" />
       </div>
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
-        <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+        <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:grid-cols-[1fr_1fr_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+          <div className="col-span-2 sm:col-span-3 xl:col-span-1">
             <Field />
           </div>
           {[0, 1, 2].map((index) => (
@@ -640,7 +640,7 @@ export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
             </div>
             <B className="h-6 w-24 rounded-full" />
           </div>
-          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
+          <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_15rem]">
             <div className="grid gap-4 sm:grid-cols-2">
               {[0, 1, 2, 3].map((index) => (
                 <Field key={index} />
@@ -650,14 +650,14 @@ export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
                 <B className="mt-2 h-20 w-full rounded-xl" />
               </div>
             </div>
-            <B className="hidden h-72 rounded-2xl lg:block" />
+            <B className="hidden h-72 rounded-2xl xl:block" />
           </div>
         </Card>
       ) : null}
       <Card>
         <B className="h-6 w-32" />
         <B className="mt-2 h-3 w-72 max-w-full" />
-        <div className="mt-4 grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <div className="mt-4 grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           {[0, 1, 2].map((index) => (
             <Field key={index} />
           ))}
@@ -667,7 +667,7 @@ export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
       <div className="rounded-2xl border border-[#f1d4d1] bg-white p-5">
         <B className="h-6 w-40" />
         <B className="mt-2 h-3 w-96 max-w-full" />
-        <div className="mt-4 grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <div className="mt-4 grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           {[0, 1].map((index) => (
             <Field key={index} />
           ))}
@@ -735,7 +735,7 @@ export function CompanyDetailsSkeleton() {
           </div>
         </>
       ) : index === 1 ? (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }, (_, tile) => (
             <B key={tile} className="h-24 w-full rounded-2xl" />
           ))}
@@ -749,13 +749,13 @@ export function CompanyDetailsSkeleton() {
       <Tabs />
       {/* t77: mirrors the section rail (desktop) / pills (mobile) + cards layout. */}
       {/* t91: matches the real layout: form left, progress/section panel on the RIGHT (16rem). */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch lg:gap-6">
-        <div className="flex gap-1.5 overflow-hidden lg:hidden">
+      <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-stretch xl:gap-6">
+        <div className="flex gap-1.5 overflow-hidden xl:hidden">
           {[0, 1, 2, 3].map((index) => (
             <Bare key={index} className="h-9 w-32 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="hidden lg:order-last lg:block">
+        <div className="hidden xl:order-last xl:block">
           <div className="flex flex-col gap-4 rounded-2xl border border-[#e7eaee] bg-white p-4">
             <div className="flex items-center gap-3">
               <B className="size-14 rounded-full" />
@@ -821,7 +821,7 @@ export function AdvisorServicesSkeleton() {
           <CardTitle width="w-52" sub />
           <B className="h-7 w-28 rounded-full" />
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((index) => (
             <div key={index} className="flex gap-3">
               <B className="size-8 shrink-0 rounded-lg" />
@@ -1093,12 +1093,12 @@ export function FichaPublicaSkeleton() {
       <Tabs />
       <Card>
         <B className="h-5 w-72" />
-        <div className="mt-4 grid gap-3 lg:grid-cols-5">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Array.from({ length: 5 }, (_, index) => (
             <Field key={index} />
           ))}
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((index) => (
             <MarketCardBone key={index} />
           ))}

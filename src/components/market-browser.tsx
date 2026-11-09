@@ -198,8 +198,8 @@ export function MarketBrowser({
           )}
         </div>
         {/* Desktop full filter toolbar */}
-        <div className="hidden sm:grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
-          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 lg:col-span-1">
+        <div className="hidden sm:grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 xl:col-span-1">
             {marketCopy.searchLabel}
             <Input
               type="search"

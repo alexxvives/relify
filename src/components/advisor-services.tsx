@@ -311,7 +311,7 @@ export function AdvisorServices({
         </div>
         {editing === "corporate" ? (
           <div className="mt-6 flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.businessName}
                 <Input value={businessName} onChange={(event) => setBusinessName(event.target.value)} />
@@ -394,7 +394,7 @@ export function AdvisorServices({
             </div>
           </div>
         ) : (
-          <dl className="mt-6 grid gap-4 md:grid-cols-3">
+          <dl className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div className="flex items-center gap-3">
               <User className="size-5 text-[#8aa0d8]" aria-hidden />
               <div>

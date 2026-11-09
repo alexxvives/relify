@@ -255,7 +255,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-20 lg:scroll-mt-6">
+    <Card id={id} className="scroll-mt-32 xl:scroll-mt-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
@@ -391,12 +391,12 @@ function FigureField({
       }
     >
       <input type="hidden" name={name} value={value} />
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex min-w-0 flex-col items-start gap-2">
         <div className="min-w-0">
           {disabledReason ? (
-            <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
+            <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
           ) : editable && unset ? (
-            <span className="text-2xl font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
+            <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
           ) : editable ? (
             <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
               <input
@@ -405,7 +405,7 @@ function FigureField({
                 aria-label={label}
                 value={shown}
                 placeholder="0"
-                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
+                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
                 onFocus={() => {
                   setEditing(true);
                 }}
@@ -416,15 +416,15 @@ function FigureField({
                   onChange(keepUnsignedEuro(event.target.value));
                 }}
               />
-              <span className="text-2xl font-semibold text-[#1c2740]">€</span>
+              <span className="text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold text-[#1c2740]">€</span>
             </span>
           ) : (
-            <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+            <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
               {amount === "—" ? amount : `${amount}\u00a0€`}
             </span>
           )}
         </div>
-        {footer ? <div className="shrink-0">{footer}</div> : null}
+        {footer ? <div className="max-w-full min-w-0">{footer}</div> : null}
       </div>
     </MetricTile>
   );
@@ -442,14 +442,14 @@ function MetricTile({
   children: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-[6.5rem] min-w-0 flex-col justify-between gap-3 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+    <div className="@container relative flex min-h-[6.5rem] min-w-0 flex-col justify-between gap-3 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       {/* t91: the label never truncates; when space is short the corner note wraps under it instead. */}
       <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {action}
         </div>
-        {corner ? <div className="-mr-1 ml-auto shrink-0">{corner}</div> : null}
+        {corner ? <div className="min-w-0">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
@@ -493,7 +493,8 @@ function FichaMetrics({
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
   return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="@container mt-6">
+    <div className="grid grid-cols-1 gap-3 @min-[22rem]:grid-cols-2 @min-[48rem]:grid-cols-3">
       <div id="panel-asking-price" className="scroll-mt-24">
         <FigureField
           label={companyCopy.askingPriceLabel}
@@ -520,7 +521,7 @@ function FichaMetrics({
         />
       </div>
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
-        <span className="whitespace-nowrap text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+        <span className="whitespace-nowrap text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
       </MetricTile>
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
       <div id="ebitda-ajustado" className="scroll-mt-24">
@@ -547,9 +548,11 @@ function FichaMetrics({
             ) : null
           }
         >
-          <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
+          <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
             {adjustedCents !== null ? (
-              <span className={adjustedCents < 0 ? "text-[#b42318]" : undefined}>{wholeEur(adjustedCents)}</span>
+              <span className={adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap"}>
+                {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
+              </span>
             ) : (
               <button type="button" onClick={() => setAdjustOpen(true)} className="text-base font-medium text-[#667085] underline-offset-2 hover:text-[#465ab4] hover:underline">
                 Sin ajustes
@@ -563,6 +566,7 @@ function FichaMetrics({
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
+    </div>
     </div>
   );
 }
@@ -1040,8 +1044,14 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
         </span>
       }
     >
-      <span className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight text-[#1c2740] tabular-nums">
-        {cents !== null && cents !== 0 ? <span className={cents < 0 ? "text-[#b42318]" : undefined}>{wholeEur(cents)}</span> : <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>}
+      <span className="flex items-center gap-1.5 text-[clamp(1.125rem,0.85rem+1.1vw,1.5rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
+        {cents !== null && cents !== 0 ? (
+          <span className={cents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap"}>
+            {wholeEur(cents).replace(" €", "\u00a0€")}
+          </span>
+        ) : (
+          <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>
+        )}
       </span>
     </MetricTile>
   );
@@ -1162,8 +1172,8 @@ function PriceStatus({ estimate, askingCents, blocked = false }: { estimate: Pri
         onBlur={() => setPinned(false)}
         className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] leading-none font-semibold whitespace-nowrap ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
       >
-        <span className="sm:hidden">{standing ? standing.short : blocked ? "No disponible" : "Rango"}</span>
-        <span className="hidden sm:inline">{standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}</span>
+        <span className="@[15rem]:hidden">{standing ? standing.short : blocked ? "No disponible" : "Rango"}</span>
+        <span className="hidden @[15rem]:inline">{standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}</span>
         <Info className="size-3 shrink-0" aria-hidden />
         <span className="sr-only">{standing ? standing.text : ""} · {blocked ? "Por qué no hay rango" : "Ver rango de precio orientativo"}</span>
       </button>
@@ -2191,7 +2201,7 @@ export function CompanyDraftForm({
         }}
       />
       {/* t78: "Tu progreso" belongs to Información empresa only; the Ficha pública tab uses the full width. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch lg:gap-6" : "flex flex-col gap-4"}>
+      <div className={tab === "company" ? "flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-stretch xl:gap-6" : "flex flex-col gap-4"}>
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
@@ -2813,12 +2823,14 @@ function PublicFicha({
 
   return (
     <>
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <div className="flex flex-col gap-2">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <div className="flex min-w-0 flex-col gap-2">
           {/* t91: "Generar otro" is a small link on the label row, top right of the name field. */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 text-sm font-medium text-[#2b3b4a]">
-              <label htmlFor="project-codename">{companyCopy.codenameLabel}</label>
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-[#2b3b4a]">
+              <label htmlFor="project-codename" className="whitespace-nowrap">
+                {companyCopy.codenameLabel}
+              </label>
               <FieldHint text={companyCopy.codenameHint} />
             </span>
             <button
@@ -2911,7 +2923,7 @@ function MarketPreview({
         <FieldHint text={companyCopy.cardPreviewBody} />
       </span>
       <div className="rounded-2xl border border-[#e7eaee] bg-[#f7f8fb] p-4">
-        <div className="grid gap-2.5 sm:gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-2.5 sm:gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {filters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-[#5c6b78]">{filter.label}</span>
@@ -2922,7 +2934,7 @@ function MarketPreview({
             </div>
           ))}
         </div>
-        <div className="mt-4 grid items-stretch gap-3 lg:grid-cols-3">
+        <div className="mt-4 grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
           <SampleListing side="left" />
           <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
             <div inert className="h-full">

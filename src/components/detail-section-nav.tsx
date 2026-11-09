@@ -82,7 +82,7 @@ export function DetailSectionNav({
 }) {
   const { active, go } = useScrollSpy(
     items.map((item) => item.id),
-    120,
+    160,
   );
   const fields = progress.fields ?? [];
   const groups = items.map((item) => ({ item, fields: fields.filter((field) => field.group === item.id) }));
@@ -95,7 +95,7 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
+      <nav aria-label="Secciones" className="sticky top-14 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur xl:hidden">
         <ul className="flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const current = item.id === active;
@@ -120,7 +120,7 @@ export function DetailSectionNav({
         </ul>
       </nav>
 
-      <aside className="hidden lg:order-last lg:block">
+      <aside className="hidden xl:order-last xl:block">
         <nav aria-label="Tu progreso" className="sticky top-16 flex flex-col gap-4 rounded-2xl border border-[#e6e9f0] bg-white p-4 shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
           <div className="flex justify-center">
             <CompletionRing done={progress.done} total={progress.total} />

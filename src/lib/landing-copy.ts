@@ -236,7 +236,6 @@ export const landingCopy = {
         ],
       ],
       cta: "Publicar mi empresa",
-      badge: "120 días de media",
       dayLabel: "Día",
       ofLabel: "de 120",
       timeline: [

@@ -193,7 +193,7 @@ export function InvestorProfile({
           </div>
         </div>
         {editingProfessional ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm">
               {investorCopy.professionalName}
               <Input value={tradeName} onChange={(event) => setTradeName(event.target.value)} />
@@ -213,7 +213,7 @@ export function InvestorProfile({
             </label>
           </div>
         ) : (
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <Fact icon={User} label={investorCopy.professionalName} value={tradeName.trim().length > 0 ? tradeName : investorCopy.investorTypeEmpty} />
             <Fact icon={FileSpreadsheet} label={investorCopy.professionalNif} value={nif.trim().length > 0 ? nif : investorCopy.investorTypeEmpty} />
             <Fact icon={MapPin} label={investorCopy.professionalPostal} value={postal.trim().length > 0 ? postal : investorCopy.investorTypeEmpty} />
@@ -255,7 +255,7 @@ export function InvestorProfile({
             </label>
           </div>
         </fieldset>
-        <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-3">
+        <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="flex flex-col gap-2 text-sm">
             {investorCopy.investorType}
             <OptionSelect

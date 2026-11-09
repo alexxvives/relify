@@ -104,7 +104,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {visible.map((account) => (
             <li key={account.id} className="flex">
               <AccountCard account={account} self={account.id === viewerId} />

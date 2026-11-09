@@ -75,7 +75,7 @@ export function ProfileSkeleton({ title }: { title: string }) {
       <div className={card}>
         <div className={`h-5 w-56 ${bone}`} />
         <div className={`mt-2 h-3 w-80 max-w-full ${bone}`} />
-        <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="mt-5 grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="grid gap-4 sm:grid-cols-2">
             {Array.from({ length: 6 }, (_, i) => (
               <div key={i}>
@@ -88,7 +88,7 @@ export function ProfileSkeleton({ title }: { title: string }) {
               <div className={`mt-2 h-24 w-full ${bone}`} />
             </div>
           </div>
-          <div className="hidden h-72 rounded-2xl bg-[#e9edf2] lg:block" />
+          <div className="hidden h-72 rounded-2xl bg-[#e9edf2] xl:block" />
         </div>
       </div>
     </Frame>
@@ -101,7 +101,7 @@ export function PlansSkeleton({ title }: { title: string }) {
     <Frame title={title}>
       <div className="h-44 rounded-3xl bg-[#d5dce5]" />
       <div className={`mx-auto h-9 w-40 rounded-full bg-[#e9edf2]`} />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <div key={i} className={`${card} h-96`}>
             <div className={`size-9 ${bone}`} />
@@ -182,7 +182,7 @@ export function DetailSkeleton({ side = false }: { side?: boolean }) {
     <Frame>
       <div className={`h-4 w-36 ${bone}`} />
       {side ? (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_17rem]">
           {main}
           <div className={`${card} h-[30rem]`}>
             <div className={`h-4 w-28 ${bone}`} />
