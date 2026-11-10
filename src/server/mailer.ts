@@ -76,6 +76,23 @@ function mailerooKey(): string | null {
 }
 
 /** Worker secrets are also on the EMAIL-style binding object. process.env is the usual path. */
+async function intSecretEnv(): Promise<NodeJS.ProcessEnv> {
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  try {
+    const workers = await import("cloudflare:workers");
+    const bound = workers.env as Record<string, unknown>;
+    if (typeof bound.INT_MAILEROO_API_KEY === "string" && !env.INT_MAILEROO_API_KEY) {
+      env.INT_MAILEROO_API_KEY = bound.INT_MAILEROO_API_KEY;
+    }
+    if (typeof bound.INT_EMAIL_CATCHALL === "string" && !env.INT_EMAIL_CATCHALL) {
+      env.INT_EMAIL_CATCHALL = bound.INT_EMAIL_CATCHALL;
+    }
+  } catch {
+    // Node tests and `next dev` only have process.env.
+  }
+  return env;
+}
+
 async function mailerooKeyFromBinding(): Promise<string | null> {
   const fromProcess = mailerooKey();
   if (fromProcess) {
@@ -144,7 +161,7 @@ async function viaMaileroo(
 export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
   let outgoing = mail;
   if (isIntEnvironment()) {
-    const decision = decideIntMail(mail.to);
+    const decision = decideIntMail(mail.to, await intSecretEnv());
     if (!decision.send) {
       console.log(`[mail] INT BLOCKED - would send: ${mail.tag}`);
       return { status: "skipped", transport: null, referenceId: null };

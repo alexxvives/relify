@@ -2,7 +2,7 @@
 
 INT outbound mail is fail-closed. `sendMail` on `releva-int` does **not** use the production Maileroo key (`MAILEROO_API_KEY`), the Cloudflare `EMAIL` binding, or the original recipient as To/CC/BCC.
 
-To test real emails on INT, Alex must set both of these on the `releva-int` Worker (never on `releva`):
+To test real emails on INT, Alex must set both of these as **Worker secrets** on `releva-int` (never on `releva`, never as `[vars]` in the INT pack):
 
 ## 1. Secret: `INT_MAILEROO_API_KEY`
 
@@ -12,21 +12,21 @@ A Maileroo API key that is **not** the production `MAILEROO_API_KEY`. Create a s
 npx wrangler secret put INT_MAILEROO_API_KEY --name releva-int
 ```
 
-The pack lists this secret as required. An empty catch-all still blocks every send.
-
-## 2. Var: `INT_EMAIL_CATCHALL`
+## 2. Secret: `INT_EMAIL_CATCHALL`
 
 One address. Every INT email is rewritten to this mailbox. Lists, blanks, and malformed values are treated as missing.
 
-```
-INT_EMAIL_CATCHALL=alex@itsrelify.com
+```bash
+npx wrangler secret put INT_EMAIL_CATCHALL --name releva-int
 ```
 
-Set it on the Worker vars for `releva-int` (wrangler dashboard or `[vars]` in the INT pack). The packaged default is empty, so mail stays blocked until you set it.
+Do **not** put `INT_EMAIL_CATCHALL` in Worker `[vars]` or in the packaged `wrangler.toml`. An empty packaged var overwrites the dashboard value even with `--keep-vars`. If an earlier pack already wrote it as a var, delete that var on `releva-int` so the secret is what `sendMail` reads.
+
+The pack lists both secrets as required. Until they are set, mail stays blocked.
 
 ## What INT mail does
 
-When both vars are set, **every** `sendMail` call (user-facing confirmations and team alerts) is sent **only** to `INT_EMAIL_CATCHALL`:
+When both secrets are set, **every** `sendMail` call (user-facing confirmations and team alerts) is sent **only** to `INT_EMAIL_CATCHALL`:
 
 - To is the catch-all. CC and BCC are never set. The original recipient never appears in To/CC/BCC.
 - Subject is prefixed with `[INT → <original recipient>] `.
@@ -40,6 +40,7 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 ## What not to set
 
 - `MAILEROO_API_KEY` on releva-int (ignored; INT never reads it).
+- `INT_EMAIL_CATCHALL` as a Worker **var** (use `wrangler secret put`).
 - `INT_EMAIL_ALLOWLIST` (removed; catch-all replaced it).
 - `INT_EMAIL_ENABLED` (legacy; it does not enable mail).
 - Production `EMAIL` send_email binding.

@@ -9,7 +9,7 @@ Every outbound message Relify can send today goes through `sendMail` in `src/ser
 
 **Live in prod config:** yes. Production `cloudflare.config.ts` has `MAILEROO_API_KEY` (primary) and the Cloudflare `EMAIL` send_email binding (fallback), plus optional `NOTIFY_EMAIL_WEBHOOK`. Maileroo is the transport that actually goes out when the secret is set.
 
-**INT:** fail-closed unless `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_CATCHALL` are set on releva-int. Then `sendMail` sends every message only to the catch-all, prefixes `[INT → <original>] `, banners the original recipient in the body, and sets Reply-To to the catch-all. Otherwise it logs `[mail] INT BLOCKED - would send: <tag>` and returns `skipped`. See `docs/INT.md`.
+**INT:** fail-closed unless `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_CATCHALL` are set as Worker secrets on releva-int. Then `sendMail` sends every message only to the catch-all, prefixes `[INT → <original>] `, banners the original recipient in the body, and sets Reply-To to the catch-all. Otherwise it logs `[mail] INT BLOCKED - would send: <tag>` and returns `skipped`. See `docs/INT.md`.
 
 There is no `admin@` address. Internal alerts all go to `info@itsrelify.com` (`SABI_NOTIFY_TO` / `TEAM_INBOX`).
 

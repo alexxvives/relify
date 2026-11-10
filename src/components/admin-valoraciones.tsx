@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { LineChart } from "lucide-react";
+import type { AdminActionState } from "@/app/(app)/admin/actions";
 import { updateValuationRequestAction } from "@/app/(app)/admin/valoraciones/actions";
 import { NewPill } from "@/components/admin-new";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
@@ -39,8 +40,31 @@ function isStatusFilter(value: string): value is StatusFilter {
   return value === "all" || isValuationRequestStatus(value);
 }
 
+const SAVE_NOTICE_MS = 3000;
+
 function RowForm({ row }: { row: AdminValuationRow }) {
   const [state, action, pending] = useActionState(updateValuationRequestAction, null);
+  const [seen, setSeen] = useState<AdminActionState>(null);
+  const [hidden, setHidden] = useState(false);
+
+  if (state !== seen) {
+    setSeen(state);
+    setHidden(false);
+  }
+
+  useEffect(() => {
+    if (!state?.ok) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setHidden(true);
+    }, SAVE_NOTICE_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [state]);
+
+  const notice = hidden ? null : state;
 
   return (
     <form action={action} className="flex flex-col gap-3">
@@ -77,9 +101,9 @@ function RowForm({ row }: { row: AdminValuationRow }) {
         >
           {pending ? valuationCopy.adminSaving : valuationCopy.adminSave}
         </button>
-        {state ? (
-          <p role={state.ok ? "status" : "alert"} className={state.ok ? "text-sm text-[#17663a]" : "text-sm text-[#b42318]"}>
-            {state.message}
+        {notice ? (
+          <p role={notice.ok ? "status" : "alert"} className={notice.ok ? "text-sm text-[#17663a]" : "text-sm text-[#b42318]"}>
+            {notice.message}
           </p>
         ) : null}
       </div>
@@ -195,7 +219,7 @@ export function AdminValoraciones({ entries }: { entries: AdminValuationRow[] })
                     </div>
                   </dl>
                 </div>
-                <RowForm key={`${entry.id}-${entry.status}-${entry.notes}`} row={entry} />
+                <RowForm key={entry.id} row={entry} />
               </div>
             </li>
           ))}

@@ -21,7 +21,7 @@ export function assertUploadsEnabled(): void {
 }
 
 /**
- * INT still fail-closed until Alex sets INT_MAILEROO_API_KEY and INT_EMAIL_CATCHALL.
+ * INT still fail-closed until Alex sets INT_MAILEROO_API_KEY and INT_EMAIL_CATCHALL as Worker secrets.
  * When both are set, sendMail still rewrites every To to the catch-all.
  */
 export function shouldBlockEmail(): boolean {

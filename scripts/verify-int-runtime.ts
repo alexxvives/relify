@@ -57,7 +57,7 @@ console.log(`   INT_EMAIL_CATCHALL=${hasCatchall ? "[set]" : "[missing]"}`);
 console.log(`   shouldBlockEmail() = ${emailBlocked}`);
 console.log(
   emailBlocked
-    ? "   ✓ default block (set INT_MAILEROO_API_KEY + INT_EMAIL_CATCHALL to redirect every send)\n"
+    ? "   ✓ default block (set INT_MAILEROO_API_KEY + INT_EMAIL_CATCHALL Worker secrets to redirect every send)\n"
     : "   ✓ INT mail configured; sendMail rewrites every To to the catch-all and never uses MAILEROO_API_KEY\n",
 );
 

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round S3 INT catch-all as secret; valuation save notice stays
+
+`INT_EMAIL_CATCHALL` is a Worker secret (`wrangler secret put … --name releva-int`), not a packaged `[vars]` value. An empty pack var overwrote the dashboard even with `--keep-vars`. Same put command for `INT_MAILEROO_API_KEY`. `/admin/valoraciones` row forms keep a stable `key={id}` so `Solicitud actualizada.` stays visible about 3 seconds after revalidate.
+
 ## 2026-11-10 — Round S2 INT email catch-all
 
 INT mail no longer uses `INT_EMAIL_ALLOWLIST`. On INT, `sendMail` sends only when `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_CATCHALL` (one address) are set. Every message, including team alerts, is rewritten to that catch-all: original recipient never in To/CC/BCC, subject `[INT → <original>] `, body banner `Email de INT. Destinatario original: <email> (<role>, <tag>)`, Reply-To the catch-all. Missing either var logs `INT BLOCKED`. Prod path unchanged. Documented in `docs/INT.md`.
