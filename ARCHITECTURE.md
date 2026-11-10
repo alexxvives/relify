@@ -40,7 +40,7 @@ Public visitors may see:
 
 Public visitors must not see:
 
-- Legal entity name, CIF, exact address, shareholder names, or data-room files
+- Legal entity name, CIF, exact address, shareholder names, or data-room files of someone else's company. `/valorar` collects the visitor's own CIF and contact into `valuation_request` (admin-only list). That is not a public catalog field.
 
 Access beyond the public card requires an account, a role check, and a recorded NDA acceptance. Build that gate in the service layer even while the data is still seeded.
 

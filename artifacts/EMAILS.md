@@ -9,7 +9,7 @@ Every outbound message Relify can send today goes through `sendMail` in `src/ser
 
 **Live in prod config:** yes. Production `cloudflare.config.ts` has `MAILEROO_API_KEY` (primary) and the Cloudflare `EMAIL` send_email binding (fallback), plus optional `NOTIFY_EMAIL_WEBHOOK`. Maileroo is the transport that actually goes out when the secret is set.
 
-**INT blocks it:** yes, all of them. `shouldBlockEmail()` is `isIntEnvironment()`. INT `sendMail` logs `[mail] INT BLOCKED - would send: <tag>` and returns `skipped`. INT Worker config (`cloudflare.int.config.ts`) also has no Maileroo key and no EMAIL binding.
+**INT:** fail-closed unless `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_ALLOWLIST` are set on releva-int. Then `sendMail` sends only to allowlisted recipients, prefixes `[INT] `, and redirects info@ to the first exact allowlisted address. Otherwise it logs `[mail] INT BLOCKED - would send: <tag>` and returns `skipped`. See `docs/INT.md`.
 
 There is no `admin@` address. Internal alerts all go to `info@itsrelify.com` (`SABI_NOTIFY_TO` / `TEAM_INBOX`).
 
@@ -29,7 +29,8 @@ There is no `admin@` address. Internal alerts all go to `info@itsrelify.com` (`S
 | New messages in a buyer thread (throttled 6 h / conversation) | Company owner | notificaciones@ | Tienes mensajes nuevos sobre {codename} | `newMessagesEmail` | `new-messages` | Live | Blocked |
 | Seller accepts the connection | The buyer | notificaciones@ | Han aceptado tu solicitud en {codename} | `requestAcceptedEmail` | `request-accepted` | Live | Blocked |
 | Admin publishes the company | Company owner | notificaciones@ | {codename} ya está publicada en Relify | `projectPublishedEmail` | `project-published` | Live | Blocked |
-| Public waitlist signup | The address entered on `/lista-de-espera` | notificaciones@ | Hemos recibido tu solicitud en Relify | `src/lib/waitlist-confirmation-email.ts` | `waitlist-confirmation` | Live | Blocked |
+| Public waitlist signup | The address entered on `/lista-de-espera` | notificaciones@ | Hemos recibido tu solicitud en Relify | `src/lib/waitlist-confirmation-email.ts` | `waitlist-confirmation` | Live | Allowlist |
+| Public `/valorar` request | The address entered on the form | notificaciones@ | Hemos recibido tu solicitud de valoración | `src/lib/valuation-request-confirmation-email.ts` | `valuation-request-confirmation` | Live | Allowlist |
 
 Welcome mail is not sent to the admin role. Connection / message / published mail never includes the company’s legal name, CIF or figures when the recipient is a buyer; owner mail may use the legal name only on `report-ready`.
 
@@ -46,9 +47,10 @@ Callers: `src/server/auth.ts`, `src/server/completeOnboarding.ts`, `src/server/n
 | Seller submits EBITDA adjustments | info@ | info@ | Ajuste de EBITDA: {legalName} | `src/lib/ebitda-adjustment-email.ts` | `ebitda-adjustment` | Live | Blocked |
 | Seller proposes a figure correction | info@ | info@ | Corrección de cifras: {legalName} | `src/lib/figure-correction-email.ts` | `figure-correction` | Live | Blocked |
 | Seller asks to change locked legal name or NIF | info@ | info@ | Solicitud de cambio de {nombre legal\|nif}: {codename} | `src/lib/identity-change-email.ts` | `identity-change` | Live | Blocked |
-| Someone joins the public waitlist | info@ | info@ | Lista de espera: {name} ({role}) | `src/lib/waitlist-lead-email.ts` | `waitlist-lead` | Live | Blocked |
+| Someone joins the public waitlist | info@ | info@ | Lista de espera: {name} ({role}) | `src/lib/waitlist-lead-email.ts` | `waitlist-lead` | Live | Allowlist |
+| Public `/valorar` request | info@ | info@ | Valoración solicitada: {name} ({cif}) | `src/lib/valuation-request-email.ts` | `valuation-request` | Live | Allowlist |
 
-Callers: `notifySabiRequest`, `submitForReview`, `notifyEbitdaAdjustment`, `requestFigureCorrection`, `requestIdentityChange`, `notifyWaitlistLead`.
+Callers: `notifySabiRequest`, `submitForReview`, `notifyEbitdaAdjustment`, `requestFigureCorrection`, `requestIdentityChange`, `notifyWaitlistLead`, `notifyValuationRequest`.
 
 The EBITDA adjustment mail deliberately omits the owner’s email. SABI / publish / correction / identity / waitlist-lead include the person’s name and email because the team has to act on them.
 
@@ -57,7 +59,6 @@ The EBITDA adjustment mail deliberately omits the owner’s email. SABI / publis
 ## Not sent by the app
 
 - Stripe Checkout / invoices / receipts (Stripe’s own mail, not `sendMail`).
-- `/valorar` does not send anything.
 - No digest, no marketing list, no List-Unsubscribe.
 
-Counts: **11** user-facing templates (welcome is one builder × 3 roles), **6** team alerts. **17** `sendMail` tags.
+Counts: **12** user-facing templates (welcome is one builder × 3 roles), **7** team alerts. **19** `sendMail` tags.

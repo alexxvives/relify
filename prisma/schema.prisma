@@ -32,6 +32,16 @@ enum WaitlistRole {
   @@map("waitlist_role")
 }
 
+enum ValuationRequestStatus {
+  received
+  sabi_loaded
+  drafted
+  sent
+  discarded
+
+  @@map("valuation_request_status")
+}
+
 enum ProjectStatus {
   draft
   pending
@@ -141,6 +151,7 @@ model User {
   engagementsRequested AdvisoryEngagement[]    @relation("EngagementRequester")
   engagementsOwned     AdvisoryEngagement[]    @relation("EngagementAdvisor")
   investorProfile      InvestorProfile?
+  valuationRequests    ValuationRequest[]
 
   @@unique([email])
   @@map("user")
@@ -298,6 +309,7 @@ model Project {
 
   photos              ProjectPhoto[]
   adjustmentDocuments AdjustmentDocument[]
+  valuationRequests   ValuationRequest[]
   @@index([ownerId])
   @@map("project")
 }
@@ -787,6 +799,28 @@ model WaitlistEntry {
 
   @@unique([email, role])
   @@map("waitlist_entry")
+}
+
+model ValuationRequest {
+  id           String                  @id
+  cif          String
+  contactName  String                  @map("contact_name")
+  contactEmail String                  @map("contact_email")
+  phone        String?
+  userId       String?                 @map("user_id")
+  user         User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status       ValuationRequestStatus  @default(received)
+  projectId    String?                 @map("project_id")
+  project      Project?                @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  notes        String                  @default("") @db.Text
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([projectId])
+  @@map("valuation_request")
 }
 
 model SuccessFee {

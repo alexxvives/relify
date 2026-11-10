@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round S `/valorar` request + INT email allowlist
+
+`/valorar` step 1 (VALORAR.md): persist `ValuationRequest` (CIF + contact, optional phone, optional linked `userId`) via additive migration `20261110220000_valuation_request`. Team alert tag `valuation-request`, confirmation tag `valuation-request-confirmation`. Admin list at `/admin/valoraciones`. Valuations stay off Checkout.
+
+INT mail: `sendMail` no longer hard-blocks. On INT it sends only with `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and every recipient on `INT_EMAIL_ALLOWLIST`. Subjects get `[INT] `. info@ alerts redirect to the first exact allowlisted address. Documented in `docs/INT.md`.
+
 ## 2026-11-10 — Round R3 preview, one EBITDA figure, 50 % warning
 
 Seller “Cómo se verá mi empresa” uses `marketCardFigures` / `reportHeadline` — the same path as `/mercado`. Pending rows never change that card. Pre-NDA Resumen shows one figure: `EBITDA` when nothing is approved, `EBITDA ajustado` when approved, with the accounts figure only in the tooltip. An adjustment larger than sales is still rejected; larger than half of EBITDA is a soft warning only (1 M € on 5 M sales is allowed).

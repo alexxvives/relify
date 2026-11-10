@@ -9,7 +9,7 @@ import { bindings, defineConfig, defineWorker } from "cf/config";
  * - Separate auth secret (INT_BETTER_AUTH_SECRET)
  * - NO production routes or domains
  * - Sandbox/disabled payments
- * - Disabled outbound mail by default
+ * - Outbound mail only via INT_MAILEROO_API_KEY + INT_EMAIL_ALLOWLIST (never the prod key, never info@)
  * - Prominent INT badge and noindex
  */
 export default defineConfig({
@@ -26,6 +26,8 @@ export default defineConfig({
       INT_DATABASE_URL: bindings.secret(),
       INT_BETTER_AUTH_SECRET: bindings.secret(),
       INT_BETTER_AUTH_URL: bindings.secret(),
+      // INT-only Maileroo key. Never MAILEROO_API_KEY. See docs/INT.md.
+      INT_MAILEROO_API_KEY: bindings.secret(),
     },
   }),
 });

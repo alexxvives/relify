@@ -8,6 +8,7 @@ export const adminSeenPages = [
   "conexiones",
   "mensajes",
   "waitlist",
+  "valoraciones",
 ] as const;
 export type AdminSeenPage = (typeof adminSeenPages)[number];
 
@@ -79,6 +80,8 @@ export async function adminNavCounts(
     newSubscribers,
     waitlist,
     newWaitlist,
+    valuations,
+    receivedValuations,
   ] = await Promise.all([
     prisma.project.count(),
     // t75: plus companies waiting for approval (auto-submitted when the seller list is complete).
@@ -99,6 +102,8 @@ export async function adminNavCounts(
     prisma.newsletterSubscriber.count({ where: { createdAt: { gt: since("mensajes") } } }),
     prisma.waitlistEntry.count(),
     prisma.waitlistEntry.count({ where: { createdAt: { gt: recentSince() } } }),
+    prisma.valuationRequest.count(),
+    prisma.valuationRequest.count({ where: { status: "received" } }),
   ]);
   return {
     "/admin/empresas": {
@@ -130,6 +135,11 @@ export async function adminNavCounts(
       total: waitlist,
       alert: newWaitlist,
       alertLabel: "nuevas en los últimos 7 días",
+    },
+    "/admin/valoraciones": {
+      total: valuations,
+      alert: receivedValuations,
+      alertLabel: "recibidas, pendientes de informe",
     },
   };
 }

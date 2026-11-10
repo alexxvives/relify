@@ -47,12 +47,19 @@ try {
   }
 }
 
-// Test 4: Email blocking
-console.log("4. Email Blocking");
+// Test 4: Email policy (INT allowlist — see docs/INT.md)
+console.log("4. Email policy");
 const emailBlocked = shouldBlockEmail();
-console.log(`   INT_EMAIL_ENABLED=${process.env.INT_EMAIL_ENABLED}`);
+const hasIntKey = typeof process.env.INT_MAILEROO_API_KEY === "string" && process.env.INT_MAILEROO_API_KEY.length > 10;
+const hasAllowlist = typeof process.env.INT_EMAIL_ALLOWLIST === "string" && process.env.INT_EMAIL_ALLOWLIST.trim().length > 0;
+console.log(`   INT_MAILEROO_API_KEY=${hasIntKey ? "[configured]" : "[missing]"}`);
+console.log(`   INT_EMAIL_ALLOWLIST=${hasAllowlist ? "[set]" : "[missing]"}`);
 console.log(`   shouldBlockEmail() = ${emailBlocked}`);
-console.log(`   ${emailBlocked ? "✓" : "✗"} Email blocked (expected: true)\n`);
+console.log(
+  emailBlocked
+    ? "   ✓ default block (set INT_MAILEROO_API_KEY + INT_EMAIL_ALLOWLIST to send to allowlisted addresses)\n"
+    : "   ✓ INT mail configured; sendMail still allowlists each recipient and never uses MAILEROO_API_KEY\n",
+);
 
 // Test 5: Payment blocking
 console.log("5. Payment Blocking");

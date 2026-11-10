@@ -9,7 +9,7 @@ INT implements **fail-closed** safety guards:
 1. **Exact Resource Validation**: Database endpoints must be explicitly approved (localhost or `INT_APPROVED_DB_HOST`)
 2. **No Credential Logging**: Connection strings never logged, only status markers (`[configured]`)
 3. **Uploads Disabled**: All file uploads blocked until isolated storage wired
-4. **Email Blocked**: Outbound email disabled by default (`INT_EMAIL_ENABLED` required to enable)
+4. **Email**: Outbound mail is blocked unless `INT_MAILEROO_API_KEY` and `INT_EMAIL_ALLOWLIST` are set on releva-int. Never the prod key, never info@. See `docs/INT.md`.
 5. **Payments Blocked**: Stripe charges/webhooks disabled (`INT_PAYMENTS_ENABLED` required)
 6. **External APIs Blocked**: Billable APIs (EInforma, ApiEmpresas, Context7, Maileroo) blocked by default
 7. **Webhooks Blocked**: All webhook delivery blocked in INT
@@ -50,8 +50,9 @@ INT_APPROVED_DB_HOST=ep-xxx.us-east-2.aws.neon.tech:5432
 INT_BETTER_AUTH_SECRET=<generate-32-char-secret>
 INT_BETTER_AUTH_URL=https://releva-int.<account>.workers.dev
 
-# Optional: override fail-closed blocks (use with caution)
-# INT_EMAIL_ENABLED=true
+# INT mail (optional; see docs/INT.md). Never MAILEROO_API_KEY.
+# INT_MAILEROO_API_KEY=<INT-only Maileroo key>
+# INT_EMAIL_ALLOWLIST=alex@itsrelify.com
 # INT_PAYMENTS_ENABLED=true
 # INT_EXTERNAL_APIS_ENABLED=true
 # INT_UPLOADS_ENABLED=true
@@ -75,7 +76,7 @@ Expected output:
 - ✓ INT mode detected
 - ✓ Database URL validated
 - ✓ Uploads blocked
-- ✓ Email blocked
+- ✓ Email blocked unless INT_MAILEROO_API_KEY + INT_EMAIL_ALLOWLIST are set (see docs/INT.md)
 - ✓ Payments blocked
 - ✓ External APIs blocked
 - ✓ Webhooks blocked

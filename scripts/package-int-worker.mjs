@@ -34,6 +34,7 @@ enabled = true
 [vars]
 INT_ENVIRONMENT = "true"
 INT_APPROVED_DB_HOST = "${approvedHost}"
+INT_EMAIL_ALLOWLIST = ""
 
 [assets]
 directory = "assets"
@@ -53,8 +54,9 @@ writeFileSync(
       vars: {
         INT_ENVIRONMENT: "true",
         INT_APPROVED_DB_HOST: approvedHost,
+        INT_EMAIL_ALLOWLIST: "",
       },
-      secrets: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL"],
+      secrets: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY"],
       bindings: [{ name: "ASSETS", type: "assets", directory: "assets" }],
     },
     null,
@@ -78,8 +80,9 @@ writeFileSync(
       vars: {
         INT_ENVIRONMENT: "true",
         INT_APPROVED_DB_HOST: approvedHost,
+        INT_EMAIL_ALLOWLIST: "",
       },
-      secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL"],
+      secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY"],
       absent: [
         "MAILEROO_API_KEY",
         "EMAIL",

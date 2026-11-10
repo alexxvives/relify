@@ -897,6 +897,7 @@ export function AdminListSkeleton({
     | "companies"
     | "connections"
     | "waitlist"
+    | "valoraciones"
     | "messages";
 }) {
   if (kind === "messages") {
@@ -981,7 +982,7 @@ export function AdminListSkeleton({
     );
   }
 
-  if (kind === "waitlist") {
+  if (kind === "waitlist" || kind === "valoraciones") {
     return (
       <Shell>
         <AdminToolbar title="w-44" controls={2} />

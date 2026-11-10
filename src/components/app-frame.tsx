@@ -59,6 +59,7 @@ const iconForHref = {
   "/admin/facturacion": ReceiptIcon,
   "/admin/mensajes": MessageCircleMoreIcon,
   "/admin/lista-de-espera": MailIcon,
+  "/admin/valoraciones": TableIcon,
   "/mis-servicios": BriefcaseIcon,
 };
 
@@ -449,7 +450,8 @@ export function AppFrame({
                           selected &&
                           item.href !== "/admin/empresas" &&
                           item.href !== "/admin/cuentas" &&
-                          item.href !== "/admin/lista-de-espera"
+                          item.href !== "/admin/lista-de-espera" &&
+                          item.href !== "/admin/valoraciones"
                           ? 0
                           : navCounts[item.href].alert
                         : 0

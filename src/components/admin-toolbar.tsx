@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 export function AdminPageHeader({ title, note, children }: { title: string; note?: string; children?: ReactNode }) {
   return (
     <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1>
+      <div className="shrink-0">
+        <h1 className="text-3xl tracking-tight text-nowrap text-public-ink">{title}</h1>
         {note ? <p className="mt-1 text-sm text-[#667085]">{note}</p> : null}
       </div>
       {children ? <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">{children}</div> : null}

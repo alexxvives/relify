@@ -1,4 +1,6 @@
 import type { RenderedEmail } from "@/lib/email/layout";
+import { isIntEnvironment } from "../lib/int-env";
+import { decideIntMail, intMailerooKey, prefixIntSubject } from "../lib/int-mail";
 import { sanitizeMailHeader } from "../lib/mail-header";
 
 /** People hear from this address. Team alerts do not: those are the inbox writing to itself. */
@@ -58,6 +60,9 @@ function readMailerooKey(value: unknown): string | null {
 }
 
 function mailerooKey(): string | null {
+  if (isIntEnvironment()) {
+    return intMailerooKey();
+  }
   return readMailerooKey(process.env.MAILEROO_API_KEY);
 }
 
@@ -70,7 +75,11 @@ async function mailerooKeyFromBinding(): Promise<string | null> {
 
   try {
     const workers = await import("cloudflare:workers");
-    return readMailerooKey((workers.env as Record<string, unknown>).MAILEROO_API_KEY);
+    const env = workers.env as Record<string, unknown>;
+    if (isIntEnvironment()) {
+      return readMailerooKey(env.INT_MAILEROO_API_KEY);
+    }
+    return readMailerooKey(env.MAILEROO_API_KEY);
   } catch {
     return null;
   }
@@ -123,14 +132,17 @@ async function viaMaileroo(
  * Logs carry the tag and status only, never the address or the body.
  */
 export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
-  // INT guard: fail-closed email block (no accidental enable)
-  const { shouldBlockEmail } = await import("@/server/int-guards");
-  if (shouldBlockEmail()) {
-    console.log(`[mail] INT BLOCKED - would send: ${mail.tag}`);
-    return { status: "skipped", transport: null, referenceId: null };
+  let outgoing = mail;
+  if (isIntEnvironment()) {
+    const decision = decideIntMail(mail.to);
+    if (!decision.send) {
+      console.log(`[mail] INT BLOCKED - would send: ${mail.tag}`);
+      return { status: "skipped", transport: null, referenceId: null };
+    }
+    outgoing = { ...mail, to: decision.to, subject: prefixIntSubject(mail.subject) };
   }
-  
-  if (!isEmail(mail.to)) {
+
+  if (!isEmail(outgoing.to)) {
     console.warn(`[mail] invalid recipient for ${mail.tag}; skipped`);
     return { status: "skipped", transport: null, referenceId: null };
   }
@@ -138,7 +150,7 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
   const key = await mailerooKeyFromBinding();
   if (key) {
     try {
-      const reference = await viaMaileroo(key, mail);
+      const reference = await viaMaileroo(key, outgoing);
       if (reference !== false) {
         return {
           status: "sent",
@@ -151,16 +163,21 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
     }
   }
 
+  if (isIntEnvironment()) {
+    console.warn(`[mail] no INT Maileroo transport; skipped ${mail.tag}`);
+    return { status: "skipped", transport: null, referenceId: null };
+  }
+
   const binding = await emailBinding();
   if (binding) {
     try {
-      const from = senderFor(mail.to);
+      const from = senderFor(outgoing.to);
       await binding.send({
-        to: sanitizeMailHeader(mail.to),
+        to: sanitizeMailHeader(outgoing.to),
         from: { email: from.address, name: from.name },
-        subject: sanitizeMailHeader(mail.subject),
-        html: mail.html,
-        text: mail.text,
+        subject: sanitizeMailHeader(outgoing.subject),
+        html: outgoing.html,
+        text: outgoing.text,
       });
       return { status: "sent", transport: "binding", referenceId: null };
     } catch (error) {
@@ -179,10 +196,10 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          to: sanitizeMailHeader(mail.to),
-          subject: sanitizeMailHeader(mail.subject),
-          html: mail.html,
-          text: mail.text,
+          to: sanitizeMailHeader(outgoing.to),
+          subject: sanitizeMailHeader(outgoing.subject),
+          html: outgoing.html,
+          text: outgoing.text,
         }),
       });
       if (response.ok) {

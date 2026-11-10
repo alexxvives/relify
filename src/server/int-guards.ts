@@ -4,6 +4,7 @@
  */
 
 import { isIntEnvironment } from "../lib/int-env";
+import { intMailConfigured } from "../lib/int-mail";
 
 /**
  * Block all file uploads in INT until dedicated persistent storage is wired.
@@ -20,11 +21,15 @@ export function assertUploadsEnabled(): void {
 }
 
 /**
- * Block all outbound email in INT (fail-closed, no accidental enable).
- * Returns true if email should be blocked.
+ * INT still fail-closed until Alex sets INT_MAILEROO_API_KEY and INT_EMAIL_ALLOWLIST.
+ * Per-recipient gating lives in sendMail / decideIntMail: even when this is false,
+ * a destination that is not on the allowlist is logged as INT BLOCKED.
  */
 export function shouldBlockEmail(): boolean {
-  return isIntEnvironment();
+  if (!isIntEnvironment()) {
+    return false;
+  }
+  return !intMailConfigured();
 }
 
 /**

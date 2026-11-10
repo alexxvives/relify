@@ -27,14 +27,21 @@ test.describe("visitor landing and public forms", () => {
     }
   });
 
-  test("valorar validates CIF client-side and does not save", async ({ page }) => {
+  test("valorar validates CIF and only submits when mutation is allowed", async ({ page }) => {
     await page.goto("/valorar");
+    await expect(page.locator('input[name="cif"]')).toBeVisible();
+    await expect(page.locator('input[name="contactName"]')).toBeVisible();
+    await expect(page.locator('input[name="contactEmail"]')).toBeVisible();
     await page.locator('input[name="cif"]').fill("B12345678");
-    await page.getByRole("button", { name: /^valorar$/i }).click();
+    await page.locator('input[name="contactName"]').fill("E2E Visitante");
+    await page.locator('input[name="contactEmail"]').fill("e2e-valorar@example.com");
+    await page.getByRole("button", { name: /solicitar valoración/i }).click();
     await expect(page.getByText(/cif no es correcto/i)).toBeVisible();
-    await page.locator('input[name="cif"]').fill("B12345674");
-    await page.getByRole("button", { name: /^valorar$/i }).click();
-    await expect(page.getByText(/no lo hemos guardado/i)).toBeVisible();
+    if (process.env.E2E_ALLOW_MUTATION === "1") {
+      await page.locator('input[name="cif"]').fill("B12345674");
+      await page.getByRole("button", { name: /solicitar valoración/i }).click();
+      await expect(page.getByText(/hemos recibido tu solicitud/i)).toBeVisible({ timeout: 15_000 });
+    }
   });
 
   test("/archivo is a Relify 404 with CTAs", async ({ page }) => {

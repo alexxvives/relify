@@ -1,35 +1,33 @@
-# Round P — `/valorar` today and the path to a real report
+# `/valorar` today and the path to a real report
 
-## What it does today
+## What it does today (Round S, step 1)
 
-`/valorar` is a public Costa page (`src/app/valorar/page.tsx`) with a CIF form (`src/components/valuation-soon.tsx`).
+`/valorar` is a public Costa page (`src/app/valorar/page.tsx`) with a contact form (`src/components/valuation-request-form.tsx`).
 
 **Fields**
 
-- One text field: CIF de la sociedad (normalized, max 12, Spanish CIF checksum via `isValidSpanishCif`).
+- CIF de la sociedad (normalized, max 12, Spanish CIF checksum via `isValidSpanishCif`).
+- Nombre and correo (required). Teléfono optional. Signed-in visitors can tick “tengo cuenta” to store `userId`.
 
 **On submit**
 
-- Invalid CIF → inline error, nothing else.
-- Valid CIF → client-side status: “La valoración todavía no está abierta. El CIF tiene forma válida y no lo hemos guardado.”
-- No server action, no database write, no SABI lookup, no email, no admin row, no PDF.
+- Invalid CIF / contact → inline error, nothing persisted.
+- Valid → `ValuationRequest` row (`status` received), confirmation “Hemos recibido tu solicitud; te enviaremos la valoración con explicación y gráficas.”, email to info@ (`valuation-request`) and a confirmation to the requester (`valuation-request-confirmation`). Rate-limited 8/hour fail-closed. No charge.
 
-**Valuation computed?** No. The page copy says so. Sector multiples, weighted EBITDA and the seller’s orientative price range live on the signed-in ficha (`src/lib/valuation-multiples.ts`, used from `company-draft-form.tsx`), not on `/valorar`.
+**Valuation computed?** No. Sector multiples still live on the signed-in ficha (`src/lib/valuation-multiples.ts`).
 
-**Admin view?** None. There is no `valuation_request` table.
+**Admin view?** `/admin/valoraciones` — list, status, notes, status filter only when there are rows.
 
 Sitemap includes `/valorar`. Footer “Mercado” links here.
 
 ## INT
 
-Same page as prod. It is entirely client-side, so INT does not block or break it. CIF is not stored, so there is nothing for INT guards (`shouldBlockEmail`, upload block) to touch. The form “works” in the sense that checksum validation and the coming-soon message render; nothing behind it is wired.
+The save path is live. Mail follows the INT allowlist (`docs/INT.md`): without `INT_MAILEROO_API_KEY` + `INT_EMAIL_ALLOWLIST`, `sendMail` logs `INT BLOCKED` and the row still lands.
 
 ## Target flow
 
-1. **Request lands in admin + email to info@itsrelify.com**  
-   User enters CIF (and, to reply, an email + name). Persist a `ValuationRequest`. Reuse `sendMail` + `senderFor` so info@ writes to itself, same as SABI alerts. INT `shouldBlockEmail` stays.  
-   **Data model:** `valuation_request` (`id`, `cif`, `contactName`, `contactEmail`, `status` received → sabi_loaded → drafted → sent, `projectId` nullable, timestamps). Optional `userId` if they already have an account.  
-   **Effort:** small — one table, one server action, one admin list at `/admin/valoraciones`, one email builder cloned from `sabi-request-email.ts`. CIF validation already exists.
+1. **Request lands in admin + email to info@itsrelify.com** — **shipped in Round S.**  
+   Persist `ValuationRequest`. Team alert + requester confirmation. Admin list at `/admin/valoraciones`. INT mail uses the allowlist, not a hard block.
 
 2. **Admin uploads SABI for that company**  
    Reuse `sabiImport` against a draft `Project` created from the request (codename anonymous, legal name/CIF from the Excel). Do not publish it. Link `valuation_request.projectId`. INT already blocks document uploads; keep that and let admin paste/upload only on prod, or allow INT Excel the same way SABI import already works for admins.  
