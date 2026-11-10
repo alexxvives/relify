@@ -67,7 +67,6 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
   );
 }
 
-const trackerWidth = "17.25rem";
 const progressTrackerKey = "Relify:progress-tracker:expanded";
 const progressTrackerEvent = "releva:progress-tracker";
 
@@ -130,13 +129,16 @@ function ProgressTrackerOverlay({
 
   return (
     <ViewportPortal>
-    <div className="pointer-events-none fixed top-16 right-4 z-40 hidden lg:top-3 lg:block" data-section-tracker="true">
+    <div
+      className="pointer-events-none fixed right-3 bottom-[calc(var(--shell-tabbar,3.5rem)+0.75rem)] z-40 lg:top-3 lg:right-4 lg:bottom-auto"
+      data-section-tracker="true"
+    >
       <div className="pointer-events-auto flex flex-col items-end">
         <div
           role="navigation"
           aria-label={label}
-          className={`${cardClass} max-h-[min(32rem,calc(100vh-6rem))] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]`}
-          style={{ width: trackerWidth }}
+          className={`${cardClass} max-h-[min(32rem,calc(100vh-var(--shell-tabbar,3.5rem)-6rem))] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]`}
+          style={{ width: "min(17.25rem, calc(100vw - 1.5rem))" }}
         >
           <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2.5">
             <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
@@ -201,42 +203,39 @@ export function DetailSectionNav({
     pending: fields.filter((field) => field.group === item.id && !field.done),
   }));
 
+  function collapseTrackerIfCompact() {
+    if (window.matchMedia("(max-width: 1279px)").matches) {
+      window.localStorage.setItem(progressTrackerKey, "0");
+      window.dispatchEvent(new Event(progressTrackerEvent));
+    }
+  }
+
   function jump(id: string) {
     return (event: React.MouseEvent) => {
-      if (onMissing?.(id) || go(id)) event.preventDefault();
+      if (onMissing?.(id) || go(id)) {
+        event.preventDefault();
+        collapseTrackerIfCompact();
+      }
+    };
+  }
+
+  function jumpSection(itemId: string, pending: DetailField[]) {
+    return (event: React.MouseEvent) => {
+      const firstPending = pending[0]?.id;
+      if (firstPending && onMissing?.(firstPending)) {
+        event.preventDefault();
+        collapseTrackerIfCompact();
+        return;
+      }
+      if (onMissing?.(itemId) || go(itemId)) {
+        event.preventDefault();
+        collapseTrackerIfCompact();
+      }
     };
   }
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-[7.75rem] z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur sm:top-[8.25rem] lg:hidden">
-        <div className="flex items-center gap-2">
-          <CompletionRing done={progress.done} total={progress.total} size={36} />
-          <ul className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">
-            {items.map((item) => {
-              const current = item.id === active;
-              return (
-                <li key={item.id} className="shrink-0">
-                  <a
-                    href={`#${item.id}`}
-                    aria-current={current ? "location" : undefined}
-                    onClick={(event) => {
-                      if (go(item.id)) event.preventDefault();
-                    }}
-                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                      current ? "border-[#1c2740] bg-[#1c2740] text-white" : "border-[#e6e9f0] bg-white text-[#3d4a63]"
-                    }`}
-                  >
-                    <StatusIcon status={item.status} className="size-3.5" />
-                    {item.label}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </nav>
-
       <ProgressTrackerOverlay
         label="Tu progreso"
         trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
@@ -259,10 +258,10 @@ export function DetailSectionNav({
               return (
                 <li key={item.id}>
                   <a
-                    href={`#${item.id}`}
+                    href={`#${pending[0]?.id ?? item.id}`}
                     aria-current={current ? "location" : undefined}
                     aria-expanded={pending.length > 0 ? expanded : undefined}
-                    onClick={jump(item.id)}
+                    onClick={jumpSection(item.id, pending)}
                     className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}

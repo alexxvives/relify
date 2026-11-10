@@ -423,7 +423,7 @@ export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"
       audit
         ? null
         : sellerSaysAudited
-          ? "El vendedor indica que las cuentas están auditadas, pero el registro no publica el informe: pedir la opinión del auditor."
+          ? "El vendedor indica que las cuentas están auditadas: pedir la opinión del auditor."
           : "No consta informe de auditoría: las cifras no están verificadas por un tercero.",
     ]
       .filter(Boolean)

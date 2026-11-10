@@ -217,9 +217,6 @@ model Project {
   rentMonthlyCents       BigInt? @map("rent_monthly_cents")
   leaseYearsRemaining    Int?    @map("lease_years_remaining")
   recurringRevenuePct    Int?    @map("recurring_revenue_pct")
-  seasonality            String? @map("seasonality")
-  seasonalityNote        String? @map("seasonality_note")
-  top5ClientsPct         Int?    @map("top5_clients_pct")
   /// "debt_free_cash_free" | "shares"; null = use defaultAskingPriceIncludes.
   askingPriceIncludes    String? @map("asking_price_includes")
   verifiedAt          DateTime?            @map("verified_at")

@@ -16,15 +16,12 @@ import {
   isHeadcountRange,
   isOwnerDependence,
   isPremisesKind,
-  isSeasonalityLevel,
   storedAskingPriceIncludes,
-  topClientsWeightPct,
   type AskingPriceIncludes,
   type BalanceAmounts,
   type BalanceDisplayKey,
   type OwnerDependence,
   type PremisesKind,
-  type SeasonalityLevel,
   type HeadcountRangeId,
   type IncomeDisplayKey,
   type PnlAmounts,
@@ -54,9 +51,6 @@ export const investorProjectSelect = {
   rentMonthlyCents: true,
   leaseYearsRemaining: true,
   recurringRevenuePct: true,
-  seasonality: true,
-  seasonalityNote: true,
-  top5ClientsPct: true,
   askingPriceIncludes: true,
   opexCents: true,
   headcountRange: true,
@@ -181,9 +175,6 @@ export type InvestorProjectProfile = {
   rentMonthlyCents: number | null;
   leaseYearsRemaining: number | null;
   recurringRevenuePct: number | null;
-  seasonality: SeasonalityLevel | null;
-  seasonalityNote: string | null;
-  top5ClientsPct: number | null;
   askingPriceIncludes: AskingPriceIncludes;
   askingPriceCents: number;
   opexCents: number | null;
@@ -237,9 +228,6 @@ type InvestorProjectRecord = {
   rentMonthlyCents?: number | null;
   leaseYearsRemaining?: number | null;
   recurringRevenuePct?: number | null;
-  seasonality?: string | null;
-  seasonalityNote?: string | null;
-  top5ClientsPct?: number | null;
   askingPriceIncludes?: string | null;
   opexCents: number | null;
   headcountRange: string | null;
@@ -496,9 +484,6 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     rentMonthlyCents: record.premisesKind === "rent" ? (record.rentMonthlyCents ?? null) : null,
     leaseYearsRemaining: record.premisesKind === "rent" ? (record.leaseYearsRemaining ?? null) : null,
     recurringRevenuePct: record.recurringRevenuePct ?? null,
-    seasonality: record.seasonality && isSeasonalityLevel(record.seasonality) ? record.seasonality : null,
-    seasonalityNote: null,
-    top5ClientsPct: topClientsWeightPct(clients),
     askingPriceIncludes: storedAskingPriceIncludes(record.askingPriceIncludes),
     opexCents: record.opexCents,
     ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),

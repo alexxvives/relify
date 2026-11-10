@@ -28,7 +28,7 @@ export type PublishChecklist = CheckList<SellerCheckKey>;
 export type AdminPublishChecks = CheckList<AdminCheckKey>;
 
 const detailHref = (panel: SellerFocusPanel, anchor: string = `panel-${panel}`) =>
-  `/mi-empresa/detalles?seccion=${panel}#${anchor}`;
+  `/mi-empresa/detalles?seccion=${panel}&ancla=${encodeURIComponent(anchor)}#${anchor}`;
 
 export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> = {
   identity: "Nombre y NIF",
@@ -58,7 +58,7 @@ export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: 
     items.push({ key: "identity", done: false, href: detailHref("identity") });
   }
   items.push(
-    { key: "saleReason", done: input.saleReason, href: detailHref("identity") },
+    { key: "saleReason", done: input.saleReason, href: detailHref("identity", "panel-sale-reason") },
     { key: "description", done: input.panels.description, href: detailHref("description") },
     { key: "price", done: input.panels.price, href: detailHref("price") },
     // t92: required; any answer (Sí, No or Negociable) completes it.

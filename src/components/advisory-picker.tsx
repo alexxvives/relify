@@ -114,6 +114,7 @@ function AdvisorMarket({
   const sorted = sort === "recommended" ? filtered : sortPublicAdvisors(filtered, sort);
   const paging = usePageParam(sorted.length, ADVISOR_PAGE_SIZE, JSON.stringify([sector, service, sort]));
   const visible = sorted.slice(paging.start, paging.end);
+  const filtersActive = sector !== "" || service !== "";
 
   return (
     <section className="flex flex-col gap-4">
@@ -172,13 +173,17 @@ function AdvisorMarket({
       </div>
       {sorted.length === 0 ? (
         <FilterEmptyState
-          message={engagementCopy.marketplaceEmpty}
-          actionLabel={engagementCopy.clearFilters}
-          onClear={() => {
-            setSector("");
-            setService("");
-            setSort("recommended");
-          }}
+          message={filtersActive ? engagementCopy.marketplaceEmpty : engagementCopy.marketplaceEmptyUnfiltered}
+          actionLabel={filtersActive ? engagementCopy.clearFilters : undefined}
+          onClear={
+            filtersActive
+              ? () => {
+                  setSector("");
+                  setService("");
+                  setSort("recommended");
+                }
+              : undefined
+          }
         >
           <MutedAdvisorCards />
         </FilterEmptyState>

@@ -47,12 +47,6 @@ export function isPremisesKind(value: string): value is PremisesKind {
   return premisesKinds.some((item) => item === value);
 }
 
-export const seasonalityLevels = ["none", "low", "medium", "high"] as const;
-export type SeasonalityLevel = (typeof seasonalityLevels)[number];
-export function isSeasonalityLevel(value: string): value is SeasonalityLevel {
-  return seasonalityLevels.some((item) => item === value);
-}
-
 /**
  * Qué incluye el precio. José María will confirm the default; keep this as the single source of truth.
  */

@@ -20,8 +20,6 @@ describe("draftInvestorPreview", () => {
 
     expect(preview.customerBase).toBe("consumer");
     expect(preview.clients.map((slice) => slice.basisPoints)).toEqual([6000, 4000]);
-    expect(preview.top5ClientsPct).toBe(100);
-    expect(preview.seasonalityNote).toBeNull();
     expect(preview.askingPriceCents).toBe(120_000_000);
     expect(preview.codename).toBe("Proyecto Cala");
     expect(preview.slug).not.toContain(" ");

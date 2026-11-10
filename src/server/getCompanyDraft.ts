@@ -20,7 +20,6 @@ import {
   isHeadcountRange,
   isOwnerDependence,
   isPremisesKind,
-  isSeasonalityLevel,
   storedAskingPriceIncludes,
 } from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -191,7 +190,6 @@ export async function getCompanyDraft(
             rentMonthlyCents: true,
             leaseYearsRemaining: true,
             recurringRevenuePct: true,
-            seasonality: true,
             askingPriceIncludes: true,
             opexCents: true,
             headcountRange: true,
@@ -264,9 +262,6 @@ export async function getCompanyDraft(
     rentMonthly: money(draft.rentMonthlyCents),
     leaseYearsRemaining: draft.leaseYearsRemaining == null ? "" : String(draft.leaseYearsRemaining),
     recurringRevenuePct: draft.recurringRevenuePct == null ? "" : String(draft.recurringRevenuePct),
-    seasonality: draft.seasonality && isSeasonalityLevel(draft.seasonality) ? draft.seasonality : "",
-    seasonalityNote: "",
-    top5ClientsPct: "",
     askingPriceIncludes: storedAskingPriceIncludes(draft.askingPriceIncludes),
     opex: money(draft.opexCents),
     capitalPercents: percents("capital"),

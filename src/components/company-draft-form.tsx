@@ -454,6 +454,7 @@ function FigureField({
             <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
               <input
                 ref={inputRef}
+                data-flash
                 inputMode="decimal"
                 aria-label={label}
                 value={shown}
@@ -646,7 +647,7 @@ function FichaMetrics({
       <div
         role="radiogroup"
         aria-labelledby="asking-price-includes-label"
-        className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
+        className="mt-3 grid grid-cols-2 gap-2"
       >
         {askingPriceIncludesKinds.map((option) => {
           const selected = askingPriceIncludes === option;
@@ -657,16 +658,16 @@ function FichaMetrics({
             key={option}
             type="button"
             role="radio"
+            title={help}
             aria-checked={selected}
             onClick={() => onAskingPriceIncludes(option)}
-            className={`min-h-11 rounded-xl border px-3 py-2.5 text-left focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+            className={`inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-center text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
               selected
                 ? "border-[#1c2740] bg-[#1c2740] text-white"
                 : "border-[#e7eaee] bg-white text-[#3d4a63] hover:bg-[#f2f4f7]"
             }`}
           >
-            <span className="block text-sm font-medium">{title}</span>
-            <span className={`mt-0.5 block text-xs font-normal ${selected ? "text-white/80" : "text-[#667085]"}`}>{help}</span>
+            {title}
           </button>
           );
         })}
@@ -712,33 +713,37 @@ function SellerFinancingField({
       <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
         El comprador te pagaría una parte más adelante, a plazos.
       </p>
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 items-center gap-1.5">
         <div
           role="radiogroup"
+          data-flash
           aria-labelledby="seller-financing-label"
           aria-describedby="seller-financing-help"
-          className="grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
+          className={`grid h-10 min-w-0 grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-0.5 ${terms ? "flex-[1.35]" : "w-full"}`}
         >
           {sellerFinancingModes.map((option) => (
             <button
               key={option}
               type="button"
               role="radio"
+              aria-label={sellerFinancingLabels[option]}
               aria-checked={mode === option}
               onClick={() => onMode(option)}
-              className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+              className={`rounded-lg px-1 text-[11px] font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-3 sm:text-sm ${
                 mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
               }`}
             >
-              {sellerFinancingLabels[option]}
+              <span className="sm:hidden">{option === "negotiable" ? "Neg." : sellerFinancingLabels[option]}</span>
+              <span className="hidden sm:inline">{sellerFinancingLabels[option]}</span>
             </button>
           ))}
         </div>
         {terms ? (
-          <div className="grid h-10 grid-cols-2 gap-2">
-            <label className="flex h-10 min-w-0 items-center gap-1.5 rounded-xl border border-[#d8dee8] bg-white px-2.5">
-              <span className="shrink-0 text-xs font-medium whitespace-nowrap text-[#667085]">% del precio</span>
+          <>
+            <label className="flex h-10 min-w-[4.25rem] flex-1 items-center gap-1 rounded-xl border border-[#d8dee8] bg-white px-2">
+              <span className="shrink-0 text-xs font-medium text-[#667085]">%</span>
               <input
+                data-flash
                 inputMode="numeric"
                 aria-label="Porcentaje del precio financiado"
                 value={pct}
@@ -747,15 +752,17 @@ function SellerFinancingField({
                 placeholder="20"
               />
             </label>
-            <OptionSelect
-              label="Plazo de la financiación"
-              placeholder="Plazo"
-              textSize="sm"
-              value={years}
-              options={sellerFinancingYearOptions.map((option) => ({ value: String(option), label: sellerFinancingYearLabels[option] }))}
-              onValueChange={onYears}
-            />
-          </div>
+            <div className="min-w-[5.25rem] flex-1">
+              <OptionSelect
+                label="Plazo de la financiación"
+                placeholder="Plazo"
+                textSize="sm"
+                value={years}
+                options={sellerFinancingYearOptions.map((option) => ({ value: String(option), label: sellerFinancingYearLabels[option] }))}
+                onValueChange={onYears}
+              />
+            </div>
+          </>
         ) : null}
       </div>
     </div>
@@ -1472,7 +1479,7 @@ function CustomerChoice({
         <FieldHint text={note} />
       </div>
       <input type="hidden" name="customerBase" value={customerBase} />
-      <div className="flex flex-wrap justify-center gap-2">
+      <div data-flash className="flex flex-wrap justify-center gap-2">
         {choices.map((choice) => {
           const selected = customerBase === choice.id;
           return (
@@ -1611,7 +1618,7 @@ function Fact({
   children: ReactNode;
 }) {
   return (
-    <div id={id} className={`grid scroll-mt-6 grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3 ${className}`}>
+    <div id={id} className={`grid scroll-mt-32 grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3 lg:scroll-mt-6 ${className}`}>
       <span className="inline-flex size-11 items-center justify-center rounded-md bg-[#eef2ff] p-2.5 text-[#465ab4]">
         <Icon className="size-5" aria-hidden />
       </span>
@@ -1761,7 +1768,6 @@ export function CompanyDraftForm({
   const [rentMonthly, setRentMonthly] = useState(initial.rentMonthly);
   const [leaseYearsRemaining, setLeaseYearsRemaining] = useState(initial.leaseYearsRemaining);
   const [recurringRevenuePct, setRecurringRevenuePct] = useState(initial.recurringRevenuePct);
-  const [seasonality] = useState(initial.seasonality);
   const [askingPriceIncludes, setAskingPriceIncludes] = useState(() => storedAskingPriceIncludes(initial.askingPriceIncludes));
   const [capitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
@@ -1841,7 +1847,6 @@ export function CompanyDraftForm({
     rentMonthly: initial.rentMonthly,
     leaseYearsRemaining: initial.leaseYearsRemaining,
     recurringRevenuePct: initial.recurringRevenuePct,
-    seasonality: initial.seasonality,
     askingPriceIncludes: storedAskingPriceIncludes(initial.askingPriceIncludes),
     closedYears: initial.closedYears,
     forecastYear: initial.forecastYear,
@@ -1879,7 +1884,6 @@ export function CompanyDraftForm({
     rentMonthly,
     leaseYearsRemaining,
     recurringRevenuePct,
-    seasonality,
     askingPriceIncludes,
     closedYears,
     forecastYear,
@@ -1915,8 +1919,7 @@ export function CompanyDraftForm({
     premisesKind !== baseline.premisesKind ||
     rentMonthly !== baseline.rentMonthly ||
     leaseYearsRemaining !== baseline.leaseYearsRemaining ||
-    recurringRevenuePct !== baseline.recurringRevenuePct ||
-    seasonality !== baseline.seasonality;
+    recurringRevenuePct !== baseline.recurringRevenuePct;
   const incomeDirty =
     JSON.stringify(closedYears.map(incomeSnapshot)) !== JSON.stringify(baseline.closedYears.map(incomeSnapshot)) ||
     JSON.stringify(incomeSnapshot(forecastYear)) !== JSON.stringify(incomeSnapshot(baseline.forecastYear));
@@ -2105,9 +2108,6 @@ export function CompanyDraftForm({
     rentMonthly,
     leaseYearsRemaining,
     recurringRevenuePct,
-    seasonality: seasonality as CompanyDraftInput["seasonality"],
-    seasonalityNote: "",
-    top5ClientsPct: "",
     askingPriceIncludes,
     opex,
     capitalPercents,
@@ -2302,7 +2302,8 @@ export function CompanyDraftForm({
     if (deepLinkDone.current) return;
     deepLinkDone.current = true;
     const hash = decodeURIComponent(window.location.hash.slice(1));
-    const id = hash || (focus ? `panel-${focus}` : "");
+    const ancla = new URLSearchParams(window.location.search).get("ancla") ?? "";
+    const id = hash || (/^panel-[\w-]+$/.test(ancla) ? ancla : "") || (focus ? `panel-${focus}` : "");
     if (!id) return;
     const field = requiredFields.find((item) => item.id === id);
     if (field?.section === "basic") setOpenBasic(true);
@@ -2385,7 +2386,7 @@ export function CompanyDraftForm({
         onDismissFailed={() => setLeaveFailedHref(null)}
       />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <h1 className="min-w-0 text-3xl tracking-tight text-public-ink">
+      <h1 className="min-w-0 text-2xl tracking-tight text-public-ink sm:text-3xl">
         {sellerCopy.detailsTitle}
       </h1>
       <FloatingSegmentedTabs
@@ -2404,7 +2405,7 @@ export function CompanyDraftForm({
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
+      <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
       <Panel
         id="panel-basic"
         saveState={sectionSaveState("basic")}
@@ -2508,6 +2509,7 @@ export function CompanyDraftForm({
             ) : null}
             <Textarea
               name="description"
+              data-flash
               rows={4}
               maxLength={descriptionMaxLength}
               placeholder={companyCopy.descriptionPlaceholder}
@@ -2542,6 +2544,7 @@ export function CompanyDraftForm({
               <p className="text-sm font-medium">
                 {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
               </p>
+              <span data-flash className="inline-flex rounded-full">
               <AddIconButton
                 label={companyCopy.addSecondaryCnae}
                 disabled={secondaryCnaes.length >= maxSecondaryCnaes}
@@ -2549,6 +2552,7 @@ export function CompanyDraftForm({
                   setSecondaryCnaes((current) => [...current, ""]);
                 }}
               />
+              </span>
             </div>
             {secondaryCnaes.map((code, index) => (
               <div key={`secondary-${index}`} className="flex items-center gap-2">
@@ -2785,7 +2789,6 @@ export function CompanyDraftForm({
               onChange={(event) => setRecurringRevenuePct(keepDigits(event.target.value, 3))}
             />
           </Fact>
-          <input type="hidden" name="seasonality" value={seasonality} />
         </div>
       </Panel>
 
@@ -3017,7 +3020,6 @@ export function CompanyDraftForm({
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
           </span>
-          <div id="ficha-section-nav-slot" />
           <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-4">
             <div role="radiogroup" aria-label="Vista previa" className="grid min-w-0 flex-1 grid-cols-2 rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:inline-flex sm:flex-none">
               {[
@@ -3046,6 +3048,7 @@ export function CompanyDraftForm({
             sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
             chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
           />
+          <div id="ficha-section-nav-slot" />
           <CompanyReport navBelowTabs showSectionNav={tab === "deal"} project={previewProject} sellerPreview={{
             mixAction: (
               <KitButton
@@ -3339,17 +3342,33 @@ function BalanceCell({
  * buttons included). `settle` re-centres once if late content (charts, images) moved it during the smooth scroll.
  */
 function highlightTarget(target: HTMLElement, settle = false) {
-  scrollToCenter(target);
-  const flashTarget = target.querySelector<HTMLElement>("[data-flash]") ?? target;
-  (flashTarget.querySelector<HTMLElement>("input, textarea, select, button") ?? flashTarget).focus({ preventScroll: true });
-  const flash = [flashTarget === target ? "rounded-xl" : "rounded-full", "ring-2", "ring-[#2fc4b2]", "ring-offset-4", "ring-offset-white"];
+  const flashTarget =
+    target.matches("[data-flash]")
+      ? target
+      : (target.querySelector<HTMLElement>("[data-flash]") ??
+        target.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button:not([aria-hidden]), [role='radiogroup']") ??
+        target);
+  const focusTarget = flashTarget.matches("input, textarea, select, button")
+    ? flashTarget
+    : (flashTarget.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button") ?? flashTarget);
+  scrollToCenter(flashTarget);
+  focusTarget.focus({ preventScroll: true });
+  const flash = [
+    flashTarget.tagName === "INPUT" || flashTarget.tagName === "TEXTAREA" || flashTarget.tagName === "BUTTON" || flashTarget.getAttribute("role") === "radiogroup"
+      ? "rounded-xl"
+      : "rounded-full",
+    "ring-2",
+    "ring-[#2fc4b2]",
+    "ring-offset-4",
+    "ring-offset-white",
+  ];
   flashTarget.classList.add(...flash);
   window.setTimeout(() => flashTarget.classList.remove(...flash), 2400);
   if (settle) {
     window.setTimeout(() => {
-      const rect = target.getBoundingClientRect();
+      const rect = flashTarget.getBoundingClientRect();
       const drift = Math.abs(rect.top + rect.height / 2 - (window.innerHeight + 80) / 2);
-      if (drift > 120) scrollToCenter(target);
+      if (drift > 120) scrollToCenter(flashTarget);
     }, 900);
   }
 }

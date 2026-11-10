@@ -75,10 +75,12 @@ export function MarketBrowser({
   const regionValue = regions[0] ?? "";
   
   const activeFilterCount = [
+    query.trim() !== "",
     revenueBand !== "any",
     regions.length > 0,
     sector !== "",
     sort !== "recommended",
+    favoritesOnly,
   ].filter(Boolean).length;
   
   function clearFilters() {
@@ -254,9 +256,17 @@ export function MarketBrowser({
       </div>
       {visible.length === 0 ? (
         <FilterEmptyState
-          message={favoritesOnly ? marketCopy.favoritesEmpty : marketCopy.empty}
-          actionLabel={marketCopy.clearFilters}
-          onClear={clearFilters}
+          message={
+            onlyFavorites || favoritesOnly
+              ? activeFilterCount > 0
+                ? marketCopy.favoritesEmpty
+                : marketCopy.favoritesEmptyUnfiltered
+              : activeFilterCount > 0
+                ? marketCopy.empty
+                : marketCopy.emptyUnfiltered
+          }
+          actionLabel={activeFilterCount > 0 ? marketCopy.clearFilters : undefined}
+          onClear={activeFilterCount > 0 ? clearFilters : undefined}
         >
           <MutedMarketCards />
         </FilterEmptyState>

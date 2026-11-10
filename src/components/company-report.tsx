@@ -422,7 +422,7 @@ function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
 }
 
 function saleReasonText(reason: string | null): string {
-  return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : "Pendiente del vendedor";
+  return reason && saleReasons.includes(reason as (typeof saleReasons)[number]) ? saleReasonLabels[reason as (typeof saleReasons)[number]] : "—";
 }
 
 function lastValue(years: SabiYear[], pick: (year: SabiYear) => number | null): { year: SabiYear; value: number } | null {
@@ -709,38 +709,7 @@ export function CompanyReport({
   const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
   const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
-  const ownerDependenceLabels = {
-    low: companyCopy.ownerDependenceLow,
-    medium: companyCopy.ownerDependenceMedium,
-    high: companyCopy.ownerDependenceHigh,
-  } as const;
-  const premisesLabels = { owned: companyCopy.premisesOwned, rent: companyCopy.premisesRent } as const;
-  const seasonalityLabels = {
-    none: companyCopy.seasonalityNone,
-    low: companyCopy.seasonalityLow,
-    medium: companyCopy.seasonalityMedium,
-    high: companyCopy.seasonalityHigh,
-  } as const;
-  const askingPriceIncludesLabels = {
-    debt_free_cash_free: companyCopy.askingPriceIncludesDebtFree,
-    shares: companyCopy.askingPriceIncludesShares,
-  } as const;
-  const businessFacts = [
-    project.ownerDependence ? { label: companyCopy.ownerDependenceLabel, value: ownerDependenceLabels[project.ownerDependence] } : null,
-    project.premisesKind ? { label: companyCopy.premisesLabel, value: premisesLabels[project.premisesKind] } : null,
-    project.premisesKind === "rent" && project.rentMonthlyCents != null
-      ? { label: companyCopy.rentMonthlyLabel, value: formatEur(project.rentMonthlyCents) }
-      : null,
-    project.premisesKind === "rent" && project.leaseYearsRemaining != null
-      ? {
-          label: companyCopy.leaseYearsLabel,
-          value: `${project.leaseYearsRemaining} ${project.leaseYearsRemaining === 1 ? "año" : "años"}`,
-        }
-      : null,
-    project.recurringRevenuePct != null ? { label: companyCopy.recurringRevenueLabel, value: `${project.recurringRevenuePct} %` } : null,
-    project.seasonality ? { label: companyCopy.seasonalityLabel, value: seasonalityLabels[project.seasonality] } : null,
-    project.top5ClientsPct != null ? { label: companyCopy.top5ClientsLabel, value: `${project.top5ClientsPct} %` } : null,
-  ].flatMap((item) => (item ? [item] : []));
+  const askingPriceIncludesHint = project.askingPriceIncludes === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp;
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
   const summary = reportSummaryMarked(years);
   const flags = reportFlags(years);
@@ -865,20 +834,19 @@ export function CompanyReport({
             label={companyCopy.askingPriceLabel}
             value={priceBlocked ? companyCopy.priceNotPublishable : project.askingPriceCents > 0 ? compactEur(project.askingPriceCents) : priceUnset}
             tone={!priceBlocked && project.askingPriceCents > 0 ? "ink" : "pending"}
-            hint={priceBlocked ? companyCopy.priceBlockedHint : project.askingPriceCents > 0 ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}.` : "El vendedor aún no ha indicado precio. El registro no lo publica."}
-            sub={
-              <>
-                {multiple !== null ? <RoiChip years={multiple} /> : priceBlocked || project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
-                <span className="text-[#5c6b78]">{askingPriceIncludesLabels[project.askingPriceIncludes]}</span>
-              </>
+            hint={
+              priceBlocked
+                ? companyCopy.priceBlockedHint
+                : project.askingPriceCents > 0
+                  ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}. ${askingPriceIncludesHint}`
+                  : `El vendedor aún no ha indicado precio. ${askingPriceIncludesHint}`
             }
+            sub={multiple !== null ? <RoiChip years={multiple} /> : priceBlocked || project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
           />
           <Kpi
             label={companyCopy.saleReasonLabel}
             value={saleReasonText(project.saleReason)}
-            tone={project.saleReason ? "ink" : "pending"}
-            source="seller"
-            hint="Motivo de venta indicado por el vendedor. El registro no lo publica."
+            hint="Motivo de venta indicado por el vendedor."
           />
         </div>
         {/* t94: financiación y asesoría as compact chips under the headline numbers. */}
@@ -1006,13 +974,6 @@ export function CompanyReport({
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {legalFacts.map((fact) => (
                 <Fact key={fact.label} icon={FileCheck2} label={fact.label} value={fact.value} />
-              ))}
-            </div>
-          ) : null}
-          {businessFacts.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {businessFacts.map((fact) => (
-                <Fact key={fact.label} icon={Briefcase} label={fact.label} value={fact.value} />
               ))}
             </div>
           ) : null}

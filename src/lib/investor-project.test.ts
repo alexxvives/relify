@@ -27,14 +27,11 @@ const investorKeys = [
   "rentMonthlyCents",
   "revenueCents",
   "saleReason",
-  "seasonality",
-  "seasonalityNote",
   "sellerFinancing",
   "sellerFinancingMaxPct",
   "sellerFinancingYears",
   "sellerStay",
   "slug",
-  "top5ClientsPct",
   "years",
 ] as const;
 

@@ -9,7 +9,7 @@ export function FilterEmptyState({
   children,
 }: {
   message: string;
-  actionLabel: string;
+  actionLabel?: string;
   onClear?: () => void;
   children: ReactNode;
 }) {
@@ -21,7 +21,7 @@ export function FilterEmptyState({
       <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
         <div className="flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-[#e3e7ee] bg-white/95 p-5 text-center shadow-[0_8px_24px_rgba(28,39,64,0.10)]">
           <p className="text-sm text-[#5c6b78]">{message}</p>
-          {onClear ? (
+          {onClear && actionLabel ? (
             <button
               type="button"
               onClick={onClear}

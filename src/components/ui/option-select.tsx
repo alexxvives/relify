@@ -187,6 +187,7 @@ export function OptionSelect({
         ref={triggerRef}
         id={id}
         type="button"
+        data-flash
         aria-describedby={describedBy}
         onKeyDown={(event) => {
           if (!open && (event.key === "ArrowDown" || event.key === "ArrowUp")) {

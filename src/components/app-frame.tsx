@@ -575,26 +575,16 @@ export function AppFrame({
               </Link>
             );
           })}
-          {showHelp ? (
-            <a
-              href={shellCopy.helpPhoneHref}
-              className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
-            >
-              <PhoneIcon size={22} aria-hidden />
-              <span className="truncate">Ayuda</span>
-            </a>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(true);
-              }}
-              className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
-            >
-              <PanelLeftIcon size={22} aria-hidden />
-              <span className="truncate">Más</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(true);
+            }}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
+          >
+            <PanelLeftIcon size={22} aria-hidden />
+            <span className="truncate">Más</span>
+          </button>
         </nav>
       </main>
     </div>

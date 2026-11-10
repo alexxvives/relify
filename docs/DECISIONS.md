@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Drop unused seasonality / top-5 columns (Round M)
+
+Alex asked to remove `seasonality`, `seasonality_note`, and `top5_clients_pct` from Prisma, code, and a DROP migration. The ficha no longer shows that business-profile block. Cómo es tu negocio keeps owner dependence, premises, rent, lease years, and recurring revenue. Prisma no longer maps the dropped fields, so leftover production columns are ignored until Alex applies `20261110180000_drop_unused_project_profile_columns`. Listed in `DROPS.md`.
+
 ## 2026-11-10 — Top-5 client weight and seasonality note stay in Postgres
 
 Cómo es tu negocio no longer has “Peso de los 5 principales clientes” or “Nota de estacionalidad”. `seasonality_note` and `top5_clients_pct` stay in the table (no destructive migration). The seller form does not read or write them. If the ficha shows a concentration figure, it sums the largest five Principales clientes slices.
