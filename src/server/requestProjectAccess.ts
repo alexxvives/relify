@@ -6,6 +6,7 @@ import {
 } from "@/lib/notifications";
 import {
   accessMessage,
+  reconnectAccessReset,
   requestAccessOutcome,
   type ProjectAccessInput,
 } from "@/lib/project-access";
@@ -74,13 +75,7 @@ export async function requestProjectAccess(
       prisma.projectAccess.update({
         where: { id: existing.id },
         data: {
-          cancelledAt: null,
-          cancelledBy: null,
-          sellerAcceptedAt: null,
-          ndaAcceptedAt: null,
-          loiAcceptedAt: null,
-          diligencePassedAt: null,
-          ndaSignature: null,
+          ...reconnectAccessReset,
           requestedAt: new Date(),
         },
       }),

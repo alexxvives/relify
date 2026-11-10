@@ -33,5 +33,6 @@ describe("projectDetailMetadata", () => {
 
     expect(meta.title).toBe("Proyecto Quercus");
     expect(meta.description).toContain("Madrid");
+    expect(meta.robots).toEqual({ index: false, follow: false });
   });
 });

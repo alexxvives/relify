@@ -276,6 +276,7 @@ async function applyAdvisorDeposit(
 export async function syncSubscription(
   subscription: Stripe.Subscription,
 ): Promise<void> {
+  assertPaymentsEnabled();
   if (subscription.metadata.kind === "advisor_inbox") {
     const userId = subscription.metadata.userId;
     const customerId =

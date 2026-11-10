@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round Q Playwright E2E and pre-launch hardening
+
+Vitest stays the unit runner. End-to-end specs use Playwright (`@playwright/test`, `npm run e2e`) against local or INT, never production. Credentials come from `E2E_*` environment variables, not the repo. INT still blocks email, Stripe and uploads. New projects default to `draft` (was `published` on raw inserts). Security headers live in `src/lib/security-headers.ts` and `next.config.ts`.
+
 ## 2026-11-10 — Round P metrics, 404, drop stale project snapshots
 
 Headline leverage is DFN / EBITDA aj. when adjustments are approved; the accounts multiple stays in the tooltip. Facturación is always ventas (importe neto de la cifra de negocios); `toSabiYear` prefers `salesCents`. Deuda neta and fondo de maniobra are computed from the same year's balance, never from `project.net_debt_cents` / `project.working_capital_cents` (those columns are dropped). Rentabilidad financiera and margen de beneficio are the net-based formulas only. `/archivo` is a normal 404 (the Round O 301 is removed). `/valorar` stays a CIF form that does not save or compute.

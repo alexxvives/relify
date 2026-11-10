@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { authDisabledHttpPaths } from "@/lib/auth-disabled-paths";
 import { authSessionOptions } from "@/lib/auth-session";
 import { emailLink, readServerEnv } from "@/lib/env";
 import { prisma } from "@/server/db";
@@ -36,12 +37,7 @@ function createAuth() {
     },
     // Email-sending endpoints run only through our server actions, which carry their own
     // per-IP and per-address throttle (src/server/emailThrottle.ts). Close the raw HTTP routes.
-    disabledPaths: [
-      "/sign-up/email",
-      "/request-password-reset",
-      "/reset-password",
-      "/send-verification-email",
-    ],
+    disabledPaths: [...authDisabledHttpPaths],
     advanced: {
       ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
     },

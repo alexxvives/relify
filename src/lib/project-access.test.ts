@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acceptNdaOutcome, ndaAccessGate, requestAccessOutcome } from "./project-access";
+import { acceptNdaOutcome, ndaAccessGate, reconnectAccessReset, requestAccessOutcome } from "./project-access";
 
 const investor = {
   onboarded: true,
@@ -78,5 +78,16 @@ describe("ndaAccessGate", () => {
     expect(
       ndaAccessGate({ ...investor, projectStatus: "draft", ndaAcceptedAt: new Date("2026-10-01T12:00:00.000Z") }),
     ).toEqual({ ok: false, code: "missing" });
+  });
+});
+
+describe("reconnectAccessReset", () => {
+  it("clears plan-at-match and signed-doc leftovers", () => {
+    expect(reconnectAccessReset.buyerPlanAtMatch).toBeNull();
+    expect(reconnectAccessReset.loiSignature).toBeNull();
+    expect(reconnectAccessReset.loiSignedAt).toBeNull();
+    expect(reconnectAccessReset.ndaText).toBeNull();
+    expect(reconnectAccessReset.ndaSignature).toBeNull();
+    expect(reconnectAccessReset.sellerAcceptedAt).toBeNull();
   });
 });

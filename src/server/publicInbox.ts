@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,7 +65,10 @@ export async function saveNewsletterSubscriber(
   return { ok: true };
 }
 
-export async function listPublicInbox() {
+export async function listPublicInbox(user: CurrentUser) {
+  if (!user.onboarded || user.role !== "admin") {
+    return { messages: [], subscribers: [] };
+  }
   const [messages, subscribers] = await Promise.all([
     prisma.contactMessage.findMany({
       orderBy: { createdAt: "desc" },

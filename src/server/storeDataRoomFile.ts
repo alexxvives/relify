@@ -11,6 +11,7 @@ import {
   relevaDraftPdf,
   relevaDrafts,
 } from "@/lib/releva-drafts";
+import { dataRoomUploadAllowed } from "@/lib/file-bytes";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -73,6 +74,10 @@ export async function storeDataRoomFile(
     }).includes(input.folder)
   ) {
     return { ok: false, message: sellerCopy.folderInvalid };
+  }
+
+  if (!dataRoomUploadAllowed(input.fileName, bytes)) {
+    return { ok: false, message: sellerCopy.documentInvalid };
   }
 
   const id = randomUUID();

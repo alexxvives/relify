@@ -16,7 +16,7 @@ export const authCopy = {
     },
     {
       title: "NDA antes del detalle",
-      body: "Sin el acuerdo no se abre el nombre ni el dataroom.",
+      body: "Sin el acuerdo no se abre el detalle de la ficha ni el dataroom.",
     },
     {
       title: "Tú eliges el rol",

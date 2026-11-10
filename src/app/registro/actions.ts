@@ -42,7 +42,7 @@ export async function signUpAction(
   }
 
   // Each signup sends a confirmation email: cap per IP so the form cannot be used to spam.
-  if (!(await takeThrottle(`signup:ip:${await clientIp()}`, 10, 60 * 60))) {
+  if (!(await takeThrottle(`signup:ip:${await clientIp()}`, 10, 60 * 60, false))) {
     return { message: authCopy.forgotThrottled };
   }
 

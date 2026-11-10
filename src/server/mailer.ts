@@ -1,4 +1,5 @@
 import type { RenderedEmail } from "@/lib/email/layout";
+import { sanitizeMailHeader } from "../lib/mail-header";
 
 /** People hear from this address. Team alerts do not: those are the inbox writing to itself. */
 export const MAIL_FROM = {
@@ -93,9 +94,9 @@ async function viaMaileroo(
     headers: { "content-type": "application/json", "x-api-key": key },
     body: JSON.stringify({
       from: { address: from.address, display_name: from.name },
-      to: { address: mail.to },
+      to: { address: sanitizeMailHeader(mail.to) },
       reply_to: { address: TEAM_INBOX, display_name: "Relify" },
-      subject: mail.subject.slice(0, 255),
+      subject: sanitizeMailHeader(mail.subject),
       html: mail.html,
       plain: mail.text,
       tracking: false,
@@ -155,9 +156,9 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
     try {
       const from = senderFor(mail.to);
       await binding.send({
-        to: mail.to,
+        to: sanitizeMailHeader(mail.to),
         from: { email: from.address, name: from.name },
-        subject: mail.subject,
+        subject: sanitizeMailHeader(mail.subject),
         html: mail.html,
         text: mail.text,
       });
@@ -178,8 +179,8 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          to: mail.to,
-          subject: mail.subject,
+          to: sanitizeMailHeader(mail.to),
+          subject: sanitizeMailHeader(mail.subject),
           html: mail.html,
           text: mail.text,
         }),

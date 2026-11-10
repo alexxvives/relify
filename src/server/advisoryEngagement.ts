@@ -1,4 +1,4 @@
-import { adjustmentsForBuyer } from "@/lib/ebitda-adjustments";
+import { advisorProjectView } from "@/lib/report-veil";
 import type { ContractView } from "@/lib/sale-contract";
 import { contractStageOpen, contractViews } from "@/server/saleContract";
 import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
@@ -653,11 +653,6 @@ export async function getAdvisorEngagement(
     select: investorProjectSelect,
   });
   const fullCompany = companyRow ? toInvestorProject(companyRow) : null;
-  // t82: a buyer-side advisor does not get the seller's adjustment reasons (same as a buyer before the NDA).
-  const company =
-    fullCompany && row.client === "investor"
-      ? { ...fullCompany, ebitdaAdjustments: adjustmentsForBuyer(fullCompany.ebitdaAdjustments, false) }
-      : fullCompany;
   // Buyers stay anonymous to the advisor until the seller accepts them on this project.
   const namedClient =
     row.client === "investor"
@@ -676,7 +671,7 @@ export async function getAdvisorEngagement(
       clientLabel: namedClient,
       services: serviceLabel(row.services),
       view: "public",
-      profile: company,
+      profile: advisorProjectView(fullCompany, row.client === "investor", false),
       documents: [],
       folders: [],
       processOpened: false,
@@ -764,7 +759,7 @@ export async function getAdvisorEngagement(
     clientLabel: namedClient,
     services: serviceLabel(row.services),
     view,
-    profile: company,
+    profile: advisorProjectView(fullCompany, row.client === "investor", figuresOpen),
     documents,
     folders,
     processOpened: view === "seller" && row.processOpened,

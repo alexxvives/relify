@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { sanitizeImageUpload } from "@/lib/file-bytes";
+import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { assertUploadsEnabled } from "./int-guards";
 
@@ -29,12 +31,17 @@ export async function addProjectPhotos(projectId: string, files: { type: string;
   if (count + files.length > projectPhotoLimit) {
     return { ok: false, reason: "limit" };
   }
+  const cleaned: { mime: string; bytes: Uint8Array }[] = [];
   for (const file of files) {
-    if (!photoTypes.has(file.type)) return { ok: false, reason: "type" };
     if (file.bytes.byteLength === 0 || file.bytes.byteLength > projectPhotoBytes) return { ok: false, reason: "size" };
+    const prepared = sanitizeImageUpload(file.bytes);
+    if (!prepared || !photoTypes.has(prepared.mime) || (file.type !== "" && !photoTypes.has(file.type))) {
+      return { ok: false, reason: "type" };
+    }
+    cleaned.push(prepared);
   }
   await prisma.projectPhoto.createMany({
-    data: files.map((file, index) => ({ id: randomUUID(), projectId, mime: file.type, bytes: Buffer.from(file.bytes), position: count + index })),
+    data: cleaned.map((file, index) => ({ id: randomUUID(), projectId, mime: file.mime, bytes: Buffer.from(file.bytes), position: count + index })),
   });
   return { ok: true, added: files.length };
 }
@@ -45,7 +52,14 @@ export async function deleteProjectPhoto(projectId: string, photoId: string): Pr
 }
 
 /** Admin moderation: a hidden photo stays stored but only admin and the owner can load it. */
-export async function setProjectPhotoHidden(photoId: string, hidden: boolean): Promise<string | null> {
+export async function setProjectPhotoHidden(
+  user: CurrentUser,
+  photoId: string,
+  hidden: boolean,
+): Promise<string | null> {
+  if (!user.onboarded || user.role !== "admin") {
+    return null;
+  }
   const row = await prisma.projectPhoto.update({ where: { id: photoId }, data: { hidden }, select: { project: { select: { slug: true } } } }).catch(() => null);
   return row?.project.slug ?? null;
 }

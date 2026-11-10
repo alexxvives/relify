@@ -95,8 +95,16 @@ export type SabiDetailSaveResult = { ok: true } | { ok: false; field: string };
 /** Reads `company_<column>` and `year_<year>_<column>` fields. Blank clears the value. */
 export async function saveSabiDetail(
   projectId: string,
+  ownerId: string,
   formData: FormData,
 ): Promise<SabiDetailSaveResult> {
+  const owned = await prisma.project.findFirst({
+    where: { id: projectId, ownerId },
+    select: { id: true },
+  });
+  if (!owned) {
+    return { ok: false, field: "empresa" };
+  }
   const read = (name: string) => {
     const value = formData.get(name);
     return typeof value === "string" ? value.trim() : null;

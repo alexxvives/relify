@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buyerProjectView, veilYears } from "./report-veil";
+import { advisorProjectView, buyerProjectView, veilYears } from "./report-veil";
 import { figureVeilYears } from "./figure-veil";
 
 describe("veilYears (t91)", () => {
@@ -47,5 +47,33 @@ describe("buyerProjectView (t91-sec)", () => {
 
   it("after the NDA the profile is unchanged", () => {
     expect(buyerProjectView(project, true)).toEqual(project);
+  });
+});
+
+describe("advisorProjectView", () => {
+  const veilYear = figureVeilYears()[0];
+  const project = {
+    slug: "p",
+    codename: "Proyecto P",
+    revenueCents: 1_000_00,
+    askingPriceCents: 2_000_00,
+    ebitdaAdjustments: [{ type: "other", amountCents: 5_000_00, reason: "Motivo secreto" }],
+    reportYears: veilYear
+      ? [{ ...veilYear, year: 2024, revenueCents: 777_111_01, cashCents: 333_222_01, ratios: {} }]
+      : [],
+    incomeRows: [],
+    balanceRows: [],
+    capital: [],
+    products: [],
+    clients: [],
+    secondaryCnaes: [],
+  } as unknown as Parameters<typeof buyerProjectView>[0];
+
+  it("veils an investor-hired advisor before figuresOpen and not a seller-hired advisor", () => {
+    const veiled = JSON.stringify(advisorProjectView(project, true, false));
+    expect(veiled).not.toContain("77711101");
+    expect(veiled).not.toContain("Motivo secreto");
+    expect(advisorProjectView(project, false, false)).toEqual(project);
+    expect(advisorProjectView(null, true, false)).toBeNull();
   });
 });

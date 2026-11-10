@@ -25,6 +25,7 @@ export function projectDetailMetadata(input: {
   return {
     title: input.project.codename,
     description: `${input.project.codename} en ${input.project.region}. Facturación, EBITDA y precio en euros, sin el nombre legal.`,
+    robots: { index: false, follow: false },
     alternates: {
       canonical: `/proyectos/${input.project.slug}`,
     },

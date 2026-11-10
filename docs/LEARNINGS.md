@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Playwright signed-in flows died with “too many requests” after a few roles — `signInAction` throttle is per IP and fail-closed, and `email_throttle` survives between runs — keep `workers: 1` and a 60/15m IP cap, or reuse storageState.
+- 2026-11-10: Better Auth `/api/auth/sign-in/email` bypassed the server-action throttle — add it to `disabledPaths`; `auth.api.signInEmail` from the action still works.
+- 2026-11-10: An investor-hired advisor still received real years in RSC before NDA — `getAdvisorEngagement` must call `buyerProjectView` / `advisorProjectView`, not only `adjustmentsForBuyer`.
 - 2026-11-10: Filling `project_year` still left Tus cifras and the seller ficha empty — `getSabiRegistry` only loads years with `data_source = 'sabi'` — INT year fixtures must set that column.
 - 2026-11-10: Seller Ficha pública preview showed reported EBITDA while `/mercado` showed EBITDA aj. — `MarketPreview` only counted approved form rows, so a legacy non-list `adjustedEbitdaCents` never flipped the card, and `formRowsFromJson` treated missing status as pending — missing status is approved (same as `storedEbitdaAdjustments`); pass the same `hasAdjustments` as `priceBasis`.
 - 2026-11-10: How-it-works horizontal step cards also showed on desktop — unlayered `.releva-how-mobile { display: flex }` in `globals.css` beats Tailwind `lg:hidden` — hide that row with `@media (min-width: 1024px)` on the same class.

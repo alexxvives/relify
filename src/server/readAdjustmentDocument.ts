@@ -17,9 +17,13 @@ export async function readSellerAdjustmentDocument(
   }
   const project = await prisma.project.findFirst({
     where: { id: activeId, ownerId: user.id },
-    select: { id: true },
+    select: { id: true, ebitdaAdjustments: true },
   });
   if (!project) {
+    return null;
+  }
+  const listed = storedEbitdaAdjustments(project.ebitdaAdjustments) ?? [];
+  if (!listed.some((row) => row.documentId === fileId)) {
     return null;
   }
   return readBytes(project.id, fileId);

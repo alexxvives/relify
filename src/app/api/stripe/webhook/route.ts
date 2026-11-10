@@ -1,7 +1,14 @@
 import { fulfillCheckout, syncSubscription } from "@/server/fulfillCheckout";
+import { assertPaymentsEnabled } from "@/server/int-guards";
 import { readStripeWebhookSecret, stripeClient } from "@/server/stripe";
 
 export async function POST(request: Request): Promise<Response> {
+  try {
+    assertPaymentsEnabled();
+  } catch {
+    return new Response("Payments disabled", { status: 503 });
+  }
+
   const stripe = stripeClient();
   const secret = readStripeWebhookSecret();
   const signature = request.headers.get("stripe-signature");

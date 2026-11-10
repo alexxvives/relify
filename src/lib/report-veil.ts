@@ -79,3 +79,18 @@ export function buyerProjectView(project: InvestorProjectProfile, ndaAccepted: b
   const ebitdaAdjustments = adjustmentsForBuyer(project.ebitdaAdjustments, ndaAccepted);
   return ndaAccepted ? { ...project, ebitdaAdjustments } : { ...veilReportFigures(project), ebitdaAdjustments };
 }
+
+/** Investor-hired advisor: same server veil as the buyer until figuresOpen (advisor NDA + investor NDA). */
+export function advisorProjectView(
+  project: InvestorProjectProfile | null,
+  hiredByInvestor: boolean,
+  figuresOpen: boolean,
+): InvestorProjectProfile | null {
+  if (!project) {
+    return null;
+  }
+  if (!hiredByInvestor) {
+    return project;
+  }
+  return buyerProjectView(project, figuresOpen);
+}

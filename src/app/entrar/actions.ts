@@ -1,7 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { authCopy } from "@/lib/auth-copy";
 import { destinationForUser, signInFieldMessage, signInSchema, type SignInInput } from "@/lib/auth-input";
+import { clientIp, takeThrottle, throttleHash } from "@/server/emailThrottle";
 import { signIn } from "@/server/signIn";
 
 export type SignInState = { message: string } | null;
@@ -24,6 +26,18 @@ export async function signInAction(_state: SignInState, formData: FormData): Pro
 
   if ("message" in input) {
     return input;
+  }
+
+  const ip = await clientIp();
+  const ipOk = await takeThrottle(`signin:ip:${ip}`, 60, 15 * 60, false);
+  const addressOk = await takeThrottle(
+    `signin:email:${throttleHash(input.email)}`,
+    10,
+    15 * 60,
+    false,
+  );
+  if (!ipOk || !addressOk) {
+    return { message: authCopy.forgotThrottled };
   }
 
   const result = await signIn(input);

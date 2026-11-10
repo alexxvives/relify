@@ -16,7 +16,7 @@ Installed at the repo root. The resolved versions below are the versions from `p
 | ORM | Prisma |
 | Auth | Better Auth, Prisma adapter |
 | Lint / types | ESLint and `tsc --noEmit` |
-| Tests | Vitest for units. Click-through checks use the Cursor IDE browser. |
+| Tests | Vitest for units. Playwright (`npm run e2e`) for role flows. Click-through checks use the Cursor IDE browser. |
 
 ## Commands the app must expose
 
@@ -28,6 +28,7 @@ Add these scripts during scaffolding and keep them green:
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint with zero errors |
 | `npm run test` | Vitest |
+| `npm run e2e` | Playwright (desktop 1280 and mobile 390). Needs a running app and `E2E_*` for signed-in flows. |
 
 ## Explicitly out of scope until a decision says otherwise
 
@@ -58,6 +59,7 @@ Production: Cloudflare Workers, added with vinext after `npx vinext check` passe
 | better-auth | 1.7.6 |
 | eslint | 9.39.5 |
 | vitest | 5.0.3 |
+| @playwright/test | 1.65.0 |
 | @neon/config | 1.8.4 |
 | @neon/env | 1.5.1 |
 

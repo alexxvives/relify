@@ -27,12 +27,14 @@ export async function clientIp(): Promise<string> {
 /**
  * Counts one hit on `key` in a fixed window and says whether it is still within `max`.
  * One atomic upsert, so parallel requests cannot both slip under the limit.
- * Fails open (allowed) if the database call fails: a mail limiter must not lock users out.
+ * Mail limiters fail open so a down counter cannot lock users out.
+ * Auth / public-form limiters pass failOpen false so a down counter cannot be bypassed.
  */
 export async function takeThrottle(
   key: string,
   max: number,
   windowSeconds: number,
+  failOpen = true,
 ): Promise<boolean> {
   try {
     const rows = await prisma.$queryRaw<Array<{ count: number }>>`
@@ -43,7 +45,11 @@ export async function takeThrottle(
       RETURNING "count"`;
     return Number(rows[0]?.count ?? 1) <= max;
   } catch {
-    console.warn("[throttle] counter unavailable; allowing");
-    return true;
+    if (failOpen) {
+      console.warn("[throttle] counter unavailable; allowing");
+      return true;
+    }
+    console.warn("[throttle] counter unavailable; denying");
+    return false;
   }
 }

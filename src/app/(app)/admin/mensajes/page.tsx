@@ -15,7 +15,7 @@ const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: 
 async function Inbox() {
   const user = await requireRole("admin");
   await markAdminSeen(user.id, "mensajes");
-  const { messages, subscribers } = await listPublicInbox();
+  const { messages, subscribers } = await listPublicInbox(user);
 
   return (
     <div className="flex flex-col gap-10">

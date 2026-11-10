@@ -15,7 +15,7 @@ export async function saveSabiDetailAction(_state: SabiDetailState, formData: Fo
     return { saved: false, message: "Primero da de alta la empresa." };
   }
 
-  const result = await saveSabiDetail(projectId, formData);
+  const result = await saveSabiDetail(projectId, user.id, formData);
 
   if (!result.ok) {
     return { saved: false, message: `Revisa «${result.field}»: el formato no es válido.` };

@@ -230,7 +230,7 @@ model Project {
   opexCents           BigInt?                 @map("opex_cents")
   headcountRange      HeadcountRange?      @map("headcount_range")
   customerBase        CustomerBase?        @map("customer_base")
-  status              ProjectStatus        @default(published) @map("status")
+  status              ProjectStatus        @default(draft) @map("status")
   ownerId             String?              @map("owner_id")
   owner               User?                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt           DateTime             @default(now()) @map("created_at")

@@ -56,4 +56,5 @@ export const waitlistCopy = {
   invalid: "Revisa el nombre, el correo y el perfil.",
   taken: "Ese correo ya está en la lista con ese perfil.",
   failed: "No hemos podido guardar la inscripción. Inténtalo de nuevo.",
+  throttled: "Has hecho demasiadas solicitudes. Espera unos minutos y vuelve a intentarlo.",
 };

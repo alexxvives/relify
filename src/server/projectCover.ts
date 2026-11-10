@@ -1,6 +1,7 @@
 import { existsSync, statSync } from "node:fs";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sanitizeImageUpload } from "@/lib/file-bytes";
 import { assertUploadsEnabled } from "./int-guards";
 
 const root = path.join(process.cwd(), "data", "project-covers");
@@ -74,15 +75,18 @@ export async function writeProjectCover(
   bytes: Uint8Array,
 ): Promise<boolean> {
   assertUploadsEnabled();
+  const prepared = sanitizeImageUpload(bytes);
   if (
-    !isCoverType(type) ||
-    bytes.byteLength === 0 ||
-    bytes.byteLength > byteLimit
+    !prepared ||
+    !isCoverType(prepared.mime) ||
+    (type !== "" && !isCoverType(type)) ||
+    prepared.bytes.byteLength === 0 ||
+    prepared.bytes.byteLength > byteLimit
   ) {
     return false;
   }
 
-  const target = coverPath(id, extensions[type]);
+  const target = coverPath(id, extensions[prepared.mime]);
 
   if (!target) {
     return false;
@@ -91,7 +95,7 @@ export async function writeProjectCover(
   await mkdir(root, { recursive: true });
 
   for (const extension of Object.values(extensions)) {
-    if (extension === extensions[type]) {
+    if (extension === extensions[prepared.mime]) {
       continue;
     }
 
@@ -108,7 +112,7 @@ export async function writeProjectCover(
     }
   }
 
-  await writeFile(target, bytes);
+  await writeFile(target, prepared.bytes);
   return true;
 }
 

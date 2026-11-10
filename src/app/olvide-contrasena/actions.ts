@@ -25,7 +25,7 @@ export async function requestPasswordResetAction(
   }
 
   const ip = await clientIp();
-  const ipOk = await takeThrottle(`reset:ip:${ip}`, 5, 15 * 60);
+  const ipOk = await takeThrottle(`reset:ip:${ip}`, 5, 15 * 60, false);
   if (!ipOk) {
     return { sent: false, message: authCopy.forgotThrottled };
   }
@@ -65,7 +65,7 @@ export async function resetPasswordAction(
   }
 
   const ip = await clientIp();
-  if (!(await takeThrottle(`reset-confirm:ip:${ip}`, 10, 15 * 60))) {
+  if (!(await takeThrottle(`reset-confirm:ip:${ip}`, 10, 15 * 60, false))) {
     return { message: authCopy.forgotThrottled };
   }
 
