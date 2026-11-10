@@ -226,8 +226,10 @@ function Kpi({
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <span className={`mt-2 block whitespace-nowrap leading-none font-bold tracking-tight tabular-nums ${long ? "text-xl" : "text-3xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
-      {sub ? <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8b95a7]">{sub}</div> : null}
+      <div className="mt-2 flex min-w-0 items-baseline gap-x-2">
+        <span className={`whitespace-nowrap leading-none font-bold tracking-tight tabular-nums ${long ? "text-xl" : "text-3xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
+        {sub ? <span className="inline-flex min-w-0 flex-wrap items-baseline gap-x-2 text-[11px] leading-4 text-[#8b95a7]">{sub}</span> : null}
+      </div>
     </div>
   );
 }
@@ -682,7 +684,6 @@ export function CompanyReport({
 }) {
   // t91: locked = the same report built from invented figures (same shape), blurred under the lock overlay.
   const project = figuresOpen ? realProject : veilReportFigures(realProject);
-  const realYears = (realProject.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
   const registry = registryForRole(fullRegistry, role);
   const buyerView = role === "buyer" ? buyerRegistry : null;
   const shownCnaes = new Set([project.principalCnae?.code, ...project.secondaryCnaes.map((cnae) => cnae.code)].filter(Boolean));
@@ -741,9 +742,6 @@ export function CompanyReport({
     project.top5ClientsPct != null ? { label: companyCopy.top5ClientsLabel, value: `${project.top5ClientsPct} %` } : null,
   ].flatMap((item) => (item ? [item] : []));
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
-  // Headcount is public (Resumen), so it reads the real years even while the figures are locked.
-  const lastEmployees = lastValue(realYears, (year) => year.employees);
-  const age = project.foundedYear !== null ? new Date().getFullYear() - project.foundedYear : null;
   const summary = reportSummaryMarked(years);
   const flags = reportFlags(years);
   const signals = healthSignals(years);
@@ -815,8 +813,16 @@ export function CompanyReport({
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <div className={`relative flex min-w-0 flex-col gap-4 ${showSectionNav ? (navBelowTabs ? "pt-4 lg:pt-8" : "pt-16") : ""}`}>
-      {showSectionNav ? <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} /> : null}
+    <div className={`relative flex min-w-0 flex-col gap-4 ${showSectionNav && !navBelowTabs ? "pt-16" : ""}`}>
+      {showSectionNav ? (
+        <ReportNav
+          items={sections}
+          label={companyReportCopy.nav}
+          belowFloatingTabs={navBelowTabs}
+          inlineUntilSticky={navBelowTabs}
+          hostId={navBelowTabs ? "ficha-section-nav-slot" : undefined}
+        />
+      ) : null}
       <div className="flex min-w-0 flex-col gap-4">
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
@@ -875,17 +881,9 @@ export function CompanyReport({
             hint="Motivo de venta indicado por el vendedor. El registro no lo publica."
           />
         </div>
-        {/* t94: plantilla, financiación y asesoría as compact chips under the headline numbers. */}
+        {/* t94: financiación y asesoría as compact chips under the headline numbers. */}
+        {project.sellerFinancing || project.sellerStay ? (
         <ul className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-          <li className={`inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63] ${figuresOpen ? "" : "pointer-events-none blur-md select-none"}`} aria-hidden={figuresOpen ? undefined : true}>
-            <Users className="size-3.5 text-[#0f766e]" aria-hidden />
-            <span className="text-[#5c6b78]">{figuresOpen && lastEmployees ? "Empleados" : companyCopy.workersLabel}</span>
-            <span className="font-semibold text-[#1c2740]">
-              {figuresOpen ? (lastEmployees ? String(lastEmployees.value) : project.headcountRange ? headcountLabels[project.headcountRange] : companyCopy.unavailable) : "18"}
-            </span>
-            {figuresOpen && age !== null ? <span className="text-[#8b95a7]">· {age} años de actividad (desde {project.foundedYear})</span> : null}
-            {figuresOpen ? null : <span className="text-[#8b95a7]">· 10 años de actividad</span>}
-          </li>
           {project.sellerFinancing ? (
             <li className="inline-flex items-center gap-1.5 rounded-full border border-[#e7eaee] bg-white px-3 py-1.5 text-[#3d4a63]">
               <HandCoins className="size-3.5 text-[#0f766e]" aria-hidden />
@@ -901,6 +899,7 @@ export function CompanyReport({
             </li>
           ) : null}
         </ul>
+        ) : null}
         {facts && facts.length > 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-[#aab4c3] bg-[#eef1f5] p-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1c2740]">

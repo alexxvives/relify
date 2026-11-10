@@ -91,11 +91,7 @@ export function useProgressTrackerExpanded() {
     window.localStorage.setItem(progressTrackerKey, next ? "1" : "0");
     window.dispatchEvent(new Event(progressTrackerEvent));
   }, []);
-  const formPad =
-    preference === "1" ? "lg:pr-[18.5rem]" : preference === "0" ? "lg:pr-14" : "lg:pr-14 xl:pr-[18.5rem]";
-  const toggleOffset =
-    preference === "1" ? "lg:right-[18.5rem]" : preference === "0" ? "" : "xl:right-[18.5rem]";
-  return { preference, formPad, toggleOffset, setExpanded };
+  return { preference, setExpanded };
 }
 
 /**

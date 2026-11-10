@@ -14,7 +14,7 @@ const metrics: Array<{ key: string; label: string; unit: KeyFigure["unit"]; pick
   { key: "revenue", label: "Ingresos", unit: "eur", pick: (year) => year.revenueCents },
   { key: "ebitda", label: "EBITDA", unit: "eur", pick: (year) => year.ebitdaCents },
   {
-    // t79: 8th tile so the grid fills 2×4; percent of the same year's revenue, one decimal.
+    // Percent of the same year's revenue, one decimal. Gross financial debt was dropped so Tus cifras stays at 8.
     key: "ebitdaMargin",
     label: "Margen EBITDA",
     unit: "percent",
@@ -27,15 +27,6 @@ const metrics: Array<{ key: string; label: string; unit: KeyFigure["unit"]; pick
   { key: "employees", label: "Empleados", unit: "count", pick: (year) => year.employees },
   { key: "totalAssets", label: "Activo", unit: "eur", pick: (year) => year.totalAssetsCents },
   { key: "equity", label: "Patrimonio neto", unit: "eur", pick: (year) => year.equityCents },
-  {
-    key: "debt",
-    label: "Deuda financiera",
-    unit: "eur",
-    pick: (year) =>
-      year.longTermDebtCents === null && year.shortTermDebtCents === null
-        ? null
-        : (year.longTermDebtCents ?? 0) + (year.shortTermDebtCents ?? 0),
-  },
   { key: "netDebt", label: "Deuda neta", unit: "eur", pick: (year) => netDebtCents(year) },
 ];
 

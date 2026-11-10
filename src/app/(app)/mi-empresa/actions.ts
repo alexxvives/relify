@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
 import { isIntEnvironment } from "@/lib/int-env";
-import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
+import { normalizeCif } from "@/lib/spanish-cif";
 import {
   closedFieldName,
   companyDraftFieldMessage,
@@ -135,13 +135,18 @@ export async function saveCompanyDraftAction(
     return { message: input.message, saved: false };
   }
 
+  // CIF checksum lives on identity-change / add-company. The locked NIF on this form is posted
+  // on every autosave; a stored test or legacy value must not block the rest of the draft.
   const cif = normalizeCif(readText(formData, "cif"));
 
-  if (cif.length > 0 && !isValidSpanishCif(cif)) {
-    return { message: companyCopy.nifInvalid, saved: false };
+  let result;
+  try {
+    result = await saveCompanyDraft(user, input, cif);
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    console.error("[saveCompanyDraft]", code || (error instanceof Error ? error.name : "unknown"));
+    return { message: companyCopy.saveFailed, saved: false };
   }
-
-  const result = await saveCompanyDraft(user, input, cif);
 
   if (!result.ok) {
     return { message: result.message, saved: false };
@@ -185,6 +190,9 @@ function uploadedFile(value: FormDataEntryValue | null): { name: string; size: n
 }
 
 export async function storeAdjustmentDocumentAction(formData: FormData): Promise<StoreAdjustmentDocumentResult> {
+  if (isIntEnvironment()) {
+    return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
+  }
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -195,8 +203,8 @@ export async function storeAdjustmentDocumentAction(formData: FormData): Promise
       return { ok: false, message: companyCopy.adjustmentDocumentType };
     }
     return await storeAdjustmentDocument(user, file.name, await file.read());
-  } catch {
-    if (isIntEnvironment()) {
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("File uploads disabled in INT")) {
       return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
     }
     return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };

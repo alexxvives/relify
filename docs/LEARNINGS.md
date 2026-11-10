@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Datos de la ficha autosave showed “Error al guardar” because the locked NIF failed the CIF checksum (`B12345678`) on every whole-form save — do not re-validate the posted CIF on draft autosave; identity changes already go through `requestIdentityChange`.
+- 2026-11-10: Datos de la ficha autosave showed “Error al guardar” on a 1–199 character description — `companyDraftSchema` still refined min 200 on save — keep the 200-character rule on completion only, never on the save schema.
+- 2026-11-10: Next can replace `process.env.INT_ENVIRONMENT` with `undefined` in the Worker bundle — read `process.env["INT_ENVIRONMENT"]` so INT wrangler vars still win at runtime.
 - 2026-11-10: Alex disabled Cloudflare non-production branch builds on Worker `releva` — push to `cursor/mobile-responsive-c353` is allowed again; still never deploy from the agent.
 - 2026-11-10: Next 16 skips client hydration when the page origin is 127.0.0.1 and the dev server is localhost — use http://localhost:3000 or set allowedDevOrigins.
 - 2026-11-10: seasonalityNote / top5ClientsPct remain on Project — seller UI must send empty and omit them from Prisma update; ficha derives top-client weight from client slices; do not drop the columns.

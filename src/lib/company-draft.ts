@@ -6,7 +6,6 @@ import {
   askingPriceIncludesKinds,
   balanceInputKeys,
   descriptionMaxLength,
-  descriptionMinLength,
   headcountRanges,
   isFoundedYear,
   isStatementYear,
@@ -122,11 +121,7 @@ export const companyDraftSchema = z
 
       return /^\d{4}$/.test(value) && isFoundedYear(Number(value));
     }, "founded-year"),
-    description: z
-      .string()
-      .trim()
-      .max(descriptionMaxLength, "description")
-      .refine((value) => value === "" || value.length >= descriptionMinLength, "description-short"),
+    description: z.string().trim().max(descriptionMaxLength, "description"),
     saleReason: z.union([z.literal(""), z.enum(saleReasons)]),
     principalCnae: z.string().trim(),
     secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count").transform(dropEmptyRows),

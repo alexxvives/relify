@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { descriptionMaxLength } from "./company-profile";
 import { centsToEuroInput, companyDraftSchema, emptyClosedYear, emptyCompanyDraft, emptyForecastYear, eurosToCents, placeStatementsOnWindow, projectSlug } from "./company-draft";
 
 function draft(overrides: Record<string, unknown>) {
@@ -118,9 +119,9 @@ describe("company draft money and slug", () => {
 });
 
 describe("description length", () => {
-  it("allows an empty description and rejects a short one", () => {
+  it("saves a partial description and still caps the maximum", () => {
     expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "" })).success).toBe(true);
-    expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "Empresa de 29 caracteres." })).success).toBe(false);
+    expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "Empresa de 29 caracteres." })).success).toBe(true);
     expect(
       companyDraftSchema.safeParse(
         draft({
@@ -130,6 +131,7 @@ describe("description length", () => {
         }),
       ).success,
     ).toBe(true);
+    expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "x".repeat(descriptionMaxLength + 1) })).success).toBe(false);
   });
 });
 

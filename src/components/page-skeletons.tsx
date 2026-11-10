@@ -774,7 +774,7 @@ export function CompanyDetailsSkeleton() {
           </div>
           <B className="size-11 rounded-full xl:hidden" />
         </div>
-        <div className="flex min-w-0 flex-col gap-4 lg:pr-14 xl:pr-[18.5rem]">
+        <div className="flex min-w-0 flex-col gap-4">
           {panel(true, 0)}
           {panel(false, 1)}
           {panel(false, 2)}
@@ -1109,23 +1109,22 @@ export function FichaPublicaSkeleton() {
           ))}
         </div>
       </Card>
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-6">
-        <div className="hidden lg:block">
-          <div className="flex flex-col gap-2 rounded-2xl border border-[#e7eaee] bg-white p-3">
-            {[0, 1, 2, 3, 4].map((index) => (
-              <B key={index} className="h-9 w-full rounded-lg" />
-            ))}
-          </div>
+      <Card>
+        <B className="h-5 w-72" />
+        <div className="mt-4 flex items-center gap-1 overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white p-1.5">
+          {Array.from({ length: 8 }, (_, index) => (
+            <B
+              key={index}
+              className={`h-9 shrink-0 rounded-xl ${index === 0 ? "w-24 bg-[#1c2740]/80" : index % 3 === 1 ? "w-20" : "w-28"}`}
+            />
+          ))}
         </div>
-        <Card className="lg:col-start-2">
-          <B className="h-5 w-64" />
-          <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
-            {[0, 1, 2, 3].map((index) => (
-              <B key={index} className="h-24 w-full rounded-xl" />
-            ))}
-          </div>
-        </Card>
-      </div>
+        <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((index) => (
+            <B key={index} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
+      </Card>
     </Shell>
   );
 }

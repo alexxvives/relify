@@ -7,6 +7,8 @@ import { X } from "lucide-react";
 const unsavedCopy = {
   title: "Tienes cambios sin guardar",
   body: "Si sales ahora, se pierden los cambios de esta página.",
+  failedTitle: "No se han podido guardar los cambios",
+  failedBody: "Puedes seguir editando e intentarlo de nuevo, o salir sin guardar.",
   stay: "Seguir editando",
   discard: "Salir sin guardar",
   save: "Guardar y salir",
@@ -19,14 +21,21 @@ export function UnsavedChangesGuard({
   dirty,
   onSave,
   autoSave = false,
+  failedHref = null,
+  onDismissFailed,
 }: {
   dirty: boolean;
   onSave?: (href: string) => void;
   /** t95: autosaving forms skip the dialog: the click flushes the save and navigates once it lands. */
   autoSave?: boolean;
+  /** After an autosave-on-leave actually fails, warn instead of blocking silently. */
+  failedHref?: string | null;
+  onDismissFailed?: () => void;
 }) {
   const router = useRouter();
   const [href, setHref] = useState<string | null>(null);
+  const dialogHref = href ?? failedHref;
+  const saveFailed = href === null && failedHref !== null;
 
   useEffect(() => {
     if (!dirty) {
@@ -87,13 +96,14 @@ export function UnsavedChangesGuard({
   }, [dirty, autoSave, onSave]);
 
   useEffect(() => {
-    if (!href) {
+    if (!dialogHref) {
       return;
     }
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setHref(null);
+        onDismissFailed?.();
       }
     }
 
@@ -101,17 +111,21 @@ export function UnsavedChangesGuard({
     return () => {
       document.removeEventListener("keydown", onKey);
     };
-  }, [href]);
+  }, [dialogHref, onDismissFailed]);
 
-  if (!href) {
+  if (!dialogHref) {
     return null;
   }
 
-  const next = href;
+  const next = dialogHref;
+  function dismiss() {
+    setHref(null);
+    onDismissFailed?.();
+  }
 
   return (
     // t86: compact centred dialog (max 25rem). "Seguir editando" is the X, Esc or a click outside; the two exits sit side by side.
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c2740]/40 px-4" onClick={() => setHref(null)}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c2740]/40 px-4" onClick={dismiss}>
       <div
         role="dialog"
         aria-modal="true"
@@ -119,7 +133,7 @@ export function UnsavedChangesGuard({
         aria-describedby="unsaved-body"
         onClick={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
-          if (event.key === "Escape") setHref(null);
+          if (event.key === "Escape") dismiss();
         }}
         className="relative w-[min(25rem,100%)] rounded-2xl bg-white p-5 shadow-xl"
       >
@@ -128,25 +142,25 @@ export function UnsavedChangesGuard({
           autoFocus
           aria-label={unsavedCopy.stay}
           title={unsavedCopy.stay}
-          onClick={() => setHref(null)}
+          onClick={dismiss}
           className="absolute top-3 right-3 inline-flex size-8 items-center justify-center rounded-full text-[#5c6b78] hover:bg-[#f4f6f8] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
         >
           <X className="size-4" aria-hidden />
         </button>
         <h2 id="unsaved-title" className="pr-8 text-base font-semibold text-[#1c2740]">
-          {unsavedCopy.title}
+          {saveFailed ? unsavedCopy.failedTitle : unsavedCopy.title}
         </h2>
-        <p id="unsaved-body" className="mt-1 text-sm leading-5 text-[#5c6b78]">{unsavedCopy.body}</p>
+        <p id="unsaved-body" className="mt-1 text-sm leading-5 text-[#5c6b78]">{saveFailed ? unsavedCopy.failedBody : unsavedCopy.body}</p>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          {onSave ? null : (
-            <button type="button" onClick={() => setHref(null)} className={secondary}>
+          {onSave && !saveFailed ? null : (
+            <button type="button" onClick={dismiss} className={secondary}>
               {unsavedCopy.stay}
             </button>
           )}
           <button
             type="button"
             onClick={() => {
-              setHref(null);
+              dismiss();
               router.push(next);
             }}
             className={secondary}
@@ -157,7 +171,7 @@ export function UnsavedChangesGuard({
             <button
               type="button"
               onClick={() => {
-                setHref(null);
+                dismiss();
                 onSave(next);
               }}
               className="inline-flex h-10 items-center justify-center rounded-xl bg-[#465ab4] px-3 text-sm font-medium text-white hover:bg-[#3a4c9c] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"

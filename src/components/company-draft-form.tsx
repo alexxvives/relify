@@ -56,7 +56,6 @@ import {
   descriptionMinLength,
   ownerDependenceLevels,
   premisesKinds,
-  seasonalityLevels,
   storedAskingPriceIncludes,
   ebitdaMarginBasisPoints,
   type SellerFocusPanel,
@@ -80,7 +79,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { scrollToCenter } from "@/components/use-scroll-spy";
-import { DetailSectionNav, useProgressTrackerExpanded, type DetailSectionItem } from "@/components/detail-section-nav";
+import { DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -639,8 +638,9 @@ function FichaMetrics({
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
     </div>
     <div className="mt-4 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <p id="asking-price-includes-label" className="text-sm font-semibold text-[#1c2740]">
+      <p id="asking-price-includes-label" className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
         {companyCopy.askingPriceIncludesLabel}
+        <FieldHint text={companyCopy.askingPriceIncludesHint} />
       </p>
       <input type="hidden" name="askingPriceIncludes" value={askingPriceIncludes} />
       <div
@@ -648,22 +648,28 @@ function FichaMetrics({
         aria-labelledby="asking-price-includes-label"
         className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
       >
-        {askingPriceIncludesKinds.map((option) => (
+        {askingPriceIncludesKinds.map((option) => {
+          const selected = askingPriceIncludes === option;
+          const title = option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree;
+          const help = option === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp;
+          return (
           <button
             key={option}
             type="button"
             role="radio"
-            aria-checked={askingPriceIncludes === option}
+            aria-checked={selected}
             onClick={() => onAskingPriceIncludes(option)}
-            className={`min-h-11 rounded-xl border px-3 text-left text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-              askingPriceIncludes === option
+            className={`min-h-11 rounded-xl border px-3 py-2.5 text-left focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+              selected
                 ? "border-[#1c2740] bg-[#1c2740] text-white"
                 : "border-[#e7eaee] bg-white text-[#3d4a63] hover:bg-[#f2f4f7]"
             }`}
           >
-            {option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree}
+            <span className="block text-sm font-medium">{title}</span>
+            <span className={`mt-0.5 block text-xs font-normal ${selected ? "text-white/80" : "text-[#667085]"}`}>{help}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
     </div>
@@ -706,53 +712,52 @@ function SellerFinancingField({
       <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
         El comprador te pagaría una parte más adelante, a plazos.
       </p>
-      <div
-        role="radiogroup"
-        aria-labelledby="seller-financing-label"
-        aria-describedby="seller-financing-help"
-        className="grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
-      >
-        {sellerFinancingModes.map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={mode === option}
-            onClick={() => onMode(option)}
-            className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-              mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
-            }`}
-          >
-            {sellerFinancingLabels[option]}
-          </button>
-        ))}
-      </div>
-      {terms ? (
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <label className="flex min-w-0 flex-col gap-1">
-            <span className="text-xs font-medium text-[#667085]">% del precio</span>
-            <input
-              inputMode="numeric"
-              aria-label="Porcentaje del precio financiado"
-              value={pct}
-              onChange={(event) => onPct(keepDigits(event.target.value, 3))}
-              className={fieldInputClass}
-              placeholder="20"
-            />
-          </label>
-          <div className="min-w-0">
-            <span className="mb-1 block text-xs font-medium text-[#667085]">Plazo</span>
+      <div className="flex flex-col gap-2">
+        <div
+          role="radiogroup"
+          aria-labelledby="seller-financing-label"
+          aria-describedby="seller-financing-help"
+          className="grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
+        >
+          {sellerFinancingModes.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={mode === option}
+              onClick={() => onMode(option)}
+              className={`rounded-lg px-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
+              }`}
+            >
+              {sellerFinancingLabels[option]}
+            </button>
+          ))}
+        </div>
+        {terms ? (
+          <div className="grid h-10 grid-cols-2 gap-2">
+            <label className="flex h-10 min-w-0 items-center gap-1.5 rounded-xl border border-[#d8dee8] bg-white px-2.5">
+              <span className="shrink-0 text-xs font-medium whitespace-nowrap text-[#667085]">% del precio</span>
+              <input
+                inputMode="numeric"
+                aria-label="Porcentaje del precio financiado"
+                value={pct}
+                onChange={(event) => onPct(keepDigits(event.target.value, 3))}
+                className="h-10 min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
+                placeholder="20"
+              />
+            </label>
             <OptionSelect
               label="Plazo de la financiación"
-              placeholder="Años"
+              placeholder="Plazo"
               textSize="sm"
               value={years}
               options={sellerFinancingYearOptions.map((option) => ({ value: String(option), label: sellerFinancingYearLabels[option] }))}
               onValueChange={onYears}
             />
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -799,6 +804,7 @@ function EbitdaAdjustmentsDialog({
   baseCents,
   year,
   legacyCents,
+  uploadsDisabled = false,
 }: {
   rows: EbitdaAdjustmentFormRow[];
   onSaved: (rows: EbitdaAdjustmentFormRow[], json: string) => void;
@@ -806,6 +812,7 @@ function EbitdaAdjustmentsDialog({
   baseCents: number | null;
   year: string | null;
   legacyCents: number | null;
+  uploadsDisabled?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const [rows, setRows] = useState<EbitdaAdjustmentFormRow[]>(savedRows);
@@ -840,7 +847,7 @@ function EbitdaAdjustmentsDialog({
       }
       update(index, { documentId: result.documentId, documentName: result.documentName, status: "pending" });
     } catch {
-      setServerError(companyCopy.adjustmentDocumentSaveFailed);
+      setServerError(uploadsDisabled ? companyCopy.adjustmentDocumentIntDisabled : companyCopy.adjustmentDocumentSaveFailed);
     } finally {
       setUploading(null);
     }
@@ -1678,6 +1685,7 @@ export function CompanyDraftForm({
   financeExtra = null,
   reportYears = null,
   fichaExtras = null,
+  uploadsDisabled = false,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -1685,6 +1693,8 @@ export function CompanyDraftForm({
   /** t91: read from ?tab= on the server. */
   initialTab?: "company" | "deal";
   coverSrc?: string | null;
+  /** INT blocks file uploads; the EBITDA dialog shows a dedicated sentence. */
+  uploadsDisabled?: boolean;
   /** t62: SABI detail block, rendered under the balance sheet. */
   financeExtra?: ReactNode;
   /** t69: imported closed years, so the buyer preview shows the same report charts buyers will see. */
@@ -1695,7 +1705,7 @@ export function CompanyDraftForm({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const leaveHrefRef = useRef<string | null>(null);
-  const sawLeavePending = useRef(false);
+  const [leaveFailedHref, setLeaveFailedHref] = useState<string | null>(null);
   const initial = draft ?? emptyCompanyDraft();
   // t95: the save runs outside a React transition. Inside one, the router refresh that follows revalidatePath kept the
   // action "pending" after the response had landed when the save started from the debounce timer.
@@ -1710,9 +1720,20 @@ export function CompanyDraftForm({
     } catch {
       next = { message: companyCopy.autosaveError, saved: false };
     }
-    stateRef.current = next;
-    setState(next);
+    const landed = next ?? { message: companyCopy.autosaveError, saved: false };
+    stateRef.current = landed;
+    setState(landed);
     setPending(false);
+    const href = leaveHrefRef.current;
+    if (href) {
+      leaveHrefRef.current = null;
+      if (landed.saved) {
+        setLeaveFailedHref(null);
+        router.push(href);
+      } else {
+        setLeaveFailedHref(href);
+      }
+    }
   }
   const [legalName, setLegalName] = useState(initial.legalName);
   const [address, setAddress] = useState(() => addressWithRegion(initial.address, initial.region));
@@ -1740,7 +1761,7 @@ export function CompanyDraftForm({
   const [rentMonthly, setRentMonthly] = useState(initial.rentMonthly);
   const [leaseYearsRemaining, setLeaseYearsRemaining] = useState(initial.leaseYearsRemaining);
   const [recurringRevenuePct, setRecurringRevenuePct] = useState(initial.recurringRevenuePct);
-  const [seasonality, setSeasonality] = useState(initial.seasonality);
+  const [seasonality] = useState(initial.seasonality);
   const [askingPriceIncludes, setAskingPriceIncludes] = useState(() => storedAskingPriceIncludes(initial.askingPriceIncludes));
   const [capitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
@@ -1754,7 +1775,6 @@ export function CompanyDraftForm({
   const [forecastYear, setForecastYear] = useState(initial.forecastYear);
   // t91: the tab lives in the URL (?tab=ficha) and the server reads it, so the first paint is already the right tab.
   const [tab, setTabState] = useState<"company" | "deal">(focus === null && initialTab === "deal" ? "deal" : "company");
-  const { formPad, toggleOffset } = useProgressTrackerExpanded();
   const [openBasic, setOpenBasic] = usePanelOpen(
     "Relify:panel:basic",
     focus === null || focus === "identity" || focus === "description" || focus === "cnae",
@@ -1941,28 +1961,6 @@ export function CompanyDraftForm({
     event.preventDefault();
     autoSaveRef.current();
   }
-
-  useEffect(() => {
-    const href = leaveHrefRef.current;
-    if (!href) {
-      return;
-    }
-
-    if (pending) {
-      sawLeavePending.current = true;
-      return;
-    }
-
-    if (!sawLeavePending.current || !state) {
-      return;
-    }
-
-    sawLeavePending.current = false;
-    leaveHrefRef.current = null;
-    if (state.saved) {
-      router.push(href);
-    }
-  }, [pending, router, state]);
 
   function panelRejected(id: string): boolean {
     if (pending) {
@@ -2353,7 +2351,6 @@ export function CompanyDraftForm({
   function saveAndLeave(href: string) {
     leaveHrefRef.current = href;
     if (pending) {
-      sawLeavePending.current = true;
       return;
     }
     if (!formDirty) {
@@ -2380,9 +2377,15 @@ export function CompanyDraftForm({
       }}
       className="flex flex-col gap-4"
     >
-      <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
+      <UnsavedChangesGuard
+        dirty={formDirty || pending}
+        onSave={saveAndLeave}
+        autoSave
+        failedHref={leaveFailedHref}
+        onDismissFailed={() => setLeaveFailedHref(null)}
+      />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <h1 className={`min-w-0 text-3xl tracking-tight text-public-ink ${tab === "deal" ? "pt-40 lg:pt-36" : "pt-32 lg:pt-16"}`}>
+      <h1 className="min-w-0 text-3xl tracking-tight text-public-ink">
         {sellerCopy.detailsTitle}
       </h1>
       <FloatingSegmentedTabs
@@ -2392,7 +2395,6 @@ export function CompanyDraftForm({
           { id: "deal", label: companyCopy.detailsDealTab },
         ]}
         value={tab}
-        offsetClass={tab === "company" ? toggleOffset : ""}
         onChange={(id) => {
           setTab(id);
           window.scrollTo({ top: 0 });
@@ -2400,7 +2402,7 @@ export function CompanyDraftForm({
       />
       <div className="relative flex flex-col gap-4">
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
-      <div className={`flex min-w-0 flex-col gap-4 ${tab === "company" ? formPad : ""}`}>
+      <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
@@ -2627,6 +2629,7 @@ export function CompanyDraftForm({
                   baseCents={adjustmentBaseCents}
                   year={accountYear?.year ?? null}
                   legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                  uploadsDisabled={uploadsDisabled}
                 />
               )}
               margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
@@ -2782,26 +2785,7 @@ export function CompanyDraftForm({
               onChange={(event) => setRecurringRevenuePct(keepDigits(event.target.value, 3))}
             />
           </Fact>
-          <Fact icon={CalendarDays} label={companyCopy.seasonalityLabel}>
-            <OptionSelect
-              name="seasonality"
-              label={companyCopy.seasonalityLabel}
-              placeholder={companyCopy.seasonalityEmpty}
-              value={seasonality}
-              options={[
-                { value: "", label: companyCopy.seasonalityEmpty },
-                { value: "none", label: companyCopy.seasonalityNone },
-                { value: "low", label: companyCopy.seasonalityLow },
-                { value: "medium", label: companyCopy.seasonalityMedium },
-                { value: "high", label: companyCopy.seasonalityHigh },
-              ]}
-              onValueChange={(value) => {
-                if (value === "" || seasonalityLevels.some((item) => item === value)) {
-                  setSeasonality(value as typeof seasonality);
-                }
-              }}
-            />
-          </Fact>
+          <input type="hidden" name="seasonality" value={seasonality} />
         </div>
       </Panel>
 
@@ -3033,6 +3017,7 @@ export function CompanyDraftForm({
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
           </span>
+          <div id="ficha-section-nav-slot" />
           <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-4">
             <div role="radiogroup" aria-label="Vista previa" className="grid min-w-0 flex-1 grid-cols-2 rounded-full border border-[#d5dbe3] bg-[#f5f6f8] p-1 sm:inline-flex sm:flex-none">
               {[

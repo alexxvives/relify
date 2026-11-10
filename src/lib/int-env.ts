@@ -7,7 +7,8 @@
  */
 
 export function isIntEnvironment(): boolean {
-  return process.env.INT_ENVIRONMENT === "true";
+  // Bracket access so the INT Worker runtime var is not replaced with `undefined` at build time.
+  return process.env["INT_ENVIRONMENT"] === "true";
 }
 
 /**

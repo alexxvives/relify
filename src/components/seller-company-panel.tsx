@@ -15,12 +15,14 @@ export function SellerCompanyPanel({
   coverSrc = null,
   sabiRegistry = null,
   fichaExtras = null,
+  uploadsDisabled = false,
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
   focus?: SellerFocusPanel | null;
   initialTab?: "company" | "deal";
   coverSrc?: string | null;
+  uploadsDisabled?: boolean;
   /** t76: no longer shown to sellers (raw accounting detail; figures are loaded by us). Kept for callers. */
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
@@ -37,6 +39,7 @@ export function SellerCompanyPanel({
         reportYears={sabiRegistry?.years ?? null}
         fichaExtras={fichaExtras}
         coverSrc={coverSrc}
+        uploadsDisabled={uploadsDisabled}
         financeExtra={
           sabiRegistry ? (
             <>
