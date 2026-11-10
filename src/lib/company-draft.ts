@@ -17,6 +17,7 @@ import {
   percentsSumToHundred,
   pnlInputKeys,
   premisesKinds,
+  fichaClosedYearSlots,
   statementWindow,
   type BalanceInputKey,
   type PnlInputKey,
@@ -143,7 +144,7 @@ export const companyDraftSchema = z
     clientPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     customerBase: z.union([z.literal(""), z.enum(customerBases)]),
     headcount: z.union([z.literal(""), z.enum(headcountRanges)]),
-    closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema]),
+    closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema, closedYearSchema]),
     forecastYear: forecastYearSchema,
   })
   .superRefine((input, ctx) => {
@@ -164,6 +165,7 @@ export const companyDraftSchema = z
       inspectYear(input.closedYears[0], true, ["closedYears", 0], ctx),
       inspectYear(input.closedYears[1], true, ["closedYears", 1], ctx),
       inspectYear(input.closedYears[2], true, ["closedYears", 2], ctx),
+      inspectYear(input.closedYears[3], true, ["closedYears", 3], ctx),
       inspectYear(input.forecastYear, false, ["forecastYear"], ctx),
     ].filter((year): year is number => year !== null);
 
@@ -315,9 +317,24 @@ export function emptyForecastYear(year: string): ForecastYearInput {
   };
 }
 
+function closedYearQuad(years: ClosedYearInput[]): CompanyDraftInput["closedYears"] {
+  const first = years[0];
+  const second = years[1];
+  const third = years[2];
+  const fourth = years[3];
+  if (!first || !second || !third || !fourth || years.length !== fichaClosedYearSlots) {
+    throw new Error("closed year window must be 4");
+  }
+  return [first, second, third, fourth];
+}
+
+function closedYearHasFigures(year: ClosedYearInput): boolean {
+  return (Object.keys(year) as Array<keyof ClosedYearInput>).some((key) => key !== "year" && year[key].trim().length > 0);
+}
+
 export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
   const window = statementWindow(today);
-  const [first, second, third] = window.closed;
+  const [first, second, third, fourth] = window.closed;
 
   return {
     legalName: "",
@@ -350,7 +367,12 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     clientPercents: [],
     customerBase: "",
     headcount: "",
-    closedYears: [emptyClosedYear(String(first)), emptyClosedYear(String(second)), emptyClosedYear(String(third))],
+    closedYears: [
+      emptyClosedYear(String(first)),
+      emptyClosedYear(String(second)),
+      emptyClosedYear(String(third)),
+      emptyClosedYear(String(fourth)),
+    ],
     forecastYear: emptyForecastYear(String(window.forecast)),
   };
 }
@@ -373,14 +395,28 @@ export function placeStatementsOnWindow(
     byYear.set(forecast.year, forecast);
   }
 
-  const [first, second, third] = window.closed;
+  const stored = closed
+    .filter((year) => /^\d{4}$/.test(year.year))
+    .sort((left, right) => Number(left.year) - Number(right.year));
+  const withData = stored.filter(closedYearHasFigures);
+  const picked = (withData.length > 0 ? withData : stored).slice(-fichaClosedYearSlots);
+  const calendar = window.closed.map((year) => String(year));
+  const pickedYears = picked.map((year) => year.year);
+  const pad = calendar.filter((year) => !pickedYears.includes(year));
+  const slotYears = [...pad.slice(0, Math.max(0, fichaClosedYearSlots - pickedYears.length)), ...pickedYears]
+    .sort((left, right) => Number(left) - Number(right))
+    .slice(-fichaClosedYearSlots);
+  while (slotYears.length < fichaClosedYearSlots) {
+    const extra = calendar.find((year) => !slotYears.includes(year));
+    if (!extra) {
+      break;
+    }
+    slotYears.push(extra);
+    slotYears.sort((left, right) => Number(left) - Number(right));
+  }
 
   return {
-    closedYears: [
-      copyOntoClosed(byYear.get(String(first)), String(first)),
-      copyOntoClosed(byYear.get(String(second)), String(second)),
-      copyOntoClosed(byYear.get(String(third)), String(third)),
-    ],
+    closedYears: closedYearQuad(slotYears.map((year) => copyOntoClosed(byYear.get(year), year))),
     forecastYear: copyOntoForecast(byYear.get(String(window.forecast)), String(window.forecast)),
   };
 }

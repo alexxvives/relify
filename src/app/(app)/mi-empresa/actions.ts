@@ -101,7 +101,7 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     clientPercents: readList(formData, "clientPercent"),
     customerBase: readText(formData, "customerBase"),
     headcount: headcount === "" ? "" : headcount,
-    closedYears: [readClosedYear(formData, 0), readClosedYear(formData, 1), readClosedYear(formData, 2)],
+    closedYears: [readClosedYear(formData, 0), readClosedYear(formData, 1), readClosedYear(formData, 2), readClosedYear(formData, 3)],
     forecastYear: readForecastYear(formData),
   });
 

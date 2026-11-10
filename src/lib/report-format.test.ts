@@ -14,11 +14,12 @@ describe("registryText", () => {
 
 describe("compactEur", () => {
   it("uses one K/M style with a decimal comma", () => {
-    expect(compactEur(-36_400_000)).toBe("-364K €");
-    expect(compactEur(170_000_000)).toBe("1,7M €");
-    expect(compactEur(5_740_000)).toBe("57,4K €");
+    expect(compactEur(-36_400_000)).toBe("-364 K €");
+    expect(compactEur(170_000_000)).toBe("1,7 M €");
+    expect(compactEur(165_000_000)).toBe("1,65 M €");
+    expect(compactEur(5_740_000)).toBe("57,4 K €");
     expect(compactEur(85_000)).toBe("850 €");
-    expect(formatValue(57.4, "keur")).toBe("57,4K €");
+    expect(formatValue(57.4, "keur")).toBe("57,4 K €");
   });
 });
 
@@ -38,5 +39,24 @@ describe("not significant percentages", () => {
     expect(reportMargins(years, (item) => item.ebitdaCents)).toEqual({ values: [null, 10, 10], ns: [true, false, false] });
     const margin = metrics(years).kpis.find((metric) => metric.key === "ebitdaMargin")!;
     expect(margin.ns).toEqual([true, false, false]);
+  });
+
+  it("computes margen de beneficio and ROE from resultado neto, and marks cobertura n/s", () => {
+    const years = [
+      year({
+        year: 2024,
+        revenueCents: 88_785_000,
+        netResultCents: -9_500_000,
+        equityCents: 100_000_000,
+        ebitCents: -1_000_000,
+        ratios: { interestCoverage: -16, economicReturn: -14.9 },
+      }),
+    ];
+    const { kpis, debt } = metrics(years);
+    expect(kpis.find((metric) => metric.key === "profitMargin")?.values[0]).toBeCloseTo(-10.7, 1);
+    expect(kpis.find((metric) => metric.key === "financialReturn")?.values[0]).toBeCloseTo(-9.5, 5);
+    const coverage = debt.find((metric) => metric.key === "interestCoverage");
+    expect(coverage?.values[0]).toBeNull();
+    expect(coverage?.ns?.[0]).toBe(true);
   });
 });

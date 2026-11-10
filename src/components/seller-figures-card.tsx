@@ -5,17 +5,23 @@ import { detailCard, detailCardHead } from "@/components/detail-card";
 import type { ReactNode } from "react";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MessageSquareText, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, MessageSquareText } from "lucide-react";
 import { requestFigureCorrectionAction, type FigureCorrectionState } from "@/app/(app)/mi-empresa/actions";
 import { FinancialTable } from "@/components/financial-table";
 import { Button as KitButton, Card, Textarea } from "@/components/ui/form";
 import { figureCorrectionMaxLength } from "@/lib/figure-correction-email";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
+import { companyCopy } from "@/lib/company-copy";
+import { headlineEbitdaMargin } from "@/lib/financial-metrics";
 import { formatCardEur } from "@/lib/money";
 import type { SabiYear } from "@/lib/sabi/insights";
+import { projectHasAdjustments } from "@/lib/seller-draft-guard";
 import { sellerKeyFigures } from "@/lib/seller-key-figures";
 
-type Figures = Pick<InvestorProjectProfile, "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows">;
+type Figures = Pick<
+  InvestorProjectProfile,
+  "incomeYears" | "incomeRows" | "balanceYears" | "balanceRows" | "revenueCents" | "ebitdaCents" | "adjustedEbitdaCents" | "ebitdaAdjustments"
+>;
 
 /**
  * t76/t78: the seller's figures, read-only. Only the key numbers; the charts live in the
@@ -29,7 +35,18 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
   const [pending, startTransition] = useTransition();
   const hasIncome = figures.incomeRows.some((row) => row.key === "sales" && row.values.some((value) => value !== null));
   const hasBalance = figures.balanceRows.some((row) => row.values.some((value) => value !== null && value !== 0));
-  const tiles = sellerKeyFigures(reportYears);
+  const headline = headlineEbitdaMargin({
+    revenueCents: figures.revenueCents,
+    ebitdaCents: figures.ebitdaCents,
+    adjustedEbitdaCents: figures.adjustedEbitdaCents,
+    hasAdjustments: projectHasAdjustments(figures),
+  });
+  const tiles = sellerKeyFigures(reportYears).map((tile) => {
+    if (tile.key !== "ebitdaMargin" || headline.primaryBp === null) {
+      return tile;
+    }
+    return { ...tile, label: headline.primaryLabel, value: Math.round(headline.primaryBp / 10) / 10 };
+  });
   const hasFigures = hasIncome || hasBalance || tiles.length > 0;
 
   function send() {
@@ -54,8 +71,8 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
             Tus cifras
           </h2>
           <SectionIntro>Las cifras clave de tu último ejercicio y su evolución.</SectionIntro>
+          <p className="mt-1 text-xs text-[#8b95a7]">{companyCopy.figuresAccountsLine}</p>
         </div>
-        {/* t85: "Proponer corrección" sits right before the "Lo rellenamos nosotros" label, same row. */}
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {hasFigures ? (
             <KitButton type="button" tone="outline" size="sm" aria-expanded={correcting} onClick={() => setCorrecting((open) => !open)}>
@@ -63,10 +80,6 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
               Proponer corrección
             </KitButton>
           ) : null}
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0f766e]">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            Lo rellenamos nosotros
-          </span>
         </div>
       </div>
 

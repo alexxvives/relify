@@ -92,6 +92,8 @@ export const companyCopy = {
   rentMonthlyLabel: "Renta mensual",
   leaseYearsLabel: "Años restantes de contrato",
   recurringRevenueLabel: "% ingresos recurrentes",
+  recurringRevenueHelp: "Contratos, cuotas o clientes que repiten cada mes",
+  figuresAccountsLine: "Cifras de las cuentas anuales depositadas",
   askingPriceIncludesLabel: "Qué incluye el precio",
   askingPriceIncludesHint:
     "Elige si el comprador paga por las participaciones (se queda la sociedad con su deuda y su caja) o un precio de empresa libre de deuda y caja (deuda y caja se ajustan al cierre).",

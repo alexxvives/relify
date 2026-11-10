@@ -7,8 +7,11 @@ import {
   formatBasisPoints,
   grossMargin,
   sellerPanelFlags,
+  displayedGrossLine,
+  grossLineLabel,
   incomeValue,
   operatingResult,
+  tradingGrossMarginPercent,
   parsePercentToBasisPoints,
   percentsSumToHundred,
   slicePercentIssue,
@@ -58,7 +61,13 @@ describe("company profile statements", () => {
     expect(statementEbitda(pnl)).toBe(55);
     expect(operatingResult(pnl)).toBe(50);
     expect(incomeValue("ebitda", { ...pnl, staffCosts: null })).toBeNull();
-    expect(incomeValue("grossMargin", { ...pnl, staffCosts: null })).toBe(80);
+    expect(incomeValue("grossMargin", { ...pnl, staffCosts: null })).toBe(60);
+    expect(displayedGrossLine(pnl)).toBe(60);
+    expect(tradingGrossMarginPercent(pnl)).toBe(60);
+    expect(grossLineLabel([pnl])).toBe("Margen bruto");
+    expect(displayedGrossLine({ ...pnl, supplies: null })).toBe(105);
+    expect(tradingGrossMarginPercent({ ...pnl, supplies: null })).toBeNull();
+    expect(grossLineLabel([{ ...pnl, supplies: null }])).toBe("Ingresos de explotación");
     expect(totalAssets(balance)).toBe(150);
     expect(totalLiabilities(balance)).toBe(150);
     expect(balanceValue("cash", balance)).toBe(10);
@@ -81,21 +90,21 @@ describe("company profile statements", () => {
     expect(slicePercentIssue(["60"])).toBe("short");
   });
 
-  it("keeps three closed years and puts the open exercise in the forecast", () => {
+  it("keeps four closed years and puts the open exercise in the forecast", () => {
     expect(statementWindow(new Date("2026-10-06T12:00:00"))).toEqual({
-      closed: [2023, 2024, 2025],
+      closed: [2022, 2023, 2024, 2025],
       forecast: 2026,
     });
     expect(statementWindow(new Date("2027-01-15T12:00:00"))).toEqual({
-      closed: [2024, 2025, 2026],
+      closed: [2023, 2024, 2025, 2026],
       forecast: 2027,
     });
     expect(statementWindow(new Date("2026-06-30T12:00:00"), 6)).toEqual({
-      closed: [2024, 2025, 2026],
+      closed: [2023, 2024, 2025, 2026],
       forecast: 2027,
     });
     expect(statementWindow(new Date("2026-06-29T12:00:00"), 6)).toEqual({
-      closed: [2023, 2024, 2025],
+      closed: [2022, 2023, 2024, 2025],
       forecast: 2026,
     });
     expect(statementYearIsBeforeFounding("2023", "2024")).toBe(true);

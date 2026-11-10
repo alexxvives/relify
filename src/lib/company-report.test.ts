@@ -59,12 +59,27 @@ describe("company report", () => {
     expect(by).toEqual({ netDebtToEbitda: "warn", liquidity: "good", acid: "warn", solvency: "good", interestCoverage: "good", collectionDays: "bad" });
   });
 
+  it("shows cobertura de intereses as n/s when EBIT is negative instead of -16x", () => {
+    const [coverage] = healthSignals([year({ ebitCents: -1_000_000, ratios: { interestCoverage: -16 } })]).filter((signal) => signal.key === "interestCoverage");
+    expect(coverage?.display).toBe("n/s");
+    expect(coverage?.ns).toBe(true);
+    expect(coverage?.reading).toContain("No significativo");
+  });
+
+  it("says caja generates cash when tesorería rose", () => {
+    const checks = diligenceChecks([
+      year({ year: 2023, cashCents: 10_000_000 }),
+      year({ year: 2024, cashCents: 18_000_000 }),
+    ]);
+    expect(checks.find((check) => check.key === "runway")?.value).toBe("No aplica (genera caja)");
+  });
+
   it("summarises only the numbers on file", () => {
     const lines = reportSummary([year({ year: 2021, revenueCents: 50_000_000 }), year({ year: 2022, revenueCents: 80_000_000 }), year({ netResultCents: -5_000_000 })]);
-    expect(lines[0]).toBe("Los ingresos han pasado de 500K € en 2021 a 1M € en 2023 (+100 %, +41,4 % de media al año).");
+    expect(lines[0]).toBe("Los ingresos han pasado de 500 K € en 2021 a 1 M € en 2023 (+100 %, +41,4 % de media al año).");
     expect(lines[1]).toBe("En el último ejercicio (2023) crecieron un 25 % frente a 2022.");
     expect(lines[2]).toContain("margen del 20 %");
-    expect(lines[3]).toBe("Cerró 2023 con pérdidas de 50K € y ha tenido beneficios en 2 de los 3 ejercicios disponibles.");
+    expect(lines[3]).toBe("Cerró 2023 con pérdidas de 50 K € y ha tenido beneficios en 2 de los 3 ejercicios disponibles.");
     expect(reportSummary([])).toEqual([]);
   });
 
@@ -84,7 +99,7 @@ describe("diligenceChecks", () => {
       year({ year: 2024, revenueCents: 148_000_000 }),
     ];
     const [growth] = reportSummary(years);
-    expect(growth).toContain("de 400K € en 2022 a 1,5M € en 2024 (+270 %");
+    expect(growth).toContain("de 400 K € en 2022 a 1,48 M € en 2024 (+270 %");
     expect(growth).toContain("No se compara con 2021");
     expect(growth).not.toContain("147");
   });
@@ -100,15 +115,15 @@ describe("diligenceChecks", () => {
 
   it("flags losses, short years, missing audit and computes runway and NOF from real fields only", () => {
     const checks = diligenceChecks([
-      year({ year: 2022, netResultCents: -5_000_000, currentAssetsCents: 80_000_000, currentLiabilitiesCents: 60_000_000, cashCents: 10_000_000, shortTermDebtCents: 20_000_000, nonCurrentAssetsCents: 100_000_000 }),
-      year({ year: 2023, months: 11, netResultCents: -8_000_000, ebitdaCents: -12_000_000, ebitCents: -14_000_000, nonCurrentAssetsCents: 101_000_000 }),
+      year({ year: 2022, netResultCents: -5_000_000, currentAssetsCents: 80_000_000, currentLiabilitiesCents: 60_000_000, cashCents: 114_000_000, shortTermDebtCents: 20_000_000, nonCurrentAssetsCents: 100_000_000 }),
+      year({ year: 2023, months: 11, netResultCents: -8_000_000, ebitdaCents: -12_000_000, ebitCents: -14_000_000, cashCents: 16_700_000, nonCurrentAssetsCents: 101_000_000 }),
     ]);
     const byKey = Object.fromEntries(checks.map((check) => [check.key, check]));
     expect(byKey.information!.level).toBe("warn");
     expect(byKey.information!.text).toContain("11 meses");
     expect(byKey.losses!.level).toBe("bad");
-    // 10 M cents cash / (12 M cents / 11 months) = 9.2 months
-    expect(byKey.runway!.value).toBe("≈ 9 meses");
+    // (1,14 M − 167 K) / 12 → ~2 months of runway, never caja / |EBITDA|
+    expect(byKey.runway!.value).toBe("≈ 2 meses");
     // NOF 2023: (90 − 10) − (60 − 20) = 40 M cents; 2022: (80 − 10) − (60 − 20) = 30 M cents
     expect(byKey.cashConversion!.text).toContain("aumento de NOF");
     // capex: (101 − 100) M + (−12 − −14) M = 3 M cents

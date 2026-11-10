@@ -714,6 +714,8 @@ export function SignalGauge({ signal }: { signal: HealthSignal }) {
       <p className="mt-2 text-2xl font-semibold text-[#1c2740] tabular-nums">
         {signal.display} <span className="text-xs font-normal text-[#8b95a7]">{signal.year}</span>
       </p>
+      {signal.ns ? null : (
+        <>
       <div className="relative mt-3 h-2.5" role="img" aria-label={`${signal.label}: ${signal.display}. ${signal.scale}`}>
         <div className="absolute inset-0 flex overflow-hidden rounded-full">
           {zones.map((zone, index) => (
@@ -726,6 +728,8 @@ export function SignalGauge({ signal }: { signal: HealthSignal }) {
         <span>Peor</span>
         <span>Mejor</span>
       </div>
+        </>
+      )}
       <p className="mt-3 text-sm leading-6 text-[#3d4a63]">{signal.reading}</p>
     </section>
   );

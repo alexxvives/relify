@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FieldHint } from "@/components/field-hint";
 import { ShareDonut } from "@/components/share-donut";
 import { incomeLabels } from "@/lib/company-copy";
-import { formatCompactEur } from "@/lib/money";
+import { formatCardEur } from "@/lib/money";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { SellerCostSlice, SellerMix, SellerYearPoint } from "@/server/getSellerOverview";
 
@@ -317,7 +317,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         width: barWidth,
         top: box.top,
         height: box.height,
-        value: formatCompactEur(point.salesCents),
+        value: formatCardEur(point.salesCents),
         fill: "#465ab4",
         label: sellerCopy.financeSales,
         muted: point.forecast,
@@ -331,7 +331,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
         width: barWidth,
         top: box.top,
         height: box.height,
-        value: formatCompactEur(point.ebitdaCents),
+        value: formatCardEur(point.ebitdaCents),
         fill: "#17663a",
         label: sellerCopy.financeEbitda,
         muted: point.forecast,
@@ -380,7 +380,7 @@ function SalesBars({ points, progress }: { points: ChartYearPoint[]; progress: n
                 strokeWidth={axis ? 1.5 : 1}
               />
               <text x={padLeft - 10} y={y + 4} textAnchor="end" fill="#667085" fontSize="15">
-                {formatCompactEur(tick)}
+                {formatCardEur(tick)}
               </text>
             </g>
           );
@@ -485,7 +485,7 @@ export function GroupedYearBars({
           width: barWidth,
           top: box.top,
           height: box.height,
-          value: formatCompactEur(value),
+          value: formatCardEur(value),
           fill: item.color,
           label: item.label,
           muted: year.forecast,
@@ -539,7 +539,7 @@ export function GroupedYearBars({
                 fill="#667085"
                 fontSize="15"
               >
-                {formatCompactEur(tick)}
+                {formatCardEur(tick)}
               </text>
             </g>
           );

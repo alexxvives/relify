@@ -35,6 +35,47 @@ export function formatWholeEur(cents: number): string {
   return `${negative ? "-" : ""}${grouped} €`;
 }
 
+function compactUnitDigits(scaled: number): number {
+  if (scaled < 10) {
+    return 2;
+  }
+  if (scaled < 100) {
+    return 1;
+  }
+  return 0;
+}
+
+function formatScaled(scaled: number, digits: number): string {
+  const factor = 10 ** digits;
+  const rounded = Math.round(scaled * factor) / factor;
+  if (Number.isInteger(rounded)) {
+    return String(rounded);
+  }
+  return rounded.toFixed(digits).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+}
+
+/**
+ * Shared compact money for cards, Resumen, ficha and marketplace:
+ * 2 decimals below 10 of the unit (1,65 M), 1 decimal from 10–100, 0 above; space before K/M.
+ */
+export function formatCardEur(cents: number): string {
+  const negative = cents < 0;
+  const euros = Math.abs(cents) / 100;
+  const sign = negative ? "-" : "";
+
+  if (euros >= 999_950) {
+    const millions = euros / 1_000_000;
+    return `${sign}${formatScaled(millions, compactUnitDigits(millions))} M €`;
+  }
+
+  if (euros >= 1_000) {
+    const thousands = euros / 1_000;
+    return `${sign}${formatScaled(thousands, compactUnitDigits(thousands))} K €`;
+  }
+
+  return `${sign}${groupThousands(Math.round(euros))} €`;
+}
+
 export function formatCompactEur(cents: number): string {
   const negative = cents < 0;
   const euros = Math.abs(cents) / 100;
@@ -49,25 +90,6 @@ export function formatCompactEur(cents: number): string {
 
   if (euros >= 10_000) {
     return `${sign}${Math.round(euros / 1000)} mil €`;
-  }
-
-  const grouped = groupThousands(Math.round(euros));
-  return `${sign}${grouped} €`;
-}
-
-/** Short card figure in es-ES: 1,25 M €, 850 K €, 9.500 €. */
-export function formatCardEur(cents: number): string {
-  const negative = cents < 0;
-  const euros = Math.abs(cents) / 100;
-  const sign = negative ? "-" : "";
-
-  if (euros >= 1_000_000) {
-    const rounded = Math.round((euros / 1_000_000) * 100) / 100;
-    return `${sign}${String(rounded).replace(".", ",")} M €`;
-  }
-
-  if (euros >= 10_000) {
-    return `${sign}${Math.round(euros / 1000)} K €`;
   }
 
   const grouped = groupThousands(Math.round(euros));

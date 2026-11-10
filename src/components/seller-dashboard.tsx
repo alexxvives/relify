@@ -76,7 +76,7 @@ export function SellerDashboard({
             {margins.length > 0 ? (
               <ChartBox
                 title="Márgenes"
-                hint="Qué parte de los ingresos queda como EBITDA y como beneficio antes de impuestos. En años con ingresos casi nulos se muestra n/s."
+                hint="Qué parte de los ingresos queda como EBITDA y como resultado neto del ejercicio. En años con ingresos casi nulos se muestra n/s."
                 legend={margins.map((item) => <LegendLine key={item.label} color={item.color} label={item.label} dash={item.dash} marker={item.marker} />)}
                 table={<YearTable years={years} rows={margins.map((item) => ({ label: item.label, unit: "pct", values: item.values, ns: item.ns }))} />}
               >

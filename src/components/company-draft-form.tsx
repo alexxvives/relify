@@ -106,8 +106,6 @@ import {
   storedSellerFinancing,
   sellerFinancingLabels,
   sellerFinancingModes,
-  sellerFinancingYearLabels,
-  sellerFinancingYearOptions,
 } from "@/lib/seller-financing";
 import { askingPriceAllowed, priceBasisCents } from "@/lib/seller-draft-guard";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
@@ -701,7 +699,7 @@ function SellerFinancingField({
   onPct: (value: string) => void;
   onYears: (value: string) => void;
 }) {
-  const terms = mode === "yes" || mode === "negotiable";
+  const terms = mode === "yes";
   return (
     <div id="panel-seller-financing" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <input type="hidden" name="sellerFinancing" value={mode} />
@@ -719,7 +717,7 @@ function SellerFinancingField({
           data-flash
           aria-labelledby="seller-financing-label"
           aria-describedby="seller-financing-help"
-          className={`grid h-10 min-w-0 grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-0.5 ${terms ? "flex-[1.35]" : "w-full"}`}
+          className={`grid h-10 min-w-0 grid-cols-2 rounded-xl border border-[#e7eaee] bg-white p-0.5 ${terms ? "flex-[1.2]" : "w-full"}`}
         >
           {sellerFinancingModes.map((option) => (
             <button
@@ -733,35 +731,36 @@ function SellerFinancingField({
                 mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
               }`}
             >
-              <span className="sm:hidden">{option === "negotiable" ? "Neg." : sellerFinancingLabels[option]}</span>
-              <span className="hidden sm:inline">{sellerFinancingLabels[option]}</span>
+              {sellerFinancingLabels[option]}
             </button>
           ))}
         </div>
         {terms ? (
           <>
-            <label className="flex h-10 min-w-[4.25rem] flex-1 items-center gap-1 rounded-xl border border-[#d8dee8] bg-white px-2">
-              <span className="shrink-0 text-xs font-medium text-[#667085]">%</span>
+            <label className="flex h-10 w-[5.5rem] shrink-0 items-center gap-0.5 rounded-xl border border-[#d8dee8] bg-white px-2">
               <input
                 data-flash
                 inputMode="numeric"
                 aria-label="Porcentaje del precio financiado"
                 value={pct}
                 onChange={(event) => onPct(keepDigits(event.target.value, 3))}
-                className="h-10 min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
+                className="h-10 w-[4ch] min-w-0 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
                 placeholder="20"
               />
+              <span className="shrink-0 text-xs font-medium text-[#667085]">%</span>
             </label>
-            <div className="min-w-[5.25rem] flex-1">
-              <OptionSelect
-                label="Plazo de la financiación"
-                placeholder="Plazo"
-                textSize="sm"
+            <label className="flex h-10 min-w-0 flex-1 items-center gap-1 rounded-xl border border-[#d8dee8] bg-white px-2">
+              <input
+                data-flash
+                inputMode="numeric"
+                aria-label="Plazo de la financiación en años"
                 value={years}
-                options={sellerFinancingYearOptions.map((option) => ({ value: String(option), label: sellerFinancingYearLabels[option] }))}
-                onValueChange={onYears}
+                onChange={(event) => onYears(keepDigits(event.target.value, 1))}
+                className="h-10 w-[3ch] min-w-0 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
+                placeholder="3"
               />
-            </div>
+              <span className="shrink-0 text-xs font-medium text-[#667085]">años</span>
+            </label>
           </>
         ) : null}
       </div>
@@ -1606,6 +1605,7 @@ function Fact({
   id,
   icon: Icon,
   label,
+  help,
   required = false,
   className = "",
   children,
@@ -1613,6 +1613,7 @@ function Fact({
   id?: string;
   icon: typeof Building2;
   label: string;
+  help?: string;
   required?: boolean;
   className?: string;
   children: ReactNode;
@@ -1631,6 +1632,7 @@ function Fact({
             </span>
           ) : null}
         </span>
+        {help ? <p className="mb-1 text-xs leading-4 text-[#8b95a7]">{help}</p> : null}
         <div className="text-base font-semibold text-[#2b3b4a]">{children}</div>
       </span>
     </div>
@@ -1933,13 +1935,9 @@ export function CompanyDraftForm({
     askingPrice !== baseline.askingPrice ||
     askingPriceIncludes !== baseline.askingPriceIncludes;
 
-  function closedIndex(index: number): 0 | 1 | 2 {
-    if (index === 1) {
-      return 1;
-    }
-
-    if (index === 2) {
-      return 2;
+  function closedIndex(index: number): 0 | 1 | 2 | 3 {
+    if (index === 1 || index === 2 || index === 3) {
+      return index;
     }
 
     return 0;
@@ -1977,9 +1975,9 @@ export function CompanyDraftForm({
     return state !== null && !state.saved && !suppressStatus && saveTarget === id;
   }
 
-  function updateClosed(index: 0 | 1 | 2, key: keyof ClosedYearInput, value: string) {
+  function updateClosed(index: 0 | 1 | 2 | 3, key: keyof ClosedYearInput, value: string) {
     setClosedYears((current) => {
-      const next: CompanyDraftInput["closedYears"] = [current[0], current[1], current[2]];
+      const next: CompanyDraftInput["closedYears"] = [current[0], current[1], current[2], current[3]];
       next[index] = { ...next[index], [key]: value };
       return next;
     });
@@ -2781,7 +2779,7 @@ export function CompanyDraftForm({
               </Fact>
             </>
           ) : null}
-          <Fact icon={Handshake} label={companyCopy.recurringRevenueLabel}>
+          <Fact icon={Handshake} label={companyCopy.recurringRevenueLabel} help={companyCopy.recurringRevenueHelp}>
             <Input
               name="recurringRevenuePct"
               inputMode="numeric"

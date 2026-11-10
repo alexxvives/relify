@@ -20,7 +20,8 @@ import {
   HandCoins,
   type LucideIcon,
 } from "lucide-react";
-import { headcountLabels, isHeadcountRange } from "@/lib/company-profile";
+import { formatBasisPoints, headcountLabels, isHeadcountRange } from "@/lib/company-profile";
+import { headlineEbitdaMargin } from "@/lib/financial-metrics";
 import {
   formatCardEur,
   formatDecimal,
@@ -345,13 +346,8 @@ export function MarketCard({
             value={card(profitCents)}
             edge="left"
             ink={adjustedKnown && project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : undefined}
-            hint={
-              adjustedKnown && known(project.ebitdaCents)
-                ? `EBITDA ajustado por el vendedor. EBITDA de las cuentas: ${formatCardEur(project.ebitdaCents)}.`
-                : adjustedKnown
-                  ? "EBITDA ajustado por el vendedor."
-                  : undefined
-            }
+            hint={ebitdaHint(project, adjustedKnown)}
+            note={ebitdaMarginNote(project, adjustedKnown)}
           />
           <div className="col-span-2 flex flex-col items-center gap-1 border-t border-[#eceff4] px-4 py-3 text-center">
             <dt className="text-xs font-medium text-[#667085]">Precio de venta</dt>
@@ -366,6 +362,47 @@ export function MarketCard({
       </div>
     </article>
   );
+}
+
+function ebitdaHint(project: PublicProjectCard, adjustedKnown: boolean): string | undefined {
+  const headline = headlineEbitdaMargin({
+    revenueCents: project.revenueCents,
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasAdjustments: adjustedKnown,
+  });
+  const reported =
+    headline.secondaryBp === null || headline.secondaryLabel === null
+      ? null
+      : `${headline.secondaryLabel}: ${formatBasisPoints(headline.secondaryBp)}.`;
+  if (adjustedKnown && knownCents(project.ebitdaCents)) {
+    return [`EBITDA ajustado por el vendedor. EBITDA de las cuentas: ${formatCardEur(project.ebitdaCents)}.`, reported].filter(Boolean).join(" ");
+  }
+  if (adjustedKnown) {
+    return ["EBITDA ajustado por el vendedor.", reported].filter(Boolean).join(" ");
+  }
+  return undefined;
+}
+
+function ebitdaMarginNote(project: PublicProjectCard, adjustedKnown: boolean): ReactNode {
+  const headline = headlineEbitdaMargin({
+    revenueCents: project.revenueCents,
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasAdjustments: adjustedKnown,
+  });
+  if (headline.primaryBp === null) {
+    return null;
+  }
+  return (
+    <span className={`text-[11px] font-medium ${marginTone(headline.primaryBp / 100)}`} title={ebitdaHint(project, adjustedKnown)}>
+      {formatBasisPoints(headline.primaryBp)}
+    </span>
+  );
+}
+
+function knownCents(cents: number | null | undefined): cents is number {
+  return typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
 }
 
 export function marginTone(share: number): string {

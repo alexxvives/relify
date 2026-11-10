@@ -62,7 +62,7 @@ export function storedAskingPriceIncludes(value: string | null | undefined): Ask
 export const foundedYearMin = 1800;
 export const statementYearMin = 1990;
 export const statementYearMax = 2100;
-export const statementHistoryCount = 3;
+export const statementHistoryCount = 4;
 /** Most Spanish SMEs close the exercise on 31 December. */
 export const defaultFiscalCloseMonth = 12;
 
@@ -187,13 +187,15 @@ export function lastCompletedStatementYear(today: Date, closeMonth = defaultFisc
   return year - 1;
 }
 
+export const fichaClosedYearSlots = 4;
+
 export function statementWindow(
   today: Date,
   closeMonth = defaultFiscalCloseMonth,
-): { closed: [number, number, number]; forecast: number } {
+): { closed: [number, number, number, number]; forecast: number } {
   const last = lastCompletedStatementYear(today, closeMonth);
   return {
-    closed: [last - 2, last - 1, last],
+    closed: [last - 3, last - 2, last - 1, last],
     forecast: last + 1,
   };
 }
@@ -261,9 +263,35 @@ export function totalLiabilities(amounts: BalanceAmounts): number | null {
   return sumNullable([amounts.currentLiabilities, amounts.nonCurrentLiabilities, amounts.equity]);
 }
 
+/**
+ * Display line for "Margen bruto": (ventas − aprovisionamientos) when supplies exist.
+ * Without supplies the row is "Ingresos de explotación" (ventas + otros ingresos).
+ * The P&L waterfall still uses `grossMargin` (all operating lines through that subtotal).
+ */
+export function displayedGrossLine(amounts: PnlAmounts): number | null {
+  if (amounts.supplies !== null && amounts.sales !== null) {
+    return amounts.sales + amounts.supplies;
+  }
+  if (amounts.sales === null && amounts.otherOperatingIncome === null) {
+    return null;
+  }
+  return (amounts.sales ?? 0) + (amounts.otherOperatingIncome ?? 0);
+}
+
+export function tradingGrossMarginPercent(amounts: PnlAmounts): number | null {
+  if (amounts.sales === null || amounts.sales === 0 || amounts.supplies === null) {
+    return null;
+  }
+  return ((amounts.sales + amounts.supplies) / amounts.sales) * 100;
+}
+
+export function grossLineLabel(years: PnlAmounts[]): string {
+  return years.some((year) => year.supplies !== null) ? "Margen bruto" : "Ingresos de explotación";
+}
+
 export function incomeValue(key: IncomeDisplayKey, amounts: PnlAmounts): number | null {
   if (key === "grossMargin") {
-    return grossMargin(amounts);
+    return displayedGrossLine(amounts);
   }
 
   if (key === "ebitda") {

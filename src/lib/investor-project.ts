@@ -5,11 +5,13 @@ import type { Prisma } from "@/generated/prisma/client";
 import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { toSabiYear, type SabiYear } from "./sabi/insights";
 import { balanceLabels, incomeLabels } from "./company-copy";
+import { latestClosedYears } from "./financial-metrics";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
   balanceValue,
   ebitdaMarginBasisPoints,
+  grossLineLabel,
   incomeDisplayKeys,
   incomeValue,
   isEmphasisRow,
@@ -423,14 +425,17 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
   const principal = record.cnaes
     .filter((cnae) => cnae.role === "principal")
     .sort((left, right) => left.position - right.position)[0];
-  const years = [...record.years].sort((left, right) => left.year - right.year);
+  const sorted = [...record.years].sort((left, right) => left.year - right.year);
+  const closed = latestClosedYears(sorted.filter((year) => year.kind === "closed"));
+  const years = [...closed, ...sorted.filter((year) => year.kind === "forecast")];
   const incomeYears = years.map((year) => ({ year: year.year, forecast: year.kind === "forecast" }));
-  const balanceSource = years.filter((year) => year.kind === "closed");
+  const balanceSource = closed;
+  const pnlYears = years.map((year) => toPnl(year));
   const incomeRows = incomeDisplayKeys.map((key) => ({
     key,
-    label: incomeLabels[key],
+    label: key === "grossMargin" ? grossLineLabel(pnlYears) : incomeLabels[key],
     emphasis: isEmphasisRow(key),
-    values: years.map((year) => incomeValue(key, toPnl(year))),
+    values: pnlYears.map((amounts) => incomeValue(key, amounts)),
   }));
   const balanceRows = balanceDisplayKeys.map((key) => ({
     key,

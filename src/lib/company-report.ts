@@ -1,4 +1,5 @@
 import type { SabiRegistry } from "./sabi/registry";
+import { cashRunway, interestCoverageIsNs, interestCoverageNsHint } from "./financial-metrics";
 import { marginPercent, netDebtCents, type SabiYear } from "./sabi/insights";
 
 /** t69: who is reading the company report. Advisors and the seller's "as a buyer" preview read it as "buyer". */
@@ -43,6 +44,7 @@ export type HealthSignal = {
   zones: Zone[];
   scale: string;
   hint: string;
+  ns?: boolean;
 };
 
 function levelFor(value: number, zones: Zone[]): SignalLevel {
@@ -212,7 +214,13 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
     });
   }
 
-  const coverage = lastWith(years, (year) => ratioOf(year, "interestCoverage"));
+  const coverage = lastWith(years, (year) => {
+    if (interestCoverageIsNs(year)) {
+      return { ns: true as const, value: 0 };
+    }
+    const value = ratioOf(year, "interestCoverage");
+    return value === null ? null : { ns: false as const, value };
+  });
   if (coverage) {
     const zones: Zone[] = [
       { upTo: 2, level: "bad" },
@@ -223,18 +231,20 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       key: "interestCoverage",
       label: "Cobertura de intereses",
       year: coverage.year.year,
-      value: coverage.value,
-      display: `${es1.format(coverage.value)}x`,
-      level: levelFor(coverage.value, zones),
-      reading:
-        coverage.value < 0
-          ? "El resultado de explotación es negativo, así que no cubre los intereses de la deuda."
-          : `El resultado de explotación paga ${es1.format(coverage.value)} veces los intereses de la deuda.`,
+      value: coverage.value.value,
+      display: coverage.value.ns ? "n/s" : `${es1.format(coverage.value.value)}x`,
+      level: coverage.value.ns ? "warn" : levelFor(coverage.value.value, zones),
+      reading: coverage.value.ns
+        ? interestCoverageNsHint
+        : `El resultado de explotación paga ${es1.format(coverage.value.value)} veces los intereses de la deuda.`,
       min: 0,
       max: 10,
       zones,
       scale: "Rojo: menos de 2 · Ámbar: de 2 a 5 · Verde: 5 o más",
-      hint: "Cobertura de intereses = resultado de explotación (EBIT) ÷ gastos financieros.",
+      hint: coverage.value.ns
+        ? interestCoverageNsHint
+        : "Cobertura de intereses = resultado de explotación (EBIT) ÷ gastos financieros.",
+      ns: coverage.value.ns,
     });
   }
 
@@ -460,15 +470,22 @@ export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"
     });
   }
 
-  // Cash runway when EBITDA is negative.
-  if (last.ebitdaCents !== null && last.ebitdaCents < 0 && last.cashCents !== null && last.cashCents > 0) {
-    const months = last.cashCents / (-last.ebitdaCents / (last.months ?? 12));
+  const runway = cashRunway(last, previous);
+  if (runway?.kind === "generates") {
     checks.push({
       key: "runway",
-      label: "Caja frente a pérdidas operativas",
-      value: `≈ ${months1.format(months)} meses`,
-      level: months < 12 ? "bad" : "warn",
-      text: `Con ${compactEur(last.cashCents)} de caja y un EBITDA de ${compactEur(last.ebitdaCents)}, la caja cubriría unos ${months1.format(months)} meses al ritmo de ${last.year}. Aproximado: no incluye inversiones ni deuda.`,
+      label: "Caja (runway)",
+      value: "No aplica (genera caja)",
+      level: "good",
+      text: `La tesorería subió de ${compactEur(runway.startCents)} a ${compactEur(runway.endCents)} en ${last.year}: el negocio genera caja.`,
+    });
+  } else if (runway?.kind === "months") {
+    checks.push({
+      key: "runway",
+      label: "Caja (runway)",
+      value: `≈ ${months1.format(runway.months)} meses`,
+      level: runway.months < 12 ? "bad" : "warn",
+      text: `Caja actual ${compactEur(runway.cashCents)} ÷ consumo mensual ${compactEur(runway.monthlyBurnCents)} (tesorería de ${compactEur(runway.startCents)} a ${compactEur(runway.endCents)} en ${last.year}).`,
     });
   }
 

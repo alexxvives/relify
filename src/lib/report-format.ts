@@ -1,3 +1,5 @@
+import { interestCoverageIsNs, roePercent } from "./financial-metrics";
+import { formatCardEur } from "./money";
 import { financialDebtCents, marginPercent, netDebtCents, netDebtToEbitda, type SabiYear } from "./sabi/insights";
 
 /* t69: plain (non-client) helpers for the company report, so server components can call them. */
@@ -28,27 +30,9 @@ export const decimal = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1
 export const decimal2 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
 export const integer = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-const compact1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
-const compact0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
-
-/**
- * t71: the one compact money style of the company report: "-364K €", "57,4K €", "1,7M €", "850 €".
- * K/M suffix glued to the number, decimal comma, one decimal below 100K and for millions.
- */
+/** Shared with marketplace cards: 1,65 M € / 57,4 K € / 850 €. */
 export function compactEur(cents: number): string {
-  const euros = cents / 100;
-  const sign = euros < 0 ? "-" : "";
-  const abs = Math.abs(euros);
-  if (abs >= 999_950) {
-    return `${sign}${compact1.format(abs / 1_000_000)}M €`;
-  }
-
-  if (abs >= 1_000) {
-    const thousands = abs / 1_000;
-    return `${sign}${(thousands >= 100 ? compact0 : compact1).format(thousands)}K €`;
-  }
-
-  return `${sign}${compact0.format(abs)} €`;
+  return formatCardEur(cents);
 }
 
 export type Unit = "eur" | "pct" | "x" | "days" | "keur" | "people";
@@ -149,15 +133,16 @@ function ratio(years: SabiYear[], key: string): Array<number | null> {
 export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
   const field = (pick: (year: SabiYear) => number | null) => years.map(pick);
   const ebitdaMargin = reportMargins(years, (year) => year.ebitdaCents);
-  const negligible = negligibleRevenue(years);
-  const profitRatio = ratio(years, "profitMargin");
-  const profitNs = profitRatio.map((value, index) => value !== null && negligible[index]!);
+  const profitMargin = reportMargins(years, (year) => year.netResultCents);
+  const financialReturn = years.map(roePercent);
+  const coverageNs = years.map(interestCoverageIsNs);
+  const coverageValues = years.map((item, index) => (coverageNs[index] ? null : item.ratios.interestCoverage ?? null));
   const kpis: Metric[] = [
     { key: "revenue", label: "Ingresos de explotación", unit: "eur", better: "up", values: field((year) => year.revenueCents), hint: "Todo lo que la empresa ingresa por su actividad (ventas y otros ingresos de explotación) en el ejercicio. La variación es el cambio en % frente al año anterior." },
     { key: "ebitdaMargin", label: "Margen EBITDA", unit: "pct", better: "up", values: ebitdaMargin.values, ns: ebitdaMargin.ns, hint: "Qué parte de cada euro ingresado queda tras pagar los gastos de explotación, antes de amortizaciones, intereses e impuestos.\nCálculo: EBITDA ÷ ingresos de explotación × 100." },
-    { key: "profitMargin", label: "Margen de beneficio", unit: "pct", better: "up", values: profitRatio.map((value, index) => (profitNs[index] ? null : value)), ns: profitNs, hint: "Beneficio (o pérdida) antes de impuestos por cada 100 € de ingresos.\nCálculo: resultado antes de impuestos ÷ ingresos de explotación × 100." },
+    { key: "profitMargin", label: "Margen de beneficio", unit: "pct", better: "up", values: profitMargin.values, ns: profitMargin.ns, hint: "Beneficio (o pérdida) neto por cada 100 € de ingresos, el mismo margen neto de Evolución financiera.\nCálculo: resultado neto del ejercicio ÷ ingresos de explotación × 100." },
     { key: "economicReturn", label: "Rentabilidad económica (ROA)", unit: "pct", better: "up", values: ratio(years, "economicReturn"), hint: "Lo que rinden todos los activos de la empresa, se financien como se financien.\nCálculo: resultado antes de impuestos ÷ total activo × 100." },
-    { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "pct", better: "up", values: ratio(years, "financialReturn"), hint: "Lo que rinde el dinero de los socios.\nCálculo: resultado antes de impuestos ÷ fondos propios × 100." },
+    { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "pct", better: "up", values: financialReturn, hint: "Lo que rinde el dinero de los socios.\nCálculo: resultado neto del ejercicio ÷ fondos propios × 100." },
     { key: "staffCostToRevenue", label: "Gastos de personal / ingresos", unit: "pct", better: "down", values: ratio(years, "staffCostToRevenue"), hint: "Qué porcentaje de los ingresos se va en sueldos y cargas sociales.\nCálculo: gastos de personal ÷ ingresos de explotación × 100." },
     { key: "revenuePerEmployee", label: "Ingresos por empleado", unit: "keur", better: "up", values: ratio(years, "revenuePerEmployee"), hint: "Productividad comercial de la plantilla, en miles de euros.\nCálculo: ingresos de explotación ÷ número de empleados." },
     { key: "averageStaffCost", label: "Coste medio por empleado", unit: "keur", better: "none", values: ratio(years, "averageStaffCost"), hint: "Coste anual medio de cada empleado (sueldo + seguridad social), en miles de euros.\nCálculo: gastos de personal ÷ número de empleados." },
@@ -173,7 +158,7 @@ export function metrics(years: SabiYear[]): { kpis: Metric[]; debt: Metric[] } {
     { key: "indebtedness", label: "Endeudamiento", unit: "pct", better: "down", values: ratio(years, "indebtedness"), hint: "Qué parte del balance está financiada con deudas en lugar de con fondos propios.\nCálculo: (pasivo no corriente + pasivo corriente) ÷ total pasivo × 100." },
     { key: "solvencyCoefficient", label: "Coeficiente de solvencia", unit: "pct", better: "up", values: ratio(years, "solvencyCoefficient"), hint: "Qué parte del activo pertenece a los socios.\nCálculo: fondos propios ÷ total activo × 100." },
     { key: "gearing", label: "Apalancamiento (gearing)", unit: "pct", better: "down", values: ratio(years, "gearing"), hint: "Deuda que soporta la empresa por cada 100 € de fondos propios.\nCálculo: (pasivo no corriente + préstamos a corto) ÷ fondos propios × 100." },
-    { key: "interestCoverage", label: "Cobertura de intereses", unit: "x", better: "up", values: ratio(years, "interestCoverage"), hint: "Cuántas veces paga el resultado de explotación los intereses de la deuda. Negativo si hay pérdidas de explotación.\nCálculo: resultado de explotación (EBIT) ÷ gastos financieros." },
+    { key: "interestCoverage", label: "Cobertura de intereses", unit: "x", better: "up", values: coverageValues, ns: coverageNs, hint: "Cuántas veces paga el resultado de explotación los intereses de la deuda. n/s si el resultado de explotación es negativo o no hay gastos financieros.\nCálculo: resultado de explotación (EBIT) ÷ gastos financieros." },
     { key: "collectionDays", label: "Periodo de cobro", unit: "days", better: "down", values: ratio(years, "collectionDays"), hint: "Días que tardan de media los clientes en pagar.\nCálculo: deudores comerciales ÷ ingresos de explotación × 360." },
     { key: "creditDays", label: "Periodo de pago", unit: "days", better: "none", values: ratio(years, "creditDays"), hint: "Días que tarda de media la empresa en pagar a sus proveedores.\nCálculo: acreedores comerciales ÷ ingresos de explotación × 360." },
   ];

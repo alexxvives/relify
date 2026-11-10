@@ -22,6 +22,7 @@ import { activeSellerProjectId } from "@/server/sellerCompany";
 import { approvedAdjustments } from "@/lib/ebitda-adjustments";
 import { askingPriceAllowed, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields, storedAdjustmentList } from "@/lib/seller-draft-guard";
 import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
+import { notifyEbitdaAdjustment } from "@/server/notifyEbitdaAdjustment";
 import { Prisma } from "@/generated/prisma/client";
 
 export type SaveCompanyDraftResult =
@@ -299,6 +300,9 @@ export async function saveCompanyDraft(
   if (existing && adjustments.write.kind !== "keep") {
     const next = adjustments.write.kind === "set" ? adjustments.write.rows : [];
     await deleteUnusedAdjustmentDocuments(existing.id, previousAdjustments ?? [], next);
+  }
+  if (existing && adjustments.write.kind === "set") {
+    await notifyEbitdaAdjustment(existing.id, previousAdjustments, adjustments.write.rows);
   }
 
   return { ok: true };

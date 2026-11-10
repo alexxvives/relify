@@ -122,7 +122,7 @@ async function generateSeedSql() {
   lines.push(`  80000000,`);
   lines.push(`  '[{"type":"add","amountCents":5000000,"reason":"Gasto no recurrente"}]'::jsonb,`);
   lines.push(`  400000000,`);
-  lines.push(`  'negotiable',`);
+  lines.push(`  'yes',`);
   lines.push(`  20,`);
   lines.push(`  3,`);
   lines.push(`  '6m',`);

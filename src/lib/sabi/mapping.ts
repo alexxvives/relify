@@ -4,7 +4,7 @@ import type { SabiRatioKey } from "./labels";
 import type { SabiReport, SabiYear } from "./parse";
 
 /** How many closed years go into the ficha (the full series stays in the import record). */
-export const sabiFichaYears = 5;
+export const sabiFichaYears = 4;
 
 export type SabiYearData = {
   salesCents: number | null;

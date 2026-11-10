@@ -9,8 +9,8 @@ const clauses = [
     text: "Durante los **dos años siguientes a cada conexión** que se abra en Relify, si esa empresa se vende entre las personas que se conectaron aquí, **la comisión de Relify se debe igual** aunque el cierre se haga fuera de la plataforma.",
   },
   {
-    title: "Comisiones y suscripción",
-    text: "La comisión de cierre es el **5% del precio final para quien vende** y el **2,5% para quien compra**, o el **2%** si el comprador tenía el plan Empresa cuando se hizo el match. Sin mínimos, más el IVA. Un asesor paga una suscripción de **49 € al mes más IVA** desde su primer encargo aceptado o su primer chat con un cliente, y el **15% de lo que cobre por cada encargo**, más el IVA de ese 15%.",
+    title: "Comisiones",
+    text: "La comisión de cierre de Relify es el **5% del precio total para quien vende** y el **2,5% para quien compra**, o el **2%** si el comprador tenía el plan Empresa cuando se hizo el match. Un asesor paga a Relify el **15% de lo que cobre por cada encargo**, más el IVA de ese 15%. El precio total de la venta incluye la parte que se pague más tarde. La comisión de cierre se paga entera el día de la firma, sin mínimos, más el IVA.",
   },
   {
     title: "Confidencialidad",

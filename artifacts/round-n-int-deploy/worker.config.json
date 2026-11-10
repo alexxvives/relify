@@ -1,0 +1,25 @@
+{
+  "name": "releva-int",
+  "account_id": "53808754f4bd94365d6e31351aa426c0",
+  "workers_dev": true,
+  "compatibility_date": "2026-10-03",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "INT_ENVIRONMENT": "true",
+    "INT_APPROVED_DB_HOST": "ep-steep-boat-b954u39t.c-7.eu-central-1.aws.neon.tech:5432"
+  },
+  "secrets": [
+    "INT_DATABASE_URL",
+    "INT_BETTER_AUTH_SECRET",
+    "INT_BETTER_AUTH_URL"
+  ],
+  "bindings": [
+    {
+      "name": "ASSETS",
+      "type": "assets",
+      "directory": "assets"
+    }
+  ]
+}

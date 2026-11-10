@@ -58,7 +58,7 @@ export function draftFromRegistry(record: RegistryCompany): CompanyDraftInput {
     const yearText = String(record.statementYear);
     const sales = centsToEuroInput(record.revenueCents);
     const match = draft.closedYears.find((year) => year.year === yearText);
-    const slot = match ?? draft.closedYears[2];
+    const slot = match ?? draft.closedYears[draft.closedYears.length - 1];
 
     if (slot) {
       slot.year = yearText;

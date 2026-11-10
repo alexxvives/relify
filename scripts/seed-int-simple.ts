@@ -160,7 +160,7 @@ async function seedInt() {
         reason: "Gasto no recurrente"
       }],
       askingPriceCents: BigInt(400000000), // 4M
-      sellerFinancing: "negotiable",
+      sellerFinancing: "yes",
       sellerFinancingMaxPct: 20,
       sellerFinancingYears: 3,
       sellerStay: "6m",

@@ -6,6 +6,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { Prisma } from "@/generated/prisma/client";
+import { notifyEbitdaAdjustment } from "@/server/notifyEbitdaAdjustment";
 
 export type SaveEbitdaAdjustmentsResult = { ok: true; json: string } | { ok: false; message: string };
 
@@ -42,6 +43,7 @@ export async function saveEbitdaAdjustments(user: CurrentUser, raw: string): Pro
       data: { ebitdaAdjustments: write.write.rows, adjustedEbitdaCents: write.write.adjustedEbitdaCents },
     });
     await deleteUnusedAdjustmentDocuments(project.id, previous ?? [], write.write.rows);
+    await notifyEbitdaAdjustment(project.id, previous, write.write.rows);
     return { ok: true, json: adjustmentsToFormJson(write.write.rows) };
   }
   if (write.write.kind === "clear") {

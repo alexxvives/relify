@@ -61,7 +61,7 @@ export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: 
     { key: "saleReason", done: input.saleReason, href: detailHref("identity", "panel-sale-reason") },
     { key: "description", done: input.panels.description, href: detailHref("description") },
     { key: "price", done: input.panels.price, href: detailHref("price") },
-    // t92: required; any answer (Sí, No or Negociable) completes it.
+    // t92: required; Sí or No completes it. Leftover Negociable is stored as Sí.
     { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("cnae", "panel-seller-financing") },
   );
   return list(items);

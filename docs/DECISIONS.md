@@ -2,6 +2,14 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round N formulas, financing, commissions
+
+Seller financing no longer has Negociable: the stored values are `yes` / `no` (leftover `negotiable` is read and written as `yes`). The column is a string, so INT only runs `UPDATE … SET seller_financing = 'yes' WHERE seller_financing = 'negotiable'`. Production can keep leftover rows until Alex applies that UPDATE; the reader stays tolerant.
+
+Ficha / Tus cifras / marketplace share one compact euro formatter (`formatCardEur`: 2 decimals below 10 of the unit, 1 from 10–100, 0 above, space before K/M). Cash runway is tesorería change / 12, not caja / |EBITDA|. ROE and margen de beneficio use resultado neto so they match Margen neto. ROA stays SABI pre-tax and is labelled “antes de impuestos”. When an adjusted EBITDA exists, the headline margin is adjusted / ventas.
+
+Platform agreement point 03 is the new commission text (5% seller, 2,5% buyer, 2% Empresa-at-match, 15% advisor). The agreement is not versioned (`user.terms_accepted_at` + frozen PDF of current copy). Buyer/advisor monthly fees stay on Checkout, not in this agreement. `project.buyer_plan_at_match` already records the buyer plan when the seller accepts, so the 2% rule is enforceable.
+
 ## 2026-11-10 — Drop unused seasonality / top-5 columns (Round M)
 
 Alex asked to remove `seasonality`, `seasonality_note`, and `top5_clients_pct` from Prisma, code, and a DROP migration. The ficha no longer shows that business-profile block. Cómo es tu negocio keeps owner dependence, premises, rent, lease years, and recurring revenue. Prisma no longer maps the dropped fields, so leftover production columns are ignored until Alex applies `20261110180000_drop_unused_project_profile_columns`. Listed in `DROPS.md`.

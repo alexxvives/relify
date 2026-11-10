@@ -109,12 +109,23 @@ describe("company draft money and slug", () => {
     forecast.sales = "1010000";
     const placed = placeStatementsOnWindow([older, middle, recent], forecast, new Date("2026-10-06T12:00:00"));
 
-    expect(placed.closedYears.map((year) => year.year)).toEqual(["2023", "2024", "2025"]);
-    expect(placed.closedYears.map((year) => year.sales)).toEqual(["830000", "920000", "1010000"]);
-    expect(placed.closedYears[1]?.equity).toBe("100");
-    expect(placed.closedYears[2]?.equity).toBe("");
+    expect(placed.closedYears.map((year) => year.year)).toEqual(["2022", "2023", "2024", "2025"]);
+    expect(placed.closedYears.map((year) => year.sales)).toEqual(["740000", "830000", "920000", "1010000"]);
+    expect(placed.closedYears[2]?.equity).toBe("100");
+    expect(placed.closedYears[3]?.equity).toBe("");
     expect(placed.forecastYear.year).toBe("2026");
     expect(placed.forecastYear.sales).toBe("");
+  });
+
+  it("keeps four stored closed years even when the calendar window has moved on", () => {
+    const years = ["2021", "2022", "2023", "2024"].map((year) => {
+      const row = emptyClosedYear(year);
+      row.sales = year;
+      return row;
+    });
+    const placed = placeStatementsOnWindow(years, emptyForecastYear("2025"), new Date("2026-10-06T12:00:00"));
+    expect(placed.closedYears.map((year) => year.year)).toEqual(["2021", "2022", "2023", "2024"]);
+    expect(placed.closedYears.map((year) => year.sales)).toEqual(["2021", "2022", "2023", "2024"]);
   });
 });
 

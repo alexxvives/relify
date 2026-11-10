@@ -63,7 +63,8 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
-import { ebitdaPublishable } from "@/lib/seller-draft-guard";
+import { ebitdaPublishable, projectHasAdjustments } from "@/lib/seller-draft-guard";
+import { headlineEbitdaMargin } from "@/lib/financial-metrics";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { AdjustmentReview } from "@/components/adjustment-review";
 import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
@@ -710,7 +711,16 @@ export function CompanyReport({
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
   const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
   const askingPriceIncludesHint = project.askingPriceIncludes === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp;
-  const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
+  const headlineMargin = headlineEbitdaMargin({
+    revenueCents: project.revenueCents,
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasAdjustments: projectHasAdjustments(project),
+  });
+  const margin =
+    headlineMargin.primaryBp === null ? companyCopy.unavailable : formatBasisPoints(headlineMargin.primaryBp);
+  const reportedMarginHint =
+    headlineMargin.secondaryBp === null ? null : `${headlineMargin.secondaryLabel}: ${formatBasisPoints(headlineMargin.secondaryBp)}`;
   const summary = reportSummaryMarked(years);
   const flags = reportFlags(years);
   const signals = healthSignals(years);
@@ -818,7 +828,9 @@ export function CompanyReport({
             }
             sub={
               <>
-                <span>Margen {margin}</span>
+                <span title={reportedMarginHint ?? undefined}>
+                  {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
+                </span>
                 {deal.adjustedSet ? (
                   <span className="tabular-nums text-[#5c6b78]">
                     Ajustado{" "}
@@ -1070,7 +1082,7 @@ export function CompanyReport({
               {/* t71: the full multi-year evolution, not only the last year on the tiles. */}
               <ChartBox
                 title="Evolución de la rentabilidad"
-                hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado antes de impuestos ÷ fondos propios.\nMargen EBITDA y margen de beneficio = sobre ingresos."}
+                hint={"Todos los ejercicios disponibles.\nROA = resultado antes de impuestos ÷ total activo.\nROE = resultado neto del ejercicio ÷ fondos propios.\nMargen EBITDA y margen de beneficio (neto) = sobre ingresos."}
                 legend={profitabilityTrend.map((item) => (
                   <LegendLine key={item.label} color={item.color} label={item.label} dash={item.dash} marker={item.marker} />
                 ))}

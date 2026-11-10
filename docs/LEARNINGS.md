@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Resumen showed `1,7M €` next to cards `1,65 M €` — `compactEur` used one decimal and glued the suffix — use `formatCardEur` (2/1/0 decimals, space before K/M) for cards, Resumen, ficha and marketplace.
+- 2026-11-10: Adding a fourth closed year still wrote into slot 0 — `closedIndex` was typed `0 | 1 | 2` — extend it whenever `fichaClosedYearSlots` grows.
+- 2026-11-10: Team alerts to info@ must use `senderFor` (info@ → info@); Hostinger spam-files mail from notificaciones@ into the inbox — do not send internal heads-up from notificaciones@.
 - 2026-11-10: Datos de la ficha autosave showed “Error al guardar” because the locked NIF failed the CIF checksum (`B12345678`) on every whole-form save — do not re-validate the posted CIF on draft autosave; identity changes already go through `requestIdentityChange`.
 - 2026-11-10: Datos de la ficha autosave showed “Error al guardar” on a 1–199 character description — `companyDraftSchema` still refined min 200 on save — keep the 200-character rule on completion only, never on the save schema.
 - 2026-11-10: Next can replace `process.env.INT_ENVIRONMENT` with `undefined` in the Worker bundle — read `process.env["INT_ENVIRONMENT"]` so INT wrangler vars still win at runtime.

@@ -9,6 +9,7 @@ import {
   balanceDisplayKeys,
   balanceValue,
   ebitdaMarginBasisPoints,
+  grossLineLabel,
   incomeDisplayKeys,
   incomeValue,
   isEmphasisRow,
@@ -166,7 +167,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     incomeYears,
     incomeRows: incomeDisplayKeys.map((key) => ({
       key,
-      label: incomeLabels[key],
+      label: key === "grossMargin" ? grossLineLabel(incomeSource.map((column) => column.amounts)) : incomeLabels[key],
       emphasis: isEmphasisRow(key),
       values: incomeSource.map((column) => incomeValue(key, column.amounts)),
     })),
