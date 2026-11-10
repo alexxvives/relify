@@ -1,7 +1,7 @@
 export const landingCopy = {
   title: "Plataforma digital para comprar empresas",
   description:
-    "Relify es la plataforma para comprar y vender pymes con fichas claras, un proceso confidencial y acceso a perfiles que encajan. La ficha pública no muestra la razón social.",
+    "Relify es la plataforma para comprar y vender pymes con fichas claras y un proceso confidencial. La ficha pública no muestra la razón social.",
   intro:
     "Facilitamos la compraventa con cifras a la vista, nombres de proyecto y un recorrido que mantiene la sociedad fuera de la ficha pública.",
   registerCta: "Regístrate gratis ahora",
@@ -42,17 +42,17 @@ export const landingCopy = {
       id: "vendedores",
       eyebrow: "Empresas",
       heading: "Vende tu empresa",
-      accent: "en menos de 120 días",
-      body: "Recibe interés sobre la compañía con un nombre de proyecto. Llegas a compradores que ya buscan una operación, y la ficha no publica la sociedad ni a los socios.",
+      accent: "sin mostrar la sociedad",
+      body: "Publica con un nombre de proyecto. La ficha no enseña la sociedad ni a los socios. Tú eliges a qué comprador aceptar.",
       more: "Más información",
       register: "Regístrate ahora",
     },
     investors: {
       id: "compradores",
       eyebrow: "Compradores",
-      heading: "Invierte en",
-      accent: "empresas rentables",
-      body: "Encuentra empresas en venta que encajan con tus criterios y revisa facturación, EBITDA y precio antes de pedir el detalle confidencial.",
+      heading: "Lee fichas por",
+      accent: "cifras, no por el nombre",
+      body: "Revisa facturación, EBITDA y precio en cada ficha. La sociedad llega después del NDA, si el vendedor te acepta.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -61,7 +61,7 @@ export const landingCopy = {
       eyebrow: "Asesores",
       heading: "Publica tus mandatos",
       accent: "en Relify",
-      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato y habla con empresas e compradores que ya están en el proceso.",
+      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato. El directorio de asesores es gratuito; para aceptar un encargo activas la suscripción.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -84,12 +84,16 @@ export const landingCopy = {
     toastBody: "Un comprador se ha interesado por una empresa",
     ndaFile: "Acuerdo de confidencialidad (NDA) con Proyecto Alba",
     ndaAction: "Firmar NDA",
+    cta: "Ver cómo se publica",
+    ctaHref: "/empresas",
   },
   activity: {
     id: "actividad",
-    kicker: "El mercado en marcha",
-    heading:
-      "Mira cómo se conectan compradores y empresas: interés, reuniones y operaciones que avanzan cada día",
+    kicker: "Dentro de Relify",
+    heading: "Así se ve una operación",
+    intro: "Avisos de ejemplo: interés, reunión y NDA, con el nombre de proyecto.",
+    cta: "Crear cuenta",
+    ctaHref: "/registro",
   },
   cases: {
     id: "casos",
@@ -146,7 +150,7 @@ export const landingCopy = {
   home: {
     title: "Un mercado para comprar y vender empresas",
     description:
-      "Unas pymes están en venta y se leen por facturación, EBITDA y precio. Otras pueden publicarse igual, sin la razón social en la ficha.",
+      "En Relify las fichas se leen por facturación, EBITDA y precio, sin la razón social. Publicas la tuya o pides conexión a las que encajan.",
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
     cta: "Comprar una empresa",
@@ -174,6 +178,7 @@ export const landingCopy = {
         {
           id: "vender",
           role: "Vender",
+          line: "Publica con cifras, sin el nombre",
           body: "Escribes el CIF y Relify rellena los datos de la empresa y prepara sus gráficos. Completas el perfil, lo publicas y eliges a qué compradores aceptar.",
           points: ["Datos y gráficos automáticos", "Publicas con nombre de proyecto", "Aceptas compradores, NDA y chat"],
           href: "/empresas",
@@ -182,6 +187,7 @@ export const landingCopy = {
         {
           id: "comprar",
           role: "Comprar",
+          line: "Lee fichas anónimas y pide conexión",
           body: "Completas tu perfil de comprador, lees fichas anónimas y pides conexión a las que encajan. Si el vendedor acepta, firmas el NDA y se abren el chat y los documentos.",
           points: ["Perfil de comprador completo", "Pides conexión a la ficha", "NDA, chat y documentos"],
           href: "/proyectos",
@@ -190,6 +196,7 @@ export const landingCopy = {
         {
           id: "asesorar",
           role: "Asesorar",
+          line: "Ofrece servicios y acepta encargos",
           body: "Creas gratis tu ficha de asesor con tus servicios. Vendedores y compradores te piden presupuesto, aceptas el encargo y acompañas la operación desde dentro.",
           points: ["Ficha de asesor gratuita", "Solicitudes de vendedores y compradores", "Encargo, NDA y seguimiento"],
           href: "/asesores",
@@ -213,14 +220,14 @@ export const landingCopy = {
       id: "vender",
       kicker: "Empresas",
       heading: "Vende tu negocio",
-      accent: "en 120 días",
+      accent: "sin mostrar la sociedad",
       intro:
-        "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
+        "Publicas región, cifras y precio con un nombre de proyecto. Tú aceptas a cada comprador. El NDA abre el resto.",
       bodyParagraphs: [
         [
           { text: "Publicas la ficha", emphasis: true },
-          { text: " y el mapa se llena de compradores que ya buscan por ciudad y sector. Tú marcas qué encaja y " },
-          { text: "tú eliges con quién hablar", emphasis: true },
+          { text: " con región, sector y cifras. Los compradores piden conexión. " },
+          { text: "Tú eliges con quién hablar", emphasis: true },
           { text: ", sin que la operación se convierta en un anuncio público." },
         ],
         [
@@ -231,38 +238,33 @@ export const landingCopy = {
           { text: " hasta que aceptas una conexión y firmas el acuerdo de confidencialidad." },
         ],
         [
-          { text: "Relify te avisa cuando llega interés, cuando hay reunión o cuando toca tu turno", emphasis: true },
-          { text: ". Así avanzas el proceso sin perder el control ni la confidencialidad del negocio." },
+          { text: "Relify te avisa cuando llega una solicitud, una reunión o tu turno", emphasis: true },
+          { text: ". El control de la ficha y de quién ve el detalle es tuyo." },
         ],
       ],
       cta: "Publicar mi empresa",
-      dayLabel: "Día",
-      ofLabel: "de 120",
+      ctaHref: "/registro?rol=empresa",
+      stepLabel: "Paso",
       timeline: [
         {
-          day: 1,
+          n: 1,
           title: "Publicas la ficha",
           body: "Sale con región, cifras y precio. La razón social se queda fuera.",
         },
         {
-          day: 30,
+          n: 2,
           title: "Llega el interés",
-          body: "Compradores que ya buscan por ciudad y sector piden conexión.",
+          body: "Los compradores piden conexión con su perfil público.",
         },
         {
-          day: 60,
+          n: 3,
           title: "Tú eliges con quién hablar",
-          body: "Tú marcas qué encaja. La operación no se convierte en un anuncio.",
+          body: "Aceptas o dejas en espera. La operación no se convierte en un anuncio.",
         },
         {
-          day: 90,
+          n: 4,
           title: "NDA y conversación",
           body: "Tras el acuerdo se abren el chat, las cifras cerradas y los documentos.",
-        },
-        {
-          day: 120,
-          title: "Cierre",
-          body: "Relify te avisa en cada paso. Avanzas sin perder el control.",
         },
       ],
     },
@@ -270,7 +272,12 @@ export const landingCopy = {
       id: "como-funciona",
       kicker: "Cómo funciona",
       heading: "Simple desde el primer paso",
-      intro: "Baja por los pasos y verás qué datos dejas, qué prepara Relify y en qué momento entra un comprador, con el nombre de la sociedad todavía fuera.",
+      intro: "Qué datos dejas, qué prepara Relify y cuándo entra la otra parte, con el nombre de la sociedad todavía fuera.",
+      cta: {
+        vender: { href: "/registro?rol=empresa", label: "Crear cuenta de empresa" },
+        comprar: { href: "/registro?rol=inversor", label: "Crear cuenta de comprador" },
+        asesorar: { href: "/registro?rol=asesor", label: "Crear cuenta de asesor" },
+      },
       week: ["L", "M", "X", "J", "V", "S", "D"],
       tracks: {
         vender: {
@@ -280,7 +287,7 @@ export const landingCopy = {
               title: "Escribe tu CIF y los datos se rellenan solos",
               body: "Con el CIF, Relify trae los datos registrales de tu empresa y prepara gráficos de su evolución. Tú solo revisas.",
               cardTitle: "Tu empresa",
-              chip: "Unos minutos",
+              chip: "CIF",
               panel: {
                 kind: "form",
                 foot: "Con el CIF, el resto se rellena solo",
@@ -342,7 +349,7 @@ export const landingCopy = {
               title: "Completa tu perfil de comprador",
               body: "Qué buscas y qué aportas: sector, región y tamaño. Con el perfil completo ya puedes pedir conexión.",
               cardTitle: "Nos lo cuentas",
-              chip: "Unos minutos",
+              chip: "Perfil",
               panel: {
                 kind: "form",
                 foot: "Perfil completo: ya puedes pedir conexión",
@@ -404,7 +411,7 @@ export const landingCopy = {
               title: "Crea tu ficha de asesor",
               body: "Tus servicios, sectores y zona. Crear la ficha y recibir solicitudes es gratis.",
               cardTitle: "Tu ficha",
-              chip: "Unos minutos",
+              chip: "Ficha",
               panel: {
                 kind: "form",
                 foot: "Ficha lista para recibir solicitudes",
@@ -716,12 +723,12 @@ export const mapRegions = [
 ] as const;
 
 export const activityItems = [
-  { time: "Hoy · 21:41", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del comprador", from: "IN 1842", to: "Proyecto Alba" },
-  { time: "Hoy · 21:12", title: "Nuevo interés", body: "El comprador ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
-  { time: "Hoy · 20:48", title: "Reunión aceptada", body: "La empresa ha aceptado la reunión", from: "IN 0901", to: "Proyecto Mar" },
-  { time: "Hoy · 20:05", title: "Reunión solicitada", body: "El comprador pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
-  { time: "Hoy · 19:22", title: "Conexión aceptada", body: "La solicitud de conexión ya está aceptada", from: "IN 1188", to: "Proyecto Cobre" },
-  { time: "Hoy · 18:40", title: "Nuevo interés", body: "Un asesor ha presentado un mandato", from: "AS 044", to: "Proyecto Delta" },
+  { time: "Ejemplo", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del comprador", from: "IN 1842", to: "Proyecto Alba" },
+  { time: "Ejemplo", title: "Nuevo interés", body: "El comprador ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
+  { time: "Ejemplo", title: "Reunión aceptada", body: "La empresa ha aceptado la reunión", from: "IN 0901", to: "Proyecto Mar" },
+  { time: "Ejemplo", title: "Reunión solicitada", body: "El comprador pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
+  { time: "Ejemplo", title: "Conexión aceptada", body: "La solicitud de conexión ya está aceptada", from: "IN 1188", to: "Proyecto Cobre" },
+  { time: "Ejemplo", title: "Nuevo interés", body: "Un asesor ha presentado un mandato", from: "AS 044", to: "Proyecto Delta" },
 ] as const;
 
 export const caseStudies = [

@@ -133,14 +133,14 @@ export function RolePage(props: RolePageProps) {
           <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
             <p className="text-sm font-medium tracking-[0.16em] text-[#8fd8cf] uppercase">El recorrido</p>
             <h2 className="releva-section-title mt-2 max-w-3xl text-balance text-white sm:mt-3">{props.stepsTitle}</h2>
-            <ol className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 xl:grid-cols-4">
+            <ol className="mt-6 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
               {props.steps.map((step, index) => (
-                <li key={step.title} className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                <li key={step.title} className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:rounded-3xl sm:p-6">
                   <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#2fc4b2] text-sm font-semibold text-[#0f1b24] tabular-nums">
                     {index + 1}
                   </span>
-                  <h3 className="mt-5 text-xl">{step.title}</h3>
-                  <p className="mt-2 leading-7 text-[#c3d3d6]">{step.body}</p>
+                  <h3 className="mt-3 text-lg sm:mt-5 sm:text-xl">{step.title}</h3>
+                  <p className="mt-2 hidden leading-7 text-[#c3d3d6] sm:block">{step.body}</p>
                 </li>
               ))}
             </ol>

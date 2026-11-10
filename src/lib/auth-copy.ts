@@ -8,19 +8,19 @@ export const authCopy = {
   stageHeadlineLead: "El mercado",
   stageHeadlineTail: "para empresas reales.",
   stageBody:
-    "Descubre empresas rentables en venta, habla con vendedores verificados y da el siguiente paso.",
+    "Fichas con facturación, EBITDA y precio, sin la razón social. Un NDA abre el detalle cuando el vendedor te acepta.",
   stagePoints: [
     {
-      title: "Fichas verificadas",
-      body: "Empresas reales. Propietarios reales.",
+      title: "Fichas con cifras",
+      body: "Región, facturación, EBITDA y precio. La sociedad no está.",
     },
     {
-      title: "Operaciones seguras",
-      body: "Pensadas para la confianza y la transparencia.",
+      title: "NDA antes del detalle",
+      body: "Sin el acuerdo no se abre el nombre ni el dataroom.",
     },
     {
-      title: "El siguiente paso",
-      body: "Encuentra la oportunidad antes.",
+      title: "Tú eliges el rol",
+      body: "Empresa, comprador o asesor. Cada uno tiene su recorrido.",
     },
   ],
   haveAccount: "¿Ya tienes cuenta?",
@@ -102,11 +102,11 @@ export const authCopy = {
   roleCards: {
     seller: {
       title: "Soy usuario Vendedor",
-      body: "Quiero vender la totalidad de mi empresa o encontrar un socio de forma totalmente segura y confidencial en menos de 100 días.",
+      body: "Quiero publicar mi empresa con un nombre de proyecto y elegir a qué comprador aceptar.",
     },
     investor: {
       title: "Soy usuario Comprador",
-      body: "Busco encontrar la mejor oportunidad de adquisición o inversión entre las más de 4.000 empresas rentables.",
+      body: "Busco leer fichas anónimas por cifras y pedir conexión a las que encajan.",
     },
     advisor: {
       title: "Soy usuario Asesor",

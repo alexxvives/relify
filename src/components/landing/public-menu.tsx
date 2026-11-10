@@ -8,6 +8,7 @@ import { landingCopy } from "@/lib/landing-copy";
 
 export function PublicMenu({ signedIn }: { signedIn: boolean }) {
   const [onDark, setOnDark] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const menu = document.querySelector("[data-releva-menu]");
@@ -16,6 +17,10 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
     }
 
     const read = () => {
+      if (mobileOpen) {
+        setOnDark(false);
+        return;
+      }
       const rect = menu.getBoundingClientRect();
       const hits = document.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
       const behind = hits.find((node) => !node.closest("header"));
@@ -29,18 +34,34 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       window.removeEventListener("scroll", read);
       window.removeEventListener("resize", read);
     };
-  }, []);
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   return (
     <div
       data-releva-menu
+      data-menu-open={mobileOpen ? "true" : undefined}
       className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-1.5 sm:px-4 sm:py-2"
     >
       <Link href="/" className="relative z-20 flex min-h-11 shrink-0 items-center pl-2" aria-label="Relify">
         <Logo />
       </Link>
       <LandingNav
-        onDark={onDark}
+        onDark={mobileOpen ? false : onDark}
+        menuOpen={mobileOpen}
+        onMenuOpenChange={setMobileOpen}
         accountHref={signedIn ? "/cuenta" : landingCopy.waitlistNav.href}
         accountLabel={signedIn ? landingCopy.accountCta : landingCopy.signInCta}
       />

@@ -10,7 +10,7 @@ export default function InversoresPage() {
   return (
     <RolePage
       kicker="Compradores"
-      title="Encuentra empresas rentables antes de saber el nombre"
+      title="Lee fichas por cifras, no por el nombre"
       lead="El catálogo enseña nickname, región, facturación, EBITDA y precio. Pides conexión cuando una operación encaja. La sociedad llega después del acuerdo."
       image="/product/inversor.jpg"
       imageAlt="Empresas en venta en Relify, con filtros y fichas de proyecto"
@@ -56,7 +56,7 @@ export default function InversoresPage() {
         { q: "\u00bfHay comisi\u00f3n si compro?", a: "Solo si la operaci\u00f3n se cierra: 2,5% del precio final m\u00e1s IVA con el plan Individual, 2% con el plan Empresa." },
         { q: "\u00bfPuedo trabajar con un asesor?", a: "S\u00ed. Puedes contratar a un asesor verificado desde Relify para que te acompa\u00f1e en la compra." },
       ]}
-      closingTitle="Entra en el catálogo antes de que se llene."
+      closingTitle="Apúntate para ver las fichas cuando Relify abra."
     />
   );
 }

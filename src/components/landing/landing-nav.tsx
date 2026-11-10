@@ -10,15 +10,18 @@ const solidLink =
 
 export function LandingNav({
   onDark = false,
+  menuOpen,
+  onMenuOpenChange,
   accountHref,
   accountLabel,
 }: {
   onDark?: boolean;
+  menuOpen: boolean;
+  onMenuOpenChange: (open: boolean) => void;
   accountHref: string;
   accountLabel: string;
 }) {
   const [open, setOpen] = useState<string | null>(null);
-  const [mobile, setMobile] = useState(false);
 
   return (
     <>
@@ -74,33 +77,33 @@ export function LandingNav({
       </Link>
       <button
         type="button"
-        className={`inline-flex size-11 items-center justify-center rounded-full lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
-        aria-expanded={mobile}
+        className={`inline-flex size-11 items-center justify-center lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
+        aria-expanded={menuOpen}
         aria-controls="landing-mobile-menu"
-        aria-label={mobile ? "Cerrar menú" : "Abrir menú"}
-        onClick={() => setMobile((current) => !current)}
+        aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+        onClick={() => onMenuOpenChange(!menuOpen)}
       >
-        {mobile ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
+        {menuOpen ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
       </button>
-      {mobile ? (
+      {menuOpen ? (
         <>
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-public-ink/25 lg:hidden"
+          className="releva-menu-backdrop lg:hidden"
           aria-label="Cerrar menú"
-          onClick={() => setMobile(false)}
+          onClick={() => onMenuOpenChange(false)}
         />
         <div
           id="landing-mobile-menu"
-          className="fixed inset-x-3 top-[4.35rem] z-50 max-h-[min(28rem,calc(100dvh-5rem))] overflow-y-auto rounded-[1.5rem] bg-public-card p-3 text-public-ink shadow-public lg:hidden"
+          className="releva-menu-sheet lg:hidden"
         >
           {landingCopy.nav.map((group) => (
-            <div key={group.label} className="px-2 py-1">
+            <div key={group.label} className="px-2 py-0.5">
               {group.links.length === 1 && group.links[0] ? (
                 <Link
                   href={group.links[0].href}
                   className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium hover:bg-public-sand"
-                  onClick={() => setMobile(false)}
+                  onClick={() => onMenuOpenChange(false)}
                 >
                   {group.label}
                 </Link>
@@ -112,7 +115,7 @@ export function LandingNav({
                   key={link.href}
                   href={link.href}
                   className="flex min-h-11 items-center rounded-2xl px-2 text-sm hover:bg-public-sand"
-                  onClick={() => setMobile(false)}
+                  onClick={() => onMenuOpenChange(false)}
                 >
                   {link.label}
                 </Link>
@@ -124,14 +127,14 @@ export function LandingNav({
           <Link
             href={landingCopy.waitlistNav.href}
             className="flex min-h-11 items-center rounded-2xl px-4 text-sm font-medium hover:bg-public-sand"
-            onClick={() => setMobile(false)}
+            onClick={() => onMenuOpenChange(false)}
           >
             {landingCopy.waitlistNav.label}
           </Link>
           <Link
             href={accountHref}
             className={`${solidLink} mt-2 w-full`}
-            onClick={() => setMobile(false)}
+            onClick={() => onMenuOpenChange(false)}
           >
             {accountLabel}
           </Link>

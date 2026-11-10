@@ -2,10 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, MousePointer2 } from "lucide-react";
+import { ArrowRight, Briefcase, Check, MousePointer2, Search, Store } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 const pointerStops = [16, 50, 84];
+
+const pathIcons = {
+  vender: Store,
+  comprar: Search,
+  asesorar: Briefcase,
+} as const;
 
 function PathPointer() {
   const ref = useRef<HTMLSpanElement>(null);
@@ -57,22 +63,72 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
   const [hint, setHint] = useState(true);
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
         <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 max-w-3xl sm:mt-3">
           {copy.heading}
         </h2>
         <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
-        <div className="releva-path-grid relative mt-6 sm:mt-10">
+
+        <ul className="mt-5 grid gap-2 lg:hidden">
+          {copy.columns.map((column) => {
+            const selected = column.id === role;
+            const Icon = pathIcons[column.id];
+            return (
+              <li key={column.id}>
+                <div
+                  className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${
+                    selected ? "bg-public-ink text-white" : "bg-public-card text-public-ink shadow-public"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setHint(false);
+                      onSelect(column.id);
+                    }}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <span
+                      className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                        selected ? "bg-white/15 text-white" : "bg-public-sand text-public-clay"
+                      }`}
+                    >
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-lg font-medium tracking-tight">{column.role}</span>
+                      <span className={`block truncate text-sm ${selected ? "text-white/75" : "text-public-muted"}`}>
+                        {column.line}
+                      </span>
+                    </span>
+                  </button>
+                  <Link
+                    href={column.href}
+                    aria-label={column.cta}
+                    className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full ${
+                      selected ? "bg-white text-public-ink" : "bg-public-clay text-white"
+                    }`}
+                  >
+                    <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="releva-path-grid relative mt-6 hidden sm:mt-10 lg:block">
           {hint ? <PathPointer /> : null}
-          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:snap-none lg:grid-cols-3 lg:gap-4 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-3 gap-4">
           {copy.columns.map((column) => {
             const selected = column.id === role;
             return (
               <article
                 key={column.id}
-                className={`relative flex w-[min(18.75rem,calc(100vw-2.75rem))] shrink-0 snap-start flex-col rounded-[1.5rem] p-2 shadow-public transition duration-300 lg:w-auto lg:rounded-[1.75rem] ${selected ? "bg-public-ink text-white" : "releva-path-wait bg-public-card text-public-ink hover:-translate-y-1"}`}
+                className={`relative flex flex-col rounded-[1.75rem] p-2 shadow-public transition duration-300 ${selected ? "bg-public-ink text-white" : "releva-path-wait bg-public-card text-public-ink hover:-translate-y-1"}`}
               >
                 <button
                   type="button"
@@ -81,14 +137,14 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                     setHint(false);
                     onSelect(column.id);
                   }}
-                  className="flex flex-1 flex-col rounded-[1.35rem] px-5 py-5 pr-14 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:px-6 sm:py-7 sm:pr-16"
+                  className="flex flex-1 flex-col rounded-[1.35rem] px-6 py-7 pr-16 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
                 >
                   <span className={selected ? "releva-path-mark releva-path-mark-on" : "releva-path-mark"} aria-hidden="true">
                     <span />
                   </span>
-                  <h3 className="text-[1.75rem] font-medium tracking-tight sm:text-4xl">{column.role}</h3>
-                  <p className={`mt-3 hidden text-[16px] leading-7 sm:block ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
-                  <ul className="mt-6 hidden flex-wrap gap-2 sm:flex">
+                  <h3 className="text-4xl font-medium tracking-tight">{column.role}</h3>
+                  <p className={`mt-3 text-[16px] leading-7 ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
+                  <ul className="mt-6 flex flex-wrap gap-2">
                     {column.points.slice(0, 2).map((point) => (
                       <li
                         key={point}
@@ -102,7 +158,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                 </button>
                 <Link
                   href={column.href}
-                  className={`mx-3 mb-4 inline-flex h-12 w-[calc(100%-1.5rem)] items-center justify-center gap-2 self-center rounded-full px-5 text-sm sm:mx-auto sm:mb-6 sm:w-fit ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
+                  className={`mx-auto mb-6 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
                 >
                   {column.cta}
                   <ArrowRight className="size-4" aria-hidden="true" />

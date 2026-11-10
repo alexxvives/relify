@@ -302,13 +302,13 @@ export function Hero() {
         </div>
         <div className="releva-city-static lg:hidden" aria-hidden="true">
           <Image
-            src="/hero/city-2.png"
+            src="/hero/city-portrait.png"
             alt=""
-            width={1536}
+            width={768}
             height={1024}
             priority
             unoptimized
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-[50%_62%]"
           />
         </div>
         <div className="releva-hero-copy pointer-events-none">

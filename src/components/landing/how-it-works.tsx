@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 type Track = (typeof landingCopy.home.flow.tracks)[FlowRole];
@@ -161,10 +163,12 @@ export function HowItWorks({ role }: { role: FlowRole }) {
     return null;
   }
 
+  const cta = copy.cta[role];
+
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-24">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-24">
       <div className="mx-auto w-full max-w-[1100px]">
-        <div className="mx-auto mb-8 max-w-xl text-center sm:mb-14">
+        <div className="mx-auto mb-5 max-w-xl text-center sm:mb-14">
           <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
           <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 sm:mt-3">
             {roleName ? <span className="mb-1 block text-public-clay">{roleName}</span> : null}
@@ -172,7 +176,18 @@ export function HowItWorks({ role }: { role: FlowRole }) {
           </h2>
           <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
         </div>
-        <div className="releva-how-grid">
+
+        <ol className="releva-how-mobile lg:hidden">
+          {track.steps.map((step) => (
+            <li key={step.n} className="releva-how-mobile-card">
+              <span className="text-[11px] font-semibold tracking-[0.16em] text-public-clay uppercase">Paso {step.n}</span>
+              <h3 className="mt-1 text-base font-medium tracking-tight text-public-ink">{step.title}</h3>
+              <p className="mt-1 line-clamp-2 text-sm leading-5 text-public-muted">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div className="releva-how-grid hidden lg:grid">
           <ol className="releva-how-steps">
             {track.steps.map((step, index) => (
               <li
@@ -197,6 +212,16 @@ export function HowItWorks({ role }: { role: FlowRole }) {
           <div className="releva-how-visual" aria-hidden="true">
             <FadingPanel step={current} token={`${role}-${current.n}`} />
           </div>
+        </div>
+
+        <div className="mt-6 flex justify-center sm:mt-10">
+          <Link
+            href={cta.href}
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 text-sm font-semibold text-white hover:bg-public-clay-deep sm:w-auto"
+          >
+            {cta.label}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
         </div>
       </div>
     </section>

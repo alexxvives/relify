@@ -1,19 +1,21 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function Confidentiality() {
   const copy = landingCopy.confidentiality;
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
         <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 max-w-3xl sm:mt-3">
           {copy.heading}
         </h2>
         <p className="mt-3 max-w-2xl text-[16px] leading-7 text-public-muted sm:mt-4">{copy.intro}</p>
-        <div className="mt-6 grid gap-4 sm:mt-10 lg:grid-cols-3">
-          <article className="flex flex-col rounded-[24px] bg-public-sand p-4">
-            <div className="releva-float rounded-2xl bg-white p-4 shadow-sm">
+        <div className="mt-5 grid gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-3">
+          <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <div className="releva-float hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
               <div className="space-y-2" aria-hidden="true">
                 <div className="h-2 w-2/3 rounded-full bg-public-line" />
                 <div className="h-2 w-full rounded-full bg-public-sand" />
@@ -29,12 +31,12 @@ export function Confidentiality() {
                 Estoy conforme
               </span>
             </div>
-            <h3 className="mt-4 text-lg font-medium text-public-ink">{copy.privacyTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-public-muted">{copy.privacyBody}</p>
+            <h3 className="text-lg font-medium text-public-ink sm:mt-4">{copy.privacyTitle}</h3>
+            <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.privacyBody}</p>
           </article>
-          <article className="flex flex-col rounded-[24px] bg-public-sand p-4">
-            <div className="releva-toast rounded-2xl bg-white p-4 shadow-sm">
-              <p className="text-xs text-public-muted">Hoy · 10:41</p>
+          <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <div className="releva-toast hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
+              <p className="text-xs text-public-muted">Ejemplo</p>
               <p className="mt-1 font-medium text-public-ink">{copy.toastTitle}</p>
               <p className="text-sm text-public-muted">{copy.toastBody}</p>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -48,11 +50,11 @@ export function Confidentiality() {
                 </p>
               </div>
             </div>
-            <h3 className="mt-4 text-lg font-medium text-public-ink">{copy.namesTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-public-muted">{copy.namesBody}</p>
+            <h3 className="text-lg font-medium text-public-ink sm:mt-4">{copy.namesTitle}</h3>
+            <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.namesBody}</p>
           </article>
-          <article className="flex flex-col rounded-[24px] bg-public-sand p-4">
-            <div className="releva-float-late rounded-2xl bg-white p-4 shadow-sm">
+          <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <div className="releva-float-late hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
               <p className="text-sm font-medium text-public-ink">{copy.ndaFile}</p>
               <div className="mt-3 space-y-2" aria-hidden="true">
                 <div className="h-2 w-full rounded-full bg-public-sand" />
@@ -62,10 +64,17 @@ export function Confidentiality() {
                 {copy.ndaAction}
               </span>
             </div>
-            <h3 className="mt-4 text-lg font-medium text-public-ink">{copy.ndaTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-public-muted">{copy.ndaBody}</p>
+            <h3 className="text-lg font-medium text-public-ink sm:mt-4">{copy.ndaTitle}</h3>
+            <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.ndaBody}</p>
           </article>
         </div>
+        <Link
+          href={copy.ctaHref}
+          className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 text-sm font-semibold text-white hover:bg-public-clay-deep sm:mt-8 sm:w-auto"
+        >
+          {copy.cta}
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
       </div>
     </section>
   );

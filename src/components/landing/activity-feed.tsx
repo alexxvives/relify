@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { activityItems, landingCopy } from "@/lib/landing-copy";
 
 export function ActivityFeed() {
@@ -5,15 +7,15 @@ export function ActivityFeed() {
   const copy = landingCopy.activity;
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-12">
-      <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[24px] bg-public-moss px-5 py-10 text-white sm:rounded-[32px] sm:px-10 sm:py-16">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-6 sm:px-8 sm:py-12">
+      <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[24px] bg-public-moss px-5 py-8 text-white sm:rounded-[32px] sm:px-10 sm:py-16">
+        <div className="pointer-events-none absolute inset-0 hidden sm:block" aria-hidden="true">
           <div className="absolute -top-20 -left-16 h-72 w-80 rotate-12 rounded-[48px] bg-public-clay" />
           <div className="absolute top-28 -left-10 h-44 w-[28rem] -rotate-6 rounded-[40px] bg-public-ink/80" />
           <div className="absolute right-[38%] -bottom-16 h-56 w-64 rotate-6 rounded-[42px] bg-[#14998a]/90" />
           <div className="absolute top-10 right-[42%] h-24 w-40 -rotate-12 rounded-[28px] bg-public-clay/70" />
         </div>
-        <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="relative grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
           <div>
             <p className="text-sm tracking-[0.16em] text-white/75 uppercase">{copy.kicker}</p>
             <h2
@@ -22,8 +24,16 @@ export function ActivityFeed() {
             >
               {copy.heading}
             </h2>
+            <p className="mt-2 max-w-md text-sm leading-6 text-white/80 sm:mt-3 sm:text-[16px] sm:leading-7">{copy.intro}</p>
+            <Link
+              href={copy.ctaHref}
+              className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-public-ink sm:w-auto"
+            >
+              {copy.cta}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
           </div>
-          <div className="releva-mask-y h-[280px] overflow-hidden sm:h-[440px]">
+          <div className="releva-mask-y h-[200px] overflow-hidden sm:h-[440px]">
             <div className="releva-reel-down flex flex-col gap-3">
               {loop.map((item, index) => (
                 <article key={`${item.to}-${index}`} className="rounded-2xl bg-white p-4 text-public-ink shadow-sm">
