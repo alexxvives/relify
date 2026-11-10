@@ -46,6 +46,20 @@ describe("company report", () => {
     expect(debt?.reading).toContain("2,5 años de EBITDA");
   });
 
+  it("uses DFN / EBITDA aj. as the headline when adjustments are approved", () => {
+    const last = year({
+      year: 2024,
+      ebitdaCents: 75_000_000,
+      cashCents: 40_000_000,
+      longTermDebtCents: 50_000_000,
+      shortTermDebtCents: 20_000_000,
+    });
+    const [debt] = healthSignals([last], { hasApprovedAdjustments: true, adjustedEbitdaCents: 80_000_000 });
+    expect(debt?.value).toBeCloseTo(0.375, 5);
+    expect(debt?.reading).toContain("EBITDA aj.");
+    expect(debt?.hint).toContain("EBITDA de las cuentas");
+  });
+
   it("treats net cash as good and debt without EBITDA as bad", () => {
     expect(healthSignals([year({ cashCents: 90_000_000 })])[0]?.level).toBe("good");
     const bad = healthSignals([year({ ebitdaCents: -1 })])[0];
@@ -76,7 +90,7 @@ describe("company report", () => {
 
   it("summarises only the numbers on file", () => {
     const lines = reportSummary([year({ year: 2021, revenueCents: 50_000_000 }), year({ year: 2022, revenueCents: 80_000_000 }), year({ netResultCents: -5_000_000 })]);
-    expect(lines[0]).toBe("Los ingresos han pasado de 500 K € en 2021 a 1 M € en 2023 (+100 %, +41,4 % de media al año).");
+    expect(lines[0]).toBe("La facturación ha pasado de 500 K € en 2021 a 1 M € en 2023 (+100 %, +41,4 % de media al año).");
     expect(lines[1]).toBe("En el último ejercicio (2023) crecieron un 25 % frente a 2022.");
     expect(lines[2]).toContain("margen del 20 %");
     expect(lines[3]).toBe("Cerró 2023 con pérdidas de 50 K € y ha tenido beneficios en 2 de los 3 ejercicios disponibles.");
@@ -85,7 +99,7 @@ describe("company report", () => {
 
   it("raises flags in both directions", () => {
     const flags = reportFlags([year({ year: 2022 }), year({ revenueCents: 90_000_000, netResultCents: -1 })]);
-    expect(flags[0]).toEqual({ level: "warn", text: "Ingresos a la baja en 2023 (-10 %)" });
+    expect(flags[0]).toEqual({ level: "warn", text: "Facturación a la baja en 2023 (-10 %)" });
     expect(flags[1]).toEqual({ level: "warn", text: "Pérdidas en 2023" });
   });
 });
@@ -106,7 +120,7 @@ describe("diligenceChecks", () => {
 
   it("does not give a % change over a tiny base year in the flags", () => {
     const flags = reportFlags([year({ year: 2023, revenueCents: 100_000 }), year({ year: 2024, revenueCents: 148_000_000 })]);
-    expect(flags[0]!.text).toBe("Ingresos al alza en 2024 (2023 no comparable)");
+    expect(flags[0]!.text).toBe("Facturación al alza en 2024 (2023 no comparable)");
   });
 
   it("returns nothing without years", () => {
@@ -125,7 +139,7 @@ describe("diligenceChecks", () => {
     // (1,14 M − 167 K) / 12 → ~2 months of runway, never caja / |EBITDA|
     expect(byKey.runway!.value).toBe("≈ 2 meses");
     // NOF 2023: (90 − 10) − (60 − 20) = 40 M cents; 2022: (80 − 10) − (60 − 20) = 30 M cents
-    expect(byKey.cashConversion!.text).toContain("aumento de NOF");
+    expect(byKey.cashConversion!.text).toContain("No significativo");
     // capex: (101 − 100) M + (−12 − −14) M = 3 M cents
     expect(byKey.capex!.value.startsWith("30")).toBe(true);
     expect(byKey.debtMaturity!.value).toContain("33,3 %");

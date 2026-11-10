@@ -11,12 +11,13 @@ import { FinancialTable } from "@/components/financial-table";
 import { Button as KitButton, Card, Textarea } from "@/components/ui/form";
 import { figureCorrectionMaxLength } from "@/lib/figure-correction-email";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
+import { FieldHint } from "@/components/field-hint";
 import { companyCopy } from "@/lib/company-copy";
 import { headlineEbitdaMargin } from "@/lib/financial-metrics";
 import { formatCardEur } from "@/lib/money";
 import type { SabiYear } from "@/lib/sabi/insights";
 import { projectHasAdjustments } from "@/lib/seller-draft-guard";
-import { sellerKeyFigures } from "@/lib/seller-key-figures";
+import { sellerKeyFigures, sellerOperatingFigures } from "@/lib/seller-key-figures";
 
 type Figures = Pick<
   InvestorProjectProfile,
@@ -41,6 +42,7 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
     adjustedEbitdaCents: figures.adjustedEbitdaCents,
     hasAdjustments: projectHasAdjustments(figures),
   });
+  const operating = sellerOperatingFigures(reportYears);
   const tiles = sellerKeyFigures(reportYears).map((tile) => {
     if (tile.key !== "ebitdaMargin" || headline.primaryBp === null) {
       return tile;
@@ -136,6 +138,22 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
               <div className="p-3 sm:p-4">
                 <FinancialTable aligned years={figures.balanceYears} rows={keyRows(figures.balanceRows)} />
               </div>
+            </div>
+          ) : null}
+          {operating.length > 0 ? (
+            <div className={detailCard}>
+              <h3 className={detailCardHead}>Cifras operativas</h3>
+              <dl className="grid grid-cols-1 gap-px bg-[#eef1f6] sm:grid-cols-2">
+                {operating.map((row) => (
+                  <div key={row.key} className="flex items-start justify-between gap-3 bg-white px-4 py-3">
+                    <dt className="flex min-w-0 items-center gap-1.5 text-sm text-[#5c6b78]">
+                      {row.label}
+                      <FieldHint text={row.hint} />
+                    </dt>
+                    <dd className="shrink-0 text-sm font-semibold tabular-nums text-[#1c2740]">{row.display}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           ) : null}
         </div>

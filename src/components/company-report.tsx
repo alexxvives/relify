@@ -52,7 +52,7 @@ import {
   Waterfall,
   YearTable,
 } from "@/components/company-report-charts";
-import { formatValue, isoDay, metrics, navy, registryText, reportMargins, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
+import { decimal, decimal2, formatValue, isoDay, metrics, navy, notSignificant, registryText, reportMargins, schemeLabels, teal, tealLight, tealMid, yearLabel, type Metric } from "@/lib/report-format";
 import type { Series } from "@/components/company-report-charts";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
@@ -64,7 +64,8 @@ import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaPublishable, projectHasAdjustments, projectHasPendingAdjustments } from "@/lib/seller-draft-guard";
-import { headlineEbitda, headlineEbitdaMargin } from "@/lib/financial-metrics";
+import { ebitdaToCashConversion, headlineEbitda, headlineEbitdaMargin, headlineLeverage } from "@/lib/financial-metrics";
+import { sellerOperatingFigures } from "@/lib/seller-key-figures";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { AdjustmentReview } from "@/components/adjustment-review";
 import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
@@ -75,7 +76,7 @@ import { veilReportFigures } from "@/lib/report-veil";
 import { figureVeilYears } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { formatEur, recoveryYears } from "@/lib/money";
-import { pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
+import { netDebtCents, pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
 import { formatHolderName } from "@/lib/sabi/holders";
 import type { SabiHolding } from "@/lib/sabi/parse";
 import type { SabiRegistry } from "@/lib/sabi/registry";
@@ -742,10 +743,26 @@ export function CompanyReport({
     headlineMargin.primaryBp === null ? companyCopy.unavailable : formatBasisPoints(headlineMargin.primaryBp);
   const reportedMarginHint =
     headlineMargin.secondaryBp === null ? null : `${headlineMargin.secondaryLabel}: ${formatBasisPoints(headlineMargin.secondaryBp)}`;
-  const summary = reportSummaryMarked(years);
-  const flags = reportFlags(years);
-  const signals = healthSignals(years);
-  const { kpis, debt } = metrics(years);
+  const leverageHeadline = {
+    hasApprovedAdjustments: approvedAdjustmentsExist,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+  };
+  const lastYear = years.at(-1) ?? null;
+  const previousYear = years.length > 1 ? years[years.length - 2] ?? null : null;
+  const leverage = lastYear
+    ? headlineLeverage({
+        netDebtCents: netDebtCents(lastYear),
+        ebitdaCents: lastYear.ebitdaCents,
+        adjustedEbitdaCents: project.adjustedEbitdaCents,
+        hasApprovedAdjustments: approvedAdjustmentsExist,
+      })
+    : null;
+  const cashConversion = lastYear ? ebitdaToCashConversion(lastYear, previousYear) : null;
+  const operating = sellerOperatingFigures(years);
+  const summary = reportSummaryMarked(years, leverageHeadline);
+  const flags = reportFlags(years, leverageHeadline);
+  const signals = healthSignals(years, leverageHeadline);
+  const { kpis, debt } = metrics(years, leverageHeadline);
   const profitability = kpis.filter((metric) => ["ebitdaMargin", "profitMargin", "economicReturn", "financialReturn"].includes(metric.key));
   // t84: colourblind-safe (Okabe-Ito based, with brand navy/teal) plus dash + marker per line.
   // t81: all four curves (t71 left the two margins out whenever ROA/ROE existed); n/s years are gaps, not -13.459 %.
@@ -827,7 +844,7 @@ export function CompanyReport({
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
-          <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
+          <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`${companyCopy.revenueHint} Último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
           <Kpi
             label={shownEbitda.primaryLabel === "EBITDA aj." ? companyCopy.adjustedEbitdaLabel : companyCopy.ebitdaLabel}
             value={compactEur(shownEbitda.primaryCents)}
@@ -898,6 +915,30 @@ export function CompanyReport({
             value={saleReasonText(project.saleReason)}
             hint="Motivo de venta indicado por el vendedor."
           />
+          {leverage && (leverage.primaryTimes !== null || leverage.ns) ? (
+            <Kpi
+              label={leverage.primaryLabel}
+              value={leverage.ns || leverage.primaryTimes === null ? notSignificant : `${decimal2.format(leverage.primaryTimes)}x`}
+              hint={
+                leverage.secondaryTimes !== null
+                  ? `${leverage.primaryLabel}: deuda neta ÷ EBITDA aj. del último año cerrado. ${leverage.secondaryLabel}: ${decimal2.format(leverage.secondaryTimes)}x.`
+                  : "Deuda neta ÷ EBITDA del último año cerrado. Solo se calcula con EBITDA positivo."
+              }
+              sub={
+                leverage.secondaryTimes !== null ? (
+                  <span title={leverage.secondaryLabel ?? undefined}>Cuentas {decimal2.format(leverage.secondaryTimes)}x</span>
+                ) : null
+              }
+            />
+          ) : null}
+          {cashConversion ? (
+            <Kpi
+              label="Conversión EBITDA a caja"
+              value={cashConversion.ns || cashConversion.ratio === null ? notSignificant : `${decimal.format(cashConversion.ratio * 100)} %`}
+              hint="Aproximada: (EBITDA − variación de NOF − capex aproximado) ÷ EBITDA, último año cerrado. n/s si el EBITDA no es positivo."
+              sub={<span>aproximada</span>}
+            />
+          ) : null}
         </div>
         {/* t94: financiación y asesoría as compact chips under the headline numbers. */}
         {project.sellerFinancing || project.sellerStay ? (
@@ -1301,9 +1342,25 @@ export function CompanyReport({
               <div className={detailCard}>
                 <h3 className={detailCardHead}>{companyCopy.incomeHeading}</h3>
                 <div className="p-3 sm:p-4">
-                  <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ingresos" }} />
+                  <FinancialTable years={project.incomeYears} rows={project.incomeRows} trend grid shareOf={{ key: "sales", label: "ventas" }} />
                 </div>
               </div>
+              {operating.length > 0 ? (
+                <div className={detailCard}>
+                  <h3 className={detailCardHead}>Cifras operativas</h3>
+                  <dl className="grid grid-cols-1 gap-px bg-[#eef1f6] sm:grid-cols-2">
+                    {operating.map((row) => (
+                      <div key={row.key} className="flex items-start justify-between gap-3 bg-white px-4 py-3">
+                        <dt className="flex min-w-0 items-center gap-1.5 text-sm text-[#5c6b78]">
+                          {row.label}
+                          <FieldHint text={row.hint} />
+                        </dt>
+                        <dd className="shrink-0 text-sm font-semibold tabular-nums text-[#1c2740]">{row.display}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
               {indicatorRows.length > 0 ? (
                 <div className={detailCard}>
                   <h3 className={detailCardHead}>Ratios</h3>

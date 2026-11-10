@@ -220,8 +220,6 @@ model Project {
   /// "debt_free_cash_free" | "shares"; null = use defaultAskingPriceIncludes.
   askingPriceIncludes    String? @map("asking_price_includes")
   verifiedAt          DateTime?            @map("verified_at")
-  netDebtCents        BigInt                  @map("net_debt_cents")
-  workingCapitalCents BigInt                  @map("working_capital_cents")
   netIncomeCents      BigInt                  @map("net_income_cents")
   legalName           String               @map("legal_name")
   cif                 String

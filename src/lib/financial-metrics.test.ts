@@ -1,13 +1,23 @@
 import { describe, expect, it } from "vitest";
 import type { SabiYear } from "./sabi/insights";
 import {
+  capexProxyCents,
+  capexToSalesAverage,
   cashRunway,
+  costPerEmployeeCents,
+  ebitdaToCashConversion,
   fichaClosedYearCount,
+  fondoDeManiobraCents,
   headlineEbitda,
   headlineEbitdaMargin,
+  headlineLeverage,
   interestCoverageIsNs,
   latestClosedYears,
   netProfitMarginPercent,
+  nofCents,
+  nofDeltaCents,
+  nofToSalesPercent,
+  revenuePerEmployeeCents,
   roePercent,
 } from "./financial-metrics";
 
@@ -161,5 +171,148 @@ describe("latestClosedYears", () => {
     expect(latestClosedYears([{ year: 2020 }, { year: 2021 }, { year: 2022 }, { year: 2023 }, { year: 2024 }]).map((item) => item.year)).toEqual([
       2021, 2022, 2023, 2024,
     ]);
+  });
+});
+
+/** Olivo-style 2024: CA 400k, caja 95k, CL 160k, ST 60k, LT 110k. */
+function olivo2024(): SabiYear {
+  return year({
+    year: 2024,
+    currentAssetsCents: 40_000_000,
+    cashCents: 9_500_000,
+    currentLiabilitiesCents: 16_000_000,
+    shortTermDebtCents: 6_000_000,
+    longTermDebtCents: 11_000_000,
+    revenueCents: 88_785_000,
+  });
+}
+
+/** Empresa Tecnología 2024 (euro cents): ventas 5 M, EBITDA 750 k, aj. 800 k. */
+function tecnologia2024(): SabiYear {
+  return year({
+    year: 2024,
+    revenueCents: 500_000_000,
+    ebitdaCents: 75_000_000,
+    ebitCents: 60_000_000,
+    staffCostsCents: -210_000_000,
+    employees: 32,
+    currentAssetsCents: 180_000_000,
+    cashCents: 40_000_000,
+    currentLiabilitiesCents: 90_000_000,
+    shortTermDebtCents: 20_000_000,
+    longTermDebtCents: 50_000_000,
+    nonCurrentAssetsCents: 220_000_000,
+  });
+}
+
+function tecnologia2023(): SabiYear {
+  return year({
+    year: 2023,
+    revenueCents: 460_000_000,
+    ebitdaCents: 68_000_000,
+    ebitCents: 55_000_000,
+    currentAssetsCents: 160_000_000,
+    cashCents: 35_000_000,
+    currentLiabilitiesCents: 80_000_000,
+    shortTermDebtCents: 18_000_000,
+    longTermDebtCents: 48_000_000,
+    nonCurrentAssetsCents: 200_000_000,
+  });
+}
+
+describe("NOF, fondo de maniobra and ΔNOF", () => {
+  it("computes Olivo 2024: NOF 205 k, FM 240 k", () => {
+    const last = olivo2024();
+    expect(nofCents(last)).toBe(20_500_000);
+    expect(fondoDeManiobraCents(last)).toBe(24_000_000);
+    expect(nofToSalesPercent(last)).toBeCloseTo((20_500_000 / 88_785_000) * 100, 5);
+  });
+
+  it("computes Tecnología 2024: NOF 700 k, FM 900 k, DFN 300 k", () => {
+    const last = tecnologia2024();
+    expect(nofCents(last)).toBe(70_000_000);
+    expect(fondoDeManiobraCents(last)).toBe(90_000_000);
+    expect(nofToSalesPercent(last)).toBeCloseTo(14, 5);
+  });
+
+  it("computes ΔNOF as this year's NOF minus last year's", () => {
+    expect(nofDeltaCents(tecnologia2024(), tecnologia2023())).toBe(7_000_000);
+    expect(nofDeltaCents(tecnologia2024(), null)).toBeNull();
+  });
+});
+
+describe("headlineLeverage", () => {
+  it("makes DFN / EBITDA aj. the primary multiple when adjustments are approved", () => {
+    const shown = headlineLeverage({
+      netDebtCents: 30_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 80_000_000,
+      hasApprovedAdjustments: true,
+    });
+    expect(shown.primaryLabel).toBe("Deuda neta / EBITDA aj.");
+    expect(shown.primaryTimes).toBeCloseTo(0.375, 5);
+    expect(shown.secondaryTimes).toBeCloseTo(0.4, 5);
+    expect(shown.secondaryLabel).toBe("Deuda neta / EBITDA de las cuentas");
+    expect(shown.ns).toBe(false);
+  });
+
+  it("keeps accounts DFN / EBITDA when there is no approved adjustment", () => {
+    const shown = headlineLeverage({
+      netDebtCents: 30_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 80_000_000,
+      hasApprovedAdjustments: false,
+    });
+    expect(shown.primaryLabel).toBe("Deuda neta / EBITDA");
+    expect(shown.primaryTimes).toBeCloseTo(0.4, 5);
+    expect(shown.secondaryTimes).toBeNull();
+  });
+
+  it("is n/s when there is net debt and EBITDA is not positive", () => {
+    const shown = headlineLeverage({
+      netDebtCents: 30_000_000,
+      ebitdaCents: -1,
+      adjustedEbitdaCents: null,
+      hasApprovedAdjustments: false,
+    });
+    expect(shown.ns).toBe(true);
+    expect(shown.primaryTimes).toBeNull();
+  });
+});
+
+describe("ebitdaToCashConversion and capex proxy", () => {
+  it("uses (EBITDA − ΔNOF − capex) / EBITDA and labels n/s when EBITDA ≤ 0", () => {
+    const last = tecnologia2024();
+    const previous = tecnologia2023();
+    expect(capexProxyCents(last, previous)).toBe(35_000_000);
+    const conversion = ebitdaToCashConversion(last, previous);
+    expect(conversion?.ns).toBe(false);
+    expect(conversion?.ratio).toBeCloseTo((75_000_000 - 7_000_000 - 35_000_000) / 75_000_000, 5);
+    expect(ebitdaToCashConversion(year({ year: 2024, ebitdaCents: 0 }), previous)).toEqual({ ratio: null, ns: true });
+    expect(ebitdaToCashConversion(year({ year: 2024, ebitdaCents: -1 }), previous)).toEqual({ ratio: null, ns: true });
+  });
+
+  it("averages capex/ventas over the last three years that have both", () => {
+    const y2022 = year({
+      year: 2022,
+      revenueCents: 430_000_000,
+      ebitdaCents: 62_000_000,
+      ebitCents: 50_000_000,
+      nonCurrentAssetsCents: 185_000_000,
+    });
+    const y2023 = tecnologia2023();
+    const y2024 = tecnologia2024();
+    const share2023 = (28_000_000 / 460_000_000) * 100;
+    const share2024 = (35_000_000 / 500_000_000) * 100;
+    expect(capexToSalesAverage([y2022, y2023, y2024])).toBeCloseTo((share2023 + share2024) / 2, 5);
+  });
+});
+
+describe("staff productivity from the accounts", () => {
+  it("divides staff cost and ventas by plantilla", () => {
+    const last = tecnologia2024();
+    expect(costPerEmployeeCents(last)).toBe(6_562_500);
+    expect(revenuePerEmployeeCents(last)).toBe(15_625_000);
+    expect(costPerEmployeeCents(year({ year: 2024, staffCostsCents: 1, employees: 0 }))).toBeNull();
   });
 });

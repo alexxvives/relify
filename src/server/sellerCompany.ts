@@ -258,8 +258,6 @@ async function createDraftProject(
       ebitdaCents: 0,
       adjustedEbitdaCents: 0,
       askingPriceCents: 0,
-      netDebtCents: 0,
-      workingCapitalCents: 0,
       netIncomeCents: 0,
       // Empty so the registry prefill still fills the draft form.
       legalName: "",
@@ -439,8 +437,6 @@ export async function addSellerCompany(
         ebitdaCents: 0,
         adjustedEbitdaCents: 0,
         askingPriceCents: 0,
-        netDebtCents: 0,
-        workingCapitalCents: 0,
         netIncomeCents: 0,
         legalName: "",
         cif,

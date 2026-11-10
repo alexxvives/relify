@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round P metrics, 404, drop stale project snapshots
+
+Headline leverage is DFN / EBITDA aj. when adjustments are approved; the accounts multiple stays in the tooltip. Facturación is always ventas (importe neto de la cifra de negocios); `toSabiYear` prefers `salesCents`. Deuda neta and fondo de maniobra are computed from the same year's balance, never from `project.net_debt_cents` / `project.working_capital_cents` (those columns are dropped). Rentabilidad financiera and margen de beneficio are the net-based formulas only. `/archivo` is a normal 404 (the Round O 301 is removed). `/valorar` stays a CIF form that does not save or compute.
+
 ## 2026-11-10 — Round O landing, EBITDA primary, waitlist date
 
 Approved EBITDA adjustments are the primary figure on the marketplace card, ficha Resumen, ROI chip and recommended sort. Pending-only rows keep the accounts EBITDA and show “Ajuste en revisión”. Reported stays in the tooltip. `/archivo` is gone; old URLs 301 to `/`. Waitlist countdown target is 10 January 2027 10:00 Europe/Madrid (was 21 November 2026 10:00). Landing process is a centered desktop two-column (anonymised ficha reveal + steps); horizontal how-it-works cards stay below `lg`. No “Foto de referencia” overlay.

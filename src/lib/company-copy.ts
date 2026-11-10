@@ -20,6 +20,7 @@ export const companyCopy = {
   addSecondaryCnae: "Añadir sector secundario",
   removeRow: "Quitar",
   revenueLabel: "Facturación",
+  revenueHint: "Importe neto de la cifra de negocios (ventas).",
   ebitdaLabel: "EBITDA",
   adjustedEbitdaLabel: "EBITDA ajustado",
   ebitdaAdjustedShort: "EBITDA aj.",

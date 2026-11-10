@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Filling `project_year` still left Tus cifras and the seller ficha empty — `getSabiRegistry` only loads years with `data_source = 'sabi'` — INT year fixtures must set that column.
 - 2026-11-10: Seller Ficha pública preview showed reported EBITDA while `/mercado` showed EBITDA aj. — `MarketPreview` only counted approved form rows, so a legacy non-list `adjustedEbitdaCents` never flipped the card, and `formRowsFromJson` treated missing status as pending — missing status is approved (same as `storedEbitdaAdjustments`); pass the same `hasAdjustments` as `priceBasis`.
 - 2026-11-10: How-it-works horizontal step cards also showed on desktop — unlayered `.releva-how-mobile { display: flex }` in `globals.css` beats Tailwind `lg:hidden` — hide that row with `@media (min-width: 1024px)` on the same class.
 - 2026-11-10: Resumen showed `1,7M €` next to cards `1,65 M €` — `compactEur` used one decimal and glued the suffix — use `formatCardEur` (2/1/0 decimals, space before K/M) for cards, Resumen, ficha and marketplace.

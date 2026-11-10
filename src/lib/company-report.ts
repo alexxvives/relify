@@ -1,5 +1,16 @@
 import type { SabiRegistry } from "./sabi/registry";
-import { cashRunway, interestCoverageIsNs, interestCoverageNsHint } from "./financial-metrics";
+import {
+  cashRunway,
+  capexProxyCents,
+  ebitdaToCashConversion,
+  headlineLeverage,
+  interestCoverageIsNs,
+  interestCoverageNsHint,
+  nofCents,
+  nofDeltaCents,
+  nofToSalesPercent,
+  type HeadlineLeverageInput,
+} from "./financial-metrics";
 import { marginPercent, netDebtCents, type SabiYear } from "./sabi/insights";
 
 /** t69: who is reading the company report. Advisors and the seller's "as a buyer" preview read it as "buyer". */
@@ -89,16 +100,27 @@ function equityShare(year: SabiYear): number | null {
   return ratioOf(year, "solvencyCoefficient");
 }
 
+function lastClosedYear(years: SabiYear[]): number | null {
+  return years.length > 0 ? years[years.length - 1]!.year : null;
+}
+
 /** Debt, liquidity and solvency read as traffic lights. Thresholds are the usual rules of thumb, stated in each hint. */
-export function healthSignals(years: SabiYear[]): HealthSignal[] {
+export function healthSignals(years: SabiYear[], headline?: HeadlineLeverageInput): HealthSignal[] {
   const signals: HealthSignal[] = [];
 
-  const debt = lastWith(years, (year) => {
-    const net = netDebtCents(year);
-    return net === null ? null : { net, ebitda: year.ebitdaCents };
-  });
+  const debt = lastWith(years, netDebtCents);
   if (debt) {
-    const { net, ebitda } = debt.value;
+    const net = debt.value;
+    const useAdjusted = Boolean(
+      headline?.hasApprovedAdjustments && headline.adjustedEbitdaCents !== null && debt.year.year === lastClosedYear(years),
+    );
+    const shown = headlineLeverage({
+      netDebtCents: net,
+      ebitdaCents: debt.year.ebitdaCents,
+      adjustedEbitdaCents: useAdjusted ? headline?.adjustedEbitdaCents ?? null : null,
+      hasApprovedAdjustments: useAdjusted,
+    });
+    const ebitdaLabel = shown.primaryLabel === "Deuda neta / EBITDA aj." ? "EBITDA aj." : "EBITDA";
     const zones: Zone[] = [
       { upTo: 2, level: "good" },
       { upTo: 4, level: "warn" },
@@ -113,17 +135,19 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       display = "Caja neta";
       level = "good";
       reading = `Tiene más caja que deuda financiera (${compactEur(-net)} de caja neta): podría saldar toda su deuda hoy mismo.`;
-    } else if (ebitda === null || ebitda <= 0) {
+    } else if (shown.ns || shown.primaryTimes === null) {
       value = 6;
-      display = "EBITDA ≤ 0";
+      display = `${ebitdaLabel} ≤ 0`;
       level = "bad";
-      reading = `Debe ${compactEur(net)} netos y su EBITDA no es positivo, así que hoy no genera caja para devolverlos.`;
+      reading = `Debe ${compactEur(net)} netos y su ${ebitdaLabel} no es positivo, así que hoy no genera caja para devolverlos.`;
     } else {
-      value = net / ebitda;
+      value = shown.primaryTimes;
       display = `${es1.format(value)} años`;
       level = levelFor(value, zones);
-      reading = `Podría pagar su deuda neta (${compactEur(net)}) con ${es1.format(value)} años de EBITDA.`;
+      reading = `Podría pagar su deuda neta (${compactEur(net)}) con ${es1.format(value)} años de ${ebitdaLabel}.`;
     }
+    const accountsNote =
+      shown.secondaryTimes !== null ? ` Con el EBITDA de las cuentas: ${es1.format(shown.secondaryTimes)} años.` : "";
 
     signals.push({
       key: "netDebtToEbitda",
@@ -137,7 +161,7 @@ export function healthSignals(years: SabiYear[]): HealthSignal[] {
       max: 6,
       zones,
       scale: "Verde: menos de 2 años · Ámbar: de 2 a 4 · Rojo: más de 4",
-      hint: "Deuda neta ÷ EBITDA: cuántos años del resultado de explotación (antes de amortizaciones) haría falta para devolver la deuda financiera menos la caja. Deuda financiera = deudas a largo plazo + deudas financieras a corto. Criterio orientativo habitual en compraventas de pymes.",
+      hint: `${shown.primaryLabel}: cuántos años de ${ebitdaLabel} haría falta para devolver la deuda financiera menos la caja. Deuda financiera = deudas a largo plazo + deudas financieras a corto.${accountsNote} Criterio orientativo habitual en compraventas de pymes.`,
     });
   }
 
@@ -300,12 +324,12 @@ export function summarySegments(line: string): SummarySegment[] {
 }
 
 /** A few plain-Spanish sentences built only from the numbers on file (nothing is said about missing data). */
-export function reportSummary(years: SabiYear[]): string[] {
-  return reportSummaryMarked(years).map((line) => line.replaceAll("**", ""));
+export function reportSummary(years: SabiYear[], headline?: HeadlineLeverageInput): string[] {
+  return reportSummaryMarked(years, headline).map((line) => line.replaceAll("**", ""));
 }
 
 /** Same sentences as reportSummary, with the key figures marked for bold (see summarySegments). */
-export function reportSummaryMarked(years: SabiYear[]): string[] {
+export function reportSummaryMarked(years: SabiYear[], headline?: HeadlineLeverageInput): string[] {
   const lines: string[] = [];
   const revenue = years.filter((year) => year.revenueCents !== null && year.revenueCents > 0);
   if (revenue.length >= 2) {
@@ -316,17 +340,17 @@ export function reportSummaryMarked(years: SabiYear[]): string[] {
     const skipped = first ? revenue.slice(0, revenue.indexOf(first)) : revenue.slice(0, -1);
     const skippedNote =
       skipped.length > 0
-        ? ` No se compara con ${skipped.map((year) => year.year).join(", ")} porque ${skipped.length > 1 ? "fueron ejercicios" : "fue un ejercicio"} incompleto${skipped.length > 1 ? "s" : ""} o con ingresos casi nulos (${skipped.map((year) => compactEur(year.revenueCents!)).join(", ")}).`
+        ? ` No se compara con ${skipped.map((year) => year.year).join(", ")} porque ${skipped.length > 1 ? "fueron ejercicios" : "fue un ejercicio"} incompleto${skipped.length > 1 ? "s" : ""} o con facturación casi nula (${skipped.map((year) => compactEur(year.revenueCents!)).join(", ")}).`
         : "";
     if (first) {
       const span = last.year - first.year;
       const total = pct(first.revenueCents!, last.revenueCents!);
       const cagr = span > 0 ? (Math.pow(last.revenueCents! / first.revenueCents!, 1 / span) - 1) * 100 : null;
       lines.push(
-        `Los ingresos han pasado de ${b(compactEur(first.revenueCents!))} en ${first.year} a ${b(compactEur(last.revenueCents!))} en ${last.year} (${b(signed(total))}${cagr !== null && span > 1 ? `, ${b(signed(cagr))} de media al año` : ""}).${skippedNote}`,
+        `La facturación ha pasado de ${b(compactEur(first.revenueCents!))} en ${first.year} a ${b(compactEur(last.revenueCents!))} en ${last.year} (${b(signed(total))}${cagr !== null && span > 1 ? `, ${b(signed(cagr))} de media al año` : ""}).${skippedNote}`,
       );
     } else {
-      lines.push(`Ingresos de ${b(compactEur(last.revenueCents!))} en ${last.year}.${skippedNote}`);
+      lines.push(`Facturación de ${b(compactEur(last.revenueCents!))} en ${last.year}.${skippedNote}`);
     }
     const previous = revenue[revenue.length - 2]!;
     if (first && first !== previous && isComparableBase(previous.revenueCents, last.revenueCents, previous.months)) {
@@ -334,7 +358,7 @@ export function reportSummaryMarked(years: SabiYear[]): string[] {
       lines.push(`En el último ejercicio (${last.year}) ${change >= 0 ? "crecieron" : "cayeron"} un ${b(`${es1.format(Math.abs(change))} %`)} frente a ${previous.year}.`);
     }
   } else if (revenue.length === 1) {
-    lines.push(`Ingresos de ${b(compactEur(revenue[0]!.revenueCents!))} en ${revenue[0]!.year}.`);
+    lines.push(`Facturación de ${b(compactEur(revenue[0]!.revenueCents!))} en ${revenue[0]!.year}.`);
   }
 
   const ebitda = [...years].reverse().find((year) => year.ebitdaCents !== null);
@@ -342,7 +366,7 @@ export function reportSummaryMarked(years: SabiYear[]): string[] {
     const margin = negligibleRevenue(years)[years.indexOf(ebitda)] ? null : marginPercent(ebitda.ebitdaCents, ebitda.revenueCents);
     lines.push(
       ebitda.ebitdaCents! >= 0
-        ? `El EBITDA de ${ebitda.year} fue de ${b(compactEur(ebitda.ebitdaCents!))}${margin !== null ? `, un margen del ${b(`${es1.format(margin)} %`)} sobre ingresos` : ""}.`
+        ? `El EBITDA de ${ebitda.year} fue de ${b(compactEur(ebitda.ebitdaCents!))}${margin !== null ? `, un margen del ${b(`${es1.format(margin)} %`)} sobre ventas` : ""}.`
         : `El EBITDA de ${ebitda.year} fue ${b("negativo")} (${b(compactEur(ebitda.ebitdaCents!))}): la actividad no cubrió sus gastos de explotación.`,
     );
   }
@@ -356,7 +380,7 @@ export function reportSummaryMarked(years: SabiYear[]): string[] {
     );
   }
 
-  const debt = healthSignals(years).find((signal) => signal.key === "netDebtToEbitda");
+  const debt = healthSignals(years, headline).find((signal) => signal.key === "netDebtToEbitda");
   if (debt) {
     lines.push(debt.reading);
   }
@@ -364,7 +388,7 @@ export function reportSummaryMarked(years: SabiYear[]): string[] {
   return lines;
 }
 
-export function reportFlags(years: SabiYear[]): ReportFlag[] {
+export function reportFlags(years: SabiYear[], headline?: HeadlineLeverageInput): ReportFlag[] {
   const flags: ReportFlag[] = [];
   const revenue = years.filter((year) => year.revenueCents !== null && year.revenueCents > 0);
   if (revenue.length >= 2) {
@@ -372,7 +396,7 @@ export function reportFlags(years: SabiYear[]): ReportFlag[] {
     const change = pct(previous.revenueCents!, last.revenueCents!);
     // t71: no % over a tiny or partial base year.
     const detail = isComparableBase(previous.revenueCents, last.revenueCents, previous.months) ? signed(change) : `${previous.year} no comparable`;
-    flags.push(change >= 0 ? { level: "good", text: `Ingresos al alza en ${last.year} (${detail})` } : { level: "warn", text: `Ingresos a la baja en ${last.year} (${detail})` });
+    flags.push(change >= 0 ? { level: "good", text: `Facturación al alza en ${last.year} (${detail})` } : { level: "warn", text: `Facturación a la baja en ${last.year} (${detail})` });
   }
 
   const result = [...years].reverse().find((year) => year.netResultCents !== null);
@@ -385,7 +409,7 @@ export function reportFlags(years: SabiYear[]): ReportFlag[] {
     flags.push({ level: "warn", text: `EBITDA negativo en ${ebitda.year}` });
   }
 
-  for (const signal of healthSignals(years)) {
+  for (const signal of healthSignals(years, headline)) {
     flags.push({ level: signal.level === "good" ? "good" : "warn", text: `${signal.label}: ${signal.display}` });
   }
 
@@ -399,12 +423,9 @@ export type DiligenceCheck = { key: string; label: string; value: string; level:
 
 const months1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-/** Operating working capital (NOF): current assets without cash minus current liabilities without short-term bank debt. */
+/** Operating working capital (NOF). Same formula as `nofCents`. */
 export function operatingWorkingCapital(year: SabiYear): number | null {
-  if (year.currentAssetsCents === null || year.currentLiabilitiesCents === null) {
-    return null;
-  }
-  return year.currentAssetsCents - (year.cashCents ?? 0) - (year.currentLiabilitiesCents - (year.shortTermDebtCents ?? 0));
+  return nofCents(year);
 }
 
 /**
@@ -490,41 +511,42 @@ export function diligenceChecks(years: SabiYear[], audits: SabiRegistry["audits"
   }
 
   // Operating working capital and cash conversion.
-  const nof = operatingWorkingCapital(last);
+  const nof = nofCents(last);
   if (nof !== null) {
-    const base = last.revenueCents !== null && last.revenueCents > 0 ? (nof / last.revenueCents) * 100 : null;
-    const before = previous ? operatingWorkingCapital(previous) : null;
-    const change = before !== null ? nof - before : null;
+    const base = nofToSalesPercent(last);
+    const change = nofDeltaCents(last, previous);
     checks.push({
       key: "workingCapital",
       label: "Necesidades operativas de fondos (NOF)",
-      value: `${compactEur(nof)}${base !== null ? ` (${es1.format(base)} % de ingresos)` : ""}`,
+      value: `${compactEur(nof)}${base !== null ? ` (${es1.format(base)} % de ventas)` : ""}`,
       level: nof < 0 ? "good" : base !== null && base > 25 ? "warn" : "info",
-      text: `${nof < 0 ? "Clientes y existencias se financian con proveedores y otros acreedores a corto plazo." : "Dinero inmovilizado en clientes y existencias, neto de proveedores."}${change !== null ? ` ${change > 0 ? "Aumentó" : "Bajó"} ${compactEur(Math.abs(change))} frente a ${previous!.year}.` : ""} Cálculo: activo corriente sin caja − pasivo corriente sin deuda bancaria.`,
+      text: `${nof < 0 ? "Clientes y existencias se financian con proveedores y otros acreedores a corto plazo." : "Dinero inmovilizado en clientes y existencias, neto de proveedores."}${change !== null && previous ? ` ${change > 0 ? "Aumentó" : "Bajó"} ${compactEur(Math.abs(change))} frente a ${previous.year}.` : ""} Cálculo: activo corriente − caja − (pasivo corriente − deuda financiera a corto).`,
     });
-    if (change !== null && last.ebitdaCents !== null) {
-      const operatingCash = last.ebitdaCents - change;
+    const conversion = ebitdaToCashConversion(last, previous);
+    if (conversion) {
+      const ratioText = conversion.ns || conversion.ratio === null ? "n/s" : `${es1.format(conversion.ratio * 100)} %`;
       checks.push({
         key: "cashConversion",
-        label: "Caja operativa aproximada",
-        value: compactEur(operatingCash),
-        level: operatingCash < 0 ? "bad" : last.ebitdaCents > 0 && operatingCash < last.ebitdaCents * 0.6 ? "warn" : "good",
-        text: `EBITDA (${compactEur(last.ebitdaCents)}) menos el aumento de NOF (${compactEur(change)}) en ${last.year}. Antes de impuestos, intereses e inversiones.${last.ebitdaCents > 0 ? ` Convierte el ${es1.format((operatingCash / last.ebitdaCents) * 100)} % del EBITDA en caja.` : ""}`,
+        label: "Conversión EBITDA a caja (aproximada)",
+        value: ratioText,
+        level: conversion.ns ? "info" : conversion.ratio !== null && conversion.ratio < 0 ? "bad" : conversion.ratio !== null && conversion.ratio < 0.6 ? "warn" : "good",
+        text: conversion.ns
+          ? `No significativo: el EBITDA de ${last.year} no es positivo.`
+          : `Aproximada: (EBITDA − variación de NOF − capex aproximado) ÷ EBITDA en ${last.year}.`,
       });
     }
   }
 
-  // Capex proxy: change in fixed assets + depreciation (EBITDA − EBIT).
-  if (previous && last.nonCurrentAssetsCents !== null && previous.nonCurrentAssetsCents !== null && last.ebitdaCents !== null && last.ebitCents !== null) {
-    const depreciation = last.ebitdaCents - last.ebitCents;
-    const capex = last.nonCurrentAssetsCents - previous.nonCurrentAssetsCents + depreciation;
+  const capex = capexProxyCents(last, previous);
+  if (capex !== null && previous) {
     const share = last.revenueCents !== null && last.revenueCents > 0 ? (capex / last.revenueCents) * 100 : null;
+    const depreciation = last.ebitdaCents !== null && last.ebitCents !== null ? last.ebitdaCents - last.ebitCents : null;
     checks.push({
       key: "capex",
       label: "Inversión aproximada (capex)",
-      value: `${compactEur(capex)}${share !== null ? ` (${es1.format(share)} % de ingresos)` : ""}`,
+      value: `${compactEur(capex)}${share !== null ? ` (${es1.format(share)} % de ventas)` : ""}`,
       level: "info",
-      text: `Variación del activo no corriente más amortizaciones (${compactEur(depreciation)}) en ${last.year}. Aproximado: incluye inversiones financieras y revalorizaciones; pedir el detalle al vendedor.`,
+      text: `Variación del activo no corriente${depreciation !== null ? ` más amortizaciones (${compactEur(depreciation)})` : ""} en ${last.year}. Aproximado: incluye inversiones financieras y revalorizaciones; pedir el detalle al vendedor.`,
     });
   }
 

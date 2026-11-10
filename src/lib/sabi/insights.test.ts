@@ -62,7 +62,7 @@ describe("sabi insights", () => {
   it("reconciles the P&L waterfall", () => {
     const steps = pnlWaterfall(toSabiYear(row));
     expect(steps.map((step) => step.label)).toEqual([
-      "Ingresos de explotación",
+      "Ventas",
       "Gastos de personal",
       "Otros gastos de explotación",
       "EBITDA",

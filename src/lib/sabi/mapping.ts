@@ -60,8 +60,6 @@ export type SabiProjectUpdate = {
   audited: boolean | null;
   region: string | null;
   opexCents: number | null;
-  netDebtCents: number | null;
-  workingCapitalCents: number | null;
   /** Shareholder names (admin-only) and, when SABI gives a clean split, the anonymous capital donut. */
   shareholderNames: string[];
   capitalBasisPoints: number[] | null;
@@ -242,10 +240,6 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
   const data = latest?.data ?? null;
   const source = closed[0] ?? null;
   const opex = data ? [data.suppliesCents, data.staffCostsCents, data.otherOperatingCostsCents].filter((value): value is number => value !== null) : [];
-  const debt = data && (data.longTermDebtCents !== null || data.shortTermDebtCents !== null) ? (data.longTermDebtCents ?? 0) + (data.shortTermDebtCents ?? 0) : null;
-  const working =
-    source?.money.workingCapital ??
-    (data?.currentAssetsCents != null && data.currentLiabilitiesCents != null ? data.currentAssetsCents - data.currentLiabilitiesCents : null);
 
   return {
     years,
@@ -266,8 +260,6 @@ export function mapSabiReport(report: SabiReport): SabiMapping {
       audited: report.auditor ? true : null,
       region: report.identity.province ? titleCase(report.identity.province) : null,
       opexCents: opex.length > 0 ? Math.abs(opex.reduce((sum, value) => sum + value, 0)) : null,
-      netDebtCents: debt !== null ? debt - (data?.cashCents ?? 0) : null,
-      workingCapitalCents: working,
       shareholderNames: [...new Set(report.shareholders.map((holder) => holder.name.trim()).filter(Boolean))],
       capitalBasisPoints: capitalSplit(report),
     },

@@ -47,8 +47,6 @@ export async function createClientCompany(
       ebitdaCents: eurosToCents(input.ebitda),
       adjustedEbitdaCents: eurosToCents(input.adjustedEbitda),
       askingPriceCents: eurosToCents(input.askingPrice),
-      netDebtCents: 0,
-      workingCapitalCents: 0,
       netIncomeCents: 0,
       legalName: input.legalName,
       cif: normalizeCif(input.cif),

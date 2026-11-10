@@ -166,7 +166,7 @@ async function generateCorrectedSeed() {
   
   lines.push("");
   lines.push("-- Project with synthetic SABI fixture");
-  lines.push(`INSERT INTO "project" (id, slug, owner_id, codename, region, revenue_cents, ebitda_cents, adjusted_ebitda_cents, ebitda_adjustments, asking_price_cents, seller_financing, seller_financing_max_pct, seller_financing_years, seller_stay, net_debt_cents, working_capital_cents, net_income_cents, legal_name, cif, address, founded_year, description, sale_reason, opex_cents, headcount_range, customer_base, status, verified_at, sabi_imported_at, sabi_file_name, sabi_data, legal_form, accounts_format, audited, average_headcount, created_at)`);
+  lines.push(`INSERT INTO "project" (id, slug, owner_id, codename, region, revenue_cents, ebitda_cents, adjusted_ebitda_cents, ebitda_adjustments, asking_price_cents, seller_financing, seller_financing_max_pct, seller_financing_years, seller_stay, net_income_cents, legal_name, cif, address, founded_year, description, sale_reason, opex_cents, headcount_range, customer_base, status, verified_at, sabi_imported_at, sabi_file_name, sabi_data, legal_form, accounts_format, audited, average_headcount, created_at)`);
   lines.push(`VALUES (`);
   lines.push(`  ${sqlString(sabiProjectId)},`);
   lines.push(`  ${sqlString(sabiSlug)},`);
@@ -182,8 +182,6 @@ async function generateCorrectedSeed() {
   lines.push(`  20,`);
   lines.push(`  3,`);
   lines.push(`  '6m',`);
-  lines.push(`  50000000,`);
-  lines.push(`  100000000,`);
   lines.push(`  60000000,`);
   lines.push(`  'Tecnología Digital SL',`);
   lines.push(`  'B12345678',`);
@@ -239,7 +237,7 @@ async function generateCorrectedSeed() {
   
   lines.push("");
   lines.push("-- Project manual (no SABI)");
-  lines.push(`INSERT INTO "project" (id, slug, owner_id, codename, region, revenue_cents, ebitda_cents, adjusted_ebitda_cents, asking_price_cents, seller_financing, seller_stay, net_debt_cents, working_capital_cents, net_income_cents, legal_name, cif, address, founded_year, description, sale_reason, opex_cents, headcount_range, customer_base, status, verified_at, average_headcount, created_at)`);
+  lines.push(`INSERT INTO "project" (id, slug, owner_id, codename, region, revenue_cents, ebitda_cents, adjusted_ebitda_cents, asking_price_cents, seller_financing, seller_stay, net_income_cents, legal_name, cif, address, founded_year, description, sale_reason, opex_cents, headcount_range, customer_base, status, verified_at, average_headcount, created_at)`);
   lines.push(`VALUES (`);
   lines.push(`  ${sqlString(manualProjectId)},`);
   lines.push(`  ${sqlString(manualSlug)},`);
@@ -252,8 +250,6 @@ async function generateCorrectedSeed() {
   lines.push(`  160000000,`);
   lines.push(`  'no',`);
   lines.push(`  '3m',`);
-  lines.push(`  0,`);
-  lines.push(`  50000000,`);
   lines.push(`  30000000,`);
   lines.push(`  'Consultoría Profesional SL',`);
   lines.push(`  'B87654321',`);

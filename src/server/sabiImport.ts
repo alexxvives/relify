@@ -48,8 +48,6 @@ type Loaded = {
     region: string;
     opexCents: number | null;
     ebitdaAdjustments: unknown;
-    netDebtCents: number | null;
-    workingCapitalCents: number | null;
     years: { year: number; kind: string; dataSource: string | null }[];
     _count: { shareholders: number; activitySlices: number; cnaes: number };
   };
@@ -95,8 +93,6 @@ async function load(
       region: true,
       opexCents: true,
       ebitdaAdjustments: true,
-      netDebtCents: true,
-      workingCapitalCents: true,
       years: { select: { year: true, kind: true, dataSource: true } },
       _count: {
         select: {
@@ -262,12 +258,6 @@ export async function confirmSabiImport(
         project.opexCents === null &&
         figures.opexCents !== null
           ? { opexCents: figures.opexCents }
-          : {}),
-        ...(useFigures && figures.netDebtCents !== null
-          ? { netDebtCents: figures.netDebtCents }
-          : {}),
-        ...(useFigures && figures.workingCapitalCents !== null
-          ? { workingCapitalCents: figures.workingCapitalCents }
           : {}),
         ...(project.region.trim() === "" && figures.region
           ? { region: figures.region }

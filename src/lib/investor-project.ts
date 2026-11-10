@@ -330,9 +330,7 @@ const detailLines: Array<{ key: keyof RecordYear; label: string; emphasis: boole
 ];
 
 const indicatorLines: Array<{ key: string; label: string; unit: IndicatorUnit }> = [
-  { key: "profitMargin", label: "Margen de beneficio", unit: "percent" },
   { key: "economicReturn", label: "Rentabilidad económica (ROA)", unit: "percent" },
-  { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "percent" },
   { key: "returnOnCapitalEmployed", label: "Rentabilidad del capital empleado", unit: "percent" },
   { key: "generalLiquidity", label: "Liquidez general", unit: "multiple" },
   { key: "solvencyRatio", label: "Ratio de solvencia", unit: "multiple" },
@@ -340,11 +338,9 @@ const indicatorLines: Array<{ key: string; label: string; unit: IndicatorUnit }>
   { key: "solvencyCoefficient", label: "Coeficiente de solvencia", unit: "percent" },
   { key: "gearing", label: "Apalancamiento", unit: "percent" },
   { key: "interestCoverage", label: "Cobertura de intereses", unit: "multiple" },
-  { key: "collectionDays", label: "Periodo de cobro", unit: "days" },
-  { key: "creditDays", label: "Periodo de pago", unit: "days" },
-  { key: "staffCostToRevenue", label: "Coste de personal / ingresos", unit: "percent" },
-  { key: "averageStaffCost", label: "Coste medio por empleado", unit: "thousands" },
-  { key: "revenuePerEmployee", label: "Ingresos por empleado", unit: "thousands" },
+  { key: "collectionDays", label: "Periodo medio de cobro", unit: "days" },
+  { key: "creditDays", label: "Periodo medio de pago", unit: "days" },
+  { key: "staffCostToRevenue", label: "Coste de personal / ventas", unit: "percent" },
   { key: "profitPerEmployee", label: "Beneficio por empleado", unit: "thousands" },
 ];
 

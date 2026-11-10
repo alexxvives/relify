@@ -261,8 +261,6 @@ export async function saveCompanyDraft(
           askingPriceCents: profile.askingPriceCents ?? 0,
           adjustedEbitdaCents: profile.adjustedEbitdaCents ?? 0,
           ...(profile.ebitdaAdjustments === Prisma.DbNull ? { ebitdaAdjustments: Prisma.DbNull } : {}),
-          netDebtCents: 0,
-          workingCapitalCents: 0,
           netIncomeCents: 0,
           cif: writtenCif,
           sabiRequestedAt: writtenCif.length > 0 ? new Date() : null,

@@ -72,7 +72,7 @@ export function toSabiYear(row: SabiYearRow): SabiYear {
     year: row.year,
     months: row.months,
     employees: row.employees,
-    revenueCents: num(row.operatingRevenueCents) ?? num(row.salesCents),
+    revenueCents: num(row.salesCents) ?? num(row.operatingRevenueCents),
     suppliesCents: num(row.suppliesCents),
     staffCostsCents: num(row.staffCostsCents),
     ebitdaCents: num(row.ebitdaCents),
@@ -145,7 +145,7 @@ export function pnlWaterfall(year: SabiYear): WaterfallStep[] {
     return [];
   }
 
-  const steps: WaterfallStep[] = [{ label: "Ingresos de explotación", value: revenue, kind: "start" }];
+  const steps: WaterfallStep[] = [{ label: "Ventas", value: revenue, kind: "start" }];
   let running = revenue;
   const push = (label: string, target: number | null, subtotal: string | null) => {
     if (target === null) {

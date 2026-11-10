@@ -35,14 +35,6 @@ export function withNumberCents(client: PrismaClient) {
           needs: { askingPriceCents: true },
           compute: (row) => toNumber(row.askingPriceCents),
         },
-        netDebtCents: {
-          needs: { netDebtCents: true },
-          compute: (row) => toNumber(row.netDebtCents),
-        },
-        workingCapitalCents: {
-          needs: { workingCapitalCents: true },
-          compute: (row) => toNumber(row.workingCapitalCents),
-        },
         netIncomeCents: {
           needs: { netIncomeCents: true },
           compute: (row) => toNumber(row.netIncomeCents),
