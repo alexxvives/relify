@@ -47,18 +47,18 @@ try {
   }
 }
 
-// Test 4: Email policy (INT allowlist — see docs/INT.md)
+// Test 4: Email policy (INT catch-all — see docs/INT.md)
 console.log("4. Email policy");
 const emailBlocked = shouldBlockEmail();
 const hasIntKey = typeof process.env.INT_MAILEROO_API_KEY === "string" && process.env.INT_MAILEROO_API_KEY.length > 10;
-const hasAllowlist = typeof process.env.INT_EMAIL_ALLOWLIST === "string" && process.env.INT_EMAIL_ALLOWLIST.trim().length > 0;
+const hasCatchall = typeof process.env.INT_EMAIL_CATCHALL === "string" && process.env.INT_EMAIL_CATCHALL.trim().length > 0;
 console.log(`   INT_MAILEROO_API_KEY=${hasIntKey ? "[configured]" : "[missing]"}`);
-console.log(`   INT_EMAIL_ALLOWLIST=${hasAllowlist ? "[set]" : "[missing]"}`);
+console.log(`   INT_EMAIL_CATCHALL=${hasCatchall ? "[set]" : "[missing]"}`);
 console.log(`   shouldBlockEmail() = ${emailBlocked}`);
 console.log(
   emailBlocked
-    ? "   ✓ default block (set INT_MAILEROO_API_KEY + INT_EMAIL_ALLOWLIST to send to allowlisted addresses)\n"
-    : "   ✓ INT mail configured; sendMail still allowlists each recipient and never uses MAILEROO_API_KEY\n",
+    ? "   ✓ default block (set INT_MAILEROO_API_KEY + INT_EMAIL_CATCHALL to redirect every send)\n"
+    : "   ✓ INT mail configured; sendMail rewrites every To to the catch-all and never uses MAILEROO_API_KEY\n",
 );
 
 // Test 5: Payment blocking

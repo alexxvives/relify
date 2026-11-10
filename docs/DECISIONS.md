@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round S2 INT email catch-all
+
+INT mail no longer uses `INT_EMAIL_ALLOWLIST`. On INT, `sendMail` sends only when `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_CATCHALL` (one address) are set. Every message, including team alerts, is rewritten to that catch-all: original recipient never in To/CC/BCC, subject `[INT → <original>] `, body banner `Email de INT. Destinatario original: <email> (<role>, <tag>)`, Reply-To the catch-all. Missing either var logs `INT BLOCKED`. Prod path unchanged. Documented in `docs/INT.md`.
+
 ## 2026-11-10 — Round S `/valorar` request + INT email allowlist
 
 `/valorar` step 1 (VALORAR.md): persist `ValuationRequest` (CIF + contact, optional phone, optional linked `userId`) via additive migration `20261110220000_valuation_request`. Team alert tag `valuation-request`, confirmation tag `valuation-request-confirmation`. Admin list at `/admin/valoraciones`. Valuations stay off Checkout.

@@ -22,12 +22,12 @@ Sitemap includes `/valorar`. Footer “Mercado” links here.
 
 ## INT
 
-The save path is live. Mail follows the INT allowlist (`docs/INT.md`): without `INT_MAILEROO_API_KEY` + `INT_EMAIL_ALLOWLIST`, `sendMail` logs `INT BLOCKED` and the row still lands.
+The save path is live. Mail follows the INT catch-all (`docs/INT.md`): without `INT_MAILEROO_API_KEY` + `INT_EMAIL_CATCHALL`, `sendMail` logs `INT BLOCKED` and the row still lands.
 
 ## Target flow
 
 1. **Request lands in admin + email to info@itsrelify.com** — **shipped in Round S.**  
-   Persist `ValuationRequest`. Team alert + requester confirmation. Admin list at `/admin/valoraciones`. INT mail uses the allowlist, not a hard block.
+   Persist `ValuationRequest`. Team alert + requester confirmation. Admin list at `/admin/valoraciones`. INT mail uses the catch-all, not a hard block.
 
 2. **Admin uploads SABI for that company**  
    Reuse `sabiImport` against a draft `Project` created from the request (codename anonymous, legal name/CIF from the Excel). Do not publish it. Link `valuation_request.projectId`. INT already blocks document uploads; keep that and let admin paste/upload only on prod, or allow INT Excel the same way SABI import already works for admins.  

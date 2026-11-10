@@ -23,11 +23,11 @@ E2E_ADMIN_PASSWORD=
 
 Without those variables, public specs still run; seller/buyer/advisor/admin specs **skip**.
 
-Do **not** set `E2E_ALLOW_MUTATION=1` unless you intend to write a waitlist or valuation row (and possibly send mail if INT allowlist is set). Default specs only fill or load forms.
+Do **not** set `E2E_ALLOW_MUTATION=1` unless you intend to write a waitlist or valuation row (and possibly send mail if the INT catch-all is set). Default specs only fill or load forms.
 
 ## INT
 
-Point at the INT Worker. INT still blocks Stripe and uploads. Email sends only when `INT_MAILEROO_API_KEY` and `INT_EMAIL_ALLOWLIST` are set (`docs/INT.md`); otherwise `sendMail` logs `INT BLOCKED`. Use INT test accounts from the operator store, never commit them.
+Point at the INT Worker. INT still blocks Stripe and uploads. Email sends only when `INT_MAILEROO_API_KEY` and `INT_EMAIL_CATCHALL` are set (`docs/INT.md`); otherwise `sendMail` logs `INT BLOCKED`. Use INT test accounts from the operator store, never commit them.
 
 ```
 E2E_BASE_URL=https://<releva-int-host>

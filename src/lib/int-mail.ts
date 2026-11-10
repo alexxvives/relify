@@ -1,40 +1,16 @@
-import { SABI_NOTIFY_TO } from "./sabi-request-email";
+import { escapeHtml } from "./email/layout";
 
 const MIN_KEY_LENGTH = 10;
+const TEAM_ALERT_ADDRESS = "info@itsrelify.com";
+const emailPattern = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
-export function parseIntEmailAllowlist(raw: string | undefined | null): string[] {
-  if (typeof raw !== "string" || raw.trim().length === 0) {
-    return [];
-  }
+export type IntRecipientRole = "equipo" | "usuario";
 
-  return raw
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter((entry) => entry.length > 0);
-}
-
-export function emailMatchesAllowlist(email: string, allowlist: string[]): boolean {
-  const address = email.trim().toLowerCase();
-  const at = address.lastIndexOf("@");
-  if (at <= 0 || at === address.length - 1) {
+function isSingleEmail(value: string): boolean {
+  if (value.includes(",") || value.includes(";")) {
     return false;
   }
-
-  const domain = address.slice(at + 1);
-  return allowlist.some((entry) => {
-    if (entry.startsWith("@")) {
-      return domain === entry.slice(1);
-    }
-    return address === entry;
-  });
-}
-
-export function firstAllowlistedAddress(allowlist: string[]): string | null {
-  return allowlist.find((entry) => entry.includes("@") && !entry.startsWith("@")) ?? null;
-}
-
-export function isTeamInbox(email: string): boolean {
-  return email.trim().toLowerCase() === SABI_NOTIFY_TO;
+  return emailPattern.test(value) && value.length <= 254;
 }
 
 /** INT Maileroo key only. Never reads MAILEROO_API_KEY. */
@@ -43,51 +19,77 @@ export function intMailerooKey(env: NodeJS.ProcessEnv = process.env): string | n
   return typeof value === "string" && value.length > MIN_KEY_LENGTH ? value : null;
 }
 
-export function intMailConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  return intMailerooKey(env) !== null && parseIntEmailAllowlist(env.INT_EMAIL_ALLOWLIST).length > 0;
+/** One exact address. Lists, blanks, and malformed values are treated as missing. */
+export function intEmailCatchall(env: NodeJS.ProcessEnv = process.env): string | null {
+  const raw = env.INT_EMAIL_CATCHALL;
+  if (typeof raw !== "string") {
+    return null;
+  }
+  const address = raw.trim().toLowerCase();
+  if (!isSingleEmail(address)) {
+    return null;
+  }
+  return address;
 }
 
-export function prefixIntSubject(subject: string): string {
+export function intMailConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return intMailerooKey(env) !== null && intEmailCatchall(env) !== null;
+}
+
+export function intRecipientRole(originalTo: string): IntRecipientRole {
+  return originalTo.trim().toLowerCase() === TEAM_ALERT_ADDRESS ? "equipo" : "usuario";
+}
+
+export function prefixIntSubject(subject: string, originalTo: string): string {
+  const dest = originalTo.trim();
+  const prefix = `[INT → ${dest}] `;
   const trimmed = subject.trim();
-  if (trimmed.startsWith("[INT]")) {
+  if (trimmed.startsWith("[INT → ")) {
     return trimmed;
   }
-  return `[INT] ${trimmed}`;
+  return `${prefix}${trimmed}`;
+}
+
+export function intMailBanner(originalTo: string, role: IntRecipientRole, tag: string): {
+  text: string;
+  html: string;
+} {
+  const line = `Email de INT. Destinatario original: ${originalTo.trim()} (${role}, ${tag})`;
+  return {
+    text: `${line}\n\n`,
+    html: `<div role="note" style="margin:0 0 16px;padding:12px 16px;border-radius:10px;background:#fff4d6;color:#8a6112;font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${escapeHtml(line)}</div>`,
+  };
+}
+
+export function applyIntCatchallBody(
+  html: string,
+  text: string,
+  banner: { html: string; text: string },
+): { html: string; text: string } {
+  const withBanner = /<body[^>]*>/i.test(html)
+    ? html.replace(/<body([^>]*)>/i, `<body$1>${banner.html}`)
+    : `${banner.html}${html}`;
+  return { html: withBanner, text: `${banner.text}${text}` };
 }
 
 export type IntMailDecision =
-  | { send: true; to: string }
+  | { send: true; to: string; originalTo: string }
   | { send: false; to: string; reason: string };
 
 /**
- * On INT, send only when the INT Maileroo key is present and every recipient
- * matches INT_EMAIL_ALLOWLIST. Team inbox (info@) is redirected to the first
- * exact allowlisted address and is never a destination.
+ * On INT, every message is rewritten to INT_EMAIL_CATCHALL when the INT Maileroo
+ * key is also present. The original address is never a To/CC/BCC destination.
  */
 export function decideIntMail(to: string, env: NodeJS.ProcessEnv = process.env): IntMailDecision {
-  const allowlist = parseIntEmailAllowlist(env.INT_EMAIL_ALLOWLIST);
+  const originalTo = to.trim();
   const key = intMailerooKey(env);
-  let dest = to.trim();
-
-  if (isTeamInbox(dest)) {
-    const redirect = firstAllowlistedAddress(allowlist);
-    if (!redirect) {
-      return { send: false, to: dest, reason: "no allowlisted address for team inbox" };
-    }
-    dest = redirect;
-  }
+  const catchall = intEmailCatchall(env);
 
   if (!key) {
-    return { send: false, to: dest, reason: "missing INT_MAILEROO_API_KEY" };
+    return { send: false, to: originalTo, reason: "missing INT_MAILEROO_API_KEY" };
   }
-  if (allowlist.length === 0) {
-    return { send: false, to: dest, reason: "empty INT_EMAIL_ALLOWLIST" };
+  if (!catchall) {
+    return { send: false, to: originalTo, reason: "missing INT_EMAIL_CATCHALL" };
   }
-  if (isTeamInbox(dest)) {
-    return { send: false, to: dest, reason: "never info@" };
-  }
-  if (!emailMatchesAllowlist(dest, allowlist)) {
-    return { send: false, to: dest, reason: "recipient not allowlisted" };
-  }
-  return { send: true, to: dest };
+  return { send: true, to: catchall, originalTo };
 }

@@ -21,9 +21,8 @@ export function assertUploadsEnabled(): void {
 }
 
 /**
- * INT still fail-closed until Alex sets INT_MAILEROO_API_KEY and INT_EMAIL_ALLOWLIST.
- * Per-recipient gating lives in sendMail / decideIntMail: even when this is false,
- * a destination that is not on the allowlist is logged as INT BLOCKED.
+ * INT still fail-closed until Alex sets INT_MAILEROO_API_KEY and INT_EMAIL_CATCHALL.
+ * When both are set, sendMail still rewrites every To to the catch-all.
  */
 export function shouldBlockEmail(): boolean {
   if (!isIntEnvironment()) {

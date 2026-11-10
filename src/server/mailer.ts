@@ -1,6 +1,13 @@
 import type { RenderedEmail } from "@/lib/email/layout";
 import { isIntEnvironment } from "../lib/int-env";
-import { decideIntMail, intMailerooKey, prefixIntSubject } from "../lib/int-mail";
+import {
+  applyIntCatchallBody,
+  decideIntMail,
+  intMailBanner,
+  intMailerooKey,
+  intRecipientRole,
+  prefixIntSubject,
+} from "../lib/int-mail";
 import { sanitizeMailHeader } from "../lib/mail-header";
 
 /** People hear from this address. Team alerts do not: those are the inbox writing to itself. */
@@ -31,6 +38,8 @@ export type OutgoingMail = RenderedEmail & {
   to: string;
   /** Short tag for logs and Maileroo tags, e.g. "password-reset". Never personal data. */
   tag: string;
+  /** Defaults to the team inbox. INT catch-all mail sets this to INT_EMAIL_CATCHALL. */
+  replyTo?: string;
 };
 
 type SendEmailBinding = {
@@ -98,13 +107,14 @@ async function viaMaileroo(
   mail: OutgoingMail,
 ): Promise<string | null | false> {
   const from = senderFor(mail.to);
+  const replyTo = mail.replyTo?.trim() || TEAM_INBOX;
   const response = await fetch(MAILEROO_URL, {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key },
     body: JSON.stringify({
       from: { address: from.address, display_name: from.name },
       to: { address: sanitizeMailHeader(mail.to) },
-      reply_to: { address: TEAM_INBOX, display_name: "Relify" },
+      reply_to: { address: sanitizeMailHeader(replyTo), display_name: "Relify" },
       subject: sanitizeMailHeader(mail.subject),
       html: mail.html,
       plain: mail.text,
@@ -139,7 +149,17 @@ export async function sendMail(mail: OutgoingMail): Promise<MailResult> {
       console.log(`[mail] INT BLOCKED - would send: ${mail.tag}`);
       return { status: "skipped", transport: null, referenceId: null };
     }
-    outgoing = { ...mail, to: decision.to, subject: prefixIntSubject(mail.subject) };
+    const role = intRecipientRole(decision.originalTo);
+    const banner = intMailBanner(decision.originalTo, role, mail.tag);
+    const body = applyIntCatchallBody(mail.html, mail.text, banner);
+    outgoing = {
+      ...mail,
+      to: decision.to,
+      replyTo: decision.to,
+      subject: prefixIntSubject(mail.subject, decision.originalTo),
+      html: body.html,
+      text: body.text,
+    };
   }
 
   if (!isEmail(outgoing.to)) {

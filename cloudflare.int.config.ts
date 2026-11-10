@@ -9,7 +9,7 @@ import { bindings, defineConfig, defineWorker } from "cf/config";
  * - Separate auth secret (INT_BETTER_AUTH_SECRET)
  * - NO production routes or domains
  * - Sandbox/disabled payments
- * - Outbound mail only via INT_MAILEROO_API_KEY + INT_EMAIL_ALLOWLIST (never the prod key, never info@)
+ * - Outbound mail only via INT_MAILEROO_API_KEY + INT_EMAIL_CATCHALL (never the prod key, never the original To)
  * - Prominent INT badge and noindex
  */
 export default defineConfig({
