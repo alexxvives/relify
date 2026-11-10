@@ -206,6 +206,11 @@ export type InvestorProjectProfile = {
   photos?: { id: string; hidden: boolean }[];
   /** t69: closed years as plain numbers for the visual report (same data as the tables above, oldest first). */
   reportYears?: SabiYear[];
+  /**
+   * Pre-NDA payload: year rows are invented placeholders. Header cards must still read the published
+   * `revenueCents` / `ebitdaCents` / `adjustedEbitdaCents` columns, not those years.
+   */
+  figuresVeiled?: boolean;
 };
 
 type InvestorProjectRecord = {

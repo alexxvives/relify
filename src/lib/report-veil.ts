@@ -2,6 +2,7 @@ import { figureVeilCapital, figureVeilCents, figureVeilClient, figureVeilProduct
 import type { InvestorProjectProfile } from "./investor-project";
 import type { SabiYear } from "./sabi/insights";
 import { adjustmentsForBuyer } from "./ebitda-adjustments";
+import { reportHeadline } from "./company-report";
 
 /**
  * t91: the locked (pre-NDA) ficha renders the SAME sections, blocks and order as after the NDA, so it is
@@ -101,23 +102,21 @@ function overlayFromYears(
 }
 
 /**
- * Same shape as the profile, invented locked figures. Header cards, narrative and year rows all read the
- * veiled years so they cannot disagree (asking price and deal terms stay as they are).
+ * Invented year rows and slices for the blurred body. Published header cards (facturación, EBITDA,
+ * precio) keep `reportHeadline` so a buyer never sees 1 M / 180 k unblurred while /mercado shows 5 M / 750 k.
  */
 export function veilReportFigures(project: InvestorProjectProfile): InvestorProjectProfile {
+  const published = reportHeadline(project);
   const reportYears = project.reportYears ? veilYears(project.reportYears) : project.reportYears;
   const years = reportYears ?? [];
-  const last = years.at(-1);
-  const ebitdaCents = last?.ebitdaCents ?? Math.round(figureVeilCents * 0.18);
   return {
     ...project,
     reportYears,
-    revenueCents: last?.revenueCents ?? figureVeilCents,
-    ebitdaCents,
-    // Locked view has no adjustment list; a copied ebitda→adjusted figure would look like a legacy "EBITDA aj.".
-    adjustedEbitdaCents: 0,
-    ebitdaAdjustments: null,
-    ebitdaMarginBp: null,
+    revenueCents: published.revenueCents,
+    ebitdaCents: published.ebitdaCents,
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments: project.ebitdaAdjustments,
+    figuresVeiled: true,
     incomeRows: project.incomeRows.map((row, index) => ({
       ...row,
       values: overlayFromYears(row.values, project.incomeYears, years, incomeFromYear[row.key], index),

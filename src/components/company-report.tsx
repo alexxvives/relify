@@ -161,8 +161,8 @@ function ReportSection({
 }
 
 /**
- * t91: children are already built from invented figures (veilReportFigures) when locked, so the block keeps
- * exactly its post-NDA layout and is only blurred and greyed under the overlay.
+ * t91: children are invented year rows (veilReportFigures) when locked. The block stays
+ * blurred, greyed, aria-hidden and inert so screen readers do not treat placeholders as the listing.
  */
 function LockedFigures({ open, kind, note, action = null, children }: { open: boolean; kind: VeilKind; note: string; action?: ReactNode; children: ReactNode }) {
   if (open) {
@@ -698,7 +698,9 @@ export function CompanyReport({
   /** t83: seller's own preview: "Sin definir" price and an empty "Qué vende y a quién" with a fill action. */
   sellerPreview?: { mixAction: ReactNode } | null;
 }) {
-  // t91: locked = the same report built from invented figures (same shape), blurred under the lock overlay.
+  // t91: locked = invented year rows behind the blur. Header cards always read the published headline
+  // (same figures as /mercado), never the veil placeholders.
+  const headline = reportHeadline(realProject);
   const project = figuresOpen ? realProject : veilReportFigures(realProject);
   const registry = registryForRole(fullRegistry, role);
   const buyerView = role === "buyer" ? buyerRegistry : null;
@@ -707,7 +709,6 @@ export function CompanyReport({
   const facts = role === "admin" ? privateFacts : null;
   const years = reportSourceYears(project.reportYears);
   const hasYears = years.length > 0;
-  const headline = reportHeadline(project);
   // t84: seller gallery; hidden (moderated) photos only reach admin.
   const galleryPhotos = (project.photos ?? []).filter((photo) => role === "admin" || !photo.hidden);
   // t84: collapsed section headers show the period covered (no figures, so nothing locked leaks).
@@ -760,6 +761,8 @@ export function CompanyReport({
       })
     : null;
   const cashConversion = lastYear ? ebitdaToCashConversion(lastYear, previousYear) : null;
+  const publicLeverage = figuresOpen ? leverage : null;
+  const publicCashConversion = figuresOpen ? cashConversion : null;
   const operating = sellerOperatingFigures(years);
   const summary = reportSummaryMarked(years, leverageHeadline);
   const flags = reportFlags(years, leverageHeadline);
@@ -814,7 +817,7 @@ export function CompanyReport({
   const about = businessAbout(project, role === "admin" ? registryActivity : null);
   const composition = balanceComposition(years);
   const checks = diligenceChecks(years, fullRegistry?.audits ?? [], project.audited === true);
-  const deal = dealReading(project, years.length > 0);
+  const deal = dealReading(realProject, reportSourceYears(realProject.reportYears).length > 0);
 
   const sections = [
     { id: "resumen", label: companyReportCopy.summary },
@@ -917,26 +920,26 @@ export function CompanyReport({
             value={saleReasonText(project.saleReason)}
             hint="Motivo de venta indicado por el vendedor."
           />
-          {leverage && (leverage.primaryTimes !== null || leverage.ns) ? (
+          {publicLeverage && (publicLeverage.primaryTimes !== null || publicLeverage.ns) ? (
             <Kpi
-              label={leverage.primaryLabel}
-              value={leverage.ns || leverage.primaryTimes === null ? notSignificant : `${decimal2.format(leverage.primaryTimes)}x`}
+              label={publicLeverage.primaryLabel}
+              value={publicLeverage.ns || publicLeverage.primaryTimes === null ? notSignificant : `${decimal2.format(publicLeverage.primaryTimes)}x`}
               hint={
-                leverage.secondaryTimes !== null
-                  ? `${leverage.primaryLabel}: deuda neta ÷ EBITDA aj. del último año cerrado. ${leverage.secondaryLabel}: ${decimal2.format(leverage.secondaryTimes)}x.`
+                publicLeverage.secondaryTimes !== null
+                  ? `${publicLeverage.primaryLabel}: deuda neta ÷ EBITDA aj. del último año cerrado. ${publicLeverage.secondaryLabel}: ${decimal2.format(publicLeverage.secondaryTimes)}x.`
                   : "Deuda neta ÷ EBITDA del último año cerrado. Solo se calcula con EBITDA positivo."
               }
               sub={
-                leverage.secondaryTimes !== null ? (
-                  <span title={leverage.secondaryLabel ?? undefined}>Cuentas {decimal2.format(leverage.secondaryTimes)}x</span>
+                publicLeverage.secondaryTimes !== null ? (
+                  <span title={publicLeverage.secondaryLabel ?? undefined}>Cuentas {decimal2.format(publicLeverage.secondaryTimes)}x</span>
                 ) : null
               }
             />
           ) : null}
-          {cashConversion ? (
+          {publicCashConversion ? (
             <Kpi
               label="Conversión EBITDA a caja"
-              value={cashConversion.ns || cashConversion.ratio === null ? notSignificant : `${decimal.format(cashConversion.ratio * 100)} %`}
+              value={publicCashConversion.ns || publicCashConversion.ratio === null ? notSignificant : `${decimal.format(publicCashConversion.ratio * 100)} %`}
               hint="Aproximada: (EBITDA − variación de NOF − capex aproximado) ÷ EBITDA, último año cerrado. n/s si el EBITDA no es positivo."
               sub={<span>aproximada</span>}
             />

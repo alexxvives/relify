@@ -259,6 +259,50 @@ describe("buyer and seller Resumen", () => {
     expect(reportSummary(reportSourceYears(seller.reportYears))[0]).toContain("5 M €");
     expect(reportSummary(reportSourceYears(buyer.reportYears))[0]).not.toContain("620");
   });
+
+  it("pre-NDA buyer cards match seller preview and marketplace published figures", () => {
+    const years = [
+      year({ year: 2023, revenueCents: 420_000_000, ebitdaCents: 68_000_000 }),
+      year({ year: 2024, revenueCents: 500_000_000, ebitdaCents: 75_000_000 }),
+    ];
+    const seller = {
+      slug: "int-empresa-tecnologia",
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 80_000_000,
+      askingPriceCents: 2_000_000_00,
+      ebitdaAdjustments: [
+        { id: "legacy-1", type: "one_off", amountCents: 5_000_000, reason: "Extra", status: "approved", documentId: null, documentName: null },
+        { id: "legacy-0", type: "owner_salary", amountCents: 100_000_100, reason: "Sueldo", status: "pending", documentId: null, documentName: null },
+      ],
+      reportYears: years,
+      incomeYears: [],
+      incomeRows: [],
+      balanceRows: [],
+      capital: [],
+      products: [],
+      clients: [],
+      secondaryCnaes: [],
+    } as unknown as Parameters<typeof buyerProjectView>[0];
+    const sellerHeadline = reportHeadline(seller);
+    const mercado = {
+      revenueCents: seller.revenueCents,
+      ebitdaCents: seller.ebitdaCents,
+      adjustedEbitdaCents: sellerHeadline.adjustedEbitdaCents,
+    };
+    const buyerLocked = buyerProjectView(seller, false);
+    const buyerCards = reportHeadline(buyerLocked);
+    expect(buyerCards.revenueCents).toBe(sellerHeadline.revenueCents);
+    expect(buyerCards.ebitdaCents).toBe(sellerHeadline.ebitdaCents);
+    expect(buyerCards.adjustedEbitdaCents).toBe(sellerHeadline.adjustedEbitdaCents);
+    expect(buyerCards.revenueCents).toBe(mercado.revenueCents);
+    expect(buyerCards.ebitdaCents).toBe(mercado.ebitdaCents);
+    expect(buyerCards.adjustedEbitdaCents).toBe(mercado.adjustedEbitdaCents);
+    expect(buyerCards.revenueCents).toBe(500_000_000);
+    expect(buyerCards.adjustedEbitdaCents).toBe(80_000_000);
+    expect(JSON.stringify(buyerLocked.reportYears)).not.toContain("500000000");
+    expect(reportSummary(reportSourceYears(buyerLocked.reportYears))[0]).not.toContain("5 M €");
+  });
 });
 
 describe("summary bold segments", () => {

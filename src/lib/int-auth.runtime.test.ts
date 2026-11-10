@@ -387,17 +387,19 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
     const year = {
       ...figureVeilYears()[0]!,
       year: 2024,
-      revenueCents: 777_111_01,
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
       cashCents: 333_222_01,
     };
     const project = {
       slug: "int-consultoria-servicios",
       codename: "INT Manual",
-      revenueCents: 1_000_00,
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
       askingPriceCents: 2_000_00,
       ebitdaAdjustments: [{ type: "other", amountCents: 5_000_00, reason: "Motivo secreto" }],
       reportYears: [year],
-      incomeRows: [{ label: "Ventas", values: [777_111_01, null] }],
+      incomeRows: [{ label: "Ventas", values: [500_000_000, null] }],
       balanceRows: [{ label: "Caja", values: [333_222_01, null] }],
       capital: [],
       products: [],
@@ -406,8 +408,9 @@ describe.skipIf(!databaseUrl)("Better Auth sign-in and authorization (local PG)"
     } as unknown as Parameters<typeof buyerProjectView>[0];
 
     const veiled = JSON.stringify(buyerProjectView(project, false));
-    expect(veiled).not.toContain("77711101");
+    expect(veiled).not.toContain("33322201");
     expect(veiled).not.toContain("Motivo secreto");
+    expect(veiled).toContain("500000000");
     const open = JSON.stringify(buyerProjectView(project, true));
     expect(open).toContain("Motivo secreto");
   });

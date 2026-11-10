@@ -2,9 +2,13 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round R2 pre-NDA cards stay published
+
+Visible pre-NDA Resumen cards (facturación, EBITDA / EBITDA aj. when approved, precio, ROI) read `reportHeadline` from the published columns, identical to the seller preview and `/mercado` card. Veil placeholders stay only in content rendered behind the blur (`aria-hidden` / `inert`). DFN/EBITDA and conversión a caja are not public: they sit in that locked block until the NDA. `figuresVeiled` tells `reportHeadline` not to take revenue/EBITDA from the invented years.
+
 ## 2026-11-10 — Round R Resumen source, pending EBITDA, sign-in
 
-Resumen cards, narrative and ratios all read `reportHeadline`: last closed `reportYears` row plus approved EBITDA adjustments. Pending or oversized (amount > that year's sales) rows never change the published figure; the stored `adjustedEbitdaCents` column is ignored whenever a list exists. The seller form JSON keeps each row's `status` so a pending owner_salary cannot be previewed as approved. Pre-NDA `veilReportFigures` also copies veiled year sales/EBITDA into the header KPIs and statement rows so the locked ficha cannot mix real 5 M cards with invented 620 k prose. Sign-in still uses the server action; the submit button only shows “Entrando…” after client hydration.
+Resumen cards, narrative and ratios all read `reportHeadline`: last closed `reportYears` row plus approved EBITDA adjustments. Pending or oversized (amount > that year's sales) rows never change the published figure; the stored `adjustedEbitdaCents` column is ignored whenever a list exists. The seller form JSON keeps each row's `status` so a pending owner_salary cannot be previewed as approved. Sign-in still uses the server action; the submit button only shows “Entrando…” after client hydration.
 
 ## 2026-11-10 — Round Q Playwright E2E and pre-launch hardening
 

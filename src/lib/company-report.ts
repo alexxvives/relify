@@ -53,8 +53,9 @@ export type ReportHeadline = {
 };
 
 /**
- * One source for seller and buyer Resumen cards: last closed year + approved adjustments.
- * Pending or oversized rows never change the headline. Falls back to project columns only when there are no years.
+ * One source for seller, buyer and marketplace cards: last closed year + approved adjustments.
+ * Pending or oversized rows never change the headline. Falls back to project columns when there are no
+ * years, or when `figuresVeiled` is set (pre-NDA year rows are placeholders; columns stay published).
  */
 export function reportHeadline(project: {
   revenueCents: number;
@@ -62,9 +63,10 @@ export function reportHeadline(project: {
   adjustedEbitdaCents: number;
   ebitdaAdjustments: EbitdaAdjustment[] | null | unknown;
   reportYears?: SabiYear[] | null;
+  figuresVeiled?: boolean;
 }): ReportHeadline {
   const years = reportSourceYears(project.reportYears);
-  const last = years.at(-1);
+  const last = project.figuresVeiled === true ? undefined : years.at(-1);
   const revenueCents = last?.revenueCents ?? project.revenueCents;
   const ebitdaCents = last?.ebitdaCents ?? project.ebitdaCents;
   const published = publishedEbitdaFromAdjustments(
