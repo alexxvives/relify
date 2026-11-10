@@ -74,6 +74,6 @@ Do not invent a new hex. Match the surface you are editing.
 ## Product-specific rules
 
 - **Confidential figures.** Keep the blurred `999.999,00 €` placeholders exactly as they are for locked data.
-- **AI imagery.** Sector default pictures in `public/sectors/` are AI-generated and generic. Wherever one is shown instead of the company's own photo, render `AiImageTag` ("Imagen generada con IA") so nobody mistakes it for the real business.
+- **AI imagery.** Sector default pictures in `public/sectors/` are AI-generated and generic. Do not overlay “Foto de referencia” or similar tags on those images.
 - **Plans.** Pricing cards are incremental: paid plans start with "Todo lo de X, más:" and list only what they add.
 - **Money copy.** Show prices with "+ IVA" or the gross "con IVA" figure next to the net one.

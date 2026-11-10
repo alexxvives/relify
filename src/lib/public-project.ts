@@ -23,8 +23,10 @@ export type PublicProjectCard = {
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
-  /** True when the seller saved EBITDA adjustments. The card then shows EBITDA aj. */
+  /** True when an admin has accepted at least one EBITDA adjustment. The card then shows EBITDA aj. */
   hasAdjustments?: boolean;
+  /** True when a row is still waiting for Relify. The card keeps reported EBITDA and says "Ajuste en revisión". */
+  hasPendingAdjustments?: boolean;
   askingPriceCents: number;
   coverSrc?: string | null;
   sectorKey?: SectorImageKey;

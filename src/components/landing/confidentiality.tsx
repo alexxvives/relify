@@ -8,14 +8,16 @@ export function Confidentiality() {
   return (
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
-        <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-        <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 max-w-3xl sm:mt-3">
-          {copy.heading}
-        </h2>
-        <p className="mt-3 max-w-2xl text-[16px] leading-7 text-public-muted sm:mt-4">{copy.intro}</p>
+        <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-3xl lg:text-left">
+          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
+          <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
+            {copy.heading}
+          </h2>
+          <p className="mt-3 text-[16px] leading-7 text-public-muted sm:mt-4">{copy.intro}</p>
+        </div>
         <div className="mt-5 grid gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-3">
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
-            <div className="releva-float hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
+            <div className="releva-float hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <div className="space-y-2" aria-hidden="true">
                 <div className="h-2 w-2/3 rounded-full bg-public-line" />
                 <div className="h-2 w-full rounded-full bg-public-sand" />
@@ -35,7 +37,7 @@ export function Confidentiality() {
             <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.privacyBody}</p>
           </article>
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
-            <div className="releva-toast hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
+            <div className="releva-toast hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <p className="text-xs text-public-muted">Ejemplo</p>
               <p className="mt-1 font-medium text-public-ink">{copy.toastTitle}</p>
               <p className="text-sm text-public-muted">{copy.toastBody}</p>
@@ -54,7 +56,7 @@ export function Confidentiality() {
             <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.namesBody}</p>
           </article>
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
-            <div className="releva-float-late hidden rounded-2xl bg-white p-4 shadow-sm sm:block">
+            <div className="releva-float-late hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <p className="text-sm font-medium text-public-ink">{copy.ndaFile}</p>
               <div className="mt-3 space-y-2" aria-hidden="true">
                 <div className="h-2 w-full rounded-full bg-public-sand" />

@@ -63,8 +63,8 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
-import { ebitdaPublishable, projectHasAdjustments } from "@/lib/seller-draft-guard";
-import { headlineEbitdaMargin } from "@/lib/financial-metrics";
+import { ebitdaPublishable, projectHasAdjustments, projectHasPendingAdjustments } from "@/lib/seller-draft-guard";
+import { headlineEbitda, headlineEbitdaMargin } from "@/lib/financial-metrics";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { AdjustmentReview } from "@/components/adjustment-review";
 import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
@@ -390,9 +390,16 @@ function teamSummary(years: SabiYear[], staff: Metric[]): string | null {
 /** t70: how to read the deal block. Price, reason and adjustments come from the seller; the multiple is computed when price and a positive EBITDA exist. */
 function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
   const priceSet = project.askingPriceCents > 0;
-  const adjustedSet = project.adjustedEbitdaCents !== 0 || project.ebitdaCents === 0;
-  const multiple = recoveryYears(project.askingPriceCents, project.ebitdaCents);
-  const adjustedMultiple = adjustedSet ? recoveryYears(project.askingPriceCents, project.adjustedEbitdaCents) : null;
+  const approved = projectHasAdjustments(project);
+  const pending = projectHasPendingAdjustments(project);
+  const ebitda = headlineEbitda({
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasApprovedAdjustments: approved,
+    hasPendingAdjustments: pending,
+  });
+  const multiple = recoveryYears(project.askingPriceCents, ebitda.primaryCents);
+  const reportedMultiple = approved ? recoveryYears(project.askingPriceCents, project.ebitdaCents) : null;
   const fmt = (value: number) => `${value.toLocaleString("es-ES", { maximumFractionDigits: 1 })}x`;
   const salesMultiple = priceSet && project.revenueCents > 0 ? project.askingPriceCents / project.revenueCents : null;
 
@@ -403,10 +410,15 @@ function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
     multipleNote = "Falta el precio del vendedor";
   } else if (multiple !== null) {
     multipleText = fmt(multiple);
-    multipleNote = adjustedMultiple !== null && Math.abs(adjustedMultiple - multiple) >= 0.05 ? `${fmt(adjustedMultiple)} sobre EBITDA ajustado` : null;
-  } else if (adjustedMultiple !== null) {
-    multipleText = `${fmt(adjustedMultiple)} ajust.`;
-    multipleNote = "EBITDA contable negativo; calculado sobre el EBITDA ajustado";
+    multipleNote =
+      reportedMultiple !== null && Math.abs(reportedMultiple - multiple) >= 0.05
+        ? `${fmt(reportedMultiple)} sobre EBITDA de las cuentas`
+        : pending
+          ? companyCopy.adjustmentInReview
+          : null;
+  } else if (reportedMultiple !== null) {
+    multipleText = `${fmt(reportedMultiple)} cuentas`;
+    multipleNote = "EBITDA ajustado negativo; calculado sobre el EBITDA de las cuentas";
   } else {
     multipleText = "No aplica";
     multipleNote = `EBITDA negativo${salesMultiple !== null ? `; precio / ventas ${fmt(salesMultiple)}` : ""}`;
@@ -414,10 +426,11 @@ function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
 
   return {
     priceSet,
-    adjustedSet,
+    adjustedSet: approved,
+    pendingReview: pending && !approved,
     multipleText,
     multipleNote,
-    adjustedNote: adjustedSet ? null : "El vendedor aún no ha indicado ajustes (gastos no recurrentes, sueldos de socios…).",
+    adjustedNote: approved || pending ? null : "El vendedor aún no ha indicado ajustes (gastos no recurrentes, sueldos de socios…).",
     figuresSource: (hasSabi ? "sabi" : "seller") as FigureSource,
   };
 }
@@ -705,7 +718,15 @@ export function CompanyReport({
   // t95b: a seller preview or admin view of a company that cannot be published never shows its stored price or ROI.
   // Buyers only reach published companies, and their EBITDA can be veiled, so the check stays off for them.
   const priceBlocked = (sellerPreview !== null || role === "admin") && !ebitdaPublishable(project);
-  const multiple = priceBlocked ? null : recoveryYears(project.askingPriceCents, project.ebitdaCents);
+  const approvedAdjustmentsExist = projectHasAdjustments(project);
+  const pendingAdjustmentsExist = projectHasPendingAdjustments(project);
+  const shownEbitda = headlineEbitda({
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasApprovedAdjustments: approvedAdjustmentsExist,
+    hasPendingAdjustments: pendingAdjustmentsExist,
+  });
+  const multiple = priceBlocked ? null : recoveryYears(project.askingPriceCents, shownEbitda.primaryCents);
   // t83: never "0 €"; the seller sees it as missing, buyers as "A consultar".
   const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
@@ -715,7 +736,7 @@ export function CompanyReport({
     revenueCents: project.revenueCents,
     ebitdaCents: project.ebitdaCents,
     adjustedEbitdaCents: project.adjustedEbitdaCents,
-    hasAdjustments: projectHasAdjustments(project),
+    hasAdjustments: approvedAdjustmentsExist,
   });
   const margin =
     headlineMargin.primaryBp === null ? companyCopy.unavailable : formatBasisPoints(headlineMargin.primaryBp);
@@ -808,10 +829,16 @@ export function CompanyReport({
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`Ingresos del último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
           <Kpi
-            label={companyCopy.ebitdaLabel}
-            value={compactEur(project.ebitdaCents)}
-            tone={project.ebitdaCents < 0 ? "loss" : "ink"}
-            hint={`Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`}
+            label={shownEbitda.primaryLabel === "EBITDA aj." ? companyCopy.adjustedEbitdaLabel : companyCopy.ebitdaLabel}
+            value={compactEur(shownEbitda.primaryCents)}
+            tone={shownEbitda.primaryCents < 0 ? "loss" : "ink"}
+            hint={
+              shownEbitda.pendingReview
+                ? `${companyCopy.adjustmentInReview}. Hasta que Relify acepte el ajuste, el comprador ve el EBITDA de las cuentas: ${formatEur(project.ebitdaCents)}.`
+                : shownEbitda.secondaryCents !== null
+                  ? `EBITDA ajustado por el vendedor: ${formatEur(shownEbitda.primaryCents)}. ${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.`
+                  : `Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`
+            }
             action={
               project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
                 <AdjustmentReview>
@@ -828,14 +855,17 @@ export function CompanyReport({
             }
             sub={
               <>
+                {shownEbitda.pendingReview ? (
+                  <span className="font-medium text-[#b45f06]">{companyCopy.adjustmentInReview}</span>
+                ) : null}
                 <span title={reportedMarginHint ?? undefined}>
                   {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
                 </span>
-                {deal.adjustedSet ? (
-                  <span className="tabular-nums text-[#5c6b78]">
-                    Ajustado{" "}
-                    <span className={`font-semibold ${project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
-                      {compactEur(project.adjustedEbitdaCents)}
+                {shownEbitda.secondaryCents !== null ? (
+                  <span className="tabular-nums text-[#5c6b78]" title={shownEbitda.secondaryLabel ?? undefined}>
+                    {companyCopy.ebitdaLabel}{" "}
+                    <span className={`font-semibold ${project.ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
+                      {compactEur(project.ebitdaCents)}
                     </span>
                   </span>
                 ) : null}
@@ -853,7 +883,15 @@ export function CompanyReport({
                   ? `Precio que pide el vendedor: ${formatEur(project.askingPriceCents)}. ${askingPriceIncludesHint}`
                   : `El vendedor aún no ha indicado precio. ${askingPriceIncludesHint}`
             }
-            sub={multiple !== null ? <RoiChip years={multiple} /> : priceBlocked || project.askingPriceCents > 0 ? null : <span>{priceUnsetNote}</span>}
+            sub={
+              multiple !== null ? (
+                <span title={deal.multipleNote ?? (shownEbitda.primaryLabel === "EBITDA aj." ? "Sobre el EBITDA ajustado" : undefined)}>
+                  <RoiChip years={multiple} />
+                </span>
+              ) : priceBlocked || project.askingPriceCents > 0 ? null : (
+                <span>{priceUnsetNote}</span>
+              )
+            }
           />
           <Kpi
             label={companyCopy.saleReasonLabel}

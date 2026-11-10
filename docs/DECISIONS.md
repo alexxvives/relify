@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round O landing, EBITDA primary, waitlist date
+
+Approved EBITDA adjustments are the primary figure on the marketplace card, ficha Resumen, ROI chip and recommended sort. Pending-only rows keep the accounts EBITDA and show “Ajuste en revisión”. Reported stays in the tooltip. `/archivo` is gone; old URLs 301 to `/`. Waitlist countdown target is 10 January 2027 10:00 Europe/Madrid (was 21 November 2026 10:00). Landing process is a centered desktop two-column (anonymised ficha reveal + steps); horizontal how-it-works cards stay below `lg`. No “Foto de referencia” overlay.
+
 ## 2026-11-10 — Round N formulas, financing, commissions
 
 Seller financing no longer has Negociable: the stored values are `yes` / `no` (leftover `negotiable` is read and written as `yes`). The column is a string, so INT only runs `UPDATE … SET seller_financing = 'yes' WHERE seller_financing = 'negotiable'`. Production can keep leftover rows until Alex applies that UPDATE; the reader stays tolerant.

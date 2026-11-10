@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { source: "/inversor/procesos", destination: "/procesos", permanent: false },
       { source: "/login", destination: "/entrar", permanent: false },
       { source: "/asesor", destination: "/asesores", permanent: false },
+      { source: "/archivo", destination: "/", statusCode: 301 },
     ];
   },
   experimental: {

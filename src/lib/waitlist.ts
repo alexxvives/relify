@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const waitlistOpensAt = "2026-11-21T10:00:00+01:00";
+export const waitlistOpensAt = "2027-01-10T10:00:00+01:00";
 
 export const waitlistRoles = ["company", "investor", "advisor"] as const;
 

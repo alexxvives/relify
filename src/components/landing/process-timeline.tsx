@@ -6,7 +6,7 @@ export function ProcessTimeline({ steps }: { steps: readonly Step[] }) {
   const copy = landingCopy.home.process;
 
   return (
-    <ol className="releva-process-steps mt-6 sm:mt-10">
+    <ol className="releva-process-steps mt-0">
       {steps.map((step) => (
         <li key={step.n} className="releva-process-step">
           <span className="releva-process-num">{step.n}</span>

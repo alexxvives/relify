@@ -645,6 +645,12 @@
   scrollbar-width: none;
 }
 
+@media (min-width: 1024px) {
+  .releva-how-mobile {
+    display: none;
+  }
+}
+
 .releva-offer-snap::-webkit-scrollbar,
 .releva-how-mobile::-webkit-scrollbar {
   display: none;
@@ -661,6 +667,116 @@
   border-radius: 1.15rem;
   background: #fff;
   padding: 0.9rem 1rem;
+}
+
+.releva-ficha-reveal {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .releva-ficha-reveal {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.releva-ficha-card {
+  width: min(100%, 22rem);
+  overflow: hidden;
+  border: 1px solid #dde7ea;
+  border-radius: 1.35rem;
+  background: #fff;
+  box-shadow: 0 24px 60px -32px rgb(28 39 64 / 0.45);
+}
+
+.releva-ficha-cover {
+  position: relative;
+  display: flex;
+  min-height: 8.5rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.1rem 1.15rem 1.15rem;
+  background:
+    linear-gradient(180deg, rgb(12 18 36 / 0.15), rgb(12 18 36 / 0.72)),
+    radial-gradient(120% 100% at 15% 0%, #3a4d86 0%, #1c2a52 46%, #0c1224 100%);
+  color: #fff;
+}
+
+.releva-ficha-legal,
+.releva-ficha-codename {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.releva-ficha-legal {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.15rem;
+  filter: blur(7px);
+  opacity: 0.55;
+  animation: releva-ficha-hide 4.8s ease-in-out infinite;
+}
+
+.releva-ficha-codename {
+  animation: releva-ficha-show 4.8s ease-in-out infinite;
+}
+
+.releva-ficha-place {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.82);
+}
+
+.releva-ficha-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0.9rem 0.75rem 1rem;
+  text-align: center;
+}
+
+.releva-ficha-figures dt {
+  font-size: 0.7rem;
+  color: #667085;
+}
+
+.releva-ficha-figures dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes releva-ficha-hide {
+  0%,
+  18% {
+    opacity: 0.7;
+    filter: blur(0);
+  }
+  38%,
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+@keyframes releva-ficha-show {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  38%,
+  82% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0.92;
+  }
 }
 
 .releva-process-steps {
@@ -2102,6 +2218,8 @@ header:has([data-menu-open="true"]) {
   .releva-hv-spinner,
   .releva-hv-state,
   .releva-hv-day-on,
+  .releva-ficha-legal,
+  .releva-ficha-codename,
   .releva-hero-rise,
   .releva-hero-rise-late,
   .releva-hero-rise-later,
@@ -2120,6 +2238,15 @@ header:has([data-menu-open="true"]) {
 
   .releva-hv-progress-fill {
     transition: none;
+  }
+
+  .releva-ficha-legal {
+    display: none;
+  }
+
+  .releva-ficha-codename {
+    opacity: 1;
+    transform: none;
   }
 }
 

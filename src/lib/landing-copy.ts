@@ -140,7 +140,6 @@ export const landingCopy = {
       {
         title: "Relify",
         links: [
-          { label: "Archivo", href: "/archivo" },
           { label: "Contacto", href: "/contacto" },
           { label: "info@itsrelify.com", href: "mailto:info@itsrelify.com" },
         ],
@@ -219,29 +218,10 @@ export const landingCopy = {
     process: {
       id: "vender",
       kicker: "Empresas",
-      heading: "Vende tu negocio",
-      accent: "sin mostrar la sociedad",
+      heading: "Publica cifras. El nombre, no.",
+      accent: "",
       intro:
-        "Publicas región, cifras y precio con un nombre de proyecto. Tú aceptas a cada comprador. El NDA abre el resto.",
-      bodyParagraphs: [
-        [
-          { text: "Publicas la ficha", emphasis: true },
-          { text: " con región, sector y cifras. Los compradores piden conexión. " },
-          { text: "Tú eliges con quién hablar", emphasis: true },
-          { text: ", sin que la operación se convierta en un anuncio público." },
-        ],
-        [
-          { text: "En la ficha solo salen " },
-          { text: "región, cifras y precio", emphasis: true },
-          { text: ". La razón social, el CIF y los socios " },
-          { text: "siguen fuera", emphasis: true },
-          { text: " hasta que aceptas una conexión y firmas el acuerdo de confidencialidad." },
-        ],
-        [
-          { text: "Relify te avisa cuando llega una solicitud, una reunión o tu turno", emphasis: true },
-          { text: ". El control de la ficha y de quién ve el detalle es tuyo." },
-        ],
-      ],
+        "La ficha sale con región, sector y números, bajo un nombre de proyecto. Tú aceptas a cada comprador. El NDA abre el resto.",
       cta: "Publicar mi empresa",
       ctaHref: "/registro?rol=empresa",
       stepLabel: "Paso",

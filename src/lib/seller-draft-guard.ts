@@ -1,4 +1,4 @@
-import { adjustedEbitdaCents, approvedAdjustments, mergePostedAdjustments, parseEbitdaAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { adjustedEbitdaCents, approvedAdjustments, mergePostedAdjustments, parseEbitdaAdjustments, pendingAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 
 /**
  * t78: what a seller submission may change. Once the company's NIF is verified (stored CIF), the legal name and CIF
@@ -118,6 +118,14 @@ export function projectHasAdjustments(project: { adjustedEbitdaCents: number | b
   }
 
   return false;
+}
+
+/** True when at least one stored row is still waiting for an admin. Does not change the published figure. */
+export function projectHasPendingAdjustments(project: { ebitdaAdjustments: unknown }): boolean {
+  if (!Array.isArray(project.ebitdaAdjustments)) {
+    return false;
+  }
+  return pendingAdjustments(storedEbitdaAdjustments(project.ebitdaAdjustments) ?? []).length > 0;
 }
 
 export function storedPriceBasisCents(project: { ebitdaCents: number | bigint | null; adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): number | null {

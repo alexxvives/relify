@@ -64,7 +64,7 @@ function WaitlistClock() {
   const before = partsLeft(clock.previous ?? now ?? opensAt);
 
   return (
-    <div className="releva-wait-clock" aria-label="Queda un mes para abrir">
+    <div className="releva-wait-clock" aria-label="Cuenta atrás hasta la apertura del marketplace">
       <ol>
         {parts.map((part, index) => (
           <FlipUnit

@@ -8,7 +8,9 @@ import {
   joinAdjustmentAmount,
   splitAdjustmentAmount,
   adjustmentsForBuyer,
+  formRowsFromJson,
   parseEbitdaAdjustments,
+  pendingAdjustments,
   storedEbitdaAdjustments,
   sumEbitdaAdjustments,
 } from "./ebitda-adjustments";
@@ -60,6 +62,7 @@ describe("ebitda adjustments", () => {
     expect(adjustmentsForBuyer(rows, true)).toEqual(rows);
     const pending = storedEbitdaAdjustments([{ id: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f50", type: "other", amountCents: 100, reason: "Nuevo", status: "pending", documentId: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f51", documentName: "soporte.pdf" }]);
     expect(adjustmentsForBuyer(pending, true)).toBeNull();
+    expect(pendingAdjustments(pending ?? []).length).toBe(1);
   });
 
   it("t91: offers 'Otro' again and still requires a justification for every type", () => {
@@ -80,6 +83,13 @@ describe("ebitda adjustments", () => {
     expect(joinAdjustmentAmount("", "income")).toBe("-");
     expect(splitAdjustmentAmount("-", "personal")).toEqual({ direction: "income", amount: "" });
     expect(defaultAdjustmentDirection("one_off_income")).toBe("income");
+  });
+
+  it("treats a form row with no status as approved, matching stored legacy rows", () => {
+    const rows = formRowsFromJson(JSON.stringify([{ type: "other", amount: "500", reason: "Extraordinario" }]));
+    expect(rows[0]?.status).toBe("approved");
+    const pending = formRowsFromJson(JSON.stringify([{ type: "other", amount: "500", reason: "Extraordinario", status: "pending" }]));
+    expect(pending[0]?.status).toBe("pending");
   });
 
   it("t89: reports each invalid field of a row", () => {

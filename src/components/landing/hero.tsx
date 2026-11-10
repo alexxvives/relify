@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AiImageTag } from "@/components/project-photo";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -337,7 +336,6 @@ export function Hero() {
           <article className={`releva-market-float${open.id === "norte" ? " releva-market-float-left" : ""}`} aria-live="polite">
             <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">
               <Image src={sectorImageSrc(open.sectorKey)} alt="" fill sizes="320px" className="object-cover" unoptimized />
-              <AiImageTag />
               <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#0c1224]/70 via-[#0c1224]/20 to-transparent px-3 pt-3 pb-10 text-center">
                 <p className="text-sm font-semibold text-white">{open.deal.codename}</p>
                 <p className="text-xs text-white/85">{open.deal.region}</p>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ebitdaPublishable, lockedIdentity } from "./seller-draft-guard";
+import { ebitdaPublishable, lockedIdentity, projectHasPendingAdjustments } from "./seller-draft-guard";
 
 describe("lockedIdentity (t78)", () => {
   it("keeps the stored legal name and CIF once the NIF is verified", () => {
@@ -113,5 +113,13 @@ describe("t95 ebitdaPublishable", () => {
   });
   it("honours a legacy adjusted value with no list", () => {
     expect(ebitdaPublishable({ ebitdaCents: 500_00, adjustedEbitdaCents: -1, ebitdaAdjustments: null })).toBe(false);
+  });
+});
+
+describe("projectHasPendingAdjustments", () => {
+  it("is true only while a stored row waits for Relify", () => {
+    expect(projectHasPendingAdjustments({ ebitdaAdjustments: [{ type: "other", amountCents: 1, status: "pending" }] })).toBe(true);
+    expect(projectHasPendingAdjustments({ ebitdaAdjustments: [{ type: "other", amountCents: 1, status: "approved" }] })).toBe(false);
+    expect(projectHasPendingAdjustments({ ebitdaAdjustments: null })).toBe(false);
   });
 });

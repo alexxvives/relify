@@ -2,10 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { FaqSection } from "@/components/arc/blocks/faq-section/faq-section";
-import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck } from "lucide-react";
 import { PublicSite } from "@/components/public-site";
 import { PublishMorph } from "@/components/landing/publish-morph";
-import { AiImageTag } from "@/components/project-photo";
 
 const featureTones = [
   { icon: FileSearch, chip: "bg-[#e7f7f4] text-[#0e7c6b]" },
@@ -51,10 +50,7 @@ export function RolePage(props: RolePageProps) {
       <main className="overflow-x-clip bg-public-paper text-public-ink">
         <section className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 pt-8 pb-12 sm:gap-12 sm:px-6 sm:pt-12 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:px-8 lg:pt-20 lg:pb-24">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border border-public-line bg-white/70 px-3 py-1 text-sm text-public-clay">
-              <Sparkles className="size-4" aria-hidden />
-              {kicker}
-            </p>
+            <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{kicker}</p>
             <h1 className="releva-page-title mt-4 text-balance sm:mt-5">{title}</h1>
             <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted sm:mt-6 sm:text-lg sm:leading-relaxed">{lead}</p>
             <div className="mt-6 flex w-full flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
@@ -84,7 +80,6 @@ export function RolePage(props: RolePageProps) {
           <div className="relative min-w-0 sm:pb-16">
             <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] border border-public-line bg-white shadow-public sm:aspect-[4/3] sm:rounded-[2rem]">
               <Image src={photo} alt={photoAlt} fill sizes="(min-width: 1024px) 620px, 100vw" className="object-cover" priority />
-              <AiImageTag />
             </div>
             <div className="absolute -bottom-2 left-4 hidden w-[62%] max-w-[360px] overflow-hidden rounded-2xl border border-public-line bg-white shadow-[0_24px_60px_-28px_rgba(18,52,58,0.55)] sm:left-[-1.5rem] sm:block">
               <Image src={image} alt={imageAlt} width={1440} height={760} sizes="360px" className="h-auto w-full" />

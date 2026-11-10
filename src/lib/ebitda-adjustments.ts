@@ -168,6 +168,11 @@ export function approvedAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAd
   return rows.filter((row) => row.status === "approved");
 }
 
+/** Rows still waiting for Relify. They never change the published EBITDA. */
+export function pendingAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
+  return rows.filter((row) => row.status === "pending");
+}
+
 /**
  * Keeps approval only when the seller did not change the row. A new row, or a change of type, amount, reason, or
  * document, waits for an admin. The client cannot send "approved".
@@ -323,7 +328,7 @@ export function formRowsFromJson(raw: string): EbitdaAdjustmentFormRow[] {
           type,
           amount: typeof row.amount === "string" ? row.amount : "",
           reason: typeof row.reason === "string" ? row.reason : "",
-          status: row.status === "approved" ? "approved" : "pending",
+          status: row.status === "pending" ? "pending" : "approved",
           documentId,
           documentName: typeof row.documentName === "string" ? row.documentName : "",
         },

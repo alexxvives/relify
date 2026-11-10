@@ -3,6 +3,7 @@ import type { SabiYear } from "./sabi/insights";
 import {
   cashRunway,
   fichaClosedYearCount,
+  headlineEbitda,
   headlineEbitdaMargin,
   interestCoverageIsNs,
   latestClosedYears,
@@ -124,6 +125,33 @@ describe("headlineEbitdaMargin", () => {
     expect(margin.primaryLabel).toBe("Margen EBITDA");
     expect(margin.primaryBp).toBe(1000);
     expect(margin.secondaryBp).toBeNull();
+  });
+});
+
+describe("headlineEbitda", () => {
+  it("makes approved adjusted EBITDA the primary figure", () => {
+    const shown = headlineEbitda({
+      ebitdaCents: 310_000_00,
+      adjustedEbitdaCents: 340_000_00,
+      hasApprovedAdjustments: true,
+      hasPendingAdjustments: false,
+    });
+    expect(shown.primaryCents).toBe(340_000_00);
+    expect(shown.primaryLabel).toBe("EBITDA aj.");
+    expect(shown.secondaryCents).toBe(310_000_00);
+    expect(shown.pendingReview).toBe(false);
+  });
+
+  it("keeps reported EBITDA when an adjustment is still in review", () => {
+    const shown = headlineEbitda({
+      ebitdaCents: 310_000_00,
+      adjustedEbitdaCents: 310_000_00,
+      hasApprovedAdjustments: false,
+      hasPendingAdjustments: true,
+    });
+    expect(shown.primaryCents).toBe(310_000_00);
+    expect(shown.primaryLabel).toBe("EBITDA");
+    expect(shown.pendingReview).toBe(true);
   });
 });
 

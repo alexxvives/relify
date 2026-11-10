@@ -97,3 +97,40 @@ export function headlineEbitdaMargin(input: {
     secondaryBp: reported,
   };
 }
+
+export type HeadlineEbitda = {
+  primaryCents: number;
+  primaryLabel: "EBITDA" | "EBITDA aj.";
+  secondaryCents: number | null;
+  secondaryLabel: string | null;
+  /** Pending rows and no approved ones: reported stays primary, with this flag for the chip. */
+  pendingReview: boolean;
+};
+
+/**
+ * Approved adjustments become the primary EBITDA everywhere (card, Resumen, ROI).
+ * Pending-only stays on the accounts figure and surfaces "Ajuste en revisión".
+ */
+export function headlineEbitda(input: {
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  hasApprovedAdjustments: boolean;
+  hasPendingAdjustments: boolean;
+}): HeadlineEbitda {
+  if (input.hasApprovedAdjustments) {
+    return {
+      primaryCents: input.adjustedEbitdaCents,
+      primaryLabel: "EBITDA aj.",
+      secondaryCents: input.ebitdaCents,
+      secondaryLabel: "EBITDA de las cuentas",
+      pendingReview: false,
+    };
+  }
+  return {
+    primaryCents: input.ebitdaCents,
+    primaryLabel: "EBITDA",
+    secondaryCents: null,
+    secondaryLabel: null,
+    pendingReview: input.hasPendingAdjustments,
+  };
+}

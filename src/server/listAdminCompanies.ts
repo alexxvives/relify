@@ -1,5 +1,5 @@
 import { storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
-import { ebitdaPublishable, projectHasAdjustments } from "@/lib/seller-draft-guard";
+import { ebitdaPublishable, projectHasAdjustments, projectHasPendingAdjustments } from "@/lib/seller-draft-guard";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { materializePendingCompanies } from "@/server/sellerCompany";
@@ -103,6 +103,7 @@ export async function listAdminCompanies(
       ebitdaCents: project.ebitdaCents,
       adjustedEbitdaCents: project.adjustedEbitdaCents,
       hasAdjustments: projectHasAdjustments(project),
+      hasPendingAdjustments: projectHasPendingAdjustments(project),
       askingPriceCents: project.askingPriceCents,
       sectorKey: sectorKeyFromCnae(code ?? undefined),
       verified: project.verifiedAt !== null,

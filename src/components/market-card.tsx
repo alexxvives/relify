@@ -21,7 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { formatBasisPoints, headcountLabels, isHeadcountRange } from "@/lib/company-profile";
-import { headlineEbitdaMargin } from "@/lib/financial-metrics";
+import { headlineEbitda, headlineEbitdaMargin } from "@/lib/financial-metrics";
 import {
   formatCardEur,
   formatDecimal,
@@ -190,10 +190,16 @@ export function MarketCard({
     typeof cents === "number" && Number.isFinite(cents) && cents !== 0;
   const card = (cents: number | null | undefined): string | null =>
     known(cents) ? formatCardEur(cents) : null;
-  // No saved adjustments: the tile is the accounts EBITDA. With adjustments, it is EBITDA aj.
+  // Approved adjustments: the tile is EBITDA aj. Pending-only keeps the accounts figure.
   const adjustedKnown = project.hasAdjustments === true
     || (project.hasAdjustments === undefined && known(project.adjustedEbitdaCents) && project.adjustedEbitdaCents !== project.ebitdaCents);
-  const profitCents = adjustedKnown ? project.adjustedEbitdaCents : project.ebitdaCents;
+  const ebitda = headlineEbitda({
+    ebitdaCents: project.ebitdaCents,
+    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    hasApprovedAdjustments: adjustedKnown,
+    hasPendingAdjustments: project.hasPendingAdjustments === true,
+  });
+  const profitCents = ebitda.primaryCents;
   const years = blocked ? null : recoveryYears(project.askingPriceCents, profitCents);
   const headcount =
     project.headcount && isHeadcountRange(project.headcount)
@@ -342,12 +348,16 @@ export function MarketCard({
             value={card(project.revenueCents)}
           />
           <Figure
-            label={adjustedKnown ? "EBITDA aj." : "EBITDA"}
+            label={ebitda.primaryLabel}
             value={card(profitCents)}
             edge="left"
             ink={adjustedKnown && project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : undefined}
-            hint={ebitdaHint(project, adjustedKnown)}
-            note={ebitdaMarginNote(project, adjustedKnown)}
+            hint={ebitdaHint(project, ebitda)}
+            note={ebitda.pendingReview ? (
+              <span className="text-[11px] font-medium text-[#b45f06]">{companyCopy.adjustmentInReview}</span>
+            ) : (
+              ebitdaMarginNote(project, ebitda)
+            )}
           />
           <div className="col-span-2 flex flex-col items-center gap-1 border-t border-[#eceff4] px-4 py-3 text-center">
             <dt className="text-xs font-medium text-[#667085]">Precio de venta</dt>
@@ -364,38 +374,41 @@ export function MarketCard({
   );
 }
 
-function ebitdaHint(project: PublicProjectCard, adjustedKnown: boolean): string | undefined {
+function ebitdaHint(project: PublicProjectCard, ebitda: ReturnType<typeof headlineEbitda>): string | undefined {
   const headline = headlineEbitdaMargin({
     revenueCents: project.revenueCents,
     ebitdaCents: project.ebitdaCents,
     adjustedEbitdaCents: project.adjustedEbitdaCents,
-    hasAdjustments: adjustedKnown,
+    hasAdjustments: ebitda.primaryLabel === "EBITDA aj.",
   });
   const reported =
     headline.secondaryBp === null || headline.secondaryLabel === null
       ? null
       : `${headline.secondaryLabel}: ${formatBasisPoints(headline.secondaryBp)}.`;
-  if (adjustedKnown && knownCents(project.ebitdaCents)) {
-    return [`EBITDA ajustado por el vendedor. EBITDA de las cuentas: ${formatCardEur(project.ebitdaCents)}.`, reported].filter(Boolean).join(" ");
+  if (ebitda.pendingReview) {
+    return `${companyCopy.adjustmentInReview}. Hasta que Relify acepte el ajuste, el comprador ve el EBITDA de las cuentas.`;
   }
-  if (adjustedKnown) {
+  if (ebitda.secondaryCents !== null && knownCents(ebitda.secondaryCents)) {
+    return [`EBITDA ajustado por el vendedor. ${ebitda.secondaryLabel}: ${formatCardEur(ebitda.secondaryCents)}.`, reported].filter(Boolean).join(" ");
+  }
+  if (ebitda.primaryLabel === "EBITDA aj.") {
     return ["EBITDA ajustado por el vendedor.", reported].filter(Boolean).join(" ");
   }
   return undefined;
 }
 
-function ebitdaMarginNote(project: PublicProjectCard, adjustedKnown: boolean): ReactNode {
+function ebitdaMarginNote(project: PublicProjectCard, ebitda: ReturnType<typeof headlineEbitda>): ReactNode {
   const headline = headlineEbitdaMargin({
     revenueCents: project.revenueCents,
     ebitdaCents: project.ebitdaCents,
     adjustedEbitdaCents: project.adjustedEbitdaCents,
-    hasAdjustments: adjustedKnown,
+    hasAdjustments: ebitda.primaryLabel === "EBITDA aj.",
   });
   if (headline.primaryBp === null) {
     return null;
   }
   return (
-    <span className={`text-[11px] font-medium ${marginTone(headline.primaryBp / 100)}`} title={ebitdaHint(project, adjustedKnown)}>
+    <span className={`text-[11px] font-medium ${marginTone(headline.primaryBp / 100)}`} title={ebitdaHint(project, ebitda)}>
       {formatBasisPoints(headline.primaryBp)}
     </span>
   );
