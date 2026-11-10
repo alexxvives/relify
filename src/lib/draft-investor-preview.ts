@@ -1,6 +1,6 @@
 import { storedSellerStay } from "./seller-stay";
 import { sellerFinancingWrite, storedSellerFinancing } from "./seller-financing";
-import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { formRowAmountCents, formRowsFromJson, publishedEbitdaFromAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
 import { eurosToCents, optionalEurosToCents, optionalWholeNumber, projectSlug, type CompanyDraftInput } from "./company-draft";
@@ -128,6 +128,8 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
   const description = input.description.trim();
   const founded = /^\d{4}$/.test(input.foundedYear) ? Number(input.foundedYear) : null;
   const clients = slicesFor("client", input.clientPercents);
+  const ebitdaAdjustments = previewAdjustments(input.ebitdaAdjustments);
+  const published = publishedEbitdaFromAdjustments(ebitdaCents, ebitdaAdjustments, signedCents(input.adjustedEbitda) ?? 0, revenueCents);
 
   return {
     slug: projectSlug(input.codename),
@@ -138,8 +140,8 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     saleReason: input.saleReason === "" ? null : input.saleReason,
     revenueCents,
     ebitdaCents,
-    adjustedEbitdaCents: signedCents(input.adjustedEbitda) ?? 0,
-    ebitdaAdjustments: previewAdjustments(input.ebitdaAdjustments),
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments,
     askingPriceCents: unsignedCents(input.askingPrice),
     sellerFinancing: (() => {
       const financing = sellerFinancingWrite(input);

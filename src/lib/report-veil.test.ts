@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advisorProjectView, buyerProjectView, veilYears } from "./report-veil";
 import { figureVeilYears } from "./figure-veil";
+import { reportHeadline } from "./company-report";
 
 describe("veilYears (t91)", () => {
   it("keeps the shape (years, nulls, ratio keys) and never the real figures", () => {
@@ -40,9 +41,16 @@ describe("buyerProjectView (t91-sec)", () => {
       expect(text).not.toContain(secret);
     }
     expect(buyerProjectView(project, false).reportYears![0]!.employees).not.toBe(37);
-    // public deal facts stay
-    expect(text).toContain("100000");
-    expect(text).toContain("200000");
+    const locked = buyerProjectView(project, false);
+    expect(locked.askingPriceCents).toBe(2_000_00);
+    expect(locked.revenueCents).not.toBe(1_000_00);
+    expect(locked.revenueCents).toBe(locked.reportYears![0]!.revenueCents);
+    expect(locked.ebitdaCents).toBe(locked.reportYears![0]!.ebitdaCents);
+    const headline = reportHeadline(locked);
+    expect(headline.revenueCents).toBe(locked.revenueCents);
+    expect(headline.ebitdaCents).toBe(locked.ebitdaCents);
+    expect(headline.adjustedEbitdaCents).toBe(locked.ebitdaCents);
+    expect(headline.hasApprovedAdjustments).toBe(false);
   });
 
   it("after the NDA the profile is unchanged", () => {

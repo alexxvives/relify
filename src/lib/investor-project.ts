@@ -1,6 +1,6 @@
 import { storedSellerFinancing, type SellerFinancing } from "./seller-financing";
 import { storedSellerStay, type SellerStay } from "./seller-stay";
-import { storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { publishedEbitdaFromAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import type { Prisma } from "@/generated/prisma/client";
 import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { toSabiYear, type SabiYear } from "./sabi/insights";
@@ -458,6 +458,11 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
 
   const reportYears = balanceSource.map((year) => reportYear(year));
   const clients = slicesFor(record, "client");
+  const lastYear = reportYears.at(-1);
+  const adjustments = storedEbitdaAdjustments(record.ebitdaAdjustments);
+  const revenueCents = lastYear?.revenueCents ?? record.revenueCents;
+  const ebitdaCents = lastYear?.ebitdaCents ?? record.ebitdaCents;
+  const published = publishedEbitdaFromAdjustments(ebitdaCents, adjustments, record.adjustedEbitdaCents, revenueCents);
 
   return {
     reportYears,
@@ -473,10 +478,10 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     foundedYear: record.foundedYear,
     description: record.description,
     saleReason: record.saleReason,
-    revenueCents: record.revenueCents,
-    ebitdaCents: record.ebitdaCents,
-    adjustedEbitdaCents: record.adjustedEbitdaCents,
-    ebitdaAdjustments: storedEbitdaAdjustments(record.ebitdaAdjustments),
+    revenueCents,
+    ebitdaCents,
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments: adjustments,
     askingPriceCents: record.askingPriceCents,
     sellerFinancing: storedSellerFinancing(record),
     sellerStay: storedSellerStay(record.sellerStay),
@@ -487,7 +492,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     recurringRevenuePct: record.recurringRevenuePct ?? null,
     askingPriceIncludes: storedAskingPriceIncludes(record.askingPriceIncludes),
     opexCents: record.opexCents,
-    ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
+    ebitdaMarginBp: ebitdaMarginBasisPoints(published.ebitdaCents, revenueCents),
     principalCnae: principal ? cnaeChip(principal.code) : null,
     secondaryCnaes: record.cnaes
       .filter((cnae) => cnae.role === "secondary")

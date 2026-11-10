@@ -1,6 +1,6 @@
 import { companyCopy } from "@/lib/company-copy";
 import { adjustmentsToFormJson, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
-import { sellerAdjustmentWrite, storedAdjustmentList } from "@/lib/seller-draft-guard";
+import { declaredAccountsCents, sellerAdjustmentWrite, storedAdjustmentList } from "@/lib/seller-draft-guard";
 import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -22,16 +22,35 @@ export async function saveEbitdaAdjustments(user: CurrentUser, raw: string): Pro
   const project = activeId
     ? await prisma.project.findFirst({
         where: { id: activeId, ownerId: user.id },
-        select: { id: true, ebitdaCents: true, ebitdaAdjustments: true },
+        select: {
+          id: true,
+          ebitdaCents: true,
+          revenueCents: true,
+          ebitdaAdjustments: true,
+          years: { where: { kind: "closed" }, orderBy: { year: "desc" }, take: 1, select: { ebitdaCents: true, salesCents: true } },
+        },
       })
     : null;
   if (!project) {
     return { ok: false, message: "Guarda primero los datos de tu empresa." };
   }
   const previous = storedAdjustmentList(project.ebitdaAdjustments);
-  const write = sellerAdjustmentWrite(raw, { ebitdaCents: Number(project.ebitdaCents), rows: previous });
+  const year = project.years[0];
+  const write = sellerAdjustmentWrite(raw, {
+    ebitdaCents: declaredAccountsCents(Number(project.ebitdaCents), year?.ebitdaCents === null || year?.ebitdaCents === undefined ? null : Number(year.ebitdaCents)),
+    revenueCents: declaredAccountsCents(Number(project.revenueCents), year?.salesCents === null || year?.salesCents === undefined ? null : Number(year.salesCents)),
+    rows: previous,
+  });
   if (!write.ok) {
-    return { ok: false, message: write.code === "adjustment-count" ? companyCopy.adjustmentsCount : companyCopy.adjustmentsInvalid };
+    return {
+      ok: false,
+      message:
+        write.code === "adjustment-count"
+          ? companyCopy.adjustmentsCount
+          : write.code === "adjustment-too-large"
+            ? companyCopy.adjustmentsTooLarge
+            : companyCopy.adjustmentsInvalid,
+    };
   }
   const missing = write.write.kind === "set" ? await missingAdjustmentDocument(project.id, write.write.rows) : false;
   if (missing) {

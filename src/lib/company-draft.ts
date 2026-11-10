@@ -207,6 +207,7 @@ const draftMessages = {
   "adjustment-format": companyCopy.adjustmentsInvalid,
   "adjustment-amount": companyCopy.adjustmentsInvalid,
   "adjustment-reason": companyCopy.adjustmentsInvalid,
+  "adjustment-too-large": companyCopy.adjustmentsTooLarge,
   "adjustment-count": companyCopy.adjustmentsCount,
   "seller-financing-pct": "Financiación del vendedor: indica un porcentaje entero entre 1 y 100.",
   "seller-financing-years": "Financiación del vendedor: elige el plazo.",

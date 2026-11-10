@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   adjustedEbitdaCents,
+  adjustmentExceedsRevenue,
   adjustmentRowErrors,
   adjustmentRowsValid,
   selectableEbitdaAdjustmentTypes,
@@ -9,8 +10,10 @@ import {
   splitAdjustmentAmount,
   adjustmentsForBuyer,
   formRowsFromJson,
+  formRowsToJson,
   parseEbitdaAdjustments,
   pendingAdjustments,
+  publishedEbitdaFromAdjustments,
   storedEbitdaAdjustments,
   sumEbitdaAdjustments,
 } from "./ebitda-adjustments";
@@ -92,11 +95,73 @@ describe("ebitda adjustments", () => {
     expect(pending[0]?.status).toBe("pending");
   });
 
+  it("keeps pending status when the form JSON round-trips, so a 1 M owner_salary in review is not treated as approved", () => {
+    const stored = [
+      { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1", type: "one_off" as const, amount: "50000", reason: "Extraordinario aprobado", status: "approved" as const, documentId: "", documentName: "" },
+      { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1", type: "owner_salary" as const, amount: "1000001", reason: "Sueldo del propietario", status: "pending" as const, documentId: "", documentName: "" },
+    ];
+    const json = formRowsToJson(stored);
+    expect(json).toContain('"status":"pending"');
+    expect(formRowsFromJson(json).map((row) => row.status)).toEqual(["approved", "pending"]);
+  });
+
   it("t89: reports each invalid field of a row", () => {
     expect(Object.keys(adjustmentRowErrors({ type: "rent", amount: "", reason: "" }))).toEqual(["amount", "reason"]);
     expect(adjustmentRowErrors({ type: "rent", amount: "0", reason: "Local propio" }).amount).toBe("El importe no puede ser 0.");
     expect(adjustmentRowsValid([{ type: "one_off_income", amount: "-3.500", reason: "Venta de una furgoneta" }])).toBe(true);
     expect(adjustmentRowsValid([])).toBe(true);
+  });
+
+  it("rejects an adjustment larger than that year's sales", () => {
+    expect(adjustmentExceedsRevenue(100_000_100, 500_000_000)).toBe(false);
+    expect(adjustmentExceedsRevenue(600_000_000, 500_000_000)).toBe(true);
+    expect(
+      parseEbitdaAdjustments(JSON.stringify([{ type: "owner_salary", amount: "6000000", reason: "Sueldo del socio" }]), {
+        revenueCents: 500_000_000,
+      }).ok,
+    ).toBe(false);
+    expect(adjustmentRowErrors({ type: "owner_salary", amount: "6000000", reason: "Sueldo del socio" }, { revenueCents: 500_000_000 }).amount).toBeDefined();
+  });
+});
+
+describe("publishedEbitdaFromAdjustments", () => {
+  const pendingSalary = {
+    id: "legacy-0",
+    type: "owner_salary" as const,
+    amountCents: 100_000_100,
+    reason: "Sueldo",
+    status: "pending" as const,
+    documentId: null,
+    documentName: null,
+  };
+  const approved = {
+    id: "legacy-1",
+    type: "one_off" as const,
+    amountCents: 5_000_000,
+    reason: "Extra",
+    status: "approved" as const,
+    documentId: null,
+    documentName: null,
+  };
+
+  it("keeps declared EBITDA when the only row is pending, even if the stored column is 0", () => {
+    const shown = publishedEbitdaFromAdjustments(75_000_000, [pendingSalary], 0, 500_000_000);
+    expect(shown.hasApproved).toBe(false);
+    expect(shown.hasPending).toBe(true);
+    expect(shown.adjustedEbitdaCents).toBe(75_000_000);
+  });
+
+  it("adds only approved rows when a pending owner_salary sits next to them", () => {
+    const shown = publishedEbitdaFromAdjustments(75_000_000, [approved, pendingSalary], 0, 500_000_000);
+    expect(shown.hasApproved).toBe(true);
+    expect(shown.adjustedEbitdaCents).toBe(80_000_000);
+  });
+
+  it("does not apply an approved row larger than revenue", () => {
+    const oversized = { ...approved, amountCents: 600_000_000 };
+    const shown = publishedEbitdaFromAdjustments(75_000_000, [oversized], 0, 500_000_000);
+    expect(shown.hasApproved).toBe(false);
+    expect(shown.adjustedEbitdaCents).toBe(75_000_000);
   });
 });
 

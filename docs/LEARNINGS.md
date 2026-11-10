@@ -6,6 +6,10 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Seller Resumen showed “EBITDA ajustado 0 €” with a pending ~1 M € owner_salary — headline trusted `project.adjustedEbitdaCents` (0 after a pending-only save against a 0 project column) — recompute from last closed year + approved rows only; pending never enters the sum.
+- 2026-11-10: Seller Ficha pública still showed 1,8 M € (750 k + pending 1 M) while the marketplace card stayed 800 k aj — `adjustmentRowsJson` dropped `status`, so `formRowsFromJson` treated the pending row as approved in `draftInvestorPreview` — keep status on the form JSON round-trip.
+- 2026-11-10: Buyer Resumen said 620 k → 1 M / EBITDA 180 k / DFN 94 k / 0,12× while cards stayed 5 M / 800 k — `veilReportFigures` swapped `reportYears` but left `revenueCents`/`ebitdaCents`/`adjustedEbitdaCents`; leverage mixed veiled DFN with the real adj — veil KPIs from those years and overlay sales/EBITDA table rows from them.
+- 2026-11-10: `/entrar` hung on “Entrando…” before hydration — `useActionState` `pending` disabled the button on a native POST — only treat pending after `useSyncExternalStore` says the client is live, so no-JS still submits.
 - 2026-11-10: Playwright signed-in flows died with “too many requests” after a few roles — `signInAction` throttle is per IP and fail-closed, and `email_throttle` survives between runs — keep `workers: 1` and a 60/15m IP cap, or reuse storageState.
 - 2026-11-10: Better Auth `/api/auth/sign-in/email` bypassed the server-action throttle — add it to `disabledPaths`; `auth.api.signInEmail` from the action still works.
 - 2026-11-10: An investor-hired advisor still received real years in RSC before NDA — `getAdvisorEngagement` must call `buyerProjectView` / `advisorProjectView`, not only `adjustmentsForBuyer`.

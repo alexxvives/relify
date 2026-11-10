@@ -55,15 +55,89 @@ function veilSlices<T extends { label: string; basisPoints: number }>(real: T[],
   return real.length === 0 ? [] : fake;
 }
 
-/** Same shape as the profile, invented locked figures. Public facts (KPIs, deal, business) stay as they are. */
+const incomeFromYear: Record<string, (year: SabiYear) => number | null> = {
+  sales: (year) => year.revenueCents,
+  ebitda: (year) => year.ebitdaCents,
+  supplies: (year) => year.suppliesCents,
+  staffCosts: (year) => year.staffCostsCents,
+};
+
+const balanceFromYear: Record<string, (year: SabiYear) => number | null> = {
+  currentAssets: (year) => year.currentAssetsCents,
+  cash: (year) => year.cashCents,
+  nonCurrentAssets: (year) => year.nonCurrentAssetsCents,
+  totalAssets: (year) => year.totalAssetsCents,
+  currentLiabilities: (year) => year.currentLiabilitiesCents,
+  longTermDebt: (year) => year.longTermDebtCents,
+  nonCurrentLiabilities: (year) => year.nonCurrentLiabilitiesCents,
+  shortTermDebt: (year) => year.shortTermDebtCents,
+  equity: (year) => year.equityCents,
+};
+
+function overlayFromYears(
+  values: Array<number | null>,
+  columns: Array<{ year: number; forecast?: boolean }> | undefined,
+  years: SabiYear[],
+  pick: ((year: SabiYear) => number | null) | undefined,
+  fallbackRow: number,
+  small = false,
+): Array<number | null> {
+  const veiled = veilValues(values, fallbackRow, small);
+  if (!pick || !columns || columns.length === 0) {
+    return veiled;
+  }
+  return veiled.map((value, index) => {
+    if (value === null) {
+      return null;
+    }
+    const column = columns[index];
+    if (!column || column.forecast) {
+      return value;
+    }
+    const year = years.find((item) => item.year === column.year);
+    const next = year ? pick(year) : null;
+    return next === null || next === undefined ? value : next;
+  });
+}
+
+/**
+ * Same shape as the profile, invented locked figures. Header cards, narrative and year rows all read the
+ * veiled years so they cannot disagree (asking price and deal terms stay as they are).
+ */
 export function veilReportFigures(project: InvestorProjectProfile): InvestorProjectProfile {
+  const reportYears = project.reportYears ? veilYears(project.reportYears) : project.reportYears;
+  const years = reportYears ?? [];
+  const last = years.at(-1);
+  const ebitdaCents = last?.ebitdaCents ?? Math.round(figureVeilCents * 0.18);
   return {
     ...project,
-    reportYears: project.reportYears ? veilYears(project.reportYears) : project.reportYears,
-    incomeRows: project.incomeRows.map((row, index) => ({ ...row, values: veilValues(row.values, index) })),
-    balanceRows: project.balanceRows.map((row, index) => ({ ...row, values: veilValues(row.values, index + 3) })),
+    reportYears,
+    revenueCents: last?.revenueCents ?? figureVeilCents,
+    ebitdaCents,
+    // Locked view has no adjustment list; a copied ebitda→adjusted figure would look like a legacy "EBITDA aj.".
+    adjustedEbitdaCents: 0,
+    ebitdaAdjustments: null,
+    ebitdaMarginBp: null,
+    incomeRows: project.incomeRows.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(row.values, project.incomeYears, years, incomeFromYear[row.key], index),
+    })),
+    balanceRows: project.balanceRows.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(row.values, project.balanceYears, years, balanceFromYear[row.key], index + 3),
+    })),
     detailRows: project.detailRows?.map((row, index) => ({ ...row, values: veilValues(row.values, index + 5) })),
-    indicatorRows: project.indicatorRows?.map((row, index) => ({ ...row, values: veilValues(row.values, index, true) })),
+    indicatorRows: project.indicatorRows?.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(
+        row.values,
+        project.balanceYears,
+        years,
+        row.key === "employees" ? (year) => year.employees : row.key === "collectionDays" ? (year) => year.ratios.collectionDays ?? null : undefined,
+        index,
+        true,
+      ),
+    })),
     capital: veilSlices(project.capital, figureVeilCapital),
     products: veilSlices(project.products, figureVeilProduct),
     clients: veilSlices(project.clients, figureVeilClient),
@@ -77,7 +151,8 @@ export function veilReportFigures(project: InvestorProjectProfile): InvestorProj
  */
 export function buyerProjectView(project: InvestorProjectProfile, ndaAccepted: boolean): InvestorProjectProfile {
   const ebitdaAdjustments = adjustmentsForBuyer(project.ebitdaAdjustments, ndaAccepted);
-  return ndaAccepted ? { ...project, ebitdaAdjustments } : { ...veilReportFigures(project), ebitdaAdjustments };
+  const viewed = { ...project, ebitdaAdjustments };
+  return ndaAccepted ? viewed : veilReportFigures(viewed);
 }
 
 /** Investor-hired advisor: same server veil as the buyer until figuresOpen (advisor NDA + investor NDA). */

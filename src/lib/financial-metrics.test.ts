@@ -163,6 +163,18 @@ describe("headlineEbitda", () => {
     expect(shown.primaryLabel).toBe("EBITDA");
     expect(shown.pendingReview).toBe(true);
   });
+
+  it("does not show EBITDA aj. 0 € because a pending row zeroed the stored column", () => {
+    const shown = headlineEbitda({
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 0,
+      hasApprovedAdjustments: false,
+      hasPendingAdjustments: true,
+    });
+    expect(shown.primaryCents).toBe(75_000_000);
+    expect(shown.primaryLabel).toBe("EBITDA");
+    expect(shown.pendingReview).toBe(true);
+  });
 });
 
 describe("latestClosedYears", () => {
@@ -277,6 +289,18 @@ describe("headlineLeverage", () => {
     });
     expect(shown.ns).toBe(true);
     expect(shown.primaryTimes).toBeNull();
+  });
+
+  it("does not go n/s from a stale 0 adjusted column while adjustments are still pending", () => {
+    const shown = headlineLeverage({
+      netDebtCents: 30_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 0,
+      hasApprovedAdjustments: false,
+    });
+    expect(shown.ns).toBe(false);
+    expect(shown.primaryTimes).toBeCloseTo(0.4, 5);
+    expect(shown.primaryLabel).toBe("Deuda neta / EBITDA");
   });
 });
 

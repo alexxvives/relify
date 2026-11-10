@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ebitdaPublishable, lockedIdentity, projectHasPendingAdjustments } from "./seller-draft-guard";
+import { declaredAccountsCents, ebitdaPublishable, lockedIdentity, projectHasPendingAdjustments } from "./seller-draft-guard";
 
 describe("lockedIdentity (t78)", () => {
   it("keeps the stored legal name and CIF once the NIF is verified", () => {
@@ -96,6 +96,24 @@ describe("sellerAdjustmentWrite (t82)", () => {
 
   it("rejects invalid rows", () => {
     expect(sellerAdjustmentWrite('[{"type":"other","amount":"0","reason":"abc"}]', null).ok).toBe(false);
+  });
+
+  it("rejects an adjustment larger than revenue and does not write 0 for a pending-only list", () => {
+    const huge = JSON.stringify([{ type: "owner_salary", amount: "6000000", reason: "Sueldo del socio" }]);
+    expect(sellerAdjustmentWrite(huge, { ebitdaCents: 75_000_000, revenueCents: 500_000_000, rows: null }).ok).toBe(false);
+    const pending = JSON.stringify([{ type: "owner_salary", amount: "1000001", reason: "Sueldo del socio" }]);
+    expect(sellerAdjustmentWrite(pending, { ebitdaCents: 75_000_000, revenueCents: 500_000_000, rows: null })).toMatchObject({
+      ok: true,
+      write: { kind: "set", adjustedEbitdaCents: 75_000_000 },
+    });
+  });
+});
+
+describe("declaredAccountsCents", () => {
+  it("uses the closed year when the project column is still 0", () => {
+    expect(declaredAccountsCents(0, 75_000_000)).toBe(75_000_000);
+    expect(declaredAccountsCents(75_000_000, 80_000_000)).toBe(75_000_000);
+    expect(declaredAccountsCents(0, null)).toBe(0);
   });
 });
 

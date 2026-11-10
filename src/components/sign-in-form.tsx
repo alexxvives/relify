@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useSyncExternalStore } from "react";
 import { signInAction, type SignInState } from "@/app/entrar/actions";
 import { ArrowRight } from "lucide-react";
 import { authSubmitClassName, EmailField, PasswordField } from "@/components/auth-field";
 import { authCopy } from "@/lib/auth-copy";
 
+const emptySubscribe = () => () => undefined;
+const useHydrated = () => useSyncExternalStore(emptySubscribe, () => true, () => false);
+
 export function SignInForm({ nextPath = null }: { nextPath?: string | null }) {
+  const hydrated = useHydrated();
   const [state, action, pending] = useActionState<SignInState, FormData>(signInAction, null);
+  const busy = hydrated && pending;
 
   return (
     <form action={action} className="flex flex-col gap-4 short:gap-3">
@@ -23,9 +28,9 @@ export function SignInForm({ nextPath = null }: { nextPath?: string | null }) {
           {state.message}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className={authSubmitClassName}>
-        {pending ? authCopy.signInPending : authCopy.signInSubmit}
-        {pending ? null : <ArrowRight className="size-4" aria-hidden />}
+      <button type="submit" disabled={busy} className={authSubmitClassName}>
+        {busy ? authCopy.signInPending : authCopy.signInSubmit}
+        {busy ? null : <ArrowRight className="size-4" aria-hidden />}
       </button>
     </form>
   );

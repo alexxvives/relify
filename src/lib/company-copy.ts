@@ -55,6 +55,7 @@ export const companyCopy = {
   adjustmentsTotal: "Ajustes",
   adjustmentsReasonsLocked: "El motivo de cada ajuste se muestra tras firmar el NDA.",
   adjustmentsInvalid: "Revisa los ajustes al EBITDA: cada uno necesita tipo, un importe distinto de 0 y un motivo (3 a 140 caracteres).",
+  adjustmentsTooLarge: "Un ajuste no puede ser mayor que la facturación del ejercicio.",
   adjustmentsCount: "Puedes indicar hasta 10 ajustes al EBITDA.",
   ebitdaMarginLabel: "Margen EBITDA",
   opexLabel: "OPEX",

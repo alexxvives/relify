@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummary, reportSummaryMarked, summarySegments } from "./company-report";
+import { buyerProjectView } from "./report-veil";
+import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportHeadline, reportSourceYears, reportSummary, reportSummaryMarked, summarySegments } from "./company-report";
 import type { SabiYear } from "./sabi/insights";
 import type { SabiRegistry } from "./sabi/registry";
 
@@ -157,6 +158,106 @@ describe("diligenceChecks audit source", () => {
     const info = diligenceChecks([year({})], [], true).find((check) => check.key === "information")!;
     expect(info.value).toContain("según el vendedor");
     expect(info.text).toContain("pedir la opinión");
+  });
+});
+
+describe("reportHeadline", () => {
+  it("never lets a pending owner_salary zero the headline when the stored column is 0", () => {
+    const years = [year({ year: 2024, revenueCents: 500_000_000, ebitdaCents: 75_000_000 })];
+    const shown = reportHeadline({
+      revenueCents: 0,
+      ebitdaCents: 0,
+      adjustedEbitdaCents: 0,
+      ebitdaAdjustments: [
+        { id: "legacy-0", type: "owner_salary", amountCents: 100_000_100, reason: "Sueldo", status: "pending", documentId: null, documentName: null },
+      ],
+      reportYears: years,
+    });
+    expect(shown.revenueCents).toBe(500_000_000);
+    expect(shown.ebitdaCents).toBe(75_000_000);
+    expect(shown.adjustedEbitdaCents).toBe(75_000_000);
+    expect(shown.hasApprovedAdjustments).toBe(false);
+    expect(shown.hasPendingAdjustments).toBe(true);
+  });
+
+  it("uses approved-adjusted EBITDA and ignores a pending row beside it", () => {
+    const years = [year({ year: 2024, revenueCents: 500_000_000, ebitdaCents: 75_000_000 })];
+    const shown = reportHeadline({
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 0,
+      ebitdaAdjustments: [
+        { id: "legacy-1", type: "one_off", amountCents: 5_000_000, reason: "Extra", status: "approved", documentId: null, documentName: null },
+        { id: "legacy-0", type: "owner_salary", amountCents: 100_000_100, reason: "Sueldo", status: "pending", documentId: null, documentName: null },
+      ],
+      reportYears: years,
+    });
+    expect(shown.hasApprovedAdjustments).toBe(true);
+    expect(shown.adjustedEbitdaCents).toBe(80_000_000);
+  });
+});
+
+describe("buyer and seller Resumen", () => {
+  it("agree on the same years after the NDA", () => {
+    const years = [
+      year({
+        year: 2023,
+        revenueCents: 420_000_000,
+        ebitdaCents: 68_000_000,
+        cashCents: 35_000_000,
+        longTermDebtCents: 48_000_000,
+        shortTermDebtCents: 18_000_000,
+      }),
+      year({
+        year: 2024,
+        revenueCents: 500_000_000,
+        ebitdaCents: 75_000_000,
+        cashCents: 40_000_000,
+        longTermDebtCents: 50_000_000,
+        shortTermDebtCents: 20_000_000,
+      }),
+    ];
+    const seller = {
+      slug: "int-empresa-tecnologia",
+      codename: "Proyecto Quercus",
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 80_000_000,
+      askingPriceCents: 4_000_000_00,
+      ebitdaAdjustments: [
+        { id: "legacy-1", type: "one_off", amountCents: 5_000_000, reason: "Extra", status: "approved", documentId: null, documentName: null },
+        { id: "legacy-0", type: "owner_salary", amountCents: 100_000_100, reason: "Sueldo", status: "pending", documentId: null, documentName: null },
+      ],
+      reportYears: years,
+      incomeYears: years.map((item) => ({ year: item.year, forecast: false })),
+      incomeRows: [{ key: "sales", label: "Ventas", emphasis: true, values: years.map((item) => item.revenueCents) }],
+      balanceRows: [],
+      capital: [],
+      products: [],
+      clients: [],
+      secondaryCnaes: [],
+    } as unknown as Parameters<typeof buyerProjectView>[0];
+    const buyer = buyerProjectView(seller, true);
+    const sellerHeadline = reportHeadline(seller);
+    const buyerHeadline = reportHeadline(buyer);
+    expect(buyerHeadline.revenueCents).toBe(sellerHeadline.revenueCents);
+    expect(buyerHeadline.ebitdaCents).toBe(sellerHeadline.ebitdaCents);
+    expect(buyerHeadline.adjustedEbitdaCents).toBe(sellerHeadline.adjustedEbitdaCents);
+    expect(buyerHeadline.hasApprovedAdjustments).toBe(true);
+    expect(sellerHeadline.adjustedEbitdaCents).toBe(80_000_000);
+    expect(sellerHeadline.hasPendingAdjustments).toBe(true);
+    expect(buyerHeadline.hasPendingAdjustments).toBe(false);
+    expect(reportSummary(reportSourceYears(buyer.reportYears), {
+      hasApprovedAdjustments: buyerHeadline.hasApprovedAdjustments,
+      adjustedEbitdaCents: buyerHeadline.adjustedEbitdaCents,
+    })).toEqual(
+      reportSummary(reportSourceYears(seller.reportYears), {
+        hasApprovedAdjustments: sellerHeadline.hasApprovedAdjustments,
+        adjustedEbitdaCents: sellerHeadline.adjustedEbitdaCents,
+      }),
+    );
+    expect(reportSummary(reportSourceYears(seller.reportYears))[0]).toContain("5 M €");
+    expect(reportSummary(reportSourceYears(buyer.reportYears))[0]).not.toContain("620");
   });
 });
 

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round R Resumen source, pending EBITDA, sign-in
+
+Resumen cards, narrative and ratios all read `reportHeadline`: last closed `reportYears` row plus approved EBITDA adjustments. Pending or oversized (amount > that year's sales) rows never change the published figure; the stored `adjustedEbitdaCents` column is ignored whenever a list exists. The seller form JSON keeps each row's `status` so a pending owner_salary cannot be previewed as approved. Pre-NDA `veilReportFigures` also copies veiled year sales/EBITDA into the header KPIs and statement rows so the locked ficha cannot mix real 5 M cards with invented 620 k prose. Sign-in still uses the server action; the submit button only shows “Entrando…” after client hydration.
+
 ## 2026-11-10 — Round Q Playwright E2E and pre-launch hardening
 
 Vitest stays the unit runner. End-to-end specs use Playwright (`@playwright/test`, `npm run e2e`) against local or INT, never production. Credentials come from `E2E_*` environment variables, not the repo. INT still blocks email, Stripe and uploads. New projects default to `draft` (was `published` on raw inserts). Security headers live in `src/lib/security-headers.ts` and `next.config.ts`.

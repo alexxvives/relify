@@ -35,8 +35,52 @@ const es1 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1, minimumFr
 const es0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
 import { compactEur, isComparableBase, negligibleRevenue } from "./report-format";
+import { publishedEbitdaFromAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 
 export { compactEur };
+
+/** Closed years the Resumen, ratios and header cards all read. Empty rows stay out so a stub year cannot zero a KPI. */
+export function reportSourceYears(years: readonly SabiYear[] | null | undefined): SabiYear[] {
+  return (years ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
+}
+
+export type ReportHeadline = {
+  revenueCents: number;
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  hasApprovedAdjustments: boolean;
+  hasPendingAdjustments: boolean;
+};
+
+/**
+ * One source for seller and buyer Resumen cards: last closed year + approved adjustments.
+ * Pending or oversized rows never change the headline. Falls back to project columns only when there are no years.
+ */
+export function reportHeadline(project: {
+  revenueCents: number;
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  ebitdaAdjustments: EbitdaAdjustment[] | null | unknown;
+  reportYears?: SabiYear[] | null;
+}): ReportHeadline {
+  const years = reportSourceYears(project.reportYears);
+  const last = years.at(-1);
+  const revenueCents = last?.revenueCents ?? project.revenueCents;
+  const ebitdaCents = last?.ebitdaCents ?? project.ebitdaCents;
+  const published = publishedEbitdaFromAdjustments(
+    ebitdaCents,
+    storedEbitdaAdjustments(project.ebitdaAdjustments),
+    project.adjustedEbitdaCents,
+    revenueCents,
+  );
+  return {
+    revenueCents,
+    ebitdaCents,
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    hasApprovedAdjustments: published.hasApproved,
+    hasPendingAdjustments: published.hasPending,
+  };
+}
 
 export type Zone = { upTo: number; level: SignalLevel };
 

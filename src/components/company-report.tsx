@@ -63,7 +63,7 @@ import { ShareDonut } from "@/components/share-donut";
 import { PhotoGallery } from "@/components/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
-import { ebitdaPublishable, projectHasAdjustments, projectHasPendingAdjustments } from "@/lib/seller-draft-guard";
+import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { ebitdaToCashConversion, headlineEbitda, headlineEbitdaMargin, headlineLeverage } from "@/lib/financial-metrics";
 import { sellerOperatingFigures } from "@/lib/seller-key-figures";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
@@ -71,7 +71,7 @@ import { AdjustmentReview } from "@/components/adjustment-review";
 import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
-import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
+import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportHeadline, reportSourceYears, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
 import { veilReportFigures } from "@/lib/report-veil";
 import { figureVeilYears } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
@@ -391,18 +391,19 @@ function teamSummary(years: SabiYear[], staff: Metric[]): string | null {
 /** t70: how to read the deal block. Price, reason and adjustments come from the seller; the multiple is computed when price and a positive EBITDA exist. */
 function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
   const priceSet = project.askingPriceCents > 0;
-  const approved = projectHasAdjustments(project);
-  const pending = projectHasPendingAdjustments(project);
+  const headline = reportHeadline(project);
+  const approved = headline.hasApprovedAdjustments;
+  const pending = headline.hasPendingAdjustments;
   const ebitda = headlineEbitda({
-    ebitdaCents: project.ebitdaCents,
-    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    ebitdaCents: headline.ebitdaCents,
+    adjustedEbitdaCents: headline.adjustedEbitdaCents,
     hasApprovedAdjustments: approved,
     hasPendingAdjustments: pending,
   });
   const multiple = recoveryYears(project.askingPriceCents, ebitda.primaryCents);
-  const reportedMultiple = approved ? recoveryYears(project.askingPriceCents, project.ebitdaCents) : null;
+  const reportedMultiple = approved ? recoveryYears(project.askingPriceCents, headline.ebitdaCents) : null;
   const fmt = (value: number) => `${value.toLocaleString("es-ES", { maximumFractionDigits: 1 })}x`;
-  const salesMultiple = priceSet && project.revenueCents > 0 ? project.askingPriceCents / project.revenueCents : null;
+  const salesMultiple = priceSet && headline.revenueCents > 0 ? project.askingPriceCents / headline.revenueCents : null;
 
   let multipleText: string;
   let multipleNote: string | null = null;
@@ -704,8 +705,9 @@ export function CompanyReport({
   const shownCnaes = new Set([project.principalCnae?.code, ...project.secondaryCnaes.map((cnae) => cnae.code)].filter(Boolean));
   const extraActivities = (buyerView?.activities ?? []).filter((activity) => !shownCnaes.has(activity.code));
   const facts = role === "admin" ? privateFacts : null;
-  const years = (project.reportYears ?? []).filter((year) => year.revenueCents !== null || year.ebitdaCents !== null || year.totalAssetsCents !== null);
+  const years = reportSourceYears(project.reportYears);
   const hasYears = years.length > 0;
+  const headline = reportHeadline(project);
   // t84: seller gallery; hidden (moderated) photos only reach admin.
   const galleryPhotos = (project.photos ?? []).filter((photo) => role === "admin" || !photo.hidden);
   // t84: collapsed section headers show the period covered (no figures, so nothing locked leaks).
@@ -719,11 +721,11 @@ export function CompanyReport({
   // t95b: a seller preview or admin view of a company that cannot be published never shows its stored price or ROI.
   // Buyers only reach published companies, and their EBITDA can be veiled, so the check stays off for them.
   const priceBlocked = (sellerPreview !== null || role === "admin") && !ebitdaPublishable(project);
-  const approvedAdjustmentsExist = projectHasAdjustments(project);
-  const pendingAdjustmentsExist = projectHasPendingAdjustments(project);
+  const approvedAdjustmentsExist = headline.hasApprovedAdjustments;
+  const pendingAdjustmentsExist = headline.hasPendingAdjustments;
   const shownEbitda = headlineEbitda({
-    ebitdaCents: project.ebitdaCents,
-    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    ebitdaCents: headline.ebitdaCents,
+    adjustedEbitdaCents: headline.adjustedEbitdaCents,
     hasApprovedAdjustments: approvedAdjustmentsExist,
     hasPendingAdjustments: pendingAdjustmentsExist,
   });
@@ -734,9 +736,9 @@ export function CompanyReport({
   const mixEmpty = project.products.length === 0 && project.clients.length === 0 && project.customerBase !== "consumer";
   const askingPriceIncludesHint = project.askingPriceIncludes === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp;
   const headlineMargin = headlineEbitdaMargin({
-    revenueCents: project.revenueCents,
-    ebitdaCents: project.ebitdaCents,
-    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    revenueCents: headline.revenueCents,
+    ebitdaCents: headline.ebitdaCents,
+    adjustedEbitdaCents: headline.adjustedEbitdaCents,
     hasAdjustments: approvedAdjustmentsExist,
   });
   const margin =
@@ -745,7 +747,7 @@ export function CompanyReport({
     headlineMargin.secondaryBp === null ? null : `${headlineMargin.secondaryLabel}: ${formatBasisPoints(headlineMargin.secondaryBp)}`;
   const leverageHeadline = {
     hasApprovedAdjustments: approvedAdjustmentsExist,
-    adjustedEbitdaCents: project.adjustedEbitdaCents,
+    adjustedEbitdaCents: approvedAdjustmentsExist ? headline.adjustedEbitdaCents : null,
   };
   const lastYear = years.at(-1) ?? null;
   const previousYear = years.length > 1 ? years[years.length - 2] ?? null : null;
@@ -753,7 +755,7 @@ export function CompanyReport({
     ? headlineLeverage({
         netDebtCents: netDebtCents(lastYear),
         ebitdaCents: lastYear.ebitdaCents,
-        adjustedEbitdaCents: project.adjustedEbitdaCents,
+        adjustedEbitdaCents: headline.adjustedEbitdaCents,
         hasApprovedAdjustments: approvedAdjustmentsExist,
       })
     : null;
@@ -844,24 +846,24 @@ export function CompanyReport({
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
-          <Kpi label={companyCopy.revenueLabel} value={compactEur(project.revenueCents)} hint={`${companyCopy.revenueHint} Último ejercicio de referencia: ${formatEur(project.revenueCents)}.`} />
+          <Kpi label={companyCopy.revenueLabel} value={compactEur(headline.revenueCents)} hint={`${companyCopy.revenueHint} Último ejercicio de referencia: ${formatEur(headline.revenueCents)}.`} />
           <Kpi
             label={shownEbitda.primaryLabel === "EBITDA aj." ? companyCopy.adjustedEbitdaLabel : companyCopy.ebitdaLabel}
             value={compactEur(shownEbitda.primaryCents)}
             tone={shownEbitda.primaryCents < 0 ? "loss" : "ink"}
             hint={
               shownEbitda.pendingReview
-                ? `${companyCopy.adjustmentInReview}. Hasta que Relify acepte el ajuste, el comprador ve el EBITDA de las cuentas: ${formatEur(project.ebitdaCents)}.`
+                ? `${companyCopy.adjustmentInReview}. Hasta que Relify acepte el ajuste, el comprador ve el EBITDA de las cuentas: ${formatEur(headline.ebitdaCents)}.`
                 : shownEbitda.secondaryCents !== null
                   ? `EBITDA ajustado por el vendedor: ${formatEur(shownEbitda.primaryCents)}. ${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.`
-                  : `Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(project.ebitdaCents)}. Es la caja que genera el negocio.`
+                  : `Resultado de explotación antes de amortizaciones, intereses e impuestos: ${formatEur(headline.ebitdaCents)}. Es la caja que genera el negocio.`
             }
             action={
               project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
                 <AdjustmentReview>
                   <AdjustmentBridge
-                    ebitdaCents={project.ebitdaCents}
-                    adjustedCents={project.adjustedEbitdaCents}
+                    ebitdaCents={headline.ebitdaCents}
+                    adjustedCents={headline.adjustedEbitdaCents}
                     rows={project.ebitdaAdjustments}
                     showReasons={figuresOpen || role === "admin"}
                     role={role}
@@ -881,8 +883,8 @@ export function CompanyReport({
                 {shownEbitda.secondaryCents !== null ? (
                   <span className="tabular-nums text-[#5c6b78]" title={shownEbitda.secondaryLabel ?? undefined}>
                     {companyCopy.ebitdaLabel}{" "}
-                    <span className={`font-semibold ${project.ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
-                      {compactEur(project.ebitdaCents)}
+                    <span className={`font-semibold ${headline.ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
+                      {compactEur(headline.ebitdaCents)}
                     </span>
                   </span>
                 ) : null}

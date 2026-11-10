@@ -95,6 +95,7 @@ import {
   ebitdaAdjustmentReasonMax,
   formRowAmountCents,
   formRowsFromJson,
+  formRowsToJson,
   maxEbitdaAdjustments,
   selectableEbitdaAdjustmentTypes,
   type EbitdaAdjustmentFormRow,
@@ -810,6 +811,7 @@ function EbitdaAdjustmentsDialog({
   baseCents,
   year,
   legacyCents,
+  revenueCents = null,
   uploadsDisabled = false,
 }: {
   rows: EbitdaAdjustmentFormRow[];
@@ -818,6 +820,7 @@ function EbitdaAdjustmentsDialog({
   baseCents: number | null;
   year: string | null;
   legacyCents: number | null;
+  revenueCents?: number | null;
   uploadsDisabled?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -858,14 +861,15 @@ function EbitdaAdjustmentsDialog({
       setUploading(null);
     }
   }
-  const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row) : {}));
+  const rowOptions = { revenueCents };
+  const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row, rowOptions) : {}));
   const sum = rows.reduce<number>((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
-  const unchanged = adjustmentRowsJson(rows) === adjustmentRowsJson(savedRows);
+  const unchanged = formRowsToJson(rows) === formRowsToJson(savedRows);
   function save() {
     setAttempted(true);
     setServerError(null);
-    if (!adjustmentRowsValid(rows)) {
-      const first = rows.findIndex((row) => Object.keys(adjustmentRowErrors(row)).length > 0);
+    if (!adjustmentRowsValid(rows, rowOptions)) {
+      const first = rows.findIndex((row) => Object.keys(adjustmentRowErrors(row, rowOptions)).length > 0);
       panel.current?.querySelector<HTMLElement>(`[data-adjustment-row="${first}"] [aria-invalid="true"]`)?.focus();
       return;
     }
@@ -874,13 +878,13 @@ function EbitdaAdjustmentsDialog({
       return;
     }
     startSave(async () => {
-      const result = await saveEbitdaAdjustmentsAction(adjustmentRowsJson(rows));
+      const result = await saveEbitdaAdjustmentsAction(formRowsToJson(rows));
       if (!result.ok) {
         setServerError(result.message);
         return;
       }
       const stored = formRowsFromJson(result.json);
-      onSaved(stored, adjustmentRowsJson(stored));
+      onSaved(stored, formRowsToJson(stored));
       setSaved(true);
       window.setTimeout(onClose, 700);
     });
@@ -1155,7 +1159,7 @@ function EbitdaAdjustmentsDialog({
                 <CircleCheck className="size-4" aria-hidden />
                 Guardado
               </span>
-            ) : attempted && !adjustmentRowsValid(rows) ? (
+            ) : attempted && !adjustmentRowsValid(rows, rowOptions) ? (
               <span className="text-[#b42318]">Revisa los campos marcados.</span>
             ) : null}
           </p>
@@ -1190,19 +1194,6 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
       </span>
     </MetricTile>
     </div>
-  );
-}
-
-function adjustmentRowsJson(rows: EbitdaAdjustmentFormRow[]): string {
-  return JSON.stringify(
-    rows.map((row) => ({
-      id: row.id,
-      type: row.type,
-      amount: row.amount.trim().replace(/[.\s]/g, ""),
-      reason: row.reason.trim(),
-      documentId: row.documentId,
-      documentName: row.documentName,
-    })),
   );
 }
 
@@ -1757,7 +1748,7 @@ export function CompanyDraftForm({
   const [ebitda] = useState(initial.ebitda);
   // t82: itemised adjustments replace the typed adjusted EBITDA. "" in the draft means legacy (never itemised).
   const [adjustmentRows, setAdjustmentRows] = useState<EbitdaAdjustmentFormRow[]>(() => formRowsFromJson(initial.ebitdaAdjustments));
-  const adjustmentsJson = adjustmentRowsJson(adjustmentRows);
+  const adjustmentsJson = formRowsToJson(adjustmentRows);
   const [hadAdjustmentList, setHadAdjustmentList] = useState(() => initial.ebitdaAdjustments.trim() !== "");
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
@@ -1837,7 +1828,7 @@ export function CompanyDraftForm({
     revenue: initial.revenue,
     ebitda: initial.ebitda,
     adjustedEbitda: initial.adjustedEbitda,
-    ebitdaAdjustments: adjustmentRowsJson(formRowsFromJson(initial.ebitdaAdjustments)),
+    ebitdaAdjustments: formRowsToJson(formRowsFromJson(initial.ebitdaAdjustments)),
     opex: initial.opex,
     askingPrice: initial.askingPrice,
     sellerFinancing: initial.sellerFinancing as string,
@@ -2631,6 +2622,13 @@ export function CompanyDraftForm({
                   baseCents={adjustmentBaseCents}
                   year={accountYear?.year ?? null}
                   legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                  revenueCents={
+                    salesFromAccounts
+                      ? eurosToCents(salesFromAccounts)
+                      : unsignedEuroPattern.test(revenue.trim())
+                        ? eurosToCents(revenue.trim())
+                        : null
+                  }
                   uploadsDisabled={uploadsDisabled}
                 />
               )}

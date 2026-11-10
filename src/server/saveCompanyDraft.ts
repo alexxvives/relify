@@ -20,7 +20,7 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { approvedAdjustments } from "@/lib/ebitda-adjustments";
-import { askingPriceAllowed, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields, storedAdjustmentList } from "@/lib/seller-draft-guard";
+import { askingPriceAllowed, declaredAccountsCents, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields, storedAdjustmentList } from "@/lib/seller-draft-guard";
 import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import { notifyEbitdaAdjustment } from "@/server/notifyEbitdaAdjustment";
 import { Prisma } from "@/generated/prisma/client";
@@ -98,9 +98,10 @@ export async function saveCompanyDraft(
             cif: true,
             address: true,
             ebitdaCents: true,
+            revenueCents: true,
             adjustedEbitdaCents: true,
             ebitdaAdjustments: true,
-            years: { where: { kind: "closed" }, orderBy: { year: "desc" }, take: 1, select: { ebitdaCents: true } },
+            years: { where: { kind: "closed" }, orderBy: { year: "desc" }, take: 1, select: { ebitdaCents: true, salesCents: true } },
             shareholders: { select: { name: true } },
             dataRoomFiles: { select: { fileName: true } },
           },
@@ -125,12 +126,33 @@ export async function saveCompanyDraft(
 
   // t82: adjusted EBITDA = stored accounts EBITDA + listed adjustments, computed here only.
   const previousAdjustments = existing ? storedAdjustmentList(existing.ebitdaAdjustments) : null;
+  const latestYear = existing?.years[0];
+  const accountsEbitdaForWrite = existing
+    ? declaredAccountsCents(
+        Number(existing.ebitdaCents),
+        latestYear?.ebitdaCents === null || latestYear?.ebitdaCents === undefined ? null : Number(latestYear.ebitdaCents),
+      )
+    : 0;
+  const accountsRevenueForWrite = existing
+    ? declaredAccountsCents(
+        Number(existing.revenueCents),
+        latestYear?.salesCents === null || latestYear?.salesCents === undefined ? null : Number(latestYear.salesCents),
+      )
+    : null;
   const adjustments = sellerAdjustmentWrite(
     input.ebitdaAdjustments,
-    existing ? { ebitdaCents: Number(existing.ebitdaCents), rows: previousAdjustments } : null,
+    existing ? { ebitdaCents: accountsEbitdaForWrite, revenueCents: accountsRevenueForWrite, rows: previousAdjustments } : null,
   );
   if (!adjustments.ok) {
-    return { ok: false, message: adjustments.code === "adjustment-count" ? companyCopy.adjustmentsCount : companyCopy.adjustmentsInvalid };
+    return {
+      ok: false,
+      message:
+        adjustments.code === "adjustment-count"
+          ? companyCopy.adjustmentsCount
+          : adjustments.code === "adjustment-too-large"
+            ? companyCopy.adjustmentsTooLarge
+            : companyCopy.adjustmentsInvalid,
+    };
   }
   if (existing && adjustments.write.kind === "set" && (await missingAdjustmentDocument(existing.id, adjustments.write.rows))) {
     return { ok: false, message: companyCopy.adjustmentDocumentMissing };
