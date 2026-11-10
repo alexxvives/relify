@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Pencil, X } from "lucide-react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Minimize2, Pencil } from "lucide-react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 import { ViewportPortal } from "@/components/viewport-portal";
 
@@ -68,11 +68,39 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
 }
 
 const trackerWidth = "17.25rem";
+const progressTrackerKey = "Relify:progress-tracker:expanded";
+const progressTrackerEvent = "releva:progress-tracker";
+
+function readProgressTrackerPreference(): string | null {
+  return window.localStorage.getItem(progressTrackerKey);
+}
+
+function subscribeProgressTracker(onChange: () => void): () => void {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(progressTrackerEvent, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(progressTrackerEvent, onChange);
+  };
+}
+
+/** `null` = no choice yet (CSS default: expanded ≥1280, collapsed 1024–1279). */
+export function useProgressTrackerExpanded() {
+  const preference = useSyncExternalStore(subscribeProgressTracker, readProgressTrackerPreference, () => null);
+  const setExpanded = useCallback((next: boolean) => {
+    window.localStorage.setItem(progressTrackerKey, next ? "1" : "0");
+    window.dispatchEvent(new Event(progressTrackerEvent));
+  }, []);
+  const formPad =
+    preference === "1" ? "lg:pr-[18.5rem]" : preference === "0" ? "lg:pr-14" : "lg:pr-14 xl:pr-[18.5rem]";
+  const toggleOffset =
+    preference === "1" ? "lg:right-[18.5rem]" : preference === "0" ? "" : "xl:right-[18.5rem]";
+  return { preference, formPad, toggleOffset, setExpanded };
+}
 
 /**
  * Floating progress tracker for Información empresa.
- * xl (≥1280): expanded card fixed to the viewport top-right (does not reserve a column; the form
- * adds matching right padding). lg–xl: collapsed pill at top-right, expands on click.
+ * User-minimizable card at the viewport top-right; the choice lives in localStorage.
  */
 function ProgressTrackerOverlay({
   label,
@@ -81,83 +109,64 @@ function ProgressTrackerOverlay({
 }: {
   label: string;
   trigger: ReactNode;
-  children: (close: () => void) => ReactNode;
+  children: ReactNode;
 }) {
-  const panelId = useId();
-  const root = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-
-  function close() {
-    setOpen(false);
-  }
-
+  const { preference, setExpanded } = useProgressTrackerExpanded();
   useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setOpen(false);
+    function onDocClick(event: MouseEvent) {
+      const node = event.target;
+      if (!(node instanceof Element)) {
+        return;
+      }
+      if (node.closest('[data-progress-toggle="collapse"]')) {
+        setExpanded(false);
+      } else if (node.closest('[data-progress-toggle="expand"]')) {
+        setExpanded(true);
       }
     }
-    function onPointer(event: PointerEvent) {
-      if (root.current && !root.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onPointer);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onPointer);
-    };
-  }, [open]);
-
-  const panel = (id: string | undefined, closable: boolean) => (
-    <div
-      id={id}
-      role="navigation"
-      aria-label={label}
-      className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[17.25rem] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]"
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2.5">
-        <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
-        {closable ? (
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Cerrar"
-            className="inline-flex size-8 items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-          >
-            <X className="size-4" aria-hidden />
-          </button>
-        ) : null}
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">{children(closable ? close : () => undefined)}</div>
-    </div>
-  );
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [setExpanded]);
+  const cardClass =
+    preference === "1" ? "flex" : preference === "0" ? "hidden" : "hidden xl:flex";
+  const pillClass =
+    preference === "1" ? "hidden" : preference === "0" ? "flex" : "flex xl:hidden";
 
   return (
     <ViewportPortal>
-    <div ref={root} className="pointer-events-none fixed top-16 right-4 z-40 hidden lg:block" data-section-tracker="true">
+    <div className="pointer-events-none fixed top-16 right-4 z-40 hidden lg:top-3 lg:block" data-section-tracker="true">
       <div className="pointer-events-auto flex flex-col items-end">
-        <div className="hidden xl:block" style={{ width: trackerWidth }}>
-          {panel(undefined, false)}
+        <div
+          role="navigation"
+          aria-label={label}
+          className={`${cardClass} max-h-[min(32rem,calc(100vh-6rem))] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]`}
+          style={{ width: trackerWidth }}
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2.5">
+            <p className="text-xs font-semibold tracking-wide text-[#64748b] uppercase">{label}</p>
+            <button
+              type="button"
+              data-progress-toggle="collapse"
+              onClick={() => setExpanded(false)}
+              aria-expanded="true"
+              aria-label="Minimizar tu progreso"
+              className="inline-flex size-11 cursor-pointer items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
+              <Minimize2 className="size-4" aria-hidden />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">{children}</div>
         </div>
-        <div className="relative xl:hidden">
-          {open ? <div className="absolute top-full right-0 z-10 pt-2">{panel(panelId, true)}</div> : null}
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls={open ? panelId : undefined}
-            aria-haspopup="dialog"
-            onClick={() => setOpen((value) => !value)}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-[#e6e9f0] bg-white/95 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-          >
-            {trigger}
-          </button>
-        </div>
+        <button
+          type="button"
+          data-progress-toggle="expand"
+          aria-expanded="false"
+          aria-label="Mostrar tu progreso"
+          onClick={() => setExpanded(true)}
+          className={`${pillClass} size-11 cursor-pointer items-center justify-center rounded-full border border-[#e6e9f0] bg-white/95 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none`}
+        >
+          {trigger}
+        </button>
       </div>
     </div>
     </ViewportPortal>
@@ -236,8 +245,6 @@ export function DetailSectionNav({
         label="Tu progreso"
         trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
       >
-        {(close) => (
-          <>
           <div className="mb-2 flex items-center gap-3 px-2 pt-1 pb-2">
             <CompletionRing done={progress.done} total={progress.total} size={48} />
             <div className="min-w-0">
@@ -259,10 +266,7 @@ export function DetailSectionNav({
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
                     aria-expanded={pending.length > 0 ? expanded : undefined}
-                    onClick={(event) => {
-                      jump(item.id)(event);
-                      close();
-                    }}
+                    onClick={jump(item.id)}
                     className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                       current ? "bg-[#e6f4f2] text-[#1c2740]" : "text-[#3d4a63] hover:bg-[#f5f6f8]"
                     }`}
@@ -283,10 +287,7 @@ export function DetailSectionNav({
                         <li key={field.id}>
                           <a
                             href={`#${field.id}`}
-                            onClick={(event) => {
-                              jump(field.id)(event);
-                              close();
-                            }}
+                            onClick={jump(field.id)}
                             className="group flex items-start gap-2 rounded-md px-1.5 py-1.5 text-[13px] leading-snug focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none hover:bg-[#f5f6f8]"
                           >
                             <Circle className="mt-0.5 size-3.5 shrink-0 text-[#b6bfcc]" aria-hidden />
@@ -308,8 +309,6 @@ export function DetailSectionNav({
               );
             })}
           </ul>
-          </>
-        )}
       </ProgressTrackerOverlay>
     </>
   );

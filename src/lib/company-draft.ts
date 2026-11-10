@@ -143,8 +143,9 @@ export const companyDraftSchema = z
     leaseYearsRemaining: optionalYearsText,
     recurringRevenuePct: optionalPctText,
     seasonality: z.union([z.literal(""), z.enum(seasonalityLevels)]),
-    seasonalityNote: z.string().trim().max(280, "seasonality-note"),
-    top5ClientsPct: optionalPctText,
+    // Kept on the schema so old payloads parse; the UI no longer reads or writes these columns.
+    seasonalityNote: z.string().trim().max(280, "seasonality-note").default(""),
+    top5ClientsPct: optionalPctText.default(""),
     askingPriceIncludes: z.union([z.literal(""), z.enum(askingPriceIncludesKinds)]),
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),

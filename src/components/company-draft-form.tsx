@@ -80,7 +80,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
 import { scrollToCenter } from "@/components/use-scroll-spy";
-import { DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
+import { DetailSectionNav, useProgressTrackerExpanded, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -1741,8 +1741,6 @@ export function CompanyDraftForm({
   const [leaseYearsRemaining, setLeaseYearsRemaining] = useState(initial.leaseYearsRemaining);
   const [recurringRevenuePct, setRecurringRevenuePct] = useState(initial.recurringRevenuePct);
   const [seasonality, setSeasonality] = useState(initial.seasonality);
-  const [seasonalityNote, setSeasonalityNote] = useState(initial.seasonalityNote);
-  const [top5ClientsPct, setTop5ClientsPct] = useState(initial.top5ClientsPct);
   const [askingPriceIncludes, setAskingPriceIncludes] = useState(() => storedAskingPriceIncludes(initial.askingPriceIncludes));
   const [capitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
@@ -1756,6 +1754,7 @@ export function CompanyDraftForm({
   const [forecastYear, setForecastYear] = useState(initial.forecastYear);
   // t91: the tab lives in the URL (?tab=ficha) and the server reads it, so the first paint is already the right tab.
   const [tab, setTabState] = useState<"company" | "deal">(focus === null && initialTab === "deal" ? "deal" : "company");
+  const { formPad, toggleOffset } = useProgressTrackerExpanded();
   const [openBasic, setOpenBasic] = usePanelOpen(
     "Relify:panel:basic",
     focus === null || focus === "identity" || focus === "description" || focus === "cnae",
@@ -1823,8 +1822,6 @@ export function CompanyDraftForm({
     leaseYearsRemaining: initial.leaseYearsRemaining,
     recurringRevenuePct: initial.recurringRevenuePct,
     seasonality: initial.seasonality,
-    seasonalityNote: initial.seasonalityNote,
-    top5ClientsPct: initial.top5ClientsPct,
     askingPriceIncludes: storedAskingPriceIncludes(initial.askingPriceIncludes),
     closedYears: initial.closedYears,
     forecastYear: initial.forecastYear,
@@ -1863,8 +1860,6 @@ export function CompanyDraftForm({
     leaseYearsRemaining,
     recurringRevenuePct,
     seasonality,
-    seasonalityNote,
-    top5ClientsPct,
     askingPriceIncludes,
     closedYears,
     forecastYear,
@@ -1901,9 +1896,7 @@ export function CompanyDraftForm({
     rentMonthly !== baseline.rentMonthly ||
     leaseYearsRemaining !== baseline.leaseYearsRemaining ||
     recurringRevenuePct !== baseline.recurringRevenuePct ||
-    seasonality !== baseline.seasonality ||
-    seasonalityNote !== baseline.seasonalityNote ||
-    top5ClientsPct !== baseline.top5ClientsPct;
+    seasonality !== baseline.seasonality;
   const incomeDirty =
     JSON.stringify(closedYears.map(incomeSnapshot)) !== JSON.stringify(baseline.closedYears.map(incomeSnapshot)) ||
     JSON.stringify(incomeSnapshot(forecastYear)) !== JSON.stringify(incomeSnapshot(baseline.forecastYear));
@@ -2115,8 +2108,8 @@ export function CompanyDraftForm({
     leaseYearsRemaining,
     recurringRevenuePct,
     seasonality: seasonality as CompanyDraftInput["seasonality"],
-    seasonalityNote,
-    top5ClientsPct,
+    seasonalityNote: "",
+    top5ClientsPct: "",
     askingPriceIncludes,
     opex,
     capitalPercents,
@@ -2149,7 +2142,14 @@ export function CompanyDraftForm({
     };
   })();
   const statusMessage =
-    state && !state.saved && !suppressStatus && !percentSumMessages.has(state.message) ? state.message : null;
+    tab === "company" &&
+    state &&
+    !state.saved &&
+    !suppressStatus &&
+    !percentSumMessages.has(state.message) &&
+    state.message !== companyCopy.descriptionTooShort
+      ? state.message
+      : null;
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
 
   // t77: section nav, required-items progress and the sticky save bar.
@@ -2382,7 +2382,7 @@ export function CompanyDraftForm({
     >
       <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <h1 className={`min-w-0 text-3xl tracking-tight text-public-ink ${tab === "deal" ? "pt-36 lg:pt-28" : "pt-32 lg:pt-16"}`}>
+      <h1 className={`min-w-0 text-3xl tracking-tight text-public-ink ${tab === "deal" ? "pt-40 lg:pt-36" : "pt-32 lg:pt-16"}`}>
         {sellerCopy.detailsTitle}
       </h1>
       <FloatingSegmentedTabs
@@ -2392,6 +2392,7 @@ export function CompanyDraftForm({
           { id: "deal", label: companyCopy.detailsDealTab },
         ]}
         value={tab}
+        offsetClass={tab === "company" ? toggleOffset : ""}
         onChange={(id) => {
           setTab(id);
           window.scrollTo({ top: 0 });
@@ -2399,7 +2400,7 @@ export function CompanyDraftForm({
       />
       <div className="relative flex flex-col gap-4">
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
-      <div className={`flex min-w-0 flex-col gap-4 ${tab === "company" ? "lg:pr-14 xl:pr-[18.5rem]" : ""}`}>
+      <div className={`flex min-w-0 flex-col gap-4 ${tab === "company" ? formPad : ""}`}>
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-[35vh]" : "hidden"}>
       <Panel
@@ -2781,14 +2782,6 @@ export function CompanyDraftForm({
               onChange={(event) => setRecurringRevenuePct(keepDigits(event.target.value, 3))}
             />
           </Fact>
-          <Fact icon={Users} label={companyCopy.top5ClientsLabel}>
-            <Input
-              name="top5ClientsPct"
-              inputMode="numeric"
-              value={top5ClientsPct}
-              onChange={(event) => setTop5ClientsPct(keepDigits(event.target.value, 3))}
-            />
-          </Fact>
           <Fact icon={CalendarDays} label={companyCopy.seasonalityLabel}>
             <OptionSelect
               name="seasonality"
@@ -2807,14 +2800,6 @@ export function CompanyDraftForm({
                   setSeasonality(value as typeof seasonality);
                 }
               }}
-            />
-          </Fact>
-          <Fact icon={FileSpreadsheet} label={companyCopy.seasonalityNoteLabel}>
-            <Input
-              name="seasonalityNote"
-              value={seasonalityNote}
-              placeholder={companyCopy.seasonalityNotePlaceholder}
-              onChange={(event) => setSeasonalityNote(event.target.value.slice(0, 280))}
             />
           </Fact>
         </div>
@@ -3076,7 +3061,7 @@ export function CompanyDraftForm({
             sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
             chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
           />
-          <CompanyReport navBelowTabs project={previewProject} sellerPreview={{
+          <CompanyReport navBelowTabs showSectionNav={tab === "deal"} project={previewProject} sellerPreview={{
             mixAction: (
               <KitButton
                 type="button"
@@ -3103,7 +3088,7 @@ export function CompanyDraftForm({
       </div>
       </div>
 
-      {statusMessage ? (
+      {tab === "company" && statusMessage ? (
         <p role={state?.saved ? "status" : "alert"} className={state?.saved ? "text-sm" : "text-sm text-destructive"}>
           {statusMessage}
         </p>

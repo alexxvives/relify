@@ -18,6 +18,7 @@ import {
   isPremisesKind,
   isSeasonalityLevel,
   storedAskingPriceIncludes,
+  topClientsWeightPct,
   type AskingPriceIncludes,
   type BalanceAmounts,
   type BalanceDisplayKey,
@@ -467,6 +468,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
   ]);
 
   const reportYears = balanceSource.map((year) => reportYear(year));
+  const clients = slicesFor(record, "client");
 
   return {
     reportYears,
@@ -495,8 +497,8 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     leaseYearsRemaining: record.premisesKind === "rent" ? (record.leaseYearsRemaining ?? null) : null,
     recurringRevenuePct: record.recurringRevenuePct ?? null,
     seasonality: record.seasonality && isSeasonalityLevel(record.seasonality) ? record.seasonality : null,
-    seasonalityNote: record.seasonalityNote ?? null,
-    top5ClientsPct: record.top5ClientsPct ?? null,
+    seasonalityNote: null,
+    top5ClientsPct: topClientsWeightPct(clients),
     askingPriceIncludes: storedAskingPriceIncludes(record.askingPriceIncludes),
     opexCents: record.opexCents,
     ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
@@ -508,7 +510,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
       .filter((cnae): cnae is InvestorCnae => cnae !== null),
     capital: slicesFor(record, "capital"),
     products: slicesFor(record, "product"),
-    clients: slicesFor(record, "client"),
+    clients,
     customerBase: record.customerBase,
     headcountRange: record.headcountRange && isHeadcountRange(record.headcountRange) ? record.headcountRange : null,
     incomeYears,

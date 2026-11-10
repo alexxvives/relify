@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Alex disabled Cloudflare non-production branch builds on Worker `releva` — push to `cursor/mobile-responsive-c353` is allowed again; still never deploy from the agent.
+- 2026-11-10: Next 16 skips client hydration when the page origin is 127.0.0.1 and the dev server is localhost — use http://localhost:3000 or set allowedDevOrigins.
+- 2026-11-10: seasonalityNote / top5ClientsPct remain on Project — seller UI must send empty and omit them from Prisma update; ficha derives top-client weight from client slices; do not drop the columns.
 - 2026-11-09: a git push to this PR branch published production Worker `releva` via Cloudflare Workers Builds — commit locally only until Alex explicitly asks to push.
 - 2026-11-09: EBITDA justification in INT showed the generic save error — `assertUploadsEnabled()` throws and the action catch mapped every throw to “Inténtalo de nuevo” — return `adjustmentDocumentIntDisabled` when `isIntEnvironment()`, keep the generic sentence for real prod write failures.
 - 2026-11-09: Datos de la ficha numbers sat far under the titles — MetricTile used `justify-between` plus `flex-1 justify-end` on the figure — keep `h-full` for equal cards and put extra space at the bottom.

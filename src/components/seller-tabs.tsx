@@ -58,11 +58,14 @@ export function FloatingSegmentedTabs<T extends string>({
   tabs,
   value,
   onChange,
+  offsetClass = "",
 }: {
   label: string;
   tabs: readonly { id: T; label: string }[];
   value: T;
   onChange: (id: T) => void;
+  /** Leave room for the Tu progreso card so the toggle stays centred in the remaining column. */
+  offsetClass?: string;
 }) {
   function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
@@ -77,7 +80,7 @@ export function FloatingSegmentedTabs<T extends string>({
 
   return (
     <ViewportPortal>
-    <div className="pointer-events-none fixed inset-x-0 top-14 z-40 flex justify-center px-3 sm:top-16 lg:top-3 lg:left-[var(--layout-sidebar)]">
+    <div className={`pointer-events-none fixed inset-x-0 top-14 z-40 flex justify-center px-3 sm:top-16 lg:top-3 lg:left-[var(--layout-sidebar)] ${offsetClass}`}>
       <div
         role="tablist"
         aria-label={label}

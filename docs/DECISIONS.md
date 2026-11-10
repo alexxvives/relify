@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Top-5 client weight and seasonality note stay in Postgres
+
+Cómo es tu negocio no longer has “Peso de los 5 principales clientes” or “Nota de estacionalidad”. `seasonality_note` and `top5_clients_pct` stay in the table (no destructive migration). The seller form does not read or write them. If the ficha shows a concentration figure, it sums the largest five Principales clientes slices.
+
 ## 2026-11-09 — Only Alex deploys production, after INT
 
 Worker `releva` is production. `npm run deploy` and `npm run deploy:vinext` must refuse unless `RELIFY_DEPLOY_PROD=yes`, the git branch is `main`, stdin is a TTY, and the operator types `releva`. Agents never deploy, never run wrangler/vinext-cloudflare against `releva`, and never patch `node_modules/cf` to force a publish. INT stays on `scripts/deploy-int.sh` / Worker `releva-int`.

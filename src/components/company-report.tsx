@@ -657,6 +657,7 @@ export function CompanyReport({
   registryActivity = null,
   buyerRegistry = null,
   navBelowTabs = false,
+  showSectionNav = true,
   sellerPreview = null,
 }: {
   project: InvestorProjectProfile;
@@ -674,6 +675,8 @@ export function CompanyReport({
   buyerRegistry?: BuyerRegistry | null;
   /** t81: the report sits under the seller's floating toggle; its section bar sticks below it. */
   navBelowTabs?: boolean;
+  /** Seller Información empresa keeps the report mounted but hidden; do not portal its section bar there. */
+  showSectionNav?: boolean;
   /** t83: seller's own preview: "Sin definir" price and an empty "Qué vende y a quién" with a fill action. */
   sellerPreview?: { mixAction: ReactNode } | null;
 }) {
@@ -735,7 +738,6 @@ export function CompanyReport({
       : null,
     project.recurringRevenuePct != null ? { label: companyCopy.recurringRevenueLabel, value: `${project.recurringRevenuePct} %` } : null,
     project.seasonality ? { label: companyCopy.seasonalityLabel, value: seasonalityLabels[project.seasonality] } : null,
-    project.seasonalityNote ? { label: companyCopy.seasonalityNoteLabel, value: project.seasonalityNote } : null,
     project.top5ClientsPct != null ? { label: companyCopy.top5ClientsLabel, value: `${project.top5ClientsPct} %` } : null,
   ].flatMap((item) => (item ? [item] : []));
   const margin = project.ebitdaMarginBp === null ? companyCopy.unavailable : formatBasisPoints(project.ebitdaMarginBp);
@@ -813,8 +815,8 @@ export function CompanyReport({
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <div className={`relative flex min-w-0 flex-col gap-4 ${navBelowTabs ? "pt-4 lg:pt-8" : "pt-16"}`}>
-      <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
+    <div className={`relative flex min-w-0 flex-col gap-4 ${showSectionNav ? (navBelowTabs ? "pt-4 lg:pt-8" : "pt-16") : ""}`}>
+      {showSectionNav ? <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
 
       <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>

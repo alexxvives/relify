@@ -453,3 +453,15 @@ export function askingPriceSet(value: string): boolean {
   const amount = Number(value.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
   return Number.isFinite(amount) && amount > 0;
 }
+
+/** Sum of the largest 5 client slices, as a whole percent of sales. Null when the list is empty. */
+export function topClientsWeightPct(slices: readonly { basisPoints: number }[]): number | null {
+  if (slices.length === 0) {
+    return null;
+  }
+  const weight = [...slices]
+    .sort((left, right) => right.basisPoints - left.basisPoints)
+    .slice(0, 5)
+    .reduce((sum, slice) => sum + slice.basisPoints, 0);
+  return Math.round(weight / 100);
+}

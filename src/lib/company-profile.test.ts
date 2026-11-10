@@ -19,6 +19,7 @@ import {
   totalLiabilities,
   activityKindsForCustomer,
   anonymousSliceLabel,
+  topClientsWeightPct,
   type BalanceAmounts,
   type PnlAmounts,
 } from "./company-profile";
@@ -141,5 +142,21 @@ describe("company profile statements", () => {
     expect(descriptionContainsSecret("Mayorista de bebidas", ["Talleres Olivo SL", ""])).toBe(false);
     expect(descriptionContainsSecret("La sociedad Talleres Olivo SL vende", ["Talleres Olivo SL"])).toBe(true);
     expect(descriptionContainsSecret("CIF b12345678", ["B12345678"])).toBe(true);
+  });
+
+  it("derives top-client concentration from the client list", () => {
+    expect(topClientsWeightPct([])).toBeNull();
+    expect(topClientsWeightPct([{ basisPoints: 4000 }, { basisPoints: 2500 }, { basisPoints: 1500 }])).toBe(80);
+    expect(
+      topClientsWeightPct([
+        { basisPoints: 3000 },
+        { basisPoints: 2000 },
+        { basisPoints: 1500 },
+        { basisPoints: 1000 },
+        { basisPoints: 800 },
+        { basisPoints: 700 },
+        { basisPoints: 500 },
+      ]),
+    ).toBe(83);
   });
 });

@@ -213,8 +213,7 @@ export async function saveCompanyDraft(
     leaseYearsRemaining: input.premisesKind === "rent" ? optionalWholeNumber(input.leaseYearsRemaining, 0, 99) : null,
     recurringRevenuePct: optionalWholeNumber(input.recurringRevenuePct, 0, 100),
     seasonality: input.seasonality === "" ? null : input.seasonality,
-    seasonalityNote: input.seasonalityNote === "" ? null : input.seasonalityNote,
-    top5ClientsPct: optionalWholeNumber(input.top5ClientsPct, 0, 100),
+    // seasonalityNote and top5ClientsPct stay in the table; the UI no longer writes them.
     askingPriceIncludes: storedAskingPriceIncludes(input.askingPriceIncludes),
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,

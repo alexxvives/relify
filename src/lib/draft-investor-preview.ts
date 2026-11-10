@@ -20,6 +20,7 @@ import {
   isStatementYear,
   parsePercentToBasisPoints,
   storedAskingPriceIncludes,
+  topClientsWeightPct,
   type BalanceAmounts,
   type PnlAmounts,
   type SliceKind,
@@ -127,6 +128,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
   const principal = input.principalCnae.trim();
   const description = input.description.trim();
   const founded = /^\d{4}$/.test(input.foundedYear) ? Number(input.foundedYear) : null;
+  const clients = slicesFor("client", input.clientPercents);
 
   return {
     slug: projectSlug(input.codename),
@@ -151,8 +153,8 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     leaseYearsRemaining: input.premisesKind === "rent" ? optionalWholeNumber(input.leaseYearsRemaining, 0, 99) : null,
     recurringRevenuePct: optionalWholeNumber(input.recurringRevenuePct, 0, 100),
     seasonality: input.seasonality !== "" && isSeasonalityLevel(input.seasonality) ? input.seasonality : null,
-    seasonalityNote: input.seasonalityNote.trim() === "" ? null : input.seasonalityNote.trim(),
-    top5ClientsPct: optionalWholeNumber(input.top5ClientsPct, 0, 100),
+    seasonalityNote: null,
+    top5ClientsPct: topClientsWeightPct(clients),
     askingPriceIncludes: storedAskingPriceIncludes(input.askingPriceIncludes),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
@@ -163,7 +165,7 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     }),
     capital: slicesFor("capital", input.capitalPercents),
     products: slicesFor("product", input.productPercents),
-    clients: slicesFor("client", input.clientPercents),
+    clients,
     customerBase: input.customerBase === "" ? null : input.customerBase,
     headcountRange: input.headcount !== "" && isHeadcountRange(input.headcount) ? input.headcount : null,
     incomeYears,

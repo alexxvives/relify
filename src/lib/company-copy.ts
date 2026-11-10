@@ -100,7 +100,7 @@ export const companyCopy = {
   seasonalityHigh: "Alta",
   seasonalityNoteLabel: "Nota de estacionalidad",
   seasonalityNotePlaceholder: "Opcional: en qué meses se concentra la actividad",
-  top5ClientsLabel: "Peso de los 5 principales clientes",
+  top5ClientsLabel: "Peso de los principales clientes",
   askingPriceIncludesLabel: "Qué incluye el precio",
   askingPriceIncludesDebtFree: "Empresa libre de deuda y caja",
   askingPriceIncludesShares: "Participaciones",

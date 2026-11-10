@@ -120,7 +120,7 @@ export function ReportNav({
   }
 
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
-  const top = belowFloatingTabs ? "top-[7.75rem] sm:top-[8.25rem] lg:top-[4.75rem]" : "top-14 sm:top-16 lg:top-3";
+  const top = belowFloatingTabs ? "top-[7.75rem] sm:top-[8.25rem] lg:top-[5.25rem]" : "top-14 sm:top-16 lg:top-3";
 
   return (
     <ViewportPortal>
