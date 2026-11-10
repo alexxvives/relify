@@ -69,8 +69,8 @@ export default async function BlogArticlePage({ params }: PageProps<"/blog/[slug
           <p className="text-xs tracking-[0.16em] text-public-clay uppercase">
             {post.category} · {formatBlogDate(post.date)} · {post.readTime} {blogCopy.minutes}
           </p>
-          <h1 className="releva-page-title mt-3 max-w-5xl text-4xl leading-[0.98] sm:text-6xl">{post.title}</h1>
-          <p className="mt-4 max-w-4xl text-xl leading-9 text-public-muted">
+          <h1 className="releva-page-title mt-3 max-w-5xl">{post.title}</h1>
+          <p className="mt-4 max-w-4xl text-base leading-7 text-public-muted sm:text-xl sm:leading-9">
             <BlogProse text={post.excerpt} />
           </p>
         </header>

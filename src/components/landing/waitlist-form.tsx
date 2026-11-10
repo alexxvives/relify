@@ -96,8 +96,9 @@ export function WaitlistBoard() {
             Apúntate para entrar
             <span>en el marketplace</span>
           </h1>
-          <p className="releva-wait-body">{waitlistCopy.body}</p>
-          <div className="releva-wait-orbit" aria-hidden="true">
+          <p className="releva-wait-body sm:hidden">{waitlistCopy.bodyShort}</p>
+          <p className="releva-wait-body hidden sm:block">{waitlistCopy.body}</p>
+          <div className="releva-wait-orbit hidden sm:flex" aria-hidden="true">
             {seats.map((seed, index) => (
               <span key={seed} className="releva-wait-face" style={{ animationDelay: `${index * -1.4}s` }}>
                 <Image src={gazeAvatarUrl(seed)} alt="" width={64} height={64} unoptimized />

@@ -49,29 +49,29 @@ export function RolePage(props: RolePageProps) {
   return (
     <PublicSite>
       <main className="overflow-x-clip bg-public-paper text-public-ink">
-        <section className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 pt-12 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:px-8 lg:pt-20 lg:pb-24">
+        <section className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 pt-8 pb-12 sm:gap-12 sm:px-6 sm:pt-12 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:px-8 lg:pt-20 lg:pb-24">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-public-line bg-white/70 px-3 py-1 text-sm text-public-clay">
               <Sparkles className="size-4" aria-hidden />
               {kicker}
             </p>
-            <h1 className="releva-page-title mt-5 text-[2.5rem] leading-[1.04] text-balance sm:text-5xl xl:text-6xl">{title}</h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-public-muted">{lead}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <h1 className="releva-page-title mt-4 text-balance sm:mt-5">{title}</h1>
+            <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted sm:mt-6 sm:text-lg sm:leading-relaxed">{lead}</p>
+            <div className="mt-6 flex w-full flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <Link
                 href={cta.href}
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-public-clay px-6 font-medium text-white transition-colors duration-200 hover:bg-public-clay-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 font-medium text-white transition-colors duration-200 hover:bg-public-clay-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:w-auto"
               >
                 {cta.label}
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
-              <a href="#como-funciona" className="inline-flex h-12 items-center rounded-full border border-public-line bg-white px-6 text-public-ink transition-colors duration-200 hover:border-public-clay">
+              <a href="#como-funciona" className="inline-flex h-12 w-full items-center justify-center rounded-full border border-public-line bg-white px-6 text-public-ink transition-colors duration-200 hover:border-public-clay sm:w-auto">
                 Ver cómo funciona
               </a>
             </div>
-            <ul className="mt-8 grid gap-2.5 text-[15px] text-public-ink">
-              {highlights.map((item) => (
-                <li key={item} className="flex items-start gap-2.5">
+            <ul className="mt-6 grid gap-2.5 text-[15px] text-public-ink sm:mt-8">
+              {highlights.map((item, index) => (
+                <li key={item} className={`flex items-start gap-2.5 ${index > 1 ? "hidden sm:flex" : ""}`}>
                   <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-[#e7f7f4] text-[#0e7c6b]">
                     <Check className="size-3.5" aria-hidden />
                   </span>
@@ -82,7 +82,7 @@ export function RolePage(props: RolePageProps) {
           </div>
 
           <div className="relative min-w-0 sm:pb-16">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] border border-public-line bg-white shadow-public">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] border border-public-line bg-white shadow-public sm:aspect-[4/3] sm:rounded-[2rem]">
               <Image src={photo} alt={photoAlt} fill sizes="(min-width: 1024px) 620px, 100vw" className="object-cover" priority />
               <AiImageTag />
             </div>
@@ -98,9 +98,9 @@ export function RolePage(props: RolePageProps) {
         </section>
 
         <section className="border-y border-public-line bg-white">
-          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
-            <h2 className="max-w-3xl text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-[2.75rem]">{props.featuresTitle}</h2>
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
+            <h2 className="releva-section-title max-w-3xl text-balance">{props.featuresTitle}</h2>
+            <div className="mt-6 grid gap-4 sm:mt-10 md:grid-cols-3">
               {props.features.map((feature, index) => {
                 const tone = featureTones[index % featureTones.length];
                 const Icon = tone.icon;
@@ -110,7 +110,7 @@ export function RolePage(props: RolePageProps) {
                       <Icon className="size-5" aria-hidden />
                     </span>
                     <h3 className="mt-5 text-xl leading-tight">{feature.title}</h3>
-                    <p className="mt-2.5 leading-7 text-public-muted">{feature.body}</p>
+                    <p className="mt-2.5 hidden leading-7 text-public-muted sm:block">{feature.body}</p>
                   </article>
                 );
               })}
@@ -118,11 +118,11 @@ export function RolePage(props: RolePageProps) {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:px-8 lg:py-24">
+        <section className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-10 sm:gap-10 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:px-8 lg:py-24">
           <div>
             <p className="text-sm font-medium tracking-[0.16em] text-public-clay uppercase">Dentro de Relify</p>
-            <h2 className="mt-3 text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-4xl">{props.productTitle}</h2>
-            <p className="mt-4 max-w-md text-lg leading-relaxed text-public-muted">{props.productBody}</p>
+            <h2 className="releva-section-title mt-2 text-balance sm:mt-3">{props.productTitle}</h2>
+            <p className="mt-3 hidden max-w-md text-[16px] leading-7 text-public-muted sm:mt-4 sm:block sm:text-lg sm:leading-relaxed">{props.productBody}</p>
           </div>
           <div className="overflow-hidden rounded-3xl border border-public-line bg-white p-2 shadow-public">
             <Image src={image} alt={imageAlt} width={1440} height={760} sizes="(min-width: 1024px) 760px, 100vw" className="h-auto w-full rounded-2xl" />
@@ -130,10 +130,10 @@ export function RolePage(props: RolePageProps) {
         </section>
 
         <section id="como-funciona" className="scroll-mt-24 bg-[#12343a] text-white">
-          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
             <p className="text-sm font-medium tracking-[0.16em] text-[#8fd8cf] uppercase">El recorrido</p>
-            <h2 className="mt-3 max-w-3xl text-3xl leading-[1.08] font-medium tracking-tight text-balance md:text-[2.75rem]">{props.stepsTitle}</h2>
-            <ol className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <h2 className="releva-section-title mt-2 max-w-3xl text-balance text-white sm:mt-3">{props.stepsTitle}</h2>
+            <ol className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 xl:grid-cols-4">
               {props.steps.map((step, index) => (
                 <li key={step.title} className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6">
                   <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#2fc4b2] text-sm font-semibold text-[#0f1b24] tabular-nums">
@@ -160,12 +160,12 @@ export function RolePage(props: RolePageProps) {
         </ArcScope>
         </div>
 
-        <section className="px-5 pb-20 sm:px-6 lg:px-8">
-          <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[2rem] bg-[#12343a]">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20 lg:px-8">
+          <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[1.5rem] bg-[#12343a] sm:rounded-[2rem]">
             <Image src={photo} alt="" fill sizes="1280px" className="object-cover opacity-25" />
-            <div className="relative flex flex-col items-start gap-6 px-6 py-14 sm:px-12 md:flex-row md:items-center md:justify-between">
-              <h2 className="max-w-xl text-3xl leading-[1.1] font-medium tracking-tight text-balance text-white md:text-4xl">{props.closingTitle}</h2>
-              <Link href={cta.href} className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-white px-6 font-medium text-[#12343a] transition-colors duration-200 hover:bg-[#e5eef0]">
+            <div className="relative flex flex-col items-stretch gap-5 px-5 py-10 sm:items-start sm:gap-6 sm:px-12 sm:py-14 md:flex-row md:items-center md:justify-between">
+              <h2 className="releva-section-title max-w-xl text-balance text-white">{props.closingTitle}</h2>
+              <Link href={cta.href} className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 font-medium text-[#12343a] transition-colors duration-200 hover:bg-[#e5eef0] md:w-auto">
                 {cta.label}
                 <ArrowRight className="size-4" aria-hidden />
               </Link>

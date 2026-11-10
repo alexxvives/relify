@@ -174,7 +174,7 @@ export function Hero() {
             <div className="flex flex-col gap-5">
               <h1
                 id="inicio"
-                className="text-[40px] leading-none font-normal tracking-[-0.02em] text-[#2b3b4a] sm:text-[56px] lg:text-[76px]"
+                className="text-[clamp(1.85rem,8vw,2.5rem)] leading-[1.02] font-normal tracking-[-0.02em] text-[#2b3b4a] sm:text-[56px] lg:text-[76px]"
               >
                 Plataforma digital
                 <br />

@@ -50,7 +50,7 @@ export function ValuationSoon() {
           className="h-12 rounded-full border border-public-line bg-white px-4 text-base tracking-wide outline-none focus-visible:border-public-ink"
         />
       </label>
-      <button type="submit" className="mt-4 inline-flex h-12 items-center rounded-full bg-public-ink px-6 text-white">
+      <button type="submit" className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-public-ink px-6 text-white sm:w-auto">
         {copy.button}
       </button>
       <p className={invalid ? "mt-4 text-sm text-red-700" : "mt-4 text-sm leading-6 text-public-muted"} role={invalid ? "alert" : "status"}>

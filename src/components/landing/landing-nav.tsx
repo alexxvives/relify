@@ -83,9 +83,16 @@ export function LandingNav({
         {mobile ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
       </button>
       {mobile ? (
+        <>
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-public-ink/25 lg:hidden"
+          aria-label="Cerrar menú"
+          onClick={() => setMobile(false)}
+        />
         <div
           id="landing-mobile-menu"
-          className="absolute top-full right-0 z-50 mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-[1.5rem] bg-public-card p-3 text-public-ink shadow-public lg:hidden"
+          className="fixed inset-x-3 top-[4.35rem] z-50 max-h-[min(28rem,calc(100dvh-5rem))] overflow-y-auto rounded-[1.5rem] bg-public-card p-3 text-public-ink shadow-public lg:hidden"
         >
           {landingCopy.nav.map((group) => (
             <div key={group.label} className="px-2 py-1">
@@ -129,6 +136,7 @@ export function LandingNav({
             {accountLabel}
           </Link>
         </div>
+        </>
       ) : null}
       </div>
     </>

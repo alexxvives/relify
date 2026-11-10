@@ -312,22 +312,22 @@ export function Hero() {
           />
         </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.96] text-public-ink">
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(1.85rem,8vw,2.4rem)] leading-[0.96] text-public-ink lg:text-[clamp(2.25rem,5.4cqi,5.2rem)]">
             <span className="block">Un mercado para</span>
             <span className="block">
               <SwapVerb /> empresas
             </span>
           </h1>
-          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex flex-wrap items-center justify-center gap-3">
+          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center">
             <Link
               href="/registro?rol=inversor"
-              className="inline-flex h-12 items-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
             >
               {copy.cta}
             </Link>
             <Link
               href="/registro?rol=empresa"
-              className="inline-flex h-12 items-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
             >
               {copy.sellCta}
             </Link>

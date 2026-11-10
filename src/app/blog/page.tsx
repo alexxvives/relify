@@ -22,11 +22,11 @@ export default function BlogPage() {
 
   return (
     <PublicSite>
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 py-12 sm:px-8">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-5 py-8 sm:gap-10 sm:px-8 sm:py-12">
         <header>
           <p className="text-xs tracking-[0.2em] text-public-clay uppercase">{blogCopy.kicker}</p>
-          <h1 className="releva-page-title mt-3 max-w-3xl text-5xl leading-[0.96] sm:text-6xl">{blogCopy.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-public-muted">{blogCopy.description}</p>
+          <h1 className="releva-page-title mt-3 max-w-3xl">{blogCopy.title}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-public-muted sm:mt-4">{blogCopy.description}</p>
         </header>
         <BlogIndex posts={posts} />
         <NewsletterSignup />

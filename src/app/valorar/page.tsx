@@ -13,16 +13,16 @@ export const metadata: Metadata = {
 export default function ValuationPage() {
   return (
     <PublicSite>
-      <main className="mx-auto grid w-full max-w-[1440px] items-center gap-12 px-6 py-16 sm:px-10 lg:min-h-[calc(100svh-12rem)] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:py-20">
+      <main className="mx-auto grid w-full max-w-[1440px] items-center gap-8 px-5 py-10 sm:gap-12 sm:px-10 sm:py-16 lg:min-h-[calc(100svh-12rem)] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:py-20">
         <div>
           <p className="text-sm text-public-clay">Próximamente</p>
-          <h1 className="releva-page-title mt-3 max-w-3xl text-4xl leading-[1.02] md:text-6xl">
+          <h1 className="releva-page-title mt-3 max-w-3xl">
             Valora tu empresa
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-public-muted">
+          <p className="mt-4 max-w-2xl text-[16px] leading-7 text-public-muted sm:mt-6 sm:text-lg sm:leading-8">
             Escribe el CIF y, cuando esta herramienta abra, verás una primera
-            lectura del valor. Hoy no calculamos un precio, no consultamos el
-            registro y no guardamos el número.
+            lectura del valor. <span className="hidden sm:inline">Hoy no calculamos un precio, no consultamos el
+            registro y no guardamos el número.</span>
           </p>
           <ValuationSoon />
         </div>

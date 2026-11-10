@@ -34,9 +34,9 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
   return (
     <div
       data-releva-menu
-      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-2 sm:px-4"
+      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-1.5 sm:px-4 sm:py-2"
     >
-      <Link href="/" className="relative z-20 shrink-0 pl-2" aria-label="Relify">
+      <Link href="/" className="relative z-20 flex min-h-11 shrink-0 items-center pl-2" aria-label="Relify">
         <Logo />
       </Link>
       <LandingNav

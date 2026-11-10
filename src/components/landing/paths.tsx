@@ -57,22 +57,22 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
   const [hint, setHint] = useState(true);
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-        <h2 id={`${copy.id}-titulo`} className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
+        <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 max-w-3xl sm:mt-3">
           {copy.heading}
         </h2>
-        <p className="mt-4 text-[16px] leading-7 text-public-muted">{copy.intro}</p>
-        <div className="releva-path-grid relative mt-10">
+        <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
+        <div className="releva-path-grid relative mt-6 sm:mt-10">
           {hint ? <PathPointer /> : null}
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:snap-none lg:grid-cols-3 lg:gap-4 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {copy.columns.map((column) => {
             const selected = column.id === role;
             return (
               <article
                 key={column.id}
-                className={`relative flex flex-col rounded-[1.75rem] p-2 shadow-public transition duration-300 ${selected ? "bg-public-ink text-white" : "releva-path-wait bg-public-card text-public-ink hover:-translate-y-1"}`}
+                className={`relative flex w-[min(18.75rem,calc(100vw-2.75rem))] shrink-0 snap-start flex-col rounded-[1.5rem] p-2 shadow-public transition duration-300 lg:w-auto lg:rounded-[1.75rem] ${selected ? "bg-public-ink text-white" : "releva-path-wait bg-public-card text-public-ink hover:-translate-y-1"}`}
               >
                 <button
                   type="button"
@@ -81,14 +81,14 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                     setHint(false);
                     onSelect(column.id);
                   }}
-                  className="flex flex-1 flex-col rounded-[1.35rem] px-6 py-7 pr-16 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+                  className="flex flex-1 flex-col rounded-[1.35rem] px-5 py-5 pr-14 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:px-6 sm:py-7 sm:pr-16"
                 >
                   <span className={selected ? "releva-path-mark releva-path-mark-on" : "releva-path-mark"} aria-hidden="true">
                     <span />
                   </span>
-                  <h3 className="text-4xl font-medium tracking-tight">{column.role}</h3>
-                  <p className={`mt-3 text-[16px] leading-7 ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
-                  <ul className="mt-6 flex flex-wrap gap-2">
+                  <h3 className="text-[1.75rem] font-medium tracking-tight sm:text-4xl">{column.role}</h3>
+                  <p className={`mt-3 hidden text-[16px] leading-7 sm:block ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
+                  <ul className="mt-6 hidden flex-wrap gap-2 sm:flex">
                     {column.points.slice(0, 2).map((point) => (
                       <li
                         key={point}
@@ -102,7 +102,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                 </button>
                 <Link
                   href={column.href}
-                  className={`mx-auto mb-6 inline-flex h-12 w-fit items-center gap-2 self-center rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
+                  className={`mx-3 mb-4 inline-flex h-12 w-[calc(100%-1.5rem)] items-center justify-center gap-2 self-center rounded-full px-5 text-sm sm:mx-auto sm:mb-6 sm:w-fit ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
                 >
                   {column.cta}
                   <ArrowRight className="size-4" aria-hidden="true" />

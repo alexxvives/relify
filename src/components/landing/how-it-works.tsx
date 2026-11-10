@@ -162,15 +162,15 @@ export function HowItWorks({ role }: { role: FlowRole }) {
   }
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-16 sm:px-8 sm:py-24">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-24">
       <div className="mx-auto w-full max-w-[1100px]">
-        <div className="mx-auto mb-14 max-w-xl text-center">
+        <div className="mx-auto mb-8 max-w-xl text-center sm:mb-14">
           <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise mt-3 text-4xl leading-[1.05] font-medium tracking-tight sm:text-6xl">
+          <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 sm:mt-3">
             {roleName ? <span className="mb-1 block text-public-clay">{roleName}</span> : null}
             {copy.heading}
           </h2>
-          <p className="mt-4 text-[16px] leading-7 text-public-muted">{copy.intro}</p>
+          <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
         </div>
         <div className="releva-how-grid">
           <ol className="releva-how-steps">

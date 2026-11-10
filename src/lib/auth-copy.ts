@@ -44,7 +44,7 @@ export const authCopy = {
   resetRequestNew: "Pedir un enlace nuevo",
   backToSignIn: "Volver a entrar",
   signUpIntro: "Únete a quienes compran, venden o asesoran empresas.",
-  emailPlaceholder: "Escribe tu correo electrónico",
+  emailPlaceholder: "tu@correo.com",
   passwordPlaceholder: "Mínimo 8 caracteres",
   passwordHint: "Mínimo 8 caracteres",
   showPassword: "Mostrar contraseña",

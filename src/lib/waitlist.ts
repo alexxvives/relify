@@ -20,6 +20,7 @@ export const waitlistCopy = {
   kicker: "Lista de espera",
   heading: "Apúntate para entrar en el marketplace",
   body: "Deja tu correo y te avisamos en cuanto abramos. Si vendes, publica tu negocio gratis y con total discreción. Si compras, explora todos los negocios sin coste. Si eres asesor, consigue nuevas operaciones que acompañar.",
+  bodyShort: "Deja tu correo y te avisamos en cuanto abramos.",
   roles: [
     {
       id: "company" as const,

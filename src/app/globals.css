@@ -350,7 +350,7 @@
   isolation: isolate;
   overflow: hidden;
   margin: 0 0.5rem 0.5rem;
-  padding: 2.5rem 1rem 3rem;
+  padding: 1.25rem 0.75rem 1.75rem;
   border: 1px solid var(--public-line);
   border-radius: 1.5rem;
   background:
@@ -520,8 +520,8 @@
 .releva-hero-sky {
   width: 100%;
   min-height: 0;
-  margin: -6.25rem 0 0;
-  padding: 7.25rem 1rem 4.5rem;
+  margin: -5.25rem 0 0;
+  padding: 5.75rem 0.75rem 2.5rem;
   border: 0;
   border-radius: 0;
   background: #e7eeef;
@@ -586,7 +586,7 @@
   justify-content: flex-start;
   width: auto;
   margin: 0;
-  padding: 1.35rem 1.5rem 0;
+  padding: 0.85rem 1rem 0;
   text-align: center;
   text-shadow: 0 0 16px #fff, 0 0 28px #fff;
 }
@@ -597,6 +597,38 @@
   font-style: normal;
   font-weight: 600;
   letter-spacing: -0.045em;
+}
+
+.releva-page-title {
+  font-size: clamp(1.85rem, 7vw, 3.75rem);
+  line-height: 1.04;
+}
+
+.releva-section-title {
+  font-size: clamp(1.75rem, 5.6vw, 3.75rem);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.releva-snap-row {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+}
+
+.releva-snap-row::-webkit-scrollbar {
+  display: none;
+}
+
+.releva-snap-row > * {
+  flex: 0 0 min(20.5rem, calc(100vw - 2.75rem));
+  scroll-snap-align: start;
 }
 
 .releva-price-bubble {
@@ -637,7 +669,7 @@
 }
 
 .releva-hero-actions {
-  margin-top: 1.35rem;
+  margin-top: 0.85rem;
 }
 
 .releva-market-float {
@@ -1882,7 +1914,11 @@
   .releva-how-step {
     align-content: start;
     min-height: 0;
-    padding: 0 0 40px;
+    padding: 0 0 1.5rem;
+  }
+
+  .releva-how-body {
+    display: none;
   }
 
   .releva-how-copy,
@@ -2281,7 +2317,7 @@
 .releva-city-static {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 0 0 1.25rem 1.25rem;
 }
@@ -2647,7 +2683,7 @@
   max-width: 14ch;
   margin-top: 1rem;
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
-  font-size: clamp(2.6rem, 8vw, 5.6rem);
+  font-size: clamp(1.85rem, 8vw, 5.6rem);
   font-style: normal;
   font-weight: 600;
   line-height: 0.92;
@@ -2863,6 +2899,10 @@
     font-size: 1.6rem;
   }
 
+  .releva-wait-clock {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
   .releva-wait-clock ol {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2871,8 +2911,22 @@
   }
 
   .releva-wait-clock li > span {
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     letter-spacing: 0.06em;
+  }
+
+  .releva-wait-layout {
+    gap: 1.25rem;
+    padding: 0.75rem 1rem 2rem;
+  }
+
+  .releva-wait-title {
+    max-width: 12ch;
+    margin-top: 0.35rem;
+  }
+
+  .releva-wait-orbit {
+    display: none;
   }
 }
 
