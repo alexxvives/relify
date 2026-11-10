@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-10: Buyer pre-NDA labelled “EBITDA ajustado 750 k” and also “EBITDA 750 k” with only a pending row — `adjustmentsForBuyer` returned null, so `publishedEbitdaFromAdjustments` treated the copied accounts column as a legacy approved figure — return `[]` when every row was stripped, and never treat equal-to-accounts legacy as approved.
+- 2026-11-10: Seller marketplace preview applied a pending owner_salary (1,77 M / 2,3 años) while `/mercado` stayed 750 k — the preview built cents from form strings instead of `reportHeadline` — `MarketPreview` must call `marketCardFigures` on the same profile as the ficha.
 - 2026-11-10: Seller Resumen showed “EBITDA ajustado 0 €” with a pending ~1 M € owner_salary — headline trusted `project.adjustedEbitdaCents` (0 after a pending-only save against a 0 project column) — recompute from last closed year + approved rows only; pending never enters the sum.
 - 2026-11-10: Seller Ficha pública still showed 1,8 M € (750 k + pending 1 M) while the marketplace card stayed 800 k aj — `adjustmentRowsJson` dropped `status`, so `formRowsFromJson` treated the pending row as approved in `draftInvestorPreview` — keep status on the form JSON round-trip.
 - 2026-11-10: Buyer Resumen said 620 k → 1 M / EBITDA 180 k / DFN 94 k / 0,12× while cards stayed 5 M / 800 k — `veilReportFigures` swapped `reportYears` but left `revenueCents`/`ebitdaCents`/`adjustedEbitdaCents`; leverage mixed veiled DFN with the real adj — keep published cents on the cards; invented years stay behind the blur.

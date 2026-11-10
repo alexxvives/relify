@@ -22,7 +22,7 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
-import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
+import { cnaeClasses } from "@/lib/cnae-2009";
 import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -46,6 +46,8 @@ import {
   type ForecastYearInput,
 } from "@/lib/company-draft";
 import { draftInvestorPreview } from "@/lib/draft-investor-preview";
+import { marketCardFigures } from "@/lib/company-report";
+import type { InvestorProjectProfile } from "@/lib/investor-project";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
@@ -82,6 +84,7 @@ import { scrollToCenter } from "@/components/use-scroll-spy";
 import { DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
+  adjustmentExceedsHalfEbitda,
   adjustmentRowErrors,
   adjustmentRowsValid,
   defaultAdjustmentDirection,
@@ -812,6 +815,7 @@ function EbitdaAdjustmentsDialog({
   year,
   legacyCents,
   revenueCents = null,
+  ebitdaCents = null,
   uploadsDisabled = false,
 }: {
   rows: EbitdaAdjustmentFormRow[];
@@ -821,6 +825,7 @@ function EbitdaAdjustmentsDialog({
   year: string | null;
   legacyCents: number | null;
   revenueCents?: number | null;
+  ebitdaCents?: number | null;
   uploadsDisabled?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -861,7 +866,7 @@ function EbitdaAdjustmentsDialog({
       setUploading(null);
     }
   }
-  const rowOptions = { revenueCents };
+  const rowOptions = { revenueCents, ebitdaCents };
   const errors = rows.map((row) => (attempted ? adjustmentRowErrors(row, rowOptions) : {}));
   const sum = rows.reduce<number>((total, row) => total + (formRowAmountCents(row.amount) ?? 0), 0);
   const unchanged = formRowsToJson(rows) === formRowsToJson(savedRows);
@@ -956,6 +961,7 @@ function EbitdaAdjustmentsDialog({
               {rows.map((row, index) => {
                 const rowErrors = errors[index] ?? {};
                 const id = `adjustment-${index}`;
+                const rowAmountCents = formRowAmountCents(row.amount);
                 return (
                   <li key={index} data-adjustment-row={index} className="rounded-xl border border-[#e7eaee] bg-[#fbfcfd] p-3">
                     <div className="flex items-start gap-2">
@@ -1038,6 +1044,8 @@ function EbitdaAdjustmentsDialog({
                             <p id={`${id}-amount-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.amount}
                             </p>
+                          ) : rowAmountCents !== null && adjustmentExceedsHalfEbitda(rowAmountCents, ebitdaCents) ? (
+                            <p className="mt-1 text-xs text-[#b45f06]">{companyCopy.adjustmentLargeShare}</p>
                           ) : null}
                         </div>
                         <div className="min-w-0 sm:col-span-3">
@@ -2629,6 +2637,7 @@ export function CompanyDraftForm({
                         ? eurosToCents(revenue.trim())
                         : null
                   }
+                  ebitdaCents={adjustmentBaseCents}
                   uploadsDisabled={uploadsDisabled}
                 />
               )}
@@ -2998,16 +3007,7 @@ export function CompanyDraftForm({
         <p className="-mt-2 mb-4 text-sm text-[#5c6b78]">{companyCopy.fichaPreviewIntro}</p>
         <div className="flex flex-col gap-4">
           <MarketPreview
-            codename={codename}
-            region={region}
-            revenue={salesFromAccounts ?? revenue}
-            ebitda={ebitdaFromAccounts ?? ebitda}
-            adjustedEbitda={adjustedEbitda}
-            hasAdjustments={approvedAdjustmentsCount > 0 || (adjustmentRows.length === 0 && legacyAdjustedCents !== 0)}
-            hasPendingAdjustments={pendingAdjustments > 0}
-            askingPrice={askingPrice}
-            principalCnae={principalCnae}
-            summary={description}
+            project={previewProject}
             financingChip={sellerFinancingChip(storedSellerFinancing({ sellerFinancing }))}
             publishable={!priceBlocked}
           />
@@ -3161,47 +3161,27 @@ function PublicFicha({
 }
 
 function MarketPreview({
-  codename,
-  region,
-  revenue,
-  ebitda,
-  adjustedEbitda,
-  hasAdjustments = false,
-  hasPendingAdjustments = false,
-  askingPrice,
-  principalCnae = "",
-  summary = "",
+  project,
   financingChip = null,
   publishable = true,
 }: {
-  codename: string;
-  region: string;
-  revenue: string;
-  ebitda: string;
-  adjustedEbitda: string;
-  hasAdjustments?: boolean;
-  hasPendingAdjustments?: boolean;
-  askingPrice: string;
-  principalCnae?: string;
-  summary?: string;
+  project: InvestorProjectProfile;
   financingChip?: string | null;
   publishable?: boolean;
 }) {
-  // The preview is the real marketplace card, so it can never drift from it.
+  // Same MarketCard + reportHeadline path as /mercado: pending rows never change the published EBITDA.
+  const figures = marketCardFigures(project);
+  const principal = project.principalCnae;
   const card: PublicProjectCard = {
     slug: "vista-previa",
-    codename: codename.trim().length > 0 ? codename : companyCopy.codenameLabel,
-    region: region.trim().length > 0 ? region : companyCopy.regionLabel,
-    revenueCents: previewCents(revenue) ?? 0,
-    ebitdaCents: signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : 0,
-    adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : 0,
-    hasAdjustments,
-    hasPendingAdjustments,
-    askingPriceCents: previewCents(askingPrice) ?? 0,
-    sectorKey: principalCnae ? sectorKeyFromCnae(principalCnae) : undefined,
-    cnaeCode: principalCnae || null,
-    cnaeTitle: principalCnae ? cnaeTitleOf(principalCnae) : null,
-    summary: summary.trim() || null,
+    codename: project.codename.trim().length > 0 ? project.codename : companyCopy.codenameLabel,
+    region: project.region.trim().length > 0 ? project.region : companyCopy.regionLabel,
+    ...figures,
+    askingPriceCents: project.askingPriceCents,
+    sectorKey: principal ? sectorKeyFromCnae(principal.code) : undefined,
+    cnaeCode: principal?.code ?? null,
+    cnaeTitle: principal?.title ?? null,
+    summary: project.description?.trim() || null,
     financingChip,
     publishable,
   };
@@ -3275,15 +3255,6 @@ function SampleListing({ side }: { side: keyof typeof sampleListings }) {
       <MarketCard project={sampleListings[side]} muted />
     </div>
   );
-}
-
-function previewCents(value: string): number | null {
-  const trimmed = value.trim();
-  if (!unsignedEuroPattern.test(trimmed)) {
-    return null;
-  }
-
-  return optionalEurosToCents(trimmed);
 }
 
 function eurosToCentsLabel(cents: number): string {

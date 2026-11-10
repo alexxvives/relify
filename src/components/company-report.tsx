@@ -880,17 +880,9 @@ export function CompanyReport({
                 {shownEbitda.pendingReview ? (
                   <span className="font-medium text-[#b45f06]">{companyCopy.adjustmentInReview}</span>
                 ) : null}
-                <span title={reportedMarginHint ?? undefined}>
+                <span title={shownEbitda.secondaryCents !== null ? `${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.${reportedMarginHint ? ` ${reportedMarginHint}` : ""}` : (reportedMarginHint ?? undefined)}>
                   {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
                 </span>
-                {shownEbitda.secondaryCents !== null ? (
-                  <span className="tabular-nums text-[#5c6b78]" title={shownEbitda.secondaryLabel ?? undefined}>
-                    {companyCopy.ebitdaLabel}{" "}
-                    <span className={`font-semibold ${headline.ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>
-                      {compactEur(headline.ebitdaCents)}
-                    </span>
-                  </span>
-                ) : null}
               </>
             }
           />

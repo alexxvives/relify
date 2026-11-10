@@ -52,6 +52,26 @@ export type ReportHeadline = {
   hasPendingAdjustments: boolean;
 };
 
+/** Marketplace card + seller preview: the same published cents `reportHeadline` already computed. */
+export type MarketCardFigures = {
+  revenueCents: number;
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  hasAdjustments: boolean;
+  hasPendingAdjustments: boolean;
+};
+
+export function marketCardFigures(project: Parameters<typeof reportHeadline>[0]): MarketCardFigures {
+  const headline = reportHeadline(project);
+  return {
+    revenueCents: headline.revenueCents,
+    ebitdaCents: headline.ebitdaCents,
+    adjustedEbitdaCents: headline.adjustedEbitdaCents,
+    hasAdjustments: headline.hasApprovedAdjustments,
+    hasPendingAdjustments: headline.hasPendingAdjustments,
+  };
+}
+
 /**
  * One source for seller, buyer and marketplace cards: last closed year + approved adjustments.
  * Pending or oversized rows never change the headline. Falls back to project columns when there are no

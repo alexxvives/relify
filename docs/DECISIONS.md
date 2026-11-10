@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-10 — Round R3 preview, one EBITDA figure, 50 % warning
+
+Seller “Cómo se verá mi empresa” uses `marketCardFigures` / `reportHeadline` — the same path as `/mercado`. Pending rows never change that card. Pre-NDA Resumen shows one figure: `EBITDA` when nothing is approved, `EBITDA ajustado` when approved, with the accounts figure only in the tooltip. An adjustment larger than sales is still rejected; larger than half of EBITDA is a soft warning only (1 M € on 5 M sales is allowed).
+
 ## 2026-11-10 — Round R2 pre-NDA cards stay published
 
 Visible pre-NDA Resumen cards (facturación, EBITDA / EBITDA aj. when approved, precio, ROI) read `reportHeadline` from the published columns, identical to the seller preview and `/mercado` card. Veil placeholders stay only in content rendered behind the blur (`aria-hidden` / `inert`). DFN/EBITDA and conversión a caja are not public: they sit in that locked block until the NDA. `figuresVeiled` tells `reportHeadline` not to take revenue/EBITDA from the invented years.

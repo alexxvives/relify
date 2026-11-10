@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buyerProjectView } from "./report-veil";
-import { diligenceChecks, healthSignals, registryForRole, reportFlags, reportHeadline, reportSourceYears, reportSummary, reportSummaryMarked, summarySegments } from "./company-report";
+import { headlineEbitda } from "./financial-metrics";
+import { diligenceChecks, healthSignals, marketCardFigures, registryForRole, reportFlags, reportHeadline, reportSourceYears, reportSummary, reportSummaryMarked, summarySegments } from "./company-report";
 import type { SabiYear } from "./sabi/insights";
 import type { SabiRegistry } from "./sabi/registry";
 
@@ -302,6 +303,44 @@ describe("buyer and seller Resumen", () => {
     expect(buyerCards.adjustedEbitdaCents).toBe(80_000_000);
     expect(JSON.stringify(buyerLocked.reportYears)).not.toContain("500000000");
     expect(reportSummary(reportSourceYears(buyerLocked.reportYears))[0]).not.toContain("5 M €");
+  });
+
+  it("pending-only buyer cards show EBITDA once, never EBITDA ajustado", () => {
+    const years = [year({ year: 2024, revenueCents: 500_000_000, ebitdaCents: 75_000_000 })];
+    const seller = {
+      slug: "int-empresa-tecnologia",
+      revenueCents: 500_000_000,
+      ebitdaCents: 75_000_000,
+      adjustedEbitdaCents: 75_000_000,
+      askingPriceCents: 4_000_000_00,
+      ebitdaAdjustments: [
+        { id: "legacy-0", type: "owner_salary", amountCents: 100_000_100, reason: "Sueldo", status: "pending", documentId: null, documentName: null },
+      ],
+      reportYears: years,
+      incomeYears: [],
+      incomeRows: [],
+      balanceRows: [],
+      capital: [],
+      products: [],
+      clients: [],
+      secondaryCnaes: [],
+    } as unknown as Parameters<typeof buyerProjectView>[0];
+    const buyer = buyerProjectView(seller, false);
+    const cards = reportHeadline(buyer);
+    const shown = headlineEbitda({
+      ebitdaCents: cards.ebitdaCents,
+      adjustedEbitdaCents: cards.adjustedEbitdaCents,
+      hasApprovedAdjustments: cards.hasApprovedAdjustments,
+      hasPendingAdjustments: cards.hasPendingAdjustments,
+    });
+    expect(marketCardFigures(buyer).revenueCents).toBe(marketCardFigures(seller).revenueCents);
+    expect(marketCardFigures(buyer).ebitdaCents).toBe(marketCardFigures(seller).ebitdaCents);
+    expect(marketCardFigures(buyer).adjustedEbitdaCents).toBe(marketCardFigures(seller).adjustedEbitdaCents);
+    expect(marketCardFigures(buyer).hasAdjustments).toBe(false);
+    expect(cards.hasApprovedAdjustments).toBe(false);
+    expect(shown.primaryLabel).toBe("EBITDA");
+    expect(shown.primaryCents).toBe(75_000_000);
+    expect(shown.secondaryCents).toBeNull();
   });
 });
 

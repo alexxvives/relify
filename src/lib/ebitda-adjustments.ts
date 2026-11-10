@@ -227,6 +227,11 @@ export function adjustmentExceedsRevenue(amountCents: number, revenueCents: numb
   return revenueCents !== null && revenueCents !== undefined && revenueCents > 0 && Math.abs(amountCents) > revenueCents;
 }
 
+/** Soft flag: |amount| > 50 % of EBITDA. Allowed (1 M on 5 M sales still saves); Relify will ask for more justification. */
+export function adjustmentExceedsHalfEbitda(amountCents: number, ebitdaCents: number | null | undefined): boolean {
+  return ebitdaCents !== null && ebitdaCents !== undefined && ebitdaCents > 0 && Math.abs(amountCents) > ebitdaCents / 2;
+}
+
 export type PublishedEbitda = {
   ebitdaCents: number;
   adjustedEbitdaCents: number;
@@ -246,7 +251,7 @@ export function publishedEbitdaFromAdjustments(
   revenueCents?: number | null,
 ): PublishedEbitda {
   if (rows === null) {
-    const hasLegacy = legacyAdjustedCents !== 0;
+    const hasLegacy = legacyAdjustedCents !== 0 && legacyAdjustedCents !== accountsEbitdaCents;
     return {
       ebitdaCents: accountsEbitdaCents,
       adjustedEbitdaCents: hasLegacy ? legacyAdjustedCents : accountsEbitdaCents,
@@ -308,7 +313,8 @@ export function adjustmentsForBuyer(rows: EbitdaAdjustment[] | null, ndaSigned: 
     return rows;
   }
   if (visible.length === 0) {
-    return null;
+    // Empty list, not null: pending-only was stripped. Null would fall back to a legacy adjusted column.
+    return [];
   }
   return visible.map((row) => ({
     ...row,
@@ -419,7 +425,7 @@ export function formRowAmountCents(amount: string): number | null {
 /** t89: per-field problems of one editable row, shown inline in the adjustments modal. */
 export type AdjustmentRowErrors = { type?: string; amount?: string; reason?: string };
 
-export type AdjustmentRowErrorOptions = { revenueCents?: number | null };
+export type AdjustmentRowErrorOptions = { revenueCents?: number | null; ebitdaCents?: number | null };
 
 export function adjustmentRowErrors(
   row: { type?: string; amount: string; reason: string },

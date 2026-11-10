@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   adjustedEbitdaCents,
+  adjustmentExceedsHalfEbitda,
   adjustmentExceedsRevenue,
   adjustmentRowErrors,
   adjustmentRowsValid,
@@ -64,7 +65,7 @@ describe("ebitda adjustments", () => {
     ]);
     expect(adjustmentsForBuyer(rows, true)).toEqual(rows);
     const pending = storedEbitdaAdjustments([{ id: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f50", type: "other", amountCents: 100, reason: "Nuevo", status: "pending", documentId: "6f1c2a40-7b1e-4c1a-9a1a-0b1c2d3e4f51", documentName: "soporte.pdf" }]);
-    expect(adjustmentsForBuyer(pending, true)).toBeNull();
+    expect(adjustmentsForBuyer(pending, true)).toEqual([]);
     expect(pendingAdjustments(pending ?? []).length).toBe(1);
   });
 
@@ -122,6 +123,23 @@ describe("ebitda adjustments", () => {
     ).toBe(false);
     expect(adjustmentRowErrors({ type: "owner_salary", amount: "6000000", reason: "Sueldo del socio" }, { revenueCents: 500_000_000 }).amount).toBeDefined();
   });
+
+  it("allows 1 M € on 5 M sales and only warns when the amount is more than half of EBITDA", () => {
+    expect(adjustmentExceedsRevenue(100_000_100, 500_000_000)).toBe(false);
+    expect(adjustmentExceedsHalfEbitda(100_000_100, 75_000_000)).toBe(true);
+    expect(adjustmentExceedsHalfEbitda(5_000_000, 75_000_000)).toBe(false);
+    expect(
+      parseEbitdaAdjustments(JSON.stringify([{ type: "owner_salary", amount: "1000001", reason: "Sueldo del socio" }]), {
+        revenueCents: 500_000_000,
+      }).ok,
+    ).toBe(true);
+    expect(
+      adjustmentRowsValid([{ type: "owner_salary", amount: "1000001", reason: "Sueldo del socio" }], {
+        revenueCents: 500_000_000,
+        ebitdaCents: 75_000_000,
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("publishedEbitdaFromAdjustments", () => {
@@ -160,6 +178,12 @@ describe("publishedEbitdaFromAdjustments", () => {
   it("does not apply an approved row larger than revenue", () => {
     const oversized = { ...approved, amountCents: 600_000_000 };
     const shown = publishedEbitdaFromAdjustments(75_000_000, [oversized], 0, 500_000_000);
+    expect(shown.hasApproved).toBe(false);
+    expect(shown.adjustedEbitdaCents).toBe(75_000_000);
+  });
+
+  it("does not treat a copied accounts figure as a legacy approved adjustment", () => {
+    const shown = publishedEbitdaFromAdjustments(75_000_000, null, 75_000_000, 500_000_000);
     expect(shown.hasApproved).toBe(false);
     expect(shown.adjustedEbitdaCents).toBe(75_000_000);
   });
