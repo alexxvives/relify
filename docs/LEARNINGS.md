@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-09: a git push to this PR branch published production Worker `releva` via Cloudflare Workers Builds — commit locally only until Alex explicitly asks to push.
 - 2026-11-09: EBITDA justification in INT showed the generic save error — `assertUploadsEnabled()` throws and the action catch mapped every throw to “Inténtalo de nuevo” — return `adjustmentDocumentIntDisabled` when `isIntEnvironment()`, keep the generic sentence for real prod write failures.
 - 2026-11-09: Datos de la ficha numbers sat far under the titles — MetricTile used `justify-between` plus `flex-1 justify-end` on the figure — keep `h-full` for equal cards and put extra space at the bottom.
 - 2026-11-09: 1366px showed two section navs and “Tecnologia Digit…” on Nombre — a left index plus a right 2/8 card, a 3-col grid, and `truncate` on the locked input — merge progress into one ~13.5rem left column, drop the third track, and let Nombre span the form until the panel is wide.

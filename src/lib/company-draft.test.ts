@@ -117,6 +117,22 @@ describe("company draft money and slug", () => {
   });
 });
 
+describe("description length", () => {
+  it("allows an empty description and rejects a short one", () => {
+    expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "" })).success).toBe(true);
+    expect(companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", description: "Empresa de 29 caracteres." })).success).toBe(false);
+    expect(
+      companyDraftSchema.safeParse(
+        draft({
+          codename: "Proyecto Norte",
+          region: "Galicia",
+          description: "Empresa de servicios industriales con un equipo estable, clientes recurrentes y una descripción que supera el mínimo de doscientos caracteres para que el comprador entienda el negocio, su mercado y cómo genera caja.",
+        }),
+      ).success,
+    ).toBe(true);
+  });
+});
+
 describe("empty + rows (t85)", () => {
   it("ignores rows added with + but left empty", () => {
     const parsed = companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Galicia", secondaryCnaes: [""], productPercents: ["", " "], capitalPercents: [""] }));

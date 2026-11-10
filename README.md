@@ -1,4 +1,4 @@
-# Releva
+# Relify
 
 Confidential marketplace for SME business sales. The product UI follows Deale.
 

@@ -66,7 +66,7 @@ Encabezado. «Cobras cuando el trabajo ya está encargado.» Botón: Ver un enca
 
 1. El depósito. Una cantidad centrada, con la regla al lado: 50 € más 0,5 % del precio de venta, reembolsable. Sin pasarela dibujada como si ya se pudiera pagar desde aquí.
 2. El encargo. Una tarjeta con la empresa anónima, el servicio y dos estados: pendiente de depósito, en curso.
-3. Lo que no es una cuota. Tres líneas: no hay suscripción de asesor, no hay comisión en esta página, el cierre de la operación se acuerda fuera. El cierre repite que Releva no cobra al pedir el presupuesto.
+3. Lo que no es una cuota. Tres líneas: no hay suscripción de asesor, no hay comisión en esta página, el cierre de la operación se acuerda fuera. El cierre repite que Relify no cobra al pedir el presupuesto.
 
 ## Lista de espera `/lista-de-espera`
 

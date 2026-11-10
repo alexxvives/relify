@@ -5,7 +5,7 @@ import { saveBlockReason } from "./seller-save";
 describe("seller save (t78 'Guardar cambios' bug)", () => {
   it("does not block a save because required fields like the sale reason are still empty", () => {
     expect(saveBlockReason([[], [], []])).toBeNull();
-    const draft = { ...emptyCompanyDraft(), codename: "Proyecto Prueba", region: "Barcelona", revenue: "1000", ebitda: "100", adjustedEbitda: "120", askingPrice: "800", saleReason: "" as const, description: "Obrador" };
+    const draft = { ...emptyCompanyDraft(), codename: "Proyecto Prueba", region: "Barcelona", revenue: "1000", ebitda: "100", adjustedEbitda: "120", askingPrice: "800", saleReason: "" as const, description: "" };
     expect(companyDraftSchema.safeParse(draft).success).toBe(true);
   });
 

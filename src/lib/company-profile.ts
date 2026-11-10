@@ -33,6 +33,38 @@ export function activityKindsForCustomer(customerBase: CustomerBaseId | "" | nul
 export const maxSecondaryCnaes = 4;
 export const maxActivitySlices = 8;
 export const descriptionMaxLength = 4000;
+export const descriptionMinLength = 200;
+
+export const ownerDependenceLevels = ["low", "medium", "high"] as const;
+export type OwnerDependence = (typeof ownerDependenceLevels)[number];
+export function isOwnerDependence(value: string): value is OwnerDependence {
+  return ownerDependenceLevels.some((item) => item === value);
+}
+
+export const premisesKinds = ["owned", "rent"] as const;
+export type PremisesKind = (typeof premisesKinds)[number];
+export function isPremisesKind(value: string): value is PremisesKind {
+  return premisesKinds.some((item) => item === value);
+}
+
+export const seasonalityLevels = ["none", "low", "medium", "high"] as const;
+export type SeasonalityLevel = (typeof seasonalityLevels)[number];
+export function isSeasonalityLevel(value: string): value is SeasonalityLevel {
+  return seasonalityLevels.some((item) => item === value);
+}
+
+/**
+ * Qué incluye el precio. José María will confirm the default; keep this as the single source of truth.
+ */
+export const askingPriceIncludesKinds = ["debt_free_cash_free", "shares"] as const;
+export type AskingPriceIncludes = (typeof askingPriceIncludesKinds)[number];
+export const defaultAskingPriceIncludes: AskingPriceIncludes = "debt_free_cash_free";
+export function isAskingPriceIncludes(value: string): value is AskingPriceIncludes {
+  return askingPriceIncludesKinds.some((item) => item === value);
+}
+export function storedAskingPriceIncludes(value: string | null | undefined): AskingPriceIncludes {
+  return value && isAskingPriceIncludes(value) ? value : defaultAskingPriceIncludes;
+}
 export const foundedYearMin = 1800;
 export const statementYearMin = 1990;
 export const statementYearMax = 2100;

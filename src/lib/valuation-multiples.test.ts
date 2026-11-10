@@ -72,6 +72,28 @@ describe("valuation multiples", () => {
     expect([r.lowCents, r.highCents]).toEqual([3_560_000_00, 5_340_000_00]);
   });
 
+  it("weights the last 3 available EBITDA years 50/30/20 newest to oldest", async () => {
+    const { weightedEbitdaCents } = await import("./valuation-multiples");
+    expect(weightedEbitdaCents([])).toBeNull();
+    expect(weightedEbitdaCents([{ year: 2024, cents: 100_000_00 }])).toEqual({ cents: 100_000_00, years: [2024] });
+    expect(weightedEbitdaCents([{ year: 2024, cents: 100_000_00 }, { year: 2023, cents: 80_000_00 }])).toEqual({
+      cents: Math.round((100_000_00 * 0.5 + 80_000_00 * 0.3) / 0.8),
+      years: [2024, 2023],
+    });
+    expect(
+      weightedEbitdaCents([
+        { year: 2024, cents: 100_000_00 },
+        { year: 2023, cents: 80_000_00 },
+        { year: 2022, cents: 60_000_00 },
+        { year: 2021, cents: 10_000_00 },
+      ]),
+    ).toEqual({ cents: 86_000_00, years: [2024, 2023, 2022] });
+    expect(weightedEbitdaCents([{ year: 2024, cents: -10 }, { year: 2023, cents: 50_000_00 }])).toEqual({
+      cents: 50_000_00,
+      years: [2023],
+    });
+  });
+
   it("t93: places a price on the bar", async () => {
     const { priceBarPosition, priceBarEnds } = await import("./valuation-multiples");
     const estimate = { lowCents: 400_000_00, highCents: 600_000_00 };

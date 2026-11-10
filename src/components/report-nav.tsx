@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
+import { ViewportPortal } from "@/components/viewport-portal";
 import {
   Briefcase,
   ClipboardCheck,
   FileSpreadsheet,
   HandCoins,
+  Images,
   LineChart,
   PieChart,
   Scale,
@@ -31,6 +33,7 @@ const icons: Record<string, typeof Sparkles> = {
   operacion: HandCoins,
   revision: ClipboardCheck,
   detalle: FileSpreadsheet,
+  galeria: Images,
 };
 
 /** Distance from the viewport top at which a section counts as "being read" (sticky bar + breathing room). */
@@ -117,11 +120,16 @@ export function ReportNav({
   }
 
   const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
+  const top = belowFloatingTabs ? "top-[7.75rem] sm:top-[8.25rem] lg:top-[4.75rem]" : "top-14 sm:top-16 lg:top-3";
 
   return (
-    <>
-      <nav aria-label={label} className={`sticky z-20 -mx-1 px-1 py-2 lg:hidden ${belowFloatingTabs ? "top-2" : "top-0"}`}>
-        <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_4px_16px_-8px_rgba(28,39,64,0.12)]">
+    <ViewportPortal>
+    <nav
+      aria-label={label}
+      className={`pointer-events-none fixed inset-x-0 z-30 flex justify-center px-3 lg:left-[var(--layout-sidebar)] ${top}`}
+    >
+      <div className="pointer-events-auto w-full max-w-4xl">
+        <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
           <ul
             ref={track}
             onScroll={measureEdges}
@@ -151,36 +159,8 @@ export function ReportNav({
             })}
           </ul>
         </div>
-      </nav>
-      <nav aria-label={label} className="hidden h-full min-w-0 lg:col-start-1 lg:row-start-1 lg:block">
-        <div className={`sticky max-h-[calc(100vh-5.5rem)] overflow-y-auto rounded-2xl border border-[#e6e9f0] bg-white p-3 shadow-[0_1px_2px_rgba(28,39,64,0.04)] ${belowFloatingTabs ? "top-16" : "top-4"}`}>
-          <ul className="flex flex-col gap-0.5">
-            {items.map((item, index) => {
-              const Icon = icons[item.id] ?? Sparkles;
-              const current = item.id === active;
-              return (
-                <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    data-section={`rail-${item.id}`}
-                    aria-current={current ? "location" : undefined}
-                    onClick={(event) => go(event, item.id)}
-                    onKeyDown={(event) => keys(event, index)}
-                    className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-                      current
-                        ? "bg-[#e6f4f2] text-[#1c2740]"
-                        : "text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
-                    }`}
-                  >
-                    <Icon className={`size-4 shrink-0 ${current ? "text-[#0f766e]" : "text-[#8b95a7]"}`} aria-hidden />
-                    <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </nav>
-    </>
+      </div>
+    </nav>
+    </ViewportPortal>
   );
 }

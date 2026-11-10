@@ -12,7 +12,7 @@ Worker `releva` is production. `npm run deploy` and `npm run deploy:vinext` must
 
 ## 2026-11-08 — Logout must revoke the session row, not only the browser cookie
 
-Better Auth `session.cookieCache` (default 5 minutes, signed `session_data`) answers `/get-session` without reading the session table. Logout deletes the row and clears cookies, but a replayed cookie still authenticates until that cache expires. Releva stores sessions in Postgres, so cookieCache stays off and `getCurrentUser` / onboarding pass `disableCookieCache`. One extra unique lookup on `session.token` per request. Do not turn the cache back on for INT only.
+Better Auth `session.cookieCache` (default 5 minutes, signed `session_data`) answers `/get-session` without reading the session table. Logout deletes the row and clears cookies, but a replayed cookie still authenticates until that cache expires. Relify stores sessions in Postgres, so cookieCache stays off and `getCurrentUser` / onboarding pass `disableCookieCache`. One extra unique lookup on `session.token` per request. Do not turn the cache back on for INT only.
 
 ## 2026-10-11 — Encargos are the request, and Mis procesos start after the deposit
 
@@ -28,25 +28,25 @@ Encargos no longer shows the shared inbox or the 39 € plan. A request names an
 
 A named request stays a record until the advisor pays. Before that payment the advisor sees the codename, the region, the sector, the headcount band, the year, and the public description, plus the investor type, city, ticket, stake, and sectors. The name, email, NIF, phone, and the euro figures stay off that page. The chat, the NDA, and the company file stay closed.
 
-The deposit is 50 € plus half the asking price, stored in euro cents, with no IVA on top, because it is a hold and not a fee. Stripe Checkout takes it in test mode and Releva is the merchant. Paying it notifies the person who asked that the advisor accepted, and then the NDA and the figures open. The money is returned later; this pass does not call a refund. A general request with no company still does not charge.
+The deposit is 50 € plus half the asking price, stored in euro cents, with no IVA on top, because it is a hold and not a fee. Stripe Checkout takes it in test mode and Relify is the merchant. Paying it notifies the person who asked that the advisor accepted, and then the NDA and the figures open. The money is returned later; this pass does not call a refund. A general request with no company still does not charge.
 
 ## 2026-10-10 — Advisor marketplace order
 
-The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Releva (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.
+The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Relify (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.
 
 ## 2026-10-08 — The advisor's name stays off the marketplace
 
-A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Releva. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.
+A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Relify. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.
 
 ## 2026-10-08 — Advisor thread, and the investor stake
 
-Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Releva and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.
+Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Relify and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.
 
 ## 2026-10-07 — The seller sees a public investor profile, and the seller uploads the sale contract
 
 The investor profile that a seller opens is stored. It can include a photo, a city and province, the investor type, a ticket band, sectors, what they are looking for, and what they bring. It does not include the legal name, NIF, email, phone, or postal code. The five phases on the investor home are those public fields. The private professional panel stays on the investor's own page.
 
-Releva does not draft the sale contract. At due diligence either party can ask an advisor or continue. Documentation is where the seller uploads the contract.
+Relify does not draft the sale contract. At due diligence either party can ask an advisor or continue. Documentation is where the seller uploads the contract.
 
 ## 2026-10-07 — The advisor is a profile and a hired service
 
@@ -58,11 +58,11 @@ Hired by an investor, the advisor sees the public ficha and signs their own NDA.
 
 A quote request still does not charge. Closing an engagement stores 15% of what the advisor charges for that work, plus 21% IVA on that 15%. That row is not a Stripe charge and it is not 15% of the company price. The 39 € plan opens Checkout in test mode when the keys are present.
 
-## 2026-10-07 — Decoy figures, Releva drafts, and the waiting step
+## 2026-10-07 — Decoy figures, Relify drafts, and the waiting step
 
 A locked section renders a full statement and charts filled with 999.999,00 €. The real rows stay off the page, so removing the blur in the browser does not reveal the company. The same sentence and the connect or sign action sit on every locked section. The figures open after the company accepts the connection and the buyer signs the NDA.
 
-Mis documentos keeps Corporativo, Financiero, Comercial, Fiscal, Legal, and RRHH/Laboral, plus Releva. Releva holds the NDA and letter-of-intent drafts as PDFs. Those drafts use “El comprador” and “el proyecto”. They do not include a legal name, CIF, or address.
+Mis documentos keeps Corporativo, Financiero, Comercial, Fiscal, Legal, and RRHH/Laboral, plus Relify. Relify holds the NDA and letter-of-intent drafts as PDFs. Those drafts use “El comprador” and “el proyecto”. They do not include a legal name, CIF, or address.
 
 The current sale step says who has to act. “(TÚ)” appears only for the person viewing the step. A past meeting stays fixed and is marked Hecha. A future proposal is Propuesta, and an accepted future meeting is Próxima.
 
@@ -148,11 +148,11 @@ The public homepage is server-rendered and indexable. Copy, titles, and internal
 
 ## 2026-10-03 — Mercantile registry stays behind a server fixture
 
-Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Releva prefills from a server-side fixture adapter in `src/server/lookupCompanyRegistry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
+Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Relify prefills from a server-side fixture adapter in `src/server/lookupCompanyRegistry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
 
 ## 2026-10-03 — Advisor workspace follows Deale, without a website field
 
-Onboarding is role, then name and NIF/CIF, then Spanish mobile, then how they heard about Releva. The ID check is the existing Spanish CIF checksum. It does not call a registry and does not claim the person exists. The advisor home, trends, and services panels match the Deale screens that were clicked. Mandates, messages, billing, and a data room stay empty. Ser premium stays off the advisor header.
+Onboarding is role, then name and NIF/CIF, then Spanish mobile, then how they heard about Relify. The ID check is the existing Spanish CIF checksum. It does not call a registry and does not claim the person exists. The advisor home, trends, and services panels match the Deale screens that were clicked. Mandates, messages, billing, and a data room stay empty. Ser premium stays off the advisor header.
 
 ## 2026-10-03 — Public face is a paper ledger
 
@@ -166,17 +166,17 @@ This replaces the paper ledger on the public surface. Home, marketing, auth, and
 
 An advisor adds a mandate by choosing a published project. The board shows the codename and the four public euro figures. The mandate does not reveal the legal name, CIF, address, shareholders, or file names, and it does not open the data room or a message thread. Advisory quotes stay records. No Stripe customer, Checkout Session, or charge is created until a later billing decision.
 
-## 2026-10-05 — Releva charges buyers and advisors, and records a success fee
+## 2026-10-05 — Relify charges buyers and advisors, and records a success fee
 
-This replaces the “no charge” line above. Listing and browsing stay free. A buyer match is the company accepting the investor. The free plan can browse and cannot connect. 20 €/month plus 21% IVA allows 3 matches in the billing period. 99 €/month plus 21% IVA allows unlimited matches. The first company an advisor publishes is free. Each later company is 149 € plus 21% IVA, paid once by the advisor before it goes live. A seller publishes a saved draft for free. The buyer’s 1% and the seller’s 2.5% are calculated on the closed price, plus 21% IVA, and stored when the owner records the sale. Those fees are not sent to Stripe. Quotes on Solicitar presupuesto stay records. Releva is the merchant: Stripe Checkout takes the subscription and the listing fee. There is no payout to an advisor. Amounts in Postgres stay integer euro cents. The Checkout line is the gross amount because Stripe Tax stays off until Releva has an IVA registration. Test keys live in `.env`. A live key is ignored. A company with no owner, such as a seeded project, counts the match when the buyer connects, because there is no seller to accept.
+This replaces the “no charge” line above. Listing and browsing stay free. A buyer match is the company accepting the investor. The free plan can browse and cannot connect. 20 €/month plus 21% IVA allows 3 matches in the billing period. 99 €/month plus 21% IVA allows unlimited matches. The first company an advisor publishes is free. Each later company is 149 € plus 21% IVA, paid once by the advisor before it goes live. A seller publishes a saved draft for free. The buyer’s 1% and the seller’s 2.5% are calculated on the closed price, plus 21% IVA, and stored when the owner records the sale. Those fees are not sent to Stripe. Quotes on Solicitar presupuesto stay records. Relify is the merchant: Stripe Checkout takes the subscription and the listing fee. There is no payout to an advisor. Amounts in Postgres stay integer euro cents. The Checkout line is the gross amount because Stripe Tax stays off until Relify has an IVA registration. Test keys live in `.env`. A live key is ignored. A company with no owner, such as a seeded project, counts the match when the buyer connects, because there is no seller to accept.
 
 ## 2026-10-05 — Signed-in shell uses Costa
 
-This replaces the sentence in “Public face is Costa” that the signed-in workspace keeps its own chrome. Seller, investor, and advisor share the fog, ink, secondary text, accent, DM Sans, and the Instrument Serif word Releva. The sidebar lists a stored action the user repeats. Tendencias, Mis búsquedas, Empresas ocultas, the investor Dataroom, and Perfil de Inversor leave the menu. Those routes stay. Seller documents, processes, and quote requests stay. Ser premium stays investor-only. Public marketing, auth, and the catalog header are unchanged. The mercantile lookup stays the server fixture until there is an Informa or Orbis contract.
+This replaces the sentence in “Public face is Costa” that the signed-in workspace keeps its own chrome. Seller, investor, and advisor share the fog, ink, secondary text, accent, DM Sans, and the Instrument Serif word Relify. The sidebar lists a stored action the user repeats. Tendencias, Mis búsquedas, Empresas ocultas, the investor Dataroom, and Perfil de Inversor leave the menu. Those routes stay. Seller documents, processes, and quote requests stay. Ser premium stays investor-only. Public marketing, auth, and the catalog header are unchanged. The mercantile lookup stays the server fixture until there is an Informa or Orbis contract.
 
 ## 2026-10-06 — Seller identity comes from the public BORME index
 
-This replaces the fixture sentence above. Deale preloads financials from eInforma. Releva does not. `lookupCompanyRegistry` calls OpenMercantil, which indexes the official BORME, and stores only the legal name plus domicile, province, CNAE, constitution year, and worker count when that bulletin publishes them. Revenue, EBITDA, and adjusted EBITDA stay empty. A CIF the index does not list stays a manual draft. Administrator names from the bulletin are not stored. Identity still stays off public project pages. Annual accounts wait for a later upload of the standardized cuentas anuales file.
+This replaces the fixture sentence above. Deale preloads financials from eInforma. Relify does not. `lookupCompanyRegistry` calls OpenMercantil, which indexes the official BORME, and stores only the legal name plus domicile, province, CNAE, constitution year, and worker count when that bulletin publishes them. Revenue, EBITDA, and adjusted EBITDA stay empty. A CIF the index does not list stays a manual draft. Administrator names from the bulletin are not stored. Identity still stays off public project pages. Annual accounts wait for a later upload of the standardized cuentas anuales file.
 
 ## 2026-10-06 — eInforma stays unwired until its REST path is published
 
@@ -206,9 +206,9 @@ The production database is the Neon project `RELEVA` (`delicate-cloud-90142183`)
 
 Hyperdrive is still not created. `pg` connection pools on the Worker hang: a request that opens several sockets, or the next request on that isolate, is canceled and the sign-in page shows the error screen. On the Worker, Prisma uses `@prisma/adapter-neon` with `poolQueryViaFetch`, so each query is an HTTP fetch. Local development stays on `@prisma/adapter-pg` and Docker. Transactions on the Worker still use a WebSocket when Prisma asks for one.
 
-## 2026-10-10 — Subscription management stays on Releva
+## 2026-10-10 — Subscription management stays on Relify
 
-Gestionar suscripción opens `/premium/suscripcion`. That page shows the plan, the renewal date, cancel at period end, the billing email, and the invoices. Stripe Customer Portal stays unused, because its address is always `billing.stripe.com`. Changing the card opens Stripe Checkout in setup mode and returns to the same Releva page. Card numbers are not typed into Releva. Quotes stay records.
+Gestionar suscripción opens `/premium/suscripcion`. That page shows the plan, the renewal date, cancel at period end, the billing email, and the invoices. Stripe Customer Portal stays unused, because its address is always `billing.stripe.com`. Changing the card opens Stripe Checkout in setup mode and returns to the same Relify page. Card numbers are not typed into Relify. Quotes stay records.
 
 ## 2026-10-07 — Stripe stays on test until the server says live
 

@@ -1,4 +1,4 @@
-import type { SabiYear } from "./sabi/insights";
+import { netDebtCents, type SabiYear } from "./sabi/insights";
 
 export type KeyFigure = {
   key: string;
@@ -36,6 +36,7 @@ const metrics: Array<{ key: string; label: string; unit: KeyFigure["unit"]; pick
         ? null
         : (year.longTermDebtCents ?? 0) + (year.shortTermDebtCents ?? 0),
   },
+  { key: "netDebt", label: "Deuda neta", unit: "eur", pick: (year) => netDebtCents(year) },
 ];
 
 /** t78: "Tus cifras" shows only key numbers: each metric from the latest closed year that has it, with that year. */

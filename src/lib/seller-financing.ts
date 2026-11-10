@@ -17,6 +17,14 @@ export const sellerFinancingLabels: Record<SellerFinancingMode, string> = {
 /** Plazo options in years; 5 means "5 años o más". */
 export const sellerFinancingYearOptions = [1, 2, 3, 4, 5] as const;
 
+export const sellerFinancingYearLabels: Record<(typeof sellerFinancingYearOptions)[number], string> = {
+  1: "1 año",
+  2: "2 años",
+  3: "3 años",
+  4: "4 años",
+  5: "5 años o más",
+};
+
 export type SellerFinancing = { mode: SellerFinancingMode; maxPct: number | null; years: number | null };
 
 /** Form values as the seller form holds them ("" = not answered). */
@@ -74,7 +82,25 @@ export function sellerFinancingChip(value: SellerFinancing | null): string | nul
   return !value || value.mode === "no" ? null : "Financiación vendedor";
 }
 
+function sellerFinancingYearText(years: number): string {
+  if (years === 1) return sellerFinancingYearLabels[1];
+  if (years === 2) return sellerFinancingYearLabels[2];
+  if (years === 3) return sellerFinancingYearLabels[3];
+  if (years === 4) return sellerFinancingYearLabels[4];
+  if (years >= 5) return sellerFinancingYearLabels[5];
+  return `${years} años`;
+}
+
+function sellerFinancingTerms(value: SellerFinancing): string {
+  const parts: string[] = [];
+  if (value.maxPct != null) parts.push(`hasta el ${value.maxPct} %`);
+  if (value.years != null) parts.push(sellerFinancingYearText(value.years));
+  return parts.length > 0 ? ` (${parts.join(", ")})` : "";
+}
+
 /** t93: buyer-facing sentence in Operación de venta. */
 export function sellerFinancingText(value: SellerFinancing): string {
-  return value.mode === "no" ? "No" : value.mode === "yes" ? "Acepta financiar parte del precio" : "Financiación negociable";
+  if (value.mode === "no") return "No";
+  const base = value.mode === "yes" ? "Acepta financiar parte del precio" : "Financiación negociable";
+  return `${base}${sellerFinancingTerms(value)}`;
 }

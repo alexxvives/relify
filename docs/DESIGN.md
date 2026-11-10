@@ -24,7 +24,7 @@ Do not restyle one into the other unless the task says so.
 
 | Surface | Use |
 | --- | --- |
-| Public pages and the signed-in shell (sidebar, page background, the word Releva) | Costa tokens in `src/app/globals.css`: `public-paper`, `public-ink`, `public-muted`, `public-clay`, `public-line`, `public-sand`. Decision: 2026-10-05. |
+| Public pages and the signed-in shell (sidebar, page background, the word Relify) | Costa tokens in `src/app/globals.css`: `public-paper`, `public-ink`, `public-muted`, `public-clay`, `public-line`, `public-sand`. Decision: 2026-10-05. |
 | Controls inside a signed-in page (fields, buttons, cards, links, focus) | The indigo kit below, implemented in `src/components/ui/form`. One app primary: `#465ab4`. |
 
 ## Tokens
@@ -40,7 +40,7 @@ Do not restyle one into the other unless the task says so.
 | Public primary (clay) | `public-clay #0f6e73`, hover `public-clay-deep #0b5559` |
 | Seller CTA on public pages | `#0c7c78` |
 | App primary button | `#465ab4` via `Button` from `src/components/ui/form`. Secondary is `tone="outline"`. Green `#17663a` only for sign/accept steps. `public-clay` on public pages and the shell, not on an in-app form button. |
-| Fonts | DM Sans (UI, `font-sans`). Instrument Serif is the word Releva, on public pages and in the signed-in shell. |
+| Fonts | DM Sans (UI, `font-sans`). Instrument Serif is the word Relify, on public pages and in the signed-in shell. |
 | Radius | cards `rounded-2xl`/`rounded-3xl`, buttons and chips `rounded-full` or the form kit's `rounded-xl` |
 
 Do not invent a new hex. Match the surface you are editing.

@@ -31,7 +31,7 @@ Server Components fetch data. Client Components hold interaction state only. Do 
 
 ## Domain
 
-Releva matches buyers, sellers, and advisors on confidential SME sales.
+Relify matches buyers, sellers, and advisors on confidential SME sales.
 
 Public visitors may see:
 

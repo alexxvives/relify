@@ -3,17 +3,22 @@ import { sellerStayInputSchema } from "./seller-stay";
 import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
+  askingPriceIncludesKinds,
   balanceInputKeys,
   descriptionMaxLength,
+  descriptionMinLength,
   headcountRanges,
   isFoundedYear,
   isStatementYear,
   customerBases,
   maxActivitySlices,
   maxSecondaryCnaes,
+  ownerDependenceLevels,
   parsePercentToBasisPoints,
   percentsSumToHundred,
   pnlInputKeys,
+  premisesKinds,
+  seasonalityLevels,
   statementWindow,
   type BalanceInputKey,
   type PnlInputKey,
@@ -50,6 +55,14 @@ const unsignedEuroPattern = /^\d{1,12}(,\d{1,2})?$/;
 const signedEuroPattern = /^-?\d{1,12}(,\d{1,2})?$/;
 
 const optionalEuroText = z.string().trim().refine((value) => value === "" || unsignedEuroPattern.test(value), "euro");
+const optionalPctText = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || (/^\d{1,3}$/.test(value) && Number(value) >= 0 && Number(value) <= 100), "percent");
+const optionalYearsText = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || (/^\d{1,2}$/.test(value) && Number(value) >= 0 && Number(value) <= 99), "lease-years");
 const moneyText = z.string().trim();
 
 const closedYearSchema = z.object({
@@ -109,7 +122,11 @@ export const companyDraftSchema = z
 
       return /^\d{4}$/.test(value) && isFoundedYear(Number(value));
     }, "founded-year"),
-    description: z.string().trim().max(descriptionMaxLength, "description"),
+    description: z
+      .string()
+      .trim()
+      .max(descriptionMaxLength, "description")
+      .refine((value) => value === "" || value.length >= descriptionMinLength, "description-short"),
     saleReason: z.union([z.literal(""), z.enum(saleReasons)]),
     principalCnae: z.string().trim(),
     secondaryCnaes: z.array(z.string().trim()).max(maxSecondaryCnaes, "cnae-count").transform(dropEmptyRows),
@@ -120,6 +137,15 @@ export const companyDraftSchema = z
     askingPrice: optionalEuroText,
     ...sellerFinancingInputSchema,
     ...sellerStayInputSchema,
+    ownerDependence: z.union([z.literal(""), z.enum(ownerDependenceLevels)]),
+    premisesKind: z.union([z.literal(""), z.enum(premisesKinds)]),
+    rentMonthly: optionalEuroText,
+    leaseYearsRemaining: optionalYearsText,
+    recurringRevenuePct: optionalPctText,
+    seasonality: z.union([z.literal(""), z.enum(seasonalityLevels)]),
+    seasonalityNote: z.string().trim().max(280, "seasonality-note"),
+    top5ClientsPct: optionalPctText,
+    askingPriceIncludes: z.union([z.literal(""), z.enum(askingPriceIncludesKinds)]),
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
@@ -171,6 +197,9 @@ const draftMessages = {
   euro: companyCopy.euroInvalid,
   "founded-year": companyCopy.foundedYearInvalid,
   description: companyCopy.descriptionInvalid,
+  "description-short": companyCopy.descriptionTooShort,
+  "lease-years": companyCopy.leaseYearsLabel,
+  "seasonality-note": companyCopy.seasonalityNoteLabel,
   cnae: companyCopy.cnaeInvalid,
   "cnae-principal": companyCopy.cnaePrincipalRequired,
   "cnae-duplicate": companyCopy.cnaeDuplicate,
@@ -216,6 +245,15 @@ export function optionalEurosToCents(value: string): number | null {
   }
 
   return eurosToCents(value);
+}
+
+export function optionalWholeNumber(value: string, min: number, max: number): number | null {
+  const trimmed = value.trim();
+  if (trimmed === "" || !/^\d+$/.test(trimmed)) {
+    return null;
+  }
+  const amount = Number(trimmed);
+  return amount >= min && amount <= max ? amount : null;
 }
 
 export function centsToEuroInput(cents: number): string {
@@ -310,6 +348,15 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     sellerFinancingPct: "",
     sellerFinancingYears: "",
     sellerStay: "",
+    ownerDependence: "",
+    premisesKind: "",
+    rentMonthly: "",
+    leaseYearsRemaining: "",
+    recurringRevenuePct: "",
+    seasonality: "",
+    seasonalityNote: "",
+    top5ClientsPct: "",
+    askingPriceIncludes: "",
     opex: "",
     capitalPercents: [],
     productPercents: [],

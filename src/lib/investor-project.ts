@@ -14,8 +14,16 @@ import {
   incomeValue,
   isEmphasisRow,
   isHeadcountRange,
+  isOwnerDependence,
+  isPremisesKind,
+  isSeasonalityLevel,
+  storedAskingPriceIncludes,
+  type AskingPriceIncludes,
   type BalanceAmounts,
   type BalanceDisplayKey,
+  type OwnerDependence,
+  type PremisesKind,
+  type SeasonalityLevel,
   type HeadcountRangeId,
   type IncomeDisplayKey,
   type PnlAmounts,
@@ -40,6 +48,15 @@ export const investorProjectSelect = {
   sellerFinancingMaxPct: true,
   sellerFinancingYears: true,
   sellerStay: true,
+  ownerDependence: true,
+  premisesKind: true,
+  rentMonthlyCents: true,
+  leaseYearsRemaining: true,
+  recurringRevenuePct: true,
+  seasonality: true,
+  seasonalityNote: true,
+  top5ClientsPct: true,
+  askingPriceIncludes: true,
   opexCents: true,
   headcountRange: true,
   customerBase: true,
@@ -158,6 +175,15 @@ export type InvestorProjectProfile = {
   sellerFinancing: SellerFinancing | null;
   /** t93: would the seller stay on as an adviser; deal term, visible before the NDA. null = not answered. */
   sellerStay: SellerStay | null;
+  ownerDependence: OwnerDependence | null;
+  premisesKind: PremisesKind | null;
+  rentMonthlyCents: number | null;
+  leaseYearsRemaining: number | null;
+  recurringRevenuePct: number | null;
+  seasonality: SeasonalityLevel | null;
+  seasonalityNote: string | null;
+  top5ClientsPct: number | null;
+  askingPriceIncludes: AskingPriceIncludes;
   askingPriceCents: number;
   opexCents: number | null;
   ebitdaMarginBp: number | null;
@@ -205,6 +231,15 @@ type InvestorProjectRecord = {
   sellerFinancingMaxPct?: number | null;
   sellerFinancingYears?: number | null;
   sellerStay?: string | null;
+  ownerDependence?: string | null;
+  premisesKind?: string | null;
+  rentMonthlyCents?: number | null;
+  leaseYearsRemaining?: number | null;
+  recurringRevenuePct?: number | null;
+  seasonality?: string | null;
+  seasonalityNote?: string | null;
+  top5ClientsPct?: number | null;
+  askingPriceIncludes?: string | null;
   opexCents: number | null;
   headcountRange: string | null;
   customerBase: "business" | "consumer" | "mixed" | null;
@@ -454,6 +489,15 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     askingPriceCents: record.askingPriceCents,
     sellerFinancing: storedSellerFinancing(record),
     sellerStay: storedSellerStay(record.sellerStay),
+    ownerDependence: record.ownerDependence && isOwnerDependence(record.ownerDependence) ? record.ownerDependence : null,
+    premisesKind: record.premisesKind && isPremisesKind(record.premisesKind) ? record.premisesKind : null,
+    rentMonthlyCents: record.premisesKind === "rent" ? (record.rentMonthlyCents ?? null) : null,
+    leaseYearsRemaining: record.premisesKind === "rent" ? (record.leaseYearsRemaining ?? null) : null,
+    recurringRevenuePct: record.recurringRevenuePct ?? null,
+    seasonality: record.seasonality && isSeasonalityLevel(record.seasonality) ? record.seasonality : null,
+    seasonalityNote: record.seasonalityNote ?? null,
+    top5ClientsPct: record.top5ClientsPct ?? null,
+    askingPriceIncludes: storedAskingPriceIncludes(record.askingPriceIncludes),
     opexCents: record.opexCents,
     ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
     principalCnae: principal ? cnaeChip(principal.code) : null,

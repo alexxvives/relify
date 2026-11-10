@@ -15,7 +15,14 @@ import {
   type CompanyDraftInput,
   type ForecastYearInput,
 } from "@/lib/company-draft";
-import { isCustomerBase, isHeadcountRange } from "@/lib/company-profile";
+import {
+  isCustomerBase,
+  isHeadcountRange,
+  isOwnerDependence,
+  isPremisesKind,
+  isSeasonalityLevel,
+  storedAskingPriceIncludes,
+} from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
@@ -179,6 +186,15 @@ export async function getCompanyDraft(
             sellerFinancingMaxPct: true,
             sellerFinancingYears: true,
             sellerStay: true,
+            ownerDependence: true,
+            premisesKind: true,
+            rentMonthlyCents: true,
+            leaseYearsRemaining: true,
+            recurringRevenuePct: true,
+            seasonality: true,
+            seasonalityNote: true,
+            top5ClientsPct: true,
+            askingPriceIncludes: true,
             opexCents: true,
             headcountRange: true,
             customerBase: true,
@@ -245,6 +261,15 @@ export async function getCompanyDraft(
     askingPrice: centsToEuroInput(draft.askingPriceCents),
     ...(sellerFinancingToInput(storedSellerFinancing(draft)) as Pick<CompanyDraftInput, "sellerFinancing" | "sellerFinancingPct" | "sellerFinancingYears">),
     sellerStay: storedSellerStay(draft.sellerStay) ?? "",
+    ownerDependence: draft.ownerDependence && isOwnerDependence(draft.ownerDependence) ? draft.ownerDependence : "",
+    premisesKind: draft.premisesKind && isPremisesKind(draft.premisesKind) ? draft.premisesKind : "",
+    rentMonthly: money(draft.rentMonthlyCents),
+    leaseYearsRemaining: draft.leaseYearsRemaining == null ? "" : String(draft.leaseYearsRemaining),
+    recurringRevenuePct: draft.recurringRevenuePct == null ? "" : String(draft.recurringRevenuePct),
+    seasonality: draft.seasonality && isSeasonalityLevel(draft.seasonality) ? draft.seasonality : "",
+    seasonalityNote: draft.seasonalityNote ?? "",
+    top5ClientsPct: draft.top5ClientsPct == null ? "" : String(draft.top5ClientsPct),
+    askingPriceIncludes: storedAskingPriceIncludes(draft.askingPriceIncludes),
     opex: money(draft.opexCents),
     capitalPercents: percents("capital"),
     productPercents: percents("product"),

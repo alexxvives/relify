@@ -51,6 +51,10 @@ export function withNumberCents(client: PrismaClient) {
           needs: { opexCents: true },
           compute: (row) => toNumber(row.opexCents),
         },
+        rentMonthlyCents: {
+          needs: { rentMonthlyCents: true },
+          compute: (row) => toNumber(row.rentMonthlyCents),
+        },
       },
       projectYear: {
         intangibleAssetsCents: {

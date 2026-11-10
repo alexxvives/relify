@@ -1,4 +1,4 @@
-import { askingPriceSet, slicePercentIssue } from "./company-profile";
+import { askingPriceSet, descriptionMinLength, slicePercentIssue } from "./company-profile";
 
 export { askingPriceSet };
 
@@ -43,7 +43,7 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
   const businessClients = input.customerBase === "business" || input.customerBase === "mixed";
   return [
     { id: "panel-sale-reason", label: "Motivo de venta", section: "basic", done: input.saleReason !== "", required: true },
-    { id: "panel-description", label: "Descripción", section: "basic", done: input.description.trim() !== "", required: true },
+    { id: "panel-description", label: "Descripción", section: "basic", done: input.description.trim().length >= descriptionMinLength, required: true },
     { id: "panel-cnae", label: "Sector", section: "basic", done: input.principalCnae.trim() !== "", required: false },
     { id: "panel-customer", label: "Tipo de clientes", section: "structure", done: input.customerBase !== "", required: false },
     { id: "panel-product-split", label: "Ventas por producto", section: "structure", done: splitDone(input.productPercents), required: false },

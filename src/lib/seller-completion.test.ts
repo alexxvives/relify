@@ -38,7 +38,15 @@ describe("seller completion (t78)", () => {
   });
 
   it("basic needs sale reason, description and sector; deal needs the asking price", () => {
-    const fields = sellerRequiredFields({ ...empty, saleReason: "retirement", description: "Obrador", principalCnae: "1071", askingPrice: "500000", sellerFinancing: "no", sellerStay: "3m" });
+    const fields = sellerRequiredFields({
+      ...empty,
+      saleReason: "retirement",
+      description: "Obrador artesano de pan y bollería que vende a hostelería y tiendas de barrio en la provincia, con recetas propias, un equipo estable y una red de clientes que cubre más de doscientas palabras para la ficha pública.",
+      principalCnae: "1071",
+      askingPrice: "500000",
+      sellerFinancing: "no",
+      sellerStay: "3m",
+    });
     expect(sectionComplete(fields, "basic")).toBe(true);
     expect(sectionComplete(fields, "deal")).toBe(true);
   });

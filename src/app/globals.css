@@ -2064,6 +2064,8 @@
 */
 :root {
   --layout-pad: 1rem;
+  /* Also on :root so viewport-portaled overlays can offset past the sidebar. */
+  --layout-sidebar: clamp(248px, 16vw, 320px);
 }
 
 @media (min-width: 640px) {

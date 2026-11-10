@@ -21,6 +21,7 @@ describe("sellerKeyFigures", () => {
     expect(tiles.find((tile) => tile.key === "revenue")).toMatchObject({ value: 200, year: 2024, months: 11 });
     expect(tiles.find((tile) => tile.key === "employees")).toMatchObject({ value: 5, year: 2023, months: null });
     expect(tiles.find((tile) => tile.key === "debt")).toMatchObject({ value: 50, year: 2024 });
+    expect(tiles.some((tile) => tile.key === "netDebt")).toBe(false);
     expect(tiles.some((tile) => tile.key === "equity")).toBe(false);
   });
 
@@ -33,6 +34,13 @@ describe("sellerKeyFigures", () => {
     expect(tiles).toHaveLength(8);
     expect(tiles[2]).toMatchObject({ key: "ebitdaMargin", unit: "percent", value: 12.3 });
     expect(sellerKeyFigures([year({ year: 2024, revenueCents: 0, ebitdaCents: 5 })]).some((tile) => tile.key === "ebitdaMargin")).toBe(false);
+  });
+
+  it("adds deuda neta when cash and financial debt are present", () => {
+    const tiles = sellerKeyFigures([
+      year({ year: 2024, longTermDebtCents: 80, shortTermDebtCents: 20, cashCents: 30 }),
+    ]);
+    expect(tiles.find((tile) => tile.key === "netDebt")).toMatchObject({ value: 70, year: 2024 });
   });
 
   it("returns nothing without figures", () => {

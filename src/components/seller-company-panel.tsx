@@ -46,7 +46,7 @@ export function SellerCompanyPanel({
                     <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-2xl p-5 focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none [&::-webkit-details-marker]:hidden">
                       <span className="min-w-0">
                         <span className="block text-2xl font-semibold text-[#2b3b4a]">Datos del registro mercantil</span>
-                        <span className="mt-1 block max-w-3xl text-sm text-[#64748b]">Socios, administradores, participadas y auditorías. Solo los ves tú y Releva; los compradores no ven nombres.</span>
+                        <span className="mt-1 block max-w-3xl text-sm text-[#64748b]">Socios, administradores, participadas y auditorías. Solo los ves tú y Relify; los compradores no ven nombres.</span>
                       </span>
                       <span className="inline-flex shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 py-1 text-xs font-semibold text-[#3d4a63] group-open:hidden">Ver</span>
                       <span className="hidden shrink-0 items-center rounded-full border border-[#d5dbe3] px-3 py-1 text-xs font-semibold text-[#3d4a63] group-open:inline-flex">Ocultar</span>

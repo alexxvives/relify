@@ -49,6 +49,25 @@ const trendShiftCap = 0.75;
 
 export type YearAmount = { year: number; cents: number };
 
+/** Newest-to-oldest weights for the orientative price range. */
+export const ebitdaRangeWeights = [0.5, 0.3, 0.2] as const;
+
+/**
+ * Weighted average of the last 1–3 available years of EBITDA (50/30/20 newest to oldest).
+ * Years with missing or non-positive EBITDA are skipped; remaining weights are renormalized.
+ */
+export function weightedEbitdaCents(rows: readonly YearAmount[]): { cents: number; years: number[] } | null {
+  const take = rows
+    .filter((row) => Number.isInteger(row.year) && Number.isFinite(row.cents) && row.cents > 0)
+    .sort((a, b) => b.year - a.year)
+    .slice(0, ebitdaRangeWeights.length);
+  if (take.length === 0) return null;
+  const weights = ebitdaRangeWeights.slice(0, take.length);
+  const sumW = weights.reduce((total, weight) => total + weight, 0);
+  const cents = Math.round(take.reduce((sum, row, index) => sum + row.cents * weights[index], 0) / sumW);
+  return { cents, years: take.map((row) => row.year) };
+}
+
 /** Relative EBITDA trendline (slope ÷ |mean|) of the last 3 consecutive years (2 minimum); null when not computable. */
 export function ebitdaTrend(rows: readonly YearAmount[]): number | null {
   const sorted = rows.filter((row) => Number.isInteger(row.year) && Number.isFinite(row.cents)).sort((a, b) => b.year - a.year);

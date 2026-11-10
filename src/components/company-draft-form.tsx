@@ -23,7 +23,7 @@ import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses, cnaeTitle as cnaeTitleOf } from "@/lib/cnae-2009";
-import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
+import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -31,7 +31,7 @@ import { CardPhotoUploader, type GalleryPhoto } from "@/components/project-galle
 import { balanceLabels, companyCopy, incomeLabels } from "@/lib/company-copy";
 import { accessCopy } from "@/lib/access-copy";
 import { marketCopy } from "@/lib/market-copy";
-import { keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
+import { keepDigits, keepPercent, keepSignedEuro, keepUnsignedEuro, keepYear } from "@/lib/numeric-input";
 import {
   closedFieldName,
   emptyCompanyDraft,
@@ -51,7 +51,13 @@ import {
   balanceDisplayKeys,
   balanceInputKeys,
   balanceValue,
+  askingPriceIncludesKinds,
   descriptionMaxLength,
+  descriptionMinLength,
+  ownerDependenceLevels,
+  premisesKinds,
+  seasonalityLevels,
+  storedAskingPriceIncludes,
   ebitdaMarginBasisPoints,
   type SellerFocusPanel,
   formatBasisPoints,
@@ -96,7 +102,14 @@ import {
   type EbitdaAdjustmentType,
 } from "@/lib/ebitda-adjustments";
 import { sellerStayLabels, sellerStayOptions } from "@/lib/seller-stay";
-import { sellerFinancingChip, storedSellerFinancing, sellerFinancingLabels, sellerFinancingModes } from "@/lib/seller-financing";
+import {
+  sellerFinancingChip,
+  storedSellerFinancing,
+  sellerFinancingLabels,
+  sellerFinancingModes,
+  sellerFinancingYearLabels,
+  sellerFinancingYearOptions,
+} from "@/lib/seller-financing";
 import { askingPriceAllowed, priceBasisCents } from "@/lib/seller-draft-guard";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
@@ -514,6 +527,8 @@ function FichaMetrics({
   pendingCount = 0,
   adjustments,
   recommended = null,
+  askingPriceIncludes,
+  onAskingPriceIncludes,
 }: {
   revenue: string;
   askingPrice: string;
@@ -529,6 +544,8 @@ function FichaMetrics({
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
   recommended?: { amount: string; onUse: () => void; applied?: boolean } | null;
+  askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
+  onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -609,9 +626,8 @@ function FichaMetrics({
               {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
             </span>
           ) : (
-            <button type="button" onClick={() => setAdjustOpen(true)} className="flex flex-col items-start gap-0.5 text-left">
+            <button type="button" onClick={() => setAdjustOpen(true)} className="text-left">
               <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">—</span>
-              <span className="text-xs font-medium text-[#667085]">Sin ajustes</span>
             </button>
           )}
         </MetricTile>
@@ -621,6 +637,34 @@ function FichaMetrics({
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
+    </div>
+    <div className="mt-4 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <p id="asking-price-includes-label" className="text-sm font-semibold text-[#1c2740]">
+        {companyCopy.askingPriceIncludesLabel}
+      </p>
+      <input type="hidden" name="askingPriceIncludes" value={askingPriceIncludes} />
+      <div
+        role="radiogroup"
+        aria-labelledby="asking-price-includes-label"
+        className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
+      >
+        {askingPriceIncludesKinds.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={askingPriceIncludes === option}
+            onClick={() => onAskingPriceIncludes(option)}
+            className={`min-h-11 rounded-xl border px-3 text-left text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+              askingPriceIncludes === option
+                ? "border-[#1c2740] bg-[#1c2740] text-white"
+                : "border-[#e7eaee] bg-white text-[#3d4a63] hover:bg-[#f2f4f7]"
+            }`}
+          >
+            {option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree}
+          </button>
+        ))}
+      </div>
     </div>
     </div>
   );
@@ -640,20 +684,22 @@ function SellerFinancingField({
   pct,
   years,
   onMode,
+  onPct,
+  onYears,
 }: {
   mode: string;
   pct: string;
   years: string;
   onMode: (value: string) => void;
+  onPct: (value: string) => void;
+  onYears: (value: string) => void;
 }) {
-  // t93: only Sí / No / Negociable is asked now; earlier % and plazo answers are posted back untouched (kept in the DB).
   const terms = mode === "yes" || mode === "negotiable";
   return (
     <div id="panel-seller-financing" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <input type="hidden" name="sellerFinancing" value={mode} />
       <input type="hidden" name="sellerFinancingPct" value={terms ? pct : ""} />
       <input type="hidden" name="sellerFinancingYears" value={terms ? years : ""} />
-      {/* t94: half-width card next to the asesor question; the Sí / No / Negociable control sits under the text. */}
       <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
         ¿Aceptarías financiar parte del precio?
       </p>
@@ -664,7 +710,7 @@ function SellerFinancingField({
         role="radiogroup"
         aria-labelledby="seller-financing-label"
         aria-describedby="seller-financing-help"
-        className="mt-auto grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
+        className="grid h-10 w-full grid-cols-3 rounded-xl border border-[#e7eaee] bg-white p-1"
       >
         {sellerFinancingModes.map((option) => (
           <button
@@ -681,6 +727,32 @@ function SellerFinancingField({
           </button>
         ))}
       </div>
+      {terms ? (
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <label className="flex min-w-0 flex-col gap-1">
+            <span className="text-xs font-medium text-[#667085]">% del precio</span>
+            <input
+              inputMode="numeric"
+              aria-label="Porcentaje del precio financiado"
+              value={pct}
+              onChange={(event) => onPct(keepDigits(event.target.value, 3))}
+              className={fieldInputClass}
+              placeholder="20"
+            />
+          </label>
+          <div className="min-w-0">
+            <span className="mb-1 block text-xs font-medium text-[#667085]">Plazo</span>
+            <OptionSelect
+              label="Plazo de la financiación"
+              placeholder="Años"
+              textSize="sm"
+              value={years}
+              options={sellerFinancingYearOptions.map((option) => ({ value: String(option), label: sellerFinancingYearLabels[option] }))}
+              onValueChange={onYears}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1166,7 +1238,17 @@ const standingCopy = {
 /** Suggested price as a status pill under the price input; the range, the bar and the why live in a popover. */
 // t93: the popover is position:fixed (the metric tile clips overflow), stays open while the pointer crosses the gap,
 // and closes with Esc. It shows a red→orange→yellow→green→…→red bar with the asking price as a black dot.
-function PriceStatus({ estimate, askingCents, blocked = false }: { estimate: PriceEstimate | null; askingCents: number | null; blocked?: boolean }) {
+function PriceStatus({
+  estimate,
+  askingCents,
+  blocked = false,
+  rangeNote,
+}: {
+  estimate: PriceEstimate | null;
+  askingCents: number | null;
+  blocked?: boolean;
+  rangeNote?: string | null;
+}) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [place, setPlace] = useState<{ top: number; right: number } | null>(null);
@@ -1255,6 +1337,7 @@ function PriceStatus({ estimate, askingCents, blocked = false }: { estimate: Pri
                   {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}
                 </span>
               </p>
+              {rangeNote ? <p className="mt-2 text-xs leading-5 text-[#667085]">{rangeNote}</p> : null}
               <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
                 Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
               </p>
@@ -1649,9 +1732,18 @@ export function CompanyDraftForm({
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
-  const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
-  const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
+  const [sellerFinancingPct, setSellerFinancingPct] = useState(initial.sellerFinancingPct);
+  const [sellerFinancingYears, setSellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [sellerStay, setSellerStay] = useState<string>(initial.sellerStay);
+  const [ownerDependence, setOwnerDependence] = useState(initial.ownerDependence);
+  const [premisesKind, setPremisesKind] = useState(initial.premisesKind);
+  const [rentMonthly, setRentMonthly] = useState(initial.rentMonthly);
+  const [leaseYearsRemaining, setLeaseYearsRemaining] = useState(initial.leaseYearsRemaining);
+  const [recurringRevenuePct, setRecurringRevenuePct] = useState(initial.recurringRevenuePct);
+  const [seasonality, setSeasonality] = useState(initial.seasonality);
+  const [seasonalityNote, setSeasonalityNote] = useState(initial.seasonalityNote);
+  const [top5ClientsPct, setTop5ClientsPct] = useState(initial.top5ClientsPct);
+  const [askingPriceIncludes, setAskingPriceIncludes] = useState(() => storedAskingPriceIncludes(initial.askingPriceIncludes));
   const [capitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
@@ -1725,6 +1817,15 @@ export function CompanyDraftForm({
     sellerFinancingPct: initial.sellerFinancingPct,
     sellerFinancingYears: initial.sellerFinancingYears,
     sellerStay: initial.sellerStay as string,
+    ownerDependence: initial.ownerDependence,
+    premisesKind: initial.premisesKind,
+    rentMonthly: initial.rentMonthly,
+    leaseYearsRemaining: initial.leaseYearsRemaining,
+    recurringRevenuePct: initial.recurringRevenuePct,
+    seasonality: initial.seasonality,
+    seasonalityNote: initial.seasonalityNote,
+    top5ClientsPct: initial.top5ClientsPct,
+    askingPriceIncludes: storedAskingPriceIncludes(initial.askingPriceIncludes),
     closedYears: initial.closedYears,
     forecastYear: initial.forecastYear,
   }));
@@ -1756,6 +1857,15 @@ export function CompanyDraftForm({
     sellerFinancingPct,
     sellerFinancingYears,
     sellerStay,
+    ownerDependence,
+    premisesKind,
+    rentMonthly,
+    leaseYearsRemaining,
+    recurringRevenuePct,
+    seasonality,
+    seasonalityNote,
+    top5ClientsPct,
+    askingPriceIncludes,
     closedYears,
     forecastYear,
   };
@@ -1785,7 +1895,15 @@ export function CompanyDraftForm({
     !sameList(capitalPercents, baseline.capitalPercents) ||
     !sameList(productPercents, baseline.productPercents) ||
     !sameList(clientPercents, baseline.clientPercents) ||
-    customerBase !== baseline.customerBase;
+    customerBase !== baseline.customerBase ||
+    ownerDependence !== baseline.ownerDependence ||
+    premisesKind !== baseline.premisesKind ||
+    rentMonthly !== baseline.rentMonthly ||
+    leaseYearsRemaining !== baseline.leaseYearsRemaining ||
+    recurringRevenuePct !== baseline.recurringRevenuePct ||
+    seasonality !== baseline.seasonality ||
+    seasonalityNote !== baseline.seasonalityNote ||
+    top5ClientsPct !== baseline.top5ClientsPct;
   const incomeDirty =
     JSON.stringify(closedYears.map(incomeSnapshot)) !== JSON.stringify(baseline.closedYears.map(incomeSnapshot)) ||
     JSON.stringify(incomeSnapshot(forecastYear)) !== JSON.stringify(incomeSnapshot(baseline.forecastYear));
@@ -1796,7 +1914,8 @@ export function CompanyDraftForm({
     ebitda !== baseline.ebitda ||
     adjustmentsJson !== baseline.ebitdaAdjustments ||
     opex !== baseline.opex ||
-    askingPrice !== baseline.askingPrice;
+    askingPrice !== baseline.askingPrice ||
+    askingPriceIncludes !== baseline.askingPriceIncludes;
 
   function closedIndex(index: number): 0 | 1 | 2 {
     if (index === 1) {
@@ -1948,13 +2067,22 @@ export function CompanyDraftForm({
     ebitdaCents: storedEbitdaCents !== null && storedEbitdaCents !== 0 ? storedEbitdaCents : ebitdaCentsFromAccounts,
   });
   const priceBlocked = !askingPriceAllowed(priceBasis);
+  const weightedEbitda = weightedEbitdaCents(ebitdaByYear(closedYears));
   const priceEstimate = estimatePriceRange({
     cnae: principalCnae,
-    ebitdaCents: priceBlocked ? null : priceBasis,
+    ebitdaCents: priceBlocked ? null : (weightedEbitda?.cents ?? (priceBasis !== null && priceBasis > 0 ? priceBasis : null)),
     headcount: (valuationHeadcounts as readonly string[]).includes(headcount) ? (headcount as HeadcountRangeId) : null,
     revenueGrowth: salesGrowth(closedYears),
     ebitdaTrend: ebitdaTrend(ebitdaByYear(closedYears)),
   });
+  const priceRangeNote =
+    weightedEbitda === null
+      ? null
+      : weightedEbitda.years.length === 1
+        ? companyCopy.priceRangeNoteOne
+        : weightedEbitda.years.length === 2
+          ? companyCopy.priceRangeNoteTwo
+          : companyCopy.priceRangeNoteThree;
   const dealNote = `${
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
@@ -1981,6 +2109,15 @@ export function CompanyDraftForm({
     sellerFinancingPct,
     sellerFinancingYears,
     sellerStay: sellerStay as CompanyDraftInput["sellerStay"],
+    ownerDependence: ownerDependence as CompanyDraftInput["ownerDependence"],
+    premisesKind: premisesKind as CompanyDraftInput["premisesKind"],
+    rentMonthly,
+    leaseYearsRemaining,
+    recurringRevenuePct,
+    seasonality: seasonality as CompanyDraftInput["seasonality"],
+    seasonalityNote,
+    top5ClientsPct,
+    askingPriceIncludes,
     opex,
     capitalPercents,
     productPercents,
@@ -2245,24 +2382,21 @@ export function CompanyDraftForm({
     >
       <UnsavedChangesGuard dirty={formDirty || pending} onSave={saveAndLeave} autoSave />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <div className="grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <h1 className="min-w-0 text-3xl tracking-tight text-public-ink">{sellerCopy.detailsTitle}</h1>
-        <div className="justify-self-center">
-          <FloatingSegmentedTabs
-            label={companyCopy.tabsLabel}
-            tabs={[
-              { id: "company", label: companyCopy.detailsCompanyTab },
-              { id: "deal", label: companyCopy.detailsDealTab },
-            ]}
-            value={tab}
-            onChange={(id) => {
-              setTab(id);
-              window.scrollTo({ top: 0 });
-            }}
-          />
-        </div>
-        <div className="hidden lg:block" aria-hidden />
-      </div>
+      <h1 className={`min-w-0 text-3xl tracking-tight text-public-ink ${tab === "deal" ? "pt-36 lg:pt-28" : "pt-32 lg:pt-16"}`}>
+        {sellerCopy.detailsTitle}
+      </h1>
+      <FloatingSegmentedTabs
+        label={companyCopy.tabsLabel}
+        tabs={[
+          { id: "company", label: companyCopy.detailsCompanyTab },
+          { id: "deal", label: companyCopy.detailsDealTab },
+        ]}
+        value={tab}
+        onChange={(id) => {
+          setTab(id);
+          window.scrollTo({ top: 0 });
+        }}
+      />
       <div className="relative flex flex-col gap-4">
       {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className={`flex min-w-0 flex-col gap-4 ${tab === "company" ? "lg:pr-14 xl:pr-[18.5rem]" : ""}`}>
@@ -2286,7 +2420,7 @@ export function CompanyDraftForm({
       >
         <div className="@container grid gap-6 md:grid-cols-2">
           {identityLocked ? (
-            <div className="col-span-2 grid gap-6 @min-[40rem]:grid-cols-[minmax(0,1.6fr)_minmax(12rem,1fr)]">
+            <div className="col-span-2 grid grid-cols-1 gap-6 @min-[24rem]:grid-cols-2">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <LockedIdentityInput name="legalName" value={legalName} />
               </Fact>
@@ -2295,7 +2429,7 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           ) : (
-            <div className="col-span-2 grid gap-6 @min-[40rem]:grid-cols-[minmax(0,1.6fr)_minmax(12rem,1fr)]">
+            <div className="col-span-2 grid grid-cols-1 gap-6 @min-[24rem]:grid-cols-2">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <Input name="legalName" value={legalName} onChange={(event) => setLegalName(event.target.value)} />
               </Fact>
@@ -2378,12 +2512,23 @@ export function CompanyDraftForm({
               onChange={(event) => setDescription(event.target.value)}
               aria-label={companyCopy.descriptionLabel}
               aria-required="true"
+              aria-invalid={description.trim().length > 0 && description.trim().length < descriptionMinLength ? true : undefined}
               className={description.length > 80 ? "pl-9" : undefined}
             />
           </div>
-          <span className="flex items-start justify-end gap-4 text-sm text-[#667085]">
+          <span className="flex flex-wrap items-start justify-between gap-2 text-sm text-[#667085]">
+            {description.trim().length > 0 && description.trim().length < descriptionMinLength ? (
+              <span role="status" className="text-[#c0362c]">
+                {companyCopy.descriptionTooShort}
+              </span>
+            ) : (
+              <span />
+            )}
             <span>
-              {description.length} / {descriptionMaxLength}
+              {companyCopy.descriptionCounter
+                .replace("{count}", String(description.trim().length))
+                .replace("{max}", String(descriptionMaxLength))
+                .replace("{min}", String(descriptionMinLength))}
             </span>
           </span>
         </div>
@@ -2430,6 +2575,8 @@ export function CompanyDraftForm({
             pct={sellerFinancingPct}
             years={sellerFinancingYears}
             onMode={setSellerFinancing}
+            onPct={setSellerFinancingPct}
+            onYears={setSellerFinancingYears}
           />
           <SellerStayField value={sellerStay} onChange={setSellerStay} />
         </div>
@@ -2498,8 +2645,11 @@ export function CompanyDraftForm({
                   estimate={priceEstimate}
                   askingCents={euroCentsOrNull(askingPrice)}
                   blocked={priceBlocked}
+                  rangeNote={priceRangeNote}
                 />
               }
+              askingPriceIncludes={askingPriceIncludes}
+              onAskingPriceIncludes={setAskingPriceIncludes}
             />
           </PublicFicha>
       </Panel>
@@ -2564,6 +2714,109 @@ export function CompanyDraftForm({
           ) : (
             <div className="hidden lg:block" />
           )}
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <Fact icon={Users} label={companyCopy.ownerDependenceLabel}>
+            <OptionSelect
+              name="ownerDependence"
+              label={companyCopy.ownerDependenceLabel}
+              placeholder={companyCopy.ownerDependenceEmpty}
+              value={ownerDependence}
+              options={[
+                { value: "", label: companyCopy.ownerDependenceEmpty },
+                { value: "low", label: companyCopy.ownerDependenceLow },
+                { value: "medium", label: companyCopy.ownerDependenceMedium },
+                { value: "high", label: companyCopy.ownerDependenceHigh },
+              ]}
+              onValueChange={(value) => {
+                if (value === "" || ownerDependenceLevels.some((item) => item === value)) {
+                  setOwnerDependence(value as typeof ownerDependence);
+                }
+              }}
+            />
+          </Fact>
+          <Fact icon={Building2} label={companyCopy.premisesLabel}>
+            <OptionSelect
+              name="premisesKind"
+              label={companyCopy.premisesLabel}
+              placeholder={companyCopy.premisesEmpty}
+              value={premisesKind}
+              options={[
+                { value: "", label: companyCopy.premisesEmpty },
+                { value: "owned", label: companyCopy.premisesOwned },
+                { value: "rent", label: companyCopy.premisesRent },
+              ]}
+              onValueChange={(value) => {
+                if (value === "" || premisesKinds.some((item) => item === value)) {
+                  setPremisesKind(value as typeof premisesKind);
+                }
+              }}
+            />
+          </Fact>
+          {premisesKind === "rent" ? (
+            <>
+              <Fact icon={MapPin} label={companyCopy.rentMonthlyLabel}>
+                <Input
+                  name="rentMonthly"
+                  inputMode="decimal"
+                  value={rentMonthly}
+                  onChange={(event) => setRentMonthly(keepUnsignedEuro(event.target.value))}
+                />
+              </Fact>
+              <Fact icon={CalendarDays} label={companyCopy.leaseYearsLabel}>
+                <Input
+                  name="leaseYearsRemaining"
+                  inputMode="numeric"
+                  value={leaseYearsRemaining}
+                  onChange={(event) => setLeaseYearsRemaining(keepDigits(event.target.value, 2))}
+                />
+              </Fact>
+            </>
+          ) : null}
+          <Fact icon={Handshake} label={companyCopy.recurringRevenueLabel}>
+            <Input
+              name="recurringRevenuePct"
+              inputMode="numeric"
+              value={recurringRevenuePct}
+              onChange={(event) => setRecurringRevenuePct(keepDigits(event.target.value, 3))}
+            />
+          </Fact>
+          <Fact icon={Users} label={companyCopy.top5ClientsLabel}>
+            <Input
+              name="top5ClientsPct"
+              inputMode="numeric"
+              value={top5ClientsPct}
+              onChange={(event) => setTop5ClientsPct(keepDigits(event.target.value, 3))}
+            />
+          </Fact>
+          <Fact icon={CalendarDays} label={companyCopy.seasonalityLabel}>
+            <OptionSelect
+              name="seasonality"
+              label={companyCopy.seasonalityLabel}
+              placeholder={companyCopy.seasonalityEmpty}
+              value={seasonality}
+              options={[
+                { value: "", label: companyCopy.seasonalityEmpty },
+                { value: "none", label: companyCopy.seasonalityNone },
+                { value: "low", label: companyCopy.seasonalityLow },
+                { value: "medium", label: companyCopy.seasonalityMedium },
+                { value: "high", label: companyCopy.seasonalityHigh },
+              ]}
+              onValueChange={(value) => {
+                if (value === "" || seasonalityLevels.some((item) => item === value)) {
+                  setSeasonality(value as typeof seasonality);
+                }
+              }}
+            />
+          </Fact>
+          <Fact icon={FileSpreadsheet} label={companyCopy.seasonalityNoteLabel}>
+            <Input
+              name="seasonalityNote"
+              value={seasonalityNote}
+              placeholder={companyCopy.seasonalityNotePlaceholder}
+              onChange={(event) => setSeasonalityNote(event.target.value.slice(0, 280))}
+            />
+          </Fact>
         </div>
       </Panel>
 
@@ -2823,7 +3076,7 @@ export function CompanyDraftForm({
             sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
             chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
           />
-          <CompanyReport project={previewProject} sellerPreview={{
+          <CompanyReport navBelowTabs project={previewProject} sellerPreview={{
             mixAction: (
               <KitButton
                 type="button"

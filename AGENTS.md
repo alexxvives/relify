@@ -1,4 +1,4 @@
-# Releva
+# Relify
 
 Confidential marketplace for buying and selling SME businesses. Public pages look like Deale: anonymized project cards, not a classifieds table. BizBuySell is a product reference only.
 

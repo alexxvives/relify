@@ -211,6 +211,17 @@ model Project {
   sellerFinancingYears   Int?    @map("seller_financing_years")
   /// t93: would the seller stay on as an adviser: "no" | "1w" | "1m" | "3m" | "6m" | "1y" | "2y"; null = not answered.
   sellerStay             String? @map("seller_stay")
+  /// t96: optional business profile (Cómo es tu negocio) and asking-price basis.
+  ownerDependence        String? @map("owner_dependence")
+  premisesKind           String? @map("premises_kind")
+  rentMonthlyCents       BigInt? @map("rent_monthly_cents")
+  leaseYearsRemaining    Int?    @map("lease_years_remaining")
+  recurringRevenuePct    Int?    @map("recurring_revenue_pct")
+  seasonality            String? @map("seasonality")
+  seasonalityNote        String? @map("seasonality_note")
+  top5ClientsPct         Int?    @map("top5_clients_pct")
+  /// "debt_free_cash_free" | "shares"; null = use defaultAskingPriceIncludes.
+  askingPriceIncludes    String? @map("asking_price_includes")
   verifiedAt          DateTime?            @map("verified_at")
   netDebtCents        BigInt                  @map("net_debt_cents")
   workingCapitalCents BigInt                  @map("working_capital_cents")

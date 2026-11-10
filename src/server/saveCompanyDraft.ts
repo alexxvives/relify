@@ -5,12 +5,15 @@ import { isCuratedNickname } from "@/lib/nickname";
 import { companyCopy } from "@/lib/company-copy";
 import { canonicalCnaeCode } from "@/lib/cnae-2009";
 import {
+  optionalEurosToCents,
+  optionalWholeNumber,
   projectSlug,
   type CompanyDraftInput,
 } from "@/lib/company-draft";
 import {
   descriptionContainsSecret,
   parsePercentToBasisPoints,
+  storedAskingPriceIncludes,
   type SliceKind,
 } from "@/lib/company-profile";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -204,6 +207,15 @@ export async function saveCompanyDraft(
       return financing.ok ? financing.data : {};
     })(),
     sellerStay: input.sellerStay === "" ? null : input.sellerStay,
+    ownerDependence: input.ownerDependence === "" ? null : input.ownerDependence,
+    premisesKind: input.premisesKind === "" ? null : input.premisesKind,
+    rentMonthlyCents: input.premisesKind === "rent" ? optionalEurosToCents(input.rentMonthly) : null,
+    leaseYearsRemaining: input.premisesKind === "rent" ? optionalWholeNumber(input.leaseYearsRemaining, 0, 99) : null,
+    recurringRevenuePct: optionalWholeNumber(input.recurringRevenuePct, 0, 100),
+    seasonality: input.seasonality === "" ? null : input.seasonality,
+    seasonalityNote: input.seasonalityNote === "" ? null : input.seasonalityNote,
+    top5ClientsPct: optionalWholeNumber(input.top5ClientsPct, 0, 100),
+    askingPriceIncludes: storedAskingPriceIncludes(input.askingPriceIncludes),
     headcountRange: input.headcount === "" ? null : input.headcount,
     customerBase: input.customerBase === "" ? null : input.customerBase,
   };

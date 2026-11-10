@@ -3,7 +3,7 @@ import { sellerFinancingWrite, storedSellerFinancing } from "./seller-financing"
 import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
 import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
-import { eurosToCents, optionalEurosToCents, projectSlug, type CompanyDraftInput } from "./company-draft";
+import { eurosToCents, optionalEurosToCents, optionalWholeNumber, projectSlug, type CompanyDraftInput } from "./company-draft";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
@@ -14,8 +14,12 @@ import {
   isEmphasisRow,
   isFoundedYear,
   isHeadcountRange,
+  isOwnerDependence,
+  isPremisesKind,
+  isSeasonalityLevel,
   isStatementYear,
   parsePercentToBasisPoints,
+  storedAskingPriceIncludes,
   type BalanceAmounts,
   type PnlAmounts,
   type SliceKind,
@@ -141,6 +145,15 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
       return financing.ok ? storedSellerFinancing(financing.data) : null;
     })(),
     sellerStay: storedSellerStay(input.sellerStay),
+    ownerDependence: input.ownerDependence !== "" && isOwnerDependence(input.ownerDependence) ? input.ownerDependence : null,
+    premisesKind: input.premisesKind !== "" && isPremisesKind(input.premisesKind) ? input.premisesKind : null,
+    rentMonthlyCents: input.premisesKind === "rent" ? optionalUnsignedCents(input.rentMonthly) : null,
+    leaseYearsRemaining: input.premisesKind === "rent" ? optionalWholeNumber(input.leaseYearsRemaining, 0, 99) : null,
+    recurringRevenuePct: optionalWholeNumber(input.recurringRevenuePct, 0, 100),
+    seasonality: input.seasonality !== "" && isSeasonalityLevel(input.seasonality) ? input.seasonality : null,
+    seasonalityNote: input.seasonalityNote.trim() === "" ? null : input.seasonalityNote.trim(),
+    top5ClientsPct: optionalWholeNumber(input.top5ClientsPct, 0, 100),
+    askingPriceIncludes: storedAskingPriceIncludes(input.askingPriceIncludes),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
     principalCnae: principal.length > 0 ? { code: formatCnaeCode(principal), title: cnaeDisplayTitle(principal) } : null,

@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Pencil, X } from "lucide-react";
 import { useScrollSpy } from "@/components/use-scroll-spy";
+import { ViewportPortal } from "@/components/viewport-portal";
 
 export type DetailSectionStatus = "done" | "pending" | "dirty" | "info";
 
@@ -70,7 +71,7 @@ const trackerWidth = "17.25rem";
 
 /**
  * Floating progress tracker for Información empresa.
- * xl (≥1280): expanded sticky card at top-right (does not reserve a column; the form
+ * xl (≥1280): expanded card fixed to the viewport top-right (does not reserve a column; the form
  * adds matching right padding). lg–xl: collapsed pill at top-right, expands on click.
  */
 function ProgressTrackerOverlay({
@@ -138,8 +139,9 @@ function ProgressTrackerOverlay({
   );
 
   return (
-    <div ref={root} className="pointer-events-none absolute top-0 right-0 z-30 hidden lg:block" data-section-tracker="true">
-      <div className="pointer-events-auto sticky top-4 flex flex-col items-end">
+    <ViewportPortal>
+    <div ref={root} className="pointer-events-none fixed top-16 right-4 z-40 hidden lg:block" data-section-tracker="true">
+      <div className="pointer-events-auto flex flex-col items-end">
         <div className="hidden xl:block" style={{ width: trackerWidth }}>
           {panel(undefined, false)}
         </div>
@@ -158,6 +160,7 @@ function ProgressTrackerOverlay({
         </div>
       </div>
     </div>
+    </ViewportPortal>
   );
 }
 
@@ -201,7 +204,7 @@ export function DetailSectionNav({
 
   return (
     <>
-      <nav aria-label="Secciones" className="sticky top-2 z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur lg:hidden">
+      <nav aria-label="Secciones" className="sticky top-[7.75rem] z-20 -mx-1 bg-[#e5eef0]/90 px-1 py-2 backdrop-blur sm:top-[8.25rem] lg:hidden">
         <div className="flex items-center gap-2">
           <CompletionRing done={progress.done} total={progress.total} size={36} />
           <ul className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [&::-webkit-scrollbar]:hidden">

@@ -17,8 +17,8 @@ describe("seller financing", () => {
   });
 
   it("describes the terms for a buyer", () => {
-    expect(sellerFinancingText({ mode: "yes", maxPct: 20, years: 3 })).toBe("Acepta financiar parte del precio");
-    expect(sellerFinancingText({ mode: "yes", maxPct: 30, years: 5 })).toBe("Acepta financiar parte del precio");
+    expect(sellerFinancingText({ mode: "yes", maxPct: 20, years: 3 })).toBe("Acepta financiar parte del precio (hasta el 20 %, 3 años)");
+    expect(sellerFinancingText({ mode: "yes", maxPct: 30, years: 5 })).toBe("Acepta financiar parte del precio (hasta el 30 %, 5 años o más)");
     expect(sellerFinancingText({ mode: "negotiable", maxPct: null, years: null })).toBe("Financiación negociable");
     expect(sellerFinancingText({ mode: "no", maxPct: null, years: null })).toBe("No");
     expect(storedSellerFinancing({ sellerFinancing: "maybe" })).toBeNull();
