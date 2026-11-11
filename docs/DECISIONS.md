@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S7 CIM PDFs, /valorar explainer, INT From info@
+
+Teaser/dossier PDFs use a Relify CIM palette (clay, navy, teal, gold/amber, rose): gradient bars, KPI tiles with icons, donut mix of the cifra, coloured section bands. Donut slices are center-relative `drawSvgPath` fans (`pdf-lib` flips SVG Y). Landing “Publica cifras” reuses `MarketCard` for the white body; the name-redact animation is a photo overlay. `/valorar` FAQ is a single-column thin accordion (FAQPage JSON-LD kept). “Qué te enviaremos” explains EV = EBITDA aj. × sector multiple and equity = EV − DFN, with Ejemplo-labelled scenarios. INT `senderFor` always uses `info@itsrelify.com`; catch-all To is unchanged. Prod still uses `info@` for team alerts and `notificaciones@` for people. No new migration.
+
 ## 2026-11-11 — Round S6 INT: register the fontkit default object
 
 Workers minify of `import * as fontkit` turned `registerFontkit({ create: fontkit.create })` into `{ create: void 0 }` (`TypeError: e200.create is not a function` on `/t/<token>`). Register `pdfFontkit()` which reads the ESM default. A vitest smoke minifies the PDF worker with Vite and runs teaser + dossier in Miniflare/`workerd`. No new migration.

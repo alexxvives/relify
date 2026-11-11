@@ -1,50 +1,50 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { MarketCard } from "@/components/market-card";
 import { ProcessTimeline } from "@/components/landing/process-timeline";
 import { landingCopy } from "@/lib/landing-copy";
+import { landingPreviewHref } from "@/lib/showcase-card";
+import type { PublicProjectCard } from "@/lib/public-project";
 
-type CssVar = Record<string, string>;
+/** Specimen only: same shape as a marketplace card so the process animation bottom matches /mercado. */
+const processRevealCard: PublicProjectCard = {
+  slug: "proyecto-alba",
+  codename: "Proyecto Alba",
+  region: "Valencia",
+  revenueCents: 125_000_000,
+  ebitdaCents: 31_000_000,
+  adjustedEbitdaCents: 31_000_000,
+  askingPriceCents: 98_000_000,
+  sectorKey: "industria",
+  sectorLabel: "industria",
+  cnaeCode: "25.11",
+  cnaeTitle: "Fabricación de estructuras metálicas y sus partes",
+  summary: "Taller industrial con cartera de obras y un equipo técnico consolidado.",
+  headcount: "band_11_20",
+  financingChip: "Financiación vendedor",
+  verified: true,
+};
 
 function FichaReveal() {
   return (
-    <div className="releva-ficha-reveal" aria-hidden="true">
-      <article className="releva-ficha-card releva-ficha-card-live">
-        <div className="releva-ficha-cover">
-          <span className="releva-ficha-stamp">Confidencial</span>
-          <span className="releva-ficha-veil" />
-          <span className="releva-ficha-redact">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="releva-ficha-legal">Tecnología Digital SL</span>
-          <span className="releva-ficha-codename">Proyecto Alba</span>
-          <span className="releva-ficha-place">Valencia · Industria</span>
-        </div>
-        <dl className="releva-ficha-figures">
-          <div>
-            <dt>Facturación</dt>
-            <dd>1,25 M €</dd>
-            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.82" } as CssVar} />
-          </div>
-          <div>
-            <dt>EBITDA</dt>
-            <dd>310 K €</dd>
-            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.58" } as CssVar} />
-          </div>
-          <div>
-            <dt>Precio</dt>
-            <dd>980 K €</dd>
-            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.7" } as CssVar} />
-          </div>
-        </dl>
-        <div className="releva-ficha-spark">
-          <span style={{ "--ficha-h": "38%" } as CssVar} />
-          <span style={{ "--ficha-h": "54%" } as CssVar} />
-          <span style={{ "--ficha-h": "46%" } as CssVar} />
-          <span style={{ "--ficha-h": "78%" } as CssVar} />
-        </div>
-      </article>
+    <div className="releva-ficha-reveal">
+      <MarketCard
+        project={processRevealCard}
+        href={landingPreviewHref}
+        coverOverlay={
+          <>
+            <span className="releva-ficha-stamp">Confidencial</span>
+            <span className="releva-ficha-veil" />
+            <span className="releva-ficha-redact">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="releva-ficha-legal">Tecnología Digital SL</span>
+            <span className="releva-ficha-codename">Proyecto Alba</span>
+          </>
+        }
+      />
     </div>
   );
 }

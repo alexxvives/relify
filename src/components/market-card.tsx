@@ -170,6 +170,7 @@ export function MarketCard({
   href: hrefOverride,
   hidePhotoTags = false,
   priceUnset = "A consultar",
+  coverOverlay = null,
 }: {
   project: PublicProjectCard;
   actions?: ReactNode;
@@ -180,6 +181,8 @@ export function MarketCard({
   hidePhotoTags?: boolean;
   /** t83: shown when there is no asking price ("A consultar" for buyers, "Sin definir" in the seller preview). */
   priceUnset?: string;
+  /** Landing process ficha: name-redact overlay on the photo. The white body stays this card. */
+  coverOverlay?: ReactNode;
 }) {
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
@@ -229,6 +232,11 @@ export function MarketCard({
             className="absolute inset-0 bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25"
             aria-hidden
           />
+          {coverOverlay ? (
+            <div className="releva-ficha-cover-overlay" aria-hidden>
+              {coverOverlay}
+            </div>
+          ) : null}
           <div className="absolute top-2.5 left-2.5 flex max-w-[calc(100%-6rem)] flex-nowrap items-center gap-1 overflow-hidden">
             {project.financingChip ? (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#e6f4f2]/95 px-1.5 py-px text-[11px] font-semibold text-[#0f766e] shadow-sm backdrop-blur-sm">

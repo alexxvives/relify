@@ -138,13 +138,19 @@ describe("buildCompanyPdf", () => {
     expect(teaserText).toMatch(/Proyecto Quercus/);
     expect(teaserText).toMatch(/NDA/);
     expect(teaserText).toMatch(/Jubilaci/);
+    expect(teaserText).toMatch(/Mix de la cifra/);
+    expect(teaserText).toMatch(/Costes operativos|Resultado neto|EBITDA/);
     expect(teaserText).not.toMatch(/Deuda neta/);
     expect(teaserText).not.toMatch(/ana\.perez@example\.com/i);
     expect(dossierText).toMatch(/ana\.perez@example\.com/i);
     expect(dossierText).toMatch(/Deuda neta/);
     expect(dossierText).toMatch(/NOF/);
     expect(dossierText).toMatch(/EBITDA declarado/);
-    const out = process.env.ROUND_S6_PDF_OUT ?? process.env.ROUND_S5_PDF_OUT ?? process.env.ROUND_S4_PDF_OUT;
+    const out =
+      process.env.ROUND_S7_PDF_OUT ??
+      process.env.ROUND_S6_PDF_OUT ??
+      process.env.ROUND_S5_PDF_OUT ??
+      process.env.ROUND_S4_PDF_OUT;
     if (out) {
       mkdirSync(out, { recursive: true });
       writeFileSync(`${out}/teaser-proyecto-quercus.pdf`, teaser);

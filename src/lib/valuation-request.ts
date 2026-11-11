@@ -64,6 +64,30 @@ export const valuationCopy = {
   failed: "No hemos podido guardar la solicitud. Inténtalo de nuevo.",
   throttled: "Has hecho demasiadas solicitudes. Espera unos minutos y vuelve a intentarlo.",
   asideTitle: "Qué te enviaremos",
+  formulaTitle: "Cómo se calcula",
+  formulaEv: "EV = EBITDA ajustado × múltiplo sectorial",
+  formulaEquity: "Valor del equity = EV − deuda financiera neta",
+  formulaHint:
+    "El rango conservador / base / alto sale de los múltiplos del sector. Las cifras de abajo son un ejemplo, no la valoración de tu empresa.",
+  exampleLabel: "Ejemplo",
+  exampleEbitda: "EBITDA aj. 800 K €",
+  exampleDebt: "DFN 1,2 M €",
+  scenarios: [
+    { id: "low", title: "Conservador", multiple: "5,0×", ev: "4,0 M €", equity: "2,8 M €" },
+    { id: "base", title: "Base", multiple: "6,2×", ev: "5,0 M €", equity: "3,8 M €" },
+    { id: "high", title: "Alto", multiple: "7,5×", ev: "6,0 M €", equity: "4,8 M €" },
+  ],
+  stepsTitle: "Así llega el informe",
+  steps: [
+    { n: "1", title: "CIF", body: "Identificamos las cuentas depositadas." },
+    { n: "2", title: "SABI", body: "Leemos la cifra, el EBITDA y la deuda neta." },
+    { n: "3", title: "Múltiplo", body: "Aplicamos el rango del sector y restamos DFN." },
+    { n: "4", title: "Envío", body: "Te llega por correo, con explicación y gráficas." },
+  ],
+  previewTitle: "Vista del informe",
+  previewKicker: "Ejemplo de página",
+  freeStamp: "Sin cargo",
+  freeLine: "Pedir la valoración no abre un pago ni publica la sociedad.",
   aside: [
     {
       title: "Una primera horquilla de valor",

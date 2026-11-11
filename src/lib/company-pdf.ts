@@ -128,15 +128,21 @@ type Fonts = {
 
 const ink = rgb(18 / 255, 52 / 255, 58 / 255);
 const clay = rgb(15 / 255, 110 / 255, 115 / 255);
-const moss = rgb(28 / 255, 95 / 255, 88 / 255);
+const moss = rgb(12 / 255, 62 / 255, 68 / 255);
+const navy = rgb(28 / 255, 39 / 255, 64 / 255);
+const teal = rgb(47 / 255, 168 / 255, 156 / 255);
 const muted = rgb(92 / 255, 107 / 255, 120 / 255);
 const paper = rgb(229 / 255, 238 / 255, 240 / 255);
 const sand = rgb(244 / 255, 248 / 255, 248 / 255);
 const white = rgb(1, 1, 1);
 const line = rgb(221 / 255, 231 / 255, 234 / 255);
-const mist = rgb(238 / 255, 246 / 255, 244 / 255);
+const mist = rgb(232 / 255, 246 / 255, 244 / 255);
+const ice = rgb(236 / 255, 247 / 255, 246 / 255);
 const amber = rgb(196 / 255, 92 / 255, 43 / 255);
-const rose = rgb(176 / 255, 58 / 255, 58 / 255);
+const gold = rgb(212 / 255, 160 / 255, 64 / 255);
+const rose = rgb(196 / 255, 72 / 255, 86 / 255);
+const kpiTints = [ice, rgb(232 / 255, 238 / 255, 252 / 255), rgb(255 / 255, 241 / 255, 232 / 255), rgb(255 / 255, 236 / 255, 238 / 255)];
+const kpiAccents = [clay, navy, amber, rose];
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const M = 36;
@@ -208,9 +214,85 @@ function drawRight(
   drawText(page, font, safe, right - font.widthOfTextAtSize(safe, size), y, size, color);
 }
 
-function card(page: PDFPage, x: number, y: number, w: number, h: number, fill: RGB = sand) {
+function mix(a: RGB, b: RGB, t: number): RGB {
+  const n = Math.min(1, Math.max(0, t));
+  return rgb(a.red + (b.red - a.red) * n, a.green + (b.green - a.green) * n, a.blue + (b.blue - a.blue) * n);
+}
+
+function fillBar(page: PDFPage, x: number, y: number, width: number, height: number, color: RGB) {
+  if (width <= 0 || height <= 0) {
+    return;
+  }
+  const steps = 7;
+  const slice = height / steps;
+  for (let i = 0; i < steps; i += 1) {
+    page.drawRectangle({
+      x,
+      y: y + i * slice,
+      width,
+      height: slice + 0.35,
+      color: mix(color, white, (i / Math.max(1, steps - 1)) * 0.4),
+    });
+  }
+}
+
+function card(page: PDFPage, x: number, y: number, w: number, h: number, fill: RGB = sand, accent: RGB = clay) {
   page.drawRectangle({ x, y, width: w, height: h, color: fill, borderColor: line, borderWidth: 0.7 });
-  page.drawRectangle({ x, y, width: 4, height: h, color: clay });
+  page.drawRectangle({ x, y, width: 5, height: h, color: accent });
+}
+
+/** pdf-lib SVG paths are y-down around options.x/y, so keep the fan relative to the donut center. */
+function slicePath(radius: number, start: number, end: number): string {
+  const sweep = end - start;
+  const steps = Math.max(8, Math.ceil(Math.abs(sweep) / 0.08));
+  const parts = ["M 0 0"];
+  for (let i = 0; i <= steps; i += 1) {
+    const angle = start + (sweep * i) / steps;
+    const px = radius * Math.cos(angle);
+    const py = -radius * Math.sin(angle);
+    parts.push(`L ${px.toFixed(2)} ${py.toFixed(2)}`);
+  }
+  parts.push("Z");
+  return parts.join(" ");
+}
+
+function drawDonut(
+  page: PDFPage,
+  fonts: Fonts,
+  title: string,
+  slices: Array<{ label: string; value: number; color: RGB }>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  card(page, x, y, width, height, white, teal);
+  drawText(page, fonts.headingSemi, title, x + 14, y + height - 22, 10, ink);
+  const usable = slices.filter((slice) => slice.value > 0);
+  const total = usable.reduce((sum, slice) => sum + slice.value, 0);
+  const legendH = 12 + usable.length * 16;
+  const cx = x + width / 2;
+  const cy = y + legendH + (height - 28 - legendH) / 2;
+  const radius = Math.min(48, width * 0.28, Math.max(22, (height - 36 - legendH) * 0.42));
+  if (total <= 0 || usable.length === 0) {
+    drawText(page, fonts.sans, "Sin mix publicado.", x + 14, y + height / 2, 8, muted);
+    return;
+  }
+  let angle = Math.PI / 2;
+  for (const slice of usable) {
+    const next = angle - (slice.value / total) * Math.PI * 2;
+    page.drawSvgPath(slicePath(radius, angle, next), { x: cx, y: cy, color: slice.color });
+    angle = next;
+  }
+  page.drawCircle({ x: cx, y: cy, size: radius * 0.55, color: white });
+  let legendY = y + 12 + (usable.length - 1) * 16;
+  for (const slice of usable) {
+    page.drawRectangle({ x: x + 14, y: legendY, width: 8, height: 8, color: slice.color });
+    const pct = `${Math.round((slice.value / total) * 100)} %`;
+    drawText(page, fonts.sansSemi, slice.label, x + 26, legendY, 7.5, ink);
+    drawRight(page, fonts.sans, pct, x + width - 14, legendY, 7, muted);
+    legendY -= 16;
+  }
 }
 
 function drawBrandLogo(page: PDFPage, logo: PDFImage, x: number, y: number, height: number): number {
@@ -239,15 +321,18 @@ function drawWatermark(page: PDFPage, fonts: Fonts, text: string) {
 }
 
 function drawLetterhead(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  page.drawRectangle({ x: 0, y: PAGE_H - 52, width: PAGE_W, height: 52, color: ice });
+  page.drawRectangle({ x: 0, y: PAGE_H - 52, width: PAGE_W, height: 4, color: clay });
   const logoH = 22;
   drawBrandLogo(page, logo, M, PAGE_H - 40, logoH);
   const kicker = `${companyPdfCopy.confidential}  ·  ${view.kind === "teaser" ? companyPdfCopy.teaserTitle : companyPdfCopy.dossierTitle}`;
   drawRight(page, fonts.sansSemi, kicker.toUpperCase(), PAGE_W - M, PAGE_H - 32, 8, clay);
-  page.drawRectangle({ x: M, y: PAGE_H - 48, width: CONTENT_W, height: 1.4, color: clay });
 }
 
 function drawHero(page: PDFPage, fonts: Fonts, view: CompanyPdfView, y: number, height: number) {
   page.drawRectangle({ x: 0, y, width: PAGE_W, height, color: moss });
+  page.drawRectangle({ x: 0, y: y + height * 0.55, width: PAGE_W, height: height * 0.45, color: mix(moss, clay, 0.35) });
+  page.drawRectangle({ x: 0, y, width: 8, height, color: gold });
   page.drawRectangle({ x: 0, y, width: PAGE_W, height: 3, color: clay });
   const title = view.kind === "teaser" ? companyPdfCopy.teaserTitle : companyPdfCopy.dossierTitle;
   drawText(page, fonts.sansSemi, title.toUpperCase(), M, y + height - 22, 9, rgb(0.78, 0.9, 0.88));
@@ -270,25 +355,60 @@ function coverKpis(view: CompanyPdfView): CompanyPdfKpi[] {
   return [...view.kpis, ...extra].slice(0, 4);
 }
 
+function drawKpiIcon(page: PDFPage, kind: number, x: number, y: number, color: RGB) {
+  if (kind === 0) {
+    page.drawRectangle({ x, y, width: 3.2, height: 6, color: mix(color, white, 0.35) });
+    page.drawRectangle({ x: x + 4.4, y, width: 3.2, height: 9, color: mix(color, white, 0.15) });
+    page.drawRectangle({ x: x + 8.8, y, width: 3.2, height: 12, color });
+    return;
+  }
+  if (kind === 1) {
+    page.drawCircle({ x: x + 6, y: y + 6, size: 6.4, color });
+    page.drawCircle({ x: x + 6, y: y + 6, size: 3.5, color: white });
+    return;
+  }
+  if (kind === 2) {
+    page.drawRectangle({ x, y: y + 2, width: 12, height: 8.5, color });
+    page.drawCircle({ x: x + 3.4, y: y + 6.2, size: 1.5, color: white });
+    return;
+  }
+  page.drawCircle({ x: x + 3.2, y: y + 9.2, size: 2.1, color });
+  page.drawCircle({ x: x + 9.2, y: y + 3.2, size: 2.1, color });
+  page.drawLine({ start: { x: x + 2.2, y: y + 2.2 }, end: { x: x + 10.6, y: y + 10.6 }, thickness: 1.3, color });
+}
+
 function drawKpiGrid(page: PDFPage, fonts: Fonts, kpis: CompanyPdfKpi[], x: number, y: number, width: number, height: number) {
   const gap = 8;
   const cols = Math.min(4, Math.max(1, kpis.length));
   const boxWidth = (width - gap * (cols - 1)) / cols;
   kpis.forEach((kpi, index) => {
     const left = x + index * (boxWidth + gap);
+    const accent = kpiAccents[index] ?? clay;
+    const tint = kpiTints[index] ?? ice;
     page.drawRectangle({
       x: left,
       y,
       width: boxWidth,
       height,
-      color: sand,
-      borderColor: line,
+      color: tint,
+      borderColor: mix(accent, white, 0.55),
       borderWidth: 0.8,
     });
-    page.drawRectangle({ x: left, y: y + height - 4, width: 22, height: 4, color: clay });
-    drawText(page, fonts.sans, kpi.label, left + 10, y + height - 22, 8, muted);
-    drawText(page, fonts.headingSemi, kpi.value, left + 10, y + 14, 14, ink);
+    page.drawRectangle({ x: left, y, width: 6, height, color: accent });
+    drawKpiIcon(page, index, left + boxWidth - 26, y + height - 22, accent);
+    drawText(page, fonts.sans, kpi.label, left + 14, y + height - 22, 8, muted);
+    drawText(page, fonts.headingSemi, kpi.value, left + 14, y + 14, 15, ink);
   });
+}
+
+function drawSectionBand(page: PDFPage, fonts: Fonts, title: string, subtitle?: string) {
+  page.drawRectangle({ x: 0, y: PAGE_H - 96, width: PAGE_W, height: 44, color: ice });
+  page.drawRectangle({ x: 0, y: PAGE_H - 96, width: PAGE_W, height: 3, color: teal });
+  page.drawRectangle({ x: 0, y: PAGE_H - 96, width: 8, height: 44, color: clay });
+  drawText(page, fonts.headingSemi, title, M, PAGE_H - 72, 15, ink);
+  if (subtitle) {
+    drawText(page, fonts.sans, subtitle, M, PAGE_H - 86, 8, muted);
+  }
 }
 
 function centsPeak(years: CompanyPdfYear[], key: "revenueCents" | "ebitdaCents" | "ebitCents" | "netResultCents"): number {
@@ -337,7 +457,7 @@ function drawLabeledBars(
     const barH = Math.max(value === null ? 0 : 4, (Math.abs(amount) / peak) * (chartH - 16));
     const barY = amount >= 0 ? chartY : chartY - barH;
     if (value !== null) {
-      page.drawRectangle({ x: cx - bar / 2, y: barY, width: bar, height: barH, color });
+      fillBar(page, cx - bar / 2, barY, bar, barH, color);
       const label = formatCardEur(amount);
       const lw = fonts.sansSemi.widthOfTextAtSize(label, 6.5);
       drawText(page, fonts.sansSemi, label, cx - lw / 2, barY + barH + 3, 6.5, ink);
@@ -391,9 +511,12 @@ function drawMarginChart(
     if (row.pct !== null) {
       const py = chartY + (row.pct / peak) * (chartH - 8);
       page.drawCircle({ x: px, y: py, size: 3.2, color: clay });
-      const label = `${Math.round(row.pct)} %`;
-      const lw = fonts.sansSemi.widthOfTextAtSize(label, 7);
-      drawText(page, fonts.sansSemi, label, px - lw / 2, py + 8, 7, ink);
+      if (index > 0) {
+        const label = `${Math.round(row.pct)} %`;
+        const lw = fonts.sansSemi.widthOfTextAtSize(label, 7);
+        const labelX = Math.min(chartX + chartW - lw, Math.max(chartX, px + 6));
+        drawText(page, fonts.sansSemi, label, labelX, py + 5, 7, ink);
+      }
       const next = series[index + 1];
       if (next && next.pct !== null) {
         const nx = chartX + (index + 1) * step;
@@ -423,10 +546,12 @@ function drawPriceRange(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: nu
   const trackX = x + 18;
   const trackY = y + 36;
   const trackW = width - 36;
-  page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 10, color: paper });
+  page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 11, color: paper });
   const zoneX = trackX + priceBarZone.low * trackW;
   const zoneW = (priceBarZone.high - priceBarZone.low) * trackW;
-  page.drawRectangle({ x: zoneX, y: trackY, width: zoneW, height: 10, color: clay });
+  fillBar(page, zoneX, trackY, zoneW, 11, clay);
+  page.drawRectangle({ x: zoneX, y: trackY, width: 3, height: 11, color: gold });
+  page.drawRectangle({ x: zoneX + zoneW - 3, y: trackY, width: 3, height: 11, color: amber });
   const lowLabel = view.priceLow ?? "—";
   const highLabel = view.priceHigh ?? "—";
   drawText(page, fonts.sansSemi, lowLabel, zoneX, trackY - 14, 8, ink);
@@ -513,24 +638,26 @@ function drawDealCard(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: numb
     }
     rowY -= 10;
   }
-  if (rowY - y > 36) {
-    page.drawRectangle({ x: x + 12, y: y + 12, width: width - 24, height: rowY - y - 8, color: sand });
-    let noteY = rowY - 8;
-    for (const line of wrap(
-      fonts.sans,
-      "Términos indicativos de la ficha. El NDA en Relify abre el cuaderno y el data room.",
-      8,
-      width - 48,
-    ).slice(0, 3)) {
-      drawText(page, fonts.sans, line, x + 20, noteY, 8, muted);
-      noteY -= 11;
-    }
+  const noteLines = wrap(
+    fonts.sans,
+    "Términos indicativos de la ficha. El NDA en Relify abre el cuaderno y el data room.",
+    8,
+    width - 48,
+  ).slice(0, 3);
+  const noteH = 16 + noteLines.length * 11;
+  page.drawRectangle({ x: x + 12, y: y + 12, width: width - 24, height: noteH, color: ice });
+  page.drawRectangle({ x: x + 12, y: y + 12, width: 4, height: noteH, color: gold });
+  let noteY = y + 12 + noteH - 14;
+  for (const line of noteLines) {
+    drawText(page, fonts.sans, line, x + 22, noteY, 8, muted);
+    noteY -= 11;
   }
 }
 
 function drawCta(page: PDFPage, fonts: Fonts, title: string, body: string, x: number, y: number, width: number, height: number) {
   page.drawRectangle({ x, y, width, height, color: moss });
-  page.drawRectangle({ x, y, width: 6, height, color: clay });
+  page.drawRectangle({ x, y: y + height - 6, width, height: 6, color: mix(clay, teal, 0.4) });
+  page.drawRectangle({ x, y, width: 7, height, color: gold });
   drawText(page, fonts.headingSemi, title, x + 18, y + height - 24, 12, white);
   let bodyY = y + height - 42;
   for (const row of wrap(fonts.sans, body, 9, width - 36).slice(0, 3)) {
@@ -601,20 +728,16 @@ function drawGauges(page: PDFPage, fonts: Fonts, gauges: CompanyPdfGauge[], x: n
     const row = Math.floor(index / cols);
     const gx = x + col * (boxW + gap);
     const gy = y + height - (row + 1) * boxH - row * gap;
-    card(page, gx, gy, boxW, boxH, white);
-    drawText(page, fonts.sans, gauge.label, gx + 12, gy + boxH - 22, 8, muted);
+    const accent = kpiAccents[index % kpiAccents.length] ?? clay;
+    card(page, gx, gy, boxW, boxH, white, accent);
+    page.drawRectangle({ x: gx + 5, y: gy + boxH - 22, width: boxW - 5, height: 22, color: mix(accent, white, 0.88) });
+    drawText(page, fonts.sans, gauge.label, gx + 12, gy + boxH - 16, 8, ink);
     drawText(page, fonts.headingSemi, gauge.value, gx + 12, gy + boxH - 44, 14, ink);
     const trackX = gx + 12;
     const trackY = gy + 28;
     const trackW = boxW - 24;
-    page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 8, color: paper });
-    page.drawRectangle({
-      x: trackX,
-      y: trackY,
-      width: Math.max(6, Math.min(1, Math.max(0, gauge.fill)) * trackW),
-      height: 8,
-      color: clay,
-    });
+    page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 9, color: paper });
+    fillBar(page, trackX, trackY, Math.max(6, Math.min(1, Math.max(0, gauge.fill)) * trackW), 9, accent);
     const hint = wrap(fonts.sans, gauge.hint, 7, trackW).slice(0, 2);
     let hintY = gy + 14;
     for (const line of hint) {
@@ -642,8 +765,8 @@ function drawBridge(page: PDFPage, fonts: Fonts, rows: CompanyPdfBridgeRow[], x:
   rows.forEach((row, index) => {
     const cx = chartX + index * group + group / 2;
     const barH = Math.max(8, (Math.abs(row.cents) / peak) * (chartH - 24));
-    const color = row.kind === "adjust" ? (row.cents >= 0 ? clay : rose) : row.kind === "end" ? moss : ink;
-    page.drawRectangle({ x: cx - bar / 2, y: chartY, width: bar, height: barH, color });
+    const color = row.kind === "adjust" ? (row.cents >= 0 ? teal : rose) : row.kind === "end" ? clay : navy;
+    fillBar(page, cx - bar / 2, chartY, bar, barH, color);
     const amount = `${row.cents >= 0 && row.kind === "adjust" ? "+" : ""}${formatCardEur(row.cents)}`;
     const aw = fonts.sansSemi.widthOfTextAtSize(amount, 7);
     drawText(page, fonts.sansSemi, amount, cx - aw / 2, chartY + barH + 4, 7, ink);
@@ -682,6 +805,27 @@ function summaryText(view: CompanyPdfView): string {
   return view.summary ?? "Sin descripción publicada.";
 }
 
+function lastYearMix(view: CompanyPdfView): Array<{ label: string; value: number; color: RGB }> {
+  const last = view.years[view.years.length - 1];
+  const revenue = Math.max(0, last?.revenueCents ?? 0);
+  const ebitda = last?.ebitdaCents;
+  const ebit = last?.ebitCents;
+  const net = last?.netResultCents;
+  if (revenue <= 0) {
+    return [];
+  }
+  const operatingCosts = ebitda === null ? 0 : Math.max(0, revenue - Math.max(0, ebitda));
+  const da = ebitda === null || ebit === null ? 0 : Math.max(0, ebitda - ebit);
+  const belowEbit = ebit === null || net === null ? 0 : Math.max(0, ebit - net);
+  const profit = Math.max(0, net ?? ebit ?? ebitda ?? 0);
+  return [
+    { label: "Resultado neto", value: profit, color: clay },
+    { label: "Financiero e impuesto", value: belowEbit, color: gold },
+    { label: "Amortización", value: da, color: amber },
+    { label: "Costes operativos", value: operatingCosts, color: navy },
+  ].filter((slice) => slice.value > 0);
+}
+
 function drawTeaserCover(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
   const heroH = 108;
@@ -706,8 +850,7 @@ function drawTeaserCover(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Comp
 
 function drawTeaserFigures(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
-  drawText(page, fonts.headingSemi, "Evolución de cifras", M, PAGE_H - 68, 16, ink);
-  drawText(page, fonts.sans, "Facturación y EBITDA de los ejercicios cerrados. Ejes e importes en EUR.", M, PAGE_H - 84, 8, muted);
+  drawSectionBand(page, fonts, "Evolución de cifras", "Facturación y EBITDA de los ejercicios cerrados. Ejes e importes en EUR.");
   const ctaH = 64;
   const ctaY = FOOTER + 8;
   const top = PAGE_H - 96;
@@ -721,9 +864,11 @@ function drawTeaserFigures(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Co
   const colW = (CONTENT_W - gap) / 2;
   const chartY = top - chartH;
   drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, chartY, colW, chartH, clay);
-  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, chartY, colW, chartH, ink);
+  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, chartY, colW, chartH, navy);
   const marginY = chartY - gap - marginH;
-  drawMarginChart(page, fonts, view.years, M, marginY, CONTENT_W, marginH);
+  const mixW = Math.min(236, CONTENT_W * 0.42);
+  drawMarginChart(page, fonts, view.years, M, marginY, CONTENT_W - mixW - gap, marginH);
+  drawDonut(page, fonts, "Mix de la cifra", lastYearMix(view), M + CONTENT_W - mixW, marginY, mixW, marginH);
   const tableY = marginY - gap - tableH;
   drawYearTable(page, fonts, view.years, M, tableY, CONTENT_W, tableH, false);
   drawBulletCard(page, fonts, companyPdfCopy.highlightsTitle, view.highlights, M, ctaY + ctaH + 10, CONTENT_W, bulletsH);
@@ -760,10 +905,10 @@ function drawDossierCover(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Com
 
 function drawDossierSummary(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
-  drawText(page, fonts.headingSemi, "Resumen ejecutivo", M, PAGE_H - 68, 16, ink);
+  drawSectionBand(page, fonts, "Resumen ejecutivo");
   const ctaH = 62;
   const ctaY = FOOTER + 8;
-  const top = PAGE_H - 88;
+  const top = PAGE_H - 108;
   const priceH = 112;
   const kpiH = 68;
   const gap = 10;
@@ -780,8 +925,7 @@ function drawDossierSummary(page: PDFPage, fonts: Fonts, logo: PDFImage, view: C
 
 function drawDossierPnl(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
-  drawText(page, fonts.headingSemi, "Cuenta de resultados", M, PAGE_H - 68, 16, ink);
-  drawText(page, fonts.sans, "Evolución P&L con ejes y valores. Importes en EUR.", M, PAGE_H - 84, 8, muted);
+  drawSectionBand(page, fonts, "Cuenta de resultados", "Evolución P&L con ejes y valores. Importes en EUR.");
   const top = PAGE_H - 96;
   const bottom = FOOTER + 8;
   const usable = top - bottom;
@@ -799,30 +943,28 @@ function drawDossierPnl(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Compa
 
 function drawDossierOps(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
-  drawText(page, fonts.headingSemi, "Márgenes y ratios operativos", M, PAGE_H - 68, 16, ink);
-  drawText(
+  drawSectionBand(
     page,
-    fonts.sans,
+    fonts,
+    "Márgenes y ratios operativos",
     "Deuda neta, NOF, conversión a caja, capex, plantilla y plazos. Solo en el cuaderno post-NDA.",
-    M,
-    PAGE_H - 84,
-    8,
-    muted,
   );
   const top = PAGE_H - 96;
   const bottom = FOOTER + 8;
-  const marginH = (top - bottom) * 0.32;
-  drawMarginChart(page, fonts, view.years, M, top - marginH, CONTENT_W, marginH);
+  const marginH = (top - bottom) * 0.3;
+  const mixW = Math.min(220, CONTENT_W * 0.36);
+  drawMarginChart(page, fonts, view.years, M, top - marginH, CONTENT_W - mixW - 8, marginH);
+  drawDonut(page, fonts, "Mix de la cifra", lastYearMix(view), M + CONTENT_W - mixW, top - marginH, mixW, marginH);
   const gaugesH = top - marginH - 10 - bottom;
   drawGauges(page, fonts, view.gauges, M, bottom, CONTENT_W, gaugesH);
 }
 
 function drawDossierDeal(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
   drawLetterhead(page, fonts, logo, view);
-  drawText(page, fonts.headingSemi, "Ajustes, valoración y operación", M, PAGE_H - 68, 16, ink);
+  drawSectionBand(page, fonts, "Ajustes, valoración y operación");
   const ctaH = 62;
   const ctaY = FOOTER + 8;
-  const top = PAGE_H - 88;
+  const top = PAGE_H - 108;
   const usable = top - (ctaY + ctaH + 10);
   const bridgeH = usable * 0.42;
   drawBridge(page, fonts, view.bridge, M, top - bridgeH, CONTENT_W, bridgeH);

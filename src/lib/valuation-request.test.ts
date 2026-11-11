@@ -66,6 +66,14 @@ describe("valuation copy and statuses", () => {
     );
   });
 
+  it("explains the EV formula and labels sample figures as examples", () => {
+    expect(valuationCopy.formulaEv).toMatch(/EBITDA ajustado × múltiplo sectorial/);
+    expect(valuationCopy.formulaEquity).toMatch(/deuda financiera neta/);
+    expect(valuationCopy.exampleLabel).toBe("Ejemplo");
+    expect(valuationCopy.scenarios).toHaveLength(3);
+    expect(valuationCopy.freeStamp).toBe("Sin cargo");
+  });
+
   it("lists the five admin statuses", () => {
     expect(valuationRequestStatuses).toEqual(["received", "sabi_loaded", "drafted", "sent", "discarded"]);
     expect(isValuationRequestStatus("received")).toBe(true);

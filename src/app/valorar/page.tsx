@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Clock, LineChart, ShieldCheck } from "lucide-react";
 import { ValuationRequestForm } from "@/components/valuation-request-form";
+import { ValuationPreview } from "@/components/valuation-preview";
 import { PublicSite } from "@/components/public-site";
 import { valuationCopy } from "@/lib/valuation-request";
 import { getCurrentUser } from "@/server/getCurrentUser";
@@ -30,8 +30,6 @@ export function generateMetadata(): Metadata {
     },
   };
 }
-
-const asideIcons = [LineChart, Clock, ShieldCheck];
 
 export default async function ValuationPage() {
   const user = await getCurrentUser();
@@ -77,44 +75,7 @@ export default async function ValuationPage() {
               <h2 id="valorar-formulario">{valuationCopy.formTitle}</h2>
               <ValuationRequestForm account={account} />
             </section>
-            <aside className="flex flex-col gap-5" aria-label={valuationCopy.asideTitle}>
-              <div className="releva-valorar-paper">
-                <p className="releva-valorar-mark">Relify</p>
-                <span className="releva-valorar-rule" aria-hidden />
-                <h2 className="text-lg font-semibold text-public-ink">{valuationCopy.asideTitle}</h2>
-                <ul className="releva-valorar-range mt-4">
-                  <li>
-                    Conservador
-                    <b aria-hidden />
-                  </li>
-                  <li>
-                    Base
-                    <b aria-hidden />
-                  </li>
-                  <li>
-                    Alto
-                    <b aria-hidden />
-                  </li>
-                </ul>
-                <span className="releva-valorar-stamp">Sin cargo</span>
-              </div>
-              <ul className="flex flex-col gap-4 rounded-3xl border border-public-line bg-white p-5 sm:p-6">
-                {valuationCopy.aside.map((item, index) => {
-                  const Icon = asideIcons[index] ?? LineChart;
-                  return (
-                    <li key={item.title} className="flex gap-4">
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef6f4] text-[#0f6b62]">
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <span>
-                        <span className="block font-semibold text-public-ink">{item.title}</span>
-                        <span className="mt-0.5 block text-sm leading-6 text-public-muted">{item.body}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </aside>
+            <ValuationPreview />
           </div>
 
           <section className="releva-valorar-faq" aria-labelledby="valorar-faq">

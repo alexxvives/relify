@@ -52,6 +52,23 @@ describe("senderFor", () => {
       name: "Relify",
     });
   });
+
+  it("uses info@ as From on INT even when To is the catch-all", () => {
+    const previous = process.env.INT_ENVIRONMENT;
+    process.env.INT_ENVIRONMENT = "true";
+    try {
+      expect(senderFor("alex@itsrelify.com")).toEqual({
+        address: "info@itsrelify.com",
+        name: "Relify",
+      });
+    } finally {
+      if (previous === undefined) {
+        delete process.env.INT_ENVIRONMENT;
+      } else {
+        process.env.INT_ENVIRONMENT = previous;
+      }
+    }
+  });
 });
 
 describe("sendMail INT catch-all", () => {
@@ -149,6 +166,7 @@ describe("sendMail INT catch-all", () => {
     expect(sent.payload?.cc).toBeUndefined();
     expect(sent.payload?.bcc).toBeUndefined();
     expect(sent.payload?.reply_to?.address).toBe(CATCHALL);
+    expect(sent.payload?.from?.address).toBe("info@itsrelify.com");
     expect(sent.payload?.subject).toBe(`[INT → ${ORIGINAL}] Hemos recibido tu solicitud de valoración`);
     expect(sent.payload?.html).toContain(
       `Email de INT. Destinatario original: ${ORIGINAL} (usuario, valuation-request-confirmation)`,
@@ -186,6 +204,7 @@ describe("sendMail INT catch-all", () => {
     expect(sent.payload?.cc).toBeUndefined();
     expect(sent.payload?.bcc).toBeUndefined();
     expect(sent.payload?.reply_to?.address).toBe(CATCHALL);
+    expect(sent.payload?.from?.address).toBe("info@itsrelify.com");
     expect(sent.payload?.html).toContain(
       "Email de INT. Destinatario original: info@itsrelify.com (equipo, valuation-request)",
     );
@@ -239,5 +258,6 @@ describe("sendMail production path", () => {
     expect(sent.payload?.html).not.toContain("Email de INT.");
     expect(sent.payload?.plain).toBe("Hola");
     expect(sent.payload?.reply_to?.address).toBe("info@itsrelify.com");
+    expect(sent.payload?.from?.address).toBe("notificaciones@itsrelify.com");
   });
 });

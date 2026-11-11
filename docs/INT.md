@@ -32,7 +32,7 @@ When both secrets are set, **every** `sendMail` call (user-facing confirmations 
 - Subject is prefixed with `[INT → <original recipient>] `.
 - A visible banner is inserted at the top of the HTML and text body: `Email de INT. Destinatario original: <email> (<role>, <tag>)`. Role is `equipo` for `info@itsrelify.com` alerts and `usuario` otherwise. Tag is the `OutgoingMail.tag` (for example `valuation-request-confirmation`).
 - Reply-To is the catch-all, so a reply stays on INT.
-- From still follows `senderFor` on the rewritten To (notificaciones@ for the catch-all).
+- From is always `info@itsrelify.com` on INT (`senderFor` ignores the rewritten To). Prod still uses `info@` for team alerts and `notificaciones@itsrelify.com` for people.
 - The original address may appear in the subject prefix and the body banner. That is the point of the redirect, not a leak into the envelope.
 
 If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[mail] INT BLOCKED - would send: <tag>` and returns `skipped`. The user-facing save still succeeds.

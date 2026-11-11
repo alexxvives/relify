@@ -733,6 +733,36 @@
   justify-content: center;
 }
 
+.releva-ficha-reveal > article {
+  width: min(100%, 22rem);
+}
+
+.releva-ficha-cover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+  color: #fff;
+}
+
+.releva-ficha-reveal .releva-ficha-legal,
+.releva-ficha-reveal .releva-ficha-redact {
+  top: 2.35rem;
+  left: 0.85rem;
+}
+
+.releva-ficha-reveal .releva-ficha-codename {
+  right: 0.85rem;
+  bottom: 1.4rem;
+  left: 0.85rem;
+}
+
+.releva-ficha-reveal .releva-ficha-stamp {
+  top: 0.5rem;
+  right: 0.55rem;
+}
+
 .releva-ficha-card {
   width: min(100%, 22rem);
   overflow: hidden;
@@ -831,6 +861,10 @@
 }
 
 .releva-ficha-codename {
+  position: absolute;
+  right: 1.15rem;
+  bottom: 2.55rem;
+  left: 1.15rem;
   animation: releva-ficha-show 8s ease-in-out infinite;
 }
 
@@ -3854,6 +3888,209 @@ header:has([data-menu-open="true"]) {
   box-shadow: var(--public-shadow);
 }
 
+.releva-valorar-send {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem 1.2rem 1.35rem;
+  border: 1px solid var(--public-line);
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgb(15 110 115 / 0.1), transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #f4fbfa 100%);
+}
+
+.releva-valorar-send-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.releva-valorar-send h2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-wrap: pretty;
+}
+
+.releva-valorar-send-free,
+.releva-valorar-send-hint {
+  color: var(--public-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.releva-valorar-formula-kicker {
+  margin-top: 0.2rem;
+  color: var(--public-clay);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.releva-valorar-formula {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.releva-valorar-formula li {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.9rem;
+  background: #12343a;
+  color: #f4fbfa;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.releva-valorar-formula li:nth-child(2) {
+  background: #0f6e73;
+}
+
+.releva-valorar-example {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem 0.9rem 1rem;
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 10px 28px -22px rgb(18 52 58 / 0.45);
+}
+
+.releva-valorar-example-chip {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #8a6112;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.releva-valorar-example p {
+  color: var(--public-ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.releva-valorar-scenarios {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.releva-valorar-scenario-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.releva-valorar-scenario-track {
+  display: block;
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8f0f2;
+}
+
+.releva-valorar-scenario-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.releva-valorar-scenarios p {
+  margin-top: 0.25rem;
+  color: var(--public-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.releva-valorar-mini {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, #0f6e73, #12343a);
+  color: #fff;
+}
+
+.releva-valorar-mini-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.releva-valorar-mini-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.releva-valorar-mini-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 2.6rem;
+  margin: 0.4rem 0 0.5rem;
+}
+
+.releva-valorar-mini-bars i {
+  flex: 1;
+  border-radius: 0.28rem 0.28rem 0 0;
+  background: #7fd4cf;
+}
+
+.releva-valorar-mini-bars i:nth-child(1) { height: 46%; background: #d7ebe8; }
+.releva-valorar-mini-bars i:nth-child(2) { height: 72%; }
+.releva-valorar-mini-bars i:nth-child(3) { height: 94%; background: #e7b07a; }
+
+.releva-valorar-mini .releva-valorar-example-chip {
+  background: rgb(255 244 214 / 0.92);
+}
+
+.releva-valorar-steps {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.releva-valorar-steps li {
+  display: grid;
+  grid-template-columns: 1.7rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--public-muted);
+}
+
+.releva-valorar-steps li span:first-child {
+  display: flex;
+  height: 1.7rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e7f4f2;
+  color: var(--public-clay);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.releva-valorar-steps strong {
+  display: block;
+  color: var(--public-ink);
+  font-weight: 650;
+}
+
 .releva-valorar-mark {
   font-family: var(--font-heading);
   font-size: 1.2rem;
@@ -3894,7 +4131,6 @@ header:has([data-menu-open="true"]) {
 
 .releva-valorar-stamp {
   display: inline-flex;
-  margin-top: 1rem;
   padding: 0.25rem 0.6rem;
   border-radius: var(--field-radius);
   background: var(--public-sand);
@@ -3905,44 +4141,51 @@ header:has([data-menu-open="true"]) {
   text-transform: uppercase;
 }
 
+.releva-valorar-send-head .releva-valorar-stamp {
+  margin-top: 0;
+}
+
 .releva-valorar-faq {
-  margin-top: 2.25rem;
-  padding: 1.1rem 1.15rem 0.4rem;
-  border: 1px solid var(--public-line);
-  border-radius: 1.6rem;
-  background: var(--public-card);
+  margin-top: 2.75rem;
+  max-width: 42rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .releva-valorar-faq h2 {
   font-family: var(--font-heading);
-  font-size: 1.05rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  text-wrap: pretty;
 }
 
 .releva-valorar-faq-list {
-  display: grid;
-  margin-top: 0.35rem;
-}
-
-@media (min-width: 768px) {
-  .releva-valorar-faq-list {
-    grid-template-columns: 1fr 1fr;
-    column-gap: 1.5rem;
-  }
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--public-line);
 }
 
 .releva-valorar-faq details {
-  padding: 0.55rem 0;
+  padding: 0;
   border-bottom: 1px solid var(--public-line);
 }
 
 .releva-valorar-faq summary {
+  display: flex;
+  min-height: 3rem;
   cursor: pointer;
   list-style: none;
-  font-size: 0.92rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0.15rem;
+  font-size: 0.98rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
+  text-wrap: pretty;
 }
 
 .releva-valorar-faq summary::-webkit-details-marker {
@@ -3950,20 +4193,32 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-valorar-faq summary::after {
-  content: "+";
-  float: right;
-  margin-left: 0.75rem;
-  color: var(--public-clay);
-  font-weight: 500;
+  content: "";
+  flex: 0 0 0.55rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: 0.5rem;
+  border-right: 1.6px solid var(--public-clay);
+  border-bottom: 1.6px solid var(--public-clay);
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
 }
 
 .releva-valorar-faq details[open] summary::after {
-  content: "–";
+  transform: rotate(225deg);
+  margin-top: 0.35rem;
 }
 
 .releva-valorar-faq p {
-  margin-top: 0.4rem;
+  max-width: 38rem;
+  margin: 0 0 0.95rem;
   color: var(--public-muted);
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .releva-valorar-faq summary::after {
+    transition: none;
+  }
 }

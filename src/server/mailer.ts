@@ -17,8 +17,14 @@ export const MAIL_FROM = {
 } as const;
 export const TEAM_INBOX = "info@itsrelify.com";
 
-/** Hostinger spam-files mail from notificaciones@ into info@. Alerts use the inbox as sender. */
+/**
+ * Hostinger spam-files mail from notificaciones@ into info@. Alerts use the inbox as sender.
+ * INT always sends From info@itsrelify.com (never notificaciones@ / int@); To is still the catch-all.
+ */
 export function senderFor(to: string): { address: string; name: string } {
+  if (isIntEnvironment()) {
+    return { address: TEAM_INBOX, name: "Relify" };
+  }
   if (to.trim().toLowerCase() === TEAM_INBOX) {
     return { address: TEAM_INBOX, name: "Relify" };
   }
