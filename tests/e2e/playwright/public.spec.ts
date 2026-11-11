@@ -86,11 +86,33 @@ test.describe("visitor landing and public forms", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /cookies en relify/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /^aceptar$/i })).toBeVisible();
-    await page.getByRole("link", { name: /política de cookies/i }).click();
+    const banner = page.getByRole("dialog");
+    await expect(banner.getByRole("link", { name: /^privacidad$/i })).toBeVisible();
+    await expect(banner.getByRole("link", { name: /^términos$/i })).toBeVisible();
+    await banner.getByRole("link", { name: /política de cookies/i }).click();
     await expect(page).toHaveURL(/\/cookies/);
     await expect(page.getByText("_ga", { exact: true })).toBeVisible();
     await expect(page.getByText("_ga_*", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: /google tag manager/i })).toBeVisible();
+  });
+
+  test("privacy and terms pages are public Spanish legal docs", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: /^aceptar$/i }).click();
+    await page.getByRole("link", { name: /^privacidad$/i }).first().click();
+    await expect(page).toHaveURL(/\/privacidad/);
+    await page.goto("/privacidad");
+    await expect(page.getByRole("heading", { name: /política de privacidad/i })).toBeVisible();
+    await expect(page.getByText(/TODO: razón social \(Alex\)/)).toBeVisible();
+    await expect(page.getByText(/TODO: NIF \(Alex\)/)).toBeVisible();
+    await expect(page.getByText(/info@itsrelify.com/).first()).toBeVisible();
+    await expect(page.getByText(/AEPD/)).toBeVisible();
+    await expect(page.getByText(/Cloudflare/)).toBeVisible();
+    await page.goto("/terminos");
+    await expect(page.getByRole("heading", { name: /términos de uso/i })).toBeVisible();
+    await expect(page.getByText(/no es parte del contrato de compraventa/i)).toBeVisible();
+    await expect(page.getByText(/notario/i).first()).toBeVisible();
+    await expect(page.getByText(/ley española/i)).toBeVisible();
   });
 
   test("landing confidentiality has no catalog CTA", async ({ page }) => {

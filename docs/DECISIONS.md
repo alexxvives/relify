@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S10 privacy, terms, www→apex
+
+Public `/privacidad` (RGPD/LOPDGDD: roles, processors Cloudflare/Neon/Maileroo/Stripe/GA via consent, rights via info@itsrelify.com, AEPD) and `/terminos` (marketplace roles, NDA, Relify is not a party to the sale, funds via notary/escrow, success fee in the LOI, Stripe + IVA, portal cancel, Spanish courts) reuse the `/cookies` Costa layout. Razón social, NIF and domicilio stay `TODO: … (Alex)` until filled — never invented. Linked from the footer, cookie banner and checkout notes; sitemap yearly 0.3. Prod `src/middleware.ts` 301s `www.itsrelify.com` → `https://itsrelify.com` preserving path and query; skipped when `INT_ENVIRONMENT=true`.
+
 ## 2026-11-11 — Round S9 GTM, seller teaser card, Stripe Tax/Portal
 
 Analytics prefers Google Tag Manager container `GTM_CONTAINER_ID` / `NEXT_PUBLIC_GTM_CONTAINER_ID` (`GTM-…`, prod `GTM-KMZ4Z9PZ`). Consent Mode v2 default denied is inlined in `<head>` when GTM or a G- fallback is set; `gtm.js` (or `gtag.js` if only G- is set) loads after Aceptar. No GTM `<noscript>` iframe (cannot gate it on consent). INT leaves both ids unset. Conversion events on dataLayer: `waitlist_submit`, `valuation_request`, `sign_up` (no PII).

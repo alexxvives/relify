@@ -19,6 +19,8 @@ export const cookiesCopy = {
     "Puedes aceptar, rechazar o configurar. El recuadro reaparece desde Preferencias de cookies en el pie. Guardamos la decisión 180 días en este navegador.",
   reopen: "Preferencias de cookies",
   policyLink: "Política de cookies",
+  privacyLink: "Privacidad",
+  termsLink: "Términos",
   bannerTitle: "Cookies en Relify",
   bannerBody: "Usamos cookies esenciales para la sesión. Google Tag Manager solo se carga si la aceptas.",
   accept: "Aceptar",

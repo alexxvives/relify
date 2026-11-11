@@ -139,6 +139,8 @@ export const landingCopy = {
         title: "Relify",
         links: [
           { label: "Contacto", href: "/contacto" },
+          { label: "Privacidad", href: "/privacidad" },
+          { label: "Términos", href: "/terminos" },
           { label: "Cookies", href: "/cookies" },
           { label: "info@itsrelify.com", href: "mailto:info@itsrelify.com" },
         ],

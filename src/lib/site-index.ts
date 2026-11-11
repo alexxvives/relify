@@ -75,6 +75,8 @@ export function siteMapUrls(
     { url: new URL("/lista-de-espera", siteUrl).href, changeFrequency: "weekly", priority: 0.7 },
     { url: new URL("/valorar", siteUrl).href, changeFrequency: "weekly", priority: 0.8 },
     { url: new URL("/cookies", siteUrl).href, changeFrequency: "yearly", priority: 0.3 },
+    { url: new URL("/privacidad", siteUrl).href, changeFrequency: "yearly", priority: 0.3 },
+    { url: new URL("/terminos", siteUrl).href, changeFrequency: "yearly", priority: 0.3 },
     { url: new URL("/blog", siteUrl).href, changeFrequency: "weekly", priority: 0.5 },
     ...posts.map((post) => ({
       url: new URL(`/blog/${post.slug}`, siteUrl).href,

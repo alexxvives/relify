@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PublicSite } from "@/components/public-site";
 import { CookiePreferencesLink } from "@/components/cookie-consent";
 import { cookiesCopy } from "@/lib/cookies-copy";
@@ -55,6 +56,14 @@ export default function CookiesPage() {
           <article className="rounded-3xl border border-public-line bg-white p-6 shadow-public lg:col-span-2">
             <h2 className="text-xl font-semibold text-public-ink">{cookiesCopy.choiceTitle}</h2>
             <p className="mt-3 max-w-3xl text-[16px] leading-7 text-public-muted">{cookiesCopy.choiceBody}</p>
+            <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <Link href="/privacidad" className="font-medium text-public-clay underline-offset-2 hover:underline">
+                {cookiesCopy.privacyLink}
+              </Link>
+              <Link href="/terminos" className="font-medium text-public-clay underline-offset-2 hover:underline">
+                {cookiesCopy.termsLink}
+              </Link>
+            </p>
           </article>
         </section>
       </main>

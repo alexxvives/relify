@@ -10,6 +10,7 @@ import { onboardingAction, type OnboardingState } from "@/app/onboarding/actions
 import { AdvisorPlanStep, BuyerPlanStep, type OnboardingPlanChoice } from "@/components/onboarding-plan-step";
 import { PhoneField } from "@/components/phone-field";
 import { PhoneOtp } from "@/components/phone-otp";
+import { CheckoutLegalNote } from "@/components/checkout-legal-note";
 import { billingCopy } from "@/lib/billing-copy";
 import { authCopy } from "@/lib/auth-copy";
 import { referralSources, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
@@ -316,6 +317,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
           </button>
         )}
       </div>
+      {step === "plan" && initialRole === "investor" && plan !== "none" ? <CheckoutLegalNote /> : null}
     </form>
   );
 }

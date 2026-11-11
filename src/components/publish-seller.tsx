@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { publishSellerProjectAction } from "@/app/(app)/mi-empresa/actions";
+import { CheckoutLegalNote } from "@/components/checkout-legal-note";
 import { billingCopy } from "@/lib/billing-copy";
 
 /**
@@ -14,6 +15,7 @@ export function PublishPayButton({ blocked = null }: { blocked?: string | null }
   return (
     <form action={action} className="mt-4 flex flex-col items-start gap-2">
       <p className="text-sm text-[#475467]">{blocked ?? billingCopy.listingNote}</p>
+      {blocked === null ? <CheckoutLegalNote /> : null}
       <button
         type="submit"
         disabled={pending || blocked !== null}

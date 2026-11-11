@@ -32,6 +32,8 @@ describe("siteMapUrls", () => {
         "https://itsrelify.com/lista-de-espera",
         "https://itsrelify.com/valorar",
         "https://itsrelify.com/cookies",
+        "https://itsrelify.com/privacidad",
+        "https://itsrelify.com/terminos",
         "https://itsrelify.com/blog",
         "https://itsrelify.com/blog/nota",
       ]),

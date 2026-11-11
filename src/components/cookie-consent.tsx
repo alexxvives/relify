@@ -145,9 +145,15 @@ export function CookieConsent({
             </label>
           </div>
         ) : null}
-        <p className="mt-3 text-sm">
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <Link href="/cookies" className="font-medium text-public-clay underline-offset-2 hover:underline">
             {cookiesCopy.policyLink}
+          </Link>
+          <Link href="/privacidad" className="font-medium text-public-clay underline-offset-2 hover:underline">
+            {cookiesCopy.privacyLink}
+          </Link>
+          <Link href="/terminos" className="font-medium text-public-clay underline-offset-2 hover:underline">
+            {cookiesCopy.termsLink}
           </Link>
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">

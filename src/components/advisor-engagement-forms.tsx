@@ -14,6 +14,7 @@ import {
   startAdvisorDepositAction,
   startInboxCheckoutAction,
 } from "@/app/(app)/mandatos/encargos/actions";
+import { CheckoutLegalNote } from "@/components/checkout-legal-note";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 import { Button, Card, Input } from "@/components/ui/form";
@@ -35,6 +36,9 @@ function AdvisorSubscriptionStep({ engagementId, disabled }: { engagementId: str
           {pending ? engagementCopy.subscriptionStarting : engagementCopy.subscriptionStart}
         </Button>
       </form>
+      <div className="mt-3">
+        <CheckoutLegalNote />
+      </div>
       {state && !state.ok ? (
         <p role="alert" className="mt-2 text-center text-sm text-red-700">
           {state.message}
