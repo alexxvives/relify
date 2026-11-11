@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { htmlContainsGtmContainer, readGtmContainerId } from "../../../src/lib/cookie-consent";
 import { headContainsIconAndOgImage } from "../../../src/lib/seo-head";
 
 test.describe("visitor landing and public forms", () => {
@@ -79,6 +80,13 @@ test.describe("visitor landing and public forms", () => {
       const html = await response.text();
       expect(headContainsIconAndOgImage(html), path).toBe(true);
       expect(html).toMatch(/twitter:card|summary_large_image/);
+      const gtmMatch = html.match(/GTM-[A-Z0-9]+/);
+      const gtmId = readGtmContainerId() ?? (gtmMatch ? gtmMatch[0] : null);
+      if (gtmId) {
+        expect(htmlContainsGtmContainer(html, gtmId), `${path} GTM in raw HTML`).toBe(true);
+        expect(html).toContain("wait_for_update");
+        expect(html).toContain("ads_data_redaction");
+      }
     }
   });
 
@@ -94,6 +102,7 @@ test.describe("visitor landing and public forms", () => {
     await expect(page.getByText("_ga", { exact: true })).toBeVisible();
     await expect(page.getByText("_ga_*", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: /google tag manager/i })).toBeVisible();
+    await expect(page.locator("article").getByText(/cookieless/i).first()).toBeVisible();
   });
 
   test("privacy and terms pages are public Spanish legal docs", async ({ page }) => {

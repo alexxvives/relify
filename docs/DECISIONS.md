@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S10 GTM Consent Mode v2 Advanced
+
+Prod GTM (`GTM_CONTAINER_ID` / `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GTM-KMZ4Z9PZ`) uses Consent Mode v2 **Advanced**: `gtm.js` is in the initial `<head>` on every page when the id is set (not INT). Preceded by `gtag('consent','default',{ad_storage,ad_user_data,ad_personalization,analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500})`, `ads_data_redaction: true`, `url_passthrough: false`. A stored choice (cookie / localStorage) is restored with `consent update` in that same inline script before GTM fires. Aceptar updates `analytics_storage` to granted and persists; Rechazar keeps denied. The GTM `<noscript>` iframe sits right after `<body>`. G- fallback still loads only after Aceptar. INT leaves both ids unset.
+
 ## 2026-11-11 — Round S10 privacy, terms, www→apex
 
 Public `/privacidad` (RGPD/LOPDGDD: roles, processors Cloudflare/Neon/Maileroo/Stripe/GA via consent, rights via info@itsrelify.com, AEPD) and `/terminos` (marketplace roles, NDA, Relify is not a party to the sale, funds via notary/escrow, success fee in the LOI, Stripe + IVA, portal cancel, Spanish courts) reuse the `/cookies` Costa layout. Razón social, NIF and domicilio stay `TODO: … (Alex)` until filled — never invented. Linked from the footer, cookie banner and checkout notes; sitemap yearly 0.3. Prod `src/middleware.ts` 301s `www.itsrelify.com` → `https://itsrelify.com` preserving path and query; skipped when `INT_ENVIRONMENT=true`.

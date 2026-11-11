@@ -21,6 +21,7 @@ describe("legal copy", () => {
     expect(text).toMatch(/Maileroo/);
     expect(text).toMatch(/Stripe/);
     expect(text).toMatch(/Google Analytics/);
+    expect(text).toMatch(/cookieless/);
     expect(text).toMatch(/info@itsrelify.com/);
     expect(text).toMatch(/AEPD/);
     expect(text).toMatch(/comprador/i);

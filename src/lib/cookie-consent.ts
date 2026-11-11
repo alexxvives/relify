@@ -82,6 +82,57 @@ export const gaConsentGranted = {
   ad_personalization: "denied",
 } as const;
 
+/** Consent Mode v2 Advanced defaults. wait_for_update lets a stored choice win before GTM fires. */
+export const gaConsentDefault = {
+  ad_storage: "denied",
+  ad_user_data: "denied",
+  ad_personalization: "denied",
+  analytics_storage: "denied",
+  functionality_storage: "granted",
+  security_storage: "granted",
+  wait_for_update: 500,
+} as const;
+
+function restoreStoredConsentJs(): string {
+  return `(function(){try{var s=null;try{s=JSON.parse(localStorage.getItem(${JSON.stringify(COOKIE_CONSENT_KEY)}));}catch(e){}var m=document.cookie.match(/(?:^|; )${COOKIE_CONSENT_COOKIE}=([^;]*)/);var c=m?decodeURIComponent(m[1]):"";var on=(s&&s.analytics===true)||c==="analytics";var off=(s&&s.analytics===false)||c==="essential";if(on){gtag("consent","update",${JSON.stringify(gaConsentGranted)});}else if(off){gtag("consent","update",${JSON.stringify(gaConsentDenied)});} }catch(e){}})();`;
+}
+
+/** dataLayer + default denied + redaction, then restore a returning visitor before gtm.js. */
+export function gaConsentBootstrapScript(): string {
+  return `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',${JSON.stringify(gaConsentDefault)});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',false);${restoreStoredConsentJs()}`;
+}
+
 export function gaDefaultConsentScript(): string {
-  return `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',${JSON.stringify(gaConsentDenied)});`;
+  return gaConsentBootstrapScript();
+}
+
+/** Official GTM snippet. Tag Assistant looks for googletagmanager.com/gtm.js?id=GTM-… in the raw HTML. */
+export function gtmInstallScript(containerId: string): string {
+  const id = containerId.toUpperCase();
+  return `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${id}');`;
+}
+
+export function gtmNoscriptSrc(containerId: string): string {
+  return `https://www.googletagmanager.com/ns.html?id=${containerId.toUpperCase()}`;
+}
+
+/** True when Tag Assistant would see the container in the initial HTML (gtm.js in <head> and ns.html after <body>). */
+export function htmlContainsGtmContainer(html: string, containerId: string): boolean {
+  const id = containerId.toUpperCase();
+  const headStart = html.search(/<head[\s>]/i);
+  const headEnd = html.search(/<\/head>/i);
+  if (headStart < 0 || headEnd <= headStart) {
+    return false;
+  }
+  const head = html.slice(headStart, headEnd);
+  const hasGtmJs = head.includes("googletagmanager.com/gtm.js");
+  const hasId = head.includes(id);
+  if (!hasGtmJs || !hasId) {
+    return false;
+  }
+  const bodyStart = html.search(/<body[\s>]/i);
+  if (bodyStart < 0) {
+    return false;
+  }
+  return html.slice(bodyStart, bodyStart + 4000).includes(`googletagmanager.com/ns.html?id=${id}`);
 }

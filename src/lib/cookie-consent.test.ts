@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  gaConsentDefault,
   gaConsentDenied,
+  gaConsentBootstrapScript,
   gaDefaultConsentScript,
+  gtmInstallScript,
+  gtmNoscriptSrc,
+  htmlContainsGtmContainer,
   isConversionEvent,
   parseCookieConsent,
   readGaMeasurementId,
@@ -58,6 +63,33 @@ describe("GA consent mode defaults", () => {
     expect(gaConsentDenied.ad_storage).toBe("denied");
     expect(gaDefaultConsentScript()).toContain("consent");
     expect(gaDefaultConsentScript()).toContain("denied");
+  });
+
+  it("emits Consent Mode v2 Advanced defaults, redaction and a stored-choice restore", () => {
+    expect(gaConsentDefault.wait_for_update).toBe(500);
+    expect(gaConsentDefault.functionality_storage).toBe("granted");
+    expect(gaConsentDefault.security_storage).toBe("granted");
+    const script = gaConsentBootstrapScript();
+    expect(script).toContain("wait_for_update");
+    expect(script).toContain("ads_data_redaction");
+    expect(script).toContain("url_passthrough");
+    expect(script).toContain("false");
+    expect(script).toContain("relify.consent");
+    expect(script).toContain('gtag("consent","update"');
+  });
+});
+
+describe("GTM Advanced snippet", () => {
+  const id = "GTM-KMZ4Z9PZ";
+
+  it("puts gtm.js and the noscript iframe where Tag Assistant looks", () => {
+    const install = gtmInstallScript(id);
+    expect(install).toContain("googletagmanager.com/gtm.js?id=");
+    expect(install).toContain(`'${id}'`);
+    expect(gtmNoscriptSrc(id)).toBe(`https://www.googletagmanager.com/ns.html?id=${id}`);
+    const html = `<!doctype html><html><head><script>${gaConsentBootstrapScript()}</script><script>${install}</script></head><body><noscript><iframe src="${gtmNoscriptSrc(id)}"></iframe></noscript></body></html>`;
+    expect(htmlContainsGtmContainer(html, id)).toBe(true);
+    expect(htmlContainsGtmContainer(html.replaceAll(id, "GTM-OTHER1"), id)).toBe(false);
   });
 });
 

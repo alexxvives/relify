@@ -2,13 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import {
-  applyGaConsent,
-  hasAnalyticsConsent,
-  loadGoogleAnalytics,
-  loadGoogleTagManager,
-  trackConversion,
-} from "@/lib/analytics";
+import { applyGaConsent, hasAnalyticsConsent, loadGoogleAnalytics, trackConversion } from "@/lib/analytics";
 import {
   COOKIE_CONSENT_COOKIE,
   COOKIE_CONSENT_KEY,
@@ -49,7 +43,6 @@ function subscribeConsent(notify: () => void): () => void {
 
 function loadAnalytics(gtmId: string | null, gaId: string | null): void {
   if (gtmId) {
-    loadGoogleTagManager(gtmId);
     return;
   }
   if (gaId) {
@@ -86,11 +79,13 @@ export function CookieConsent({
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !analyticsReady || stored?.analytics !== true) {
+    if (!hydrated || !analyticsReady || stored === null) {
       return;
     }
-    applyGaConsent(true);
-    loadAnalytics(gtmId, gaId);
+    applyGaConsent(stored.analytics);
+    if (stored.analytics) {
+      loadAnalytics(gtmId, gaId);
+    }
   }, [hydrated, analyticsReady, gtmId, gaId, stored]);
 
   function save(next: CookieConsentChoice): void {
@@ -101,11 +96,9 @@ export function CookieConsent({
     if (!analyticsReady) {
       return;
     }
+    applyGaConsent(next.analytics);
     if (next.analytics) {
-      applyGaConsent(true);
       loadAnalytics(gtmId, gaId);
-    } else {
-      applyGaConsent(false);
     }
   }
 

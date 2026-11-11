@@ -15,7 +15,7 @@ export const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com",
   "font-src 'self' data:",
   "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com",
-  "frame-src 'self'",
+  "frame-src 'self' https://www.googletagmanager.com",
   "upgrade-insecure-requests",
 ].join("; ");
 

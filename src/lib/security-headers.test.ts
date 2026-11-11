@@ -13,5 +13,6 @@ describe("securityHeaders", () => {
     expect(contentSecurityPolicy).toContain("form-action 'self'");
     expect(contentSecurityPolicy).toContain("https://www.googletagmanager.com");
     expect(contentSecurityPolicy).toContain("https://www.google-analytics.com");
+    expect(contentSecurityPolicy).toContain("frame-src 'self' https://www.googletagmanager.com");
   });
 });

@@ -76,4 +76,4 @@ Point a Stripe TEST webhook at that path and paste the signing secret into `INT_
 
 ## Analytics
 
-Do **not** set `GTM_CONTAINER_ID`, `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `GTM-…` or `G-…` id, Tag Manager and Analytics 4 do not load. Prod gets `GTM_CONTAINER_ID=GTM-KMZ4Z9PZ` at prod deploy.
+Do **not** set `GTM_CONTAINER_ID`, `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `GTM-…` or `G-…` id, Tag Manager and Analytics 4 do not load. Layout also skips GTM/GA when `INT_ENVIRONMENT=true`. Prod gets `GTM_CONTAINER_ID=GTM-KMZ4Z9PZ` at prod deploy (Consent Mode v2 Advanced: `gtm.js` in `<head>`, cookieless until Aceptar).

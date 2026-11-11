@@ -3,7 +3,13 @@ import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
 import { HashCleaner } from "@/components/hash-cleaner";
-import { gaDefaultConsentScript, readGaMeasurementId, readGtmContainerId } from "@/lib/cookie-consent";
+import {
+  gaConsentBootstrapScript,
+  gtmInstallScript,
+  gtmNoscriptSrc,
+  readGaMeasurementId,
+  readGtmContainerId,
+} from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
 import { OG_IMAGE_ALT, OG_IMAGE_PATH, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
@@ -63,8 +69,9 @@ export function generateMetadata(): Metadata {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const siteUrl = readSiteUrl();
-  const gtmId = readGtmContainerId();
-  const gaId = readGaMeasurementId();
+  const int = process.env.INT_ENVIRONMENT === "true";
+  const gtmId = int ? null : readGtmContainerId();
+  const gaId = int ? null : readGaMeasurementId();
   const analyticsReady = Boolean(gtmId || gaId);
   const og = ogImageUrl(siteUrl);
 
@@ -81,10 +88,22 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <meta name="twitter:image" content={og} />
         <link rel="preload" as="image" href={OG_IMAGE_PATH} />
         {analyticsReady ? (
-          <script dangerouslySetInnerHTML={{ __html: gaDefaultConsentScript() }} />
+          <script dangerouslySetInnerHTML={{ __html: gaConsentBootstrapScript() }} />
         ) : null}
+        {gtmId ? <script dangerouslySetInnerHTML={{ __html: gtmInstallScript(gtmId) }} /> : null}
       </head>
       <body className="min-h-full bg-background text-foreground">
+        {gtmId ? (
+          <noscript>
+            <iframe
+              src={gtmNoscriptSrc(gtmId)}
+              height={0}
+              width={0}
+              style={{ display: "none", visibility: "hidden" }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        ) : null}
         {children}
         <CookieConsent gtmId={gtmId} gaId={gaId} />
         <Suspense fallback={null}>

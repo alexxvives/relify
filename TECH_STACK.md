@@ -78,7 +78,7 @@ Copy `.env.example` to `.env`. Required names:
 - `STRIPE_MODE` (optional; `live` selects the live pair below, anything else stays on test)
 - `STRIPE_LIVE_SECRET_KEY` (only read when `STRIPE_MODE` is `live`)
 - `STRIPE_LIVE_WEBHOOK_SECRET` (only read when `STRIPE_MODE` is `live`)
-- `GTM_CONTAINER_ID` or `NEXT_PUBLIC_GTM_CONTAINER_ID` (optional `GTM-…`; prod `GTM-KMZ4Z9PZ`; unset = GTM does not load)
+- `GTM_CONTAINER_ID` or `NEXT_PUBLIC_GTM_CONTAINER_ID` (optional `GTM-…`; prod `GTM-KMZ4Z9PZ`; unset = GTM does not load). When set (prod, not INT), `gtm.js` is in the initial `<head>` with Consent Mode v2 Advanced (default denied; cookieless until Aceptar).
 - `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional `G-…` fallback when GTM is unset; unset = GA4 does not load)
 - `INT_STRIPE_SECRET_KEY` (INT only, `sk_test_` / `rk_test_`; never falls back to `STRIPE_SECRET_KEY`)
 - `INT_STRIPE_WEBHOOK_SECRET` (INT only, `whsec_`)
