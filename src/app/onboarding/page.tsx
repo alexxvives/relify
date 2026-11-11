@@ -10,6 +10,7 @@ import { loadBuyerPlan } from "@/server/buyerPlan";
 import { Logo } from "@/components/logo";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, type SignupRole } from "@/lib/auth-input";
+import { ConversionPing } from "@/components/cookie-consent";
 import { getCurrentUser } from "@/server/getCurrentUser";
 
 export const metadata: Metadata = {
@@ -65,6 +66,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           </div>
           <Logo size="lg" />
         </div>
+        <ConversionPing event="signup" />
         <div className="mt-8">
           {resumePlan ? <OnboardingPlanResume home={homeForRole(user.role)} /> : <OnboardingForm initialRole={initialRole} />}
         </div>

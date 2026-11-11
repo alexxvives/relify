@@ -10,14 +10,29 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
+import { isIntEnvironment } from "@/lib/int-env";
 import {
   integrationLabel,
   spanishIvaRate,
   stripeClient,
 } from "@/server/stripe";
+import type Stripe from "stripe";
 
 export type CheckoutStart =
   { ok: true; url: string } | { ok: false; message: string };
+
+function intCheckoutCustomText(): Pick<Stripe.Checkout.SessionCreateParams, "custom_text"> {
+  if (!isIntEnvironment()) {
+    return {};
+  }
+  return {
+    custom_text: {
+      submit: {
+        message: "Modo prueba. Relify INT usa Stripe TEST: no se cobra de verdad.",
+      },
+    },
+  };
+}
 
 function isStripeCustomerId(id: string): boolean {
   return id.startsWith("cus_");
@@ -133,6 +148,7 @@ export async function startBuyerCheckout(
       },
       success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${options.cancelPath ?? "/premium"}`,
+      ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_buyer"),
     });
 
@@ -190,6 +206,7 @@ export async function startListingCheckout(
       metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
       success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${successPath}`,
+      ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_listing"),
     });
 
@@ -256,6 +273,7 @@ export async function startAdvisorInboxCheckout(
       },
       success_url: `${origin}${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${back}`,
+      ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_inbox"),
     });
 
@@ -338,6 +356,7 @@ export async function startAdvisorDepositCheckout(
       },
       success_url: `${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: back,
+      ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_deposit"),
     });
 

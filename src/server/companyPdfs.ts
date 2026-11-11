@@ -10,8 +10,10 @@ import {
 } from "@/lib/company-pdf";
 import { spanishDate, signerName } from "@/lib/deal-documents";
 import { isHeadcountRange } from "@/lib/company-profile";
-import { storedSellerFinancing } from "@/lib/seller-financing";
-import { storedSellerStay } from "@/lib/seller-stay";
+import { formatWholeEur } from "@/lib/money";
+import { sellerFinancingText, storedSellerFinancing } from "@/lib/seller-financing";
+import { sellerStayText, storedSellerStay } from "@/lib/seller-stay";
+import { buildLoiTemplatePdf, loiTemplateFileName } from "@/lib/loi-template-pdf";
 import { readSiteUrl } from "@/lib/env";
 import { getInvestorProject } from "@/server/getInvestorProject";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -237,4 +239,65 @@ export async function buyerDossierPdf(
   await logDownload(access.project.id, "dossier", user.id);
   const pdf = await buildCompanyPdf(view);
   return pdfResponse({ pdf, fileName: companyPdfFileName("dossier", project.codename) }, download);
+}
+
+export async function dealLoiTemplatePdf(
+  user: CurrentUser,
+  accessId: string,
+  download: boolean,
+): Promise<Response | null> {
+  if (!user.onboarded) {
+    return null;
+  }
+  const access = await prisma.projectAccess.findFirst({
+    where: { id: accessId, cancelledAt: null },
+    select: {
+      investorId: true,
+      ndaAcceptedAt: true,
+      investor: { select: { name: true, lastName: true } },
+      project: {
+        select: {
+          ownerId: true,
+          status: true,
+          codename: true,
+          region: true,
+          askingPriceCents: true,
+          sellerFinancing: true,
+          sellerFinancingMaxPct: true,
+          sellerFinancingYears: true,
+          sellerStay: true,
+        },
+      },
+    },
+  });
+  if (!access || (access.investorId !== user.id && access.project.ownerId !== user.id)) {
+    return null;
+  }
+  const gate = ndaAccessGate({
+    onboarded: user.onboarded,
+    role: access.investorId === user.id ? "investor" : "seller",
+    projectStatus: access.project.status,
+    ndaAcceptedAt: access.ndaAcceptedAt,
+  });
+  if (!gate.ok) {
+    return null;
+  }
+  const financing = storedSellerFinancing(access.project);
+  const stay = storedSellerStay(access.project.sellerStay);
+  const structure = [
+    "Compraventa de participaciones de la sociedad titular del proyecto.",
+    financing ? `Financiación vendedor: ${sellerFinancingText(financing)}.` : null,
+    stay ? `Permanencia: ${sellerStayText(stay)}.` : null,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" ");
+  const pdf = await buildLoiTemplatePdf({
+    buyerName: signerName(access.investor.name, access.investor.lastName),
+    codename: access.project.codename,
+    region: access.project.region,
+    askingPrice: formatWholeEur(Number(access.project.askingPriceCents)),
+    structure,
+    dateLabel: spanishDate(new Date()),
+  });
+  return pdfResponse({ pdf, fileName: loiTemplateFileName(access.project.codename) }, download);
 }

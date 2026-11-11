@@ -4,30 +4,22 @@ import { ValuationPreview } from "@/components/valuation-preview";
 import { PublicSite } from "@/components/public-site";
 import { valuationCopy } from "@/lib/valuation-request";
 import { getCurrentUser } from "@/server/getCurrentUser";
+import { pageSocialMetadata } from "@/lib/seo-head";
 import { readSiteUrl } from "@/lib/env";
 
 const title = valuationCopy.title;
 const description = valuationCopy.description;
 
 export function generateMetadata(): Metadata {
-  const canonical = new URL("/valorar", readSiteUrl()).href;
   return {
     title,
     description,
-    alternates: { canonical: "/valorar" },
-    openGraph: {
+    ...pageSocialMetadata({
       title: valuationCopy.ogTitle,
       description,
-      url: canonical,
-      locale: "es_ES",
-      type: "website",
-      siteName: "Relify",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: valuationCopy.ogTitle,
-      description,
-    },
+      path: "/valorar",
+      origin: readSiteUrl(),
+    }),
   };
 }
 

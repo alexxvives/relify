@@ -1,11 +1,16 @@
 import { randomBytes } from "node:crypto";
 import Stripe from "stripe";
+import { getIntStripeSecretKey, getIntStripeWebhookSecret, isIntEnvironment } from "../lib/int-env";
+import { assertPaymentsEnabled } from "./int-guards";
 
 let client: Stripe | null = null;
 
 export type StripeMode = "test" | "live";
 
 export function stripeMode(): StripeMode {
+  if (isIntEnvironment()) {
+    return "test";
+  }
   return process.env.STRIPE_MODE === "live" ? "live" : "test";
 }
 
@@ -20,6 +25,10 @@ function liveSecretKey(): string | null {
 }
 
 export function readStripeSecret(): string | null {
+  if (isIntEnvironment()) {
+    return getIntStripeSecretKey();
+  }
+
   if (stripeMode() === "live") {
     return liveSecretKey();
   }
@@ -34,6 +43,10 @@ export function readStripeSecret(): string | null {
 }
 
 export function readStripeWebhookSecret(): string | null {
+  if (isIntEnvironment()) {
+    return getIntStripeWebhookSecret();
+  }
+
   const secret =
     stripeMode() === "live"
       ? (process.env.STRIPE_LIVE_WEBHOOK_SECRET?.trim() ?? "")
@@ -42,6 +55,12 @@ export function readStripeWebhookSecret(): string | null {
 }
 
 export function stripeClient(): Stripe | null {
+  try {
+    assertPaymentsEnabled();
+  } catch {
+    return null;
+  }
+
   const key = readStripeSecret();
 
   if (key === null) {

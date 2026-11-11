@@ -31,6 +31,8 @@ function FichaReveal() {
       <MarketCard
         project={processRevealCard}
         href={landingPreviewHref}
+        hideCoverPhoto
+        hidePhotoTags
         coverOverlay={
           <>
             <span className="releva-ficha-stamp">Confidencial</span>

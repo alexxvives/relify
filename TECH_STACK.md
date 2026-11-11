@@ -78,3 +78,7 @@ Copy `.env.example` to `.env`. Required names:
 - `STRIPE_MODE` (optional; `live` selects the live pair below, anything else stays on test)
 - `STRIPE_LIVE_SECRET_KEY` (only read when `STRIPE_MODE` is `live`)
 - `STRIPE_LIVE_WEBHOOK_SECRET` (only read when `STRIPE_MODE` is `live`)
+- `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional `G-…`; unset = GA4 does not load)
+- `INT_STRIPE_SECRET_KEY` (INT only, `sk_test_` / `rk_test_`; never falls back to `STRIPE_SECRET_KEY`)
+- `INT_STRIPE_WEBHOOK_SECRET` (INT only, `whsec_`)
+- `INT_STRIPE_PUBLISHABLE_KEY` (optional INT `pk_test_`)

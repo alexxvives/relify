@@ -3,7 +3,7 @@
  * Fail-closed enforcement for operations disabled in INT.
  */
 
-import { isIntEnvironment } from "../lib/int-env";
+import { intPaymentsConfigured, isIntEnvironment } from "../lib/int-env";
 import { intMailConfigured } from "../lib/int-mail";
 
 /**
@@ -32,15 +32,21 @@ export function shouldBlockEmail(): boolean {
 }
 
 /**
- * Block all payment creation/webhooks in INT (fail-closed, no override).
+ * INT payments stay disabled unless TEST keys are set
+ * (`INT_STRIPE_SECRET_KEY` + `INT_STRIPE_WEBHOOK_SECRET`). Live prefixes
+ * (`sk_live_` / `pk_live_` / `rk_live_`) log and keep payments off.
  */
 export function assertPaymentsEnabled(): void {
-  if (isIntEnvironment()) {
-    throw new Error(
-      "Payment operations disabled in INT environment. " +
-      "No INT payment override is accepted.",
-    );
+  if (!isIntEnvironment()) {
+    return;
   }
+  if (intPaymentsConfigured()) {
+    return;
+  }
+  throw new Error(
+    "Payment operations disabled in INT environment. " +
+      "Set INT_STRIPE_SECRET_KEY (sk_test_) and INT_STRIPE_WEBHOOK_SECRET (whsec_) for Stripe TEST mode.",
+  );
 }
 
 /**

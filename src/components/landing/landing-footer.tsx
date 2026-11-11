@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
 import { subscribeNewsletter } from "@/app/contacto/actions";
+import { CookiePreferencesLink } from "@/components/cookie-consent";
 import { Logo } from "@/components/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
@@ -31,6 +32,9 @@ export function LandingFooter() {
               }}
             />
           </ArcScope>
+          <div className="border-t border-public-line px-6 py-3">
+            <CookiePreferencesLink className="text-sm text-public-muted underline-offset-2 hover:underline" />
+          </div>
         </div>
       </div>
     </div>
@@ -90,7 +94,9 @@ function CompactMobileFooter() {
         </button>
       </form>
       {status === "error" ? <p className="mt-1 text-xs text-public-muted">No se ha podido guardar. Inténtalo de nuevo.</p> : null}
-      <p className="mt-4 text-xs text-public-muted">© {year} Relify</p>
+      <p className="mt-4 text-xs text-public-muted">
+        © {year} Relify · <CookiePreferencesLink className="text-xs text-public-muted underline-offset-2 hover:underline" />
+      </p>
     </div>
   );
 }

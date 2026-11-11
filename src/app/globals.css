@@ -754,8 +754,8 @@
 
 .releva-ficha-reveal .releva-ficha-codename {
   right: 0.85rem;
-  bottom: 1.4rem;
-  left: 0.85rem;
+  bottom: 3.15rem;
+  left: 7.5rem;
 }
 
 .releva-ficha-reveal .releva-ficha-stamp {
@@ -4220,5 +4220,53 @@ header:has([data-menu-open="true"]) {
 @media (prefers-reduced-motion: reduce) {
   .releva-valorar-faq summary::after {
     transition: none;
+  }
+}
+
+.relify-consent {
+  position: fixed;
+  right: 1rem;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  left: 1rem;
+  z-index: 80;
+}
+
+.relify-consent-card {
+  margin-left: auto;
+  max-width: 28rem;
+  border: 1px solid var(--public-line);
+  border-radius: 1.5rem;
+  background: #fff;
+  padding: 1.25rem 1.35rem 1.35rem;
+  box-shadow: 0 24px 60px -32px rgb(28 39 64 / 0.45);
+}
+
+.relify-consent-accept,
+.relify-consent-ghost {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.relify-consent-accept {
+  background: var(--public-clay);
+  color: #fff;
+}
+
+.relify-consent-ghost {
+  border: 1px solid var(--public-line);
+  background: #fff;
+  color: var(--public-ink);
+}
+
+@media (min-width: 640px) {
+  .relify-consent {
+    left: auto;
+    width: min(28rem, calc(100vw - 2rem));
   }
 }

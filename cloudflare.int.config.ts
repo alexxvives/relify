@@ -19,6 +19,7 @@ export default defineConfig({
     compatibilityDate: "2026-10-03",
     compatibilityFlags: ["nodejs_compat"],
     assets: { notFoundHandling: "none" },
+    observability: { enabled: true },
     // INT can run in any region (no need for Neon EU proximity)
     placement: { mode: "smart" },
     env: {

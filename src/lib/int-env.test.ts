@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   getBetterAuthUrl,
   getDatabaseUrl,
+  getIntStripePublishableKey,
+  getIntStripeSecretKey,
+  getIntStripeWebhookSecret,
+  intPaymentsConfigured,
   isIntEnvironment,
   validateIntEnvironment,
 } from "./int-env";
@@ -121,6 +125,8 @@ describe("INT environment isolation", () => {
       process.env.INT_PAYMENTS_ENABLED = "true";
       process.env.INT_EMAIL_ENABLED = "true";
       process.env.INT_EXTERNAL_APIS_ENABLED = "true";
+      delete process.env.INT_STRIPE_SECRET_KEY;
+      delete process.env.INT_STRIPE_WEBHOOK_SECRET;
       expect(isIntEnvironment()).toBe(true);
       expect(shouldBlockEmail()).toBe(true);
       expect(shouldBlockExternalApi("APIEMPRESAS")).toBe(true);
@@ -134,6 +140,43 @@ describe("INT environment isolation", () => {
       expect(shouldBlockExternalApi("APIEMPRESAS")).toBe(false);
       expect(() => assertPaymentsEnabled()).not.toThrow();
       expect(() => assertUploadsEnabled()).not.toThrow();
+    });
+  });
+
+  describe("INT Stripe TEST isolation", () => {
+    beforeEach(() => {
+      process.env.INT_ENVIRONMENT = "true";
+      delete process.env.INT_STRIPE_SECRET_KEY;
+      delete process.env.INT_STRIPE_WEBHOOK_SECRET;
+      delete process.env.INT_STRIPE_PUBLISHABLE_KEY;
+      delete process.env.NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY;
+      process.env.STRIPE_SECRET_KEY = "sk_live_should_never_be_read";
+    });
+
+    it("does not fall back to production STRIPE_SECRET_KEY", () => {
+      expect(getIntStripeSecretKey()).toBeNull();
+      expect(intPaymentsConfigured()).toBe(false);
+      expect(() => assertPaymentsEnabled()).toThrow(/INT_STRIPE_SECRET_KEY/);
+    });
+
+    it("refuses live prefixes and keeps payments off", () => {
+      process.env.INT_STRIPE_SECRET_KEY = "sk_live_xxx";
+      process.env.INT_STRIPE_WEBHOOK_SECRET = "whsec_xxx";
+      expect(getIntStripeSecretKey()).toBeNull();
+      expect(intPaymentsConfigured()).toBe(false);
+      process.env.INT_STRIPE_SECRET_KEY = "sk_test_xxx";
+      process.env.INT_STRIPE_PUBLISHABLE_KEY = "pk_live_xxx";
+      expect(getIntStripePublishableKey()).toBeNull();
+      expect(intPaymentsConfigured()).toBe(false);
+    });
+
+    it("enables payments only with TEST secret and webhook", () => {
+      process.env.INT_STRIPE_SECRET_KEY = "sk_test_xxx";
+      process.env.INT_STRIPE_WEBHOOK_SECRET = "whsec_xxx";
+      expect(getIntStripeSecretKey()).toBe("sk_test_xxx");
+      expect(getIntStripeWebhookSecret()).toBe("whsec_xxx");
+      expect(intPaymentsConfigured()).toBe(true);
+      expect(() => assertPaymentsEnabled()).not.toThrow();
     });
   });
 });

@@ -46,3 +46,26 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 - Production `EMAIL` send_email binding.
 
 See `src/lib/int-mail.ts` and `src/server/mailer.ts`.
+
+## Stripe TEST (optional)
+
+INT payments stay off unless Alex sets **Worker secrets** on `releva-int` (never production `STRIPE_*`, never `[vars]`):
+
+```bash
+npx wrangler secret put INT_STRIPE_SECRET_KEY --name releva-int
+npx wrangler secret put INT_STRIPE_WEBHOOK_SECRET --name releva-int
+# optional publishable
+npx wrangler secret put INT_STRIPE_PUBLISHABLE_KEY --name releva-int
+```
+
+`INT_STRIPE_SECRET_KEY` must be `sk_test_` or `rk_test_`. `INT_STRIPE_WEBHOOK_SECRET` must be `whsec_`. Live prefixes (`sk_live_` / `pk_live_` / `rk_live_`) log `[error] stripe INT refused…` and keep payments disabled. INT never reads `STRIPE_SECRET_KEY`.
+
+Webhook endpoint on the INT worker:
+
+`https://releva-int.<account>.workers.dev/api/stripe/webhook`
+
+Point a Stripe TEST webhook at that path and paste the signing secret into `INT_STRIPE_WEBHOOK_SECRET`. Checkout shows **Modo prueba**. Unset keys leave payments disabled.
+
+## Analytics
+
+Do **not** set `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `G-…` id, Google Analytics 4 does not load.

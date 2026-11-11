@@ -8,6 +8,7 @@ import {
   headlineKpis,
   sampleDossierView,
   sampleTeaserView,
+  teaserViewFromPublic,
 } from "./company-pdf";
 
 function inflateMaybe(payload: string): string {
@@ -102,6 +103,26 @@ describe("company PDF views", () => {
     expect(view.priceHighCents).not.toBeNull();
     expect(view.askingCents).toBe(400_000_000);
     expect(view.highlights.length).toBeGreaterThan(0);
+    expect(view.highlights.join(" ")).not.toMatch(/ficha p[uú]blica/i);
+    expect(view.highlights.join(" ")).not.toMatch(/nombre de proyecto/i);
+  });
+
+  it("drops thesis lines that talk about the platform, not the company", () => {
+    const view = teaserViewFromPublic({
+      codename: "Proyecto Alba",
+      region: "Valencia",
+      revenueCents: 1_250_000_00,
+      ebitdaCents: 180_000_00,
+      adjustedEbitdaCents: 180_000_00,
+      askingPriceCents: 900_000_00,
+      ebitdaAdjustments: null,
+      summary:
+        "Cartera industrial con contratos plurianuales. La ficha pública enseña el nombre de proyecto y las cifras de cabecera; la sociedad no figura.",
+      generatedLabel: "11 de noviembre de 2026",
+    });
+    expect(view.highlights.join(" ")).toMatch(/contratos plurianuales/i);
+    expect(view.highlights.join(" ")).not.toMatch(/ficha p[uú]blica/i);
+    expect(view.highlights.join(" ")).not.toMatch(/sociedad no figura/i);
   });
 
   it("watermarks the dossier with the buyer and still omits company identity", () => {
@@ -141,12 +162,14 @@ describe("buildCompanyPdf", () => {
     expect(teaserText).toMatch(/Mix de la cifra/);
     expect(teaserText).toMatch(/Costes operativos|Resultado neto|EBITDA/);
     expect(teaserText).not.toMatch(/Deuda neta/);
+    expect(teaserText).not.toMatch(/ficha p[uú]blica/i);
     expect(teaserText).not.toMatch(/ana\.perez@example\.com/i);
     expect(dossierText).toMatch(/ana\.perez@example\.com/i);
     expect(dossierText).toMatch(/Deuda neta/);
     expect(dossierText).toMatch(/NOF/);
     expect(dossierText).toMatch(/EBITDA declarado/);
     const out =
+      process.env.ROUND_S8_PDF_OUT ??
       process.env.ROUND_S7_PDF_OUT ??
       process.env.ROUND_S6_PDF_OUT ??
       process.env.ROUND_S5_PDF_OUT ??

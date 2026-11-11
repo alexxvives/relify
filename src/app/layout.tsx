@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
+import { CookieConsent } from "@/components/cookie-consent";
 import { HashCleaner } from "@/components/hash-cleaner";
+import { gaDefaultConsentScript, readGaMeasurementId } from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
+import { OG_IMAGE_ALT, OG_IMAGE_PATH, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,44 +39,55 @@ export const viewport: Viewport = {
 export function generateMetadata(): Metadata {
   const siteUrl = readSiteUrl();
   const isInt = process.env.INT_ENVIRONMENT === "true";
+  const title = isInt ? `[INT] ${landingCopy.title}` : landingCopy.title;
 
   return {
     metadataBase: siteUrl,
-    title: isInt ? `[INT] ${landingCopy.title}` : landingCopy.title,
+    title,
     description: landingCopy.description,
+    icons: rootIcons(),
     ...(isInt && {
       robots: {
         index: false,
         follow: false,
       },
     }),
-    alternates: {
-      canonical: "/",
-    },
-    openGraph: {
+    ...pageSocialMetadata({
       title: landingCopy.title,
       description: landingCopy.description,
-      url: "/",
-      locale: "es_ES",
-      type: "website",
-    },
-    twitter: {
-      card: "summary",
-      title: landingCopy.title,
-      description: landingCopy.description,
-    },
+      path: "/",
+      origin: siteUrl,
+    }),
   };
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const siteUrl = readSiteUrl();
+  const measurementId = readGaMeasurementId();
+  const og = ogImageUrl(siteUrl);
+
   return (
     <html lang="es" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <meta property="og:image" content={og} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={OG_IMAGE_ALT} />
+        <meta name="twitter:image" content={og} />
+        <link rel="preload" as="image" href={OG_IMAGE_PATH} />
+        {measurementId ? (
+          <script dangerouslySetInnerHTML={{ __html: gaDefaultConsentScript() }} />
+        ) : null}
+      </head>
       <body className="min-h-full bg-background text-foreground">
         {children}
+        <CookieConsent measurementId={measurementId} />
         <Suspense fallback={null}>
           <HashCleaner />
         </Suspense>
-        {/* INT environment badge */}
         {process.env.INT_ENVIRONMENT === "true" && (
           <div className="fixed top-2 right-2 z-[100] rounded-md bg-orange-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
             INT

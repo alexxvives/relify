@@ -150,7 +150,7 @@ export function InvestorProject({
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}
                 />
-                {access === "accepted" ? <BuyerDossierLink slug={project.slug} /> : null}
+                {access === "accepted" ? <BuyerDossierLink slug={project.slug} loiAccessId={accessId || null} /> : null}
                 <RelatedCompanies items={recommendations} />
               </div>
             </div>
@@ -186,6 +186,7 @@ export function InvestorProject({
                 nda
                 ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
                 loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
+                loiTemplateHref={accessId.length > 0 ? `/acuerdos/loi-plantilla/${accessId}` : null}
                 empty={sellerCopy.documentsEmpty}
               />
             </section>

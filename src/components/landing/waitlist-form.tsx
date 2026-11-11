@@ -5,6 +5,7 @@ import { ArrowRight, Briefcase, Building2, Landmark } from "lucide-react";
 import { joinWaitlistAction, type WaitlistState } from "@/app/lista-de-espera/actions";
 import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { waitlistCopy, waitlistOpensAt, type waitlistRoles } from "@/lib/waitlist";
+import { ConversionPing } from "@/components/cookie-consent";
 
 type Role = (typeof waitlistRoles)[number];
 
@@ -129,6 +130,7 @@ export function WaitlistForm({ role, onRole }: { role: Role; onRole: (role: Role
   if (state.status === "ok") {
     return (
       <div className="releva-wait-card">
+        <ConversionPing event="waitlist_submit" />
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{waitlistCopy.kicker}</p>
         <h2>{waitlistCopy.doneTitle}</h2>
         <p className="mt-3 text-base leading-7 text-public-muted">{waitlistCopy.doneBody}</p>

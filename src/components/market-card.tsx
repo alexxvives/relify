@@ -171,6 +171,7 @@ export function MarketCard({
   hidePhotoTags = false,
   priceUnset = "A consultar",
   coverOverlay = null,
+  hideCoverPhoto = false,
 }: {
   project: PublicProjectCard;
   actions?: ReactNode;
@@ -183,6 +184,8 @@ export function MarketCard({
   priceUnset?: string;
   /** Landing process ficha: name-redact overlay on the photo. The white body stays this card. */
   coverOverlay?: ReactNode;
+  /** Landing process: keep the blue wash, drop the sector photo. */
+  hideCoverPhoto?: boolean;
 }) {
   const key = project.sectorKey ?? fallbackKey;
   const style = sectorStyles[key];
@@ -221,15 +224,17 @@ export function MarketCard({
     >
       <div className="relative">
         <div className="relative aspect-[16/7] max-h-52 w-full overflow-hidden bg-[#1c2a52]">
-          <Image
-            src={sectorImageSrc(key)}
-            alt=""
-            fill
-            sizes="(min-width: 2200px) 25vw, (min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-            className="object-cover transition-transform duration-500 group-hover/card:scale-[1.03] motion-reduce:transition-none"
-          />
+          {hideCoverPhoto ? null : (
+            <Image
+              src={sectorImageSrc(key)}
+              alt=""
+              fill
+              sizes="(min-width: 2200px) 25vw, (min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+              className="object-cover transition-transform duration-500 group-hover/card:scale-[1.03] motion-reduce:transition-none"
+            />
+          )}
           <span
-            className="absolute inset-0 bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25"
+            className={`absolute inset-0 ${hideCoverPhoto ? "bg-gradient-to-t from-[#0c1224]/35 via-[#1c2a52]/20 to-[#24356a]/35" : "bg-gradient-to-t from-[#0c1224]/45 via-transparent to-[#0c1224]/25"}`}
             aria-hidden
           />
           {coverOverlay ? (

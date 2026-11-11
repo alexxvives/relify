@@ -30,6 +30,12 @@ workers_dev = true
 
 [observability]
 enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+head_sampling_rate = 1
 
 [vars]
 INT_ENVIRONMENT = "true"

@@ -1,29 +1,19 @@
 import type { Metadata } from "next";
 import { LandingPage } from "@/components/landing-page";
 import { landingCopy } from "@/lib/landing-copy";
+import { pageSocialMetadata } from "@/lib/seo-head";
+import { readSiteUrl } from "@/lib/env";
 
 const title = landingCopy.home.title;
 const description = landingCopy.home.description;
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  return {
     title,
     description,
-    url: "/",
-    locale: "es_ES",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title,
-    description,
-  },
-};
+    ...pageSocialMetadata({ title, description, path: "/", origin: readSiteUrl() }),
+  };
+}
 
 export default function Page() {
   return <LandingPage />;

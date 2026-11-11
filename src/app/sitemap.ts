@@ -24,6 +24,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: new URL("/cookies", siteUrl).href,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
       url: new URL("/blog", siteUrl).href,
       changeFrequency: "weekly",
       priority: 0.5,

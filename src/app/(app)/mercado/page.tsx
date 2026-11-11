@@ -4,14 +4,24 @@ import type { Metadata } from "next";
 import { MarketBrowser } from "@/components/market-browser";
 import { SignedInPage } from "@/components/signed-in-page";
 import { marketCopy } from "@/lib/market-copy";
+import { pageSocialMetadata } from "@/lib/seo-head";
+import { readSiteUrl } from "@/lib/env";
 import { listPublicProjects } from "@/server/listPublicProjects";
 import { requireRole } from "@/server/requireRole";
 import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
 
-export const metadata: Metadata = {
-  title: marketCopy.title,
-  robots: { index: false, follow: false },
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: marketCopy.title,
+    robots: { index: false, follow: false },
+    ...pageSocialMetadata({
+      title: marketCopy.title,
+      description: marketCopy.title,
+      path: "/mercado",
+      origin: readSiteUrl(),
+    }),
+  };
+}
 
 async function MarketPageContent() {
   const user = await requireRole("investor");

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S8 SEO, GA4, CIM polish, LOI template, INT Stripe TEST
+
+Favicon, apple-touch, canonical, Open Graph (1200×630 `/og.jpg`) and Twitter `summary_large_image` sit in the initial `<head>` (explicit links, not vinext-streamed into `<body>`). Analytics is Google Analytics 4 with Consent Mode v2: default denied for `analytics_storage` / `ad_storage` / `ad_user_data` / `ad_personalization`; gtag.js loads only after Aceptar and only if `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` is a `G-…` id (unset on INT). Conversion events `waitlist_submit`, `valorar_submit`, `signup` carry no PII. `/api/health` is `SELECT 1` with a 1.5s timeout. Workers Observability is on (`enabled` in `cloudflare.config.ts`; INT pack `wrangler.toml` `head_sampling_rate` 1). INT Stripe uses `INT_STRIPE_*` TEST keys only; live prefixes log and disable; checkout shows Modo prueba. Post-NDA LOI template PDF includes the Relify 5% success fee. Teaser/dossier PDFs use lucide stroke icons and the ficha red→amber→green price bar. No new migration.
+
 ## 2026-11-11 — Round S7 CIM PDFs, /valorar explainer, INT From info@
 
 Teaser/dossier PDFs use a Relify CIM palette (clay, navy, teal, gold/amber, rose): gradient bars, KPI tiles with icons, donut mix of the cifra, coloured section bands. Donut slices are center-relative `drawSvgPath` fans (`pdf-lib` flips SVG Y). Landing “Publica cifras” reuses `MarketCard` for the white body; the name-redact animation is a photo overlay. `/valorar` FAQ is a single-column thin accordion (FAQPage JSON-LD kept). “Qué te enviaremos” explains EV = EBITDA aj. × sector multiple and equity = EV − DFN, with Ejemplo-labelled scenarios. INT `senderFor` always uses `info@itsrelify.com`; catch-all To is unchanged. Prod still uses `info@` for team alerts and `notificaciones@` for people. No new migration.

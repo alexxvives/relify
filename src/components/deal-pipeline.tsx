@@ -870,6 +870,7 @@ export function ProcessRoom({
   nda,
   ndaHref = null,
   loiHref = null,
+  loiTemplateHref = null,
   contractHref = null,
   contractSigned = true,
   empty,
@@ -880,6 +881,7 @@ export function ProcessRoom({
   nda: boolean;
   ndaHref?: string | null;
   loiHref?: string | null;
+  loiTemplateHref?: string | null;
   contractHref?: string | null;
   contractSigned?: boolean;
   empty: string;
@@ -889,7 +891,7 @@ export function ProcessRoom({
   const shared = held.filter((file) => file.visible !== false);
   const hidden = held.filter((file) => file.visible === false);
   const sent = attachmentNames(bodies);
-  const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda && !contractHref;
+  const bare = shared.length === 0 && hidden.length === 0 && sent.length === 0 && !nda && !contractHref && !loiHref && !loiTemplateHref;
   const [openFile, setOpenFile] = useState<ProcessFile | null>(null);
   const [openSigned, setOpenSigned] = useState<{ fileName: string; href: string } | null>(null);
   const rows: { key: string; label: string; badge: DocBadge; signed?: boolean; title?: string; onOpen?: () => void }[] = [
@@ -906,6 +908,16 @@ export function ProcessRoom({
       : []),
     ...(loiHref
       ? [{ key: "loi", label: "Carta de intenciones firmada", badge: "LOI" as const, signed: true, onOpen: () => setOpenSigned({ fileName: "Carta-de-intenciones.pdf", href: loiHref }) }]
+      : []),
+    ...(loiTemplateHref
+      ? [
+          {
+            key: "loi-template",
+            label: "Plantilla de carta de intenciones",
+            badge: "LOI" as const,
+            onOpen: () => setOpenSigned({ fileName: "Plantilla-carta-de-intenciones.pdf", href: loiTemplateHref }),
+          },
+        ]
       : []),
     ...(contractHref
       ? [

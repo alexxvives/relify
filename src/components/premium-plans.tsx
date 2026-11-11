@@ -78,7 +78,7 @@ const plans = [
   },
 ];
 
-export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: string | null }) {
+export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPlanName; notice: string | null; testMode?: boolean }) {
   const [yearly, setYearly] = useState(false);
   const current =
     plan === "limited" ? billingCopy.currentLimited : plan === "unlimited" ? billingCopy.currentUnlimited : billingCopy.currentFree;
@@ -98,6 +98,11 @@ export function PremiumPlans({ plan, notice }: { plan: BuyerPlanName; notice: st
         </h2>
         <p className="mt-4 text-sm leading-6 text-white/80">{billingCopy.intro}</p>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
+        {testMode ? (
+          <p className="mx-auto mt-3 w-fit rounded-full bg-[#ffb703] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#1c2740] uppercase">
+            {billingCopy.intTestMode}
+          </p>
+        ) : null}
         <AppToast message={notice} tone={notice === billingCopy.paid || notice === billingCopy.planChanged ? "ok" : "error"} />
       </section>
       <div className="flex justify-center">

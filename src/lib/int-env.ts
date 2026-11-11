@@ -227,15 +227,96 @@ export function getStripeMode(): "test" | "live" {
   return process.env.STRIPE_MODE === "live" ? "live" : "test";
 }
 
+function isLiveStripeKey(value: string): boolean {
+  return value.startsWith("sk_live_") || value.startsWith("pk_live_") || value.startsWith("rk_live_");
+}
+
+function refuseIntLiveStripeKey(kind: string, value: string): null {
+  if (isLiveStripeKey(value)) {
+    console.error(`[error] stripe INT refused a live ${kind}`);
+  } else {
+    console.error(`[error] stripe INT refused a non-test ${kind}`);
+  }
+  return null;
+}
+
+/**
+ * INT Stripe TEST secret only (`INT_STRIPE_SECRET_KEY`). Never falls back to
+ * production `STRIPE_SECRET_KEY`. Live prefixes disable payments.
+ */
+export function getIntStripeSecretKey(): string | null {
+  if (!isIntEnvironment()) {
+    return null;
+  }
+  const key = process.env.INT_STRIPE_SECRET_KEY?.trim() ?? "";
+  if (!key) {
+    return null;
+  }
+  if (isLiveStripeKey(key) || !(key.startsWith("sk_test_") || key.startsWith("rk_test_"))) {
+    return refuseIntLiveStripeKey("secret key", key);
+  }
+  return key;
+}
+
+/** INT webhook secret (`INT_STRIPE_WEBHOOK_SECRET`). Must be `whsec_`, never a live Stripe key. */
+export function getIntStripeWebhookSecret(): string | null {
+  if (!isIntEnvironment()) {
+    return null;
+  }
+  const secret = process.env.INT_STRIPE_WEBHOOK_SECRET?.trim() ?? "";
+  if (!secret) {
+    return null;
+  }
+  if (isLiveStripeKey(secret) || !secret.startsWith("whsec_")) {
+    return refuseIntLiveStripeKey("webhook secret", secret);
+  }
+  return secret;
+}
+
+/**
+ * Optional INT publishable key (`INT_STRIPE_PUBLISHABLE_KEY` or
+ * `NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY`). Live `pk_live_` disables payments.
+ */
+export function getIntStripePublishableKey(): string | null {
+  if (!isIntEnvironment()) {
+    return null;
+  }
+  const key =
+    process.env.INT_STRIPE_PUBLISHABLE_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY?.trim() ||
+    "";
+  if (!key) {
+    return null;
+  }
+  if (isLiveStripeKey(key) || !key.startsWith("pk_test_")) {
+    return refuseIntLiveStripeKey("publishable key", key);
+  }
+  return key;
+}
+
+export function intPaymentsConfigured(): boolean {
+  if (getIntStripeSecretKey() === null || getIntStripeWebhookSecret() === null) {
+    return false;
+  }
+  const publishable =
+    process.env.INT_STRIPE_PUBLISHABLE_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY?.trim() ||
+    "";
+  if (publishable.length > 0 && getIntStripePublishableKey() === null) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Get Stripe secret key with INT isolation.
+ * INT never reads `STRIPE_SECRET_KEY`. Unset or live INT keys return undefined.
  */
 export function getStripeSecretKey(): string | undefined {
   if (isIntEnvironment()) {
-    // INT: use test key if provided
-    return process.env.INT_STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+    return getIntStripeSecretKey() ?? undefined;
   }
-  
+
   const mode = getStripeMode();
   if (mode === "live") {
     return process.env.STRIPE_LIVE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;

@@ -118,6 +118,7 @@ function ProcessConversation({
             nda
             ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
             loiHref={item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null}
+            loiTemplateHref={`/acuerdos/loi-plantilla/${item.accessId}`}
             contractHref={item.contract?.signedHref ?? item.contract?.current?.href ?? null}
             contractSigned={Boolean(item.contract?.signedHref)}
             empty={sellerCopy.documentsEmpty}

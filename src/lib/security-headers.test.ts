@@ -11,5 +11,7 @@ describe("securityHeaders", () => {
     expect(contentSecurityPolicy).toContain("frame-ancestors 'none'");
     expect(contentSecurityPolicy).toContain("object-src 'none'");
     expect(contentSecurityPolicy).toContain("form-action 'self'");
+    expect(contentSecurityPolicy).toContain("https://www.googletagmanager.com");
+    expect(contentSecurityPolicy).toContain("https://www.google-analytics.com");
   });
 });

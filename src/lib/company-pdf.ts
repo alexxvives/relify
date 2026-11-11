@@ -28,6 +28,7 @@ import {
   priceBarZone,
 } from "./valuation-multiples";
 import { approvedAdjustments, ebitdaAdjustmentLabels, storedEbitdaAdjustments } from "./ebitda-adjustments";
+import { drawLucideIcon, type LucidePdfIcon } from "./pdf-icons";
 
 export const companyPdfCopy = {
   teaserTitle: "Perfil ciego",
@@ -141,8 +142,17 @@ const ice = rgb(236 / 255, 247 / 255, 246 / 255);
 const amber = rgb(196 / 255, 92 / 255, 43 / 255);
 const gold = rgb(212 / 255, 160 / 255, 64 / 255);
 const rose = rgb(196 / 255, 72 / 255, 86 / 255);
-const kpiTints = [ice, rgb(232 / 255, 238 / 255, 252 / 255), rgb(255 / 255, 241 / 255, 232 / 255), rgb(255 / 255, 236 / 255, 238 / 255)];
-const kpiAccents = [clay, navy, amber, rose];
+const kpiTints = [ice, mist, sand, mixRgb(ice, clay, 0.08)];
+const kpiAccents = [clay, teal, moss, clay];
+const barRevenue = clay;
+const barEbitda = teal;
+const barEbit = moss;
+const barNet = rgb(15 / 255, 110 / 255, 115 / 255);
+const priceRed = rgb(217 / 255, 45 / 255, 32 / 255);
+const priceAmber = rgb(247 / 255, 144 / 255, 9 / 255);
+const priceGold = rgb(253 / 255, 176 / 255, 34 / 255);
+const priceGreen = rgb(18 / 255, 183 / 255, 106 / 255);
+const priceMarker = rgb(16 / 255, 24 / 255, 40 / 255);
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const M = 36;
@@ -219,11 +229,15 @@ function mix(a: RGB, b: RGB, t: number): RGB {
   return rgb(a.red + (b.red - a.red) * n, a.green + (b.green - a.green) * n, a.blue + (b.blue - a.blue) * n);
 }
 
+function mixRgb(a: RGB, b: RGB, t: number): RGB {
+  return mix(a, b, t);
+}
+
 function fillBar(page: PDFPage, x: number, y: number, width: number, height: number, color: RGB) {
   if (width <= 0 || height <= 0) {
     return;
   }
-  const steps = 7;
+  const steps = 6;
   const slice = height / steps;
   for (let i = 0; i < steps; i += 1) {
     page.drawRectangle({
@@ -231,7 +245,7 @@ function fillBar(page: PDFPage, x: number, y: number, width: number, height: num
       y: y + i * slice,
       width,
       height: slice + 0.35,
-      color: mix(color, white, (i / Math.max(1, steps - 1)) * 0.4),
+      color: mix(color, white, (i / Math.max(1, steps - 1)) * 0.18),
     });
   }
 }
@@ -355,26 +369,10 @@ function coverKpis(view: CompanyPdfView): CompanyPdfKpi[] {
   return [...view.kpis, ...extra].slice(0, 4);
 }
 
+const kpiIcons: LucidePdfIcon[] = ["chartColumn", "trendingUp", "banknote", "percent"];
+
 function drawKpiIcon(page: PDFPage, kind: number, x: number, y: number, color: RGB) {
-  if (kind === 0) {
-    page.drawRectangle({ x, y, width: 3.2, height: 6, color: mix(color, white, 0.35) });
-    page.drawRectangle({ x: x + 4.4, y, width: 3.2, height: 9, color: mix(color, white, 0.15) });
-    page.drawRectangle({ x: x + 8.8, y, width: 3.2, height: 12, color });
-    return;
-  }
-  if (kind === 1) {
-    page.drawCircle({ x: x + 6, y: y + 6, size: 6.4, color });
-    page.drawCircle({ x: x + 6, y: y + 6, size: 3.5, color: white });
-    return;
-  }
-  if (kind === 2) {
-    page.drawRectangle({ x, y: y + 2, width: 12, height: 8.5, color });
-    page.drawCircle({ x: x + 3.4, y: y + 6.2, size: 1.5, color: white });
-    return;
-  }
-  page.drawCircle({ x: x + 3.2, y: y + 9.2, size: 2.1, color });
-  page.drawCircle({ x: x + 9.2, y: y + 3.2, size: 2.1, color });
-  page.drawLine({ start: { x: x + 2.2, y: y + 2.2 }, end: { x: x + 10.6, y: y + 10.6 }, thickness: 1.3, color });
+  drawLucideIcon(page, kpiIcons[kind] ?? "chartColumn", x, y, 13, color);
 }
 
 function drawKpiGrid(page: PDFPage, fonts: Fonts, kpis: CompanyPdfKpi[], x: number, y: number, width: number, height: number) {
@@ -544,14 +542,12 @@ function drawPriceRange(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: nu
     captionY -= 11;
   }
   const trackX = x + 18;
-  const trackY = y + 36;
+  const trackY = y + 38;
   const trackW = width - 36;
-  page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 11, color: paper });
+  const trackH = 9;
+  drawPriceBarTrack(page, trackX, trackY, trackW, trackH);
   const zoneX = trackX + priceBarZone.low * trackW;
   const zoneW = (priceBarZone.high - priceBarZone.low) * trackW;
-  fillBar(page, zoneX, trackY, zoneW, 11, clay);
-  page.drawRectangle({ x: zoneX, y: trackY, width: 3, height: 11, color: gold });
-  page.drawRectangle({ x: zoneX + zoneW - 3, y: trackY, width: 3, height: 11, color: amber });
   const lowLabel = view.priceLow ?? "—";
   const highLabel = view.priceHigh ?? "—";
   drawText(page, fonts.sansSemi, lowLabel, zoneX, trackY - 14, 8, ink);
@@ -562,15 +558,61 @@ function drawPriceRange(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: nu
     drawRight(page, fonts.sans, formatCardEur(ends.maxCents), trackX + trackW, trackY + 14, 7, muted);
     const pos = priceBarPosition(view.askingCents, { lowCents: view.priceLowCents, highCents: view.priceHighCents });
     const dotX = trackX + pos * trackW;
-    page.drawRectangle({ x: dotX - 0.7, y: trackY - 4, width: 1.4, height: 18, color: amber });
-    page.drawCircle({ x: dotX, y: trackY + 5, size: 5.2, color: amber, borderColor: white, borderWidth: 1.1 });
+    page.drawCircle({ x: dotX, y: trackY + trackH / 2, size: 6.2, color: white });
+    page.drawCircle({ x: dotX, y: trackY + trackH / 2, size: 4.4, color: priceMarker, borderColor: white, borderWidth: 1.2 });
     const ask = `Precio pedido ${view.asking}`;
     const askW = fonts.sansSemi.widthOfTextAtSize(ask, 8);
     const askX = Math.min(trackX + trackW - askW, Math.max(trackX, dotX - askW / 2));
-    drawText(page, fonts.sansSemi, ask, askX, y + 12, 8, amber);
+    drawText(page, fonts.sansSemi, ask, askX, y + 12, 8, ink);
   } else {
     drawText(page, fonts.sansSemi, `Precio pedido ${view.asking}`, trackX, y + 12, 8, ink);
   }
+}
+
+/** Same red → amber → green scale as the ficha asking-price bar. */
+function drawPriceBarTrack(page: PDFPage, x: number, y: number, width: number, height: number) {
+  const stops: Array<{ t: number; color: RGB }> = [
+    { t: 0, color: priceRed },
+    { t: priceBarZone.low * 0.45, color: priceAmber },
+    { t: priceBarZone.low * 0.85, color: priceGold },
+    { t: priceBarZone.low, color: priceGreen },
+    { t: priceBarZone.high, color: priceGreen },
+    { t: priceBarZone.high + (1 - priceBarZone.high) * 0.15, color: priceGold },
+    { t: priceBarZone.high + (1 - priceBarZone.high) * 0.55, color: priceAmber },
+    { t: 1, color: priceRed },
+  ];
+  const slices = 48;
+  for (let i = 0; i < slices; i += 1) {
+    const t0 = i / slices;
+    const t1 = (i + 1) / slices;
+    page.drawRectangle({
+      x: x + t0 * width,
+      y,
+      width: (t1 - t0) * width + 0.2,
+      height,
+      color: samplePriceStop(stops, (t0 + t1) / 2),
+    });
+  }
+}
+
+function samplePriceStop(stops: Array<{ t: number; color: RGB }>, t: number): RGB {
+  const clamped = Math.min(1, Math.max(0, t));
+  let left = stops[0];
+  let right = stops[stops.length - 1];
+  if (!left || !right) {
+    return priceGreen;
+  }
+  for (let i = 0; i < stops.length - 1; i += 1) {
+    const a = stops[i];
+    const b = stops[i + 1];
+    if (a && b && clamped >= a.t && clamped <= b.t) {
+      left = a;
+      right = b;
+      break;
+    }
+  }
+  const span = right.t - left.t;
+  return mix(left.color, right.color, span <= 0 ? 0 : (clamped - left.t) / span);
 }
 
 function drawBulletCard(
@@ -863,8 +905,8 @@ function drawTeaserFigures(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Co
   const marginH = chartsBlock - chartH - gap;
   const colW = (CONTENT_W - gap) / 2;
   const chartY = top - chartH;
-  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, chartY, colW, chartH, clay);
-  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, chartY, colW, chartH, navy);
+  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, chartY, colW, chartH, barRevenue);
+  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, chartY, colW, chartH, barEbitda);
   const marginY = chartY - gap - marginH;
   const mixW = Math.min(236, CONTENT_W * 0.42);
   drawMarginChart(page, fonts, view.years, M, marginY, CONTENT_W - mixW - gap, marginH);
@@ -932,11 +974,11 @@ function drawDossierPnl(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Compa
   const chartH = usable * 0.36;
   const gap = 8;
   const colW = (CONTENT_W - gap) / 2;
-  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, top - chartH, colW, chartH, clay);
-  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, top - chartH, colW, chartH, ink);
+  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, top - chartH, colW, chartH, barRevenue);
+  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, top - chartH, colW, chartH, barEbitda);
   const row2Y = top - chartH - gap - chartH;
-  drawLabeledBars(page, fonts, view.years, "ebitCents", "EBIT", M, row2Y, colW, chartH, moss);
-  drawLabeledBars(page, fonts, view.years, "netResultCents", "Resultado neto", M + colW + gap, row2Y, colW, chartH, amber);
+  drawLabeledBars(page, fonts, view.years, "ebitCents", "EBIT", M, row2Y, colW, chartH, barEbit);
+  drawLabeledBars(page, fonts, view.years, "netResultCents", "Resultado neto", M + colW + gap, row2Y, colW, chartH, barNet);
   const tableH = row2Y - gap - bottom;
   drawYearTable(page, fonts, view.years, M, bottom, CONTENT_W, tableH, true);
 }
@@ -1301,7 +1343,7 @@ function buildHighlights(input: {
   if (summary) {
     for (const part of summary.split(/[.!?]+\s+/)) {
       const clean = part.replace(/[.!?]+$/, "").trim();
-      if (clean.length >= 20) {
+      if (clean.length >= 20 && isCompanyThesisLine(clean)) {
         items.push(clean);
       }
     }
@@ -1323,6 +1365,10 @@ function buildHighlights(input: {
     items.push(`Plantilla en banda ${headcountLabels[input.headcount]}`);
   }
   return items.slice(0, 5);
+}
+
+function isCompanyThesisLine(text: string): boolean {
+  return !/ficha p[uú]blica|nombre de proyecto|sociedad no figura|plataforma/i.test(text);
 }
 
 function dealTerms(input: {
@@ -1607,7 +1653,7 @@ export function sampleTeaserView(): CompanyPdfView {
     foundedYear: 2014,
     headcount: "band_21_50",
     summary:
-      "Software de gestión para pymes industriales, con ingresos recurrentes. La ficha pública enseña el nombre de proyecto y las cifras de cabecera; la sociedad no figura.",
+      "Software de gestión para pymes industriales, con ingresos recurrentes y un equipo técnico consolidado. La cartera se concentra en contratos de mantenimiento plurianuales.",
     saleReason: "jubilacion",
     sellerFinancing: { mode: "yes", maxPct: 20, years: 3 },
     sellerStay: "6m",

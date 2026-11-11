@@ -4,6 +4,7 @@ import { SignedInPage } from "@/components/signed-in-page";
 import { billingCopy } from "@/lib/billing-copy";
 import { loadBuyerPlan } from "@/server/buyerPlan";
 import { fulfillCheckout } from "@/server/fulfillCheckout";
+import { isIntEnvironment } from "@/lib/int-env";
 import { requireRole } from "@/server/requireRole";
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export default async function PremiumPage({
 
   return (
     <SignedInPage title={billingCopy.title}>
-      <PremiumPlans plan={billing.plan} notice={notice} />
+      <PremiumPlans plan={billing.plan} notice={notice} testMode={isIntEnvironment()} />
     </SignedInPage>
   );
 }

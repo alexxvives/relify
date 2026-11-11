@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { headContainsIconAndOgImage } from "../../../src/lib/seo-head";
 
 test.describe("visitor landing and public forms", () => {
   test("landing loads and links to registro", async ({ page }) => {
@@ -69,6 +70,26 @@ test.describe("visitor landing and public forms", () => {
     const payload = await jsonLd.first().textContent();
     expect(payload).toMatch(/FAQPage/);
     expect(payload).toMatch(/Service/);
+  });
+
+  test("initial HTML puts favicon and og:image in <head>", async ({ request }) => {
+    for (const path of ["/", "/valorar", "/lista-de-espera"]) {
+      const response = await request.get(path);
+      expect(response.ok()).toBe(true);
+      const html = await response.text();
+      expect(headContainsIconAndOgImage(html), path).toBe(true);
+      expect(html).toMatch(/twitter:card|summary_large_image/);
+    }
+  });
+
+  test("cookie banner and /cookies list GA cookies", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /cookies en relify/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^aceptar$/i })).toBeVisible();
+    await page.getByRole("link", { name: /política de cookies/i }).click();
+    await expect(page).toHaveURL(/\/cookies/);
+    await expect(page.getByText("_ga", { exact: true })).toBeVisible();
+    await expect(page.getByText("_ga_*", { exact: true })).toBeVisible();
   });
 
   test("landing confidentiality has no catalog CTA", async ({ page }) => {
