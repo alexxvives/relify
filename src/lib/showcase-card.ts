@@ -1,4 +1,4 @@
-import type { ShowcaseDeal, ShowcaseSector } from "@/lib/landing-copy";
+import { showcaseSectorLabels, type ShowcaseDeal, type ShowcaseSector } from "./landing-copy";
 import type { PublicProjectCard } from "@/lib/public-project";
 import type { SectorImageKey } from "@/lib/sector-image";
 import type { HeadcountRangeId } from "@/lib/company-profile";
@@ -12,38 +12,38 @@ const extras: readonly {
   financingChip: string | null;
 }[] = [
   {
-    cnaeCode: "47.11",
-    cnaeTitle: "Comercio al por menor en establecimientos no especializados",
-    summary: "Negocio de proximidad con venta recurrente y un equipo reducido en zona urbana.",
-    headcount: "band_6_10",
+    cnaeCode: "25.11",
+    cnaeTitle: "Fabricación de estructuras metálicas y sus partes",
+    summary: "Taller industrial con cartera de obras y un equipo técnico consolidado.",
+    headcount: "band_11_20",
     financingChip: "Financiación vendedor",
   },
   {
-    cnaeCode: "96.02",
-    cnaeTitle: "Peluquería y otros tratamientos de belleza",
-    summary: "Servicios locales con clientela habitual y baja dependencia de un único canal.",
-    headcount: "band_1_5",
+    cnaeCode: "49.41",
+    cnaeTitle: "Transporte de mercancías por carretera",
+    summary: "Flota regional con contratos recurrentes y rutas ya definidas.",
+    headcount: "band_6_10",
     financingChip: null,
   },
   {
-    cnaeCode: "45.20",
-    cnaeTitle: "Mantenimiento y reparación de vehículos de motor",
-    summary: "Taller con cartera de flotas y particulares. Recurrencia alta y local consolidado.",
-    headcount: "band_6_10",
+    cnaeCode: "10.71",
+    cnaeTitle: "Fabricación de pan y de productos frescos de panadería y pastelería",
+    summary: "Obrador con venta propia y a hostelería. Demanda local y procesos ya definidos.",
+    headcount: "band_11_20",
     financingChip: "Financia hasta 20 %",
   },
   {
-    cnaeCode: "47.76",
-    cnaeTitle: "Comercio al por menor de flores, plantas y semillas",
-    summary: "Punto de venta especializado con temporada marcada y clientela de barrio.",
-    headcount: "band_1_5",
+    cnaeCode: "56.10",
+    cnaeTitle: "Restaurantes y puestos de comidas",
+    summary: "Local con clientela habitual y un equipo reducido en zona urbana.",
+    headcount: "band_6_10",
     financingChip: null,
   },
   {
-    cnaeCode: "46.19",
-    cnaeTitle: "Intermediarios del comercio de productos diversos",
-    summary: "Distribución B2B con margen estable y una cartera de clientes industriales.",
-    headcount: "band_11_20",
+    cnaeCode: "41.20",
+    cnaeTitle: "Construcción de edificios",
+    summary: "Promotora local con obras en curso y una cartera de clientes industriales.",
+    headcount: "band_21_50",
     financingChip: "Financiación vendedor",
   },
   {
@@ -54,23 +54,23 @@ const extras: readonly {
     financingChip: null,
   },
   {
-    cnaeCode: "10.71",
-    cnaeTitle: "Fabricación de pan y de productos frescos de panadería y pastelería",
-    summary: "Obrador con venta propia y a hostelería. Demanda local y procesos ya definidos.",
-    headcount: "band_11_20",
+    cnaeCode: "47.11",
+    cnaeTitle: "Comercio al por menor en establecimientos no especializados",
+    summary: "Negocio de proximidad con venta recurrente y un equipo reducido en zona urbana.",
+    headcount: "band_6_10",
     financingChip: null,
   },
   {
-    cnaeCode: "47.19",
-    cnaeTitle: "Otro comercio al por menor en establecimientos no especializados",
-    summary: "Retail de proximidad con ticket medio estable y un local en calle comercial.",
-    headcount: "band_6_10",
+    cnaeCode: "55.10",
+    cnaeTitle: "Hoteles y alojamientos similares",
+    summary: "Alojamiento con ocupación estable y un local en zona turística.",
+    headcount: "band_11_20",
     financingChip: "Financiación vendedor",
   },
 ];
 
 function sectorLabel(sector: ShowcaseSector): string {
-  return sector.charAt(0).toUpperCase() + sector.slice(1);
+  return showcaseSectorLabels[sector];
 }
 
 /**

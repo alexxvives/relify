@@ -20,8 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: new URL("/valorar", siteUrl).href,
-      changeFrequency: "monthly",
-      priority: 0.5,
+      changeFrequency: "weekly",
+      priority: 0.8,
     },
     {
       url: new URL("/blog", siteUrl).href,

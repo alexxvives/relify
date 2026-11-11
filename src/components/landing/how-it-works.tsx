@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 type Track = (typeof landingCopy.home.flow.tracks)[FlowRole];
@@ -163,18 +161,17 @@ export function HowItWorks({ role }: { role: FlowRole }) {
     return null;
   }
 
-  const cta = copy.cta[role];
+  const heading = roleName ? `${roleName}. ${copy.heading}` : copy.heading;
 
   return (
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-24">
       <div className="mx-auto w-full max-w-[1100px]">
         <div className="mx-auto mb-5 max-w-xl text-center sm:mb-14">
           <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 sm:mt-3">
-            {roleName ? <span className="mb-1 block text-public-clay">{roleName}</span> : null}
-            {copy.heading}
+          <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 text-pretty sm:mt-3">
+            {heading}
           </h2>
-          <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
+          <p className="mt-3 text-[16px] leading-7 text-pretty text-public-muted sm:mt-4">{copy.intro}</p>
         </div>
 
         <ol className="releva-how-mobile lg:hidden">
@@ -212,16 +209,6 @@ export function HowItWorks({ role }: { role: FlowRole }) {
           <div className="releva-how-visual" aria-hidden="true">
             <FadingPanel step={current} token={`${role}-${current.n}`} />
           </div>
-        </div>
-
-        <div className="mt-6 flex justify-center sm:mt-10">
-          <Link
-            href={cta.href}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 text-sm font-semibold text-white hover:bg-public-clay-deep sm:w-auto"
-          >
-            {cta.label}
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
         </div>
       </div>
     </section>
@@ -344,8 +331,16 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
     typedField?.kind === "type" ? typedField.startAt : 0,
     play && typedField?.kind === "type",
   );
-  const done = picks.filter(Boolean).length + (typed.done ? 1 : 0);
-  const width = Math.min(100, 8 + 23 * done);
+  const fills = "fills" in panel ? panel.fills : [];
+  const charts = "charts" in panel ? panel.charts : [];
+  const fillFlags = useDelays(
+    fills.map((_, index) => 700 + index * 380),
+    play && typed.done,
+  );
+  const chartsOn = useDelays([700 + fills.length * 380 + 180], play && typed.done)[0] === true;
+  const filled = fillFlags.filter(Boolean).length;
+  const done = picks.filter(Boolean).length + (typed.done ? 1 : 0) + filled + (chartsOn ? 1 : 0);
+  const width = Math.min(100, 8 + 18 * done);
 
   return (
     <div className="releva-hv-body">
@@ -384,6 +379,49 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
           </div>
         );
       })}
+      {fills.map((row, index) => {
+        const ready = fillFlags[index] === true;
+        return (
+          <div key={row.label} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.18 + index * 0.07}s` }}>
+            <span className="releva-hv-task-name">{row.label}</span>
+            {ready ? (
+              <span className="releva-hv-state">
+                <Tick />
+                {row.value}
+              </span>
+            ) : (
+              <span className="releva-hv-state releva-hv-state-pending">
+                <span className="releva-hv-spinner" aria-hidden="true" />
+                Leyendo
+              </span>
+            )}
+          </div>
+        );
+      })}
+      {charts.length > 0 ? (
+        <div className={chartsOn ? "releva-hv-charts releva-hv-charts-on" : "releva-hv-charts"}>
+          {charts.map((chart) => {
+            const peak = Math.max(...chart.values, 1);
+            return (
+              <div key={chart.label} className="releva-hv-chart">
+                <span className="releva-hv-chart-label">
+                  {chart.label}
+                  {chart.unit ? ` · ${chart.unit}` : ""}
+                </span>
+                <span className="releva-hv-bars">
+                  {chart.values.map((value, barIndex) => (
+                    <span
+                      key={`${chart.label}-${barIndex}`}
+                      className="releva-hv-bar"
+                      style={{ height: `${Math.max(12, Math.round((value / peak) * 100))}%`, animationDelay: `${0.08 + barIndex * 0.08}s` }}
+                    />
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
       <div className="releva-hv-row releva-hv-foot" style={{ animationDelay: `${0.06 + panel.fields.length * 0.07}s` }}>
         <span className="releva-hv-progress" aria-hidden="true">
           <span className="releva-hv-progress-fill" style={{ width: `${width}%` }} />

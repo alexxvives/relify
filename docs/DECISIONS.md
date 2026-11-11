@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S4 company PDFs, /valorar SEO, landing
+
+Company teaser and post-NDA dossier PDFs are drawn with the existing `pdf-lib` dependency (Workers-safe, no paid API). The teaser is the pre-NDA card (`reportHeadline` only, no legal name/CIF). The dossier is the investor ficha after `ndaAccessGate`, watermarked with buyer name/email/date, still without identity. Downloads are logged in additive `pdf_download`. `/valorar` is a distinct Costa editorial page with Service + FAQPage JSON-LD. Landing specimens mix sectors; process and step-1 animations respect `prefers-reduced-motion`.
+
 ## 2026-11-10 — Round S3 INT catch-all as secret; valuation save notice stays
 
 `INT_EMAIL_CATCHALL` is a Worker secret (`wrangler secret put … --name releva-int`), not a packaged `[vars]` value. An empty pack var overwrote the dashboard even with `--keep-vars`. Same put command for `INT_MAILEROO_API_KEY`. `/admin/valoraciones` row forms keep a stable `key={id}` so `Solicitud actualizada.` stays visible about 3 seconds after revalidate.

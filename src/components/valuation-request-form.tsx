@@ -27,7 +27,7 @@ export function ValuationRequestForm({ account }: { account: ValuationAccount | 
   if (state.status === "ok") {
     return (
       <div
-        className="mt-8 max-w-xl rounded-3xl border border-[#d7ebe8] bg-[#f3faf8] p-6 sm:p-8"
+        className="mt-5 max-w-xl rounded-3xl border border-[#d7ebe8] bg-[#f3faf8] p-6 sm:p-8"
         role="status"
       >
         <span className="flex size-11 items-center justify-center rounded-2xl bg-[#e6f4f2] text-[#0f6b62]">
@@ -40,7 +40,7 @@ export function ValuationRequestForm({ account }: { account: ValuationAccount | 
   }
 
   return (
-    <form action={action} className="mt-8 max-w-xl" noValidate>
+    <form action={action} className="mt-5 max-w-xl" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm font-medium sm:col-span-2">
           {valuationCopy.cif}

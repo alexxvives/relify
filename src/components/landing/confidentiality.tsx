@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function Confidentiality() {
@@ -70,13 +68,6 @@ export function Confidentiality() {
             <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.ndaBody}</p>
           </article>
         </div>
-        <Link
-          href={copy.ctaHref}
-          className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 text-sm font-semibold text-white hover:bg-public-clay-deep sm:mt-8 sm:w-auto"
-        >
-          {copy.cta}
-          <ArrowRight className="size-4" aria-hidden />
-        </Link>
       </div>
     </section>
   );

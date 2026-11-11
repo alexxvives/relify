@@ -3,29 +3,47 @@ import { ArrowRight } from "lucide-react";
 import { ProcessTimeline } from "@/components/landing/process-timeline";
 import { landingCopy } from "@/lib/landing-copy";
 
+type CssVar = Record<string, string>;
+
 function FichaReveal() {
   return (
     <div className="releva-ficha-reveal" aria-hidden="true">
-      <article className="releva-ficha-card">
+      <article className="releva-ficha-card releva-ficha-card-live">
         <div className="releva-ficha-cover">
+          <span className="releva-ficha-stamp">Confidencial</span>
+          <span className="releva-ficha-veil" />
+          <span className="releva-ficha-redact">
+            <i />
+            <i />
+            <i />
+          </span>
           <span className="releva-ficha-legal">Tecnología Digital SL</span>
           <span className="releva-ficha-codename">Proyecto Alba</span>
-          <span className="releva-ficha-place">Valencia · Comercio</span>
+          <span className="releva-ficha-place">Valencia · Industria</span>
         </div>
         <dl className="releva-ficha-figures">
           <div>
             <dt>Facturación</dt>
             <dd>1,25 M €</dd>
+            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.82" } as CssVar} />
           </div>
           <div>
             <dt>EBITDA</dt>
             <dd>310 K €</dd>
+            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.58" } as CssVar} />
           </div>
           <div>
             <dt>Precio</dt>
             <dd>980 K €</dd>
+            <span className="releva-ficha-meter" style={{ "--ficha-n": "0.7" } as CssVar} />
           </div>
         </dl>
+        <div className="releva-ficha-spark">
+          <span style={{ "--ficha-h": "38%" } as CssVar} />
+          <span style={{ "--ficha-h": "54%" } as CssVar} />
+          <span style={{ "--ficha-h": "46%" } as CssVar} />
+          <span style={{ "--ficha-h": "78%" } as CssVar} />
+        </div>
       </article>
     </div>
   );

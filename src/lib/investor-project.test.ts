@@ -46,6 +46,7 @@ const hiddenKeys = [
   "ownerId",
   "shareholders",
   "status",
+  "teaserToken",
   "workingCapitalCents",
 ] as const;
 

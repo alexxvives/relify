@@ -44,11 +44,36 @@ test.describe("visitor landing and public forms", () => {
     }
   });
 
-  test("/archivo is a Relify 404 with CTAs", async ({ page }) => {
+  test("/archivo is a Relify 404 without Ver empresas", async ({ page }) => {
     const response = await page.goto("/archivo");
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: /no está en relify/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /ir al inicio/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /ver empresas/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /ver empresas/i })).toHaveCount(0);
+  });
+
+  test("/sd is the same Relify 404", async ({ page }) => {
+    const response = await page.goto("/sd");
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: /no está en relify/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /ver empresas/i })).toHaveCount(0);
+  });
+
+  test("valorar has SEO FAQ and the CIF form", async ({ page }) => {
+    await page.goto("/valorar");
+    await expect(page.locator('input[name="cif"]')).toBeVisible();
+    await expect(page.getByRole("heading", { name: /preguntas frecuentes/i })).toBeVisible();
+    await expect(page.getByText(/¿cuánto vale mi empresa\?/i)).toBeVisible();
+    const jsonLd = page.locator('script[type="application/ld+json"]');
+    await expect(jsonLd.first()).toBeAttached();
+    const payload = await jsonLd.first().textContent();
+    expect(payload).toMatch(/FAQPage/);
+    expect(payload).toMatch(/Service/);
+  });
+
+  test("landing confidentiality has no catalog CTA", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /confidencialidad en relify/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /ver cómo se publica/i })).toHaveCount(0);
   });
 });

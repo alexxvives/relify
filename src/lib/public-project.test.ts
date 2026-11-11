@@ -24,6 +24,7 @@ const privateKeys = [
   "createdAt",
   "status",
   "ownerId",
+  "teaserToken",
   "foundedYear",
   "description",
   "opexCents",

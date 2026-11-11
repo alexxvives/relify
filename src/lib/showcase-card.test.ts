@@ -21,12 +21,12 @@ describe("showcaseToProjectCard", () => {
     const card = showcaseToProjectCard(deal, 0);
     expect(card.codename).toBe(deal.codename);
     expect(card.region).toBe(deal.region);
-    expect(card.sectorKey).toBe("comercio");
-    expect(card.cnaeCode).toBe("47.11");
-    expect(card.summary).toMatch(/proximidad/);
+    expect(card.sectorKey).toBe("industria");
+    expect(card.cnaeCode).toBe("25.11");
+    expect(card.summary).toMatch(/industrial/);
     expect(card.hasAdjustments).toBe(true);
     expect(card.askingPriceCents).toBe(19_000_000);
-    expect(card.headcount).toBe("band_6_10");
+    expect(card.headcount).toBe("band_11_20");
     expect(landingPreviewHref).toBe("/lista-de-espera");
   });
 });

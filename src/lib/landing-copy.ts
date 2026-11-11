@@ -84,8 +84,6 @@ export const landingCopy = {
     toastBody: "Un comprador se ha interesado por una empresa",
     ndaFile: "Acuerdo de confidencialidad (NDA) con Proyecto Alba",
     ndaAction: "Firmar NDA",
-    cta: "Ver cómo se publica",
-    ctaHref: "/empresas",
   },
   activity: {
     id: "actividad",
@@ -273,9 +271,16 @@ export const landingCopy = {
                 foot: "Con el CIF, el resto se rellena solo",
                 fields: [
                   { kind: "type", label: "CIF de la empresa", text: "B12345678", startAt: 400 },
-                  { kind: "choice", label: "Datos registrales", options: ["Buscando", "Encontrados"], pickAt: 1900 },
-                  { kind: "choice", label: "Gráficos de la empresa", options: ["Preparando", "Listos"], pickAt: 2700 },
-                  { kind: "choice", label: "¿Qué vas a vender?", options: ["La empresa", "Una parte", "Aún no lo sé"], pickAt: 3500 },
+                  { kind: "choice", label: "¿Qué vas a vender?", options: ["La empresa", "Una parte", "Aún no lo sé"], pickAt: 4200 },
+                ],
+                fills: [
+                  { label: "Actividad CNAE", value: "25.11 · Estructuras metálicas" },
+                  { label: "Región", value: "Valencia" },
+                  { label: "Constitución", value: "2009" },
+                ],
+                charts: [
+                  { label: "Facturación", unit: "K €", values: [820, 960, 1100, 1250] },
+                  { label: "EBITDA", unit: "K €", values: [140, 190, 250, 310] },
                 ],
               },
             },
@@ -470,8 +475,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "48K €",
     adjusted: "52K €",
     price: "190K €",
-    sector: "comercio",
-    image: "/pymes/pyme-cafe.jpg",
+    sector: "industria",
+    image: "/sectors/industria.jpg",
   },
   {
     codename: "Proyecto Norte",
@@ -480,8 +485,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "36K €",
     adjusted: "41K €",
     price: "145K €",
-    sector: "servicios",
-    image: "/pymes/pyme-peluqueria.jpg",
+    sector: "transporte",
+    image: "/sectors/transporte.jpg",
   },
   {
     codename: "Proyecto Mar",
@@ -490,8 +495,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "62K €",
     adjusted: "70K €",
     price: "240K €",
-    sector: "servicios",
-    image: "/pymes/pyme-taller.jpg",
+    sector: "alimentacion",
+    image: "/sectors/alimentacion.jpg",
   },
   {
     codename: "Proyecto Sur",
@@ -500,8 +505,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "29K €",
     adjusted: "34K €",
     price: "110K €",
-    sector: "comercio",
-    image: "/pymes/pyme-flor.jpg",
+    sector: "hosteleria",
+    image: "/sectors/hosteleria.jpg",
   },
   {
     codename: "Proyecto Cobre",
@@ -510,8 +515,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "78K €",
     adjusted: "86K €",
     price: "310K €",
-    sector: "comercio",
-    image: "/pymes/pyme-mesa.jpg",
+    sector: "construccion",
+    image: "/sectors/construccion.jpg",
   },
   {
     codename: "Proyecto Lumen",
@@ -521,7 +526,7 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     adjusted: "61K €",
     price: "220K €",
     sector: "servicios",
-    image: "/pymes/pyme-ceramica.jpg",
+    image: "/sectors/servicios.jpg",
   },
   {
     codename: "Proyecto Olivo",
@@ -531,7 +536,7 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     adjusted: "91K €",
     price: "290K €",
     sector: "comercio",
-    image: "/pymes/pyme-obrador.jpg",
+    image: "/sectors/comercio.jpg",
   },
   {
     codename: "Proyecto Delta",
@@ -540,8 +545,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "96K €",
     adjusted: "110K €",
     price: "390K €",
-    sector: "comercio",
-    image: "/pymes/pyme-tienda.jpg",
+    sector: "turismo",
+    image: "/sectors/turismo.jpg",
   },
 ];
 
@@ -554,7 +559,26 @@ export const specimenMetrics = [
 
 export type FlowRole = (typeof landingCopy.home.paths.columns)[number]["id"];
 
-export type ShowcaseSector = "industria" | "comercio" | "servicios" | "transporte";
+export type ShowcaseSector =
+  | "industria"
+  | "comercio"
+  | "servicios"
+  | "transporte"
+  | "alimentacion"
+  | "hosteleria"
+  | "construccion"
+  | "turismo";
+
+export const showcaseSectorLabels: Record<ShowcaseSector, string> = {
+  industria: "Industria",
+  comercio: "Comercio",
+  servicios: "Servicios",
+  transporte: "Transporte",
+  alimentacion: "Alimentación",
+  hosteleria: "Hostelería",
+  construccion: "Construcción",
+  turismo: "Turismo",
+};
 
 export type ShowcaseDeal = {
   codename: string;
@@ -703,12 +727,78 @@ export const mapRegions = [
 ] as const;
 
 export const activityItems = [
-  { time: "Ejemplo", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del comprador", from: "IN 1842", to: "Proyecto Alba" },
-  { time: "Ejemplo", title: "Nuevo interés", body: "El comprador ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
-  { time: "Ejemplo", title: "Reunión aceptada", body: "La empresa ha aceptado la reunión", from: "IN 0901", to: "Proyecto Mar" },
-  { time: "Ejemplo", title: "Reunión solicitada", body: "El comprador pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
-  { time: "Ejemplo", title: "Conexión aceptada", body: "La solicitud de conexión ya está aceptada", from: "IN 1188", to: "Proyecto Cobre" },
-  { time: "Ejemplo", title: "Nuevo interés", body: "Un asesor ha presentado un mandato", from: "AS 044", to: "Proyecto Delta" },
+  {
+    time: "Ejemplo",
+    kind: "accepted",
+    title: "Conexión aceptada",
+    body: "La empresa ha aceptado la solicitud del comprador",
+    from: "IN 1842",
+    to: "Proyecto Alba",
+    sector: "industria",
+    revenue: "1,25 M €",
+    ebitda: "310 K €",
+    spark: [42, 55, 48, 72],
+  },
+  {
+    time: "Ejemplo",
+    kind: "interest",
+    title: "Nuevo interés",
+    body: "El comprador ha enviado una solicitud de conexión",
+    from: "IN 2204",
+    to: "Proyecto Norte",
+    sector: "transporte",
+    revenue: "820 K €",
+    ebitda: "140 K €",
+    spark: [28, 36, 33, 51],
+  },
+  {
+    time: "Ejemplo",
+    kind: "meeting",
+    title: "Reunión aceptada",
+    body: "La empresa ha aceptado la reunión",
+    from: "IN 0901",
+    to: "Proyecto Mar",
+    sector: "alimentacion",
+    revenue: "2,1 M €",
+    ebitda: "410 K €",
+    spark: [50, 46, 61, 68],
+  },
+  {
+    time: "Ejemplo",
+    kind: "meeting",
+    title: "Reunión solicitada",
+    body: "El comprador pide una reunión con la empresa",
+    from: "IN 3310",
+    to: "Proyecto Lumen",
+    sector: "servicios",
+    revenue: "960 K €",
+    ebitda: "180 K €",
+    spark: [30, 44, 41, 58],
+  },
+  {
+    time: "Ejemplo",
+    kind: "accepted",
+    title: "Conexión aceptada",
+    body: "La solicitud de conexión ya está aceptada",
+    from: "IN 1188",
+    to: "Proyecto Cobre",
+    sector: "construccion",
+    revenue: "3,4 M €",
+    ebitda: "620 K €",
+    spark: [38, 52, 60, 74],
+  },
+  {
+    time: "Ejemplo",
+    kind: "mandate",
+    title: "Nuevo interés",
+    body: "Un asesor ha presentado un mandato",
+    from: "AS 044",
+    to: "Proyecto Delta",
+    sector: "turismo",
+    revenue: "1,8 M €",
+    ebitda: "290 K €",
+    spark: [24, 31, 45, 49],
+  },
 ] as const;
 
 export const caseStudies = [

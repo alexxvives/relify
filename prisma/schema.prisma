@@ -152,6 +152,7 @@ model User {
   engagementsOwned     AdvisoryEngagement[]    @relation("EngagementAdvisor")
   investorProfile      InvestorProfile?
   valuationRequests    ValuationRequest[]
+  pdfDownloads         PdfDownload[]
 
   @@unique([email])
   @@map("user")
@@ -310,8 +311,23 @@ model Project {
   photos              ProjectPhoto[]
   adjustmentDocuments AdjustmentDocument[]
   valuationRequests   ValuationRequest[]
+  teaserToken         String?              @unique @map("teaser_token")
+  pdfDownloads        PdfDownload[]
   @@index([ownerId])
   @@map("project")
+}
+
+model PdfDownload {
+  id        String   @id
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([projectId, createdAt])
+  @@map("pdf_download")
 }
 
 model ProjectCnae {

@@ -26,6 +26,7 @@ import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
+import { BuyerDossierLink } from "@/components/company-pdf-card";
 
 function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
@@ -149,6 +150,7 @@ export function InvestorProject({
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}
                 />
+                {access === "accepted" ? <BuyerDossierLink slug={project.slug} /> : null}
                 <RelatedCompanies items={recommendations} />
               </div>
             </div>

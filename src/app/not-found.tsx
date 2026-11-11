@@ -5,7 +5,6 @@ const copy = {
   kicker: "404",
   title: "Esta página no está en Relify",
   home: "Ir al inicio",
-  catalog: "Ver empresas",
 };
 
 export default function NotFound() {
@@ -19,9 +18,6 @@ export default function NotFound() {
         <div className="mt-8 flex w-full max-w-md flex-col gap-2.5 sm:flex-row sm:justify-center sm:gap-3">
           <Link href="/" className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-public-clay px-5 text-sm text-white hover:bg-public-clay-deep">
             {copy.home}
-          </Link>
-          <Link href="/empresas" className="inline-flex h-12 min-h-12 items-center justify-center rounded-full border border-public-line bg-white px-5 text-sm hover:border-public-ink">
-            {copy.catalog}
           </Link>
         </div>
       </main>
