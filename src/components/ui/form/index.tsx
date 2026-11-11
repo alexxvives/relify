@@ -5,12 +5,12 @@ import { ChevronDown, Eye, EyeOff, type LucideIcon } from "lucide-react";
 import { cn } from "cn";
 
 /**
- * Relify form kit. One look for every app form: white field, soft border,
- * navy text and an indigo focus ring. Inputs forward every native prop, so
+ * Relify form kit. One look for every app form: sand field, square radius
+ * (`--field-radius`), ink text. Inputs forward every native prop, so
  * server actions and FormData keep working unchanged.
  */
 export const fieldBase =
-  "w-full rounded-xl border border-[#e7eaee] bg-white text-base text-[#2b3b4a] outline-none transition-colors placeholder:text-[#8a97a8] focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20 disabled:cursor-not-allowed disabled:bg-[#f4f6f9] disabled:opacity-70 aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+  "relify-field w-full rounded-[var(--field-radius)] border border-public-line bg-public-sand text-base text-public-ink outline-none transition-colors placeholder:text-public-muted focus-visible:border-public-ink disabled:cursor-not-allowed disabled:opacity-70 aria-invalid:border-[#c0362c]";
 
 const fieldSize = { sm: "h-9 px-2 text-sm", md: "h-11 px-3" } as const;
 

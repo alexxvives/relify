@@ -20,8 +20,7 @@ import { Button, Card, Input, Textarea } from "@/components/ui/form";
 
 type PanelId = "corporate" | "services" | "documents";
 
-const fieldClass =
-  "h-11 w-full rounded-xl border border-[#e7eaee] px-3 text-sm outline-none focus-visible:border-[#5c4de0]";
+const fieldClass = "relify-field h-11 w-full px-3 text-sm";
 
 function PriceField({
   label,
@@ -46,7 +45,7 @@ function PriceField({
           onChange={(event) => {
             onChange(event.target.value.replace(/\D/g, ""));
           }}
-          className="h-10 w-28 rounded-xl border border-[#e7eaee] pr-7 pl-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]"
+          className="relify-field h-10 w-28 pr-7 pl-3 text-sm disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]"
         />
         <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-sm" aria-hidden>
           €

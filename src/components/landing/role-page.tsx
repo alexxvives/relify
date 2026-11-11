@@ -159,7 +159,7 @@ export function RolePage(props: RolePageProps) {
           <div className="relative mx-auto max-w-[1440px] overflow-hidden rounded-[1.5rem] bg-[#12343a] sm:rounded-[2rem]">
             <Image src={photo} alt="" fill sizes="1280px" className="object-cover opacity-25" />
             <div className="relative flex flex-col items-stretch gap-5 px-5 py-10 sm:items-start sm:gap-6 sm:px-12 sm:py-14 md:flex-row md:items-center md:justify-between">
-              <h2 className="releva-section-title max-w-xl text-balance text-white">{props.closingTitle}</h2>
+              <h2 className="releva-section-title text-balance text-white">{props.closingTitle}</h2>
               <Link href={cta.href} className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 font-medium text-[#12343a] transition-colors duration-200 hover:bg-[#e5eef0] md:w-auto">
                 {cta.label}
                 <ArrowRight className="size-4" aria-hidden />

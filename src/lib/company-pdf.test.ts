@@ -33,20 +33,29 @@ describe("company PDF views", () => {
     const view = sampleTeaserView();
     expect(companyPdfHasIdentity(view)).toBe(false);
     expect(JSON.stringify(view)).not.toMatch(/Tecnolog/i);
+    expect(JSON.stringify(view)).not.toMatch(/B\d{8}/);
+    expect(view.codename).toBe("Proyecto Quercus");
     expect(view.kpis).toHaveLength(3);
-    expect(view.kpis[0]?.value).toBe("1,25 M €");
-    expect(view.kpis[2]?.value).toBe("980 K €");
+    expect(view.kpis[0]?.value).toBe("5 M €");
+    expect(view.kpis[1]?.label).toBe("EBITDA aj.");
+    expect(view.kpis[1]?.value).toBe("800 K €");
+    expect(view.kpis[2]?.value).toBe("4 M €");
+    expect(view.years).toHaveLength(4);
+    expect(view.ratios).toHaveLength(0);
   });
 
   it("watermarks the dossier with the buyer and still omits company identity", () => {
     const view = sampleDossierView();
     expect(companyPdfHasIdentity(view)).toBe(false);
+    expect(JSON.stringify(view)).not.toMatch(/Tecnolog/i);
     expect(view.watermark).toMatch(/ana\.perez@example\.com/i);
     expect(view.years).toHaveLength(4);
+    expect(view.ratios.some((row) => /Deuda neta/i.test(row.label))).toBe(true);
+    expect(view.ratios.some((row) => row.label === "NOF")).toBe(true);
   });
 
   it("names files without accents or spaces", () => {
-    expect(companyPdfFileName("teaser", "Proyecto Alba")).toBe("relify-perfil-ciego-proyecto-alba.pdf");
+    expect(companyPdfFileName("teaser", "Proyecto Quercus")).toBe("relify-perfil-ciego-proyecto-quercus.pdf");
     expect(companyPdfFileName("dossier", "Proyecto Norte")).toBe("relify-cuaderno-de-venta-proyecto-norte.pdf");
   });
 });
@@ -58,12 +67,20 @@ describe("buildCompanyPdf", () => {
     expect(teaser.byteLength).toBeGreaterThan(800);
     expect(dossier.byteLength).toBeGreaterThan(1200);
     expect(Buffer.from(teaser).subarray(0, 5).toString()).toBe("%PDF-");
-    expect(pdfPlain(dossier)).toMatch(/ana\.perez@example\.com/i);
-    const out = process.env.ROUND_S4_PDF_OUT;
+    const teaserText = pdfPlain(teaser);
+    const dossierText = pdfPlain(dossier);
+    expect(teaserText).toMatch(/Relify/);
+    expect(teaserText).toMatch(/Proyecto Quercus/);
+    expect(teaserText).not.toMatch(/Deuda neta/);
+    expect(teaserText).not.toMatch(/ana\.perez@example\.com/i);
+    expect(dossierText).toMatch(/ana\.perez@example\.com/i);
+    expect(dossierText).toMatch(/Deuda neta/);
+    expect(dossierText).toMatch(/NOF/);
+    const out = process.env.ROUND_S5_PDF_OUT ?? process.env.ROUND_S4_PDF_OUT;
     if (out) {
       mkdirSync(out, { recursive: true });
-      writeFileSync(`${out}/teaser-proyecto-alba.pdf`, teaser);
-      writeFileSync(`${out}/dossier-proyecto-alba.pdf`, dossier);
+      writeFileSync(`${out}/teaser-proyecto-quercus.pdf`, teaser);
+      writeFileSync(`${out}/dossier-proyecto-quercus.pdf`, dossier);
     }
   });
 });

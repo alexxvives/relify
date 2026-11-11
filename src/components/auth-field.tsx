@@ -7,7 +7,7 @@ import { ArcScope } from "@/components/arc/arc-scope";
 import { Input as ArcInput } from "@/components/arc/input/input";
 
 export const authFieldClassName =
-  "h-12 w-full rounded-full border border-[#e4edf2] bg-[#f7fafb] pr-12 pl-11 text-[15px] text-[#16324f] outline-none placeholder:text-[#8aa0b2] focus-visible:border-[#14998a] focus-visible:ring-3 focus-visible:ring-[#14998a]/20";
+  "relify-field h-12 w-full pr-12 pl-11 text-[15px] text-public-ink placeholder:text-public-muted";
 
 export const authLabelClassName = "flex flex-col gap-1.5 text-sm font-medium text-[#5d7082]";
 

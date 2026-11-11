@@ -15,8 +15,9 @@
   --control-on: var(--public-clay, #1aa6a0);
   --control-thumb-on: #fff;
   --control-glyph: #fff;
-  --font-display: inherit;
-  --font-body: inherit;
+  --font-display: var(--font-heading);
+  --font-body: var(--font-sans);
+  --radius-control: var(--field-radius, 0.9rem);
 }
 
 /* Blocks sit on the page's own paper colour. */

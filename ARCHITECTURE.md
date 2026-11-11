@@ -60,6 +60,8 @@ Money is EUR. Store integers in cents. Format in the UI.
 
 Do not start a later surface while an earlier one fails the validation gate in `AGENTS.md`.
 
+Public type and form tokens live in `docs/DESIGN-TOKENS.md` (`--font-sans`, `--font-heading`, `--font-display`, `--field-radius`). Pages must not set their own `font-family`.
+
 ## File rules
 
 - One service module per use case, named after the action (`publishProject`, `acceptNda`).

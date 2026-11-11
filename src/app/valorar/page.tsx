@@ -119,12 +119,14 @@ export default async function ValuationPage() {
 
           <section className="releva-valorar-faq" aria-labelledby="valorar-faq">
             <h2 id="valorar-faq">{valuationCopy.faqTitle}</h2>
-            {valuationCopy.faq.map((item) => (
-              <details key={item.q}>
-                <summary>{item.q}</summary>
-                <p>{item.a}</p>
-              </details>
-            ))}
+            <div className="releva-valorar-faq-list">
+              {valuationCopy.faq.map((item) => (
+                <details key={item.q}>
+                  <summary>{item.q}</summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
         </div>
       </main>

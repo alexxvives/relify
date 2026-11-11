@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-11: `/lista-de-espera` orbit faces were blank — `img-src 'self' data: blob:` blocks `api.dicebear.com` — use a local `data:image/svg+xml` avatar (`gazeAvatarUrl`), not a remote host.
+- 2026-11-11: Landing titles wrapped like posters — containers used `max-width: 12ch`/`14ch`/`18ch` or `max-w-[40rem]` around large clamp type, and waitlist coloured the second phrase in a `display:block` span — drop those; `text-wrap: pretty` is enough. ESLint flags `<br>` on landing/valorar/waitlist.
+- 2026-11-11: Process ficha showed the legal name after it was already struck — hide keyframes were 4.8s and redact 6.4s, so the name loop restarted under leftover bars — one 8s timeline: name on, then redact, name stays gone until redact retracts.
 - 2026-11-10: INT catch-all on the dashboard vanished after a pack upload with `--keep-vars` — packaged `wrangler.toml` `[vars] INT_EMAIL_CATCHALL=""` is still applied — never ship the catch-all as a var; `wrangler secret put INT_EMAIL_CATCHALL --name releva-int` only.
 - 2026-11-10: `src/server/mailer.test.ts` died with “Cannot find package '@/lib/int-env'” after a runtime `@/lib` import in `mailer.ts` — vitest resolves that file without the app alias for value imports — keep `mailer.ts` runtime imports relative (`../lib/...`), type-only `@/` imports are fine.
 - 2026-11-10: Buyer pre-NDA labelled “EBITDA ajustado 750 k” and also “EBITDA 750 k” with only a pending row — `adjustmentsForBuyer` returned null, so `publishedEbitdaFromAdjustments` treated the copied accounts column as a legacy approved figure — return `[]` when every row was stripped, and never treat equal-to-accounts legacy as approved.

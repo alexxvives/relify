@@ -10,7 +10,7 @@ Installed at the repo root. The resolved versions below are the versions from `p
 | Runtime | Node.js 20 or newer. This machine has Node 24.19.0. |
 | Package manager | npm. This machine has npm 11.17.0. Do not switch to pnpm or yarn. |
 | App | Next.js App Router, single package at the repo root |
-| UI | React Server Components, Tailwind CSS, shadcn/ui copied into the repo |
+| UI | React Server Components, Tailwind CSS, shadcn/ui copied into the repo. Type and field tokens: `docs/DESIGN-TOKENS.md`. |
 | Validation | Zod at every trust boundary |
 | Database | PostgreSQL 16 locally in Docker. Production is Neon in Frankfurt, branch `production`, Postgres only. No SQLite. |
 | ORM | Prisma |

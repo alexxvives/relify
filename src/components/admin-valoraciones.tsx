@@ -74,7 +74,7 @@ function RowForm({ row }: { row: AdminValuationRow }) {
         <select
           name="status"
           defaultValue={row.status}
-          className="h-11 min-w-0 rounded-full border border-[#e7eaee] bg-white px-3 text-sm text-[#1c2740] outline-none focus-visible:border-[#1c2740]"
+          className="relify-field h-11 min-w-0 px-3 text-sm"
         >
           {valuationRequestStatuses.map((status) => (
             <option key={status} value={status}>

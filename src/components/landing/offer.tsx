@@ -22,12 +22,12 @@ export function Offer() {
       <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[1.5rem] border border-[#dde7ea] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7f8_100%)] p-4 text-[#1c2740] shadow-[0_30px_80px_-50px_rgba(28,39,64,0.45)] sm:rounded-[2rem] sm:p-8 lg:p-12">
         <div aria-hidden className="pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full bg-[radial-gradient(circle,rgba(47,196,178,0.16),transparent_65%)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
-          <div className="max-w-[40rem]">
+          <div>
             <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>
             <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
               {copy.heading}
             </h2>
-            <p className="mt-3 hidden max-w-[34rem] text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
+            <p className="mt-3 hidden text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
           </div>
           <p className="inline-flex items-center gap-2 self-start rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm lg:self-auto">
             <span className="relative flex size-2">

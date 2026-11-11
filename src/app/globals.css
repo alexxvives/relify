@@ -12,7 +12,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm), "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist-sans), "Segoe UI", sans-serif;
+  --font-display: var(--font-instrument), Georgia, "Times New Roman", serif;
   --font-public: var(--public-font);
   --color-public-paper: var(--public-paper);
   --color-public-ink: var(--public-ink);
@@ -108,8 +109,10 @@
   --public-sand: #f4f8f8;
   --public-radius: 1.5rem;
   --public-shadow: 0 18px 40px -24px rgb(18 52 58 / 0.22);
-  --public-font: var(--font-dm), "Segoe UI", sans-serif;
-  --public-display: var(--font-instrument), Georgia, "Times New Roman", serif;
+  --public-font: var(--font-sans);
+  --public-display: var(--font-display);
+  --public-heading: var(--font-heading);
+  --field-radius: 0.9rem;
 }
 
 .dark {
@@ -160,6 +163,16 @@
     @apply font-sans scroll-smooth;
     font-synthesis: none;
     overflow-x: clip;
+  }
+  h1,
+  h2,
+  h3,
+  .releva-section-title,
+  .releva-hero-title,
+  .releva-page-title,
+  .releva-wait-title,
+  .releva-valorar-title {
+    text-wrap: pretty;
   }
   /* Large monitors: scale the rem-based UI up a little so the full-width layout does not look tiny. */
   @media (min-width: 1800px) {
@@ -370,7 +383,7 @@
 }
 
 .releva-word {
-  font-family: var(--public-display);
+  font-family: var(--font-display);
   font-style: italic;
   font-weight: 400;
   letter-spacing: -0.03em;
@@ -593,7 +606,7 @@
 
 .releva-hero-title,
 .releva-page-title {
-  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  font-family: var(--font-heading);
   font-style: normal;
   font-weight: 600;
   letter-spacing: -0.045em;
@@ -618,7 +631,7 @@
 }
 
 .releva-404-num {
-  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(6.5rem, 28vw, 14rem);
   font-weight: 600;
   letter-spacing: -0.07em;
@@ -650,6 +663,7 @@
 }
 
 .releva-section-title {
+  font-family: var(--font-heading);
   font-size: clamp(1.75rem, 5.6vw, 3.75rem);
   line-height: 1.05;
   font-weight: 500;
@@ -747,7 +761,7 @@
   inset: 0;
   background: linear-gradient(105deg, transparent 28%, rgb(229 238 240 / 0.55) 42%, transparent 56%);
   transform: translateX(-120%);
-  animation: releva-ficha-veil 6.4s ease-in-out infinite;
+  animation: releva-ficha-veil 8s ease-in-out infinite;
 }
 
 .releva-ficha-stamp {
@@ -765,7 +779,7 @@
   text-transform: uppercase;
   transform: rotate(8deg) scale(0.4);
   opacity: 0;
-  animation: releva-ficha-stamp 6.4s ease-in-out infinite;
+  animation: releva-ficha-stamp 8s ease-in-out infinite;
 }
 
 .releva-ficha-redact {
@@ -786,7 +800,7 @@
   background: rgb(229 238 240 / 0.92);
   transform-origin: left center;
   transform: scaleX(0);
-  animation: releva-ficha-redact 6.4s ease-in-out infinite;
+  animation: releva-ficha-redact 8s ease-in-out infinite;
 }
 
 .releva-ficha-redact i:nth-child(2) {
@@ -813,11 +827,11 @@
   left: 1.15rem;
   filter: blur(7px);
   opacity: 0.55;
-  animation: releva-ficha-hide 4.8s ease-in-out infinite;
+  animation: releva-ficha-hide 8s ease-in-out infinite;
 }
 
 .releva-ficha-codename {
-  animation: releva-ficha-show 4.8s ease-in-out infinite;
+  animation: releva-ficha-show 8s ease-in-out infinite;
 }
 
 .releva-ficha-place {
@@ -865,7 +879,7 @@
   background: #0f6e73;
   transform: scaleX(0);
   transform-origin: left center;
-  animation: releva-ficha-meter 6.4s ease-in-out infinite;
+  animation: releva-ficha-meter 8s ease-in-out infinite;
 }
 
 .releva-ficha-spark {
@@ -883,7 +897,7 @@
   background: #0f6e73;
   transform: scaleY(0);
   transform-origin: bottom;
-  animation: releva-ficha-bar 6.4s ease-in-out infinite;
+  animation: releva-ficha-bar 8s ease-in-out infinite;
 }
 
 .releva-ficha-spark span:nth-child(2) { animation-delay: 0.08s; }
@@ -893,10 +907,18 @@
 @keyframes releva-ficha-hide {
   0%,
   18% {
-    opacity: 0.7;
+    opacity: 1;
     filter: blur(0);
   }
-  38%,
+  28% {
+    opacity: 0.85;
+    filter: blur(0);
+  }
+  40%,
+  92% {
+    opacity: 0;
+    filter: blur(8px);
+  }
   100% {
     opacity: 0;
     filter: blur(8px);
@@ -905,26 +927,29 @@
 
 @keyframes releva-ficha-show {
   0%,
-  18% {
+  22% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
-  38%,
-  82% {
+  40%,
+  88% {
     opacity: 1;
     transform: translateY(0);
   }
   100% {
-    opacity: 0.92;
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 
 @keyframes releva-ficha-veil {
   0%,
-  22% {
+  18% {
     transform: translateX(-120%);
   }
-  48%,
+  42% {
+    transform: translateX(120%);
+  }
   100% {
     transform: translateX(120%);
   }
@@ -932,29 +957,32 @@
 
 @keyframes releva-ficha-stamp {
   0%,
-  28% {
+  30% {
     opacity: 0;
     transform: rotate(8deg) scale(0.4);
   }
-  40%,
-  86% {
+  42%,
+  88% {
     opacity: 1;
     transform: rotate(8deg) scale(1);
   }
   100% {
-    opacity: 0.85;
-    transform: rotate(8deg) scale(1);
+    opacity: 0;
+    transform: rotate(8deg) scale(0.6);
   }
 }
 
 @keyframes releva-ficha-redact {
   0%,
-  16% {
+  18% {
     transform: scaleX(0);
   }
-  32%,
-  100% {
+  36%,
+  88% {
     transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
   }
 }
 
@@ -3219,18 +3247,16 @@ header:has([data-menu-open="true"]) {
 
 .releva-wait-title {
   position: relative;
-  max-width: 14ch;
   margin-top: 1rem;
-  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.85rem, 8vw, 5.6rem);
   font-style: normal;
   font-weight: 600;
-  line-height: 0.92;
+  line-height: 1.02;
   letter-spacing: -0.045em;
 }
 
 .releva-wait-title span {
-  display: block;
   font-family: inherit;
   font-style: normal;
   font-weight: 600;
@@ -3258,14 +3284,10 @@ header:has([data-menu-open="true"]) {
   overflow: hidden;
   border: 2px solid white;
   border-radius: 999px;
+  background-size: cover;
+  background-position: center;
   box-shadow: 0 8px 18px rgb(18 52 58 / 12%);
   animation: releva-wait-bob 3.6s ease-in-out infinite;
-}
-
-.releva-wait-face img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .releva-wait-card {
@@ -3278,7 +3300,7 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-wait-card h2 {
-  font-family: var(--public-font);
+  font-family: var(--font-heading);
   font-size: clamp(1.7rem, 4vw, 2.1rem);
   font-style: normal;
   font-weight: 600;
@@ -3322,15 +3344,32 @@ header:has([data-menu-open="true"]) {
   clip: rect(0 0 0 0);
 }
 
+.relify-field,
 .releva-wait-field {
   width: 100%;
-  height: 3rem;
+  min-height: 2.75rem;
   padding: 0 1rem;
   border: 1px solid var(--public-line);
-  border-radius: 0.9rem;
+  border-radius: var(--field-radius);
   background: var(--public-sand);
   color: var(--public-ink);
+  font-family: var(--font-sans);
   font-size: 1rem;
+  outline: none;
+}
+
+.releva-wait-field {
+  height: 3rem;
+}
+
+.relify-field:focus-visible,
+.releva-wait-field:focus-visible {
+  border-color: var(--public-ink);
+}
+
+.relify-field[aria-invalid="true"],
+.releva-wait-field[aria-invalid="true"] {
+  border-color: #c0362c;
 }
 
 .releva-wait-field::placeholder {
@@ -3460,7 +3499,6 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-wait-title {
-    max-width: 12ch;
     margin-top: 0.35rem;
   }
 
@@ -3725,30 +3763,26 @@ header:has([data-menu-open="true"]) {
 .releva-valorar {
   position: relative;
   overflow: hidden;
-  margin-top: -5.5rem;
-  padding: 6.5rem 1.25rem 4rem;
+  padding: 2.5rem 1.25rem 4rem;
   color: var(--public-ink);
-  background:
-    linear-gradient(180deg, rgb(18 52 58 / 0.04), transparent 28%),
-    repeating-linear-gradient(
-      180deg,
-      transparent 0,
-      transparent 31px,
-      rgb(18 52 58 / 0.035) 32px
-    ),
-    var(--public-paper);
 }
 
 .releva-valorar::before {
   content: "";
   position: absolute;
-  top: 4.5rem;
+  top: -8rem;
   right: -6rem;
-  width: 22rem;
-  height: 22rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgb(15 110 115 / 0.16), transparent 68%);
+  width: 28rem;
+  height: 28rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(15 110 115 / 0.14), transparent 68%);
   pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .releva-valorar {
+    padding: 3.5rem 1.5rem 5rem;
+  }
 }
 
 .releva-valorar-inner {
@@ -3767,18 +3801,16 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-valorar-title {
-  max-width: 18ch;
   margin-top: 0.75rem;
-  font-family: var(--font-instrument), ui-serif, serif;
-  font-size: clamp(2.4rem, 6vw, 4.4rem);
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5.4vw, 3.75rem);
+  font-style: normal;
+  font-weight: 600;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 
 .releva-valorar-lead {
-  max-width: 38rem;
   margin-top: 1rem;
   font-size: 1.05rem;
   line-height: 1.7;
@@ -3793,57 +3825,40 @@ header:has([data-menu-open="true"]) {
 
 @media (min-width: 1024px) {
   .releva-valorar-grid {
-    grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.85fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
     align-items: start;
-    gap: 2.5rem;
+    gap: 2rem;
   }
 }
 
 .releva-valorar-form {
   padding: 1.25rem 1.25rem 1.5rem;
   border: 1px solid var(--public-line);
-  border-radius: 1.75rem;
-  background: #fff;
-  box-shadow: 0 24px 60px -40px rgb(18 52 58 / 0.45);
+  border-radius: 1.6rem;
+  background: var(--public-card);
+  box-shadow: var(--public-shadow);
 }
 
 .releva-valorar-form h2 {
-  font-size: 1.15rem;
-  font-weight: 650;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .releva-valorar-paper {
-  position: relative;
-  min-height: 18rem;
-  padding: 1.4rem 1.3rem 1.5rem;
+  padding: 1.35rem 1.3rem 1.4rem;
   border: 1px solid var(--public-line);
-  border-radius: 1.5rem;
-  background: #fff;
-  box-shadow: 0 18px 40px -28px rgb(18 52 58 / 0.4);
-}
-
-.releva-valorar-paper::before,
-.releva-valorar-paper::after {
-  content: "";
-  position: absolute;
-  inset: auto 0.7rem -0.55rem 0.7rem;
-  height: 100%;
-  border: 1px solid var(--public-line);
-  border-radius: 1.35rem;
-  background: #f7fbfb;
-  z-index: -1;
-}
-
-.releva-valorar-paper::after {
-  inset: auto 1.35rem -1.05rem 1.35rem;
-  background: #eef5f6;
-  z-index: -2;
+  border-radius: 1.6rem;
+  background: var(--public-card);
+  box-shadow: var(--public-shadow);
 }
 
 .releva-valorar-mark {
-  font-family: var(--font-instrument), ui-serif, serif;
-  font-size: 1.35rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-style: italic;
+  color: var(--public-clay);
 }
 
 .releva-valorar-rule {
@@ -3880,36 +3895,54 @@ header:has([data-menu-open="true"]) {
 .releva-valorar-stamp {
   display: inline-flex;
   margin-top: 1rem;
-  padding: 0.2rem 0.55rem;
-  border: 1.5px solid var(--public-clay);
-  border-radius: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--field-radius);
+  background: var(--public-sand);
   color: var(--public-clay);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  transform: rotate(-6deg);
 }
 
 .releva-valorar-faq {
-  margin-top: 3.5rem;
+  margin-top: 2.25rem;
+  padding: 1.1rem 1.15rem 0.4rem;
+  border: 1px solid var(--public-line);
+  border-radius: 1.6rem;
+  background: var(--public-card);
 }
 
 .releva-valorar-faq h2 {
-  font-size: clamp(1.4rem, 3vw, 2rem);
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.releva-valorar-faq-list {
+  display: grid;
+  margin-top: 0.35rem;
+}
+
+@media (min-width: 768px) {
+  .releva-valorar-faq-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+  }
 }
 
 .releva-valorar-faq details {
-  padding: 1rem 0;
+  padding: 0.55rem 0;
   border-bottom: 1px solid var(--public-line);
 }
 
 .releva-valorar-faq summary {
   cursor: pointer;
   list-style: none;
+  font-size: 0.92rem;
   font-weight: 600;
+  line-height: 1.35;
 }
 
 .releva-valorar-faq summary::-webkit-details-marker {
@@ -3919,6 +3952,7 @@ header:has([data-menu-open="true"]) {
 .releva-valorar-faq summary::after {
   content: "+";
   float: right;
+  margin-left: 0.75rem;
   color: var(--public-clay);
   font-weight: 500;
 }
@@ -3928,14 +3962,8 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-valorar-faq p {
-  margin-top: 0.6rem;
-  max-width: 46rem;
+  margin-top: 0.4rem;
   color: var(--public-muted);
-  line-height: 1.65;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .releva-valorar::before {
-    display: none;
-  }
+  font-size: 0.88rem;
+  line-height: 1.55;
 }

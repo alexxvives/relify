@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Briefcase, Check, MousePointer2, Search, Store } from "lucide-react";
+import { ArrowRight, Briefcase, MousePointer2, Search, Store } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 const pointerStops = [16, 50, 84];
@@ -144,17 +144,6 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                   </span>
                   <h3 className="text-4xl font-medium tracking-tight">{column.role}</h3>
                   <p className={`mt-3 text-[16px] leading-7 ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
-                  <ul className="mt-6 flex flex-wrap gap-2">
-                    {column.points.slice(0, 2).map((point) => (
-                      <li
-                        key={point}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${selected ? "bg-white/15 text-white" : "bg-public-sand text-public-ink"}`}
-                      >
-                        <Check className="size-3.5 shrink-0" aria-hidden="true" />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
                 </button>
                 <Link
                   href={column.href}

@@ -166,7 +166,7 @@ export function HowItWorks({ role }: { role: FlowRole }) {
   return (
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-24">
       <div className="mx-auto w-full max-w-[1100px]">
-        <div className="mx-auto mb-5 max-w-xl text-center sm:mb-14">
+        <div className="mx-auto mb-5 text-center sm:mb-14">
           <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
           <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 text-pretty sm:mt-3">
             {heading}

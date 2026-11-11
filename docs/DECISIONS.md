@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S5 tokens, /valorar, visual PDFs
+
+Type families and field radius are global tokens (`docs/DESIGN-TOKENS.md`): DM Sans body, Geist headings, Instrument accents, `--field-radius: 0.9rem` for every form. `/valorar` keeps FAQPage JSON-LD with a compact accordion. Teaser/dossier PDFs are multi-page Relify M&A docs (cover, year bars, KPI tiles); teaser stays on `reportHeadline` with no identity; dossier is post-NDA and watermarked. Samples use INT Proyecto Quercus / `int-tecnologia-years.sql`. No new migration.
+
 ## 2026-11-11 — Round S4 company PDFs, /valorar SEO, landing
 
 Company teaser and post-NDA dossier PDFs are drawn with the existing `pdf-lib` dependency (Workers-safe, no paid API). The teaser is the pre-NDA card (`reportHeadline` only, no legal name/CIF). The dossier is the investor ficha after `ndaAccessGate`, watermarked with buyer name/email/date, still without identity. Downloads are logged in additive `pdf_download`. `/valorar` is a distinct Costa editorial page with Service + FAQPage JSON-LD. Landing specimens mix sectors; process and step-1 animations respect `prefers-reduced-motion`.

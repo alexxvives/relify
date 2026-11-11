@@ -80,7 +80,7 @@ function CompactMobileFooter() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="nombre@empresa.es"
-          className="h-10 min-w-0 flex-1 rounded-full border border-public-line bg-white px-3 text-sm"
+          className="relify-field h-10 min-w-0 flex-1 text-sm"
         />
         <button
           type="submit"

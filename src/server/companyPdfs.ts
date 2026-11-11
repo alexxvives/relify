@@ -4,6 +4,7 @@ import {
   buildCompanyPdf,
   companyPdfFileName,
   dossierViewFromInvestor,
+  sabiYearsFromTeaserRows,
   teaserViewFromPublic,
   type CompanyPdfKind,
 } from "@/lib/company-pdf";
@@ -35,6 +36,18 @@ const teaserSelect = {
   askingPriceCents: true,
   ebitdaAdjustments: true,
   cnaes: { select: { code: true }, orderBy: { position: "asc" as const }, take: 1 },
+  years: {
+    where: { kind: "closed" as const },
+    orderBy: { year: "asc" as const },
+    take: 4,
+    select: {
+      year: true,
+      months: true,
+      employees: true,
+      salesCents: true,
+      ebitdaCents: true,
+    },
+  },
 } as const;
 
 type TeaserRow = {
@@ -54,6 +67,13 @@ type TeaserRow = {
   askingPriceCents: bigint | number;
   ebitdaAdjustments: unknown;
   cnaes: { code: string }[];
+  years: Array<{
+    year: number;
+    months: number | null;
+    employees: number | null;
+    salesCents: bigint | number | null;
+    ebitdaCents: bigint | number | null;
+  }>;
 };
 
 async function logDownload(projectId: string, kind: CompanyPdfKind, userId: string | null): Promise<void> {
@@ -100,6 +120,7 @@ function teaserView(row: TeaserRow, generatedLabel: string) {
     adjustedEbitdaCents: Number(row.adjustedEbitdaCents),
     askingPriceCents: Number(row.askingPriceCents),
     ebitdaAdjustments: row.ebitdaAdjustments,
+    reportYears: sabiYearsFromTeaserRows(row.years),
     generatedLabel,
   });
 }

@@ -131,7 +131,7 @@ const percentSumMessages = new Set<string>([
 ]);
 
 const statementInputClassName =
-  "h-9 w-full min-w-[7.5rem] rounded-lg border border-[#e1e6ee] bg-white px-2 text-sm tabular-nums text-[#1c2740] outline-none focus-visible:border-[#465ab4] focus-visible:ring-2 focus-visible:ring-[#465ab4]/20";
+  "relify-field h-9 w-full min-w-[7.5rem] px-2 text-sm tabular-nums";
 
 const signedEuroPattern = /^-?\d{1,12}(,\d{1,2})?$/;
 const unsignedEuroPattern = /^\d{1,12}(,\d{1,2})?$/;
@@ -686,7 +686,7 @@ function FichaMetrics({
  */
 // t92: shared text-input style for the ficha fields and the adjustments dialog.
 const fieldInputClass =
-  "h-10 w-full min-w-0 rounded-xl border border-[#d8dee8] bg-white px-3 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:border-[#0f766e] focus-visible:ring-2 focus-visible:ring-[#7fd6cc] focus-visible:outline-none aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+  "relify-field h-10 w-full min-w-0 px-3 text-sm";
 
 function SellerFinancingField({
   mode,
