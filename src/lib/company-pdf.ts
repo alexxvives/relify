@@ -29,37 +29,9 @@ import {
 } from "./valuation-multiples";
 import { approvedAdjustments, ebitdaAdjustmentLabels, storedEbitdaAdjustments } from "./ebitda-adjustments";
 import { drawLucideIcon, type LucidePdfIcon } from "./pdf-icons";
+import { companyPdfCopy } from "./company-pdf-copy";
 
-export const companyPdfCopy = {
-  teaserTitle: "Perfil ciego",
-  dossierTitle: "Cuaderno de venta",
-  teaserFile: "relify-perfil-ciego",
-  dossierFile: "relify-cuaderno-de-venta",
-  brand: "Relify",
-  site: "itsrelify.com",
-  confidential: "Confidencial",
-  teaserNote:
-    "Este documento muestra solo lo que ya es público en Relify: nombre de proyecto y cifras de cabecera. La sociedad no figura.",
-  dossierNote:
-    "Cuaderno de venta para una conexión con NDA aceptado. La razón social sigue fuera. Cada página lleva una marca de agua del comprador.",
-  sellerTitle: "Informes de la ficha",
-  sellerBody: "El perfil ciego se puede compartir sin el nombre. El cuaderno de venta llega al comprador después del NDA.",
-  teaserDownload: "Descargar perfil ciego",
-  shareLabel: "Enlace público",
-  shareHint: "El enlace público se activa al publicar. Quien lo abre ve el mismo perfil ciego, sin la sociedad.",
-  dossierDownload: "Descargar cuaderno de venta",
-  generated: "Generado el",
-  thesisTitle: "Tesis de inversión",
-  highlightsTitle: "Puntos clave",
-  dealTitle: "Estructura de la operación",
-  motivoTitle: "Motivo de venta",
-  priceTitle: "Rango orientativo de precio",
-  priceCaption: "Múltiplo sectorial × EBITDA ajustado, con ajuste por crecimiento y plantilla.",
-  teaserCtaTitle: "Próximos pasos · Firma el NDA en Relify",
-  teaserCtaBody: "Solicita acceso y firma el NDA en Relify para abrir el cuaderno de venta, con ratios SABI y el puente de EBITDA.",
-  dossierCtaTitle: "Siguiente paso en Relify",
-  dossierCtaBody: "Revisa el data room, plantea preguntas y avanza la oferta indicativa en Relify.",
-} as const;
+export { companyPdfCopy };
 
 export type CompanyPdfKind = "teaser" | "dossier";
 

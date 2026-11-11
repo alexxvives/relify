@@ -49,14 +49,16 @@ See `src/lib/int-mail.ts` and `src/server/mailer.ts`.
 
 ## Stripe TEST (optional)
 
-INT payments stay off unless Alex sets **Worker secrets** on `releva-int` (never production `STRIPE_*`, never `[vars]`):
+INT payments stay off unless Alex sets TEST keys on `releva-int` (never production `STRIPE_*`, never live prefixes). Secret vs var:
 
 ```bash
 npx wrangler secret put INT_STRIPE_SECRET_KEY --name releva-int
 npx wrangler secret put INT_STRIPE_WEBHOOK_SECRET --name releva-int
-# optional publishable
-npx wrangler secret put INT_STRIPE_PUBLISHABLE_KEY --name releva-int
+# publishable is a plain Worker var (Dashboard → Variables, or wrangler versions secret is wrong):
+npx wrangler versions upload …   # do not bake an empty pk into the pack
 ```
+
+Set `INT_STRIPE_PUBLISHABLE_KEY` as a **variable** on the `releva-int` Worker (not `wrangler secret put`). The pack does not include it.
 
 `INT_STRIPE_SECRET_KEY` must be `sk_test_` or `rk_test_`. `INT_STRIPE_WEBHOOK_SECRET` must be `whsec_`. Live prefixes (`sk_live_` / `pk_live_` / `rk_live_`) log `[error] stripe INT refused…` and keep payments disabled. INT never reads `STRIPE_SECRET_KEY`.
 
@@ -64,8 +66,14 @@ Webhook endpoint on the INT worker:
 
 `https://releva-int.<account>.workers.dev/api/stripe/webhook`
 
+Subscribe these TEST events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+
+Bootstrap TEST Products/Prices (refuses live keys):
+
+`STRIPE_SECRET_KEY=sk_test_… node scripts/stripe-bootstrap-test.mjs`
+
 Point a Stripe TEST webhook at that path and paste the signing secret into `INT_STRIPE_WEBHOOK_SECRET`. Checkout shows **Modo prueba**. Unset keys leave payments disabled.
 
 ## Analytics
 
-Do **not** set `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `G-…` id, Google Analytics 4 does not load.
+Do **not** set `GTM_CONTAINER_ID`, `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `GTM-…` or `G-…` id, Tag Manager and Analytics 4 do not load. Prod gets `GTM_CONTAINER_ID=GTM-KMZ4Z9PZ` at prod deploy.

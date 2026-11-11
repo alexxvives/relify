@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
 import { getCurrentUser } from "@/server/getCurrentUser";
 import { startBuyerCheckout } from "@/server/startCheckout";
-import { changeSubscriptionPlan, setSubscriptionCancel, startCardSetup, updateBillingEmail } from "@/server/subscriptionDesk";
+import {
+  changeSubscriptionPlan,
+  setSubscriptionCancel,
+  startBillingPortal,
+  startCardSetup,
+  updateBillingEmail,
+} from "@/server/subscriptionDesk";
 
 export type PlanActionState = { ok: false; message: string } | null;
 
@@ -98,6 +104,21 @@ export async function startCardSetupAction(_state: SubscriptionActionState, form
   void formData;
   const user = await investor();
   const result = await startCardSetup(user);
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  redirect(result.url);
+}
+
+export async function startBillingPortalAction(
+  _state: SubscriptionActionState,
+  formData: FormData,
+): Promise<SubscriptionActionState> {
+  void formData;
+  const user = await investor();
+  const result = await startBillingPortal(user);
 
   if (!result.ok) {
     return { ok: false, message: result.message };

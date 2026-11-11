@@ -38,16 +38,15 @@ export function applyGaConsent(granted: boolean): void {
   gtagFn()?.("consent", "update", granted ? gaConsentGranted : gaConsentDenied);
 }
 
-export function trackConversion(event: ConversionEvent): void {
-  if (typeof window === "undefined" || !hasAnalyticsConsent()) {
-    return;
-  }
-  gtagFn()?.("event", event, { send_to: undefined });
+function dataLayer(): unknown[] {
+  const w = window as Window & { dataLayer?: unknown[] };
+  w.dataLayer = w.dataLayer ?? [];
+  return w.dataLayer;
 }
 
-export function loadGoogleAnalytics(measurementId: string): void {
-  if (typeof document === "undefined" || document.getElementById("relify-ga4")) {
-    return;
+function ensureGtag(): Gtag | null {
+  if (typeof window === "undefined") {
+    return null;
   }
   const w = window as Window & { dataLayer?: unknown[]; gtag?: Gtag };
   w.dataLayer = w.dataLayer ?? [];
@@ -56,8 +55,38 @@ export function loadGoogleAnalytics(measurementId: string): void {
       w.dataLayer?.push(args);
     };
   }
-  w.gtag("js", new Date());
-  w.gtag("config", measurementId, { anonymize_ip: true, send_page_view: true });
+  return w.gtag;
+}
+
+/** Pushes the conversion name only. Never attach email, name, CIF, or user ids. */
+export function trackConversion(event: ConversionEvent): void {
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) {
+    return;
+  }
+  dataLayer().push({ event });
+  gtagFn()?.("event", event);
+}
+
+export function loadGoogleTagManager(containerId: string): void {
+  if (typeof document === "undefined" || document.getElementById("relify-gtm")) {
+    return;
+  }
+  ensureGtag();
+  dataLayer().push({ "gtm.start": Date.now(), event: "gtm.js" });
+  const script = document.createElement("script");
+  script.id = "relify-gtm";
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(containerId)}`;
+  document.head.appendChild(script);
+}
+
+export function loadGoogleAnalytics(measurementId: string): void {
+  if (typeof document === "undefined" || document.getElementById("relify-ga4")) {
+    return;
+  }
+  const gtag = ensureGtag();
+  gtag?.("js", new Date());
+  gtag?.("config", measurementId, { anonymize_ip: true, send_page_view: true });
   const script = document.createElement("script");
   script.id = "relify-ga4";
   script.async = true;

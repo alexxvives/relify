@@ -3,7 +3,7 @@ import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
 import { HashCleaner } from "@/components/hash-cleaner";
-import { gaDefaultConsentScript, readGaMeasurementId } from "@/lib/cookie-consent";
+import { gaDefaultConsentScript, readGaMeasurementId, readGtmContainerId } from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
 import { OG_IMAGE_ALT, OG_IMAGE_PATH, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
@@ -63,7 +63,9 @@ export function generateMetadata(): Metadata {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const siteUrl = readSiteUrl();
-  const measurementId = readGaMeasurementId();
+  const gtmId = readGtmContainerId();
+  const gaId = readGaMeasurementId();
+  const analyticsReady = Boolean(gtmId || gaId);
   const og = ogImageUrl(siteUrl);
 
   return (
@@ -78,13 +80,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <meta property="og:image:alt" content={OG_IMAGE_ALT} />
         <meta name="twitter:image" content={og} />
         <link rel="preload" as="image" href={OG_IMAGE_PATH} />
-        {measurementId ? (
+        {analyticsReady ? (
           <script dangerouslySetInnerHTML={{ __html: gaDefaultConsentScript() }} />
         ) : null}
       </head>
       <body className="min-h-full bg-background text-foreground">
         {children}
-        <CookieConsent measurementId={measurementId} />
+        <CookieConsent gtmId={gtmId} gaId={gaId} />
         <Suspense fallback={null}>
           <HashCleaner />
         </Suspense>

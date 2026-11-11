@@ -30,7 +30,7 @@ export function ValuationRequestForm({ account }: { account: ValuationAccount | 
         className="mt-5 rounded-3xl border border-public-line bg-public-sand p-6 sm:p-8"
         role="status"
       >
-        <ConversionPing event="valorar_submit" />
+        <ConversionPing event="valuation_request" />
         <span className="flex size-11 items-center justify-center rounded-2xl bg-[#e6f4f2] text-[#0f6b62]">
           <CheckCircle2 className="size-5" aria-hidden />
         </span>

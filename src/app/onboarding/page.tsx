@@ -66,7 +66,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           </div>
           <Logo size="lg" />
         </div>
-        <ConversionPing event="signup" />
+        <ConversionPing event="sign_up" />
         <div className="mt-8">
           {resumePlan ? <OnboardingPlanResume home={homeForRole(user.role)} /> : <OnboardingForm initialRole={initialRole} />}
         </div>

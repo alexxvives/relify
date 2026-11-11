@@ -274,8 +274,9 @@ export function getIntStripeWebhookSecret(): string | null {
 }
 
 /**
- * Optional INT publishable key (`INT_STRIPE_PUBLISHABLE_KEY` or
- * `NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY`). Live `pk_live_` disables payments.
+ * Optional INT publishable key as a plain Worker **var**
+ * (`INT_STRIPE_PUBLISHABLE_KEY` or `NEXT_PUBLIC_INT_STRIPE_PUBLISHABLE_KEY`),
+ * not a secret. Live `pk_live_` disables payments.
  */
 export function getIntStripePublishableKey(): string | null {
   if (!isIntEnvironment()) {

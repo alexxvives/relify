@@ -30,6 +30,7 @@ import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/s
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
 import { startListingCheckout } from "@/server/startCheckout";
 import { uniqueCodename } from "@/server/uniqueCodename";
+import { rotateTeaserToken } from "@/server/companyPdfs";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -437,4 +438,21 @@ export async function requestIdentityChangeAction(_state: IdentityChangeState, f
     reason: readText(formData, "reason"),
   });
   return result.ok ? { ok: true, message: "Solicitud enviada. Te escribiremos cuando lo revisemos." } : { ok: false, message: result.message };
+}
+
+export async function regenerateTeaserLinkAction(): Promise<
+  { ok: true; shareUrl: string } | { ok: false; message: string }
+> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/entrar");
+  }
+  if (!user.onboarded || user.role !== "seller") {
+    return { ok: false, message: "No hay ficha." };
+  }
+  const result = await rotateTeaserToken(user);
+  if (result.ok) {
+    revalidatePath("/mi-empresa");
+  }
+  return result;
 }

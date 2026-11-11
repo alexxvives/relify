@@ -9,6 +9,7 @@ import { setAccountSuspension } from "@/server/setAccountSuspension";
 import { setVerified } from "@/server/setVerified";
 import { unpublishProject } from "@/server/unpublishProject";
 import { approveEbitdaAdjustment } from "@/server/approveEbitdaAdjustment";
+import { rotateAdminTeaserToken } from "@/server/companyPdfs";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -123,5 +124,17 @@ export async function grantPlanAction(_state: AdminActionState, formData: FormDa
     revalidatePath("/premium");
   }
 
+  return result;
+}
+
+export async function regenerateAdminTeaserLinkAction(
+  slug: string,
+): Promise<{ ok: true; shareUrl: string } | { ok: false; message: string }> {
+  const user = await requireRole("admin");
+  const result = await rotateAdminTeaserToken(user, slug);
+  if (result.ok) {
+    revalidatePath(`/admin/empresas/${slug}`);
+    revalidatePath("/mi-empresa");
+  }
   return result;
 }

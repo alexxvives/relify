@@ -90,6 +90,7 @@ test.describe("visitor landing and public forms", () => {
     await expect(page).toHaveURL(/\/cookies/);
     await expect(page.getByText("_ga", { exact: true })).toBeVisible();
     await expect(page.getByText("_ga_*", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /google tag manager/i })).toBeVisible();
   });
 
   test("landing confidentiality has no catalog CTA", async ({ page }) => {

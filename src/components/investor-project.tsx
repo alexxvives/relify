@@ -26,7 +26,7 @@ import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
-import { BuyerDossierLink } from "@/components/company-pdf-card";
+import { BuyerDossierLink } from "@/components/buyer-dossier-link";
 
 function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
   return (

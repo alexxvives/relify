@@ -6,7 +6,9 @@ export async function GET(request: Request): Promise<Response> {
   if (!user) {
     return new Response(null, { status: 404 });
   }
-  const download = new URL(request.url).searchParams.has("download");
-  const response = await sellerTeaserPdf(user, download);
+  const params = new URL(request.url).searchParams;
+  const download = params.has("download");
+  const preview = params.has("preview");
+  const response = await sellerTeaserPdf(user, download, { log: download && !preview });
   return response ?? new Response(null, { status: 404 });
 }

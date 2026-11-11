@@ -3,7 +3,6 @@ import {
   ADVISOR_INBOX_NET_CENTS,
   SELLER_LISTING_NET_CENTS,
   advisorDepositCents,
-  grossCents,
   planNetCents,
 } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -11,11 +10,13 @@ import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { isIntEnvironment } from "@/lib/int-env";
+import { integrationLabel, stripeClient } from "@/server/stripe";
 import {
-  integrationLabel,
-  spanishIvaRate,
-  stripeClient,
-} from "@/server/stripe";
+  catalogLineItem,
+  createCheckoutSession,
+  stripeLookupKeys,
+  taxableCheckoutFields,
+} from "@/server/stripeCheckout";
 import type Stripe from "stripe";
 
 export type CheckoutStart =
@@ -121,33 +122,30 @@ export async function startBuyerCheckout(
   const origin = await requestOrigin();
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const lookupKey =
+      plan === "limited" ? stripeLookupKeys.buyerLimitedMonthly : stripeLookupKeys.buyerUnlimitedMonthly;
+    const lineItem = await catalogLineItem(stripe, lookupKey, {
+      currency: "eur",
+      unit_amount: planNetCents(plan),
+      tax_behavior: "exclusive",
+      recurring: { interval: "month" },
+      product_data: {
+        name: plan === "limited" ? "Relify Individual" : "Relify Empresa",
+      },
+    });
+    const session = await createCheckoutSession(stripe, {
       mode: "subscription",
       customer,
       client_reference_id: user.id,
       locale: "es",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount: grossCents(planNetCents(plan)),
-            recurring: { interval: "month" },
-            product_data: {
-              name:
-                plan === "limited"
-                  ? "Relify 3 matches"
-                  : "Relify matches ilimitados",
-            },
-          },
-        },
-      ],
+      line_items: [lineItem],
       metadata: { kind: "buyer_plan", plan, userId: user.id },
       subscription_data: {
         metadata: { kind: "buyer_plan", plan, userId: user.id },
       },
       success_url: `${origin}/premium?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${options.cancelPath ?? "/premium"}`,
+      ...taxableCheckoutFields(),
       ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_buyer"),
     });
@@ -181,31 +179,25 @@ export async function startListingCheckout(
 
   const origin = await requestOrigin();
   const successPath = intent === "add" ? "/mi-empresa/detalles" : "/mi-empresa";
-  const ivaRate = await spanishIvaRate(stripe);
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const lineItem = await catalogLineItem(stripe, stripeLookupKeys.sellerListingOnce, {
+      currency: "eur",
+      unit_amount: SELLER_LISTING_NET_CENTS,
+      tax_behavior: "exclusive",
+      product_data: { name: "Relify ficha de empresa" },
+    });
+    const session = await createCheckoutSession(stripe, {
       mode: "payment",
       customer,
       client_reference_id: user.id,
       locale: "es",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount:
-              ivaRate === null
-                ? grossCents(SELLER_LISTING_NET_CENTS)
-                : SELLER_LISTING_NET_CENTS,
-            product_data: { name: "Relify empresa adicional" },
-          },
-          ...(ivaRate === null ? {} : { tax_rates: [ivaRate] }),
-        },
-      ],
+      line_items: [lineItem],
+      invoice_creation: { enabled: true },
       metadata: { kind: "seller_listing", userId: user.id, projectId, intent },
       success_url: `${origin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${successPath}`,
+      ...taxableCheckoutFields(),
       ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_listing"),
     });
@@ -251,28 +243,26 @@ export async function startAdvisorInboxCheckout(
   const origin = await requestOrigin();
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const lineItem = await catalogLineItem(stripe, stripeLookupKeys.advisorInboxMonthly, {
+      currency: "eur",
+      unit_amount: ADVISOR_INBOX_NET_CENTS,
+      tax_behavior: "exclusive",
+      recurring: { interval: "month" },
+      product_data: { name: "Relify bandeja asesor" },
+    });
+    const session = await createCheckoutSession(stripe, {
       mode: "subscription",
       customer,
       client_reference_id: user.id,
       locale: "es",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount: grossCents(ADVISOR_INBOX_NET_CENTS),
-            recurring: { interval: "month" },
-            product_data: { name: "Relify suscripción de asesor" },
-          },
-        },
-      ],
+      line_items: [lineItem],
       metadata: { kind: "advisor_inbox", userId: user.id },
       subscription_data: {
         metadata: { kind: "advisor_inbox", userId: user.id },
       },
       success_url: `${origin}${back}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${back}`,
+      ...taxableCheckoutFields(),
       ...intCheckoutCustomText(),
       integration_identifier: integrationLabel("Relify_inbox"),
     });

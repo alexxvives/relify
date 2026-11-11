@@ -8,6 +8,7 @@ import {
   teaserViewFromPublic,
   type CompanyPdfKind,
 } from "@/lib/company-pdf";
+import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 import { spanishDate, signerName } from "@/lib/deal-documents";
 import { isHeadcountRange } from "@/lib/company-profile";
 import { formatWholeEur } from "@/lib/money";
@@ -20,6 +21,8 @@ import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { pdfResponse } from "@/server/signedDocuments";
+
+export type { SellerTeaserDesk };
 
 const teaserTokenSchema = /^[A-Za-z0-9_-]{16,64}$/;
 
@@ -147,23 +150,93 @@ async function pdfFor(view: ReturnType<typeof teaserView>, download: boolean): P
   return pdfResponse({ pdf, fileName: companyPdfFileName(view.kind, view.codename) }, download);
 }
 
-export async function sellerTeaserShareUrl(userId: string): Promise<string | null> {
+function shareHref(token: string): string {
+  return new URL(`/t/${token}`, readSiteUrl()).href;
+}
+
+async function teaserDeskForProject(projectId: string, status: string, token: string | null): Promise<SellerTeaserDesk> {
+  const nextToken = await ensureTeaserToken(projectId, token);
+  const downloads = await prisma.pdfDownload.count({
+    where: { projectId, kind: "teaser" },
+  });
+  return {
+    published: status === "published",
+    shareUrl: shareHref(nextToken),
+    downloads,
+  };
+}
+
+export async function sellerTeaserDesk(userId: string): Promise<SellerTeaserDesk | null> {
   const projectId = await activeSellerProjectId(userId);
   if (!projectId) {
     return null;
   }
   const row = await prisma.project.findFirst({
-    where: { id: projectId, ownerId: userId, status: "published" },
-    select: { id: true, teaserToken: true },
+    where: { id: projectId, ownerId: userId },
+    select: { id: true, status: true, teaserToken: true },
   });
   if (!row) {
     return null;
   }
-  const token = await ensureTeaserToken(row.id, row.teaserToken);
-  return new URL(`/t/${token}`, readSiteUrl()).href;
+  return teaserDeskForProject(row.id, row.status, row.teaserToken);
 }
 
-export async function sellerTeaserPdf(user: CurrentUser, download: boolean): Promise<Response | null> {
+export async function adminTeaserDesk(slug: string): Promise<SellerTeaserDesk | null> {
+  const row = await prisma.project.findUnique({
+    where: { slug },
+    select: { id: true, status: true, teaserToken: true },
+  });
+  if (!row) {
+    return null;
+  }
+  return teaserDeskForProject(row.id, row.status, row.teaserToken);
+}
+
+export async function rotateAdminTeaserToken(
+  user: CurrentUser,
+  slug: string,
+): Promise<{ ok: true; shareUrl: string } | { ok: false; message: string }> {
+  if (!user.onboarded || user.role !== "admin") {
+    return { ok: false, message: "No hay ficha." };
+  }
+  const row = await prisma.project.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+  if (!row) {
+    return { ok: false, message: "No hay ficha." };
+  }
+  return rotateTeaserToken(user, row.id);
+}
+
+export async function rotateTeaserToken(
+  user: CurrentUser,
+  projectId?: string,
+): Promise<{ ok: true; shareUrl: string } | { ok: false; message: string }> {
+  const owned =
+    user.role === "seller"
+      ? await activeSellerProjectId(user.id)
+      : null;
+  const id = user.role === "admin" ? projectId : owned;
+  if (!id) {
+    return { ok: false, message: "No hay ficha." };
+  }
+  const row = await prisma.project.findFirst({
+    where: user.role === "admin" ? { id } : { id, ownerId: user.id },
+    select: { id: true },
+  });
+  if (!row) {
+    return { ok: false, message: "No hay ficha." };
+  }
+  const token = await ensureTeaserToken(row.id, null);
+  return { ok: true, shareUrl: shareHref(token) };
+}
+
+export async function sellerTeaserPdf(
+  user: CurrentUser,
+  download: boolean,
+  options: { log?: boolean } = {},
+): Promise<Response | null> {
   if (!user.onboarded || user.role !== "seller") {
     return null;
   }
@@ -179,7 +252,32 @@ export async function sellerTeaserPdf(user: CurrentUser, download: boolean): Pro
     return null;
   }
   await ensureTeaserToken(row.id, row.teaserToken);
-  await logDownload(row.id, "teaser", user.id);
+  if (options.log ?? download) {
+    await logDownload(row.id, "teaser", user.id);
+  }
+  return pdfFor(teaserView(row, spanishDate(new Date())), download);
+}
+
+export async function adminTeaserPdf(
+  user: CurrentUser,
+  slug: string,
+  download: boolean,
+  options: { log?: boolean } = {},
+): Promise<Response | null> {
+  if (!user.onboarded || user.role !== "admin") {
+    return null;
+  }
+  const row = await prisma.project.findUnique({
+    where: { slug },
+    select: teaserSelect,
+  });
+  if (!row) {
+    return null;
+  }
+  await ensureTeaserToken(row.id, row.teaserToken);
+  if (options.log ?? download) {
+    await logDownload(row.id, "teaser", user.id);
+  }
   return pdfFor(teaserView(row, spanishDate(new Date())), download);
 }
 

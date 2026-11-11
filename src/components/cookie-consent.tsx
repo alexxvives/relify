@@ -6,6 +6,7 @@ import {
   applyGaConsent,
   hasAnalyticsConsent,
   loadGoogleAnalytics,
+  loadGoogleTagManager,
   trackConversion,
 } from "@/lib/analytics";
 import {
@@ -46,7 +47,24 @@ function subscribeConsent(notify: () => void): () => void {
   return () => window.removeEventListener("storage", notify);
 }
 
-export function CookieConsent({ measurementId }: { measurementId: string | null }) {
+function loadAnalytics(gtmId: string | null, gaId: string | null): void {
+  if (gtmId) {
+    loadGoogleTagManager(gtmId);
+    return;
+  }
+  if (gaId) {
+    loadGoogleAnalytics(gaId);
+  }
+}
+
+export function CookieConsent({
+  gtmId,
+  gaId,
+}: {
+  gtmId: string | null;
+  gaId: string | null;
+}) {
+  const analyticsReady = Boolean(gtmId || gaId);
   const hydrated = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -68,24 +86,24 @@ export function CookieConsent({ measurementId }: { measurementId: string | null 
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !measurementId || stored?.analytics !== true) {
+    if (!hydrated || !analyticsReady || stored?.analytics !== true) {
       return;
     }
     applyGaConsent(true);
-    loadGoogleAnalytics(measurementId);
-  }, [hydrated, measurementId, stored]);
+    loadAnalytics(gtmId, gaId);
+  }, [hydrated, analyticsReady, gtmId, gaId, stored]);
 
   function save(next: CookieConsentChoice): void {
     persist(next);
     setPreferences(false);
     setConfigure(false);
     setAnalyticsOn(next.analytics);
-    if (!measurementId) {
+    if (!analyticsReady) {
       return;
     }
     if (next.analytics) {
       applyGaConsent(true);
-      loadGoogleAnalytics(measurementId);
+      loadAnalytics(gtmId, gaId);
     } else {
       applyGaConsent(false);
     }

@@ -1,7 +1,8 @@
 import { requestOrigin } from "@/server/requestOrigin";
 import { z } from "zod";
 import { billingCopy } from "@/lib/billing-copy";
-import { grossCents, planNetCents } from "@/lib/billing";
+import { planNetCents } from "@/lib/billing";
+import { stripeLookupKeys } from "@/lib/stripe-catalog";
 import { formatEur } from "@/lib/money";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
@@ -274,28 +275,32 @@ export async function changeSubscriptionPlan(
       return { ok: true };
     }
 
+    const lookupKey =
+      plan === "limited" ? stripeLookupKeys.buyerLimitedMonthly : stripeLookupKeys.buyerUnlimitedMonthly;
+    const catalog = await owned.stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
+    const catalogPrice = catalog.data[0];
     const product =
       typeof item.price.product === "string"
         ? item.price.product
         : item.price.product.id;
-    await owned.stripe.products.update(product, {
-      name:
-        plan === "limited" ? "Relify 3 matches" : "Relify matches ilimitados",
-    });
-    const updated = await owned.stripe.subscriptions.update(
-      owned.subscriptionId,
-      {
-        items: [
+    const items = catalogPrice
+      ? [{ id: item.id, price: catalogPrice.id }]
+      : [
           {
             id: item.id,
             price_data: {
               currency: "eur",
               product,
-              unit_amount: grossCents(planNetCents(plan)),
-              recurring: { interval: "month" },
+              unit_amount: planNetCents(plan),
+              tax_behavior: "exclusive" as const,
+              recurring: { interval: "month" as const },
             },
           },
-        ],
+        ];
+    const updated = await owned.stripe.subscriptions.update(
+      owned.subscriptionId,
+      {
+        items,
         metadata: { ...current.metadata, plan },
         proration_behavior: "create_prorations",
         cancel_at_period_end: false,
@@ -400,6 +405,28 @@ export async function applyCardSetup(
       default_payment_method: paymentMethod,
     });
     return { ok: true };
+  } catch {
+    return { ok: false, message: billingCopy.stripeFailed };
+  }
+}
+
+export async function startBillingPortal(
+  user: CurrentUser,
+): Promise<{ ok: true; url: string } | { ok: false; message: string }> {
+  const owned = await ownedSubscription(user.id);
+
+  if (!owned) {
+    return { ok: false, message: billingCopy.stripeMissing };
+  }
+
+  const origin = await requestOrigin();
+
+  try {
+    const session = await owned.stripe.billingPortal.sessions.create({
+      customer: owned.customerId,
+      return_url: `${origin}/premium/suscripcion`,
+    });
+    return { ok: true, url: session.url };
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }

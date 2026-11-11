@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import {
   setSubscriptionCancelAction,
+  startBillingPortalAction,
   startCardSetupAction,
   updateBillingEmailAction,
   type SubscriptionActionState,
@@ -33,6 +34,7 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
   const [cancelState, cancelAction, cancelPending] = useActionState(setSubscriptionCancelAction, null);
   const [emailState, emailAction, emailPending] = useActionState(updateBillingEmailAction, null);
   const [cardState, cardAction, cardPending] = useActionState(startCardSetupAction, null);
+  const [portalState, portalAction, portalPending] = useActionState(startBillingPortalAction, null);
   const noticeTone = notice === billingCopy.cardSaved ? "ok" : "error";
 
   return (
@@ -98,6 +100,16 @@ export function SubscriptionDeskView({ desk, notice }: { desk: SubscriptionDesk;
                     {cardPending ? billingCopy.changingCard : billingCopy.changeCard}
                   </Button>
                   <Note state={cardState} />
+                </form>
+                <form action={portalAction} className="mt-3 flex flex-col items-center gap-2">
+                  <Button
+                    type="submit"
+                    disabled={portalPending}
+                    className="rounded-full border border-[#d0d5dd] bg-white text-sm text-[#1c2740]"
+                  >
+                    {portalPending ? billingCopy.openingPortal : billingCopy.stripePortal}
+                  </Button>
+                  <Note state={portalState} />
                 </form>
               </div>
             </Card>

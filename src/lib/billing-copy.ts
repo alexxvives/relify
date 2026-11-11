@@ -42,6 +42,8 @@ export const billingCopy = {
   cardMissing: "No hay tarjeta guardada.",
   changeCard: "Cambiar tarjeta",
   changingCard: "Abriendo el formulario de la tarjeta…",
+  stripePortal: "Portal de facturación",
+  openingPortal: "Abriendo el portal…",
   cardSaved: "Tarjeta actualizada.",
   billingEmail: "Correo de facturación",
   billingEmailSave: "Guardar correo",

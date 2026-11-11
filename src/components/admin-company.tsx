@@ -17,6 +17,9 @@ import { sellerCopy } from "@/lib/seller-copy";
 import type { AdminCompanyMessage, AdminCompanyView, AdminSideAdvisor } from "@/server/getAdminCompany";
 import { Card } from "@/components/ui/form";
 import { PublishReadinessChip } from "@/components/admin-publish-checks";
+import { SellerPdfCard } from "@/components/company-pdf-card";
+import { regenerateAdminTeaserLinkAction } from "@/app/(app)/admin/actions";
+import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -40,11 +43,13 @@ function statusLabel(status: AdminCompanyView["status"]): string {
 
 export function AdminCompany({
   view,
+  teaserDesk,
   backHref,
   backLabel,
   today,
 }: {
   view: AdminCompanyView;
+  teaserDesk: SellerTeaserDesk | null;
   backHref: string;
   backLabel: string;
   today: string;
@@ -97,6 +102,14 @@ export function AdminCompany({
                 }
                 registryActivity={view.sabi.activityDescription ?? null}
               />
+              {teaserDesk ? (
+                <SellerPdfCard
+                  desk={teaserDesk}
+                  previewHref={`/admin/empresas/${view.profile.slug}/pdf/teaser?preview=1`}
+                  downloadHref={`/admin/empresas/${view.profile.slug}/pdf/teaser?download=1`}
+                  onRegenerate={regenerateAdminTeaserLinkAction.bind(null, view.profile.slug)}
+                />
+              ) : null}
             </div>
           ),
           questions: selected ? <ChatPanel messages={chat} /> : <EmptyPanel text={adminCopy.processNone} />,
