@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-11: INT `/t/<token>` 500 `e200.create is not a function` — `@pdf-lib/fontkit` is `export default`; `{ create: fontkit.create }` from `import * as fontkit` minifies to `{ create: void 0 }` in the Worker — register the default object (`pdfFontkit()`); smoke PDF generation in Miniflare, not only Node vitest.
 - 2026-11-11: pdf-lib custom-font tests saw no “Relify” in streams — subset fonts emit CID hex plus a ToUnicode CMap per face, and CMaps arrive after content — decode each CMap separately, two-pass; skip JPEG DCT streams.
 - 2026-11-11: PDF hint “ΔNOF” rendered blank — DM Sans/Geist subsets lack delta — write “var. NOF”.
 - 2026-11-11: `/lista-de-espera` orbit faces were blank — `img-src 'self' data: blob:` blocks `api.dicebear.com` — use a local `data:image/svg+xml` avatar (`gazeAvatarUrl`), not a remote host.

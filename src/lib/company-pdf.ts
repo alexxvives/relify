@@ -1,6 +1,6 @@
 import { PDFDocument, degrees, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from "pdf-lib";
-import * as fontkit from "@pdf-lib/fontkit";
 import { brandLogoJpegBase64, brandLogoSize } from "./brand-logo-jpeg";
+import { pdfFontkit } from "./pdf-fontkit";
 import { dmSansRegular, dmSansSemiBold, geistRegular, geistSemiBold } from "./pdf-fonts";
 import { formatCardEur, formatDecimal } from "./money";
 import { foundedDecade } from "./market-filters";
@@ -838,7 +838,7 @@ function drawDossierDeal(page: PDFPage, fonts: Fonts, logo: PDFImage, view: Comp
 
 export async function buildCompanyPdf(view: CompanyPdfView): Promise<Uint8Array<ArrayBuffer>> {
   const doc = await PDFDocument.create();
-  doc.registerFontkit({ create: fontkit.create });
+  doc.registerFontkit(pdfFontkit());
   const [sans, sansSemi, heading, headingSemi, logo] = await Promise.all([
     doc.embedFont(dmSansRegular, { subset: true }),
     doc.embedFont(dmSansSemiBold, { subset: true }),
