@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: "Asesores",
-  description: "Publica servicios y acompaña encargos sin mostrar la sociedad del cliente en la ficha.",
-};
+const title = "Asesores";
+const description = "Publica servicios y acompaña encargos sin mostrar la sociedad del cliente en la ficha.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title,
+    description,
+    ...pageSocialMetadata({ title, description, path: "/asesores", origin: readSiteUrl() }),
+  };
+}
 
 export default function AsesoresPage() {
   return (

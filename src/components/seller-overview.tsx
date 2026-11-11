@@ -91,8 +91,7 @@ export function SellerOverview({
             )}
           </section>
         </div>
-        <div className="relative w-full xl:min-h-full">
-          <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
+        <div className="flex w-full min-w-0 flex-col gap-6 self-start">
           <Card>
             <h2
               className={
@@ -162,7 +161,6 @@ export function SellerOverview({
               onRegenerate={regenerateTeaserLinkAction}
             />
           ) : null}
-          </div>
         </div>
       </div>
     </div>

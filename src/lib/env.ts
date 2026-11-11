@@ -35,35 +35,20 @@ export function readServerEnv(): ServerEnv {
   return parsed.data;
 }
 
-const siteUrlSchema = z.object({
-  BETTER_AUTH_URL: z.url(),
-});
-
-export function readSiteUrl(): URL {
-  // Use INT-aware getter
-  const BETTER_AUTH_URL = getBetterAuthUrl();
-  
-  const parsed = siteUrlSchema.safeParse({
-    BETTER_AUTH_URL,
-  });
-
-  if (parsed.success) {
-    return new URL(parsed.data.BETTER_AUTH_URL);
-  }
-
-  return new URL(CANONICAL_SITE_URL);
-}
-
 /**
- * t85-15: canonical public domain for every link we email. Emails used readSiteUrl(), i.e. the BETTER_AUTH_URL secret,
- * which on prod still holds the old workers.dev origin. That secret also drives Better Auth (cookies, callbacks), so it
- * stays as is; email links come from here instead. PUBLIC_SITE_URL overrides (https only), else itsrelify.com.
+ * Canonical public origin for emails, sitemap, robots, canonical, and Open Graph.
+ * Never the request host and never BETTER_AUTH_URL (that secret still holds the old
+ * workers.dev origin for cookies). Prod is PUBLIC_SITE_URL (https) or itsrelify.com;
+ * INT uses the INT auth origin.
  */
 export const CANONICAL_SITE_URL = "https://itsrelify.com";
 
 export function emailSiteUrl(): URL {
-  // Use INT-aware origin (never falls back to production in INT mode)
   return new URL(getSiteOrigin());
+}
+
+export function readSiteUrl(): URL {
+  return emailSiteUrl();
 }
 
 /** Link on the canonical email domain: a path, or a full URL (e.g. Better Auth's verify link) moved onto that origin. */

@@ -12,7 +12,6 @@ import { Button as KitButton, Card, Textarea } from "@/components/ui/form";
 import { figureCorrectionMaxLength } from "@/lib/figure-correction-email";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
 import { FieldHint } from "@/components/field-hint";
-import { companyCopy } from "@/lib/company-copy";
 import { headlineEbitdaMargin } from "@/lib/financial-metrics";
 import { formatCardEur } from "@/lib/money";
 import type { SabiYear } from "@/lib/sabi/insights";
@@ -73,7 +72,6 @@ export function SellerFiguresCard({ step, figures, reportYears = null }: { step:
             Tus cifras
           </h2>
           <SectionIntro>Las cifras clave de tu último ejercicio y su evolución.</SectionIntro>
-          <p className="mt-1 text-xs text-[#8b95a7]">{companyCopy.figuresAccountsLine}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {hasFigures ? (

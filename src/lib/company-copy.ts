@@ -88,6 +88,8 @@ export const companyCopy = {
   descriptionTooShort: "La descripción debe tener al menos 200 caracteres.",
   descriptionCounter: "{count} / {max} · mínimo {min}",
   ownerDependenceLabel: "Dependencia del dueño",
+  ownerDependenceHelp:
+    "Cuánto depende el negocio de ti para clientes, operativa y relaciones clave. Menos dependencia facilita la transmisión y suele subir el valor.",
   ownerDependenceEmpty: "Sin indicar",
   ownerDependenceLow: "Baja",
   ownerDependenceMedium: "Media",

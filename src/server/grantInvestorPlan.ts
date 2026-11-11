@@ -1,12 +1,9 @@
-import * as z from "zod";
 import { adminCopy } from "@/lib/admin-copy";
+import { grantPlanSchema } from "@/lib/grant-plan";
 import type { CurrentUser } from "@/server/getCurrentUser";
 import { prisma } from "@/server/db";
 
-const inputSchema = z.object({
-  userId: z.string().trim().min(1).max(128),
-  plan: z.enum(["limited", "unlimited"]),
-});
+export { grantPlanSchema } from "@/lib/grant-plan";
 
 const grantDays = 30;
 
@@ -22,7 +19,7 @@ export async function grantInvestorPlan(
     return { ok: false, message: adminCopy.forbidden };
   }
 
-  const parsed = inputSchema.safeParse({ userId, plan });
+  const parsed = grantPlanSchema.safeParse({ userId, plan });
 
   if (!parsed.success) {
     return { ok: false, message: adminCopy.invalid };
@@ -43,6 +40,16 @@ export async function grantInvestorPlan(
 
   if (account.role !== "investor") {
     return { ok: false, message: adminCopy.planInvestorOnly };
+  }
+
+  if (parsed.data.plan === "none") {
+    if (account.billingCustomer) {
+      await prisma.billingCustomer.update({
+        where: { userId: account.id },
+        data: { plan: "none", periodStart: null, periodEnd: null },
+      });
+    }
+    return { ok: true, message: adminCopy.planCleared };
   }
 
   const periodStart = new Date();

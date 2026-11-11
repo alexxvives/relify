@@ -31,7 +31,7 @@ export function pageSocialMetadata(input: {
   const url = new URL(input.path, input.origin).href;
   const image = ogImageUrl(input.origin);
   return {
-    alternates: { canonical: input.path },
+    alternates: { canonical: url },
     openGraph: {
       title: input.title,
       description: input.description,

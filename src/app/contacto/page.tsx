@@ -3,13 +3,25 @@ import Link from "next/link";
 import { ArrowRight, Briefcase, Building2, HelpCircle, Mail, Users } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { PublicSite } from "@/components/public-site";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 import { shellCopy } from "@/lib/shell";
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description: "Escribe al equipo de Relify sobre la venta, la compra o el asesoramiento de una empresa.",
-  alternates: { canonical: "/contacto" },
-};
+const contactTitle = "Contacto";
+const contactDescription = "Escribe al equipo de Relify sobre la venta, la compra o el asesoramiento de una empresa.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title: contactTitle,
+    description: contactDescription,
+    ...pageSocialMetadata({
+      title: contactTitle,
+      description: contactDescription,
+      path: "/contacto",
+      origin: readSiteUrl(),
+    }),
+  };
+}
 
 const audiences = [
   {

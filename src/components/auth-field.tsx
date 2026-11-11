@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { authCopy } from "@/lib/auth-copy";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { Input as ArcInput } from "@/components/arc/input/input";
 
 export const authFieldClassName =
-  "relify-field h-12 w-full pr-12 pl-11 text-[15px] text-public-ink placeholder:text-public-muted";
+  "relify-field h-12 w-full text-[15px] text-public-ink placeholder:text-public-muted";
 
 export const authLabelClassName = "flex flex-col gap-1.5 text-sm font-medium text-[#5d7082]";
 
@@ -34,17 +34,14 @@ export function EmailField({ look = "pill" }: { look?: "pill" | "arc" } = {}) {
   return (
     <label className={authLabelClassName}>
       {authCopy.emailFieldLabel}
-      <span className="relative">
-        <Mail className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#8aa0b2]" aria-hidden />
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          placeholder={authCopy.emailPlaceholder}
-          className={authFieldClassName}
-        />
-      </span>
+      <input
+        name="email"
+        type="email"
+        autoComplete="email"
+        required
+        placeholder={authCopy.emailPlaceholder}
+        className={authFieldClassName}
+      />
     </label>
   );
 }
@@ -66,7 +63,6 @@ export function PasswordField({
     <label className={authLabelClassName}>
       {authCopy.passwordLabel}
       <span className="relative">
-        <Lock className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#8aa0b2]" aria-hidden />
         <input
           name="password"
           type={visible ? "text" : "password"}
@@ -75,7 +71,7 @@ export function PasswordField({
           minLength={minLength}
           maxLength={maxLength}
           placeholder={placeholder}
-          className={authFieldClassName}
+          className={`${authFieldClassName} pr-12`}
         />
         <button
           type="button"

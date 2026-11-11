@@ -217,6 +217,7 @@ export function AccountSettings({
             type="submit"
             disabled={deletePending}
             tone="danger"
+            className="xl:mt-7 md:col-span-2 xl:col-span-1"
 >
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
           </Button>

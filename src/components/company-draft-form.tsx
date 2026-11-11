@@ -9,7 +9,7 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, Check, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Info, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -23,7 +23,7 @@ import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses } from "@/lib/cnae-2009";
-import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
+import { ebitdaTrend, estimatePriceRange, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -523,7 +523,6 @@ function FichaMetrics({
   adjustedEbitda,
   margin,
   netResult,
-  priceStatus = null,
   priceBlocked = false,
   adjustmentCount,
   pendingCount = 0,
@@ -539,7 +538,6 @@ function FichaMetrics({
   adjustedEbitda: string;
   margin: string;
   netResult: string;
-  priceStatus?: ReactNode;
   priceBlocked?: boolean;
   adjustmentCount: number;
   pendingCount?: number;
@@ -560,31 +558,24 @@ function FichaMetrics({
           name="askingPrice"
           value={askingPrice}
           onChange={onAskingPrice}
-          corner={priceStatus}
-          unsetText={companyCopy.priceUnset}
-          disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
-          footer={
+          corner={
             recommended && !priceBlocked && !recommended.applied ? (
-              <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#667085]">
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <Sparkles className="size-3.5 shrink-0 text-[#465ab4]" aria-hidden />
-                  <span>
-                    {companyCopy.suggestedPrice}:{" "}
-                    <span className="font-semibold whitespace-nowrap text-[#1c2740] tabular-nums">{recommended.amount}</span>
-                  </span>
+              <button
+                type="button"
+                onClick={recommended.onUse}
+                aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
+                className="inline-flex h-7 max-w-full items-center gap-1 rounded-full bg-[#eef1fb] px-2 text-[11px] font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+              >
+                <Sparkles className="size-3.5 shrink-0" aria-hidden />
+                <span className="min-w-0 truncate">
+                  {companyCopy.suggestedPrice}{" "}
+                  <span className="whitespace-nowrap text-[#1c2740] tabular-nums">{recommended.amount}</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={recommended.onUse}
-                  aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
-                  className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
-                >
-                  <Check className="size-3.5" aria-hidden />
-                  {companyCopy.applySuggested}
-                </button>
-              </p>
+              </button>
             ) : null
           }
+          unsetText={companyCopy.priceUnset}
+          disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
         />
       </div>
       <div className="h-full min-w-0">
@@ -1241,172 +1232,6 @@ function recommendedPriceInput(estimate: PriceEstimate): string {
   return String(recommendedPriceCents(estimate) / 100);
 }
 
-const standingCopy = {
-  below: { text: "Por debajo del rango", short: "Bajo rango", className: "bg-[#eef1fb] text-[#465ab4]" },
-  within: { text: "Dentro del rango", short: "En rango", className: "bg-[#e8f6ee] text-[#17663a]" },
-  above: { text: "Por encima del rango", short: "Sobre rango", className: "bg-[#fff4e0] text-[#8a5300]" },
-} as const;
-
-/** Suggested price as a status pill under the price input; the range, the bar and the why live in a popover. */
-// t93: the popover is position:fixed (the metric tile clips overflow), stays open while the pointer crosses the gap,
-// and closes with Esc. It shows a red→orange→yellow→green→…→red bar with the asking price as a black dot.
-function PriceStatus({
-  estimate,
-  askingCents,
-  blocked = false,
-  rangeNote,
-}: {
-  estimate: PriceEstimate | null;
-  askingCents: number | null;
-  blocked?: boolean;
-  rangeNote?: string | null;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const [place, setPlace] = useState<{ top: number; right: number } | null>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shown = hovered || pinned;
-  const standing = !blocked && estimate && askingCents !== null && askingCents > 0 ? standingCopy[priceStanding(askingCents, estimate)] : null;
-
-  const enter = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setHovered(true);
-  };
-  const leave = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setHovered(false), 150);
-  };
-
-  useEffect(() => {
-    if (!shown) return;
-    const measure = () => {
-      const rect = buttonRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setPlace({ top: rect.bottom + 8, right: Math.max(12, window.innerWidth - rect.right) });
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setPinned(false);
-        setHovered(false);
-      }
-    };
-    measure();
-    window.addEventListener("scroll", measure, true);
-    window.addEventListener("resize", measure);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("scroll", measure, true);
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [shown]);
-
-  useEffect(() => () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-  }, []);
-
-  return (
-    <div className="relative" onMouseEnter={enter} onMouseLeave={leave}>
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-expanded={shown}
-        aria-controls="price-guide"
-        onClick={() => setPinned((value) => !value)}
-        onBlur={() => setPinned(false)}
-        aria-label={standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
-        title={standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
-        className={`inline-flex h-6 max-w-full items-center gap-1 rounded-full px-1.5 text-[11px] leading-none font-semibold ${standing ? standing.className : "bg-[#f2f4f7] text-[#475467]"}`}
-      >
-        <Info className="size-3 shrink-0" aria-hidden />
-        <span className="hidden min-w-0 truncate whitespace-nowrap @[18rem]:inline">
-          {standing ? standing.text : blocked ? "Rango no disponible" : "Rango orientativo"}
-        </span>
-        <span className="sr-only">{blocked ? "Por qué no hay rango" : "Ver rango de precio orientativo"}</span>
-      </button>
-      {shown && place ? (
-        <div
-          id="price-guide"
-          role="tooltip"
-          onMouseEnter={enter}
-          onMouseLeave={leave}
-          style={{ top: place.top, right: place.right }}
-          className="fixed z-50 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-[#e6e9f0] bg-white p-4 text-left shadow-[0_18px_40px_-20px_rgba(28,39,64,0.45)]"
-        >
-          {blocked ? (
-            <>
-              <p className="text-sm font-semibold text-[#1c2740]">Rango no disponible</p>
-              <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{companyCopy.priceBlockedHint}</p>
-            </>
-          ) : estimate ? (
-            <>
-              <p className="text-sm font-semibold text-[#1c2740]">Rango orientativo de precio</p>
-              <PriceBar estimate={estimate} askingCents={askingCents} />
-              <p className="mt-3 text-xs leading-5 text-[#3d4a63]">
-                Múltiplo EBITDA:{" "}
-                <span className="tabular-nums font-semibold text-[#1c2740]">
-                  {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}
-                </span>
-              </p>
-              {rangeNote ? <p className="mt-2 text-xs leading-5 text-[#667085]">{rangeNote}</p> : null}
-              <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
-                Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
-              </p>
-            </>
-          ) : (
-            <p className="text-sm leading-6 text-[#3d4a63]">
-              Para calcular el rango necesitamos un EBITDA positivo (de tus cuentas o ajustado). Con él te mostraremos un rango orientativo para tu sector.
-            </p>
-          )}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-const priceBarGradient = `linear-gradient(to right, #d92d20 0%, #f79009 ${priceBarZone.low * 45}%, #fdb022 ${priceBarZone.low * 85}%, #12b76a ${priceBarZone.low * 100}%, #12b76a ${priceBarZone.high * 100}%, #fdb022 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 15}%, #f79009 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 55}%, #d92d20 100%)`;
-
-function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCents: number | null }) {
-  const { minCents, maxCents } = priceBarEnds(estimate);
-  const dot = askingCents !== null && askingCents > 0 ? priceBarPosition(askingCents, estimate) : null;
-  return (
-    <div className="mt-3">
-      {dot !== null ? (
-        <p className="mb-1.5 flex items-center justify-end gap-1.5 text-[11px] leading-4 text-[#475467]">
-          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="tabular-nums font-semibold text-[#1c2740]">{wholeEur(askingCents!)}</span>
-        </p>
-      ) : null}
-      <div className="relative h-2.5 rounded-full" style={{ background: priceBarGradient }}>
-        {dot !== null ? (
-          <span
-            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#101828] shadow"
-            style={{ left: `${dot * 100}%` }}
-            aria-hidden
-          />
-        ) : null}
-      </div>
-      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
-        <span>
-          Mín.
-          <br />
-          {wholeEur(minCents)}
-        </span>
-        <span className="text-center font-semibold text-[#17663a]">
-          Rango
-          <br />
-          {wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}
-        </span>
-        <span className="text-right">
-          Máx.
-          <br />
-          {wholeEur(maxCents)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function CnaeSelect({
   name,
   label,
@@ -1605,6 +1430,7 @@ function Fact({
   icon: Icon,
   label,
   help,
+  hint,
   required = false,
   className = "",
   children,
@@ -1613,6 +1439,7 @@ function Fact({
   icon: typeof Building2;
   label: string;
   help?: string;
+  hint?: string;
   required?: boolean;
   className?: string;
   children: ReactNode;
@@ -1623,13 +1450,14 @@ function Fact({
         <Icon className="size-5" aria-hidden />
       </span>
       <span className="min-w-0">
-        <span className="mb-1 block text-sm text-[#64748b]">
+        <span className="mb-1 flex items-center gap-1 text-sm text-[#64748b]">
           {label}
           {required ? (
             <span className="ml-0.5 text-[#c0362c]" aria-hidden>
               *
             </span>
           ) : null}
+          {hint ? <InfoHint text={hint} icon="info" /> : null}
         </span>
         {help ? <p className="mb-1 text-xs leading-4 text-[#8b95a7]">{help}</p> : null}
         <div className="text-base font-semibold text-[#2b3b4a]">{children}</div>
@@ -2066,14 +1894,6 @@ export function CompanyDraftForm({
     revenueGrowth: salesGrowth(closedYears),
     ebitdaTrend: ebitdaTrend(ebitdaByYear(closedYears)),
   });
-  const priceRangeNote =
-    weightedEbitda === null
-      ? null
-      : weightedEbitda.years.length === 1
-        ? companyCopy.priceRangeNoteOne
-        : weightedEbitda.years.length === 2
-          ? companyCopy.priceRangeNoteTwo
-          : companyCopy.priceRangeNoteThree;
   const dealNote = `${
     accountYear && salesFromAccounts
       ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
@@ -2498,26 +2318,18 @@ export function CompanyDraftForm({
             <span className="sr-only">(obligatorio)</span>
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
-          <div className="relative">
-            {description.length > 80 ? (
-              <span className="absolute top-2.5 left-2.5 z-10">
-                <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" />
-              </span>
-            ) : null}
-            <Textarea
-              name="description"
-              data-flash
-              rows={4}
-              maxLength={descriptionMaxLength}
-              placeholder={companyCopy.descriptionPlaceholder}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              aria-label={companyCopy.descriptionLabel}
-              aria-required="true"
-              aria-invalid={description.trim().length > 0 && description.trim().length < descriptionMinLength ? true : undefined}
-              className={description.length > 80 ? "pl-9" : undefined}
-            />
-          </div>
+          <Textarea
+            name="description"
+            data-flash
+            rows={4}
+            maxLength={descriptionMaxLength}
+            placeholder={companyCopy.descriptionPlaceholder}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            aria-label={companyCopy.descriptionLabel}
+            aria-required="true"
+            aria-invalid={description.trim().length > 0 && description.trim().length < descriptionMinLength ? true : undefined}
+          />
           <span className="flex flex-wrap items-start justify-between gap-2 text-sm text-[#667085]">
             {description.trim().length > 0 && description.trim().length < descriptionMinLength ? (
               <span role="status" className="text-[#c0362c]">
@@ -2526,7 +2338,10 @@ export function CompanyDraftForm({
             ) : (
               <span />
             )}
-            <span>
+            <span className="inline-flex items-center gap-1">
+              {description.length > 80 ? (
+                <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" />
+              ) : null}
               {companyCopy.descriptionCounter
                 .replace("{count}", String(description.trim().length))
                 .replace("{max}", String(descriptionMaxLength))
@@ -2653,14 +2468,6 @@ export function CompanyDraftForm({
                     }
                   : null
               }
-              priceStatus={
-                <PriceStatus
-                  estimate={priceEstimate}
-                  askingCents={euroCentsOrNull(askingPrice)}
-                  blocked={priceBlocked}
-                  rangeNote={priceRangeNote}
-                />
-              }
               askingPriceIncludes={askingPriceIncludes}
               onAskingPriceIncludes={setAskingPriceIncludes}
             />
@@ -2729,7 +2536,7 @@ export function CompanyDraftForm({
           )}
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Fact icon={Users} label={companyCopy.ownerDependenceLabel}>
+          <Fact icon={Users} label={companyCopy.ownerDependenceLabel} hint={companyCopy.ownerDependenceHelp}>
             <OptionSelect
               name="ownerDependence"
               label={companyCopy.ownerDependenceLabel}
@@ -2786,7 +2593,7 @@ export function CompanyDraftForm({
               </Fact>
             </>
           ) : null}
-          <Fact icon={Handshake} label={companyCopy.recurringRevenueLabel} help={companyCopy.recurringRevenueHelp}>
+          <Fact icon={Handshake} label={companyCopy.recurringRevenueLabel}>
             <Input
               name="recurringRevenuePct"
               inputMode="numeric"
@@ -3004,7 +2811,6 @@ export function CompanyDraftForm({
         onEdit={() => undefined}
         onCollapse={() => undefined}
       >
-        <p className="-mt-2 mb-4 text-sm text-[#5c6b78]">{companyCopy.fichaPreviewIntro}</p>
         <div className="flex flex-col gap-4">
           <MarketPreview
             project={previewProject}

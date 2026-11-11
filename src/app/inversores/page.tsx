@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: "Compradores",
-  description: "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.",
-};
+const title = "Compradores";
+const description = "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title,
+    description,
+    ...pageSocialMetadata({ title, description, path: "/inversores", origin: readSiteUrl() }),
+  };
+}
 
 export default function InversoresPage() {
   return (

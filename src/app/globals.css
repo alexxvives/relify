@@ -3378,32 +3378,49 @@ header:has([data-menu-open="true"]) {
   clip: rect(0 0 0 0);
 }
 
-.relify-field,
-.releva-wait-field {
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0 1rem;
-  border: 1px solid var(--public-line);
-  border-radius: var(--field-radius);
-  background: var(--public-sand);
-  color: var(--public-ink);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  outline: none;
+@layer components {
+  .relify-field,
+  .releva-wait-field {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--public-line);
+    border-radius: var(--field-radius);
+    background: var(--public-sand);
+    color: var(--public-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    outline: none;
+  }
+
+  .releva-wait-field {
+    height: 3rem;
+  }
+
+  .relify-field:focus-visible,
+  .releva-wait-field:focus-visible {
+    border-color: var(--public-ink);
+  }
+
+  .relify-field[aria-invalid="true"],
+  .releva-wait-field[aria-invalid="true"] {
+    border-color: #c0362c;
+  }
 }
 
-.releva-wait-field {
-  height: 3rem;
-}
-
-.relify-field:focus-visible,
-.releva-wait-field:focus-visible {
-  border-color: var(--public-ink);
-}
-
-.relify-field[aria-invalid="true"],
-.releva-wait-field[aria-invalid="true"] {
-  border-color: #c0362c;
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--public-ink);
+  caret-color: var(--public-ink);
+  box-shadow: 0 0 0 1000px var(--public-sand) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--public-sand) inset;
+  transition: background-color 99999s ease-out;
 }
 
 .releva-wait-field::placeholder {

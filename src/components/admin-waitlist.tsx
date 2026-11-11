@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, ListChecks } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Briefcase, Building2, Download, Handshake, ListChecks, type LucideIcon } from "lucide-react";
+import { waitlistCopy, waitlistRoles } from "@/lib/waitlist";
 import { deleteWaitlistAction } from "@/app/(app)/admin/lista-de-espera/actions";
 import { NewPill } from "@/components/admin-new";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
@@ -21,6 +22,72 @@ const columns: { key: SortKey; label: string }[] = [
 ];
 
 const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Madrid" });
+
+const roleTone = {
+  company: {
+    chip: "bg-[#0c7c78]",
+    pill: "bg-[#e6f4f3] text-[#0b5559]",
+    ink: "text-[#0b5559]",
+    bg: "bg-[#e6f4f3]",
+    ring: "ring-[#0c7c78]/15",
+    icon: Building2,
+  },
+  investor: {
+    chip: "bg-[#465ab4]",
+    pill: "bg-[#eef1fb] text-[#2f3f8f]",
+    ink: "text-[#2f3f8f]",
+    bg: "bg-[#eef1fb]",
+    ring: "ring-[#465ab4]/15",
+    icon: Briefcase,
+  },
+  advisor: {
+    chip: "bg-[#e3a008]",
+    pill: "bg-[#fdf4e3] text-[#b26b00]",
+    ink: "text-[#b26b00]",
+    bg: "bg-[#fdf4e3]",
+    ring: "ring-[#e3a008]/20",
+    icon: Handshake,
+  },
+} satisfies Record<(typeof waitlistRoles)[number], { chip: string; pill: string; ink: string; bg: string; ring: string; icon: LucideIcon }>;
+
+const totalTone = {
+  chip: "bg-[#1c2740]",
+  ink: "text-[#1c2740]",
+  bg: "bg-[#f4f6fb]",
+  ring: "ring-[#1c2740]/10",
+  icon: ListChecks,
+};
+
+function WaitlistStats({ total, byRole }: { total: number; byRole: Map<string, number> }) {
+  const cards = [
+    { key: "total", label: total === 1 ? "Registro" : "Registros", value: total, ...totalTone },
+    ...waitlistCopy.roles.map((role) => ({
+      key: role.id,
+      label: role.label,
+      value: byRole.get(role.id) ?? 0,
+      ...roleTone[role.id],
+    })),
+  ];
+
+  return (
+    <ul className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <li key={card.key} className={`flex min-w-0 items-center gap-3 rounded-2xl px-4 py-4 ring-1 ${card.bg} ${card.ring}`}>
+            <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-white ${card.chip}`}>
+              <Icon className="size-5" aria-hidden />
+            </span>
+            <span className="min-w-0">
+              <span className={`block text-2xl leading-7 font-semibold tabular-nums ${card.ink}`}>{card.value}</span>
+              <span className="block text-xs leading-4 text-[#3d4a63]">{card.label}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 function formatWhen(iso: string): string {
   return when.format(new Date(iso));
@@ -66,10 +133,10 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
     return [...filtered].sort((a, b) => a[sort.key].localeCompare(b[sort.key], "es", { sensitivity: "base" }) * factor);
   }, [entries, needle, sort]);
 
-  const counts = useMemo(() => {
-    const byRole = new Map<string, number>();
-    for (const entry of entries) byRole.set(entry.roleLabel, (byRole.get(entry.roleLabel) ?? 0) + 1);
-    return [...byRole.entries()];
+  const byRole = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of entries) counts.set(entry.role, (counts.get(entry.role) ?? 0) + 1);
+    return counts;
   }, [entries]);
 
   function toggle(key: SortKey) {
@@ -88,10 +155,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
 
   return (
     <div>
-      <AdminPageHeader
-        title="Lista de espera"
-        note={`${entries.length} ${entries.length === 1 ? "registro" : "registros"}${counts.length ? ` · ${counts.map(([label, n]) => `${label} ${n}`).join(" · ")}` : ""}`}
-      >
+      <AdminPageHeader title="Lista de espera">
         <AdminSearchField id="admin-waitlist-search" label="Buscar" value={query} placeholder="Nombre, correo o ciudad" onChange={setQuery} />
         <button
           type="button"
@@ -103,6 +167,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
           Exportar CSV
         </button>
       </AdminPageHeader>
+      <WaitlistStats total={entries.length} byRole={byRole} />
       {entries.length === 0 ? (
         <EmptySkeleton icon={ListChecks} variant="rows" rows={4} title="Nadie en la lista de espera" text="Cada persona que se apunte aparecerá aquí con su correo, perfil y fecha, lista para exportar en CSV." />
       ) : (
@@ -140,7 +205,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
                     <a className="text-[#0f6e73] underline-offset-4 hover:underline" href={`mailto:${entry.email}`}>{entry.email}</a>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-[#eef2ff] px-2.5 py-0.5 text-xs font-medium text-[#465ab4]">{entry.roleLabel}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${entry.role in roleTone ? roleTone[entry.role as keyof typeof roleTone].pill : "bg-[#eef2ff] text-[#465ab4]"}`}>{entry.roleLabel}</span>
                   </td>
                   <td className="px-4 py-3 text-[#3d4a63]">{entry.city || "—"}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-[#667085] tabular-nums">{formatWhen(entry.createdAt)}</td>

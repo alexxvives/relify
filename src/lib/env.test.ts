@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { emailLink, emailSiteUrl } from "./env";
+import { emailLink, emailSiteUrl, readSiteUrl } from "./env";
 import { welcomeEmail } from "./email/messages";
 
 describe("email links (t85-15)", () => {
@@ -10,7 +10,15 @@ describe("email links (t85-15)", () => {
     vi.stubEnv("BETTER_AUTH_URL", "https://releva.alexxvives.workers.dev");
     vi.stubEnv("PUBLIC_SITE_URL", "");
     expect(emailSiteUrl().origin).toBe("https://itsrelify.com");
+    expect(readSiteUrl().origin).toBe("https://itsrelify.com");
     expect(emailLink("/mi-empresa")).toBe("https://itsrelify.com/mi-empresa");
+  });
+
+  it("keeps sitemap and canonical on itsrelify.com when BETTER_AUTH_URL is workers.dev", () => {
+    vi.stubEnv("BETTER_AUTH_URL", "https://releva.alexxvives.workers.dev");
+    vi.stubEnv("PUBLIC_SITE_URL", "");
+    expect(readSiteUrl().href).toBe("https://itsrelify.com/");
+    expect(new URL("/sitemap.xml", readSiteUrl()).href).toBe("https://itsrelify.com/sitemap.xml");
   });
 
   it("move a full Better Auth link onto the canonical origin, keeping path and token", () => {
@@ -24,6 +32,12 @@ describe("email links (t85-15)", () => {
     expect(emailLink("/a")).toBe("https://www.itsrelify.com/a");
     vi.stubEnv("PUBLIC_SITE_URL", "http://evil.test");
     expect(emailLink("/a")).toBe("https://itsrelify.com/a");
+  });
+
+  it("INT public origin is the INT host, not itsrelify.com", () => {
+    vi.stubEnv("INT_ENVIRONMENT", "true");
+    vi.stubEnv("INT_BETTER_AUTH_URL", "https://releva-int.account.workers.dev");
+    expect(readSiteUrl().origin).toBe("https://releva-int.account.workers.dev");
   });
 
   it("welcome email CTA points at itsrelify.com", () => {

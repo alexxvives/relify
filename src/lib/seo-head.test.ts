@@ -22,6 +22,8 @@ describe("pageSocialMetadata", () => {
       path: "/mercado",
       origin,
     });
+    expect(social.alternates).toEqual({ canonical: "https://itsrelify.com/mercado" });
+    expect(social.openGraph).toMatchObject({ url: "https://itsrelify.com/mercado" });
     expect(social.twitter).toMatchObject({ card: "summary_large_image", images: [ogImageUrl(origin)] });
     const images = social.openGraph?.images;
     expect(Array.isArray(images)).toBe(true);

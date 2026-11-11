@@ -220,10 +220,36 @@ export function SuspensionButton({ userId, name, suspended }: { userId: string; 
 export function PlanPicker({ userId, plan }: { userId: string; plan: "none" | "limited" | "unlimited" }) {
   const { state, formAction, pending } = useAccountAction(grantPlanAction);
   const [open, setOpen] = useState(false);
-  const options = ["limited", "unlimited"] as const;
+  const root = useRef<HTMLSpanElement>(null);
+  const options = ["none", "limited", "unlimited"] as const;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function onPointer(event: PointerEvent) {
+      if (root.current && !root.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
-    <span className="relative inline-flex flex-col items-end">
+    <span ref={root} className="relative inline-flex flex-col items-end">
       <button
         type="button"
         aria-haspopup="menu"

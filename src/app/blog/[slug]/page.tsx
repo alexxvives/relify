@@ -20,17 +20,19 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
     return { title: blogCopy.title };
   }
 
+  const origin = readSiteUrl();
+  const url = new URL(`/blog/${post.slug}`, origin).href;
   return {
     title: post.title,
     description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}` },
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.excerpt,
-      url: `/blog/${post.slug}`,
+      url,
       type: "article",
       locale: "es_ES",
-      images: [{ url: post.cover.src, alt: post.cover.alt }],
+      images: [{ url: new URL(post.cover.src, origin).href, alt: post.cover.alt }],
     },
   };
 }

@@ -3,19 +3,21 @@ import { BlogIndex } from "@/components/blog-index";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { PublicSite } from "@/components/public-site";
 import { blogCopy, blogPosts } from "@/lib/blog";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: blogCopy.title,
-  description: blogCopy.description,
-  alternates: { canonical: "/blog" },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  return {
     title: blogCopy.title,
     description: blogCopy.description,
-    url: "/blog",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+    ...pageSocialMetadata({
+      title: blogCopy.title,
+      description: blogCopy.description,
+      path: "/blog",
+      origin: readSiteUrl(),
+    }),
+  };
+}
 
 export default function BlogPage() {
   const posts = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date));

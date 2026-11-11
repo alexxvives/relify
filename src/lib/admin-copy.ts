@@ -158,6 +158,7 @@ export const adminCopy = {
   grantPlan: "Conceder plan",
   grantingPlan: "Concediendo…",
   planGranted: "Plan concedido. No se ha cobrado nada.",
+  planCleared: "Plan quitado. El comprador queda sin plan. No se ha cobrado nada.",
   planCurrent: "Plan actual",
   planChange: "Cambiar plan",
   planInvestorOnly: "El plan solo se concede a un comprador.",

@@ -12,6 +12,7 @@ import {
   spanishDate,
 } from "@/lib/deal-documents";
 import { jpegSize } from "@/lib/signature-image";
+import { isIntEnvironment } from "../lib/int-env";
 import { prisma } from "@/server/db";
 import { assertUploadsEnabled } from "@/server/int-guards";
 
@@ -258,7 +259,21 @@ export async function readSignedDocument(
   if (stored && isCurrentTemplate(stored.pdf)) {
     return { fileName: stored.fileName, pdf: Uint8Array.from(stored.pdf) };
   }
-  return storeSignedDocument(kind, refId);
+  try {
+    return await storeSignedDocument(kind, refId);
+  } catch (error) {
+    if (!isIntEnvironment()) {
+      throw error;
+    }
+    if (stored) {
+      return { fileName: stored.fileName, pdf: Uint8Array.from(stored.pdf) };
+    }
+    const rendered = await render(kind, refId);
+    if (!rendered) {
+      return null;
+    }
+    return { fileName: documentFileName(kind), pdf: rendered.pdf };
+  }
 }
 
 /** Never let a PDF failure undo a signature that is already saved. */
@@ -266,8 +281,6 @@ export async function storeSignedDocumentQuietly(
   kind: SignedDocumentKind,
   refId: string,
 ): Promise<void> {
-  // INT guard: uploads disabled
-  assertUploadsEnabled();
   try {
     await storeSignedDocument(kind, refId);
   } catch (error) {
