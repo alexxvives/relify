@@ -62,6 +62,8 @@ Production: Cloudflare Workers, added with vinext after `npx vinext check` passe
 | @playwright/test | 1.65.0 |
 | @neon/config | 1.8.4 |
 | @neon/env | 1.5.1 |
+| pdf-lib | 1.17.1 |
+| @pdf-lib/fontkit | 1.1.1 |
 
 ## Environment
 

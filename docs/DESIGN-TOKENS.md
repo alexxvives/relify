@@ -10,9 +10,9 @@ Loaded once in `src/app/layout.tsx` and exposed as CSS variables in `src/app/glo
 | --- | --- | --- |
 | `--font-sans` / `--public-font` | DM Sans | Body, UI, forms |
 | `--font-heading` / `--public-heading` | Geist | Page and section titles (`h1`–`h3`, `.releva-page-title`, `.releva-section-title`, `.releva-hero-title`) |
-| `--font-display` / `--public-display` | Instrument Serif | Accents only (italic mark, not page titles) |
+| `--font-display` / `--public-display` | Instrument Serif | Accents only (not page titles; not the `/valorar` Relify label) |
 
-Tailwind maps `font-sans` and `font-heading` to those variables. Do not set `font-family` on a page, and do not load a fourth family for `/valorar` or auth.
+Tailwind maps `font-sans` and `font-heading` to those variables. Do not set `font-family` on a page, and do not load a fourth family for `/valorar` or auth. The `/valorar` “Relify” word in Qué te enviaremos uses `--font-heading`.
 
 ## Fields
 

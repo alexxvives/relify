@@ -1,11 +1,14 @@
-import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
+import { PDFDocument, degrees, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from "pdf-lib";
+import * as fontkit from "@pdf-lib/fontkit";
+import { brandLogoJpegBase64, brandLogoSize } from "./brand-logo-jpeg";
+import { dmSansRegular, dmSansSemiBold, geistRegular, geistSemiBold } from "./pdf-fonts";
 import { formatCardEur, formatDecimal } from "./money";
 import { foundedDecade } from "./market-filters";
 import { ebitdaMarginBasisPoints, headcountLabels, type HeadcountRangeId } from "./company-profile";
 import { reportHeadline } from "./company-report";
 import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { saleReasonLabels, type SaleReason } from "./company-draft";
-import { sellerFinancingChip, type SellerFinancing } from "./seller-financing";
+import { sellerFinancingText, type SellerFinancing } from "./seller-financing";
 import { sellerStayText, type SellerStay } from "./seller-stay";
 import {
   capexToSalesAverage,
@@ -16,7 +19,15 @@ import {
   nofCents,
 } from "./financial-metrics";
 import { netDebtCents, type SabiYear } from "./sabi/insights";
-import { estimatePriceRange } from "./valuation-multiples";
+import {
+  ebitdaTrend,
+  estimatePriceRange,
+  formatMultiple,
+  priceBarEnds,
+  priceBarPosition,
+  priceBarZone,
+} from "./valuation-multiples";
+import { approvedAdjustments, ebitdaAdjustmentLabels, storedEbitdaAdjustments } from "./ebitda-adjustments";
 
 export const companyPdfCopy = {
   teaserTitle: "Perfil ciego",
@@ -37,6 +48,16 @@ export const companyPdfCopy = {
   shareHint: "El enlace público se activa al publicar. Quien lo abre ve el mismo perfil ciego, sin la sociedad.",
   dossierDownload: "Descargar cuaderno de venta",
   generated: "Generado el",
+  thesisTitle: "Tesis de inversión",
+  highlightsTitle: "Puntos clave",
+  dealTitle: "Estructura de la operación",
+  motivoTitle: "Motivo de venta",
+  priceTitle: "Rango orientativo de precio",
+  priceCaption: "Múltiplo sectorial × EBITDA ajustado, con ajuste por crecimiento y plantilla.",
+  teaserCtaTitle: "Próximos pasos · Firma el NDA en Relify",
+  teaserCtaBody: "Solicita acceso y firma el NDA en Relify para abrir el cuaderno de venta, con ratios SABI y el puente de EBITDA.",
+  dossierCtaTitle: "Siguiente paso en Relify",
+  dossierCtaBody: "Revisa el data room, plantea preguntas y avanza la oferta indicativa en Relify.",
 } as const;
 
 export type CompanyPdfKind = "teaser" | "dossier";
@@ -47,7 +68,24 @@ export type CompanyPdfYear = {
   year: number;
   revenueCents: number | null;
   ebitdaCents: number | null;
+  ebitCents: number | null;
+  netResultCents: number | null;
   employees: number | null;
+  collectionDays: number | null;
+  creditDays: number | null;
+};
+
+export type CompanyPdfGauge = {
+  label: string;
+  value: string;
+  fill: number;
+  hint: string;
+};
+
+export type CompanyPdfBridgeRow = {
+  label: string;
+  cents: number;
+  kind: "start" | "adjust" | "end";
 };
 
 export type CompanyPdfView = {
@@ -64,12 +102,28 @@ export type CompanyPdfView = {
   kpis: CompanyPdfKpi[];
   years: CompanyPdfYear[];
   ratios: CompanyPdfKpi[];
+  gauges: CompanyPdfGauge[];
+  highlights: string[];
+  bridge: CompanyPdfBridgeRow[];
   marginPct: number | null;
   priceLow: string | null;
   priceHigh: string | null;
   asking: string;
+  priceLowCents: number | null;
+  priceHighCents: number | null;
+  askingCents: number;
+  sectorLabel: string | null;
+  multipleLow: string | null;
+  multipleHigh: string | null;
   generatedLabel: string;
   watermark: string | null;
+};
+
+type Fonts = {
+  sans: PDFFont;
+  sansSemi: PDFFont;
+  heading: PDFFont;
+  headingSemi: PDFFont;
 };
 
 const ink = rgb(18 / 255, 52 / 255, 58 / 255);
@@ -81,6 +135,13 @@ const sand = rgb(244 / 255, 248 / 255, 248 / 255);
 const white = rgb(1, 1, 1);
 const line = rgb(221 / 255, 231 / 255, 234 / 255);
 const mist = rgb(238 / 255, 246 / 255, 244 / 255);
+const amber = rgb(196 / 255, 92 / 255, 43 / 255);
+const rose = rgb(176 / 255, 58 / 255, 58 / 255);
+const PAGE_W = 595.28;
+const PAGE_H = 841.89;
+const M = 36;
+const FOOTER = 38;
+const CONTENT_W = PAGE_W - M * 2;
 
 const identityLeak = [
   /\blegalName\b/i,
@@ -98,14 +159,7 @@ export function companyPdfHasIdentity(view: CompanyPdfView): boolean {
 }
 
 function pdfSafe(value: string): string {
-  return value
-    .replaceAll("€", "EUR")
-    .replaceAll("—", "-")
-    .replaceAll("–", "-")
-    .replaceAll("’", "'")
-    .replaceAll("“", '"')
-    .replaceAll("”", '"')
-    .replaceAll("·", " · ");
+  return value.replaceAll("’", "'").replaceAll("“", '"').replaceAll("”", '"');
 }
 
 function wrap(font: PDFFont, text: string, size: number, width: number): string[] {
@@ -141,309 +195,681 @@ function drawText(
   page.drawText(pdfSafe(text), { x, y, size, font, color });
 }
 
-function drawLogo(page: PDFPage, bold: PDFFont, x: number, y: number, onDark: boolean) {
-  page.drawRectangle({ x, y: y - 4, width: 22, height: 22, color: onDark ? white : clay });
-  drawText(page, bold, "R", x + 6, y + 1, 13, onDark ? clay : white);
-  drawText(page, bold, companyPdfCopy.brand, x + 30, y, 16, onDark ? white : ink);
-}
-
-function drawFooter(page: PDFPage, font: PDFFont, pageIndex: number, total: number, width: number) {
-  page.drawRectangle({ x: 40, y: 32, width: width - 80, height: 0.6, color: line });
-  drawText(page, font, `${companyPdfCopy.brand}  ${companyPdfCopy.site}`, 40, 18, 8, muted);
-  const label = `${pageIndex + 1} / ${total}`;
-  const labelWidth = font.widthOfTextAtSize(label, 8);
-  drawText(page, font, label, width - 40 - labelWidth, 18, 8, muted);
-}
-
-function drawWatermark(page: PDFPage, font: PDFFont, text: string, width: number, height: number) {
+function drawRight(
+  page: PDFPage,
+  font: PDFFont,
+  text: string,
+  right: number,
+  y: number,
+  size: number,
+  color: RGB,
+) {
   const safe = pdfSafe(text);
-  page.drawText(safe, {
-    x: 72,
-    y: height / 2 - 24,
-    size: 16,
-    font,
+  drawText(page, font, safe, right - font.widthOfTextAtSize(safe, size), y, size, color);
+}
+
+function card(page: PDFPage, x: number, y: number, w: number, h: number, fill: RGB = sand) {
+  page.drawRectangle({ x, y, width: w, height: h, color: fill, borderColor: line, borderWidth: 0.7 });
+  page.drawRectangle({ x, y, width: 4, height: h, color: clay });
+}
+
+function drawBrandLogo(page: PDFPage, logo: PDFImage, x: number, y: number, height: number): number {
+  const width = (brandLogoSize.width / brandLogoSize.height) * height;
+  page.drawImage(logo, { x, y, width, height });
+  return width;
+}
+
+function drawFooter(page: PDFPage, fonts: Fonts, pageIndex: number, total: number) {
+  page.drawRectangle({ x: M, y: FOOTER - 10, width: CONTENT_W, height: 0.6, color: line });
+  drawText(page, fonts.sans, `${companyPdfCopy.brand}  ·  ${companyPdfCopy.site}`, M, 16, 8, muted);
+  const label = `${pageIndex + 1} / ${total}`;
+  drawRight(page, fonts.sansSemi, label, PAGE_W - M, 16, 8, muted);
+}
+
+function drawWatermark(page: PDFPage, fonts: Fonts, text: string) {
+  page.drawText(pdfSafe(text), {
+    x: 64,
+    y: PAGE_H / 2 - 18,
+    size: 13,
+    font: fonts.heading,
     color: rgb(15 / 255, 110 / 255, 115 / 255),
     rotate: degrees(28),
-    opacity: 0.1,
+    opacity: 0.09,
   });
 }
 
-function drawKpiGrid(
-  page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  kpis: CompanyPdfKpi[],
-  x: number,
-  y: number,
-  width: number,
-) {
-  const gap = 10;
+function drawLetterhead(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  const logoH = 22;
+  drawBrandLogo(page, logo, M, PAGE_H - 40, logoH);
+  const kicker = `${companyPdfCopy.confidential}  ·  ${view.kind === "teaser" ? companyPdfCopy.teaserTitle : companyPdfCopy.dossierTitle}`;
+  drawRight(page, fonts.sansSemi, kicker.toUpperCase(), PAGE_W - M, PAGE_H - 32, 8, clay);
+  page.drawRectangle({ x: M, y: PAGE_H - 48, width: CONTENT_W, height: 1.4, color: clay });
+}
+
+function drawHero(page: PDFPage, fonts: Fonts, view: CompanyPdfView, y: number, height: number) {
+  page.drawRectangle({ x: 0, y, width: PAGE_W, height, color: moss });
+  page.drawRectangle({ x: 0, y, width: PAGE_W, height: 3, color: clay });
+  const title = view.kind === "teaser" ? companyPdfCopy.teaserTitle : companyPdfCopy.dossierTitle;
+  drawText(page, fonts.sansSemi, title.toUpperCase(), M, y + height - 22, 9, rgb(0.78, 0.9, 0.88));
+  drawText(page, fonts.headingSemi, view.codename, M, y + height - 50, 22, white);
+  const chips = [view.region, view.cnae, view.decade, view.headcount].filter((item): item is string => Boolean(item));
+  let chipX = M;
+  const chipY = y + 16;
+  chips.slice(0, 4).forEach((chip) => {
+    const label = pdfSafe(chip);
+    const chipWidth = Math.min(210, fonts.sans.widthOfTextAtSize(label, 8) + 16);
+    page.drawRectangle({ x: chipX, y: chipY, width: chipWidth, height: 16, color: white });
+    drawText(page, fonts.sans, chip, chipX + 8, chipY + 4, 8, ink);
+    chipX += chipWidth + 6;
+  });
+}
+
+function coverKpis(view: CompanyPdfView): CompanyPdfKpi[] {
+  const extra =
+    view.marginPct === null ? [] : [{ label: "Margen EBITDA", value: `${Math.round(view.marginPct)} %` }];
+  return [...view.kpis, ...extra].slice(0, 4);
+}
+
+function drawKpiGrid(page: PDFPage, fonts: Fonts, kpis: CompanyPdfKpi[], x: number, y: number, width: number, height: number) {
+  const gap = 8;
   const cols = Math.min(4, Math.max(1, kpis.length));
   const boxWidth = (width - gap * (cols - 1)) / cols;
   kpis.forEach((kpi, index) => {
     const left = x + index * (boxWidth + gap);
     page.drawRectangle({
       x: left,
-      y: y - 58,
+      y,
       width: boxWidth,
-      height: 64,
+      height,
       color: sand,
       borderColor: line,
       borderWidth: 0.8,
     });
-    page.drawRectangle({ x: left, y: y + 4, width: 18, height: 3, color: clay });
-    drawText(page, font, kpi.label, left + 10, y - 10, 8, muted);
-    drawText(page, bold, kpi.value, left + 10, y - 36, 13, ink);
+    page.drawRectangle({ x: left, y: y + height - 4, width: 22, height: 4, color: clay });
+    drawText(page, fonts.sans, kpi.label, left + 10, y + height - 22, 8, muted);
+    drawText(page, fonts.headingSemi, kpi.value, left + 10, y + 14, 14, ink);
   });
 }
 
-function centsPeak(years: CompanyPdfYear[], key: "revenueCents" | "ebitdaCents"): number {
-  const values = years.map((row) => row[key]).filter((value): value is number => value !== null && value > 0);
-  return Math.max(...values, 1);
+function centsPeak(years: CompanyPdfYear[], key: "revenueCents" | "ebitdaCents" | "ebitCents" | "netResultCents"): number {
+  const values = years.map((row) => row[key]).filter((value): value is number => value !== null);
+  const peak = Math.max(...values.map((value) => Math.abs(value)), 1);
+  return peak;
 }
 
-function drawGroupedBars(
+function drawLabeledBars(
   page: PDFPage,
-  font: PDFFont,
+  fonts: Fonts,
+  years: CompanyPdfYear[],
+  key: "revenueCents" | "ebitdaCents" | "ebitCents" | "netResultCents",
+  title: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: RGB,
+) {
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, title, x + 14, y + height - 22, 10, ink);
+  const chartX = x + 52;
+  const chartY = y + 28;
+  const chartW = width - 66;
+  const chartH = height - 72;
+  page.drawRectangle({ x: chartX, y: chartY, width: chartW, height: chartH, color: mist });
+  const peak = centsPeak(years, key);
+  const ticks = [0, 0.5, 1];
+  ticks.forEach((share) => {
+    const ty = chartY + share * chartH;
+    page.drawRectangle({ x: chartX, y: ty, width: chartW, height: 0.4, color: line });
+    const label = share === 0 ? "0" : formatCardEur(peak * share);
+    drawRight(page, fonts.sans, label, chartX - 4, ty - 3, 6, muted);
+  });
+  if (years.length === 0) {
+    drawText(page, fonts.sans, "Sin ejercicios cerrados", chartX + 8, chartY + chartH / 2, 8, muted);
+    return;
+  }
+  const group = chartW / years.length;
+  const bar = Math.min(28, group * 0.46);
+  years.forEach((row, index) => {
+    const value = row[key];
+    const cx = chartX + index * group + group / 2;
+    const amount = value ?? 0;
+    const barH = Math.max(value === null ? 0 : 4, (Math.abs(amount) / peak) * (chartH - 16));
+    const barY = amount >= 0 ? chartY : chartY - barH;
+    if (value !== null) {
+      page.drawRectangle({ x: cx - bar / 2, y: barY, width: bar, height: barH, color });
+      const label = formatCardEur(amount);
+      const lw = fonts.sansSemi.widthOfTextAtSize(label, 6.5);
+      drawText(page, fonts.sansSemi, label, cx - lw / 2, barY + barH + 3, 6.5, ink);
+    }
+    const yearLabel = String(row.year);
+    const yw = fonts.sans.widthOfTextAtSize(yearLabel, 7);
+    drawText(page, fonts.sans, yearLabel, cx - yw / 2, y + 12, 7, muted);
+  });
+}
+
+function marginSeries(years: CompanyPdfYear[]): Array<{ year: number; pct: number | null }> {
+  return years.map((row) => {
+    const bp =
+      row.revenueCents === null || row.ebitdaCents === null
+        ? null
+        : ebitdaMarginBasisPoints(row.ebitdaCents, row.revenueCents);
+    return { year: row.year, pct: bp === null ? null : bp / 100 };
+  });
+}
+
+function drawMarginChart(
+  page: PDFPage,
+  fonts: Fonts,
   years: CompanyPdfYear[],
   x: number,
   y: number,
   width: number,
   height: number,
 ) {
-  if (years.length === 0) {
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, "Evolución del margen EBITDA", x + 14, y + height - 22, 10, ink);
+  const series = marginSeries(years);
+  const chartX = x + 48;
+  const chartY = y + 28;
+  const chartW = width - 62;
+  const chartH = height - 58;
+  page.drawRectangle({ x: chartX, y: chartY, width: chartW, height: chartH, color: mist });
+  const peak = Math.max(...series.map((row) => row.pct ?? 0), 10);
+  [0, 0.5, 1].forEach((share) => {
+    const ty = chartY + share * chartH;
+    page.drawRectangle({ x: chartX, y: ty, width: chartW, height: 0.4, color: line });
+    drawRight(page, fonts.sans, `${Math.round(peak * share)} %`, chartX - 4, ty - 3, 6, muted);
+  });
+  if (series.length === 0) {
+    drawText(page, fonts.sans, "Sin series de margen", chartX + 8, chartY + chartH / 2, 8, muted);
     return;
   }
-  const revenuePeak = centsPeak(years, "revenueCents");
-  const group = width / years.length;
-  const bar = Math.min(16, group * 0.22);
-  years.forEach((row, index) => {
-    const cx = x + index * group + group / 2;
-    const revenue = row.revenueCents ?? 0;
-    const ebitda = row.ebitdaCents ?? 0;
-    const revenueH = Math.max(4, (Math.max(revenue, 0) / revenuePeak) * height);
-    const ebitdaH = Math.max(4, (Math.max(ebitda, 0) / revenuePeak) * height);
-    page.drawRectangle({ x: cx - bar - 2, y, width: bar, height: revenueH, color: clay });
-    page.drawRectangle({ x: cx + 2, y, width: bar, height: ebitdaH, color: ink });
-    const label = String(row.year);
-    const labelWidth = font.widthOfTextAtSize(label, 8);
-    drawText(page, font, label, cx - labelWidth / 2, y - 14, 8, muted);
+  const step = series.length === 1 ? 0 : chartW / (series.length - 1);
+  series.forEach((row, index) => {
+    const px = chartX + (series.length === 1 ? chartW / 2 : index * step);
+    if (row.pct !== null) {
+      const py = chartY + (row.pct / peak) * (chartH - 8);
+      page.drawCircle({ x: px, y: py, size: 3.2, color: clay });
+      const label = `${Math.round(row.pct)} %`;
+      const lw = fonts.sansSemi.widthOfTextAtSize(label, 7);
+      drawText(page, fonts.sansSemi, label, px - lw / 2, py + 8, 7, ink);
+      const next = series[index + 1];
+      if (next && next.pct !== null) {
+        const nx = chartX + (index + 1) * step;
+        const ny = chartY + (next.pct / peak) * (chartH - 8);
+        page.drawLine({ start: { x: px, y: py }, end: { x: nx, y: ny }, thickness: 1.6, color: clay });
+      }
+    }
+    const yearLabel = String(row.year);
+    const yw = fonts.sans.widthOfTextAtSize(yearLabel, 7);
+    drawText(page, fonts.sans, yearLabel, px - yw / 2, y + 12, 7, muted);
   });
 }
 
-function drawMarginMeter(
+function drawPriceRange(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: number, y: number, width: number, height: number) {
+  page.drawRectangle({ x, y, width, height, color: mist, borderColor: line, borderWidth: 0.7 });
+  page.drawRectangle({ x, y, width: 4, height, color: clay });
+  drawText(page, fonts.headingSemi, companyPdfCopy.priceTitle, x + 14, y + height - 22, 11, ink);
+  const sector =
+    view.sectorLabel && view.multipleLow && view.multipleHigh
+      ? `${companyPdfCopy.priceCaption} Sector ${view.sectorLabel}: ${view.multipleLow}–${view.multipleHigh}.`
+      : companyPdfCopy.priceCaption;
+  let captionY = y + height - 38;
+  for (const row of wrap(fonts.sans, sector, 8, width - 28).slice(0, 2)) {
+    drawText(page, fonts.sans, row, x + 14, captionY, 8, muted);
+    captionY -= 11;
+  }
+  const trackX = x + 18;
+  const trackY = y + 36;
+  const trackW = width - 36;
+  page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 10, color: paper });
+  const zoneX = trackX + priceBarZone.low * trackW;
+  const zoneW = (priceBarZone.high - priceBarZone.low) * trackW;
+  page.drawRectangle({ x: zoneX, y: trackY, width: zoneW, height: 10, color: clay });
+  const lowLabel = view.priceLow ?? "—";
+  const highLabel = view.priceHigh ?? "—";
+  drawText(page, fonts.sansSemi, lowLabel, zoneX, trackY - 14, 8, ink);
+  drawRight(page, fonts.sansSemi, highLabel, zoneX + zoneW, trackY - 14, 8, ink);
+  if (view.priceLowCents !== null && view.priceHighCents !== null) {
+    const ends = priceBarEnds({ lowCents: view.priceLowCents, highCents: view.priceHighCents });
+    drawText(page, fonts.sans, formatCardEur(ends.minCents), trackX, trackY + 14, 7, muted);
+    drawRight(page, fonts.sans, formatCardEur(ends.maxCents), trackX + trackW, trackY + 14, 7, muted);
+    const pos = priceBarPosition(view.askingCents, { lowCents: view.priceLowCents, highCents: view.priceHighCents });
+    const dotX = trackX + pos * trackW;
+    page.drawRectangle({ x: dotX - 0.7, y: trackY - 4, width: 1.4, height: 18, color: amber });
+    page.drawCircle({ x: dotX, y: trackY + 5, size: 5.2, color: amber, borderColor: white, borderWidth: 1.1 });
+    const ask = `Precio pedido ${view.asking}`;
+    const askW = fonts.sansSemi.widthOfTextAtSize(ask, 8);
+    const askX = Math.min(trackX + trackW - askW, Math.max(trackX, dotX - askW / 2));
+    drawText(page, fonts.sansSemi, ask, askX, y + 12, 8, amber);
+  } else {
+    drawText(page, fonts.sansSemi, `Precio pedido ${view.asking}`, trackX, y + 12, 8, ink);
+  }
+}
+
+function drawBulletCard(
   page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  pct: number | null,
+  fonts: Fonts,
+  title: string,
+  items: string[],
   x: number,
   y: number,
   width: number,
+  height: number,
 ) {
-  page.drawRectangle({ x, y, width, height: 62, color: sand, borderColor: line, borderWidth: 0.7 });
-  drawText(page, font, "Margen EBITDA (último ejercicio publicado)", x + 14, y + 42, 8, muted);
-  const track = width - 28;
-  page.drawRectangle({ x: x + 14, y: y + 14, width: track, height: 8, color: paper });
-  if (pct === null) {
-    drawText(page, bold, "-", x + 14, y + 28, 12, ink);
-    return;
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, title, x + 14, y + height - 22, 11, ink);
+  let rowY = y + height - 42;
+  const inner = width - 32;
+  const empty = items.length === 0 ? ["Sin dato publicado."] : items;
+  for (const item of empty) {
+    if (rowY < y + 18) {
+      break;
+    }
+    page.drawCircle({ x: x + 18, y: rowY + 3, size: 2.1, color: clay });
+    const lines = wrap(fonts.sans, item, 9, inner - 12).slice(0, 3);
+    for (const line of lines) {
+      if (rowY < y + 16) {
+        break;
+      }
+      drawText(page, fonts.sans, line, x + 26, rowY, 9, ink);
+      rowY -= 12;
+    }
+    rowY -= 6;
   }
-  const clamped = Math.min(100, Math.max(0, pct));
-  page.drawRectangle({ x: x + 14, y: y + 14, width: Math.max(6, (clamped / 100) * track), height: 8, color: clay });
-  const label = `${Math.round(clamped)} %`;
-  const labelWidth = bold.widthOfTextAtSize(label, 13);
-  drawText(page, bold, label, x + width - 14 - labelWidth, y + 38, 13, ink);
 }
 
-function drawPriceRange(
+function uniqueLines(items: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of items) {
+    const key = item.trim().replace(/[.!?]+$/g, "").toLowerCase();
+    if (key.length === 0 || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    out.push(item.trim());
+  }
+  return out;
+}
+
+function drawDealCard(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: number, y: number, width: number, height: number) {
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, companyPdfCopy.dealTitle, x + 14, y + height - 22, 11, ink);
+  const rows = [
+    { label: companyPdfCopy.motivoTitle, value: view.saleReason ?? "—" },
+    { label: "Financiación vendedor", value: view.financing ?? "—" },
+    { label: "Permanencia", value: view.stay ?? "—" },
+  ];
+  let rowY = y + height - 44;
+  for (const row of rows) {
+    drawText(page, fonts.sans, row.label.toUpperCase(), x + 14, rowY, 7, muted);
+    rowY -= 14;
+    const lines = wrap(fonts.sansSemi, row.value, 10, width - 28).slice(0, 3);
+    for (const line of lines) {
+      drawText(page, fonts.sansSemi, line, x + 14, rowY, 10, ink);
+      rowY -= 13;
+    }
+    rowY -= 10;
+  }
+  if (rowY - y > 36) {
+    page.drawRectangle({ x: x + 12, y: y + 12, width: width - 24, height: rowY - y - 8, color: sand });
+    let noteY = rowY - 8;
+    for (const line of wrap(
+      fonts.sans,
+      "Términos indicativos de la ficha. El NDA en Relify abre el cuaderno y el data room.",
+      8,
+      width - 48,
+    ).slice(0, 3)) {
+      drawText(page, fonts.sans, line, x + 20, noteY, 8, muted);
+      noteY -= 11;
+    }
+  }
+}
+
+function drawCta(page: PDFPage, fonts: Fonts, title: string, body: string, x: number, y: number, width: number, height: number) {
+  page.drawRectangle({ x, y, width, height, color: moss });
+  page.drawRectangle({ x, y, width: 6, height, color: clay });
+  drawText(page, fonts.headingSemi, title, x + 18, y + height - 24, 12, white);
+  let bodyY = y + height - 42;
+  for (const row of wrap(fonts.sans, body, 9, width - 36).slice(0, 3)) {
+    drawText(page, fonts.sans, row, x + 18, bodyY, 9, rgb(0.82, 0.93, 0.91));
+    bodyY -= 12;
+  }
+}
+
+function drawYearTable(
   page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  view: CompanyPdfView,
+  fonts: Fonts,
+  years: CompanyPdfYear[],
   x: number,
   y: number,
   width: number,
-) {
-  page.drawRectangle({ x, y, width, height: 78, color: mist, borderColor: line, borderWidth: 0.7 });
-  drawText(page, bold, "Rango orientativo de precio", x + 14, y + 56, 10, ink);
-  const low = view.priceLow ?? "-";
-  const high = view.priceHigh ?? "-";
-  drawText(page, font, `${low}  -  ${high}`, x + 14, y + 40, 9, muted);
-  const askLabel = `Publicado ${pdfSafe(view.asking)}`;
-  const askWidth = bold.widthOfTextAtSize(askLabel, 9);
-  drawText(page, bold, askLabel, x + width - 14 - askWidth, y + 40, 9, ink);
-  const track = width - 28;
-  page.drawRectangle({ x: x + 14, y: y + 18, width: track, height: 7, color: paper });
-  page.drawRectangle({ x: x + 14, y: y + 18, width: track * 0.72, height: 7, color: clay });
-}
-
-function drawCover(
-  page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  view: CompanyPdfView,
-  width: number,
   height: number,
+  full: boolean,
 ) {
-  const title = view.kind === "teaser" ? companyPdfCopy.teaserTitle : companyPdfCopy.dossierTitle;
-  page.drawRectangle({ x: 0, y: height - 168, width, height: 168, color: moss });
-  page.drawRectangle({ x: 0, y: height - 172, width, height: 4, color: clay });
-  drawLogo(page, bold, 40, height - 48, true);
-  drawText(page, font, companyPdfCopy.confidential.toUpperCase(), 40, height - 78, 9, rgb(0.78, 0.9, 0.88));
-  drawText(page, bold, title.toUpperCase(), 40, height - 104, 11, white);
-  drawText(page, bold, view.codename, 40, height - 138, 26, white);
-  const chips = [view.region, view.cnae, view.decade, view.headcount].filter((item): item is string => Boolean(item));
-  let chipX = 40;
-  chips.slice(0, 4).forEach((chip) => {
-    const label = pdfSafe(chip);
-    const chipWidth = Math.min(220, font.widthOfTextAtSize(label, 8) + 16);
-    page.drawRectangle({ x: chipX, y: height - 210, width: chipWidth, height: 18, color: sand });
-    drawText(page, font, chip, chipX + 8, height - 204, 8, ink);
-    chipX += chipWidth + 8;
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, "Ejercicios cerrados", x + 14, y + height - 22, 10, ink);
+  const headers = full
+    ? ["Año", "Facturación", "EBITDA", "EBIT", "Resultado", "Plantilla"]
+    : ["Año", "Facturación", "EBITDA", "Plantilla"];
+  const cols = full ? [48, 110, 100, 90, 110, 70] : [70, 150, 140, 90];
+  let headerX = x + 14;
+  headers.forEach((header, index) => {
+    drawText(page, fonts.sansSemi, header, headerX, y + height - 40, 8, muted);
+    headerX += cols[index] ?? 80;
   });
-  const coverKpis =
-    view.marginPct === null
-      ? view.kpis
-      : [...view.kpis, { label: "Margen EBITDA", value: `${Math.round(view.marginPct)} %` }].slice(0, 4);
-  drawKpiGrid(page, font, bold, coverKpis, 40, height - 248, width - 80);
-  drawPriceRange(page, font, bold, view, 40, height - 390, width - 80);
-  let y = height - 430;
-  if (view.summary) {
-    drawText(page, bold, "Actividad", 40, y, 12, ink);
-    y -= 18;
-    for (const row of wrap(font, view.summary, 10, width - 80).slice(0, 7)) {
-      drawText(page, font, row, 40, y, 10, ink);
-      y -= 14;
+  page.drawRectangle({ x: x + 12, y: y + height - 48, width: width - 24, height: 0.6, color: line });
+  let rowY = y + height - 64;
+  for (const year of years) {
+    if (rowY < y + 10) {
+      break;
     }
-  }
-  if (view.kind === "dossier") {
-    y -= 8;
-    const extras = [
-      view.saleReason ? `Motivo de venta: ${view.saleReason}` : null,
-      view.financing ? `Financiación del vendedor: ${view.financing}` : null,
-      view.stay ? `Tras la venta: ${view.stay}` : null,
-    ].filter((item): item is string => Boolean(item));
-    for (const row of extras) {
-      page.drawRectangle({ x: 40, y: y - 8, width: width - 80, height: 22, color: sand });
-      drawText(page, font, row, 50, y, 10, ink);
-      y -= 28;
-    }
-  }
-  const note = view.kind === "teaser" ? companyPdfCopy.teaserNote : companyPdfCopy.dossierNote;
-  y = Math.min(y, 96);
-  for (const row of wrap(font, note, 8, width - 80)) {
-    drawText(page, font, row, 40, y, 8, muted);
-    y -= 11;
-  }
-  drawText(page, font, `${companyPdfCopy.generated} ${view.generatedLabel}`, 40, 48, 8, muted);
-}
-
-function drawFigures(
-  page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  view: CompanyPdfView,
-  width: number,
-  height: number,
-) {
-  drawLogo(page, bold, 40, height - 48, false);
-  drawText(page, bold, "Evolución de cifras", 40, height - 78, 16, ink);
-  drawText(page, font, "Facturación y EBITDA de los ejercicios cerrados. Importes en EUR.", 40, height - 96, 9, muted);
-  const chartTop = height - 300;
-  page.drawRectangle({ x: 40, y: height - 116, width: 8, height: 8, color: clay });
-  drawText(page, font, "Facturación", 52, height - 114, 8, clay);
-  page.drawRectangle({ x: 128, y: height - 116, width: 8, height: 8, color: ink });
-  drawText(page, font, "EBITDA", 140, height - 114, 8, ink);
-  page.drawRectangle({
-    x: 40,
-    y: chartTop,
-    width: width - 80,
-    height: 168,
-    color: sand,
-    borderColor: line,
-    borderWidth: 0.7,
-  });
-  drawGroupedBars(page, font, view.years, 56, chartTop + 24, width - 112, 118);
-  drawMarginMeter(page, font, bold, view.marginPct, 40, chartTop - 86, width - 80);
-  let rowY = chartTop - 122;
-  drawText(page, bold, "Ejercicio", 48, rowY, 9, muted);
-  drawText(page, bold, "Facturación", 150, rowY, 9, muted);
-  drawText(page, bold, "EBITDA", 310, rowY, 9, muted);
-  drawText(page, bold, "Plantilla", 450, rowY, 9, muted);
-  rowY -= 8;
-  page.drawRectangle({ x: 40, y: rowY, width: width - 80, height: 0.6, color: line });
-  rowY -= 18;
-  for (const year of view.years) {
-    drawText(page, font, String(year.year), 48, rowY, 10, ink);
-    drawText(page, font, year.revenueCents === null ? "-" : formatCardEur(year.revenueCents), 150, rowY, 10, ink);
-    drawText(page, font, year.ebitdaCents === null ? "-" : formatCardEur(year.ebitdaCents), 310, rowY, 10, ink);
-    drawText(page, font, year.employees === null ? "-" : String(year.employees), 450, rowY, 10, ink);
-    rowY -= 18;
+    const values = full
+      ? [
+          String(year.year),
+          year.revenueCents === null ? "—" : formatCardEur(year.revenueCents),
+          year.ebitdaCents === null ? "—" : formatCardEur(year.ebitdaCents),
+          year.ebitCents === null ? "—" : formatCardEur(year.ebitCents),
+          year.netResultCents === null ? "—" : formatCardEur(year.netResultCents),
+          year.employees === null ? "—" : String(year.employees),
+        ]
+      : [
+          String(year.year),
+          year.revenueCents === null ? "—" : formatCardEur(year.revenueCents),
+          year.ebitdaCents === null ? "—" : formatCardEur(year.ebitdaCents),
+          year.employees === null ? "—" : String(year.employees),
+        ];
+    let cellX = x + 14;
+    values.forEach((value, index) => {
+      drawText(page, fonts.sans, value, cellX, rowY, 9, ink);
+      cellX += cols[index] ?? 80;
+    });
+    rowY -= 16;
   }
 }
 
-function drawDossierOps(
-  page: PDFPage,
-  font: PDFFont,
-  bold: PDFFont,
-  view: CompanyPdfView,
-  width: number,
-  height: number,
-) {
-  drawLogo(page, bold, 40, height - 48, false);
-  drawText(page, bold, "Ratios operativos (SABI)", 40, height - 78, 16, ink);
-  drawText(
-    page,
-    font,
-    "Deuda neta, NOF, conversión a caja y plazos. Solo en el cuaderno post-NDA.",
-    40,
-    height - 96,
-    9,
-    muted,
-  );
-  const gap = 10;
+function drawGauges(page: PDFPage, fonts: Fonts, gauges: CompanyPdfGauge[], x: number, y: number, width: number, height: number) {
+  const gap = 8;
   const cols = 3;
-  const boxW = (width - 80 - gap * (cols - 1)) / cols;
-  view.ratios.slice(0, 9).forEach((kpi, index) => {
+  const rows = Math.max(1, Math.ceil(gauges.length / cols));
+  const boxW = (width - gap * (cols - 1)) / cols;
+  const boxH = (height - gap * (rows - 1)) / rows;
+  gauges.forEach((gauge, index) => {
     const col = index % cols;
     const row = Math.floor(index / cols);
-    const x = 40 + col * (boxW + gap);
-    const y = height - 220 - row * 90;
-    page.drawRectangle({ x, y, width: boxW, height: 76, color: sand, borderColor: line, borderWidth: 0.7 });
-    page.drawRectangle({ x, y: y + 73, width: 22, height: 3, color: clay });
-    drawText(page, font, kpi.label, x + 12, y + 50, 8, muted);
-    drawText(page, bold, kpi.value, x + 12, y + 24, 13, ink);
+    const gx = x + col * (boxW + gap);
+    const gy = y + height - (row + 1) * boxH - row * gap;
+    card(page, gx, gy, boxW, boxH, white);
+    drawText(page, fonts.sans, gauge.label, gx + 12, gy + boxH - 22, 8, muted);
+    drawText(page, fonts.headingSemi, gauge.value, gx + 12, gy + boxH - 44, 14, ink);
+    const trackX = gx + 12;
+    const trackY = gy + 28;
+    const trackW = boxW - 24;
+    page.drawRectangle({ x: trackX, y: trackY, width: trackW, height: 8, color: paper });
+    page.drawRectangle({
+      x: trackX,
+      y: trackY,
+      width: Math.max(6, Math.min(1, Math.max(0, gauge.fill)) * trackW),
+      height: 8,
+      color: clay,
+    });
+    const hint = wrap(fonts.sans, gauge.hint, 7, trackW).slice(0, 2);
+    let hintY = gy + 14;
+    for (const line of hint) {
+      drawText(page, fonts.sans, line, gx + 12, hintY, 7, muted);
+      hintY -= 9;
+    }
   });
+}
+
+function drawBridge(page: PDFPage, fonts: Fonts, rows: CompanyPdfBridgeRow[], x: number, y: number, width: number, height: number) {
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, "Puente de EBITDA", x + 14, y + height - 22, 11, ink);
+  drawText(page, fonts.sans, "Declarado → ajustes aprobados → ajustado", x + 14, y + height - 36, 8, muted);
+  if (rows.length === 0) {
+    drawText(page, fonts.sans, "Sin ajustes publicados.", x + 14, y + height / 2, 9, muted);
+    return;
+  }
+  const chartX = x + 16;
+  const chartY = y + 28;
+  const chartW = width - 32;
+  const chartH = height - 70;
+  const peak = Math.max(...rows.map((row) => Math.abs(row.cents)), 1);
+  const group = chartW / rows.length;
+  const bar = Math.min(36, group * 0.42);
+  rows.forEach((row, index) => {
+    const cx = chartX + index * group + group / 2;
+    const barH = Math.max(8, (Math.abs(row.cents) / peak) * (chartH - 24));
+    const color = row.kind === "adjust" ? (row.cents >= 0 ? clay : rose) : row.kind === "end" ? moss : ink;
+    page.drawRectangle({ x: cx - bar / 2, y: chartY, width: bar, height: barH, color });
+    const amount = `${row.cents >= 0 && row.kind === "adjust" ? "+" : ""}${formatCardEur(row.cents)}`;
+    const aw = fonts.sansSemi.widthOfTextAtSize(amount, 7);
+    drawText(page, fonts.sansSemi, amount, cx - aw / 2, chartY + barH + 4, 7, ink);
+    const labels = wrap(fonts.sans, row.label, 7, group - 6).slice(0, 2);
+    let ly = y + 16;
+    for (const label of labels) {
+      const lw = fonts.sans.widthOfTextAtSize(label, 7);
+      drawText(page, fonts.sans, label, cx - lw / 2, ly, 7, muted);
+      ly -= 9;
+    }
+  });
+}
+
+function drawValuationCard(page: PDFPage, fonts: Fonts, view: CompanyPdfView, x: number, y: number, width: number, height: number) {
+  card(page, x, y, width, height, white);
+  drawText(page, fonts.headingSemi, "Valoración orientativa", x + 14, y + height - 22, 11, ink);
+  const lines = [
+    `Rango: ${view.priceLow ?? "—"} – ${view.priceHigh ?? "—"}`,
+    `Precio pedido: ${view.asking}`,
+    view.sectorLabel && view.multipleLow && view.multipleHigh
+      ? `Múltiplo ${view.sectorLabel}: ${view.multipleLow}–${view.multipleHigh} × EBITDA aj.`
+      : "Múltiplo sectorial no disponible para este CNAE.",
+    companyPdfCopy.priceCaption,
+  ];
+  let rowY = y + height - 44;
+  for (const line of lines) {
+    for (const wrapped of wrap(fonts.sans, line, 9, width - 28).slice(0, 2)) {
+      drawText(page, fonts.sans, wrapped, x + 14, rowY, 9, ink);
+      rowY -= 13;
+    }
+    rowY -= 4;
+  }
+}
+
+function summaryText(view: CompanyPdfView): string {
+  return view.summary ?? "Sin descripción publicada.";
+}
+
+function drawTeaserCover(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  const heroH = 108;
+  const heroY = PAGE_H - 48 - heroH;
+  drawHero(page, fonts, view, heroY, heroH);
+  const kpiH = 68;
+  const kpiY = heroY - 14 - kpiH;
+  drawKpiGrid(page, fonts, coverKpis(view), M, kpiY, CONTENT_W, kpiH);
+  const priceH = 108;
+  const priceY = kpiY - 12 - priceH;
+  drawPriceRange(page, fonts, view, M, priceY, CONTENT_W, priceH);
+  const ctaH = 68;
+  const ctaY = FOOTER + 8;
+  const midY = ctaY + ctaH + 10;
+  const midH = priceY - 12 - midY;
+  const colGap = 10;
+  const colW = (CONTENT_W - colGap) / 2;
+  drawBulletCard(page, fonts, companyPdfCopy.thesisTitle, view.highlights, M, midY, colW, midH);
+  drawDealCard(page, fonts, view, M + colW + colGap, midY, colW, midH);
+  drawCta(page, fonts, companyPdfCopy.teaserCtaTitle, companyPdfCopy.teaserCtaBody, M, ctaY, CONTENT_W, ctaH);
+}
+
+function drawTeaserFigures(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  drawText(page, fonts.headingSemi, "Evolución de cifras", M, PAGE_H - 68, 16, ink);
+  drawText(page, fonts.sans, "Facturación y EBITDA de los ejercicios cerrados. Ejes e importes en EUR.", M, PAGE_H - 84, 8, muted);
+  const ctaH = 64;
+  const ctaY = FOOTER + 8;
+  const top = PAGE_H - 96;
+  const usable = top - (ctaY + ctaH + 10);
+  const gap = 8;
+  const tableH = Math.min(148, Math.max(128, 60 + view.years.length * 16));
+  const bulletsH = 96;
+  const chartsBlock = usable - tableH - bulletsH - gap * 2;
+  const chartH = chartsBlock * 0.58;
+  const marginH = chartsBlock - chartH - gap;
+  const colW = (CONTENT_W - gap) / 2;
+  const chartY = top - chartH;
+  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, chartY, colW, chartH, clay);
+  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, chartY, colW, chartH, ink);
+  const marginY = chartY - gap - marginH;
+  drawMarginChart(page, fonts, view.years, M, marginY, CONTENT_W, marginH);
+  const tableY = marginY - gap - tableH;
+  drawYearTable(page, fonts, view.years, M, tableY, CONTENT_W, tableH, false);
+  drawBulletCard(page, fonts, companyPdfCopy.highlightsTitle, view.highlights, M, ctaY + ctaH + 10, CONTENT_W, bulletsH);
+  drawCta(page, fonts, companyPdfCopy.teaserCtaTitle, companyPdfCopy.teaserCtaBody, M, ctaY, CONTENT_W, ctaH);
+}
+
+function drawDossierCover(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  const heroH = 118;
+  const heroY = PAGE_H - 48 - heroH;
+  drawHero(page, fonts, view, heroY, heroH);
+  const kpiH = 68;
+  const kpiY = heroY - 14 - kpiH;
+  drawKpiGrid(page, fonts, coverKpis(view), M, kpiY, CONTENT_W, kpiH);
+  const noteH = 48;
+  const noteY = FOOTER + 8;
+  card(page, M, noteY, CONTENT_W, noteH, sand);
+  let ny = noteY + noteH - 18;
+  for (const row of wrap(fonts.sans, companyPdfCopy.dossierNote, 8, CONTENT_W - 28).slice(0, 3)) {
+    drawText(page, fonts.sans, row, M + 14, ny, 8, muted);
+    ny -= 11;
+  }
+  const midY = noteY + noteH + 10;
+  const midH = kpiY - 12 - midY;
+  const priceH = Math.min(120, midH * 0.42);
+  const priceY = kpiY - 12 - priceH;
+  drawPriceRange(page, fonts, view, M, priceY, CONTENT_W, priceH);
+  const colY = midY;
+  const colH = priceY - 10 - colY;
+  const colW = (CONTENT_W - 10) / 2;
+  drawBulletCard(page, fonts, "Resumen ejecutivo", uniqueLines([summaryText(view), ...view.highlights]).slice(0, 5), M, colY, colW, colH);
+  drawDealCard(page, fonts, view, M + colW + 10, colY, colW, colH);
+}
+
+function drawDossierSummary(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  drawText(page, fonts.headingSemi, "Resumen ejecutivo", M, PAGE_H - 68, 16, ink);
+  const ctaH = 62;
+  const ctaY = FOOTER + 8;
+  const top = PAGE_H - 88;
+  const priceH = 112;
+  const kpiH = 68;
+  const gap = 10;
+  const restY = ctaY + ctaH + gap;
+  const thesisH = top - (restY + kpiH + gap + priceH + gap);
+  const colW = (CONTENT_W - 10) / 2;
+  drawBulletCard(page, fonts, companyPdfCopy.thesisTitle, view.highlights, M, top - thesisH, colW, thesisH);
+  drawDealCard(page, fonts, view, M + colW + 10, top - thesisH, colW, thesisH);
+  const priceY = restY + kpiH + gap;
+  drawPriceRange(page, fonts, view, M, priceY, CONTENT_W, priceH);
+  drawKpiGrid(page, fonts, coverKpis(view), M, restY, CONTENT_W, kpiH);
+  drawCta(page, fonts, companyPdfCopy.dossierCtaTitle, companyPdfCopy.dossierCtaBody, M, ctaY, CONTENT_W, ctaH);
+}
+
+function drawDossierPnl(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  drawText(page, fonts.headingSemi, "Cuenta de resultados", M, PAGE_H - 68, 16, ink);
+  drawText(page, fonts.sans, "Evolución P&L con ejes y valores. Importes en EUR.", M, PAGE_H - 84, 8, muted);
+  const top = PAGE_H - 96;
+  const bottom = FOOTER + 8;
+  const usable = top - bottom;
+  const chartH = usable * 0.36;
+  const gap = 8;
+  const colW = (CONTENT_W - gap) / 2;
+  drawLabeledBars(page, fonts, view.years, "revenueCents", "Facturación", M, top - chartH, colW, chartH, clay);
+  drawLabeledBars(page, fonts, view.years, "ebitdaCents", "EBITDA", M + colW + gap, top - chartH, colW, chartH, ink);
+  const row2Y = top - chartH - gap - chartH;
+  drawLabeledBars(page, fonts, view.years, "ebitCents", "EBIT", M, row2Y, colW, chartH, moss);
+  drawLabeledBars(page, fonts, view.years, "netResultCents", "Resultado neto", M + colW + gap, row2Y, colW, chartH, amber);
+  const tableH = row2Y - gap - bottom;
+  drawYearTable(page, fonts, view.years, M, bottom, CONTENT_W, tableH, true);
+}
+
+function drawDossierOps(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  drawText(page, fonts.headingSemi, "Márgenes y ratios operativos", M, PAGE_H - 68, 16, ink);
+  drawText(
+    page,
+    fonts.sans,
+    "Deuda neta, NOF, conversión a caja, capex, plantilla y plazos. Solo en el cuaderno post-NDA.",
+    M,
+    PAGE_H - 84,
+    8,
+    muted,
+  );
+  const top = PAGE_H - 96;
+  const bottom = FOOTER + 8;
+  const marginH = (top - bottom) * 0.32;
+  drawMarginChart(page, fonts, view.years, M, top - marginH, CONTENT_W, marginH);
+  const gaugesH = top - marginH - 10 - bottom;
+  drawGauges(page, fonts, view.gauges, M, bottom, CONTENT_W, gaugesH);
+}
+
+function drawDossierDeal(page: PDFPage, fonts: Fonts, logo: PDFImage, view: CompanyPdfView) {
+  drawLetterhead(page, fonts, logo, view);
+  drawText(page, fonts.headingSemi, "Ajustes, valoración y operación", M, PAGE_H - 68, 16, ink);
+  const ctaH = 62;
+  const ctaY = FOOTER + 8;
+  const top = PAGE_H - 88;
+  const usable = top - (ctaY + ctaH + 10);
+  const bridgeH = usable * 0.42;
+  drawBridge(page, fonts, view.bridge, M, top - bridgeH, CONTENT_W, bridgeH);
+  const restH = top - bridgeH - 10 - (ctaY + ctaH + 10);
+  const colW = (CONTENT_W - 10) / 2;
+  const colY = ctaY + ctaH + 10;
+  const valH = Math.min(150, restH * 0.48);
+  drawValuationCard(page, fonts, view, M, colY + restH - valH, colW, valH);
+  drawPriceRange(page, fonts, view, M, colY, colW, restH - valH - 8);
+  drawDealCard(page, fonts, view, M + colW + 10, colY, colW, restH);
+  drawCta(page, fonts, companyPdfCopy.dossierCtaTitle, companyPdfCopy.dossierCtaBody, M, ctaY, CONTENT_W, ctaH);
 }
 
 export async function buildCompanyPdf(view: CompanyPdfView): Promise<Uint8Array<ArrayBuffer>> {
   const doc = await PDFDocument.create();
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  doc.registerFontkit({ create: fontkit.create });
+  const [sans, sansSemi, heading, headingSemi, logo] = await Promise.all([
+    doc.embedFont(dmSansRegular, { subset: true }),
+    doc.embedFont(dmSansSemiBold, { subset: true }),
+    doc.embedFont(geistRegular, { subset: true }),
+    doc.embedFont(geistSemiBold, { subset: true }),
+    doc.embedJpg(Uint8Array.from(Buffer.from(brandLogoJpegBase64, "base64"))),
+  ]);
+  const fonts: Fonts = { sans, sansSemi, heading, headingSemi };
   const pages: PDFPage[] = [];
   const addPage = () => {
-    const page = doc.addPage([595.28, 841.89]);
-    const { width, height } = page.getSize();
-    page.drawRectangle({ x: 0, y: 0, width, height, color: white });
+    const page = doc.addPage([PAGE_W, PAGE_H]);
+    page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: white });
     if (view.watermark) {
-      drawWatermark(page, bold, view.watermark, width, height);
+      drawWatermark(page, fonts, view.watermark);
     }
     pages.push(page);
     return page;
   };
 
-  const cover = addPage();
-  drawCover(cover, font, bold, view, cover.getSize().width, cover.getSize().height);
-  if (view.years.length > 0) {
-    const figures = addPage();
-    drawFigures(figures, font, bold, view, figures.getSize().width, figures.getSize().height);
-  }
-  if (view.kind === "dossier") {
-    const ops = addPage();
-    drawDossierOps(ops, font, bold, view, ops.getSize().width, ops.getSize().height);
+  if (view.kind === "teaser") {
+    drawTeaserCover(addPage(), fonts, logo, view);
+    drawTeaserFigures(addPage(), fonts, logo, view);
+  } else {
+    drawDossierCover(addPage(), fonts, logo, view);
+    drawDossierSummary(addPage(), fonts, logo, view);
+    drawDossierPnl(addPage(), fonts, logo, view);
+    drawDossierOps(addPage(), fonts, logo, view);
+    drawDossierDeal(addPage(), fonts, logo, view);
   }
   pages.forEach((page, index) => {
-    drawFooter(page, font, index, pages.length, page.getSize().width);
+    drawFooter(page, fonts, index, pages.length);
   });
 
   const saved = await doc.save({ useObjectStreams: false });
@@ -503,7 +929,11 @@ function yearsFromSabi(years: SabiYear[] | null | undefined): CompanyPdfYear[] {
       year: year.year,
       revenueCents: year.revenueCents,
       ebitdaCents: year.ebitdaCents,
+      ebitCents: year.ebitCents,
+      netResultCents: year.netResultCents,
       employees: year.employees,
+      collectionDays: collectionDaysOf(year),
+      creditDays: creditDaysOf(year),
     }));
 }
 
@@ -531,25 +961,60 @@ function priceBand(input: {
   reportYears?: SabiYear[] | null;
   figuresVeiled?: boolean;
   headcount?: HeadcountRangeId | null;
-}): { low: string | null; high: string | null; asking: string } {
+}): {
+  low: string | null;
+  high: string | null;
+  asking: string;
+  lowCents: number | null;
+  highCents: number | null;
+  askingCents: number;
+  sectorLabel: string | null;
+  multipleLow: string | null;
+  multipleHigh: string | null;
+} {
   const headline = reportHeadline({ ...input, ebitdaAdjustments: input.ebitdaAdjustments ?? null });
   const ebitda = headline.hasApprovedAdjustments ? headline.adjustedEbitdaCents : headline.ebitdaCents;
+  const closed = [...(input.reportYears ?? [])].sort((left, right) => left.year - right.year);
+  const last = closed[closed.length - 1];
+  const previous = closed.length > 1 ? closed[closed.length - 2] : null;
+  const revenueGrowth =
+    last && previous && last.revenueCents !== null && previous.revenueCents !== null && previous.revenueCents > 0
+      ? last.revenueCents / previous.revenueCents - 1
+      : null;
+  const ebitdaRows = closed.flatMap((year) =>
+    year.ebitdaCents === null ? [] : [{ year: year.year, cents: year.ebitdaCents }],
+  );
   const estimate = estimatePriceRange({
     cnae: input.cnaeCode ?? null,
     ebitdaCents: ebitda,
     headcount: input.headcount ?? undefined,
+    revenueGrowth,
+    ebitdaTrend: ebitdaTrend(ebitdaRows),
   });
   return {
     low: estimate ? formatCardEur(estimate.lowCents) : null,
     high: estimate ? formatCardEur(estimate.highCents) : null,
     asking: formatCardEur(input.askingPriceCents),
+    lowCents: estimate?.lowCents ?? null,
+    highCents: estimate?.highCents ?? null,
+    askingCents: input.askingPriceCents,
+    sectorLabel: estimate?.sectorLabel ?? null,
+    multipleLow: estimate ? formatMultiple(estimate.multipleLow) : null,
+    multipleHigh: estimate ? formatMultiple(estimate.multipleHigh) : null,
   };
 }
 
-function dossierRatios(
+function clampFill(value: number, max: number): number {
+  if (max <= 0) {
+    return 0;
+  }
+  return Math.min(1, Math.max(0, value / max));
+}
+
+function dossierGauges(
   years: SabiYear[],
   input: { ebitdaCents: number; adjustedEbitdaCents: number; ebitdaAdjustments?: unknown },
-): CompanyPdfKpi[] {
+): { ratios: CompanyPdfKpi[]; gauges: CompanyPdfGauge[] } {
   const sorted = [...years].sort((left, right) => left.year - right.year);
   const last = sorted[sorted.length - 1] ?? null;
   const previous = sorted.length > 1 ? (sorted[sorted.length - 2] ?? null) : null;
@@ -575,7 +1040,7 @@ function dossierRatios(
   const leverageValue = leverage.ns ? "n/s" : leverage.primaryTimes === null ? "—" : `${formatDecimal(leverage.primaryTimes, 2)}x`;
   const conversionValue =
     conversion === null ? "—" : conversion.ns ? "n/s" : conversion.ratio === null ? "—" : `${formatDecimal(conversion.ratio * 100, 0)} %`;
-  return [
+  const ratios: CompanyPdfKpi[] = [
     { label: leverage.primaryLabel, value: leverageValue },
     { label: "NOF", value: nof === null ? "—" : formatCardEur(nof) },
     { label: "Conversión a caja", value: conversionValue },
@@ -585,6 +1050,149 @@ function dossierRatios(
     { label: "PMP (días)", value: pmp === null ? "—" : `${Math.round(pmp)} d` },
     { label: "Deuda neta", value: net === null ? "—" : formatCardEur(net) },
   ];
+  const gauges: CompanyPdfGauge[] = [
+    {
+      label: leverage.primaryLabel,
+      value: leverageValue,
+      fill: leverage.primaryTimes === null ? 0 : clampFill(leverage.primaryTimes, 5),
+      hint: "Escala 0–5x DFN / EBITDA aj.",
+    },
+    {
+      label: "NOF",
+      value: nof === null ? "—" : formatCardEur(nof),
+      fill: nof === null || last?.revenueCents === null || last.revenueCents <= 0 ? 0 : clampFill(Math.abs(nof), last.revenueCents),
+      hint: "Necesidades operativas vs ventas",
+    },
+    {
+      label: "Conversión a caja",
+      value: conversionValue,
+      fill: conversion === null || conversion.ratio === null ? 0 : clampFill(Math.max(0, conversion.ratio), 1),
+      hint: "(EBITDA - var. NOF - capex) / EBITDA",
+    },
+    {
+      label: "Capex / ventas",
+      value: capex === null ? "—" : `${formatDecimal(capex, 1)} %`,
+      fill: capex === null ? 0 : clampFill(capex, 20),
+      hint: "Media 3 años. Escala 0–20 %",
+    },
+    {
+      label: "Plantilla",
+      value: last?.employees === null || last?.employees === undefined ? "—" : String(last.employees),
+      fill: last?.employees ? clampFill(last.employees, 80) : 0,
+      hint: "Personas en el último ejercicio",
+    },
+    {
+      label: "PMC (días)",
+      value: pmc === null ? "—" : `${Math.round(pmc)} d`,
+      fill: pmc === null ? 0 : clampFill(pmc, 90),
+      hint: "Plazo medio de cobro. Escala 0–90 d",
+    },
+    {
+      label: "PMP (días)",
+      value: pmp === null ? "—" : `${Math.round(pmp)} d`,
+      fill: pmp === null ? 0 : clampFill(pmp, 90),
+      hint: "Plazo medio de pago. Escala 0–90 d",
+    },
+    {
+      label: "Deuda neta",
+      value: net === null ? "—" : formatCardEur(net),
+      fill: net === null || last?.revenueCents === null || last.revenueCents <= 0 ? 0 : clampFill(Math.abs(net), last.revenueCents),
+      hint: "DFN frente a ventas del año",
+    },
+    {
+      label: "Margen EBITDA",
+      value: last === null || last.ebitdaCents === null || last.revenueCents === null
+        ? "—"
+        : `${Math.round((ebitdaMarginBasisPoints(last.ebitdaCents, last.revenueCents) ?? 0) / 100)} %`,
+      fill:
+        last === null || last.ebitdaCents === null || last.revenueCents === null
+          ? 0
+          : clampFill((ebitdaMarginBasisPoints(last.ebitdaCents, last.revenueCents) ?? 0) / 100, 40),
+      hint: "EBITDA / ventas. Escala 0–40 %",
+    },
+  ];
+  return { ratios, gauges };
+}
+
+function ebitdaBridge(input: {
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  ebitdaAdjustments?: unknown;
+  reportYears?: SabiYear[] | null;
+  figuresVeiled?: boolean;
+  revenueCents?: number;
+}): CompanyPdfBridgeRow[] {
+  const headline = reportHeadline({
+    revenueCents: input.revenueCents ?? 0,
+    ebitdaCents: input.ebitdaCents,
+    adjustedEbitdaCents: input.adjustedEbitdaCents,
+    ebitdaAdjustments: input.ebitdaAdjustments ?? null,
+    reportYears: input.reportYears,
+    figuresVeiled: input.figuresVeiled,
+  });
+  const rows = storedEbitdaAdjustments(input.ebitdaAdjustments ?? null);
+  const approved = rows ? approvedAdjustments(rows) : [];
+  const bridge: CompanyPdfBridgeRow[] = [{ label: "EBITDA declarado", cents: input.ebitdaCents, kind: "start" }];
+  for (const row of approved) {
+    bridge.push({ label: ebitdaAdjustmentLabels[row.type], cents: row.amountCents, kind: "adjust" });
+  }
+  bridge.push({
+    label: "EBITDA ajustado",
+    cents: headline.hasApprovedAdjustments ? headline.adjustedEbitdaCents : input.ebitdaCents,
+    kind: "end",
+  });
+  return bridge;
+}
+
+function buildHighlights(input: {
+  summary?: string | null;
+  headcount?: HeadcountRangeId | null;
+  reportYears?: SabiYear[] | null;
+  revenueCents: number;
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  ebitdaAdjustments?: unknown;
+  figuresVeiled?: boolean;
+}): string[] {
+  const items: string[] = [];
+  const summary = input.summary?.trim();
+  if (summary) {
+    for (const part of summary.split(/[.!?]+\s+/)) {
+      const clean = part.replace(/[.!?]+$/, "").trim();
+      if (clean.length >= 20) {
+        items.push(clean);
+      }
+    }
+  }
+  const years = yearsFromSabi(input.reportYears);
+  const first = years[0];
+  const last = years[years.length - 1];
+  if (first && last && years.length >= 2 && first.revenueCents && last.revenueCents && first.revenueCents > 0) {
+    const pct = Math.round(((last.revenueCents - first.revenueCents) / first.revenueCents) * 100);
+    if (pct !== 0) {
+      items.push(`Facturación ${pct > 0 ? "+" : ""}${pct} % entre ${first.year} y ${last.year}`);
+    }
+  }
+  const margin = marginFromHeadline(input);
+  if (margin !== null) {
+    items.push(`Margen EBITDA del último ejercicio publicado: ${Math.round(margin)} %`);
+  }
+  if (input.headcount) {
+    items.push(`Plantilla en banda ${headcountLabels[input.headcount]}`);
+  }
+  return items.slice(0, 5);
+}
+
+function dealTerms(input: {
+  saleReason?: string | null;
+  sellerFinancing?: SellerFinancing | null;
+  sellerStay?: SellerStay | null;
+}): { saleReason: string | null; financing: string | null; stay: string | null } {
+  return {
+    saleReason: saleReasonLine(input.saleReason),
+    financing: input.sellerFinancing ? sellerFinancingText(input.sellerFinancing) : null,
+    stay: input.sellerStay ? sellerStayText(input.sellerStay) : null,
+  };
 }
 
 export function teaserViewFromPublic(input: {
@@ -594,6 +1202,9 @@ export function teaserViewFromPublic(input: {
   foundedYear?: number | null;
   headcount?: HeadcountRangeId | null;
   summary?: string | null;
+  saleReason?: string | null;
+  sellerFinancing?: SellerFinancing | null;
+  sellerStay?: SellerStay | null;
   revenueCents: number;
   ebitdaCents: number;
   adjustedEbitdaCents: number;
@@ -603,6 +1214,7 @@ export function teaserViewFromPublic(input: {
   generatedLabel: string;
 }): CompanyPdfView {
   const band = priceBand(input);
+  const terms = dealTerms(input);
   return {
     kind: "teaser",
     codename: input.codename,
@@ -611,16 +1223,25 @@ export function teaserViewFromPublic(input: {
     decade: foundedDecade(input.foundedYear),
     headcount: input.headcount ? headcountLabels[input.headcount] : null,
     summary: input.summary?.trim() || null,
-    saleReason: null,
-    financing: null,
-    stay: null,
+    saleReason: terms.saleReason,
+    financing: terms.financing,
+    stay: terms.stay,
     kpis: headlineKpis(input),
     years: yearsFromSabi(input.reportYears),
     ratios: [],
+    gauges: [],
+    highlights: buildHighlights(input),
+    bridge: [],
     marginPct: marginFromHeadline(input),
     priceLow: band.low,
     priceHigh: band.high,
     asking: band.asking,
+    priceLowCents: band.lowCents,
+    priceHighCents: band.highCents,
+    askingCents: band.askingCents,
+    sectorLabel: band.sectorLabel,
+    multipleLow: band.multipleLow,
+    multipleHigh: band.multipleHigh,
     generatedLabel: input.generatedLabel,
     watermark: null,
   };
@@ -651,6 +1272,8 @@ export function dossierViewFromInvestor(input: {
     cnaeCode: input.principalCnae?.code,
     headcount: input.headcountRange,
   });
+  const ops = dossierGauges(years, input);
+  const terms = dealTerms(input);
   return {
     kind: "dossier",
     codename: input.codename,
@@ -659,16 +1282,25 @@ export function dossierViewFromInvestor(input: {
     decade: foundedDecade(input.foundedYear),
     headcount: input.headcountRange ? headcountLabels[input.headcountRange] : null,
     summary: input.description?.trim() || null,
-    saleReason: saleReasonLine(input.saleReason),
-    financing: sellerFinancingChip(input.sellerFinancing ?? null),
-    stay: input.sellerStay ? sellerStayText(input.sellerStay) : null,
+    saleReason: terms.saleReason,
+    financing: terms.financing,
+    stay: terms.stay,
     kpis: headlineKpis(input),
     years: yearsFromSabi(years),
-    ratios: dossierRatios(years, input),
+    ratios: ops.ratios,
+    gauges: ops.gauges,
+    highlights: buildHighlights({ ...input, summary: input.description, headcount: input.headcountRange }),
+    bridge: ebitdaBridge(input),
     marginPct: marginFromHeadline(input),
     priceLow: band.low,
     priceHigh: band.high,
     asking: band.asking,
+    priceLowCents: band.lowCents,
+    priceHighCents: band.highCents,
+    askingCents: band.askingCents,
+    sectorLabel: band.sectorLabel,
+    multipleLow: band.multipleLow,
+    multipleHigh: band.multipleHigh,
     generatedLabel: input.generatedLabel,
     watermark: input.watermark,
   };
@@ -833,7 +1465,10 @@ export function sampleTeaserView(): CompanyPdfView {
     foundedYear: 2014,
     headcount: "band_21_50",
     summary:
-      "Software de gestion para pymes industriales. La ficha publica enseña el nombre de proyecto y las cifras de cabecera; la sociedad no figura.",
+      "Software de gestión para pymes industriales, con ingresos recurrentes. La ficha pública enseña el nombre de proyecto y las cifras de cabecera; la sociedad no figura.",
+    saleReason: "jubilacion",
+    sellerFinancing: { mode: "yes", maxPct: 20, years: 3 },
+    sellerStay: "6m",
     reportYears: tecnologiaClosedYears(),
   });
 }
@@ -845,7 +1480,7 @@ export function sampleDossierView(): CompanyPdfView {
     foundedYear: 2014,
     headcountRange: "band_21_50",
     description:
-      "Software de gestion para pymes industriales, con ingresos recurrentes y un equipo tecnico consolidado.",
+      "Software de gestión para pymes industriales, con ingresos recurrentes y un equipo técnico consolidado.",
     saleReason: "jubilacion",
     sellerFinancing: { mode: "yes", maxPct: 20, years: 3 },
     sellerStay: "6m",

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S6 boutique PDFs, site fonts, real logo
+
+Teaser (2 pages, anonymous) and dossier (post-NDA, watermarked) PDFs use the Relify JPEG from `public/brand/full-logo.svg` (`brandLogoJpegBase64`) and embed DM Sans + Geist via `@pdf-lib/fontkit` + subset TTF bytes. Custom fonts need fontkit; Helvetica is not the site family. Price bar uses `priceBarPosition` so the asking price is a marked point on a labelled scale (sector multiple × EBITDA aj., growth and headcount). Teaser may show motivo / financiación / permanencia (deal terms, not identity). `/valorar` “Relify” mark uses `--font-heading`, not Instrument. No new migration.
+
 ## 2026-11-11 — Round S5 tokens, /valorar, visual PDFs
 
 Type families and field radius are global tokens (`docs/DESIGN-TOKENS.md`): DM Sans body, Geist headings, Instrument accents, `--field-radius: 0.9rem` for every form. `/valorar` keeps FAQPage JSON-LD with a compact accordion. Teaser/dossier PDFs are multi-page Relify M&A docs (cover, year bars, KPI tiles); teaser stays on `reportHeadline` with no identity; dossier is post-NDA and watermarked. Samples use INT Proyecto Quercus / `int-tecnologia-years.sql`. No new migration.

@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-11: pdf-lib custom-font tests saw no “Relify” in streams — subset fonts emit CID hex plus a ToUnicode CMap per face, and CMaps arrive after content — decode each CMap separately, two-pass; skip JPEG DCT streams.
+- 2026-11-11: PDF hint “ΔNOF” rendered blank — DM Sans/Geist subsets lack delta — write “var. NOF”.
 - 2026-11-11: `/lista-de-espera` orbit faces were blank — `img-src 'self' data: blob:` blocks `api.dicebear.com` — use a local `data:image/svg+xml` avatar (`gazeAvatarUrl`), not a remote host.
 - 2026-11-11: Landing titles wrapped like posters — containers used `max-width: 12ch`/`14ch`/`18ch` or `max-w-[40rem]` around large clamp type, and waitlist coloured the second phrase in a `display:block` span — drop those; `text-wrap: pretty` is enough. ESLint flags `<br>` on landing/valorar/waitlist.
 - 2026-11-11: Process ficha showed the legal name after it was already struck — hide keyframes were 4.8s and redact 6.4s, so the name loop restarted under leftover bars — one 8s timeline: name on, then redact, name stays gone until redact retracts.

@@ -10,6 +10,8 @@ import {
 } from "@/lib/company-pdf";
 import { spanishDate, signerName } from "@/lib/deal-documents";
 import { isHeadcountRange } from "@/lib/company-profile";
+import { storedSellerFinancing } from "@/lib/seller-financing";
+import { storedSellerStay } from "@/lib/seller-stay";
 import { readSiteUrl } from "@/lib/env";
 import { getInvestorProject } from "@/server/getInvestorProject";
 import type { CurrentUser } from "@/server/getCurrentUser";
@@ -35,6 +37,11 @@ const teaserSelect = {
   adjustedEbitdaCents: true,
   askingPriceCents: true,
   ebitdaAdjustments: true,
+  saleReason: true,
+  sellerFinancing: true,
+  sellerFinancingMaxPct: true,
+  sellerFinancingYears: true,
+  sellerStay: true,
   cnaes: { select: { code: true }, orderBy: { position: "asc" as const }, take: 1 },
   years: {
     where: { kind: "closed" as const },
@@ -66,6 +73,11 @@ type TeaserRow = {
   adjustedEbitdaCents: bigint | number;
   askingPriceCents: bigint | number;
   ebitdaAdjustments: unknown;
+  saleReason: string | null;
+  sellerFinancing: string | null;
+  sellerFinancingMaxPct: number | null;
+  sellerFinancingYears: number | null;
+  sellerStay: string | null;
   cnaes: { code: string }[];
   years: Array<{
     year: number;
@@ -115,6 +127,9 @@ function teaserView(row: TeaserRow, generatedLabel: string) {
     foundedYear: row.foundedYear,
     headcount,
     summary: row.description,
+    saleReason: row.saleReason,
+    sellerFinancing: storedSellerFinancing(row),
+    sellerStay: storedSellerStay(row.sellerStay),
     revenueCents: Number(row.revenueCents),
     ebitdaCents: Number(row.ebitdaCents),
     adjustedEbitdaCents: Number(row.adjustedEbitdaCents),
