@@ -107,7 +107,7 @@ function DeleteEntry({ id, name }: { id: string; name: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-8 items-center rounded-full border border-[#f1d4d1] bg-white px-3 text-xs font-semibold text-[#c0362c] hover:bg-[#fdecec] disabled:opacity-60"
+        className="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-[#f1d4d1] bg-white px-4 text-sm font-semibold text-[#c0362c] hover:bg-[#fdecec] disabled:opacity-60 md:h-8 md:px-3 md:text-xs"
       >
         {pending ? "Borrando…" : "Borrar"}
       </button>
@@ -161,7 +161,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
           type="button"
           onClick={exportCsv}
           disabled={visible.length === 0}
-          className="inline-flex h-9 items-center gap-2 rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white hover:bg-[#2a3a5c] disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white hover:bg-[#2a3a5c] disabled:opacity-50 lg:h-9"
         >
           <Download className="size-4" aria-hidden />
           Exportar CSV
@@ -171,7 +171,45 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
       {entries.length === 0 ? (
         <EmptySkeleton icon={ListChecks} variant="rows" rows={4} title="Nadie en la lista de espera" text="Cada persona que se apunte aparecerá aquí con su correo, perfil y fecha, lista para exportar en CSV." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white">
+        <>
+        <ul className="grid gap-3 md:hidden">
+          {visible.map((entry) => {
+            const tone = entry.role in roleTone ? roleTone[entry.role as keyof typeof roleTone] : null;
+            return (
+              <li key={entry.id} className="rounded-2xl border border-[#e7eaee] bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="flex min-w-0 items-center gap-2 font-semibold text-[#1c2740]">
+                      <span className="truncate">{entry.name}</span>
+                      {entry.isNew ? <NewPill /> : null}
+                    </p>
+                    <a className="mt-0.5 block truncate text-sm text-[#0f6e73]" href={`mailto:${entry.email}`}>
+                      {entry.email}
+                    </a>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${tone ? tone.pill : "bg-[#eef2ff] text-[#465ab4]"}`}>
+                    {entry.roleLabel}
+                  </span>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#667085]">
+                  <div>
+                    <dt>Ciudad</dt>
+                    <dd className="mt-0.5 text-sm font-medium text-[#1c2740]">{entry.city || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Fecha</dt>
+                    <dd className="mt-0.5 text-sm font-medium text-[#1c2740] tabular-nums">{formatWhen(entry.createdAt)}</dd>
+                  </div>
+                </dl>
+                <div className="mt-3">
+                  <DeleteEntry id={entry.id} name={entry.name} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        {visible.length === 0 ? <p className="px-1 py-4 text-sm text-[#667085] md:hidden">Ningún registro coincide con la búsqueda.</p> : null}
+        <div className="hidden overflow-x-auto rounded-2xl border border-[#e7eaee] bg-white md:block">
           <table className="w-full min-w-[44rem] text-left text-sm">
             <thead className="border-b border-[#e7eaee] bg-[#f8f9fb] text-xs text-[#667085]">
               <tr>
@@ -218,6 +256,7 @@ export function AdminWaitlist({ entries }: { entries: AdminWaitlistRow[] }) {
           </table>
           {visible.length === 0 ? <p className="px-4 py-6 text-sm text-[#667085]">Ningún registro coincide con la búsqueda.</p> : null}
         </div>
+        </>
       )}
     </div>
   );

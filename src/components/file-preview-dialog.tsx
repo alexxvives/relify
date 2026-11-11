@@ -46,7 +46,7 @@ export function useModalScrollLock(open: boolean) {
     function block(event: Event) {
       const target = event.target;
 
-      if (target instanceof Element && target.closest("dialog")) {
+      if (target instanceof Element && (target.closest("dialog") || target.closest("[data-bottom-sheet]"))) {
         return;
       }
 

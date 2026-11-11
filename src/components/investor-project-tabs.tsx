@@ -31,7 +31,32 @@ export function InvestorProjectTabs({
     <>
       <div className={actions ? "flex flex-col-reverse gap-3 border-b border-[#e6e9f0] sm:flex-row sm:items-end sm:justify-between" : ""}>
       <div className="min-w-0 overflow-x-auto">
-        <div role="tablist" aria-label={companyCopy.tabsLabel} className={actions ? "flex min-w-max gap-1" : "flex min-w-max gap-1 border-b border-[#e6e9f0]"}>
+        <div role="tablist" aria-label={companyCopy.tabsLabel} className="grid grid-cols-3 gap-1 rounded-full bg-[#f4f6fb] p-1 lg:hidden">
+          {tabs.map((item) => {
+            const selected = tab === item.id;
+            return (
+              <button
+                key={`compact-${item.id}`}
+                type="button"
+                role="tab"
+                id={`tab-${item.id}`}
+                aria-selected={selected}
+                aria-controls={`panel-${item.id}`}
+                onClick={() => {
+                  setTab(item.id);
+                }}
+                className={
+                  selected
+                    ? "inline-flex h-11 items-center justify-center rounded-full bg-white px-2 text-sm font-semibold text-[#1c2740] shadow-sm"
+                    : "inline-flex h-11 items-center justify-center rounded-full px-2 text-sm text-[#5c6b78]"
+                }
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+        <div role="tablist" aria-label={companyCopy.tabsLabel} className={actions ? "hidden min-w-max gap-1 lg:flex" : "hidden min-w-max gap-1 border-b border-[#e6e9f0] lg:flex"}>
           {tabs.map((item) => {
             const selected = tab === item.id;
             const Icon = item.icon;
@@ -40,7 +65,7 @@ export function InvestorProjectTabs({
                 key={item.id}
                 type="button"
                 role="tab"
-                id={`tab-${item.id}`}
+                id={`tab-desktop-${item.id}`}
                 aria-selected={selected}
                 aria-controls={`panel-${item.id}`}
                 onClick={() => {

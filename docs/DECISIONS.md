@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S11 mobile-native pattern swaps
+
+Compact viewports swap desktop chrome instead of shrinking it: a bottom tab bar (three short-label destinations + Más), bottom sheets for the landing menu, marketplace filters, and coarse-pointer info hints, sticky CTA bars for primary conversion, horizontal chip rows, and admin waitlist/cuentas as stacked cards below `md`. `lg:` keeps the current rail, dropdowns, and tables. Hit areas are 44px, inputs stay ≥16px, shell height is `100svh`, and `touch-action: manipulation` is on controls. No new type or color system.
+
 ## 2026-11-11 — Round S10 cookie bar
 
 The consent UI is a full-width bar fixed at the bottom (`aria-modal="false"`), not a corner card. Desktop: short copy and a `/cookies` link on the left; Rechazar and Aceptar as equal 44px pills on the right; Configurar as a quieter text control. Mobile: bottom-sheet panel with both pills full width. The wrapper uses `pointer-events: none` so the page stays clickable; `body` padding matches the bar height so last controls can scroll clear. Privacy and terms stay in the footer and checkout notes, not in the bar.

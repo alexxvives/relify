@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { StickyCtaBar } from "@/components/ui/sticky-cta";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -317,7 +318,7 @@ export function Hero() {
               <SwapVerb /> empresas
             </span>
           </h1>
-          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto hidden w-full max-w-sm flex-col items-stretch justify-center gap-2.5 lg:flex sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center">
             <Link
               href="/registro?rol=inversor"
               className="inline-flex h-12 items-center justify-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
@@ -332,6 +333,22 @@ export function Hero() {
             </Link>
           </div>
         </div>
+        <StickyCtaBar>
+          <div className="mx-auto flex w-full max-w-lg gap-2">
+            <Link
+              href="/registro?rol=inversor"
+              className="inline-flex h-12 min-h-11 flex-1 items-center justify-center rounded-full bg-public-clay px-4 text-sm font-medium text-white"
+            >
+              {copy.cta}
+            </Link>
+            <Link
+              href="/registro?rol=empresa"
+              className="inline-flex h-12 min-h-11 flex-1 items-center justify-center rounded-full bg-[#0c7c78] px-4 text-sm font-medium text-white"
+            >
+              {copy.sellCta}
+            </Link>
+          </div>
+        </StickyCtaBar>
         {open ? (
           <article className={`releva-market-float${open.id === "norte" ? " releva-market-float-left" : ""}`} aria-live="polite">
             <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">

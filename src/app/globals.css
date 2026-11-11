@@ -158,6 +158,10 @@
   }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
+    touch-action: manipulation;
+  }
+  a, summary, [role="tab"], [role="switch"] {
+    touch-action: manipulation;
   }
   html {
     @apply font-sans scroll-smooth;
@@ -2396,7 +2400,7 @@ header:has([data-menu-open="true"]) {
     order: 0;
     z-index: 10;
     align-items: flex-start;
-    padding: 1.1rem 1.15rem 4.5rem;
+    padding: 1.1rem 1.15rem 2rem;
     text-align: left;
     text-shadow: none;
     background: linear-gradient(180deg, rgb(247 250 250 / 0.96) 0%, rgb(247 250 250 / 0.78) 46%, transparent 82%);
@@ -2811,7 +2815,7 @@ header:has([data-menu-open="true"]) {
 
 .shell-main {
   min-width: 0;
-  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .shell-content {
@@ -2909,7 +2913,8 @@ header:has([data-menu-open="true"]) {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.shell[data-keyboard="true"] .shell-tabbar {
+.shell[data-keyboard="true"] .shell-tabbar,
+.shell[data-keyboard="true"] .shell-sticky-cta {
   display: none;
 }
 

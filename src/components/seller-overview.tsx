@@ -61,7 +61,7 @@ export function SellerOverview({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
-        <div className="flex w-full min-w-0 flex-col gap-6 self-start">
+        <div className="order-2 flex w-full min-w-0 flex-col gap-6 self-start xl:order-1">
           <SellerActivitySummary funnel={funnel} />
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -91,7 +91,7 @@ export function SellerOverview({
             )}
           </section>
         </div>
-        <div className="flex w-full min-w-0 flex-col gap-6 self-start">
+        <div className="order-1 flex w-full min-w-0 flex-col gap-6 self-start xl:order-2">
           <Card>
             <h2
               className={

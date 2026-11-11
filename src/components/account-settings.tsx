@@ -11,6 +11,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { accountDisplayName } from "@/lib/auth-input";
 import { readStoredPhone } from "@/lib/phone-countries";
 import { Button, Card, Field, Input, PasswordInput } from "@/components/ui/form";
+import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 
 export function AccountSettings({
   name: initialName,
@@ -163,14 +164,19 @@ export function AccountSettings({
             </p>
           ) : null}
           {dirty ? (
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={profilePending}
->
-                {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
-              </Button>
-            </div>
+            <>
+              <div className="hidden justify-end lg:flex">
+                <Button type="submit" disabled={profilePending}>
+                  {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
+                </Button>
+              </div>
+              <div className="h-16 lg:hidden" aria-hidden />
+              <ShellStickyCtaBar>
+                <Button type="submit" disabled={profilePending} block className="h-12 w-full rounded-full">
+                  {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
+                </Button>
+              </ShellStickyCtaBar>
+            </>
           ) : null}
         </form>
       </Card>
@@ -217,7 +223,7 @@ export function AccountSettings({
             type="submit"
             disabled={deletePending}
             tone="danger"
-            className="xl:mt-7 md:col-span-2 xl:col-span-1"
+            className="h-12 w-full rounded-full md:col-span-2 xl:mt-7 xl:col-span-1 xl:h-11 xl:w-auto xl:rounded-xl"
 >
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
           </Button>

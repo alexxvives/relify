@@ -20,7 +20,7 @@ export async function LandingPage() {
   };
 
   return (
-    <PublicSite>
+    <PublicSite dockedCta>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main>
         <Hero />

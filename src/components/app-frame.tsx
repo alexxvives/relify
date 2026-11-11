@@ -34,7 +34,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { accountInitials } from "@/lib/auth-input";
 import type { NotificationView } from "@/lib/notifications";
 import { sellerCopy } from "@/lib/seller-copy";
-import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, goldPillHrefs, shellCopy, type ShellDestination } from "@/lib/shell";
+import { destinationIsCurrent, noticeOpenOnPath, processMenuTarget, goldPillHrefs, shellCopy, tabDestinations, tabLabelForHref, type ShellDestination } from "@/lib/shell";
 
 const iconForHref = {
   "/mercado": Building2Icon,
@@ -61,21 +61,6 @@ const iconForHref = {
   "/admin/lista-de-espera": MailIcon,
   "/admin/valoraciones": TableIcon,
   "/mis-servicios": BriefcaseIcon,
-};
-
-const tabLabelForHref: Record<string, string> = {
-  "/mi-empresa": "Inicio",
-  "/mi-empresa/detalles": "Empresa",
-  "/mi-empresa/procesos": "Procesos",
-  "/inversor": "Inicio",
-  "/mercado": "Empresas",
-  "/procesos": "Procesos",
-  "/mandatos": "Inicio",
-  "/mandatos/encargos": "Encargos",
-  "/mandatos/venta": "Procesos",
-  "/admin": "Inicio",
-  "/admin/empresas": "Empresas",
-  "/admin/cuentas": "Cuentas",
 };
 
 const processSeenKey = "Relify-process-seen";
@@ -326,7 +311,7 @@ export function AppFrame({
     rememberProcessSeen(ids);
   }, [notifications, routePath]);
 
-  const tabs = destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
+  const tabs = tabDestinations(destinations);
 
   const saleItem = destinations.find((item) => goldPillHrefs.includes(item.href));
   const navItems = destinations.filter((item) => !goldPillHrefs.includes(item.href));
@@ -348,7 +333,7 @@ export function AppFrame({
 
   return (
     <div
-      className="shell min-h-screen bg-public-paper font-public text-public-ink"
+      className="shell min-h-svh bg-public-paper font-public text-public-ink"
       data-keyboard={keyboardOpen ? "true" : "false"}
     >
       {open ? (
@@ -532,19 +517,7 @@ export function AppFrame({
         </div>
       </aside>
       <main className="shell-main">
-        <header className="sticky top-0 z-20 flex h-14 sm:h-16 items-center justify-between gap-2 border-b border-public-line bg-white px-3 sm:px-4 lg:hidden">
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls="app-sidebar"
-            onClick={() => {
-              setOpen(true);
-            }}
-            className="inline-flex h-11 min-w-[44px] items-center gap-2 rounded-full px-3 text-sm sm:text-base font-medium text-public-ink hover:bg-public-sand active:bg-public-sand/70"
-          >
-            <PanelLeftIcon size={20} aria-hidden />
-            <span className="hidden sm:inline">Menú</span>
-          </button>
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-public-line bg-white px-3 pt-[env(safe-area-inset-top,0px)] sm:h-16 sm:px-4 lg:hidden">
           <Link href={home} aria-label="Relify" className="min-w-0 shrink">
             <Logo />
           </Link>
@@ -570,7 +543,7 @@ export function AppFrame({
                 key={item.href}
                 href={item.href}
                 aria-current={selected ? "page" : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium transition-colors active:bg-public-sand/50 sm:min-h-16 sm:text-sm ${selected ? "text-[#0c7c78]" : "text-public-muted hover:text-public-ink"}`}
+                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium transition-colors active:bg-public-sand/50 sm:min-h-16 sm:text-sm ${selected ? "text-[#0c7c78]" : "text-public-muted"}`}
               >
                 <Icon size={22} isAnimated={false} aria-hidden />
                 <span className="truncate max-w-full px-1">{tabLabelForHref[item.href] ?? item.label}</span>
@@ -582,7 +555,7 @@ export function AppFrame({
             onClick={() => {
               setOpen(true);
             }}
-            className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors hover:text-public-ink active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
+            className="flex min-h-14 flex-col items-center justify-center gap-1 px-1 pt-2 text-xs font-medium text-public-muted transition-colors active:bg-public-sand/50 sm:min-h-16 sm:text-sm"
           >
             <PanelLeftIcon size={22} aria-hidden />
             <span className="truncate">Más</span>
@@ -593,7 +566,7 @@ export function AppFrame({
   );
 }
 
-/** Compact upgrade entry beside the bell; the label shows as a tooltip on hover and focus. */
+/** Compact upgrade entry beside the bell. The label is visible on compact; desktop drawer keeps the hover tooltip. */
 function PremiumLink({ onClick }: { onClick?: () => void }) {
   return (
     <Link
@@ -605,7 +578,7 @@ function PremiumLink({ onClick }: { onClick?: () => void }) {
       <CrownIcon size={18} aria-hidden />
       <span
         role="tooltip"
-        className="pointer-events-none absolute top-full left-1/2 z-30 mt-1 -translate-x-1/2 rounded-md bg-[#1c2740] px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover/premium:opacity-100 group-focus-visible/premium:opacity-100"
+        className="pointer-events-none absolute top-full left-1/2 z-30 mt-1 -translate-x-1/2 rounded-md bg-[#1c2740] px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover/premium:opacity-100 group-focus-visible/premium:opacity-100 [@media(any-pointer:coarse)]:sr-only"
       >
         {sellerCopy.premium}
       </span>

@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pagination, usePageParam } from "@/components/pagination";
-import { ArrowUpDown, Check } from "lucide-react";
+import { ArrowUpDown, Check, SlidersHorizontal } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarketCard, marketGridClass } from "@/components/market-card";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { ChipRow, FilterChip } from "@/components/ui/chip-row";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { HeartIcon } from "@/components/ui/heart";
 import { marketCopy } from "@/lib/market-copy";
@@ -94,8 +96,8 @@ export function MarketBrowser({
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="flex items-center justify-between gap-3 sm:grid sm:grid-cols-[1fr_auto_1fr]">
-        {heading ? <h1 className="text-2xl sm:text-3xl tracking-tight text-public-ink sm:justify-self-start">{heading}</h1> : <span />}
+      <div className="flex items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+        {heading ? <h1 className="text-2xl lg:text-3xl tracking-tight text-public-ink lg:justify-self-start">{heading}</h1> : <span />}
         <button
           type="button"
           role="switch"
@@ -103,7 +105,7 @@ export function MarketBrowser({
           onClick={() => {
             setFavoritesOnly((current) => !current);
           }}
-          className="inline-flex items-center justify-center sm:justify-self-center gap-2 sm:gap-3 min-h-[44px] shrink-0"
+          className="hidden lg:inline-flex items-center justify-center lg:justify-self-center gap-3 min-h-[44px] shrink-0"
         >
           <HeartIcon size={16} className={favoritesOnly ? "text-[#c23b4a]" : "text-[#8b95a7]"} aria-hidden />
           <span className="text-sm font-medium text-[#1c2740]">{marketCopy.favoritesOnly}</span>
@@ -119,38 +121,82 @@ export function MarketBrowser({
         </button>
       </div>
       {/* t92: the filter bar stacks above the cards so its open dropdowns cover the cards' heart buttons (z-20). */}
-      <div className="relative z-40 rounded-xl sm:rounded-2xl border border-[#e7eaee] bg-white p-3 sm:p-4">
-        {/* Mobile compact filter UI */}
-        <div className="sm:hidden">
-          <div className="flex items-center gap-2">
-            <label className="flex-1 flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
-              {marketCopy.searchLabel}
-              <Input
-                type="search"
-                value={query}
-                placeholder={marketCopy.searchPlaceholder}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className="mt-auto min-h-[44px] flex items-center gap-2 rounded-lg border border-[#d5dbe3] bg-white px-3 py-2 text-sm font-medium text-[#1c2740] hover:bg-[#f8f9fa] active:bg-[#e7eaee]"
+      <div className="relative z-40 rounded-xl lg:rounded-2xl border border-[#e7eaee] bg-white p-3 lg:p-4">
+        <div className="flex flex-col gap-3 lg:hidden">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
+            {marketCopy.searchLabel}
+            <Input
+              type="search"
+              value={query}
+              placeholder={marketCopy.searchPlaceholder}
+              onChange={(event) => {
+                setQuery(event.target.value);
+              }}
+            />
+          </label>
+          <ChipRow>
+            <FilterChip
+              selected={filtersOpen || activeFilterCount > 0}
+              onClick={() => setFiltersOpen(true)}
+              aria-haspopup="dialog"
               aria-expanded={filtersOpen}
-              aria-controls="mobile-filters"
             >
-              <span>Filtros</span>
-              {activeFilterCount > 0 && (
-                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#465ab4] px-1.5 text-xs font-semibold text-white">
+              <SlidersHorizontal className="mr-1.5 size-4" aria-hidden />
+              {marketCopy.filtersAction}
+              {activeFilterCount > 0 ? (
+                <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 text-xs">
                   {activeFilterCount}
                 </span>
-              )}
-            </button>
-          </div>
-          {filtersOpen && (
-            <div id="mobile-filters" className="mt-3 flex flex-col gap-3 border-t border-[#e7eaee] pt-3">
+              ) : null}
+            </FilterChip>
+            <FilterChip selected={favoritesOnly} onClick={() => setFavoritesOnly((current) => !current)}>
+              {marketCopy.favoritesOnly}
+            </FilterChip>
+            {regions[0] ? (
+              <FilterChip selected onClick={() => setRegions([])}>
+                {regions[0]}
+              </FilterChip>
+            ) : null}
+            {sector ? (
+              <FilterChip selected onClick={() => setSector("")}>
+                {sentence(sectorOptions.find(([value]) => value === sector)?.[1] ?? sector)}
+              </FilterChip>
+            ) : null}
+            {revenueBand !== "any" ? (
+              <FilterChip selected onClick={() => setRevenueBand("any")}>
+                {marketCopy.revenueBands[revenueBand]}
+              </FilterChip>
+            ) : null}
+            {sort !== "recommended" ? (
+              <FilterChip selected onClick={() => setSort("recommended")}>
+                {marketCopy.sorts[sort]}
+              </FilterChip>
+            ) : null}
+          </ChipRow>
+          <BottomSheet
+            open={filtersOpen}
+            title={marketCopy.filtersAction}
+            onClose={() => setFiltersOpen(false)}
+            footer={
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-[#d5dbe3] text-sm font-medium"
+                >
+                  {marketCopy.clearFilters}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(false)}
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[#1c2740] text-sm font-medium text-white"
+                >
+                  Ver empresas
+                </button>
+              </div>
+            }
+          >
+            <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
                 {marketCopy.regionLabel}
                 <FilterSelect
@@ -187,23 +233,30 @@ export function MarketBrowser({
                   }}
                 />
               </label>
-              <div className="flex items-center justify-between">
-                <SortMenu value={sort} onChange={setSort} />
-                {activeFilterCount > 0 && (
+              <p className="pt-1 text-xs font-medium text-[#5c6b78]">{marketCopy.sortLabel}</p>
+              <div className="grid gap-2">
+                {marketSorts.map((option) => (
                   <button
+                    key={option}
                     type="button"
-                    onClick={clearFilters}
-                    className="text-sm text-[#465ab4] hover:text-[#3648a3] font-medium"
+                    aria-pressed={option === sort}
+                    onClick={() => {
+                      if (isMarketSort(option)) {
+                        setSort(option);
+                      }
+                    }}
+                    className={`flex h-11 items-center justify-between rounded-xl px-3 text-left text-sm ${option === sort ? "bg-[#eef1fb] font-semibold text-[#33429a]" : "bg-[#f8f9fb] text-[#1c2740]"}`}
                   >
-                    Limpiar filtros
+                    {marketCopy.sorts[option]}
+                    {option === sort ? <Check className="size-4" aria-hidden /> : null}
                   </button>
-                )}
+                ))}
               </div>
             </div>
-          )}
+          </BottomSheet>
         </div>
         {/* Desktop full filter toolbar */}
-        <div className="hidden sm:grid grid-cols-1 items-end gap-2.5 sm:gap-3 sm:grid-cols-[1fr_1fr_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+        <div className="hidden lg:grid grid-cols-1 items-end gap-2.5 lg:gap-3 lg:grid-cols-[1fr_1fr_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 xl:col-span-1">
             {marketCopy.searchLabel}
             <Input

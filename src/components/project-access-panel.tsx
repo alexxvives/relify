@@ -7,6 +7,8 @@ import { Link2, UserRound } from "lucide-react";
 import { AgreementDocument } from "@/components/agreement-document";
 import { SignBubble } from "@/components/deal-pipeline";
 import { useModalScrollLock } from "@/components/file-preview-dialog";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useCompactViewport } from "@/components/ui/use-compact";
 import { acceptNdaAction, requestProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
 import { accessCopy, connectConfirm } from "@/lib/access-copy";
 import { billingCopy } from "@/lib/billing-copy";
@@ -14,7 +16,7 @@ import type { BuyerPlanName } from "@/lib/billing";
 import type { ProjectAccessView } from "@/lib/project-access";
 
 const buttonClassName =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60";
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#3d34b8] px-4 text-sm font-medium text-white disabled:opacity-60 lg:h-11 lg:w-auto";
 
 function AccessError({ state }: { state: ProjectAccessActionState }) {
   if (!state || state.ok) {
@@ -40,28 +42,43 @@ function ConnectConfirm({
   onClose: () => void;
 }) {
   const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
+  const compact = useCompactViewport();
   useModalScrollLock(true);
 
   if (requestState?.ok === true) {
     return null;
   }
 
+  const fields = (
+    <>
+      <input type="hidden" name="slug" value={slug} />
+      {title.length > 0 && !compact ? <p className="text-lg font-semibold">{title}</p> : null}
+      <p className={compact ? "text-sm leading-6 text-[#3d4a63]" : "mt-2 text-sm leading-6 text-[#3d4a63]"}>{connectConfirm(matchesLeft)}</p>
+      <div className={compact ? "mt-5 grid grid-cols-2 gap-2" : "mt-5 flex items-center justify-end gap-2"}>
+        <button type="button" onClick={onClose} className="inline-flex h-12 items-center justify-center rounded-full px-4 text-sm font-medium text-[#5c6b78] lg:h-11">
+          {accessCopy.connectCancel}
+        </button>
+        <button type="submit" className={`${buttonClassName} h-12 lg:h-11`} disabled={requestPending}>
+          <Link2 className="size-4" aria-hidden />
+          {accessCopy.connectYes}
+        </button>
+      </div>
+      <AccessError state={requestState} />
+    </>
+  );
+
+  if (compact) {
+    return (
+      <BottomSheet open title={title.length > 0 ? title : accessCopy.connect} onClose={onClose}>
+        <form action={requestAction}>{fields}</form>
+      </BottomSheet>
+    );
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c1224]/55 p-4">
       <form action={requestAction} className="w-full max-w-sm rounded-2xl bg-white p-6 text-[#1c2740] shadow-xl">
-        <input type="hidden" name="slug" value={slug} />
-        {title.length > 0 ? <p className="text-lg font-semibold">{title}</p> : null}
-        <p className="mt-2 text-sm leading-6 text-[#3d4a63]">{connectConfirm(matchesLeft)}</p>
-        <div className="mt-5 flex items-center justify-end gap-2">
-          <button type="button" onClick={onClose} className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]">
-            {accessCopy.connectCancel}
-          </button>
-          <button type="submit" className={buttonClassName} disabled={requestPending}>
-            <Link2 className="size-4" aria-hidden />
-            {accessCopy.connectYes}
-          </button>
-        </div>
-        <AccessError state={requestState} />
+        {fields}
       </form>
     </div>,
     document.body,

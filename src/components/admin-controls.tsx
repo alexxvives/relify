@@ -10,6 +10,8 @@ import {
   type AdminActionState,
 } from "@/app/(app)/admin/actions";
 import { AppToast } from "@/components/app-toast";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useCompactViewport } from "@/components/ui/use-compact";
 import { adminCopy } from "@/lib/admin-copy";
 
 function Note({ state }: { state: AdminActionState }) {
@@ -221,6 +223,7 @@ export function PlanPicker({ userId, plan }: { userId: string; plan: "none" | "l
   const { state, formAction, pending } = useAccountAction(grantPlanAction);
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLSpanElement>(null);
+  const compact = useCompactViewport();
   const options = ["none", "limited", "unlimited"] as const;
 
   useEffect(() => {
@@ -256,12 +259,38 @@ export function PlanPicker({ userId, plan }: { userId: string; plan: "none" | "l
         aria-expanded={open}
         title={adminCopy.planChange}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-medium text-[#1c2740] underline decoration-dotted underline-offset-2 hover:bg-[#eef1f5]"
+        className="inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 font-medium text-[#1c2740] underline decoration-dotted underline-offset-2 hover:bg-[#eef1f5] lg:min-h-0 lg:px-1.5 lg:py-0.5"
       >
         {pending ? adminCopy.grantingPlan : adminCopy.plans[plan]}
         <svg aria-hidden="true" viewBox="0 0 12 12" className="size-3"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
       </button>
-      {open ? (
+      {open && compact ? (
+        <BottomSheet open={open} title={adminCopy.planChange} onClose={() => setOpen(false)}>
+          <form
+            action={(data) => {
+              setOpen(false);
+              formAction(data);
+            }}
+            className="flex flex-col gap-2"
+          >
+            <input type="hidden" name="userId" value={userId} />
+            {options.map((option) => (
+              <button
+                key={option}
+                type="submit"
+                name="plan"
+                value={option}
+                disabled={option === plan}
+                className="flex h-12 items-center justify-between rounded-xl bg-[#f8f9fb] px-4 text-left text-sm font-medium text-[#1c2740] disabled:text-[#98a2b3]"
+              >
+                {adminCopy.plans[option]}
+                {option === plan ? ` · ${adminCopy.planCurrent}` : ""}
+              </button>
+            ))}
+          </form>
+        </BottomSheet>
+      ) : null}
+      {open && !compact ? (
         <form
           action={(data) => {
             setOpen(false);

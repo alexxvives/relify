@@ -9,6 +9,7 @@ import { CheckIcon } from "@/components/ui/check";
 import { AppToast } from "@/components/app-toast";
 import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/(app)/premium/actions";
 import { CheckoutLegalNote } from "@/components/checkout-legal-note";
+import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
 
@@ -29,12 +30,12 @@ function PlanButton({ plan, label, change = false }: { plan: "limited" | "unlimi
   const [state, action, pending] = useActionState(change ? changeBuyerPlanAction : startBuyerPlanAction, null);
 
   return (
-    <form action={action} className="mt-6 flex flex-col gap-2">
+    <form action={action} className="mt-6 flex flex-col gap-2 max-lg:mt-0">
       <input type="hidden" name="plan" value={plan} />
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-11 items-center justify-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60 lg:h-11"
       >
         {pending ? (change ? billingCopy.switching : billingCopy.choosing) : label}
       </button>
@@ -107,12 +108,12 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
         <AppToast message={notice} tone={notice === billingCopy.paid || notice === billingCopy.planChanged ? "ok" : "error"} />
       </section>
       <div className="flex justify-center">
-        <div className="inline-flex rounded-full bg-[#1c2740] p-1" role="group" aria-label={billingCopy.periodLabel}>
+        <div className="grid w-full max-w-sm grid-cols-2 rounded-full bg-[#1c2740] p-1 lg:inline-flex lg:w-auto lg:max-w-none" role="group" aria-label={billingCopy.periodLabel}>
           <button
             type="button"
             aria-pressed={!yearly}
             onClick={() => setYearly(false)}
-            className={!yearly ? "rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1c2740]" : "rounded-full px-4 py-2 text-sm text-white/70"}
+            className={!yearly ? "h-11 rounded-full bg-white px-4 text-sm font-semibold text-[#1c2740]" : "h-11 rounded-full px-4 text-sm text-white/70"}
           >
             {billingCopy.periodMonthly}
           </button>
@@ -120,7 +121,7 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
             type="button"
             aria-pressed={yearly}
             onClick={() => setYearly(true)}
-            className={yearly ? "rounded-full bg-[#ffb703] px-4 py-2 text-sm font-semibold text-[#1c2740]" : "rounded-full px-4 py-2 text-sm text-white/70"}
+            className={yearly ? "h-11 rounded-full bg-[#ffb703] px-4 text-sm font-semibold text-[#1c2740]" : "h-11 rounded-full px-4 text-sm text-white/70"}
           >
             {billingCopy.periodYearly}
           </button>
@@ -185,7 +186,7 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto">
+              <div className={`mt-auto ${item.id === "limited" && plan === "none" ? "max-lg:hidden" : ""}`}>
                 {item.id === "limited" && plan === "none" ? <PlanButton plan="limited" label={billingCopy.chooseLimited} /> : null}
                 {item.id === "unlimited" && plan === "none" ? <PlanButton plan="unlimited" label={billingCopy.chooseUnlimited} /> : null}
                 {!active && plan !== "none" && (item.id === "limited" || item.id === "unlimited") ? (
@@ -204,6 +205,14 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
           );
         })}
       </div>
+      {plan === "none" ? (
+        <>
+          <div className="h-16 lg:hidden" aria-hidden />
+          <ShellStickyCtaBar>
+            <PlanButton plan="limited" label={billingCopy.chooseLimited} />
+          </ShellStickyCtaBar>
+        </>
+      ) : null}
     </div>
   );
 }

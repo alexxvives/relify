@@ -2,6 +2,7 @@ export const marketCopy = {
   title: "Empresas",
   searchLabel: "Buscar",
   searchPlaceholder: "¿Qué estás buscando?",
+  filtersAction: "Filtros",
   sortLabel: "Ordenar",
   revenueLabel: "Facturación",
   ebitdaLabel: "EBITDA",

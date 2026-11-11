@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Briefcase, Building2, Handshake, ListChecks } from "lucide-react";
 import { AccountToastHost, PlanPicker, SuspensionButton } from "@/components/admin-controls";
 import { AdminPageHeader, AdminSearchField } from "@/components/admin-toolbar";
+import { ChipRow, FilterChip } from "@/components/ui/chip-row";
 import { FilterSelect } from "@/components/ui/filter-select";
+import { adminAccountSummary } from "@/lib/admin-account-summary";
 import { adminCopy } from "@/lib/admin-copy";
 import { NewPill } from "@/components/admin-new";
 import type { AdminAccountRow } from "@/server/listAdminAccounts";
@@ -29,6 +32,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
   const [role, setRole] = useState<RoleFilter>("all");
   const [state, setState] = useState<StateFilter>("all");
   const needle = query.trim().toLocaleLowerCase("es");
+  const summary = adminAccountSummary(accounts);
   const visible = accounts.filter((account) => {
     if (role !== "all" && account.role !== role) {
       return false;
@@ -64,7 +68,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
           placeholder={adminCopy.searchAccounts}
           onChange={setQuery}
         />
-        <div className="w-40">
+        <div className="hidden w-40 lg:block">
           <FilterSelect
             compact
             label={adminCopy.roleLabel}
@@ -82,7 +86,7 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
             }}
           />
         </div>
-        <div className="w-40">
+        <div className="hidden w-40 lg:block">
           <FilterSelect
             compact
             label={adminCopy.accountStateLabel}
@@ -101,6 +105,44 @@ export function AdminAccounts({ accounts, viewerId }: { accounts: AdminAccountRo
           />
         </div>
       </AdminPageHeader>
+      <ul className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { key: "total", label: adminCopy.totalLabel, value: summary.total, chip: "bg-[#1c2740]", ink: "text-[#1c2740]", bg: "bg-[#f4f6fb]", ring: "ring-[#1c2740]/10", icon: ListChecks },
+          { key: "seller", label: adminCopy.accountRoles.seller, value: summary.seller, chip: "bg-[#0c7c78]", ink: "text-[#0b5559]", bg: "bg-[#e6f4f3]", ring: "ring-[#0c7c78]/15", icon: Building2 },
+          { key: "investor", label: adminCopy.accountRoles.investor, value: summary.investor, chip: "bg-[#465ab4]", ink: "text-[#2f3f8f]", bg: "bg-[#eef1fb]", ring: "ring-[#465ab4]/15", icon: Briefcase },
+          { key: "advisor", label: adminCopy.accountRoles.advisor, value: summary.advisor, chip: "bg-[#e3a008]", ink: "text-[#b26b00]", bg: "bg-[#fdf4e3]", ring: "ring-[#e3a008]/20", icon: Handshake },
+        ].map((card) => {
+          const Icon = card.icon;
+          return (
+            <li key={card.key} className={`flex min-w-0 items-center gap-3 rounded-2xl px-4 py-4 ring-1 ${card.bg} ${card.ring}`}>
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-white ${card.chip}`}>
+                <Icon className="size-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className={`block text-2xl leading-7 font-semibold tabular-nums ${card.ink}`}>{card.value}</span>
+                <span className="block text-xs leading-4 text-[#3d4a63]">{card.label}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mb-4 flex flex-col gap-2 lg:hidden">
+        <ChipRow>
+          <FilterChip selected={role === "all"} onClick={() => setRole("all")}>{adminCopy.roleAll}</FilterChip>
+          <FilterChip selected={role === "seller"} onClick={() => setRole("seller")}>{adminCopy.accountRoles.seller}</FilterChip>
+          <FilterChip selected={role === "investor"} onClick={() => setRole("investor")}>{adminCopy.accountRoles.investor}</FilterChip>
+          <FilterChip selected={role === "advisor"} onClick={() => setRole("advisor")}>{adminCopy.accountRoles.advisor}</FilterChip>
+        </ChipRow>
+        <ChipRow>
+          <FilterChip selected={state === "all"} onClick={() => setState("all")}>{adminCopy.accountStateAll}</FilterChip>
+          <FilterChip selected={state === "active"} onClick={() => setState("active")}>{adminCopy.accountStateActive}</FilterChip>
+          <FilterChip selected={state === "suspended"} onClick={() => setState("suspended")}>{adminCopy.accountStateSuspended}</FilterChip>
+          <FilterChip selected={state === "pending"} onClick={() => setState("pending")}>{adminCopy.accountStatePending}</FilterChip>
+        </ChipRow>
+      </div>
+      <p className="mb-3 text-xs text-[#667085] lg:hidden">
+        {summary.pending} altas pendientes · {summary.suspended} suspendidas
+      </p>
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (

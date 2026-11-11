@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinationIsCurrent, destinationsForRole, noticeOpenOnPath, processMenuTarget } from "./shell";
+import { destinationIsCurrent, destinationsForRole, noticeOpenOnPath, processMenuTarget, tabDestinations, tabLabelForHref } from "./shell";
 
 describe("destinationsForRole", () => {
   it("lists only that role's home", () => {
@@ -34,6 +34,16 @@ describe("destinationsForRole", () => {
       { href: "/admin/valoraciones", label: "Valoraciones", section: "Gestión" },
     ]);
     expect(destinationsForRole(null)).toEqual([]);
+  });
+});
+
+describe("tabDestinations", () => {
+  it("keeps three short-label destinations per role for the compact tab bar", () => {
+    for (const role of ["investor", "seller", "advisor", "admin"] as const) {
+      const tabs = tabDestinations(destinationsForRole(role));
+      expect(tabs).toHaveLength(3);
+      expect(tabs.every((item) => item.href in tabLabelForHref)).toBe(true);
+    }
   });
 });
 

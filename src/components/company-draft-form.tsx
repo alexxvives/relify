@@ -564,7 +564,7 @@ function FichaMetrics({
                 type="button"
                 onClick={recommended.onUse}
                 aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
-                className="inline-flex h-7 max-w-full items-center gap-1 rounded-full bg-[#eef1fb] px-2 text-[11px] font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                className="inline-flex h-11 max-w-full items-center gap-1 rounded-full bg-[#eef1fb] px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none lg:h-7 lg:px-2 lg:text-[11px]"
               >
                 <Sparkles className="size-3.5 shrink-0" aria-hidden />
                 <span className="min-w-0 truncate">

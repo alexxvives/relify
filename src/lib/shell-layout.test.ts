@@ -19,5 +19,6 @@ describe("signed-in shell layout CSS", () => {
     expect(css).toMatch(/scroll-padding-bottom:\s*var\(--shell-tabbar\)/);
     expect(css).toMatch(/@media \(min-width: 640px\) and \(max-width: 1023px\)[\s\S]*?--shell-tabbar:\s*calc\(4rem/);
     expect(css).toMatch(/\.shell\[data-keyboard="true"\] \.shell-tabbar/);
+    expect(css).toMatch(/\.shell-main \{[\s\S]*?min-height:\s*100svh/);
   });
 });

@@ -3,6 +3,8 @@
 import { BadgeCheck, CircleAlert, CircleHelp, Info } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useCoarsePointer } from "@/components/ui/use-compact";
 
 /** Dark tooltip bubble shared by every hover/tap hint in the app. */
 export const tooltipBubble =
@@ -52,6 +54,7 @@ export function placeBubble(anchor: DOMRect, box: DOMRect, align: "start" | "cen
  * Icon with a tooltip. t70: it opens only from its own trigger (hover, keyboard focus, tap) and is
  * rendered in a portal with fixed coordinates clamped to the viewport, so overflow/scroll containers
  * and parent hover states can no longer clip or trigger it.
+ * On a coarse pointer the same tap opens a bottom sheet, so the copy is never hover-only.
  */
 export function InfoHint({
   text,
@@ -80,9 +83,12 @@ export function InfoHint({
   const id = useId();
   const trigger = useRef<HTMLSpanElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
+  const coarse = useCoarsePointer();
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const useSheet = coarse && !hoverOnly;
 
   const place = useCallback(() => {
     const anchor = trigger.current?.getBoundingClientRect();
@@ -121,7 +127,11 @@ export function InfoHint({
     };
   }, [open, place]);
 
-  const show = () => setOpen(true);
+  const show = () => {
+    if (!useSheet) {
+      setOpen(true);
+    }
+  };
   const hide = () => {
     if (!pinned) {
       setOpen(false);
@@ -152,15 +162,19 @@ export function InfoHint({
             : (event) => {
                 event.preventDefault();
                 event.stopPropagation();
+                if (useSheet) {
+                  setSheetOpen(true);
+                  return;
+                }
                 setPinned(!pinned);
                 setOpen(!pinned);
               }
         }
-        className={`inline-flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 ${hoverOnly ? "" : "cursor-help rounded-full"} ${children ? "" : `${size === "sm" ? "size-4" : "size-5"} ${iconTone[tone]}`}`}
+        className={`inline-flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 ${hoverOnly ? "" : "cursor-help rounded-full"} ${children ? "" : `${size === "sm" ? "size-11 [@media(any-pointer:fine)]:size-4" : "size-11 [@media(any-pointer:fine)]:size-5"} ${iconTone[tone]}`}`}
       >
         {children ?? <Icon className={size === "sm" ? "size-3.5" : "size-4"} aria-hidden />}
       </span>
-      {open && typeof document !== "undefined"
+      {open && !useSheet && typeof document !== "undefined"
         ? createPortal(
             <span
               ref={bubble}
@@ -174,6 +188,11 @@ export function InfoHint({
             document.body,
           )
         : null}
+      {useSheet ? (
+        <BottomSheet open={sheetOpen} title="Ayuda" onClose={() => setSheetOpen(false)}>
+          <p className="text-sm leading-6 text-[#3d4a63]">{text}</p>
+        </BottomSheet>
+      ) : null}
     </span>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { landingCopy } from "@/lib/landing-copy";
 
 const solidLink =
@@ -83,38 +84,41 @@ export function LandingNav({
         aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
         onClick={() => onMenuOpenChange(!menuOpen)}
       >
-        {menuOpen ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
+        <Menu className="size-5" aria-hidden />
       </button>
-      {menuOpen ? (
-        <>
-        <button
-          type="button"
-          className="releva-menu-backdrop lg:hidden"
-          aria-label="Cerrar menú"
-          onClick={() => onMenuOpenChange(false)}
-        />
-        <div
-          id="landing-mobile-menu"
-          className="releva-menu-sheet lg:hidden"
-        >
+      <BottomSheet
+        open={menuOpen}
+        title="Menú"
+        onClose={() => onMenuOpenChange(false)}
+        footer={
+          <Link
+            href={accountHref}
+            className={`${solidLink} w-full`}
+            onClick={() => onMenuOpenChange(false)}
+          >
+            {accountLabel}
+          </Link>
+        }
+      >
+        <div id="landing-mobile-menu" className="flex flex-col gap-1 pb-2">
           {landingCopy.nav.map((group) => (
-            <div key={group.label} className="px-2 py-0.5">
+            <div key={group.label}>
               {group.links.length === 1 && group.links[0] ? (
                 <Link
                   href={group.links[0].href}
-                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium hover:bg-public-sand"
+                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium"
                   onClick={() => onMenuOpenChange(false)}
                 >
                   {group.label}
                 </Link>
               ) : (
                 <>
-              <p className="px-2 pt-2 text-xs tracking-[0.16em] text-public-muted uppercase">{group.label}</p>
+              <p className="px-2 pt-3 text-xs tracking-[0.16em] text-public-muted uppercase">{group.label}</p>
               {group.links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm hover:bg-public-sand"
+                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm"
                   onClick={() => onMenuOpenChange(false)}
                 >
                   {link.label}
@@ -126,21 +130,13 @@ export function LandingNav({
           ))}
           <Link
             href={landingCopy.waitlistNav.href}
-            className="flex min-h-11 items-center rounded-2xl px-4 text-sm font-medium hover:bg-public-sand"
+            className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium"
             onClick={() => onMenuOpenChange(false)}
           >
             {landingCopy.waitlistNav.label}
           </Link>
-          <Link
-            href={accountHref}
-            className={`${solidLink} mt-2 w-full`}
-            onClick={() => onMenuOpenChange(false)}
-          >
-            {accountLabel}
-          </Link>
         </div>
-        </>
-      ) : null}
+      </BottomSheet>
       </div>
     </>
   );

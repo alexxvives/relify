@@ -14,6 +14,7 @@ import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInve
 import { FavoriteButton } from "@/components/favorite-button";
 import { LoiCard } from "@/components/loi-card";
 import { ConnectControl } from "@/components/project-access-panel";
+import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { MarketCard } from "@/components/market-card";
 import { companyCopy } from "@/lib/company-copy";
 import type { DealStep, ProcessFile } from "@/lib/deal-pipeline";
@@ -129,8 +130,28 @@ export function InvestorProject({
         }
       >
         <FavoriteButton slug={project.slug} favorited={favorited} />
-        <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
+        <div className="hidden lg:block">
+          <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
+        </div>
       </CompanyBanner>
+
+      {access === "none" || access === "requested" ? (
+        <>
+          <div className="h-16 lg:hidden" aria-hidden />
+          <ShellStickyCtaBar>
+            {access === "requested" ? (
+              <Link
+                href="/procesos"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
+              >
+                Firmar en Mis procesos
+              </Link>
+            ) : (
+              <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
+            )}
+          </ShellStickyCtaBar>
+        </>
+      ) : null}
 
       {access === "accepted" && signedOffer ? (
         <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} accessId={accessId} />
