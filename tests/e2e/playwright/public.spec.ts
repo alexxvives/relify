@@ -92,11 +92,18 @@ test.describe("visitor landing and public forms", () => {
 
   test("cookie banner and /cookies list GA cookies", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /cookies en relify/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^aceptar$/i })).toBeVisible();
     const banner = page.getByRole("dialog");
-    await expect(banner.getByRole("link", { name: /^privacidad$/i })).toBeVisible();
-    await expect(banner.getByRole("link", { name: /^términos$/i })).toBeVisible();
+    await expect(banner.getByRole("heading", { name: /cookies en relify/i })).toBeVisible();
+    await expect(banner.getByRole("button", { name: /^rechazar$/i })).toBeVisible();
+    await expect(banner.getByRole("button", { name: /^aceptar$/i })).toBeVisible();
+    await expect(banner.getByRole("link", { name: /política de cookies/i })).toBeVisible();
+    await expect(banner.getByRole("link", { name: /^privacidad$/i })).toHaveCount(0);
+    await expect(banner.getByRole("link", { name: /^términos$/i })).toHaveCount(0);
+    const register = page.getByRole("link", { name: /crear cuenta|registro|publicar/i }).first();
+    await expect(register).toBeVisible();
+    await register.click();
+    await expect(page).toHaveURL(/\/registro/);
+    await page.goto("/");
     await banner.getByRole("link", { name: /política de cookies/i }).click();
     await expect(page).toHaveURL(/\/cookies/);
     await expect(page.getByText("_ga", { exact: true })).toBeVisible();

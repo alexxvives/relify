@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S10 cookie bar
+
+The consent UI is a full-width bar fixed at the bottom (`aria-modal="false"`), not a corner card. Desktop: short copy and a `/cookies` link on the left; Rechazar and Aceptar as equal 44px pills on the right; Configurar as a quieter text control. Mobile: bottom-sheet panel with both pills full width. The wrapper uses `pointer-events: none` so the page stays clickable; `body` padding matches the bar height so last controls can scroll clear. Privacy and terms stay in the footer and checkout notes, not in the bar.
+
 ## 2026-11-11 — Round S10 GTM Consent Mode v2 Advanced
 
 Prod GTM (`GTM_CONTAINER_ID` / `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GTM-KMZ4Z9PZ`) uses Consent Mode v2 **Advanced**: `gtm.js` is in the initial `<head>` on every page when the id is set (not INT). Preceded by `gtag('consent','default',{ad_storage,ad_user_data,ad_personalization,analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500})`, `ads_data_redaction: true`, `url_passthrough: false`. A stored choice (cookie / localStorage) is restored with `consent update` in that same inline script before GTM fires. Aceptar updates `analytics_storage` to granted and persists; Rechazar keeps denied. The GTM `<noscript>` iframe sits right after `<body>`. G- fallback still loads only after Aceptar. INT leaves both ids unset.

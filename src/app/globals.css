@@ -4241,49 +4241,80 @@ select:-webkit-autofill {
 }
 
 .relify-consent {
+  pointer-events: none;
   position: fixed;
-  right: 1rem;
-  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-  left: 1rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 80;
 }
 
 .relify-consent-card {
-  margin-left: auto;
-  max-width: 28rem;
+  pointer-events: auto;
+  width: 100%;
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--public-line);
-  border-radius: 1.5rem;
+  border-bottom: none;
+  border-radius: 1.25rem 1.25rem 0 0;
   background: #fff;
-  padding: 1.25rem 1.35rem 1.35rem;
-  box-shadow: 0 24px 60px -32px rgb(28 39 64 / 0.45);
+  padding: 0.65rem 1.1rem max(0.9rem, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -18px 40px -28px rgb(18 52 58 / 0.35);
 }
 
 .relify-consent-accept,
 .relify-consent-ghost {
   display: inline-flex;
   min-height: 2.75rem;
+  width: 100%;
+  cursor: pointer;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 0 1.1rem;
+  padding: 0 1.15rem;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .relify-consent-accept {
-  background: var(--public-clay);
+  border: 1.5px solid var(--public-ink);
+  background: var(--public-ink);
   color: #fff;
 }
 
 .relify-consent-ghost {
-  border: 1px solid var(--public-line);
+  border: 1.5px solid var(--public-ink);
   background: #fff;
   color: var(--public-ink);
 }
 
+.relify-consent-configure {
+  min-height: 2.75rem;
+  cursor: pointer;
+  padding: 0 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--public-muted);
+  text-decoration-line: underline;
+  text-underline-offset: 3px;
+}
+
+html.relify-consent-open body {
+  padding-bottom: var(--relify-consent-h, 0px);
+}
+
 @media (min-width: 640px) {
-  .relify-consent {
-    left: auto;
-    width: min(28rem, calc(100vw - 2rem));
+  .relify-consent-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: 0.7rem 1.5rem max(0.7rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .relify-consent-accept,
+  .relify-consent-ghost {
+    width: auto;
+    min-width: 8.5rem;
   }
 }

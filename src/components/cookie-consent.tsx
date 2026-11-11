@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { applyGaConsent, hasAnalyticsConsent, loadGoogleAnalytics, trackConversion } from "@/lib/analytics";
 import {
@@ -67,6 +67,7 @@ export function CookieConsent({
   const [preferences, setPreferences] = useState(false);
   const [configure, setConfigure] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onOpen = () => {
@@ -103,77 +104,101 @@ export function CookieConsent({
   }
 
   const open = hydrated && (stored === null || preferences);
+
+  useEffect(() => {
+    if (!open) {
+      document.documentElement.classList.remove("relify-consent-open");
+      document.documentElement.style.removeProperty("--relify-consent-h");
+      return;
+    }
+    const el = barRef.current;
+    if (!el) {
+      return;
+    }
+    const apply = () => {
+      const height = `${Math.ceil(el.getBoundingClientRect().height)}px`;
+      document.documentElement.style.setProperty("--relify-consent-h", height);
+      document.documentElement.classList.add("relify-consent-open");
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      document.documentElement.classList.remove("relify-consent-open");
+      document.documentElement.style.removeProperty("--relify-consent-h");
+    };
+  }, [open, configure]);
+
   if (!open) {
     return null;
   }
 
   return (
     <div className="relify-consent" role="dialog" aria-labelledby="relify-consent-title" aria-modal="false">
-      <div className="relify-consent-card">
-        <p className="text-sm font-semibold tracking-[0.14em] text-public-clay uppercase">{cookiesCopy.kicker}</p>
-        <h2 id="relify-consent-title" className="mt-1 text-lg font-semibold text-public-ink">
-          {cookiesCopy.bannerTitle}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-public-muted">{cookiesCopy.bannerBody}</p>
-        {configure ? (
-          <div className="mt-4 grid gap-3">
-            <label className="flex items-start justify-between gap-3 rounded-2xl border border-public-line bg-public-sand px-4 py-3">
-              <span>
-                <span className="block text-sm font-medium text-public-ink">{cookiesCopy.essentialsTitle}</span>
-                <span className="mt-0.5 block text-xs text-public-muted">{cookiesCopy.essentialsLock}</span>
-              </span>
-              <input type="checkbox" checked disabled className="mt-1 size-4 accent-[#0f6e73]" />
-            </label>
-            <label className="flex items-start justify-between gap-3 rounded-2xl border border-public-line bg-white px-4 py-3">
-              <span>
-                <span className="block text-sm font-medium text-public-ink">{cookiesCopy.analyticsTitle}</span>
-                <span className="mt-0.5 block text-xs text-public-muted">{cookiesCopy.analyticsToggle}</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={analyticsOn}
-                onChange={(event) => setAnalyticsOn(event.target.checked)}
-                className="mt-1 size-4 accent-[#0f6e73]"
-              />
-            </label>
+      <div ref={barRef} className="relify-consent-card">
+        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-public-line sm:hidden" aria-hidden />
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 sm:flex-1">
+            <h2 id="relify-consent-title" className="text-sm font-semibold text-public-ink">
+              {cookiesCopy.bannerTitle}
+            </h2>
+            <p className="mt-1 text-sm leading-5 text-public-muted">
+              {cookiesCopy.bannerBody}{" "}
+              <Link href="/cookies" className="font-medium text-public-clay underline-offset-2 hover:underline">
+                {cookiesCopy.policyLink}
+              </Link>
+            </p>
+            {configure ? (
+              <div className="mt-3 grid gap-2 sm:max-w-xl">
+                <label className="flex items-start justify-between gap-3 rounded-2xl border border-public-line bg-public-sand px-4 py-3">
+                  <span>
+                    <span className="block text-sm font-medium text-public-ink">{cookiesCopy.essentialsTitle}</span>
+                    <span className="mt-0.5 block text-xs text-public-muted">{cookiesCopy.essentialsLock}</span>
+                  </span>
+                  <input type="checkbox" checked disabled className="mt-1 size-4 accent-[#0f6e73]" />
+                </label>
+                <label className="flex items-start justify-between gap-3 rounded-2xl border border-public-line bg-white px-4 py-3">
+                  <span>
+                    <span className="block text-sm font-medium text-public-ink">{cookiesCopy.analyticsTitle}</span>
+                    <span className="mt-0.5 block text-xs text-public-muted">{cookiesCopy.analyticsToggle}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={analyticsOn}
+                    onChange={(event) => setAnalyticsOn(event.target.checked)}
+                    className="mt-1 size-4 accent-[#0f6e73]"
+                  />
+                </label>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <Link href="/cookies" className="font-medium text-public-clay underline-offset-2 hover:underline">
-            {cookiesCopy.policyLink}
-          </Link>
-          <Link href="/privacidad" className="font-medium text-public-clay underline-offset-2 hover:underline">
-            {cookiesCopy.privacyLink}
-          </Link>
-          <Link href="/terminos" className="font-medium text-public-clay underline-offset-2 hover:underline">
-            {cookiesCopy.termsLink}
-          </Link>
-        </p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          {configure ? (
-            <button type="button" className="relify-consent-accept" onClick={() => save({ analytics: analyticsOn })}>
-              {cookiesCopy.save}
-            </button>
-          ) : (
-            <>
-              <button type="button" className="relify-consent-accept" onClick={() => save({ analytics: true })}>
-                {cookiesCopy.accept}
+          <div className={`flex shrink-0 flex-col gap-2 sm:flex-row ${configure ? "sm:items-end" : "sm:items-center"}`}>
+            {configure ? (
+              <button type="button" className="relify-consent-accept" onClick={() => save({ analytics: analyticsOn })}>
+                {cookiesCopy.save}
               </button>
-              <button type="button" className="relify-consent-ghost" onClick={() => save({ analytics: false })}>
-                {cookiesCopy.reject}
-              </button>
-              <button
-                type="button"
-                className="relify-consent-ghost"
-                onClick={() => {
-                  setConfigure(true);
-                  setAnalyticsOn(stored?.analytics === true);
-                }}
-              >
-                {cookiesCopy.configure}
-              </button>
-            </>
-          )}
+            ) : (
+              <>
+                <button type="button" className="relify-consent-ghost" onClick={() => save({ analytics: false })}>
+                  {cookiesCopy.reject}
+                </button>
+                <button type="button" className="relify-consent-accept" onClick={() => save({ analytics: true })}>
+                  {cookiesCopy.accept}
+                </button>
+                <button
+                  type="button"
+                  className="relify-consent-configure self-center sm:order-first"
+                  onClick={() => {
+                    setConfigure(true);
+                    setAnalyticsOn(stored?.analytics === true);
+                  }}
+                >
+                  {cookiesCopy.configure}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

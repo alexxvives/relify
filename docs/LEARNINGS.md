@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-11: cookie corner card intercepted /valorar on 390 — use a full-width bottom bar, `pointer-events: none` on the wrapper, and body padding equal to the bar height.
+
 - 2026-11-11: Prod `/robots.txt` Host/Sitemap became `releva.alexxvives.workers.dev` — Next `MetadataRoute` `robots.ts`/`sitemap.ts` rewrite absolute URLs onto the request host (`BETTER_AUTH_URL`/Worker origin), not `readSiteUrl()` — serve `robots.txt/route.ts` and `sitemap.xml/route.ts` with `force-dynamic` and serialize from `emailSiteUrl()`/`getSiteOrigin()`; never the request host.
 - 2026-11-11: `cloudflare.config.ts` observability `head_sampling_rate` failed vinext build — `@cloudflare/vite-plugin` only allows `enabled` — put the rate in packaged `wrangler.toml` (`scripts/package-int-worker.mjs`).
 - 2026-11-11: CookieConsent `useSyncExternalStore` infinite loop overlay after Aceptar — `readChoice()` returned a new `{ analytics }` object every snapshot — cache on the raw localStorage string and reuse the same object until it changes.
