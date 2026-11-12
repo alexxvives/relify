@@ -1,0 +1,9 @@
+{
+  "round": "s15",
+  "commit": "7daebd0cddf4b16d53e91155521efe040ec97fe8",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "c9b6b26f37a74130fdf212b6854e1ba2b089eea9246656e4505225790a8c7997",
+  "migrations": [],
+  "note": "No migration. Overlay hero, draggable price bar, teaser on documentos. Not deployed.",
+  "deployed": false
+}
