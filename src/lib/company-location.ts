@@ -31,6 +31,21 @@ export function isSpanishPostalCode(value: string): boolean {
   return spanishPostal.test(value.trim());
 }
 
+/** One Ubicación field: "08022, Barcelona", or a city with no code yet. */
+export function parseCompanyLocationField(value: string): { postalCode: string; city: string } {
+  const trimmed = value.trim();
+  const lead = /^(\d{1,5})(.*)$/.exec(trimmed);
+  if (!lead) {
+    return { postalCode: "", city: trimmed };
+  }
+  const postalCode = lead[1] ?? "";
+  const rest = lead[2] ?? "";
+  if (rest.length === 0 || /^\d/.test(rest)) {
+    return { postalCode, city: "" };
+  }
+  return { postalCode, city: rest.replace(/^\s*,\s*|^\s+/, "").trim() };
+}
+
 export function formatCompanyLocation(postalCode: string, city: string): string {
   const code = postalCode.trim();
   const place = titleCasePlace(city);

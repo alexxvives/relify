@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCompanyLocation, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
+import { formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
 
 describe("resolveCompanyLocation", () => {
   it("prefers SABI postal_code and city columns and locks them", () => {
@@ -54,6 +54,15 @@ describe("resolveCompanyLocation", () => {
         region: "Valencia",
       }),
     ).toEqual({ postalCode: "", city: "Albalat dels Sorells", fromRegistry: false });
+  });
+});
+
+describe("parseCompanyLocationField", () => {
+  it("splits 08022, Barcelona into the stored code and city", () => {
+    expect(parseCompanyLocationField("08022, Barcelona")).toEqual({ postalCode: "08022", city: "Barcelona" });
+    expect(parseCompanyLocationField("08022 Barcelona")).toEqual({ postalCode: "08022", city: "Barcelona" });
+    expect(parseCompanyLocationField("Barcelona")).toEqual({ postalCode: "", city: "Barcelona" });
+    expect(parseCompanyLocationField("0802")).toEqual({ postalCode: "0802", city: "" });
   });
 });
 

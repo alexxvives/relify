@@ -3555,6 +3555,19 @@ select {
   background-color: #fff;
 }
 
+/* A full-height input inside a labelled box inherits that white fill and covers the box border. */
+input.relify-inset {
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  outline: none;
+  appearance: none;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,

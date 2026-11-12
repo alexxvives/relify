@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: financing % and años looked borderless — a full-height input inherits the unlayered white `input` background and covers the label border — use `input.relify-inset` (transparent, auto height) inside the bordered label.
 - 2026-11-12: Error al guardar plus vinext `Prevented repeated hard navigation` on `/mi-empresa/detalles` — `revalidatePath` of the open URL is a hard nav on vinext — autosave only `revalidatePath("/mi-empresa")`.
 - 2026-11-12: Playwright `/mercado` scroll at 1440 stayed at 0 — two cards fit the viewport so the 2400px pad and the wheel ran in the same tick — `waitForFunction` until `scrollHeight` exceeds the viewport before wheeling.
 - 2026-11-12: GitHub `main` still shows `hero_city*.png` at repo root — those copies are deleted on the reorg/S15 branch; keep `neon.ts` (Neon CLI) and `int-resources.json`; canonical assets live under `public/`.

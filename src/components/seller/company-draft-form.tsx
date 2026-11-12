@@ -24,7 +24,7 @@ import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@
 import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { cnaeClasses, cnaeTitle } from "@/lib/cnae-2009";
 import { groupedCnaeOptions } from "@/lib/cnae-section";
-import { formatCompanyLocation, resolveCompanyLocation } from "@/lib/company-location";
+import { formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
 import { ebitdaTrend, estimatePriceRange, priceBarEnds, priceBarPosition, priceBarZone, priceFromBarPosition, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -385,7 +385,7 @@ function Panel({
       <div className={open ? "mt-4" : "hidden"}>
         {children}
         {fixed || !open ? null : (
-          <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             <KitButton type="button" tone="outline" size="sm" onClick={onCancel ?? onCollapse}>
               {companyCopy.cancelPanel}
             </KitButton>
@@ -453,6 +453,19 @@ function centsToAskingInput(cents: number): string {
   return String(Math.max(0, Math.round(cents / 100)));
 }
 
+/** Slider and arrow keys land on thousands of euros, not an arbitrary cent. */
+const askingStepCents = 1_000 * 100;
+
+function snapAskingCents(cents: number): number {
+  return Math.round(cents / askingStepCents) * askingStepCents;
+}
+
+function stepAskingCents(cents: number, direction: -1 | 1): number {
+  const units = cents / askingStepCents;
+  const next = direction < 0 ? Math.floor(units - 1e-9) : Math.ceil(units + 1e-9);
+  return next * askingStepCents;
+}
+
 function PriceBar({
   estimate,
   askingCents,
@@ -481,7 +494,8 @@ function PriceBar({
     }
     const rect = node.getBoundingClientRect();
     const share = rect.width <= 0 ? 0 : Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    onChange(priceFromBarPosition(share, estimate));
+    const snapped = snapAskingCents(priceFromBarPosition(share, estimate));
+    onChange(Math.min(maxCents, Math.max(minCents, snapped)));
   }
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -504,13 +518,12 @@ function PriceBar({
     if (!onChange) {
       return;
     }
-    const span = Math.max(100_00, Math.round((maxCents - minCents) * 0.02));
     if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
       event.preventDefault();
-      onChange(Math.max(minCents, value - span));
+      onChange(Math.max(minCents, stepAskingCents(value, -1)));
     } else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
       event.preventDefault();
-      onChange(Math.min(maxCents, value + span));
+      onChange(Math.min(maxCents, stepAskingCents(value, 1)));
     } else if (event.key === "Home") {
       event.preventDefault();
       onChange(minCents);
@@ -969,26 +982,26 @@ function SellerFinancingField({
         </div>
         {terms ? (
           <>
-            <label className="flex h-10 w-[5.5rem] shrink-0 items-center gap-0.5 rounded-xl border border-[#d8dee8] bg-white px-2">
+            <label className="flex h-10 w-[5.5rem] shrink-0 items-center gap-1 overflow-hidden rounded-xl border border-[#c5ccd8] bg-white px-2.5">
               <input
                 data-flash
                 inputMode="numeric"
                 aria-label="Porcentaje del precio financiado"
                 value={pct}
                 onChange={(event) => onPct(keepDigits(event.target.value, 3))}
-                className="h-10 w-[4ch] min-w-0 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
+                className="relify-inset w-[4ch] min-w-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3]"
                 placeholder="20"
               />
               <span className="shrink-0 text-xs font-medium text-[#667085]">%</span>
             </label>
-            <label className="flex h-10 min-w-0 flex-1 items-center gap-1 rounded-xl border border-[#d8dee8] bg-white px-2">
+            <label className="flex h-10 min-w-0 flex-1 items-center gap-1 overflow-hidden rounded-xl border border-[#c5ccd8] bg-white px-2.5">
               <input
                 data-flash
                 inputMode="numeric"
                 aria-label="Plazo de la financiación en años"
                 value={years}
                 onChange={(event) => onYears(keepDigits(event.target.value, 1))}
-                className="h-10 w-[3ch] min-w-0 border-0 bg-transparent p-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3] focus-visible:outline-none"
+                className="relify-inset w-[3ch] min-w-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3]"
                 placeholder="3"
               />
               <span className="shrink-0 text-xs font-medium text-[#667085]">años</span>
@@ -1815,6 +1828,7 @@ export function CompanyDraftForm({
   const locationLocked = startingLocation.fromRegistry;
   const [postalCode, setPostalCode] = useState(startingLocation.postalCode);
   const [city, setCity] = useState(startingLocation.city);
+  const [locationDraft, setLocationDraft] = useState(() => formatCompanyLocation(startingLocation.postalCode, startingLocation.city));
   const address = formatCompanyLocation(postalCode, city) || addressWithRegion(initial.address, initial.region);
   const [codename, setCodename] = useState(initial.codename);
   const [showDescriptionMin, setShowDescriptionMin] = useState(false);
@@ -2492,8 +2506,7 @@ export function CompanyDraftForm({
             rows={[
               { icon: Building2, label: companyCopy.factName, value: displayValue(legalName) },
               { icon: FileSpreadsheet, label: companyCopy.factNif, value: displayValue(nif) },
-              { icon: MapPin, label: companyCopy.postalCodeLabel, value: displayValue(postalCode) },
-              { icon: MapPin, label: companyCopy.cityLabel, value: displayValue(city) },
+              { icon: MapPin, label: companyCopy.locationLabel, value: displayValue(formatCompanyLocation(postalCode, city)) },
               { icon: CalendarDays, label: companyCopy.foundedYearLabel, value: displayValue(foundedYear) },
               { icon: Handshake, label: companyCopy.saleReasonLabel, value: saleReason && saleReason in saleReasonLabels ? saleReasonLabels[saleReason as keyof typeof saleReasonLabels] : "—" },
               { icon: Users, label: companyCopy.workersLabel, value: headcount && headcount in headcountLabels ? headcountLabels[headcount as keyof typeof headcountLabels] : "—" },
@@ -2570,29 +2583,34 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           )}
-          <div className="col-span-full grid grid-cols-[minmax(6.5rem,8rem)_minmax(0,1fr)] gap-3 sm:gap-4">
-          <Fact icon={MapPin} label={companyCopy.postalCodeLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
+          <Fact icon={MapPin} label={companyCopy.locationLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
             <Input
-              name="postalCode"
-              inputMode="numeric"
-              autoComplete="postal-code"
+              name="location"
+              autoComplete="off"
               readOnly={locationLocked}
-              value={postalCode}
-              onChange={(event) => setPostalCode(keepDigits(event.target.value, 5))}
-              className="bg-white"
+              placeholder="08022, Barcelona"
+              value={locationLocked ? formatCompanyLocation(postalCode, city) : locationDraft}
+              onChange={(event) => {
+                const next = event.target.value;
+                const parsed = parseCompanyLocationField(next);
+                setLocationDraft(next);
+                setPostalCode(parsed.postalCode);
+                setCity(parsed.city);
+              }}
+              onBlur={() => {
+                if (locationLocked) {
+                  return;
+                }
+                const parsed = parseCompanyLocationField(locationDraft);
+                const place = titleCasePlace(parsed.city);
+                setPostalCode(parsed.postalCode);
+                setCity(place);
+                setLocationDraft(formatCompanyLocation(parsed.postalCode, place));
+              }}
             />
           </Fact>
-          <Fact icon={MapPin} label={companyCopy.cityLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
-            <Input
-              name="city"
-              autoComplete="address-level2"
-              readOnly={locationLocked}
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-              className="bg-white"
-            />
-          </Fact>
-          </div>
+          <input type="hidden" name="postalCode" value={postalCode} />
+          <input type="hidden" name="city" value={city} />
           <input type="hidden" name="address" value={address} />
           <input type="hidden" name="region" value={region} />
           <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel}>
@@ -2667,9 +2685,6 @@ export function CompanyDraftForm({
               <span />
             )}
             <span className="hidden items-center gap-1 lg:inline-flex">
-              {description.length > 80 && description.trim().length < descriptionMinLength ? (
-                <span className="max-w-sm text-[11px] leading-4 text-[#667085]">{companyCopy.descriptionProgress}</span>
-              ) : null}
               {companyCopy.descriptionCounter
                 .replace("{count}", String(description.trim().length))
                 .replace("{max}", String(descriptionMaxLength))

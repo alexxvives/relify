@@ -186,8 +186,6 @@ export const companyCopy = {
   descriptionGuide:
     "Proporciona datos clave sobre la actividad de la empresa, la variedad de productos y servicios, la experiencia en el sector y los principales canales de venta. Recuerda no revelar el nombre real ni la página web para preservar la confidencialidad.",
   descriptionPlaceholder: "Qué hace tu empresa, sus clientes y qué la diferencia",
-  descriptionProgress:
-    "Vas por buen camino, pero podrías desarrollar un poco más para que el comprador entienda mejor la dimensión y enfoque del negocio.",
   generalHeading: "Descripción general",
   sectorsHeading: "Sectores representativos",
   metricsHeading: "Métricas financieras",
@@ -344,7 +342,7 @@ export const companyCopy = {
   cityLabel: "Ciudad",
   postalCodeInvalid: "Escribe un código postal de 5 dígitos.",
   locationFromRegistry: "Dato del registro mercantil",
-  confidentialHint: "La razón social, el NIF y el código postal y la ciudad se guardan en tu borrador y no salen en la ficha pública.",
+  confidentialHint: "La razón social, el NIF y la ubicación se guardan en tu borrador y no salen en la ficha pública.",
   askingPriceHelp: "El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado.",
   applySuggestedInSheet: "Usar",
   priceRangeTitle: "Rango orientativo",
