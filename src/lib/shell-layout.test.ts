@@ -54,6 +54,7 @@ const draftForm = readFileSync(new URL("../components/company-draft-form.tsx", i
 const authScreen = readFileSync(new URL("../components/auth-screen.tsx", import.meta.url), "utf8");
 const teaserCard = readFileSync(new URL("../components/company-pdf-card.tsx", import.meta.url), "utf8");
 const companyCopySource = readFileSync(new URL("./company-copy.ts", import.meta.url), "utf8");
+const cuentaPage = readFileSync(new URL("../app/(app)/cuenta/page.tsx", import.meta.url), "utf8");
 
 describe("S13b scroll lock and seller surfaces", () => {
   it("does not lock html overflow while a stay-mounted sheet is closed", () => {
@@ -65,9 +66,27 @@ describe("S13b scroll lock and seller surfaces", () => {
   it("keeps the price bar inside the asking-price sheet, not on the tile", () => {
     expect(draftForm).toMatch(/data-price-bar/);
     expect(draftForm).toMatch(/data-asking-price-sheet/);
-    expect(draftForm).toMatch(/Tu precio:/);
+    expect(draftForm).toMatch(/data-price-dot/);
     expect(draftForm).toMatch(/priceBarGradient/);
-    expect(draftForm.indexOf("priceRangeTitle")).toBeGreaterThan(draftForm.indexOf("data-asking-price-sheet"));
+    const sheet = draftForm.slice(draftForm.indexOf("data-asking-price-sheet"));
+    expect(sheet).toMatch(/<PriceBar /);
+    expect(sheet).toMatch(/data-recommended-chip/);
+    expect(sheet).toMatch(/data-asking-includes/);
+    expect(draftForm).toMatch(/data-price-standing/);
+    expect(draftForm).not.toMatch(/suggestedPrice/);
+    expect(draftForm).not.toMatch(/applySuggested[^I]/);
+  });
+
+  it("does not render Perfil ciego on Ficha", () => {
+    expect(draftForm).not.toMatch(/data-teaser-card/);
+    expect(draftForm).not.toMatch(/SellerPdfCard/);
+    expect(draftForm).not.toMatch(/teaserDesk/);
+  });
+
+  it("puts Perfil ciego on /cuenta for sellers", () => {
+    expect(cuentaPage).toMatch(/SellerPdfCard/);
+    expect(cuentaPage).toMatch(/sellerTeaserDesk/);
+    expect(cuentaPage).toMatch(/middle=\{teaser\}/);
   });
 
   it("renders auth as a single surface below md", () => {

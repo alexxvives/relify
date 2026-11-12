@@ -9,9 +9,9 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Tags, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Tags, TrendingDown, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { generateCodenameAction, regenerateTeaserLinkAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
+import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -25,9 +25,7 @@ import { UnsavedChangesGuard } from "@/components/unsaved-changes";
 import { cnaeClasses, cnaeTitle } from "@/lib/cnae-2009";
 import { groupedCnaeOptions } from "@/lib/cnae-section";
 import { formatCompanyLocation, resolveCompanyLocation } from "@/lib/company-location";
-import { SellerPdfCard } from "@/components/company-pdf-card";
-import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
-import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
+import { ebitdaTrend, estimatePriceRange, priceBarEnds, priceBarPosition, priceBarZone, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -424,31 +422,50 @@ function groupedEuro(value: string): string {
 
 const priceBarGradient = `linear-gradient(to right, #d92d20 0%, #f79009 ${priceBarZone.low * 45}%, #fdb022 ${priceBarZone.low * 85}%, #12b76a ${priceBarZone.low * 100}%, #12b76a ${priceBarZone.high * 100}%, #fdb022 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 15}%, #f79009 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 55}%, #d92d20 100%)`;
 
+const standingCopy = {
+  below: { text: companyCopy.priceStandingBelow, className: "bg-[#eef1fb] text-[#465ab4]", Icon: TrendingDown },
+  within: { text: companyCopy.priceStandingWithin, className: "bg-[#e8f6ee] text-[#17663a]", Icon: CircleCheck },
+  above: { text: companyCopy.priceStandingAbove, className: "bg-[#fff4e0] text-[#8a5300]", Icon: Clock },
+} as const;
+
+function PriceStandingTag({ estimate, askingCents }: { estimate: PriceEstimate; askingCents: number | null }) {
+  if (askingCents === null || askingCents <= 0) {
+    return null;
+  }
+  const standing = standingCopy[priceStanding(askingCents, estimate)];
+  const Icon = standing.Icon;
+  return (
+    <span
+      data-price-standing={priceStanding(askingCents, estimate)}
+      className={`inline-flex max-w-full shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${standing.className}`}
+    >
+      <Icon className="size-3" aria-hidden />
+      {standing.text}
+    </span>
+  );
+}
+
 function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCents: number | null }) {
   const { minCents, maxCents } = priceBarEnds(estimate);
   const marked = askingCents !== null && askingCents > 0 ? askingCents : null;
   const dot = marked !== null ? priceBarPosition(marked, estimate) : null;
   return (
-    <div className="mt-3" data-price-bar>
+    <div className="mt-1" data-price-bar>
       <div className="relative h-2.5 rounded-full" style={{ background: priceBarGradient }}>
         {dot !== null ? (
           <span
+            data-price-dot
             className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#101828] shadow"
             style={{ left: `${dot * 100}%` }}
             aria-hidden
           />
         ) : null}
       </div>
-      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
+      <div className="mt-1.5 flex items-start justify-between gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
         <span>
           Mín.
           <br />
           {wholeEur(minCents)}
-        </span>
-        <span className="text-center font-semibold text-[#17663a]">
-          Rango
-          <br />
-          {wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}
         </span>
         <span className="text-right">
           Máx.
@@ -456,11 +473,6 @@ function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCe
           {wholeEur(maxCents)}
         </span>
       </div>
-      {marked !== null ? (
-        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#475467]">
-          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="font-semibold text-[#1c2740] tabular-nums">{wholeEur(marked)}</span>
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -475,7 +487,8 @@ function AskingPriceField({
   disabledReason = null,
   help,
   estimate = null,
-  basis = "EBITDA",
+  askingPriceIncludes,
+  onAskingPriceIncludes,
 }: {
   label: string;
   name: string;
@@ -486,7 +499,8 @@ function AskingPriceField({
   disabledReason?: string | null;
   help: string;
   estimate?: PriceEstimate | null;
-  basis?: string;
+  askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
+  onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -495,6 +509,7 @@ function AskingPriceField({
   const unset = !askingPriceSet(value);
   const shown = groupedEuro(value);
   const editable = !disabledReason;
+  const liveCents = optionalEurosToCents(draft.trim().length > 0 ? draft : value);
 
   function openSheet() {
     setDraft(value);
@@ -519,8 +534,10 @@ function AskingPriceField({
             </button>
           ) : null
         }
+        corner={estimate && !disabledReason ? <PriceStandingTag estimate={estimate} askingCents={euroCentsOrNull(value)} /> : null}
       >
         <input type="hidden" name={name} value={value} />
+        <input type="hidden" name="askingPriceIncludes" value={askingPriceIncludes} />
         <button
           type="button"
           onClick={editable ? openSheet : undefined}
@@ -581,38 +598,60 @@ function AskingPriceField({
                   <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#667085]">€</span>
                 </span>
               </label>
-              <p className="text-sm leading-6 text-[#5c6b78]">{help}</p>
+              <div>
+                <p id="asking-price-includes-label" className="text-sm font-medium text-[#2b3b4a]">
+                  {companyCopy.askingPriceIncludesLabel}
+                </p>
+                <div
+                  role="radiogroup"
+                  aria-labelledby="asking-price-includes-label"
+                  data-asking-includes
+                  className="mt-2 grid grid-cols-2 rounded-full bg-[#f2f4f7] p-1"
+                >
+                  {askingPriceIncludesKinds.map((option) => {
+                    const selected = askingPriceIncludes === option;
+                    const title = option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        role="radio"
+                        title={option === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp}
+                        aria-checked={selected}
+                        onClick={() => onAskingPriceIncludes(option)}
+                        className={`inline-flex min-h-9 items-center justify-center rounded-full px-2 text-center text-[11px] font-semibold leading-tight focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:text-xs ${
+                          selected ? "bg-white text-[#1c2740] shadow-sm" : "text-[#667085] hover:text-[#1c2740]"
+                        }`}
+                      >
+                        {title}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {estimate ? (
-                <div className="rounded-xl border border-[#e7eaee] bg-[#fbfbfc] p-3">
-                  <p className="text-sm font-semibold text-[#1c2740]">{companyCopy.priceRangeTitle} de precio</p>
-                  <PriceBar estimate={estimate} askingCents={optionalEurosToCents(draft.trim().length > 0 ? draft : value)} />
-                  <p className="mt-3 text-xs leading-5 text-[#3d4a63]">
-                    {basis} × múltiplo de <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span> (
-                    <span className="tabular-nums">
-                      {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}
-                    </span>
-                    {estimate.adjustments.length > 0 ? <>, ajustado por {estimate.adjustments.join(", ")}</> : null}).
-                  </p>
-                  <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
-                    Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
-                  </p>
+                <div>
+                  <PriceBar estimate={estimate} askingCents={liveCents} />
+                  <p className="mt-2 text-xs leading-5 text-[#667085]">{help}</p>
                   {recommended ? (
-                    <p className="mt-2 text-sm text-[#5c6b78]">
-                      {companyCopy.recommendedPrice}: {recommended.amount}
-                    </p>
-                  ) : null}
-                  {recommended && !recommended.applied ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        recommended.onUse();
-                        setDraft(recommended.input);
-                      }}
-                      className="mt-3 inline-flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#eef1fb] px-4 text-sm font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
-                    >
-                      <Sparkles className="size-3.5" aria-hidden />
-                      {companyCopy.applySuggestedInSheet}
-                    </button>
+                    <div className="mt-3 flex flex-wrap items-center gap-2" data-recommended-chip>
+                      <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-[#eef1fb] px-2.5 py-1 text-[11px] font-medium text-[#465ab4]">
+                        <Sparkles className="size-3 shrink-0" aria-hidden />
+                        <span className="whitespace-nowrap tabular-nums">{companyCopy.recommendedChip.replace("{amount}", recommended.amount)}</span>
+                      </span>
+                      {!recommended.applied ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            recommended.onUse();
+                            setDraft(recommended.input);
+                          }}
+                          className="inline-flex h-8 items-center rounded-full px-2.5 text-[11px] font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                        >
+                          {companyCopy.useRecommended}
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               ) : (
@@ -646,12 +685,12 @@ function MetricTile({
 }) {
   return (
     <div className="@container relative flex h-full min-h-[6.5rem] min-w-0 flex-col gap-2 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <div className="flex min-h-7 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+      <div className="flex min-h-7 min-w-0 flex-nowrap items-center justify-between gap-x-2">
         <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {action}
         </div>
-        {corner ? <div className="min-w-0 max-w-full">{corner}</div> : null}
+        {corner ? <div className="min-w-0 shrink-0">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
@@ -678,7 +717,6 @@ function FichaMetrics({
   askingPriceIncludes,
   onAskingPriceIncludes,
   estimate = null,
-  basis = "EBITDA",
 }: {
   revenue: string;
   askingPrice: string;
@@ -696,7 +734,6 @@ function FichaMetrics({
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
   onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
   estimate?: PriceEstimate | null;
-  basis?: string;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -714,7 +751,8 @@ function FichaMetrics({
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
           help={companyCopy.askingPriceHelp}
           estimate={priceBlocked ? null : estimate}
-          basis={basis}
+          askingPriceIncludes={askingPriceIncludes}
+          onAskingPriceIncludes={onAskingPriceIncludes}
         />
       </div>
       <div className="h-full min-w-0">
@@ -769,41 +807,6 @@ function FichaMetrics({
       {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
       <ReadOnlyFigure label="Resultado neto" value={netResult} />
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
-    </div>
-    <div className="mt-4 rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <p id="asking-price-includes-label" className="flex items-center gap-1.5 text-sm font-semibold text-[#1c2740]">
-        {companyCopy.askingPriceIncludesLabel}
-        <FieldHint text={companyCopy.askingPriceIncludesHint} />
-      </p>
-      <input type="hidden" name="askingPriceIncludes" value={askingPriceIncludes} />
-      <div
-        role="radiogroup"
-        aria-labelledby="asking-price-includes-label"
-        className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
-      >
-        {askingPriceIncludesKinds.map((option) => {
-          const selected = askingPriceIncludes === option;
-          const title = option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree;
-          const help = option === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp;
-          return (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            title={help}
-            aria-checked={selected}
-            onClick={() => onAskingPriceIncludes(option)}
-            className={`inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-center text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
-              selected
-                ? "border-[#1c2740] bg-[#1c2740] text-white"
-                : "border-[#e7eaee] bg-white text-[#3d4a63] hover:bg-[#f2f4f7]"
-            }`}
-          >
-            {title}
-          </button>
-          );
-        })}
-      </div>
     </div>
     </div>
   );
@@ -1657,7 +1660,6 @@ export function CompanyDraftForm({
   financeExtra = null,
   reportYears = null,
   fichaExtras = null,
-  teaserDesk = null,
   uploadsDisabled = false,
 }: {
   draft: CompanyDraftInput | null;
@@ -1674,7 +1676,6 @@ export function CompanyDraftForm({
   reportYears?: SabiYear[] | null;
   /** t81: Ratios and result/working-capital rows of the stored accounts, for the buyer preview. */
   fichaExtras?: SellerFichaExtras | null;
-  teaserDesk?: SellerTeaserDesk | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -2702,7 +2703,6 @@ export function CompanyDraftForm({
               askingPriceIncludes={askingPriceIncludes}
               onAskingPriceIncludes={setAskingPriceIncludes}
               estimate={priceEstimate}
-              basis={adjustmentBaseCents !== null && (approvedAdjustmentsCount > 0 || pendingAdjustments > 0) ? "EBITDA ajustado" : "EBITDA"}
             />
           </PublicFicha>
       </Panel>
@@ -3158,14 +3158,6 @@ export function CompanyDraftForm({
           } />
         </div>
       </Panel>
-      {teaserDesk ? (
-        <SellerPdfCard
-          desk={teaserDesk}
-          previewHref="/mi-empresa/pdf/teaser?preview=1"
-          downloadHref="/mi-empresa/pdf/teaser?download=1"
-          onRegenerate={regenerateTeaserLinkAction}
-        />
-      ) : null}
       </div>
       </div>
       </div>

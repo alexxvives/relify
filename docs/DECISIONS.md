@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Round S14 asking-price card and Perfil ciego on /cuenta
+
+Precio de venta on Ficha is the amount, the pencil, and a three-state range tag (`Por debajo del rango` / `Dentro del rango` / `Por encima del rango`). The sheet holds the input, the t93 red→green bar with a live black dot, a compact equity vs debt-free control, and the recommended price as a chip plus Usar. Perfil ciego leaves Ficha and sits on `/cuenta` until a later home for it is chosen. Admin company pages keep the teaser card.
+
 ## 2026-11-12 — Round S13 seller location is CP + city
 
 The seller form no longer asks for a street. Location is Código postal + Ciudad, shown as `08022, Barcelona`. SABI already stores `postal_code` and `city`; when both are set the fields are locked as registry data. API Empresas and BORME only give a composed street/municipality/province, so those still parse into the same two fields and stay editable. The `address` column stays (nullable writes only compose CP+city). No migration. Tus cifras on Información empresa is a read-only duplicate of Ficha pública (the unique extra was Proponer corrección) and is removed.

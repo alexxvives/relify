@@ -75,6 +75,8 @@ test.describe("sticky CTA never covers inline controls", () => {
         throw new Error(`/mi-empresa@${width}: ${error instanceof Error ? error.message : String(error)}`);
       });
       await page.goto("/mi-empresa/detalles?tab=ficha");
+      await expect(page.locator("[data-teaser-card]")).toHaveCount(0);
+      await page.goto("/cuenta");
       const actions = page.locator("[data-teaser-actions]");
       if ((await actions.count()) > 0) {
         await expect(actions.first()).toBeVisible();

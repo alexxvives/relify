@@ -456,6 +456,7 @@ export async function regenerateTeaserLinkAction(): Promise<
   if (result.ok) {
     revalidatePath("/mi-empresa");
     revalidatePath("/mi-empresa/detalles");
+    revalidatePath("/cuenta");
   }
   return result;
 }

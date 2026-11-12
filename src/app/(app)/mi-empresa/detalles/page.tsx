@@ -17,7 +17,6 @@ import { requireRole } from "@/server/requireRole";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified, getSellerCif } from "@/server/verifyCompanyNif";
 import { isIntEnvironment } from "@/lib/int-env";
-import { sellerTeaserDesk } from "@/server/companyPdfs";
 
 export const metadata: Metadata = {
   title: sellerCopy.detailsTitle,
@@ -51,9 +50,9 @@ async function CompanyDetailsPageContent({
   ]);
   // t86: the old single file cover joins the project photos (first position) so the one uploader shows it.
   if (projectId) await mergeLegacyCover(projectId);
-  const [sabiDetail, sabiRegistry, fichaExtras, teaserDesk] = projectId
-    ? await Promise.all([getSabiDetail(projectId), getSabiRegistry(projectId), getSellerFichaExtras(projectId), sellerTeaserDesk(user.id)])
-    : [null, null, null, null];
+  const [sabiDetail, sabiRegistry, fichaExtras] = projectId
+    ? await Promise.all([getSabiDetail(projectId), getSabiRegistry(projectId), getSellerFichaExtras(projectId)])
+    : [null, null, null];
   const coverSrc = listing && projectId ? await cardCover({ id: projectId, slug: listing.slug }) : null;
 
   return (
@@ -67,7 +66,6 @@ async function CompanyDetailsPageContent({
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
         fichaExtras={fichaExtras}
-        teaserDesk={teaserDesk}
         uploadsDisabled={isIntEnvironment()}
       />
     </>

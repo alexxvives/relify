@@ -515,6 +515,37 @@ export async function openAndClosePageSheets(page: Page): Promise<void> {
   await closeOpenOverlays(page);
 }
 
+async function swipeWindow(page: Page, start: number): Promise<number> {
+  const viewport = page.viewportSize();
+  const x = Math.round((viewport?.width ?? 390) / 2);
+  const startY = Math.min(420, Math.round((viewport?.height ?? 844) * 0.55));
+  const endY = Math.max(48, startY - 280);
+  try {
+    await page.touchscreen.tap(x, startY);
+    const session = await page.context().newCDPSession(page);
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x, y: startY, id: 0 }],
+    });
+    const steps = 10;
+    for (let step = 1; step <= steps; step += 1) {
+      const y = startY + ((endY - startY) * step) / steps;
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x, y, id: 0 }],
+      });
+    }
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await page.waitForTimeout(160);
+  } catch {
+    return start;
+  }
+  return page.evaluate(() => window.scrollY);
+}
+
 export async function expectWindowScrolls(page: Page, label: string): Promise<void> {
   await page.evaluate(() => {
     const html = document.documentElement;
@@ -542,10 +573,17 @@ export async function expectWindowScrolls(page: Page, label: string): Promise<vo
   const start = await page.evaluate(() => window.scrollY);
   const viewport = page.viewportSize();
   const x = Math.round((viewport?.width ?? 360) / 2);
-  await page.mouse.move(x, 320);
-  await page.mouse.wheel(0, 1400);
-  await page.waitForTimeout(120);
-  let end = await page.evaluate(() => window.scrollY);
+  const hasTouch = await page.evaluate(() => navigator.maxTouchPoints > 0);
+  let end = start;
+  if (hasTouch) {
+    end = await swipeWindow(page, start);
+  }
+  if (end <= start) {
+    await page.mouse.move(x, 320);
+    await page.mouse.wheel(0, 1400);
+    await page.waitForTimeout(120);
+    end = await page.evaluate(() => window.scrollY);
+  }
   if (end <= start) {
     await page.evaluate(() => {
       const y = Math.min(400, Math.floor(window.innerHeight / 2));
@@ -564,7 +602,7 @@ export async function expectWindowScrolls(page: Page, label: string): Promise<vo
       end = await page.evaluate(() => window.scrollY);
     }
   }
-  expect(end, `${label}: window.scrollY stayed at ${start} after wheel/touch (html overflow ${locked.htmlOverflow})`).toBeGreaterThan(start);
+  expect(end, `${label}: window.scrollY stayed at ${start} after ${hasTouch ? "touch swipe / " : ""}wheel (html overflow ${locked.htmlOverflow})`).toBeGreaterThan(start);
   await page.evaluate(() => {
     document.querySelector("[data-scroll-probe]")?.remove();
   });

@@ -6,6 +6,8 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: seller e2e sign-in timed out after QA screenshots — `/entrar` is 10 attempts / 15 min per email — TRUNCATE `email_throttle` on local PG before a second pass.
+- 2026-11-12: S14 price range tag wrapped under Precio de venta at 390 — MetricTile corner used `max-w-full` so the pill took a full row — `shrink-0` + header `flex-nowrap`.
 - 2026-11-12: Next 16 “1 issue” overlay covered the tab bar — `html` uses `scroll-smooth` — add `data-scroll-behavior="smooth"` on `<html>`.
 - 2026-11-12: S13 after-shots at 390 were skeletons — `waitUntil: "load"` finishes before RSC — wait for `networkidle` and hide `.animate-pulse`.
 - 2026-11-12: S12c sticky Descargar still overlapped teaser on 390 — move Perfil ciego off Inicio onto Ficha, drop the mobile sticky PDF CTA, and keep only inline Descargar teaser / Copiar / Regenerar.
