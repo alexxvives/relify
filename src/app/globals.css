@@ -2731,6 +2731,8 @@ header:has([data-menu-open="true"]) {
   --layout-sidebar: clamp(248px, 16vw, 320px);
   /* Extra bottom inset for the mobile tab bar. Desktop stays 0 so padding matches main. */
   --shell-tabbar: 0px;
+  /* Compact sticky CTA above the tab bar. Measured when a bar is mounted. */
+  --shell-sticky: 0px;
   /* Readability for older owners: inside the app the smallest text size is 14px. */
   --text-xs: 0.875rem;
   --text-xs--line-height: 1.25rem;
@@ -2786,12 +2788,17 @@ header:has([data-menu-open="true"]) {
     --shell-tabbar: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
   }
 
+  .shell:has(.shell-sticky-cta) {
+    --shell-sticky: var(--shell-sticky-measured, 4.75rem);
+  }
+
   .shell-content {
     scroll-padding-top: calc(3.5rem + 0.5rem);
   }
 
   .shell[data-keyboard="true"] {
     --shell-tabbar: 0px;
+    --shell-sticky: 0px;
   }
 
   .shell-sidebar {
@@ -2830,8 +2837,8 @@ header:has([data-menu-open="true"]) {
   padding-inline: var(--layout-pad);
   /* Sides and top from --layout-pad. Bottom adds the tab bar so utilities cannot
      lose to this rule's shorthand (that is why content sat under the mobile nav). */
-  padding-bottom: calc(var(--layout-pad) + var(--shell-tabbar));
-  scroll-padding-bottom: var(--shell-tabbar);
+  padding-bottom: calc(var(--layout-pad) + var(--shell-tabbar) + var(--shell-sticky));
+  scroll-padding-bottom: calc(var(--shell-tabbar) + var(--shell-sticky));
   overflow-wrap: break-word;
   overflow-x: clip;
 }
@@ -2858,6 +2865,7 @@ header:has([data-menu-open="true"]) {
 
   .shell[data-keyboard="true"] {
     --shell-tabbar: 0px;
+    --shell-sticky: 0px;
   }
 }
 
@@ -4261,15 +4269,32 @@ select:-webkit-autofill {
 .relify-consent-card {
   pointer-events: auto;
   width: 100%;
-  max-height: min(70vh, 32rem);
+  max-height: 35vh;
   overflow-y: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--public-line);
   border-bottom: none;
   border-radius: 1.25rem 1.25rem 0 0;
   background: #fff;
-  padding: 0.65rem 1.1rem max(0.9rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.5rem 1rem max(0.65rem, env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -18px 40px -28px rgb(18 52 58 / 0.35);
+}
+
+.relify-consent-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.relify-consent-actions .relify-consent-configure {
+  grid-column: 1 / -1;
+  justify-self: center;
+  min-height: 2rem;
+}
+
+.relify-consent-actions-save {
+  grid-template-columns: 1fr;
 }
 
 .relify-consent-accept,
@@ -4309,16 +4334,34 @@ select:-webkit-autofill {
   text-underline-offset: 3px;
 }
 
+html.relify-consent-open {
+  scroll-padding-bottom: var(--relify-consent-h, 0px);
+}
+
 html.relify-consent-open body {
   padding-bottom: var(--relify-consent-h, 0px);
 }
 
 @media (min-width: 640px) {
   .relify-consent-card {
+    max-height: min(70vh, 32rem);
     border-radius: 0;
     border-left: none;
     border-right: none;
     padding: 0.7rem 1.5rem max(0.7rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .relify-consent-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .relify-consent-actions .relify-consent-configure {
+    grid-column: auto;
+    justify-self: auto;
+    min-height: 2.75rem;
   }
 
   .relify-consent-accept,

@@ -170,7 +170,6 @@ export function AccountSettings({
                   {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
                 </Button>
               </div>
-              <div className="h-20 lg:hidden" aria-hidden />
               <ShellStickyCtaBar>
                 <Button type="submit" disabled={profilePending} block className="h-12 w-full rounded-full">
                   {profilePending ? authCopy.onboardingPending : authCopy.accountSave}

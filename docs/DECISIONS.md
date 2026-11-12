@@ -2,9 +2,13 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Round S12b shell padding, Dirección, home [INT], compact cookies
+
+Compact signed-in padding is `--layout-pad + --shell-tabbar + --shell-sticky`. `--shell-tabbar` already includes `env(safe-area-inset-bottom)`. A mounted `.shell-sticky-cta` sets `--shell-sticky` (measured, 4.75rem fallback). Dirección is a 2-line textarea. The home `/` title uses `intAbsoluteTitle` so `[INT]` cannot be dropped by an absolute child title. The mobile cookie sheet is ≤35vh with Rechazar/Aceptar side by side; `body` padding and public sticky CTAs use `--relify-consent-h`.
+
 ## 2026-11-11 — Round S12 mobile QA at 390
 
-INT 390 findings on the S11 shell: Información empresa / Ficha pública tabs stay in document flow under the title (sticky below the app bar) instead of a `fixed top-14` overlay that covered “Detalles de empresa”. Tu progreso on compact is a header ring that opens a sheet, not a floating 5/9 chip over the form. Info hints use a bottom sheet on compact viewports as well as coarse pointers, so a desktop tooltip cannot jump to `top: 8px` and cover the tabs. Tu empresa is one column below `sm`; Dirección spans the row. Sugerido wraps the full amount. `/cuenta` on mobile is a summary card with Ver PDF / Descargar, not an unreadably small PDF embed. Teaser Descargar sits at the top of the card and in a sticky bar above the tab bar. INT document titles use `title.template` `[INT] %s`. Shell content padding-bottom stays `--layout-pad + --shell-tabbar` (tab bar height already includes the safe area).
+INT 390 findings on the S11 shell: Información empresa / Ficha pública tabs stay in document flow under the title (sticky below the app bar) instead of a `fixed top-14` overlay that covered “Detalles de empresa”. Tu progreso on compact is a header ring that opens a sheet, not a floating 5/9 chip over the form. Info hints use a bottom sheet on compact viewports as well as coarse pointers, so a desktop tooltip cannot jump to `top: 8px` and cover the tabs. Tu empresa is one column below `sm`; Dirección spans the row. Sugerido wraps the full amount. `/cuenta` on mobile is a summary card with Ver PDF / Descargar, not an unreadably small PDF embed. Teaser Descargar sits at the top of the card and in a sticky bar above the tab bar. INT document titles use `title.template` `[INT] %s`. Shell content padding-bottom stays `--layout-pad + --shell-tabbar + --shell-sticky` (tab bar height already includes the safe area).
 
 ## 2026-11-11 — Round S11 mobile-native pattern swaps
 

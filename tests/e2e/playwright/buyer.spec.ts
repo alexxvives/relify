@@ -12,6 +12,10 @@ test.describe("buyer marketplace", () => {
     if (await filter.count()) {
       await filter.click();
     }
+    const applyFilters = page.getByRole("button", { name: /ver empresas/i });
+    if (await applyFilters.isVisible().catch(() => false)) {
+      await applyFilters.click();
+    }
     const card = page.locator("a[href*='/proyectos/']").first();
     await expect(card).toBeAttached({ timeout: 15_000 });
     await card.click({ force: true });

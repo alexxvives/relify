@@ -137,7 +137,6 @@ export function InvestorProject({
 
       {access === "none" || access === "requested" ? (
         <>
-          <div className="h-20 lg:hidden" aria-hidden />
           <ShellStickyCtaBar>
             {access === "requested" ? (
               <Link

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   gaConsentDefault,
@@ -13,6 +14,8 @@ import {
   readGtmContainerId,
   serializeCookieConsent,
 } from "./cookie-consent";
+
+const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
 describe("cookie consent storage", () => {
   it("round-trips analytics on and essential-only", () => {
@@ -90,6 +93,14 @@ describe("GTM Advanced snippet", () => {
     const html = `<!doctype html><html><head><script>${gaConsentBootstrapScript()}</script><script>${install}</script></head><body><noscript><iframe src="${gtmNoscriptSrc(id)}"></iframe></noscript></body></html>`;
     expect(htmlContainsGtmContainer(html, id)).toBe(true);
     expect(htmlContainsGtmContainer(html.replaceAll(id, "GTM-OTHER1"), id)).toBe(false);
+  });
+});
+
+describe("mobile cookie sheet", () => {
+  it("caps compact height and pads the body so public CTAs stay reachable", () => {
+    expect(css).toMatch(/\.relify-consent-card \{[\s\S]*?max-height:\s*35vh/);
+    expect(css).toMatch(/\.relify-consent-actions \{[\s\S]*?grid-template-columns:\s*1fr 1fr/);
+    expect(css).toMatch(/html\.relify-consent-open body \{[\s\S]*?padding-bottom:\s*var\(--relify-consent-h/);
   });
 });
 

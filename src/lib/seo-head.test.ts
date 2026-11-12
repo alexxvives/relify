@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { OG_IMAGE_PATH, headContainsIconAndOgImage, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "./seo-head";
+import { OG_IMAGE_PATH, headContainsIconAndOgImage, intAbsoluteTitle, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "./seo-head";
 
 describe("headContainsIconAndOgImage", () => {
   it("accepts rel=icon and og:image inside <head>", () => {
@@ -22,6 +22,15 @@ describe("intPrefixedTitle", () => {
     expect(intPrefixedTitle(true, "Plataforma digital para comprar empresas")).toEqual({
       default: "[INT] Plataforma digital para comprar empresas",
       template: "[INT] %s",
+    });
+  });
+
+  it("prefixes an absolute home title on INT so it cannot bypass the template", () => {
+    expect(intAbsoluteTitle(false, "Un mercado para comprar y vender empresas")).toEqual({
+      absolute: "Un mercado para comprar y vender empresas",
+    });
+    expect(intAbsoluteTitle(true, "Un mercado para comprar y vender empresas")).toEqual({
+      absolute: "[INT] Un mercado para comprar y vender empresas",
     });
   });
 });

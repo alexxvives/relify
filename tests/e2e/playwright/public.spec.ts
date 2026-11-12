@@ -90,12 +90,31 @@ test.describe("visitor landing and public forms", () => {
     }
   });
 
-  test("cookie banner and /cookies list GA cookies", async ({ page }) => {
+  test("cookie banner and /cookies list GA cookies", async ({ page }, testInfo) => {
     await page.goto("/");
     const banner = page.getByRole("dialog");
     await expect(banner.getByRole("heading", { name: /cookies en relify/i })).toBeVisible();
     await expect(banner.getByRole("button", { name: /^rechazar$/i })).toBeVisible();
     await expect(banner.getByRole("button", { name: /^aceptar$/i })).toBeVisible();
+    if (testInfo.project.name === "mobile-390") {
+      const box = await banner.boundingBox();
+      expect(box, "cookie sheet is on screen").not.toBeNull();
+      if (box) {
+        expect(box.height).toBeLessThanOrEqual(Math.ceil(page.viewportSize()?.height ?? 844) * 0.35 + 8);
+      }
+      const rejectBox = await banner.getByRole("button", { name: /^rechazar$/i }).boundingBox();
+      const acceptBox = await banner.getByRole("button", { name: /^aceptar$/i }).boundingBox();
+      expect(rejectBox && acceptBox, "Rechazar and Aceptar sit side by side").toBeTruthy();
+      if (rejectBox && acceptBox) {
+        expect(Math.abs(rejectBox.y - acceptBox.y)).toBeLessThan(8);
+      }
+      const stickyBuy = page.locator("a[href='/registro?rol=inversor']").last();
+      const stickyBox = await stickyBuy.boundingBox();
+      expect(stickyBox, "hero CTA stays on screen with the cookie sheet").not.toBeNull();
+      if (box && stickyBox) {
+        expect(stickyBox.y + stickyBox.height).toBeLessThanOrEqual(box.y + 4);
+      }
+    }
     await expect(banner.getByRole("link", { name: /política de cookies/i })).toBeVisible();
     await expect(banner.getByRole("link", { name: /^privacidad$/i })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: /^términos$/i })).toHaveCount(0);

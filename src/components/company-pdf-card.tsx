@@ -123,7 +123,6 @@ export function SellerPdfCard({
         <h3 className="text-sm font-semibold text-[#1c2740]">{companyPdfCopy.dossierInfoTitle}</h3>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.dossierInfoBody}</p>
       </div>
-      <div className="h-16 lg:hidden" aria-hidden />
       <ShellStickyCtaBar>
         <a
           href={downloadHref}

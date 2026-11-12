@@ -207,7 +207,6 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
       </div>
       {plan === "none" ? (
         <>
-          <div className="h-20 lg:hidden" aria-hidden />
           <ShellStickyCtaBar>
             <PlanButton plan="limited" label={billingCopy.chooseLimited} />
           </ShellStickyCtaBar>

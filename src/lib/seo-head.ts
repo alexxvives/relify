@@ -11,6 +11,11 @@ export function intPrefixedTitle(isInt: boolean, defaultTitle: string): Metadata
   };
 }
 
+/** Pages that set an absolute title (the home `/` page) still get the INT prefix. */
+export function intAbsoluteTitle(isInt: boolean, title: string): Metadata["title"] {
+  return { absolute: isInt ? `[INT] ${title}` : title };
+}
+
 export const OG_IMAGE_PATH = "/og.jpg";
 export const OG_IMAGE_ALT = "Relify — plataforma para comprar y vender pymes";
 export const OG_IMAGE_WIDTH = 1200;

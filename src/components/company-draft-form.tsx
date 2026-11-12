@@ -2268,10 +2268,13 @@ export function CompanyDraftForm({
             </div>
           )}
           <Fact icon={MapPin} label={companyCopy.addressLabel} className="col-span-full">
-            <Input
+            <Textarea
               name="address"
+              rows={2}
               value={address}
               onChange={(event) => setAddress(event.target.value)}
+              className="min-h-[4.25rem] resize-y"
+              autoComplete="street-address"
             />
           </Fact>
           <input type="hidden" name="region" value={region} />

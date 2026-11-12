@@ -42,6 +42,7 @@ Do not run this suite against production. Do not put passwords in the repo, in `
 | --- | --- |
 | `public.spec.ts` | Landing → registro; waitlist form; valorar CIF; `/archivo` 404 |
 | `password-reset.spec.ts` | `/olvide-contrasena` |
+| `shell-chrome.spec.ts` | Mobile 390: last content control on every signed-in page sits above the tab bar at max scroll |
 | `seller.spec.ts` | Sign-in → `/mi-empresa` → detalles autosave surface |
 | `buyer.spec.ts` | Mercado → filter → ficha; no identity strings |
 | `advisor.spec.ts` | Mandatos + cuenta |

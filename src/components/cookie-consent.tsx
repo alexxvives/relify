@@ -137,13 +137,12 @@ export function CookieConsent({
   return (
     <div className="relify-consent" role="dialog" aria-labelledby="relify-consent-title" aria-modal="false">
       <div ref={barRef} className="relify-consent-card">
-        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-public-line sm:hidden" aria-hidden />
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0 sm:flex-1">
             <h2 id="relify-consent-title" className="text-sm font-semibold text-public-ink">
               {cookiesCopy.bannerTitle}
             </h2>
-            <p className="mt-1 text-sm leading-5 text-public-muted">
+            <p className="mt-0.5 text-xs leading-5 text-public-muted sm:mt-1 sm:text-sm">
               {cookiesCopy.bannerBody}{" "}
               <Link href="/cookies" className="font-medium text-public-clay underline-offset-2 hover:underline">
                 {cookiesCopy.policyLink}
@@ -173,7 +172,7 @@ export function CookieConsent({
               </div>
             ) : null}
           </div>
-          <div className={`flex shrink-0 flex-col gap-2 sm:flex-row ${configure ? "sm:items-end" : "sm:items-center"}`}>
+          <div className={`relify-consent-actions${configure ? " relify-consent-actions-save" : ""}`}>
             {configure ? (
               <button type="button" className="relify-consent-accept" onClick={() => save({ analytics: analyticsOn })}>
                 {cookiesCopy.save}
