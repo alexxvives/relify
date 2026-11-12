@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { IntBadge } from "@/components/int-badge";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { Logo } from "@/components/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
-export function PublicMenu({ signedIn }: { signedIn: boolean }) {
+export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; showInt?: boolean }) {
   const [onDark, setOnDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -55,7 +56,8 @@ export function PublicMenu({ signedIn }: { signedIn: boolean }) {
       data-menu-open={mobileOpen ? "true" : undefined}
       className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-1.5 sm:px-4 sm:py-2"
     >
-      <Link href="/" className="relative z-20 flex min-h-11 shrink-0 items-center pl-2" aria-label="Relify">
+      <Link href="/" className="relative z-20 flex min-h-11 min-w-0 shrink-0 items-center gap-2 pl-2" aria-label="Relify">
+        {showInt ? <IntBadge /> : null}
         <Logo />
       </Link>
       <LandingNav

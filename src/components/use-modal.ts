@@ -6,16 +6,20 @@ const focusable =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * t93: shared modal behaviour. While mounted: the page behind does not scroll, Tab and Shift+Tab stay inside the
+ * t93: shared modal behaviour. While open: the page behind does not scroll, Tab and Shift+Tab stay inside the
  * panel, Esc calls onClose, and focus goes back to whatever opened the modal when it closes.
+ * Pass `open` when the hook lives on a parent that stays mounted (a closed sheet must not lock the page).
  */
-export function useModal(panel: RefObject<HTMLElement | null>, onClose: () => void) {
+export function useModal(panel: RefObject<HTMLElement | null>, onClose: () => void, open = true) {
   // Callers often pass an inline arrow; keep the latest one without re-running the effect (which would steal focus).
   const close = useRef(onClose);
   useEffect(() => {
     close.current = onClose;
   }, [onClose]);
   useEffect(() => {
+    if (!open) {
+      return;
+    }
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const root = document.documentElement;
     const previousOverflow = root.style.overflow;
@@ -60,5 +64,5 @@ export function useModal(panel: RefObject<HTMLElement | null>, onClose: () => vo
       root.style.paddingRight = previousPadding;
       opener?.focus();
     };
-  }, [panel]);
+  }, [panel, open]);
 }

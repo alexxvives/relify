@@ -1,16 +1,14 @@
 /**
- * INT environment badge - visible indicator for staging environment.
- * Shows in all pages when INT_ENVIRONMENT=true.
+ * INT environment pill. Inline next to the logo so it never covers header controls.
  */
 export function IntBadge() {
-  // Server-side check
-  if (process.env.INT_ENVIRONMENT !== "true") {
-    return null;
-  }
-  
   return (
-    <div className="fixed top-2 right-2 z-[100] rounded-md bg-orange-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
+    <span
+      data-int-badge
+      title="Entorno de pruebas"
+      className="inline-flex h-5 shrink-0 items-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold tracking-wide text-white"
+    >
       INT
-    </div>
+    </span>
   );
 }

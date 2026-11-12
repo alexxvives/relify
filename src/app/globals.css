@@ -2731,6 +2731,10 @@ header:has([data-menu-open="true"]) {
   --layout-sidebar: clamp(248px, 16vw, 320px);
   /* Extra bottom inset for the mobile tab bar. Desktop stays 0 so padding matches main. */
   --shell-tabbar: 0px;
+  /* Compact app bar (logo + avisos). */
+  --shell-header: 0px;
+  /* Sticky in-page tabs (Información empresa / Ficha pública). */
+  --shell-page-tabs: 0px;
   /* Compact sticky CTA above the tab bar. Measured when a bar is mounted. */
   --shell-sticky: 0px;
   /* Readability for older owners: inside the app the smallest text size is 14px. */
@@ -2785,7 +2789,13 @@ header:has([data-menu-open="true"]) {
 
 @media (max-width: 1023px) {
   .shell {
+    --shell-header: 3.5rem;
     --shell-tabbar: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .shell:has(.shell-page-tabs) {
+    /* py-1.5 + min-h-11 pills + border */
+    --shell-page-tabs: 3.625rem;
   }
 
   .shell:has(.shell-sticky-cta) {
@@ -2793,7 +2803,11 @@ header:has([data-menu-open="true"]) {
   }
 
   .shell-content {
-    scroll-padding-top: calc(3.5rem + 0.5rem);
+    scroll-padding-top: calc(var(--shell-header) + var(--shell-page-tabs) + 0.5rem);
+  }
+
+  .shell-anchor {
+    scroll-margin-top: calc(var(--shell-header) + var(--shell-page-tabs) + 0.5rem);
   }
 
   .shell[data-keyboard="true"] {
@@ -2857,9 +2871,31 @@ header:has([data-menu-open="true"]) {
   max-width: 100%;
 }
 
+/* Accordion titles wrap at word boundaries. overflow-wrap:anywhere is the last-resort
+   for a single token that still overflows after the badge/chevron shrink. */
+.report-section-title {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+@supports (overflow-wrap: anywhere) {
+  .report-section-title {
+    overflow-wrap: anywhere;
+  }
+}
+
+.report-section-aside {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 /* Tablet / large phone: tab items are min-h-16, so keep the same extra clearance. */
 @media (min-width: 640px) and (max-width: 1023px) {
   .shell {
+    --shell-header: 4rem;
     --shell-tabbar: calc(4rem + 0.75rem + env(safe-area-inset-bottom, 0px));
   }
 

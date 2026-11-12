@@ -2,8 +2,11 @@ import { expect, test } from "@playwright/test";
 import { destinationsForRole } from "../../../src/lib/shell";
 import {
   expectControlCenterTappable,
+  expectFichaCompactS13b,
   expectLastContentControlAboveChrome,
   expectLastContentControlTappable,
+  expectWindowScrolls,
+  openAndClosePageSheets,
   placeJustAboveChrome,
   roleCreds,
   signInAs,
@@ -77,11 +80,14 @@ test.describe("sticky CTA never covers inline controls", () => {
         await expect(actions.first()).toBeVisible();
         await placeJustAboveChrome(page, actions.first());
         const download = actions.getByRole("link", { name: /descargar teaser/i });
-        const copy = actions.getByRole("button", { name: /copiar/i });
-        const regenerate = actions.getByRole("button", { name: /regenerar/i });
-        await expectControlCenterTappable(page, copy);
-        await expectControlCenterTappable(page, regenerate);
         await expectControlCenterTappable(page, download);
+        const more = actions.getByRole("button", { name: /más acciones/i });
+        await more.click();
+        const copy = page.getByRole("menuitem", { name: /copiar/i });
+        const regenerate = page.getByRole("menuitem", { name: /regenerar/i });
+        await expect(copy).toBeVisible();
+        await expect(regenerate).toBeVisible();
+        await page.keyboard.press("Escape");
       }
       await page.goto("/mi-empresa/detalles");
       await expectLastContentControlTappable(page).catch((error: unknown) => {
@@ -90,6 +96,22 @@ test.describe("sticky CTA never covers inline controls", () => {
       await page.goto("/cuenta");
       await expectLastContentControlTappable(page).catch((error: unknown) => {
         throw new Error(`/cuenta@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+    }
+  });
+
+  test("seller ficha at 390/375/360 clears sticky tabs, tab bar, titles, and INT badge", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "compact chrome only");
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and password");
+    test.setTimeout(120_000);
+    const signedIn = await signInAs(page, "seller");
+    expect(signedIn).toBe(true);
+    for (const width of compactWidths) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("/mi-empresa/detalles?tab=ficha");
+      await expect(page.locator("#ficha-detalles")).toBeVisible({ timeout: 20_000 });
+      await expectFichaCompactS13b(page).catch((error: unknown) => {
+        throw new Error(`/mi-empresa/detalles?tab=ficha@${width}: ${error instanceof Error ? error.message : String(error)}`);
       });
     }
   });
@@ -143,12 +165,13 @@ test.describe("sticky CTA never covers inline controls", () => {
         const actions = page.locator("[data-teaser-actions]");
         if ((await actions.count()) > 0 && (await actions.isVisible().catch(() => false))) {
           await placeJustAboveChrome(page, actions);
-          const copy = actions.getByRole("button", { name: /copiar/i });
-          const regenerate = actions.getByRole("button", { name: /regenerar/i });
           const download = actions.getByRole("link", { name: /descargar teaser/i });
-          await expectControlCenterTappable(page, copy);
-          await expectControlCenterTappable(page, regenerate);
           await expectControlCenterTappable(page, download);
+          const more = actions.getByRole("button", { name: /más acciones/i });
+          await more.click();
+          await expect(page.getByRole("menuitem", { name: /copiar/i })).toBeVisible();
+          await expect(page.getByRole("menuitem", { name: /regenerar/i })).toBeVisible();
+          await page.keyboard.press("Escape");
         }
         await expectLastContentControlTappable(page).catch((error: unknown) => {
           throw new Error(`admin company@${width}: ${error instanceof Error ? error.message : String(error)}`);
@@ -159,5 +182,40 @@ test.describe("sticky CTA never covers inline controls", () => {
         throw new Error(`/cuenta@${width}: ${error instanceof Error ? error.message : String(error)}`);
       });
     }
+  });
+});
+
+test.describe("window scroll is not locked after sheets", () => {
+  test("seller detalles, ficha, inicio and cuenta scroll at 390 and 1440", async ({ page }, testInfo) => {
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and password");
+    test.setTimeout(180_000);
+    const width = testInfo.project.name === "desktop-1280" ? 1440 : 390;
+    await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
+    const signedIn = await signInAs(page, "seller");
+    expect(signedIn).toBe(true);
+    const paths = ["/mi-empresa/detalles", "/mi-empresa/detalles?tab=ficha", "/mi-empresa", "/cuenta"] as const;
+    for (const path of paths) {
+      await page.goto(path);
+      await expect(page.locator(".shell-content")).toBeVisible({ timeout: 20_000 });
+      await openAndClosePageSheets(page);
+      await expectWindowScrolls(page, `${path}@${width}`).catch((error: unknown) => {
+        throw new Error(`${path}@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+    }
+  });
+
+  test("marketplace /mercado scrolls at 390 and 1440", async ({ page }, testInfo) => {
+    test.skip(!roleCreds("investor"), "Set E2E_INVESTOR_EMAIL and password");
+    test.setTimeout(90_000);
+    const width = testInfo.project.name === "desktop-1280" ? 1440 : 390;
+    await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
+    const signedIn = await signInAs(page, "investor");
+    expect(signedIn).toBe(true);
+    await page.goto("/mercado");
+    await expect(page.locator(".shell-content")).toBeVisible({ timeout: 20_000 });
+    await openAndClosePageSheets(page);
+    await expectWindowScrolls(page, `/mercado@${width}`).catch((error: unknown) => {
+      throw new Error(`/mercado@${width}: ${error instanceof Error ? error.message : String(error)}`);
+    });
   });
 });

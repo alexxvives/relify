@@ -24,6 +24,7 @@ import { TrophyIcon } from "@animateicons/react/lucide/trophy-icon";
 import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
+import { IntBadge } from "@/components/int-badge";
 import { Logo } from "@/components/logo";
 import { AddCompanyIconButton, CompanySwitcher } from "@/components/company-switcher";
 import { sellerCompanyLabel } from "@/lib/seller-company";
@@ -217,6 +218,7 @@ export function AppFrame({
   activeCompanyId = null,
   canManageCompanies = false,
   showHelp = true,
+  showInt = false,
   processCount = 0,
   processPending = 0,
   encargoCount = 0,
@@ -231,6 +233,7 @@ export function AppFrame({
   activeCompanyId?: string | null;
   canManageCompanies?: boolean;
   showHelp?: boolean;
+  showInt?: boolean;
   processCount?: number;
   /** Pending "your turn" actions for roles without a company switcher (buyer). */
   processPending?: number;
@@ -347,7 +350,8 @@ export function AppFrame({
         <div className="shell-head relative z-20 flex flex-col gap-3 px-4 pt-5 pb-2">
           {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
           <div className="flex min-w-0 items-center justify-between gap-2">
-            <Link href={home} onClick={closeMenu} className="shrink-0" aria-label="Relify">
+            <Link href={home} onClick={closeMenu} className="flex min-w-0 items-center gap-2 shrink-0" aria-label="Relify">
+              {showInt ? <IntBadge /> : null}
               <Logo tone="light" />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
@@ -518,7 +522,8 @@ export function AppFrame({
       </aside>
       <main className="shell-main">
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-public-line bg-white px-3 pt-[env(safe-area-inset-top,0px)] sm:h-16 sm:px-4 lg:hidden">
-          <Link href={home} aria-label="Relify" className="min-w-0 shrink">
+          <Link href={home} aria-label="Relify" className="flex min-w-0 items-center gap-2 shrink">
+            {showInt ? <IntBadge /> : null}
             <Logo />
           </Link>
           <div className="flex items-center gap-1">

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppFrame } from "@/components/app-frame";
 import { PlatformTermsDialog } from "@/components/platform-terms-dialog";
 import { SignerProvider } from "@/components/signer-context";
+import { isIntEnvironment } from "@/lib/int-env";
 import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } from "@/lib/shell";
 import { hasCompletedPurchase, projectSold } from "@/server/saleOutcome";
 import { getCurrentUser } from "@/server/getCurrentUser";
@@ -70,6 +71,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       activeCompanyId={activeCompanyId}
       canManageCompanies={user.role === "seller"}
       showHelp={user.role !== "admin"}
+      showInt={isIntEnvironment()}
       processCount={processCount}
       processPending={buyerPending}
       encargoCount={encargoCount}

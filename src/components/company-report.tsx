@@ -143,14 +143,14 @@ function ReportSection({
   children: ReactNode;
 }) {
   return (
-    <details open={open} id={id} className="group/section scroll-mt-32 lg:scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
-      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:px-6 [&::-webkit-details-marker]:hidden">
+    <details open={open} id={id} className="group/section shell-anchor lg:scroll-mt-8 rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)]">
+      <summary className="flex min-w-0 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 py-4 outline-none hover:bg-[#fafbfc] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] sm:gap-3 sm:px-6 [&::-webkit-details-marker]:hidden">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
           <Icon className="size-5" aria-hidden />
         </span>
-        <h2 className="min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
-        {aside ? <span className="max-w-[55%] text-right text-xs leading-snug text-pretty break-words text-[#5c6b78] sm:text-sm">{aside}</span> : null}
-        <ChevronDown className="size-5 shrink-0 text-[#5c6b78] transition-transform group-open/section:rotate-180" aria-hidden />
+        <h2 className="report-section-title min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
+        {aside ? <span className="report-section-aside max-w-[min(40%,6.5rem)] shrink text-right text-xs leading-snug text-pretty text-[#5c6b78] sm:max-w-[min(45%,12rem)] sm:text-sm">{aside}</span> : null}
+        <ChevronDown className="size-4 min-w-0 shrink text-[#5c6b78] transition-transform group-open/section:rotate-180 sm:size-5" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
         {intro ? <p className="mb-4 text-sm leading-6 text-[#5c6b78]">{intro}</p> : null}

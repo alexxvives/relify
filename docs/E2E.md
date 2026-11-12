@@ -42,7 +42,7 @@ Do not run this suite against production. Do not put passwords in the repo, in `
 | --- | --- |
 | `public.spec.ts` | Landing → registro; waitlist form; valorar CIF; `/archivo` 404 |
 | `password-reset.spec.ts` | `/olvide-contrasena` |
-| `shell-chrome.spec.ts` | Mobile 390: last content control on every signed-in page sits above the tab bar at max scroll. 390/375/360: Ficha teaser Copiar/Regenerar/Descargar teaser on `/mi-empresa/detalles?tab=ficha` and last controls on `/mi-empresa`, `/mi-empresa/detalles`, `/cuenta` are `elementFromPoint` tappable (not under sticky chrome) |
+| `shell-chrome.spec.ts` | Mobile 390: last content control on every signed-in page sits above the tab bar at max scroll. 390/375/360: Ficha teaser Descargar + overflow Copiar/Regenerar on `/mi-empresa/detalles?tab=ficha` and last controls on `/mi-empresa`, `/mi-empresa/detalles`, `/cuenta` are `elementFromPoint` tappable (not under sticky chrome). Window `scrollY` increases after wheel on `/mi-empresa/detalles` (both tabs), `/mi-empresa`, `/cuenta`, `/mercado` at 390 and 1440, including after opening and closing sheets. |
 | `seller.spec.ts` | Sign-in → `/mi-empresa` → detalles autosave surface |
 | `buyer.spec.ts` | Mercado → filter → ficha; no identity strings |
 | `advisor.spec.ts` | Mandatos + cuenta |

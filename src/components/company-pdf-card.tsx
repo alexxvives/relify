@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { FileText, MoreHorizontal } from "lucide-react";
 import { PdfThumb } from "@/components/pdf-pages";
 import { companyPdfCopy, type SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
@@ -18,7 +19,32 @@ export function SellerPdfCard({
   const [shareUrl, setShareUrl] = useState(desk.shareUrl);
   const [copied, setCopied] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [pending, start] = useTransition();
+  const menu = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+    function onPointer(event: MouseEvent) {
+      if (menu.current && event.target instanceof Node && !menu.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   async function copyLink(): Promise<void> {
     if (!shareUrl) {
@@ -31,6 +57,7 @@ export function SellerPdfCard({
     } catch {
       setNote(companyPdfCopy.copyFailed);
     }
+    setMenuOpen(false);
   }
 
   function regenerate(): void {
@@ -40,52 +67,82 @@ export function SellerPdfCard({
         setShareUrl(result.shareUrl);
         setCopied(false);
         setNote(companyPdfCopy.regeneratedShare);
+        setMenuOpen(false);
         return;
       }
       setNote(result.message);
+      setMenuOpen(false);
     });
   }
 
-  const actions = (
-    <div className="flex flex-wrap gap-2" data-teaser-actions>
-      <a
-        href={downloadHref}
-        className="inline-flex h-11 items-center justify-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white"
-      >
-        {companyPdfCopy.teaserDownload}
-      </a>
-      <button
-        type="button"
-        onClick={() => {
-          void copyLink();
-        }}
-        disabled={!shareUrl}
-        className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-50"
-      >
-        {copied ? companyPdfCopy.copiedShare : companyPdfCopy.copyShare}
-      </button>
-      <button
-        type="button"
-        onClick={regenerate}
-        disabled={pending}
-        className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-60"
-      >
-        {pending ? companyPdfCopy.regeneratingShare : companyPdfCopy.regenerateShare}
-      </button>
-    </div>
-  );
-
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-      <div className="flex flex-col gap-3 border-b border-[#eef0f3] px-5 py-4">
-        <div>
-          <h2 className="text-base font-semibold text-[#1c2740]">{companyPdfCopy.sellerTitle}</h2>
-          <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.sellerBody}</p>
+    <section data-teaser-card className="rounded-xl border border-[#e7eaee] bg-white px-3 py-2.5">
+      <div className="flex min-w-0 items-center gap-2" data-teaser-actions>
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-[#eef2ff] text-[#465ab4]">
+          <FileText className="size-4" aria-hidden />
+        </span>
+        <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#1c2740]">{companyPdfCopy.sellerTitle}</p>
+        <a
+          href={downloadHref}
+          aria-label={companyPdfCopy.teaserDownload}
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-full px-2.5 text-xs font-semibold text-[#465ab4] hover:bg-[#eef2ff] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+        >
+          {companyPdfCopy.teaserDownloadShort}
+        </a>
+        <div ref={menu} className="relative shrink-0">
+          <button
+            type="button"
+            aria-label={companyPdfCopy.moreActions}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="inline-flex size-8 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+          >
+            <MoreHorizontal className="size-4" aria-hidden />
+          </button>
+          {menuOpen ? (
+            <div
+              role="menu"
+              className="absolute right-0 z-20 mt-1 w-44 rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_12px_32px_-16px_rgba(28,39,64,0.35)]"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  void copyLink();
+                }}
+                disabled={!shareUrl}
+                className="flex h-10 w-full items-center px-3 text-left text-sm text-[#1c2740] hover:bg-[#f8f9fb] disabled:opacity-50"
+              >
+                {copied ? companyPdfCopy.copiedShare : companyPdfCopy.copyShare}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={regenerate}
+                disabled={pending}
+                className="flex h-10 w-full items-center px-3 text-left text-sm text-[#1c2740] hover:bg-[#f8f9fb] disabled:opacity-60"
+              >
+                {pending ? companyPdfCopy.regeneratingShare : companyPdfCopy.regenerateShare}
+              </button>
+            </div>
+          ) : null}
         </div>
-        <div className="lg:hidden">{actions}</div>
       </div>
-      <div className="hidden gap-5 p-5 lg:grid lg:grid-cols-[7.5rem_minmax(0,1fr)] lg:items-start">
-        <div className="w-[7.5rem]">
+      {note ? (
+        <p className="mt-1.5 text-xs text-[#3d4a63]" role="status">
+          {note}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setPreviewOpen((open) => !open)}
+        className="mt-2 hidden h-8 items-center rounded-full px-2 text-xs font-medium text-[#667085] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none lg:inline-flex"
+      >
+        {previewOpen ? companyPdfCopy.hidePreview : companyPdfCopy.previewOnDemand}
+      </button>
+      {previewOpen ? (
+        <div className="mt-3 hidden w-[7.5rem] lg:block">
           <p className="mb-2 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">
             {companyPdfCopy.previewLabel}
           </p>
@@ -97,40 +154,7 @@ export function SellerPdfCard({
             />
           </div>
         </div>
-        <div className="min-w-0">
-          <p className="text-sm text-[#3d4a63]">
-            {desk.published ? companyPdfCopy.shareHint : companyPdfCopy.shareHintUnpublished}
-          </p>
-          <p className="mt-3 text-sm text-[#5c6b78]">
-            {companyPdfCopy.downloadsLabel}:{" "}
-            <span className="font-semibold text-[#1c2740]">{desk.downloads}</span>
-          </p>
-          <div className="mt-4">{actions}</div>
-          {note ? (
-            <p className="mt-3 text-sm text-[#3d4a63]" role="status">
-              {note}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <div className="border-t border-[#eef0f3] bg-[#f7f8fb] px-5 py-4 lg:hidden">
-        <p className="text-sm text-[#3d4a63]">
-          {desk.published ? companyPdfCopy.shareHint : companyPdfCopy.shareHintUnpublished}
-        </p>
-        <p className="mt-2 text-sm text-[#5c6b78]">
-          {companyPdfCopy.downloadsLabel}:{" "}
-          <span className="font-semibold text-[#1c2740]">{desk.downloads}</span>
-        </p>
-        {note ? (
-          <p className="mt-2 text-sm text-[#3d4a63]" role="status">
-            {note}
-          </p>
-        ) : null}
-      </div>
-      <div className="border-t border-[#eef0f3] bg-[#f7f8fb] px-5 py-4">
-        <h3 className="text-sm font-semibold text-[#1c2740]">{companyPdfCopy.dossierInfoTitle}</h3>
-        <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.dossierInfoBody}</p>
-      </div>
+      ) : null}
     </section>
   );
 }

@@ -9,7 +9,7 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Tags, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, regenerateTeaserLinkAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
@@ -27,7 +27,7 @@ import { groupedCnaeOptions } from "@/lib/cnae-section";
 import { formatCompanyLocation, resolveCompanyLocation } from "@/lib/company-location";
 import { SellerPdfCard } from "@/components/company-pdf-card";
 import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
-import { ebitdaTrend, estimatePriceRange, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
+import { ebitdaTrend, estimatePriceRange, formatMultiple, priceBarEnds, priceBarPosition, priceBarZone, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
 import { projectImageSrc } from "@/lib/project-image";
@@ -88,7 +88,6 @@ import { scrollToCenter } from "@/components/use-scroll-spy";
 import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
-  adjustmentExceedsHalfEbitda,
   adjustmentRowErrors,
   adjustmentRowsValid,
   defaultAdjustmentDirection,
@@ -234,7 +233,7 @@ function CompactStatus({
   label,
   icon,
   className,
-  reveal = "@[18rem]:inline",
+  reveal = "@[18rem]:inline-block",
 }: {
   label: string;
   icon: ReactNode;
@@ -243,9 +242,9 @@ function CompactStatus({
 }) {
   return (
     <InfoHint text={label} width="auto" size="sm">
-      <span className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${className}`}>
+      <span className={`inline-flex max-w-full shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${className}`}>
         {icon}
-        <span className={`hidden min-w-0 truncate whitespace-nowrap ${reveal}`}>{label}</span>
+        <span className={`hidden whitespace-nowrap ${reveal}`}>{label}</span>
       </span>
     </InfoHint>
   );
@@ -276,16 +275,33 @@ function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null
   );
 }
 
-function SavedFacts({ rows }: { rows: { label: string; value: string }[] }) {
+function CnaeChip({ code, tone }: { code: string; tone: "primary" | "secondary" }) {
+  const title = cnaeTitle(code);
+  const label = title && title.length > 0 ? `${code} — ${title}` : code;
   return (
-    <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+    <span
+      className={`inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+        tone === "primary" ? "bg-[#344054] text-white" : "bg-[#e4e7ec] text-[#475467]"
+      }`}
+    >
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+function SavedFacts({
+  rows,
+}: {
+  rows: { icon: typeof Building2; label: string; value: ReactNode; className?: string }[];
+}) {
+  return (
+    <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
       {rows.map((row) => (
-        <div key={row.label} className="min-w-0">
-          <dt className="text-xs font-medium text-[#667085]">{row.label}</dt>
-          <dd className="mt-0.5 whitespace-pre-wrap text-sm leading-5 text-[#1c2740]">{row.value}</dd>
-        </div>
+        <Fact key={row.label} icon={row.icon} label={row.label} className={row.className}>
+          <span className="block whitespace-pre-wrap font-semibold">{row.value}</span>
+        </Fact>
       ))}
-    </dl>
+    </div>
   );
 }
 
@@ -333,17 +349,14 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-32 lg:scroll-mt-6">
-      <div className="@container flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-            {step ? <StepNumber value={step} /> : null}
-            {title}
-            {hint ? <FieldHint text={hint} /> : null}
-          </h2>
-          {open ? null : summary ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+    <Card id={id} className="@container scroll-mt-32 lg:scroll-mt-6">
+      <div className="flex min-w-0 flex-nowrap items-center gap-2">
+        <h2 className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-base font-semibold text-[#2b3b4a] sm:text-2xl">
+          {step ? <StepNumber value={step} /> : null}
+          <span className="min-w-0 truncate">{title}</span>
+          {hint ? <span className="shrink-0"><FieldHint text={hint} /></span> : null}
+        </h2>
+        <div className="flex shrink-0 flex-nowrap items-center gap-1.5 whitespace-nowrap">
           {saveState || dirty ? (
             <AutoSaveStatus state={saveState ?? "saving"} onRetry={onRetry} />
           ) : !chip ? null : (
@@ -351,33 +364,33 @@ function Panel({
               label={done ? companyCopy.doneChip : companyCopy.pendingChip}
               className={done ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4d6] text-[#8a6112]"}
               icon={done ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5" aria-hidden />}
-              reveal="@[28rem]:inline"
+              reveal="@[28rem]:inline-block"
             />
           )}
           {fixed ? null : open ? (
-            <KitButton
+            <button
               type="button"
               aria-expanded="true"
+              aria-label={companyCopy.collapsePanel}
               onClick={onCollapse}
-              tone="outline" size="sm"
->
+              className="inline-flex size-9 items-center justify-center rounded-full text-[#475467] hover:bg-[#f2f4f7] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
               <ChevronUp className="size-4" aria-hidden />
-              {companyCopy.collapsePanel}
-            </KitButton>
+            </button>
           ) : (
-            <KitButton
+            <button
               type="button"
               aria-expanded="false"
-              onClick={onEdit}
-              tone="outline" size="sm"
               aria-label={companyCopy.editPanel}
->
+              onClick={onEdit}
+              className="inline-flex size-9 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
               <Pencil className="size-3.5" aria-hidden />
-              {companyCopy.editPanel}
-            </KitButton>
+            </button>
           )}
         </div>
       </div>
+      {open ? null : summary ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
       {open || !summary ? null : <div className="mt-4">{summary}</div>}
       <div className={open ? "mt-4" : "hidden"}>{children}</div>
     </Card>
@@ -409,6 +422,49 @@ function groupedEuro(value: string): string {
   return formatWholeEur(cents).replace(/ €$/, "");
 }
 
+const priceBarGradient = `linear-gradient(to right, #d92d20 0%, #f79009 ${priceBarZone.low * 45}%, #fdb022 ${priceBarZone.low * 85}%, #12b76a ${priceBarZone.low * 100}%, #12b76a ${priceBarZone.high * 100}%, #fdb022 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 15}%, #f79009 ${priceBarZone.high * 100 + (1 - priceBarZone.high) * 55}%, #d92d20 100%)`;
+
+function PriceBar({ estimate, askingCents }: { estimate: PriceEstimate; askingCents: number | null }) {
+  const { minCents, maxCents } = priceBarEnds(estimate);
+  const marked = askingCents !== null && askingCents > 0 ? askingCents : null;
+  const dot = marked !== null ? priceBarPosition(marked, estimate) : null;
+  return (
+    <div className="mt-3" data-price-bar>
+      <div className="relative h-2.5 rounded-full" style={{ background: priceBarGradient }}>
+        {dot !== null ? (
+          <span
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#101828] shadow"
+            style={{ left: `${dot * 100}%` }}
+            aria-hidden
+          />
+        ) : null}
+      </div>
+      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
+        <span>
+          Mín.
+          <br />
+          {wholeEur(minCents)}
+        </span>
+        <span className="text-center font-semibold text-[#17663a]">
+          Rango
+          <br />
+          {wholeEur(estimate.lowCents)} – {wholeEur(estimate.highCents)}
+        </span>
+        <span className="text-right">
+          Máx.
+          <br />
+          {wholeEur(maxCents)}
+        </span>
+      </div>
+      {marked !== null ? (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#475467]">
+          <span className="size-2 rounded-full bg-[#101828]" aria-hidden /> Tu precio: <span className="font-semibold text-[#1c2740] tabular-nums">{wholeEur(marked)}</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function AskingPriceField({
   label,
   name,
@@ -418,6 +474,8 @@ function AskingPriceField({
   unsetText,
   disabledReason = null,
   help,
+  estimate = null,
+  basis = "EBITDA",
 }: {
   label: string;
   name: string;
@@ -427,11 +485,13 @@ function AskingPriceField({
   unsetText: string;
   disabledReason?: string | null;
   help: string;
+  estimate?: PriceEstimate | null;
+  basis?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   const panel = useRef<HTMLDivElement>(null);
-  useModal(panel, () => setOpen(false));
+  useModal(panel, () => setOpen(false), open);
   const unset = !askingPriceSet(value);
   const shown = groupedEuro(value);
   const editable = !disabledReason;
@@ -445,16 +505,6 @@ function AskingPriceField({
     <>
       <MetricTile
         label={label}
-        corner={
-          recommended && !disabledReason ? (
-            <span className="max-w-full text-left text-[11px] leading-4 font-medium text-[#667085]">
-              {companyCopy.priceRangeTitle}
-              <span className="mt-0.5 block whitespace-normal text-[#1c2740] tabular-nums">
-                {recommended.low} – {recommended.high}
-              </span>
-            </span>
-          ) : null
-        }
         action={
           editable ? (
             <button
@@ -497,6 +547,7 @@ function AskingPriceField({
             tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
             className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl focus:outline-none sm:w-[min(32rem,100%)] sm:rounded-2xl"
+            data-asking-price-sheet
           >
             <header className="flex items-start justify-between gap-3 border-b border-[#eef0f4] px-4 pt-4 pb-3 sm:px-6">
               <h3 id="asking-price-sheet-title" className="text-base font-semibold text-[#1c2740]">
@@ -511,7 +562,7 @@ function AskingPriceField({
                 <X className="size-4" aria-hidden />
               </button>
             </header>
-            <div className="flex flex-col gap-4 px-4 py-4 sm:px-6">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {label}
                 <span className="relative">
@@ -531,16 +582,26 @@ function AskingPriceField({
                 </span>
               </label>
               <p className="text-sm leading-6 text-[#5c6b78]">{help}</p>
-              {recommended ? (
+              {estimate ? (
                 <div className="rounded-xl border border-[#e7eaee] bg-[#fbfbfc] p-3">
-                  <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{companyCopy.priceRangeTitle}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#1c2740] tabular-nums">
-                    {recommended.low} – {recommended.high}
+                  <p className="text-sm font-semibold text-[#1c2740]">{companyCopy.priceRangeTitle} de precio</p>
+                  <PriceBar estimate={estimate} askingCents={optionalEurosToCents(draft.trim().length > 0 ? draft : value)} />
+                  <p className="mt-3 text-xs leading-5 text-[#3d4a63]">
+                    {basis} × múltiplo de <span className="font-semibold text-[#1c2740]">{estimate.sectorLabel}</span> (
+                    <span className="tabular-nums">
+                      {formatMultiple(estimate.multipleLow)} – {formatMultiple(estimate.multipleHigh)}
+                    </span>
+                    {estimate.adjustments.length > 0 ? <>, ajustado por {estimate.adjustments.join(", ")}</> : null}).
                   </p>
-                  <p className="mt-1 text-sm text-[#5c6b78]">
-                    {companyCopy.recommendedPrice}: {recommended.amount}
+                  <p className="mt-2 border-t border-[#eef0f4] pt-2 text-xs leading-5 text-[#667085]">
+                    Referencia orientativa por sector, no es una valoración. El precio lo decides tú.
                   </p>
-                  {recommended.applied ? null : (
+                  {recommended ? (
+                    <p className="mt-2 text-sm text-[#5c6b78]">
+                      {companyCopy.recommendedPrice}: {recommended.amount}
+                    </p>
+                  ) : null}
+                  {recommended && !recommended.applied ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -552,9 +613,13 @@ function AskingPriceField({
                       <Sparkles className="size-3.5" aria-hidden />
                       {companyCopy.applySuggestedInSheet}
                     </button>
-                  )}
+                  ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <p className="text-sm leading-6 text-[#3d4a63]">
+                  Para calcular el rango necesitamos un EBITDA positivo (de tus cuentas o ajustado). Con él te mostraremos un rango orientativo para tu sector.
+                </p>
+              )}
             </div>
             <footer className="flex justify-end border-t border-[#eef0f4] px-4 py-3 sm:px-6">
               <KitButton type="button" tone="outline" size="sm" onClick={() => setOpen(false)}>
@@ -612,6 +677,8 @@ function FichaMetrics({
   recommended = null,
   askingPriceIncludes,
   onAskingPriceIncludes,
+  estimate = null,
+  basis = "EBITDA",
 }: {
   revenue: string;
   askingPrice: string;
@@ -628,6 +695,8 @@ function FichaMetrics({
   recommended?: { amount: string; low: string; high: string; input: string; onUse: () => void; applied?: boolean } | null;
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
   onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
+  estimate?: PriceEstimate | null;
+  basis?: string;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
@@ -644,6 +713,8 @@ function FichaMetrics({
           unsetText={companyCopy.priceUnset}
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
           help={companyCopy.askingPriceHelp}
+          estimate={priceBlocked ? null : estimate}
+          basis={basis}
         />
       </div>
       <div className="h-full min-w-0">
@@ -1020,7 +1091,6 @@ function EbitdaAdjustmentsDialog({
               {rows.map((row, index) => {
                 const rowErrors = errors[index] ?? {};
                 const id = `adjustment-${index}`;
-                const rowAmountCents = formRowAmountCents(row.amount);
                 return (
                   <li key={index} data-adjustment-row={index} className="rounded-xl border border-[#e7eaee] bg-[#fbfcfd] p-3">
                     <div className="flex items-start gap-2">
@@ -1103,8 +1173,6 @@ function EbitdaAdjustmentsDialog({
                             <p id={`${id}-amount-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.amount}
                             </p>
-                          ) : rowAmountCents !== null && adjustmentExceedsHalfEbitda(rowAmountCents, ebitdaCents) ? (
-                            <p className="mt-1 text-xs text-[#b45f06]">{companyCopy.adjustmentLargeShare}</p>
                           ) : null}
                         </div>
                         <div className="min-w-0 sm:col-span-3">
@@ -2326,17 +2394,44 @@ export function CompanyDraftForm({
         summary={
           <SavedFacts
             rows={[
-              { label: companyCopy.factName, value: displayValue(legalName) },
-              { label: companyCopy.factNif, value: displayValue(nif) },
-              { label: companyCopy.locationLabel, value: displayValue(formatCompanyLocation(postalCode, city)) },
-              { label: companyCopy.foundedYearLabel, value: displayValue(foundedYear) },
-              { label: companyCopy.saleReasonLabel, value: saleReason && saleReason in saleReasonLabels ? saleReasonLabels[saleReason as keyof typeof saleReasonLabels] : "—" },
-              { label: companyCopy.workersLabel, value: headcount && headcount in headcountLabels ? headcountLabels[headcount as keyof typeof headcountLabels] : "—" },
-              { label: companyCopy.descriptionLabel, value: description.trim().length > 0 ? (description.trim().length > 220 ? `${description.trim().slice(0, 220).trim()}…` : description.trim()) : "—" },
-              { label: companyCopy.principalCnaeLabel, value: principalCnae ? `${principalCnae}${cnaeTitle(principalCnae) ? ` — ${cnaeTitle(principalCnae)}` : ""}` : "—" },
-              { label: companyCopy.secondaryCnaeLabel, value: secondaryCnaes.filter((code) => code.trim().length > 0).length > 0 ? secondaryCnaes.filter((code) => code.trim().length > 0).map((code) => `${code}${cnaeTitle(code) ? ` — ${cnaeTitle(code)}` : ""}`).join("\n") : "—" },
-              { label: "Financiación vendedor", value: sellerFinancing === "yes" ? `Sí${sellerFinancingPct ? ` · ${sellerFinancingPct} %` : ""}${sellerFinancingYears ? ` · ${sellerFinancingYears} años` : ""}` : sellerFinancing === "no" ? "No" : "—" },
-              { label: "Permanencia", value: sellerStay && sellerStay in sellerStayLabels ? sellerStayLabels[sellerStay as keyof typeof sellerStayLabels] : "—" },
+              { icon: Building2, label: companyCopy.factName, value: displayValue(legalName) },
+              { icon: FileSpreadsheet, label: companyCopy.factNif, value: displayValue(nif) },
+              { icon: MapPin, label: companyCopy.postalCodeLabel, value: displayValue(postalCode) },
+              { icon: MapPin, label: companyCopy.cityLabel, value: displayValue(city) },
+              { icon: CalendarDays, label: companyCopy.foundedYearLabel, value: displayValue(foundedYear) },
+              { icon: Handshake, label: companyCopy.saleReasonLabel, value: saleReason && saleReason in saleReasonLabels ? saleReasonLabels[saleReason as keyof typeof saleReasonLabels] : "—" },
+              { icon: Users, label: companyCopy.workersLabel, value: headcount && headcount in headcountLabels ? headcountLabels[headcount as keyof typeof headcountLabels] : "—" },
+              {
+                icon: FileSpreadsheet,
+                label: companyCopy.descriptionLabel,
+                className: "sm:col-span-2",
+                value: description.trim().length > 0 ? (description.trim().length > 220 ? `${description.trim().slice(0, 220).trim()}…` : description.trim()) : "—",
+              },
+              {
+                icon: Tags,
+                label: companyCopy.principalCnaeLabel,
+                value: principalCnae ? <CnaeChip code={principalCnae} tone="primary" /> : "—",
+              },
+              {
+                icon: Tags,
+                label: companyCopy.secondaryCnaeLabel,
+                value:
+                  secondaryCnaes.filter((code) => code.trim().length > 0).length > 0 ? (
+                    <span className="flex flex-wrap gap-1.5">
+                      {secondaryCnaes.filter((code) => code.trim().length > 0).map((code, index) => (
+                        <CnaeChip key={`${code}-${index}`} code={code} tone="secondary" />
+                      ))}
+                    </span>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                icon: Handshake,
+                label: "Financiación vendedor",
+                value: sellerFinancing === "yes" ? `Sí${sellerFinancingPct ? ` · ${sellerFinancingPct} %` : ""}${sellerFinancingYears ? ` · ${sellerFinancingYears} años` : ""}` : sellerFinancing === "no" ? "No" : "—",
+              },
+              { icon: Heart, label: "Permanencia", value: sellerStay && sellerStay in sellerStayLabels ? sellerStayLabels[sellerStay as keyof typeof sellerStayLabels] : "—" },
             ]}
           />
         }
@@ -2606,6 +2701,8 @@ export function CompanyDraftForm({
               }
               askingPriceIncludes={askingPriceIncludes}
               onAskingPriceIncludes={setAskingPriceIncludes}
+              estimate={priceEstimate}
+              basis={adjustmentBaseCents !== null && (approvedAdjustmentsCount > 0 || pendingAdjustments > 0) ? "EBITDA ajustado" : "EBITDA"}
             />
           </PublicFicha>
       </Panel>
@@ -2625,6 +2722,7 @@ export function CompanyDraftForm({
           <SavedFacts
             rows={[
               {
+                icon: Users,
                 label: "A quién vendes",
                 value:
                   customerBase === "business"
@@ -2636,14 +2734,17 @@ export function CompanyDraftForm({
                         : "—",
               },
               {
+                icon: Tags,
                 label: companyCopy.productsLegend,
                 value: productPercents.filter((item) => item.trim().length > 0).length > 0 ? productPercents.filter((item) => item.trim().length > 0).map((item) => `${item} %`).join(" · ") : "—",
               },
               {
+                icon: Users,
                 label: companyCopy.clientsLegend,
                 value: customerBase === "consumer" ? companyCopy.customerConsumerPublic : clientPercents.filter((item) => item.trim().length > 0).length > 0 ? clientPercents.filter((item) => item.trim().length > 0).map((item) => `${item} %`).join(" · ") : "—",
               },
               {
+                icon: Users,
                 label: companyCopy.ownerDependenceLabel,
                 value:
                   ownerDependence === "low"
@@ -2655,6 +2756,7 @@ export function CompanyDraftForm({
                         : "—",
               },
               {
+                icon: Building2,
                 label: companyCopy.premisesLabel,
                 value:
                   premisesKind === "owned"
@@ -2663,7 +2765,7 @@ export function CompanyDraftForm({
                       ? `${companyCopy.premisesRent}${rentMonthly ? ` · ${rentMonthly} €` : ""}${leaseYearsRemaining ? ` · ${leaseYearsRemaining} años` : ""}`
                       : "—",
               },
-              { label: companyCopy.recurringRevenueLabel, value: recurringRevenuePct.trim().length > 0 ? `${recurringRevenuePct} %` : "—" },
+              { icon: RefreshCw, label: companyCopy.recurringRevenueLabel, value: recurringRevenuePct.trim().length > 0 ? `${recurringRevenuePct} %` : "—" },
             ]}
           />
         }
@@ -2980,15 +3082,7 @@ export function CompanyDraftForm({
       <div aria-hidden className="hidden h-[40vh] lg:block" />
       </div>
 
-      <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>
-      {teaserDesk ? (
-        <SellerPdfCard
-          desk={teaserDesk}
-          previewHref="/mi-empresa/pdf/teaser?preview=1"
-          downloadHref="/mi-empresa/pdf/teaser?download=1"
-          onRegenerate={regenerateTeaserLinkAction}
-        />
-      ) : null}
+      <div className={tab === "deal" ? "flex flex-col gap-4 pb-[var(--shell-tabbar)] lg:pb-0" : "hidden"}>
       <Panel
         id="panel-ficha-preview"
         title={companyCopy.detailsDealTab}
@@ -3007,7 +3101,7 @@ export function CompanyDraftForm({
             publishable={!priceBlocked}
           />
         </div>
-        <div id="ficha-detalles" className="mt-8 flex scroll-mt-24 flex-col gap-4">
+        <div id="ficha-detalles" className="shell-anchor mt-8 flex flex-col gap-4">
           <span className="flex items-center gap-2 border-b border-[#465ab4] pb-2 text-base font-semibold text-[#465ab4]">
             {companyCopy.openFichaTitle}
             <FieldHint text={companyCopy.openFichaHint} />
@@ -3064,6 +3158,14 @@ export function CompanyDraftForm({
           } />
         </div>
       </Panel>
+      {teaserDesk ? (
+        <SellerPdfCard
+          desk={teaserDesk}
+          previewHref="/mi-empresa/pdf/teaser?preview=1"
+          downloadHref="/mi-empresa/pdf/teaser?download=1"
+          onRegenerate={regenerateTeaserLinkAction}
+        />
+      ) : null}
       </div>
       </div>
       </div>

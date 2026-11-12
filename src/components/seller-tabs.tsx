@@ -130,7 +130,7 @@ export function FloatingSegmentedTabs<T extends string>({
   if (compact) {
     const stuck = stuckBelowProgress ? "top-[5.75rem] sm:top-[6.25rem]" : "top-14 sm:top-16";
     return (
-      <div className={`sticky z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur ${stuck}`}>
+      <div className={`shell-page-tabs sticky z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur ${stuck}`}>
         <div className="flex justify-center">{tablist}</div>
       </div>
     );

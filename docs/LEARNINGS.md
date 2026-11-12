@@ -121,3 +121,4 @@ Append-only. One line per project-specific pitfall:
 - 2026-11-11: vitest cannot import a client component that pulls `@/components` — extract `placeBubble` to `src/lib/tooltip-place.ts` and test that file with a relative import.
 - 2026-11-11: `next dev` started without `DATABASE_URL` fail-closes sign-in (`[throttle] counter unavailable; denying`) — start Next with the same DB URL the unit tests use.
 - 2026-11-11: Playwright signed-in shots after e2e hit `email_throttle` — `DELETE FROM email_throttle` before a capture run.
+- 2026-11-12: `/mi-empresa/detalles` could not scroll — AskingPriceField stays mounted in a `hidden` tab and called `useModal` with no open flag, so `html` overflow stayed `hidden` — pass `open` into `useModal` and return before locking when the sheet is closed.

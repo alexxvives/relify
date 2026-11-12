@@ -124,7 +124,7 @@ describe("ebitda adjustments", () => {
     expect(adjustmentRowErrors({ type: "owner_salary", amount: "6000000", reason: "Sueldo del socio" }, { revenueCents: 500_000_000 }).amount).toBeDefined();
   });
 
-  it("allows 1 M € on 5 M sales and only warns when the amount is more than half of EBITDA", () => {
+  it("allows 1 M € on 5 M sales even when the amount is more than half of EBITDA", () => {
     expect(adjustmentExceedsRevenue(100_000_100, 500_000_000)).toBe(false);
     expect(adjustmentExceedsHalfEbitda(100_000_100, 75_000_000)).toBe(true);
     expect(adjustmentExceedsHalfEbitda(5_000_000, 75_000_000)).toBe(false);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Handshake, Shield, TrendingUp } from "lucide-react";
 import { AuthBackdrop } from "@/components/auth-backdrop";
 import { PublicMenu } from "@/components/landing/public-menu";
+import { isIntEnvironment } from "@/lib/int-env";
 import { SignInForm } from "@/components/sign-in-form";
 import { SignUpForm, type SignupIntent } from "@/components/sign-up-form";
 import {
@@ -54,12 +55,12 @@ export function AuthScreen({
   return (
     <div className="flex min-h-dvh flex-col bg-[#e7eef6] lg:h-dvh lg:max-h-dvh lg:overflow-hidden font-public text-[#16324f]">
       <div className="shrink-0 px-4 pt-3 sm:px-5 sm:pt-4 lg:px-8 short:pt-2">
-        <PublicMenu signedIn={false} />
+        <PublicMenu signedIn={false} showInt={isIntEnvironment()} />
       </div>
       <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-4 pt-2 pb-6 sm:px-6 sm:pt-3 sm:pb-8 lg:px-10 lg:pb-10 xl:max-w-[80%] xl:px-16 2xl:px-24 short:pt-2 short:lg:pb-4">
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl sm:rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
+        <div className="relative flex min-h-0 flex-1 flex-col md:overflow-hidden md:rounded-[1.75rem] md:bg-[#f4f8fb] md:shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
           <AuthBackdrop />
-          <div className="relative z-10 flex h-full min-h-0 flex-col px-4 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
+          <div className="relative z-10 flex h-full min-h-0 flex-col px-0 py-4 md:px-8 md:py-5 lg:px-10 lg:py-5">
             <div className="relative flex flex-1 flex-col justify-center gap-4 py-2 sm:gap-8 sm:py-4 lg:block lg:py-2">
               <section className="hidden min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:block lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2 short:lg:w-[min(34rem,calc(52%-1rem))]">
                 <p className="text-sm font-medium tracking-[0.22em] sm:text-base short:text-xs short:tracking-[0.18em] text-[#8aa0b2] uppercase">
@@ -94,7 +95,7 @@ export function AuthScreen({
                 </ul>
               </section>
               <div className="flex w-full flex-col items-center justify-center lg:absolute lg:top-1/2 lg:left-[78%] lg:w-[min(30rem,46%)] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:max-h-full short:lg:w-[min(27rem,44%)]">
-                <section className="w-full max-w-md mx-auto rounded-2xl sm:rounded-[1.75rem] border border-white/80 bg-white/95 px-5 py-5 sm:px-8 sm:py-9 lg:px-9 lg:py-10 shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] backdrop-blur-sm lg:max-h-full lg:overflow-y-auto short:px-7 short:py-5 tiny:px-5 tiny:py-4">
+                <section className="w-full max-w-md mx-auto md:rounded-[1.75rem] md:border md:border-white/80 md:bg-white/95 md:px-8 md:py-9 lg:px-9 lg:py-10 md:shadow-[0_24px_50px_-28px_rgba(22,50,79,0.45)] md:backdrop-blur-sm lg:max-h-full lg:overflow-y-auto">
                   <h1 className="sr-only lg:hidden">{card.title}</h1>
                   <h2 className="text-center text-xl sm:text-3xl short:text-2xl font-semibold tracking-tight text-[#16324f]">
                     {card.title}

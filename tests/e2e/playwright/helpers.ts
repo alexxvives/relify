@@ -347,3 +347,225 @@ export async function expectNoIdentityLeak(page: Page): Promise<void> {
     expect(html, `leaked ${secret}`).not.toContain(secret);
   }
 }
+
+type FichaCheck = {
+  ok: boolean;
+  message: string;
+};
+
+export async function expectFichaCompactS13b(page: Page): Promise<void> {
+  await page.locator(".shell-content").waitFor({ state: "visible" });
+  const sections = page.locator("#ficha-detalles details");
+  await sections.first().waitFor({ state: "visible", timeout: 20_000 });
+  const last = sections.last();
+  if ((await last.count()) > 0) {
+    const opened = await last.getAttribute("open");
+    if (opened === null) {
+      await last.locator("summary").click();
+    }
+  }
+  await expectLastContentControlAboveChrome(page);
+  const result = await page.evaluate((): FichaCheck => {
+    const splitWord = (root: ParentNode, word: string): boolean => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node) {
+        const text = node.textContent ?? "";
+        const index = text.indexOf(word);
+        if (index >= 0) {
+          const range = document.createRange();
+          range.setStart(node, index);
+          range.setEnd(node, index + word.length);
+          return range.getClientRects().length > 1;
+        }
+        node = walker.nextNode();
+      }
+      return false;
+    };
+    const tabbar = document.querySelector(".shell-tabbar");
+    const tabs = document.querySelector(".shell-page-tabs");
+    const shown = (el: Element | null): DOMRect | null => {
+      if (!(el instanceof HTMLElement)) {
+        return null;
+      }
+      const style = getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden") {
+        return null;
+      }
+      const rect = el.getBoundingClientRect();
+      return rect.height >= 1 ? rect : null;
+    };
+    const tabTop = shown(tabbar)?.top ?? window.innerHeight;
+    const stickyTabs = shown(tabs);
+    const details = [...document.querySelectorAll<HTMLElement>("#ficha-detalles details")];
+    const last = details.at(-1);
+    if (last) {
+      const copy = last.querySelector("p, li, td, h2, summary");
+      const copyRect = copy instanceof HTMLElement ? copy.getBoundingClientRect() : last.getBoundingClientRect();
+      const bottom = last.getBoundingClientRect().bottom;
+      if (bottom > tabTop + 2) {
+        return {
+          ok: false,
+          message: `last accordion bottom ${bottom.toFixed(1)} sits under tab bar at ${tabTop.toFixed(1)}`,
+        };
+      }
+      const intros = [...last.querySelectorAll<HTMLElement>("h2, p")];
+      if (stickyTabs) {
+        for (const el of intros) {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+            continue;
+          }
+          const overlap = Math.min(rect.bottom, stickyTabs.bottom) - Math.max(rect.top, stickyTabs.top);
+          if (overlap > 4) {
+            const label = (el.textContent ?? "").trim().slice(0, 48);
+            return { ok: false, message: `sticky tabs overlap “${label}” by ${overlap.toFixed(1)}px` };
+          }
+        }
+      }
+      if (copyRect.bottom > tabTop + 2) {
+        return { ok: false, message: `trailing copy bottom ${copyRect.bottom.toFixed(1)} under tab bar ${tabTop.toFixed(1)}` };
+      }
+    }
+    for (const title of document.querySelectorAll<HTMLElement>("#ficha-detalles h2.report-section-title")) {
+      const wrap = getComputedStyle(title).overflowWrap;
+      const breakStyle = getComputedStyle(title).wordBreak;
+      if (breakStyle === "break-all" || wrap === "break-word") {
+        return { ok: false, message: `${title.textContent?.trim()} uses ${breakStyle}/${wrap}` };
+      }
+      for (const word of ["Balance", "diligence"]) {
+        if ((title.textContent ?? "").includes(word) && splitWord(title, word)) {
+          return { ok: false, message: `“${word}” wraps mid-word in “${title.textContent?.trim()}”` };
+        }
+      }
+    }
+    const badge = document.querySelector("[data-int-badge]");
+    const bell = document.querySelector<HTMLElement>('button[aria-label^="Abrir avisos"], button[aria-label*="avisos"]');
+    if (badge instanceof HTMLElement && bell) {
+      const a = badge.getBoundingClientRect();
+      const b = bell.getBoundingClientRect();
+      const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+      const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (overlapX > 0 && overlapY > 0) {
+        return { ok: false, message: `INT badge overlaps Abrir avisos by ${overlapX.toFixed(1)}×${overlapY.toFixed(1)}` };
+      }
+      const style = getComputedStyle(badge);
+      if (style.position === "fixed" && a.right > window.innerWidth - 72 && a.top < 64) {
+        return { ok: false, message: "INT badge is still a top-right overlay" };
+      }
+    }
+    const overlay = [...document.querySelectorAll("body *")].find((el) => {
+      if (!(el instanceof HTMLElement) || el.textContent?.trim() !== "INT") {
+        return false;
+      }
+      const style = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return style.position === "fixed" && rect.top < 64 && rect.right > window.innerWidth - 80;
+    });
+    if (overlay) {
+      return { ok: false, message: "fixed INT overlay still sits top-right over header controls" };
+    }
+    return { ok: true, message: "ficha compact clearance ok" };
+  });
+  expect(result.ok, result.message).toBe(true);
+}
+
+async function closeOpenOverlays(page: Page): Promise<void> {
+  for (let step = 0; step < 5; step += 1) {
+    const overlay = page.locator("[data-bottom-sheet], [data-asking-price-sheet], [role='dialog'][aria-modal='true']").first();
+    if (!(await overlay.isVisible().catch(() => false))) {
+      break;
+    }
+    await page.keyboard.press("Escape");
+    const closer = overlay.getByRole("button", { name: /^cerrar$/i }).first();
+    if (await closer.isVisible().catch(() => false)) {
+      await closer.click().catch(() => undefined);
+    }
+    await overlay.waitFor({ state: "hidden", timeout: 2_000 }).catch(() => undefined);
+  }
+}
+
+export async function openAndClosePageSheets(page: Page): Promise<void> {
+  await dismissCookieBanner(page);
+  await closeOpenOverlays(page);
+  const openers = page.locator(
+    '.shell-content button[aria-haspopup="dialog"], .shell-content button[aria-label^="Abrir avisos"], .shell-content button[aria-label="Más acciones"]',
+  );
+  const limit = Math.min(await openers.count(), 10);
+  for (let index = 0; index < limit; index += 1) {
+    const opener = openers.nth(index);
+    if (!(await opener.isVisible().catch(() => false))) {
+      continue;
+    }
+    await opener.click({ timeout: 2_000 }).catch(() => undefined);
+    await page.waitForTimeout(200);
+    await closeOpenOverlays(page);
+  }
+  const hints = page.locator('.shell-content [role="button"][tabindex="0"]');
+  const hintLimit = Math.min(await hints.count(), 6);
+  for (let index = 0; index < hintLimit; index += 1) {
+    const hint = hints.nth(index);
+    if (!(await hint.isVisible().catch(() => false))) {
+      continue;
+    }
+    await hint.click({ timeout: 2_000 }).catch(() => undefined);
+    await page.waitForTimeout(200);
+    await closeOpenOverlays(page);
+  }
+  await closeOpenOverlays(page);
+}
+
+export async function expectWindowScrolls(page: Page, label: string): Promise<void> {
+  await page.evaluate(() => {
+    const html = document.documentElement;
+    html.style.setProperty("scroll-behavior", "auto", "important");
+    document.body.style.setProperty("scroll-behavior", "auto", "important");
+    const scroller = document.scrollingElement ?? html;
+    if (scroller.scrollHeight <= scroller.clientHeight + 8) {
+      const pad = document.createElement("div");
+      pad.setAttribute("data-scroll-probe", "1");
+      pad.style.height = "2400px";
+      document.body.appendChild(pad);
+    }
+    window.scrollTo(0, 0);
+  });
+  const locked = await page.evaluate(() => ({
+    htmlOverflow: getComputedStyle(document.documentElement).overflow,
+    htmlOverflowY: getComputedStyle(document.documentElement).overflowY,
+    bodyOverflow: getComputedStyle(document.body).overflow,
+    bodyOverflowY: getComputedStyle(document.body).overflowY,
+  }));
+  expect(
+    locked.htmlOverflow === "hidden" || locked.htmlOverflowY === "hidden" || locked.bodyOverflow === "hidden" || locked.bodyOverflowY === "hidden",
+    `${label}: page scroll locked (html ${locked.htmlOverflow}/${locked.htmlOverflowY}, body ${locked.bodyOverflow}/${locked.bodyOverflowY})`,
+  ).toBe(false);
+  const start = await page.evaluate(() => window.scrollY);
+  const viewport = page.viewportSize();
+  const x = Math.round((viewport?.width ?? 360) / 2);
+  await page.mouse.move(x, 320);
+  await page.mouse.wheel(0, 1400);
+  await page.waitForTimeout(120);
+  let end = await page.evaluate(() => window.scrollY);
+  if (end <= start) {
+    await page.evaluate(() => {
+      const y = Math.min(400, Math.floor(window.innerHeight / 2));
+      const origin = document.elementFromPoint(window.innerWidth / 2, y) ?? document.body;
+      origin.dispatchEvent(new WheelEvent("wheel", { deltaY: 1200, bubbles: true, cancelable: true }));
+    });
+    await page.waitForTimeout(80);
+    end = await page.evaluate(() => window.scrollY);
+  }
+  if (end <= start) {
+    const box = await page.locator("body").boundingBox();
+    if (box) {
+      await page.mouse.move(box.x + box.width / 2, box.y + Math.min(280, box.height / 3));
+      await page.mouse.wheel(0, 1800);
+      await page.waitForTimeout(120);
+      end = await page.evaluate(() => window.scrollY);
+    }
+  }
+  expect(end, `${label}: window.scrollY stayed at ${start} after wheel/touch (html overflow ${locked.htmlOverflow})`).toBeGreaterThan(start);
+  await page.evaluate(() => {
+    document.querySelector("[data-scroll-probe]")?.remove();
+  });
+}

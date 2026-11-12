@@ -7,7 +7,9 @@ import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { OnboardingPlanResume } from "@/components/onboarding-plan-resume";
 import { loadBuyerPlan } from "@/server/buyerPlan";
+import { IntBadge } from "@/components/int-badge";
 import { Logo } from "@/components/logo";
+import { isIntEnvironment } from "@/lib/int-env";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, type SignupRole } from "@/lib/auth-input";
 import { ConversionPing } from "@/components/cookie-consent";
@@ -49,15 +51,18 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         aria-hidden
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(22,50,79,0.28),rgba(20,153,138,0.22)_42%,rgba(22,50,79,0.55))]"
       />
-      <form action={signOutAction} className="absolute top-6 left-6 z-20">
-        <button
-          type="submit"
-          className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-[#16324f] shadow-sm hover:bg-white"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          {authCopy.backHome}
-        </button>
-      </form>
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
+        {isIntEnvironment() ? <IntBadge /> : null}
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-[#16324f] shadow-sm hover:bg-white"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+            {authCopy.backHome}
+          </button>
+        </form>
+      </div>
       <section className="relative z-10 w-full max-w-5xl rounded-[28px] border border-white/70 bg-white/95 px-6 py-8 shadow-[0_24px_70px_-28px_rgba(22,50,79,0.55)] backdrop-blur-sm sm:px-10">
         <div className="flex items-start justify-between gap-6">
           <div>
