@@ -32,6 +32,29 @@ describe("company draft money and slug", () => {
     })).success).toBe(false);
   });
 
+  it("accepts a Spanish postal code and city without a street", () => {
+    expect(companyDraftSchema.safeParse(draft({
+      codename: "Proyecto Norte",
+      region: "Cataluña",
+      postalCode: "08022",
+      city: "Barcelona",
+      revenue: "1000",
+      ebitda: "100",
+      adjustedEbitda: "120",
+      askingPrice: "800",
+    })).success).toBe(true);
+    expect(companyDraftSchema.safeParse(draft({
+      codename: "Proyecto Norte",
+      region: "Cataluña",
+      postalCode: "8022",
+      city: "Barcelona",
+      revenue: "1000",
+      ebitda: "100",
+      adjustedEbitda: "120",
+      askingPrice: "800",
+    })).success).toBe(false);
+  });
+
   it("saves a partial draft without a sale reason (t78)", () => {
     expect(companyDraftSchema.safeParse(draft({
       codename: "Proyecto Norte",

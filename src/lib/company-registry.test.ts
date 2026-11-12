@@ -24,6 +24,8 @@ describe("draftFromRegistry", () => {
 
     expect(draft.legalName).toBe("MERCADONA SA");
     expect(draft.address).toBe(record.address);
+    expect(draft.postalCode).toBe("");
+    expect(draft.city).toBe("Albalat dels Sorells");
     expect(draft.region).toBe("Valencia");
     expect(draft.codename).toBe("Proyecto Alba");
     expect(draft.foundedYear).toBe("");

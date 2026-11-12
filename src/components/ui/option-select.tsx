@@ -27,7 +27,7 @@ export function OptionSelect({
   name?: string;
   label: string;
   value: string;
-  options: readonly { value: string; label: string }[];
+  options: readonly { value: string; label: string; group?: string }[];
   onValueChange: (value: string) => void;
   searchable?: boolean;
   searchPlaceholder?: string;
@@ -240,10 +240,17 @@ export function OptionSelect({
             {visible.length === 0 ? (
               <li className="px-3 py-2 text-sm text-[#64748b]">{emptyLabel}</li>
             ) : (
-              visible.map((option) => {
+              visible.map((option, index) => {
                 const current = option.value === value;
+                const group = option.group;
+                const showGroup = Boolean(group) && visible[index - 1]?.group !== group;
                 return (
-                  <li key={option.value} role="presentation">
+                  <li key={option.value || `empty-${index}`} role="presentation">
+                    {showGroup && group ? (
+                      <p className="sticky top-0 z-[1] bg-[#f7f8fb] px-3 py-1.5 text-[11px] font-semibold tracking-wide text-[#64748b] uppercase">
+                        {group}
+                      </p>
+                    ) : null}
                     <button
                       type="button"
                       role="option"

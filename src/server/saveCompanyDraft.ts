@@ -21,6 +21,7 @@ import { prisma } from "@/server/db";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { approvedAdjustments } from "@/lib/ebitda-adjustments";
 import { askingPriceAllowed, declaredAccountsCents, lockedIdentity, priceBasisCents, sellerAdjustmentWrite, sellerMoneyFields, storedAdjustmentList } from "@/lib/seller-draft-guard";
+import { formatCompanyLocation } from "@/lib/company-location";
 import { deleteUnusedAdjustmentDocuments, missingAdjustmentDocument } from "@/server/adjustmentDocumentDisk";
 import { notifyEbitdaAdjustment } from "@/server/notifyEbitdaAdjustment";
 import { Prisma } from "@/generated/prisma/client";
@@ -213,9 +214,12 @@ export async function saveCompanyDraft(
       ? requested
       : await uniqueCodename();
 
+  const composedAddress = formatCompanyLocation(input.postalCode, input.city);
   const profile = {
     legalName: identity.legalName,
-    address: input.address,
+    address: composedAddress.length > 0 ? composedAddress : (existing?.address ?? input.address),
+    postalCode: input.postalCode === "" ? null : input.postalCode,
+    city: input.city === "" ? null : input.city,
     codename,
     region: input.region,
     // t78: revenue, EBITDA, OPEX and yearly accounts are never taken from a seller submission.

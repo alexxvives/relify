@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: Next 16 “1 issue” overlay covered the tab bar — `html` uses `scroll-smooth` — add `data-scroll-behavior="smooth"` on `<html>`.
+- 2026-11-12: S13 after-shots at 390 were skeletons — `waitUntil: "load"` finishes before RSC — wait for `networkidle` and hide `.animate-pulse`.
+- 2026-11-12: S12c sticky Descargar still overlapped teaser on 390 — move Perfil ciego off Inicio onto Ficha, drop the mobile sticky PDF CTA, and keep only inline Descargar teaser / Copiar / Regenerar.
 - 2026-11-12: sticky Descargar covered teaser Copiar/Regenerar mid-scroll — padding only helps at max scroll — hide `.shell-sticky-cta` while `[data-sticky-twin]` intersects the viewport (IntersectionObserver) and assert elementFromPoint on the action centers.
 - 2026-11-12: Copiar/Regenerar on /mi-empresa sat under the tab bar at max scroll — shell padding-bottom was tab bar only, not sticky CTA height — pad `--layout-pad + --shell-tabbar + --shell-sticky` and assert the last content control in Playwright.
 - 2026-11-12: home `/` dropped the `[INT]` title prefix — child `metadata.title` as a string became an absolute title and skipped `title.template` — use `intAbsoluteTitle` on that page.

@@ -71,6 +71,12 @@ export const authCopy = {
     advisor: "Asesor",
     admin: "Administrador",
   },
+  roleChoiceLabel: "Empresa, comprador o asesor",
+  roleHints: {
+    seller: "Publicas la ficha y recibes compradores.",
+    investor: "Exploras empresas y pides conexión.",
+    advisor: "Acompañas mandatos de compraventa.",
+  },
   signInSubmit: "Entrar",
   signUpSubmit: "Crear cuenta",
   signInPending: "Entrando…",

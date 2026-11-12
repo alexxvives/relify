@@ -6,6 +6,7 @@ import type { SellerFichaExtras } from "@/server/sellerFichaExtras";
 import { sabiRegistryIsEmpty, type SabiRegistry } from "@/lib/sabi/registry";
 import type { CompanyDraftInput } from "@/lib/company-draft";
 import type { SellerFocusPanel } from "@/lib/company-profile";
+import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 export function SellerCompanyPanel({
   draft,
@@ -15,6 +16,7 @@ export function SellerCompanyPanel({
   coverSrc = null,
   sabiRegistry = null,
   fichaExtras = null,
+  teaserDesk = null,
   uploadsDisabled = false,
 }: {
   draft: CompanyDraftInput | null;
@@ -27,6 +29,7 @@ export function SellerCompanyPanel({
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
   fichaExtras?: SellerFichaExtras | null;
+  teaserDesk?: SellerTeaserDesk | null;
 }) {
   return (
     <>
@@ -38,6 +41,7 @@ export function SellerCompanyPanel({
         initialTab={initialTab}
         reportYears={sabiRegistry?.years ?? null}
         fichaExtras={fichaExtras}
+        teaserDesk={teaserDesk}
         coverSrc={coverSrc}
         uploadsDisabled={uploadsDisabled}
         financeExtra={

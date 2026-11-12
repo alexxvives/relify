@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Minimize2, Pencil } from "lucide-react";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 import { ViewportPortal } from "@/components/viewport-portal";
 
@@ -28,6 +27,28 @@ function StatusIcon({ status, className = "size-4" }: { status: DetailSectionSta
     return <Clock className={`${className} text-[#b7791f]`} aria-hidden />;
   }
   return <Info className={`${className} text-[#8b95a7]`} aria-hidden />;
+}
+
+/** Compact sticky percent + bar under the app header (phones). Desktop keeps CompletionRing. */
+export function CompactProgressBar({ done, total }: { done: number; total: number }) {
+  const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;
+  return (
+    <div
+      className="sticky top-14 z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur sm:top-16 lg:hidden"
+      role="status"
+      aria-label={`${percent} por ciento completado`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-[#1c2740]">{percent}%</span>
+        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e6e9f0]">
+          <div className="h-full rounded-full bg-[#2fc4b2] transition-[width] duration-300" style={{ width: `${percent}%` }} />
+        </div>
+        <span className="shrink-0 text-[11px] tabular-nums text-[#64748b]">
+          {done}/{total}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 /** t77: completion ring for the seller's required sections. */
@@ -174,7 +195,7 @@ function ProgressTrackerOverlay({
 
 /**
  * Section navigation + progress for /mi-empresa/detalles (Información empresa only).
- * Compact: completion ring in the page header opens a bottom sheet.
+ * Compact: slim percent bar under the header (CompactProgressBar).
  * lg–xl: collapsed pill at top-right; xl: expanded sticky card at top-right.
  */
 export function DetailSectionNav({
@@ -194,7 +215,6 @@ export function DetailSectionNav({
   /** Required fields that live outside the visible sections (e.g. on the other tab) open their tab first. */
   onMissing?: (id: string) => boolean;
 }) {
-  const [sheetOpen, setSheetOpen] = useState(false);
   const { active, go } = useScrollSpy(
     items.map((item) => item.id),
     120,
@@ -206,7 +226,6 @@ export function DetailSectionNav({
   }));
 
   function collapseTrackerIfCompact() {
-    setSheetOpen(false);
     if (window.matchMedia("(max-width: 1279px)").matches) {
       window.localStorage.setItem(progressTrackerKey, "0");
       window.dispatchEvent(new Event(progressTrackerEvent));
@@ -310,27 +329,14 @@ export function DetailSectionNav({
 
   return (
     <>
-      <div className="lg:hidden">
-        <button
-          type="button"
-          aria-haspopup="dialog"
-          aria-expanded={sheetOpen}
-          aria-label="Mostrar tu progreso"
-          onClick={() => setSheetOpen(true)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#e6e9f0] bg-white shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+      <div className="hidden lg:block">
+        <ProgressTrackerOverlay
+          label="Tu progreso"
+          trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
         >
-          <CompletionRing done={progress.done} total={progress.total} size={36} />
-        </button>
-        <BottomSheet open={sheetOpen} title="Tu progreso" onClose={() => setSheetOpen(false)}>
           {renderList()}
-        </BottomSheet>
+        </ProgressTrackerOverlay>
       </div>
-      <ProgressTrackerOverlay
-        label="Tu progreso"
-        trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
-      >
-        {renderList()}
-      </ProgressTrackerOverlay>
     </>
   );
 }

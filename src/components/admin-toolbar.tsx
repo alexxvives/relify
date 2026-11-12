@@ -26,7 +26,7 @@ export function AdminSearchField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label htmlFor={id} className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-[var(--field-radius)] border border-public-line bg-public-sand px-3 sm:w-auto sm:shrink-0">
+    <label htmlFor={id} className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-[var(--field-radius)] border border-public-line bg-white px-3 sm:w-auto sm:shrink-0">
       <span className="shrink-0 text-xs text-[#667085]">{label}</span>
       <input
         id={id}

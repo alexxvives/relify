@@ -24,7 +24,7 @@ export function LockedIdentityInput({ name, value, onRequest }: { name: Identity
           {tooltip}
         </span>
       </span>
-      <Input name={name} value={value} readOnly aria-readonly="true" title={value} className={`bg-[#f5f6f8] pl-8 text-[#3d4a63] ${onRequest ? "pr-10" : ""}`} />
+      <Input name={name} value={value} readOnly aria-readonly="true" title={value} className={`bg-white pl-8 text-[#3d4a63] ${onRequest ? "pr-10" : ""}`} />
       {onRequest ? (
         // t80: the change request is a compact icon inside the NIF field (no extra row under the cells).
         <button

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Handshake, Shield, TrendingUp } from "lucide-react";
+import { AuthBackdrop } from "@/components/auth-backdrop";
 import { PublicMenu } from "@/components/landing/public-menu";
 import { SignInForm } from "@/components/sign-in-form";
 import { SignUpForm, type SignupIntent } from "@/components/sign-up-form";
@@ -58,19 +58,7 @@ export function AuthScreen({
       </div>
       <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-4 pt-2 pb-6 sm:px-6 sm:pt-3 sm:pb-8 lg:px-10 lg:pb-10 xl:max-w-[80%] xl:px-16 2xl:px-24 short:pt-2 short:lg:pb-4">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl sm:rounded-[1.75rem] bg-[#f4f8fb] shadow-[0_24px_70px_-36px_rgba(22,50,79,0.35)]">
-          <Image
-            src="/auth/login-background.jpg"
-            alt=""
-            fill
-            priority
-            unoptimized
-            sizes="100vw"
-            className="object-cover object-[54%_24%] tiny:hidden"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(244,248,251,0.97)_0%,rgba(244,248,251,0.9)_14%,rgba(244,248,251,0.62)_28%,rgba(244,248,251,0.18)_42%,rgba(244,248,251,0)_50%,rgba(244,248,251,0.22)_62%,rgba(244,248,251,0.72)_78%,rgba(244,248,251,0.96)_100%)]"
-          />
+          <AuthBackdrop />
           <div className="relative z-10 flex h-full min-h-0 flex-col px-4 py-4 sm:px-8 sm:py-5 lg:px-10 lg:py-5">
             <div className="relative flex flex-1 flex-col justify-center gap-4 py-2 sm:gap-8 sm:py-4 lg:block lg:py-2">
               <section className="hidden min-w-0 lg:absolute lg:top-1/2 lg:left-0 lg:block lg:w-[min(38rem,calc(52%-1rem))] lg:-translate-y-1/2 short:lg:w-[min(34rem,calc(52%-1rem))]">

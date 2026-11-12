@@ -237,7 +237,7 @@ export const companyCopy = {
   balanceIntro: "Solo los ejercicios cerrados. Total activo y pasivo total se calculan.",
   forecastMark: "Previsión",
   evolutionLabel: "Evolución financiera",
-  locationLabel: "Localización",
+  locationLabel: "Ubicación",
   workersLabel: "Trabajadores",
   backToMarket: "Volver a empresas",
   recommendationsHeading: "Empresas que pueden interesarte",
@@ -334,7 +334,17 @@ export const companyCopy = {
   factNif: "NIF",
   legalNameLabel: "Razón social",
   addressLabel: "Dirección",
-  confidentialHint: "La razón social, el NIF y la dirección se guardan en tu borrador y no salen en la ficha pública.",
+  postalCodeLabel: "Código postal",
+  cityLabel: "Ciudad",
+  postalCodeInvalid: "Escribe un código postal de 5 dígitos.",
+  locationFromRegistry: "Dato del registro mercantil",
+  confidentialHint: "La razón social, el NIF y el código postal y la ciudad se guardan en tu borrador y no salen en la ficha pública.",
+  askingPriceHelp:
+    "Elige si el comprador paga por las participaciones (se queda la sociedad con su deuda y su caja) o un precio de empresa libre de deuda y caja (deuda y caja se ajustan al cierre). El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado.",
+  applySuggestedInSheet: "Usar el precio sugerido",
+  priceRangeTitle: "Rango orientativo",
+  askingPriceSheetTitle: "Precio de venta",
+  emptyValue: "Sin indicar",
 } as const;
 
 export const incomeLabels = {

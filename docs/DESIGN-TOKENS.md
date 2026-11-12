@@ -16,7 +16,7 @@ Tailwind maps `font-sans` and `font-heading` to those variables. Do not set `fon
 
 ## Fields
 
-`--field-radius: 0.9rem` is the shared control corner (the squarer waitlist input). `.relify-field` and `.releva-wait-field` share sand fill, public-line border, and ink focus. Browser autofill (`:-webkit-autofill`) keeps that sand fill with an inset box-shadow so Chrome does not paint a blue or yellow field. The form kit (`src/components/ui/form`), login, sign-up, `/valorar`, and Arc (`--radius-control`) read the same token.
+`--field-radius: 0.9rem` is the shared control corner (the squarer waitlist input). `.relify-field` and `.releva-wait-field` share white fill, public-line border, and ink focus. Browser autofill (`:-webkit-autofill`) keeps that white fill with an inset box-shadow so Chrome does not paint a blue or yellow field. The form kit (`src/components/ui/form`), login, sign-up, `/valorar`, and Arc (`--radius-control`) read the same token.
 
 ## Titles wrap naturally
 

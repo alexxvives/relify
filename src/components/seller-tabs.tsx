@@ -113,6 +113,7 @@ export function FloatingSegmentedTabs<T extends string>({
   value,
   onChange,
   offsetClass = "",
+  stuckBelowProgress = false,
 }: {
   label: string;
   tabs: readonly { id: T; label: string }[];
@@ -120,13 +121,16 @@ export function FloatingSegmentedTabs<T extends string>({
   onChange: (id: T) => void;
   /** Leave room for the Tu progreso card so the toggle stays centred in the remaining column. */
   offsetClass?: string;
+  /** Compact: sit under CompactProgressBar (header + slim bar). */
+  stuckBelowProgress?: boolean;
 }) {
   const compact = useCompactViewport();
   const tablist = <SegmentedTablist label={label} tabs={tabs} value={value} onChange={onChange} />;
 
   if (compact) {
+    const stuck = stuckBelowProgress ? "top-[5.75rem] sm:top-[6.25rem]" : "top-14 sm:top-16";
     return (
-      <div className="sticky top-14 z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur sm:top-16">
+      <div className={`sticky z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur ${stuck}`}>
         <div className="flex justify-center">{tablist}</div>
       </div>
     );

@@ -185,7 +185,7 @@ export function CardPhotoUploader({ photos, recommended, onCount }: { photos: Ga
   }
 
   return (
-    <div id="fotos" className="flex scroll-mt-24 flex-col gap-2">
+    <div id="fotos" className="flex scroll-mt-24 flex-col gap-1.5">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-[#2b3b4a]">
         <span className="whitespace-nowrap">{companyCopy.cardPhotos}</span>
         <span className="text-xs font-normal whitespace-nowrap text-[#5c6b78] tabular-nums">
@@ -201,7 +201,7 @@ export function CardPhotoUploader({ photos, recommended, onCount }: { photos: Ga
           type="button"
           disabled={pending || room <= 0}
           onClick={() => input.current?.click()}
-          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a] hover:bg-[#f7f8fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50 sm:flex-none"
+          className="inline-flex h-11 w-auto items-center justify-center gap-2 rounded-xl border border-[#e7eaee] bg-white px-3 text-sm font-medium text-[#2b3b4a] hover:bg-[#f7f8fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:opacity-50"
         >
           <ImagePlus className="size-4 shrink-0" aria-hidden />
           <span className="truncate">{pending ? "Subiendo…" : companyCopy.cardPhotos}</span>

@@ -68,21 +68,21 @@ test.describe("sticky CTA never covers inline controls", () => {
     for (const width of compactWidths) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto("/mi-empresa");
-      const actions = page.locator("[data-teaser-actions]");
-      if ((await actions.count()) === 0) {
-        continue;
-      }
-      await expect(actions).toBeVisible();
-      await placeJustAboveChrome(page, actions);
-      const download = actions.getByRole("link", { name: /descargar pdf/i });
-      const copy = actions.getByRole("button", { name: /copiar/i });
-      const regenerate = actions.getByRole("button", { name: /regenerar/i });
-      await expectControlCenterTappable(page, copy);
-      await expectControlCenterTappable(page, regenerate);
-      await expectControlCenterTappable(page, download);
       await expectLastContentControlTappable(page).catch((error: unknown) => {
         throw new Error(`/mi-empresa@${width}: ${error instanceof Error ? error.message : String(error)}`);
       });
+      await page.goto("/mi-empresa/detalles?tab=ficha");
+      const actions = page.locator("[data-teaser-actions]");
+      if ((await actions.count()) > 0) {
+        await expect(actions.first()).toBeVisible();
+        await placeJustAboveChrome(page, actions.first());
+        const download = actions.getByRole("link", { name: /descargar teaser/i });
+        const copy = actions.getByRole("button", { name: /copiar/i });
+        const regenerate = actions.getByRole("button", { name: /regenerar/i });
+        await expectControlCenterTappable(page, copy);
+        await expectControlCenterTappable(page, regenerate);
+        await expectControlCenterTappable(page, download);
+      }
       await page.goto("/mi-empresa/detalles");
       await expectLastContentControlTappable(page).catch((error: unknown) => {
         throw new Error(`/mi-empresa/detalles@${width}: ${error instanceof Error ? error.message : String(error)}`);
@@ -145,7 +145,7 @@ test.describe("sticky CTA never covers inline controls", () => {
           await placeJustAboveChrome(page, actions);
           const copy = actions.getByRole("button", { name: /copiar/i });
           const regenerate = actions.getByRole("button", { name: /regenerar/i });
-          const download = actions.getByRole("link", { name: /descargar pdf/i });
+          const download = actions.getByRole("link", { name: /descargar teaser/i });
           await expectControlCenterTappable(page, copy);
           await expectControlCenterTappable(page, regenerate);
           await expectControlCenterTappable(page, download);

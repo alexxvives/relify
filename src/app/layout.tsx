@@ -75,7 +75,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   const og = ogImageUrl(siteUrl);
 
   return (
-    <html lang="es" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
+    <html lang="es" data-scroll-behavior="smooth" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />

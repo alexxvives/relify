@@ -23,7 +23,6 @@ import { requireRole } from "@/server/requireRole";
 import { cardCover } from "@/server/projectCardCover";
 import { activeSellerProjectId } from "@/server/sellerCompany";
 import { companyNifIsVerified } from "@/server/verifyCompanyNif";
-import { sellerTeaserDesk } from "@/server/companyPdfs";
 
 export const metadata: Metadata = {
   title: sellerCopy.homeTitle,
@@ -52,7 +51,7 @@ async function CompanyPageContent({
   }
 
   // One round trip per wave instead of eleven sequential queries.
-  const [nifVerified, projectId, listing, notifications, overview, messages, dashboard, teaserDesk] = await Promise.all([
+  const [nifVerified, projectId, listing, notifications, overview, messages, dashboard] = await Promise.all([
     companyNifIsVerified(user),
     activeSellerProjectId(user.id),
     getSellerListing(user.id),
@@ -60,7 +59,6 @@ async function CompanyPageContent({
     getSellerOverview(user.id),
     listProjectMessages(user, null),
     getSellerDashboard(user.id),
-    sellerTeaserDesk(user.id),
   ]);
   const coverSrc = listing && projectId ? await cardCover({ id: projectId, slug: listing.slug }) : null;
   const [funnel, sold, own] = await Promise.all([
@@ -85,7 +83,6 @@ async function CompanyPageContent({
         recommended={overview.recommended}
         payBlocked={overview.payBlocked}
         dashboard={dashboard}
-        teaserDesk={teaserDesk}
         pending={homePendingActions(
           "seller",
           messages.threads.map((thread) => ({

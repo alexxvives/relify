@@ -6,6 +6,7 @@ import {
   type RegistryCompany,
 } from "@/lib/company-registry";
 import { uniqueCodename } from "@/server/uniqueCodename";
+import { resolveCompanyLocation } from "@/lib/company-location";
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
   centsToEuroInput,
@@ -171,6 +172,9 @@ export async function getCompanyDraft(
             cif: true,
             legalName: true,
             address: true,
+            street: true,
+            postalCode: true,
+            city: true,
             codename: true,
             region: true,
             foundedYear: true,
@@ -235,9 +239,17 @@ export async function getCompanyDraft(
     closed,
     forecast ? toForecast(forecast) : null,
   );
+  const location = resolveCompanyLocation({
+    address: draft.address || [draft.street, draft.postalCode, draft.city].filter(Boolean).join(", "),
+    postalCode: draft.postalCode,
+    city: draft.city,
+    region: draft.region,
+  });
   const result: CompanyDraftInput = {
     legalName: draft.legalName,
     address: draft.address,
+    postalCode: location.postalCode,
+    city: location.city,
     codename: draft.codename,
     region: draft.region,
     foundedYear: draft.foundedYear === null ? "" : String(draft.foundedYear),
@@ -289,6 +301,8 @@ export async function getCompanyDraft(
       ...result,
       legalName: filled.legalName,
       address: filled.address,
+      postalCode: filled.postalCode,
+      city: filled.city,
       region: filled.region,
       foundedYear: filled.foundedYear,
       description: filled.description,

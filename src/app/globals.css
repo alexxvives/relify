@@ -3403,7 +3403,7 @@ header:has([data-menu-open="true"]) {
     padding: 0 1rem;
     border: 1px solid var(--public-line);
     border-radius: var(--field-radius);
-    background: var(--public-sand);
+    background: #fff;
     color: var(--public-ink);
     font-family: var(--font-sans);
     font-size: 1rem;
@@ -3425,6 +3425,12 @@ header:has([data-menu-open="true"]) {
   }
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="color"]),
+textarea,
+select {
+  background-color: #fff;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -3435,8 +3441,9 @@ textarea:-webkit-autofill:focus,
 select:-webkit-autofill {
   -webkit-text-fill-color: var(--public-ink);
   caret-color: var(--public-ink);
-  box-shadow: 0 0 0 1000px var(--public-sand) inset;
-  -webkit-box-shadow: 0 0 0 1000px var(--public-sand) inset;
+  background-color: #fff;
+  box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
   transition: background-color 99999s ease-out;
 }
 

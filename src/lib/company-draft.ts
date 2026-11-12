@@ -112,6 +112,8 @@ export const companyDraftSchema = z
   .object({
     legalName: z.string().trim().max(160),
     address: z.string().trim().max(240),
+    postalCode: z.string().trim().max(12).refine((value) => value === "" || /^\d{5}$/.test(value), "postal-code"),
+    city: z.string().trim().max(120),
     codename: z.string().trim().min(1, "codename").max(80, "codename"),
     region: z.string().trim().min(1, "region").max(80, "region"),
     foundedYear: z.string().trim().refine((value) => {
@@ -187,6 +189,7 @@ const draftMessages = {
   codename: companyCopy.codenameRequired,
   "sale-reason": companyCopy.saleReasonRequired,
   region: companyCopy.regionRequired,
+  "postal-code": companyCopy.postalCodeInvalid,
   euro: companyCopy.euroInvalid,
   "founded-year": companyCopy.foundedYearInvalid,
   description: companyCopy.descriptionInvalid,
@@ -340,6 +343,8 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
   return {
     legalName: "",
     address: "",
+    postalCode: "",
+    city: "",
     codename: "",
     region: "",
     foundedYear: "",

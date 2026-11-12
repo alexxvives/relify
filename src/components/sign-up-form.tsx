@@ -2,15 +2,15 @@
 
 import { useActionState, useState } from "react";
 import { signUpAction, type SignUpState } from "@/app/registro/actions";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Briefcase, Building2, Handshake } from "lucide-react";
 import { NewPasswordField } from "@/components/new-password-field";
 import { authSubmitClassName, EmailField } from "@/components/auth-field";
 import { authCopy } from "@/lib/auth-copy";
 
 const intents = [
-  { id: "seller", label: "Empresa" },
-  { id: "investor", label: "Comprador" },
-  { id: "advisor", label: "Asesor" },
+  { id: "seller", label: "Empresa", Icon: Building2 },
+  { id: "investor", label: "Comprador", Icon: Briefcase },
+  { id: "advisor", label: "Asesor", Icon: Handshake },
 ] as const;
 
 export type SignupIntent = (typeof intents)[number]["id"];
@@ -21,6 +21,7 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [roleAlert, setRoleAlert] = useState(0);
   const roleMissing = roleAlert > 0 && role === "";
+  const selected = intents.find((item) => item.id === role);
 
   return (
     <form
@@ -36,35 +37,42 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
         setLocalMessage(null);
       }}
     >
-      <div
-        key={roleAlert}
-        className={roleMissing ? "releva-shake grid grid-cols-1 min-[400px]:grid-cols-3 gap-2" : "grid grid-cols-1 min-[400px]:grid-cols-3 gap-2"}
-        role="group"
-        aria-label="Empresa, comprador o asesor"
-      >
-        {intents.map((item) => {
-          const selected = role === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => {
-                setRole(item.id);
-                setLocalMessage(null);
-              }}
-              className={
-                selected
-                  ? "h-11 rounded-full bg-[#16324f] text-sm font-medium text-white"
-                  : roleMissing
-                    ? "h-11 rounded-full border-2 border-[#c0362c] bg-white text-sm font-medium text-[#c0362c]"
-                    : "h-11 rounded-full border border-[#d5dee8] bg-white text-sm font-medium text-[#5c6b78]"
-              }
-            >
-              {item.label}
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-1.5">
+        <div
+          key={roleAlert}
+          className={roleMissing ? "releva-shake flex rounded-full border border-[#d5dee8] bg-[#f7f8fb] p-1" : "flex rounded-full border border-[#d5dee8] bg-[#f7f8fb] p-1"}
+          role="radiogroup"
+          aria-label={authCopy.roleChoiceLabel}
+        >
+          {intents.map((item) => {
+            const pressed = role === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="radio"
+                aria-checked={pressed}
+                onClick={() => {
+                  setRole(item.id);
+                  setLocalMessage(null);
+                }}
+                className={
+                  pressed
+                    ? "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full bg-[#16324f] px-1 text-[11px] font-medium text-white sm:gap-1.5 sm:px-2 sm:text-sm"
+                    : roleMissing
+                      ? "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full px-1 text-[11px] font-medium text-[#c0362c] sm:gap-1.5 sm:px-2 sm:text-sm"
+                      : "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full px-1 text-[11px] font-medium text-[#5c6b78] sm:gap-1.5 sm:px-2 sm:text-sm"
+                }
+              >
+                <item.Icon className="size-3.5 shrink-0" aria-hidden />
+                <span className="whitespace-nowrap">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {selected ? (
+          <p className="px-1 text-center text-sm leading-5 text-[#7d8fa1]">{authCopy.roleHints[selected.id]}</p>
+        ) : null}
       </div>
       <input type="hidden" name="signupRole" value={role} />
       <EmailField look="arc" />

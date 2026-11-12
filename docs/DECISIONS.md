@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Round S13 seller location is CP + city
+
+The seller form no longer asks for a street. Location is Código postal + Ciudad, shown as `08022, Barcelona`. SABI already stores `postal_code` and `city`; when both are set the fields are locked as registry data. API Empresas and BORME only give a composed street/municipality/province, so those still parse into the same two fields and stay editable. The `address` column stays (nullable writes only compose CP+city). No migration. Tus cifras on Información empresa is a read-only duplicate of Ficha pública (the unique extra was Proponer corrección) and is removed.
+
 ## 2026-11-12 — Round S12c hide sticky CTA while the inline twin is on screen
 
 A compact `.shell-sticky-cta` is a duplicate of an in-page action. While `[data-sticky-twin]` intersects the viewport, the bar is `invisible` / `pointer-events-none` / `inert` and `--shell-sticky` is 0. Teaser Copiar / Regenerar / Descargar stay tappable; Descargar returns as a sticky when the card leaves the screen. The same twin is on `/cuenta` Guardar, `/premium` plan cards, and the marketplace ficha Connect row. Shell padding still clears the tab bar at max scroll.

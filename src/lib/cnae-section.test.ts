@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { cnaeSection, groupSectorBooks, groupSectors } from "./cnae-section";
+import { cnaeSection, groupSectorBooks, groupSectors, groupedCnaeOptions } from "./cnae-section";
+
+describe("groupedCnaeOptions", () => {
+  it("puts each class under its CNAE section header", () => {
+    expect(
+      groupedCnaeOptions(
+        [
+          { code: "10.71", title: "Panadería" },
+          { code: "62.01", title: "Programación" },
+        ],
+        "Elige",
+      ),
+    ).toEqual([
+      { value: "", label: "Elige" },
+      { value: "10.71", label: "10.71 — Panadería", group: "Industria" },
+      { value: "62.01", label: "62.01 — Programación", group: "Información" },
+    ]);
+  });
+});
 
 describe("cnaeSection", () => {
   it("groups a class code into its CNAE section", () => {

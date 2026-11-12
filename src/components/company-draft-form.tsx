@@ -11,7 +11,7 @@ import { rememberSessionFlag, usePanelOpen } from "@/components/session-flag";
 import { useRouter } from "next/navigation";
 import { Plus, Building2, CalendarDays, ChevronDown, ChevronUp, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Sparkles, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
+import { generateCodenameAction, regenerateTeaserLinkAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyBanner } from "@/components/company-banner";
@@ -22,7 +22,11 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller-tabs";
 import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@/components/identity-change";
 import { UnsavedChangesGuard } from "@/components/unsaved-changes";
-import { cnaeClasses } from "@/lib/cnae-2009";
+import { cnaeClasses, cnaeTitle } from "@/lib/cnae-2009";
+import { groupedCnaeOptions } from "@/lib/cnae-section";
+import { formatCompanyLocation, resolveCompanyLocation } from "@/lib/company-location";
+import { SellerPdfCard } from "@/components/company-pdf-card";
+import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 import { ebitdaTrend, estimatePriceRange, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -79,9 +83,9 @@ import {
   type SliceKind,
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
-import { SectionIntro, SellerFiguresCard, StepNumber } from "@/components/seller-figures-card";
+import { SectionIntro, StepNumber } from "@/components/seller-figures-card";
 import { scrollToCenter } from "@/components/use-scroll-spy";
-import { DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
+import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentExceedsHalfEbitda,
@@ -114,10 +118,7 @@ import {
 import { askingPriceAllowed, priceBasisCents } from "@/lib/seller-draft-guard";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
 
-const cnaeOptions = [
-  { value: "", label: companyCopy.cnaeEmpty },
-  ...cnaeClasses.map((item) => ({ value: item.code, label: `${item.code} — ${item.title}` })),
-];
+const cnaeOptions = groupedCnaeOptions(cnaeClasses, companyCopy.cnaeEmpty);
 
 const headcountOptions = [
   { value: "", label: companyCopy.headcountEmpty },
@@ -275,6 +276,24 @@ function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null
   );
 }
 
+function SavedFacts({ rows }: { rows: { label: string; value: string }[] }) {
+  return (
+    <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+      {rows.map((row) => (
+        <div key={row.label} className="min-w-0">
+          <dt className="text-xs font-medium text-[#667085]">{row.label}</dt>
+          <dd className="mt-0.5 whitespace-pre-wrap text-sm leading-5 text-[#1c2740]">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function displayValue(value: string): string {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : "—";
+}
+
 function Panel({
   id,
   step,
@@ -290,6 +309,7 @@ function Panel({
   onCollapse,
   fixed = false,
   chip = true,
+  summary = null,
   children,
 }: {
   /** t84: always expanded, no collapse/edit toggle (Ficha pública). */
@@ -309,6 +329,7 @@ function Panel({
   onRetry?: () => void;
   onEdit: () => void;
   onCollapse: () => void;
+  summary?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -320,7 +341,7 @@ function Panel({
             {title}
             {hint ? <FieldHint text={hint} /> : null}
           </h2>
-          {open ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
+          {open ? null : summary ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {saveState || dirty ? (
@@ -349,6 +370,7 @@ function Panel({
               aria-expanded="false"
               onClick={onEdit}
               tone="outline" size="sm"
+              aria-label={companyCopy.editPanel}
 >
               <Pencil className="size-3.5" aria-hidden />
               {companyCopy.editPanel}
@@ -356,6 +378,7 @@ function Panel({
           )}
         </div>
       </div>
+      {open || !summary ? null : <div className="mt-4">{summary}</div>}
       <div className={open ? "mt-4" : "hidden"}>{children}</div>
     </Card>
   );
@@ -386,103 +409,162 @@ function groupedEuro(value: string): string {
   return formatWholeEur(cents).replace(/ €$/, "");
 }
 
-function FigureField({
+function AskingPriceField({
   label,
   name,
   value,
   onChange,
-  locked = false,
-  corner = null,
+  recommended = null,
   unsetText,
   disabledReason = null,
-  footer = null,
+  help,
 }: {
   label: string;
   name: string;
   value: string;
-  onChange?: (next: string) => void;
-  locked?: boolean;
-  corner?: ReactNode;
-  /** t83: shown instead of "0 €" while the figure is empty or 0 (e.g. "Sin definir" for the price). */
-  unsetText?: string;
-  /** t95: when set the figure is read-only and shows this text (e.g. "No publicable") instead of any stored value. */
+  onChange: (next: string) => void;
+  recommended?: { amount: string; low: string; high: string; input: string; onUse: () => void; applied?: boolean } | null;
+  unsetText: string;
   disabledReason?: string | null;
-  footer?: ReactNode;
+  help: string;
 }) {
-  const [editing, setEditing] = useState(false);
-  const unset = unsetText !== undefined && !editing && !askingPriceSet(value);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const shown = editing ? value : groupedEuro(value);
-  const amount = shown.length > 0 ? shown : "—";
-  const editable = !locked && onChange !== undefined && !disabledReason;
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const panel = useRef<HTMLDivElement>(null);
+  useModal(panel, () => setOpen(false));
+  const unset = !askingPriceSet(value);
+  const shown = groupedEuro(value);
+  const editable = !disabledReason;
+
+  function openSheet() {
+    setDraft(value);
+    setOpen(true);
+  }
 
   return (
-    <MetricTile
-      label={label}
-      corner={corner}
-      action={
-        editable ? (
-          <button
-            type="button"
-            aria-label={`Editar ${label}`}
-            title={`Editar ${label}`}
-            onClick={() => {
-              setEditing(true);
-              requestAnimationFrame(() => {
-                inputRef.current?.focus();
-                inputRef.current?.select();
-              });
-            }}
-            className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
-          >
-            <Pencil className="size-3.5" aria-hidden />
-          </button>
-        ) : locked ? (
-          <span title="Dato de tus cuentas anuales" className="inline-flex size-7 shrink-0 items-center justify-center text-[#98a2b3]">
-            <Lock className="size-3.5" aria-hidden />
-            <span className="sr-only">Dato de tus cuentas anuales</span>
-          </span>
-        ) : null
-      }
-    >
-      <input type="hidden" name={name} value={value} />
-      <div className="flex min-w-0 flex-col items-start gap-2">
-        <div className="min-w-0">
+    <>
+      <MetricTile
+        label={label}
+        corner={
+          recommended && !disabledReason ? (
+            <span className="max-w-full text-left text-[11px] leading-4 font-medium text-[#667085]">
+              {companyCopy.priceRangeTitle}
+              <span className="mt-0.5 block whitespace-normal text-[#1c2740] tabular-nums">
+                {recommended.low} – {recommended.high}
+              </span>
+            </span>
+          ) : null
+        }
+        action={
+          editable ? (
+            <button
+              type="button"
+              aria-label={`Editar ${label}`}
+              aria-haspopup="dialog"
+              title={`Editar ${label}`}
+              onClick={openSheet}
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-[#465ab4]"
+            >
+              <Pencil className="size-3.5" aria-hidden />
+            </button>
+          ) : null
+        }
+      >
+        <input type="hidden" name={name} value={value} />
+        <button
+          type="button"
+          onClick={editable ? openSheet : undefined}
+          className={`min-w-0 text-left ${editable ? "cursor-pointer" : "cursor-default"}`}
+        >
           {disabledReason ? (
             <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
-          ) : editable && unset ? (
+          ) : unset ? (
             <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
-          ) : editable ? (
-            <span className="inline-flex max-w-full items-baseline gap-1 whitespace-nowrap">
-              <input
-                ref={inputRef}
-                data-flash
-                inputMode="decimal"
-                aria-label={label}
-                value={shown}
-                placeholder="0"
-                className="field-sizing-content max-w-full min-w-[3ch] rounded-md border border-transparent bg-transparent px-0 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums outline-none hover:border-[#d5dbe3] focus:border-[#465ab4] focus:bg-white focus:px-1.5"
-                onFocus={() => {
-                  setEditing(true);
-                }}
-                onBlur={() => {
-                  setEditing(false);
-                }}
-                onChange={(event) => {
-                  onChange(keepUnsignedEuro(event.target.value));
-                }}
-              />
-              <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold text-[#1c2740]">€</span>
-            </span>
           ) : (
             <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
-              {amount === "—" ? amount : `${amount}\u00a0€`}
+              {shown.length > 0 ? `${shown}\u00a0€` : "—"}
             </span>
           )}
+        </button>
+      </MetricTile>
+      {open ? (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-[#0b1220]/55 pb-[var(--shell-tabbar,0px)] sm:items-center sm:p-4 sm:pb-4" onClick={() => setOpen(false)}>
+          <div
+            ref={panel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="asking-price-sheet-title"
+            tabIndex={-1}
+            onClick={(event) => event.stopPropagation()}
+            className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl focus:outline-none sm:w-[min(32rem,100%)] sm:rounded-2xl"
+          >
+            <header className="flex items-start justify-between gap-3 border-b border-[#eef0f4] px-4 pt-4 pb-3 sm:px-6">
+              <h3 id="asking-price-sheet-title" className="text-base font-semibold text-[#1c2740]">
+                {companyCopy.askingPriceSheetTitle}
+              </h3>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setOpen(false)}
+                className="-mt-1 -mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </header>
+            <div className="flex flex-col gap-4 px-4 py-4 sm:px-6">
+              <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
+                {label}
+                <span className="relative">
+                  <input
+                    inputMode="decimal"
+                    aria-label={label}
+                    value={draft}
+                    placeholder="0"
+                    className="relify-field h-10 w-full min-w-0 px-3 pr-8 text-sm"
+                    onChange={(event) => {
+                      const next = keepUnsignedEuro(event.target.value);
+                      setDraft(next);
+                      onChange(next);
+                    }}
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#667085]">€</span>
+                </span>
+              </label>
+              <p className="text-sm leading-6 text-[#5c6b78]">{help}</p>
+              {recommended ? (
+                <div className="rounded-xl border border-[#e7eaee] bg-[#fbfbfc] p-3">
+                  <p className="text-xs font-semibold tracking-wide text-[#667085] uppercase">{companyCopy.priceRangeTitle}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#1c2740] tabular-nums">
+                    {recommended.low} – {recommended.high}
+                  </p>
+                  <p className="mt-1 text-sm text-[#5c6b78]">
+                    {companyCopy.recommendedPrice}: {recommended.amount}
+                  </p>
+                  {recommended.applied ? null : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        recommended.onUse();
+                        setDraft(recommended.input);
+                      }}
+                      className="mt-3 inline-flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#eef1fb] px-4 text-sm font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                    >
+                      <Sparkles className="size-3.5" aria-hidden />
+                      {companyCopy.applySuggestedInSheet}
+                    </button>
+                  )}
+                </div>
+              ) : null}
+            </div>
+            <footer className="flex justify-end border-t border-[#eef0f4] px-4 py-3 sm:px-6">
+              <KitButton type="button" tone="outline" size="sm" onClick={() => setOpen(false)}>
+                {companyCopy.collapsePanel}
+              </KitButton>
+            </footer>
+          </div>
         </div>
-        {footer ? <div className="max-w-full min-w-0">{footer}</div> : null}
-      </div>
-    </MetricTile>
+      ) : null}
+    </>
   );
 }
 
@@ -543,39 +625,25 @@ function FichaMetrics({
   pendingCount?: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
-  recommended?: { amount: string; onUse: () => void; applied?: boolean } | null;
+  recommended?: { amount: string; low: string; high: string; input: string; onUse: () => void; applied?: boolean } | null;
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
   onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
   return (
-    <div className="@container mt-6">
+    <div className="@container mt-4">
     <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <div id="panel-asking-price" className="h-full min-w-0 scroll-mt-24">
-        <FigureField
+        <AskingPriceField
           label={companyCopy.askingPriceLabel}
           name="askingPrice"
           value={askingPrice}
           onChange={onAskingPrice}
-          corner={
-            recommended && !priceBlocked && !recommended.applied ? (
-              <button
-                type="button"
-                onClick={recommended.onUse}
-                aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
-                className="inline-flex h-auto min-h-11 max-w-full flex-wrap items-center gap-x-1 gap-y-0.5 rounded-full bg-[#eef1fb] px-3 py-1.5 text-left text-xs font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none lg:min-h-7 lg:px-2 lg:py-1 lg:text-[11px]"
-              >
-                <Sparkles className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 whitespace-normal">
-                  {companyCopy.suggestedPrice}{" "}
-                  <span className="whitespace-nowrap text-[#1c2740] tabular-nums">{recommended.amount}</span>
-                </span>
-              </button>
-            ) : null
-          }
+          recommended={priceBlocked ? null : recommended}
           unsetText={companyCopy.priceUnset}
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
+          help={companyCopy.askingPriceHelp}
         />
       </div>
       <div className="h-full min-w-0">
@@ -1521,6 +1589,7 @@ export function CompanyDraftForm({
   financeExtra = null,
   reportYears = null,
   fichaExtras = null,
+  teaserDesk = null,
   uploadsDisabled = false,
 }: {
   draft: CompanyDraftInput | null;
@@ -1537,6 +1606,7 @@ export function CompanyDraftForm({
   reportYears?: SabiYear[] | null;
   /** t81: Ratios and result/working-capital rows of the stored accounts, for the buyer preview. */
   fichaExtras?: SellerFichaExtras | null;
+  teaserDesk?: SellerTeaserDesk | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -1572,8 +1642,18 @@ export function CompanyDraftForm({
     }
   }
   const [legalName, setLegalName] = useState(initial.legalName);
-  const [address, setAddress] = useState(() => addressWithRegion(initial.address, initial.region));
+  const startingLocation = resolveCompanyLocation({
+    address: initial.address,
+    postalCode: initial.postalCode,
+    city: initial.city,
+    region: initial.region,
+  });
+  const locationLocked = startingLocation.fromRegistry;
+  const [postalCode, setPostalCode] = useState(startingLocation.postalCode);
+  const [city, setCity] = useState(startingLocation.city);
+  const address = formatCompanyLocation(postalCode, city) || addressWithRegion(initial.address, initial.region);
   const [codename, setCodename] = useState(initial.codename);
+  const [showDescriptionMin, setShowDescriptionMin] = useState(false);
   const region = initial.region;
   const [foundedYear, setFoundedYear] = useState(initial.foundedYear);
   const [description, setDescription] = useState(initial.description);
@@ -1647,7 +1727,9 @@ export function CompanyDraftForm({
   }, [saveClosed]);
   const [baseline, setBaseline] = useState(() => ({
     legalName: initial.legalName,
-    address: addressWithRegion(initial.address, initial.region),
+    address: formatCompanyLocation(startingLocation.postalCode, startingLocation.city) || addressWithRegion(initial.address, initial.region),
+    postalCode: startingLocation.postalCode,
+    city: startingLocation.city,
     codename: initial.codename,
     region: initial.region,
     foundedYear: initial.foundedYear,
@@ -1685,6 +1767,8 @@ export function CompanyDraftForm({
   const currentDraft = {
     legalName,
     address,
+    postalCode,
+    city,
     codename,
     region,
     foundedYear,
@@ -1727,6 +1811,8 @@ export function CompanyDraftForm({
   const basicDirty =
     legalName !== baseline.legalName ||
     address !== baseline.address ||
+    postalCode !== baseline.postalCode ||
+    city !== baseline.city ||
     region !== baseline.region ||
     foundedYear !== baseline.foundedYear ||
     description !== baseline.description ||
@@ -1904,6 +1990,8 @@ export function CompanyDraftForm({
   const investorPreview = draftInvestorPreview({
     legalName,
     address,
+    postalCode,
+    city,
     codename,
     region,
     foundedYear,
@@ -1968,7 +2056,6 @@ export function CompanyDraftForm({
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
 
   // t77: section nav, required-items progress and the sticky save bar.
-  const figuresLoaded = (reportYears?.length ?? 0) > 0;
   const requiredFields = sellerRequiredFields({
     saleReason,
     description,
@@ -1988,7 +2075,6 @@ export function CompanyDraftForm({
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
     { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
-    { id: "panel-figures", label: "Tus cifras", status: figuresLoaded ? "done" : "info" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
   // t79/t80: the right-hand checklist groups each required field under its section. It covers this tab only: the asking
@@ -2203,6 +2289,7 @@ export function CompanyDraftForm({
         onDismissFailed={() => setLeaveFailedHref(null)}
       />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
+      {tab === "company" ? <CompactProgressBar done={navProgress.done} total={navProgress.total} /> : null}
       <div className="flex items-center justify-between gap-3">
         <h1 className="min-w-0 text-2xl tracking-tight text-public-ink sm:text-3xl">
           {sellerCopy.detailsTitle}
@@ -2216,6 +2303,7 @@ export function CompanyDraftForm({
           { id: "deal", label: companyCopy.detailsDealTab },
         ]}
         value={tab}
+        stuckBelowProgress={tab === "company"}
         onChange={(id) => {
           setTab(id);
           window.scrollTo({ top: 0 });
@@ -2235,11 +2323,33 @@ export function CompanyDraftForm({
         open={saveClosed === "basic" ? false : openBasic}
         dirty={basicDirty}
         done={basicDone}
+        summary={
+          <SavedFacts
+            rows={[
+              { label: companyCopy.factName, value: displayValue(legalName) },
+              { label: companyCopy.factNif, value: displayValue(nif) },
+              { label: companyCopy.locationLabel, value: displayValue(formatCompanyLocation(postalCode, city)) },
+              { label: companyCopy.foundedYearLabel, value: displayValue(foundedYear) },
+              { label: companyCopy.saleReasonLabel, value: saleReason && saleReason in saleReasonLabels ? saleReasonLabels[saleReason as keyof typeof saleReasonLabels] : "—" },
+              { label: companyCopy.workersLabel, value: headcount && headcount in headcountLabels ? headcountLabels[headcount as keyof typeof headcountLabels] : "—" },
+              { label: companyCopy.descriptionLabel, value: description.trim().length > 0 ? (description.trim().length > 220 ? `${description.trim().slice(0, 220).trim()}…` : description.trim()) : "—" },
+              { label: companyCopy.principalCnaeLabel, value: principalCnae ? `${principalCnae}${cnaeTitle(principalCnae) ? ` — ${cnaeTitle(principalCnae)}` : ""}` : "—" },
+              { label: companyCopy.secondaryCnaeLabel, value: secondaryCnaes.filter((code) => code.trim().length > 0).length > 0 ? secondaryCnaes.filter((code) => code.trim().length > 0).map((code) => `${code}${cnaeTitle(code) ? ` — ${cnaeTitle(code)}` : ""}`).join("\n") : "—" },
+              { label: "Financiación vendedor", value: sellerFinancing === "yes" ? `Sí${sellerFinancingPct ? ` · ${sellerFinancingPct} %` : ""}${sellerFinancingYears ? ` · ${sellerFinancingYears} años` : ""}` : sellerFinancing === "no" ? "No" : "—" },
+              { label: "Permanencia", value: sellerStay && sellerStay in sellerStayLabels ? sellerStayLabels[sellerStay as keyof typeof sellerStayLabels] : "—" },
+            ]}
+          />
+        }
         onEdit={() => {
           setSaveClosed("");
           setOpenBasic(true);
         }}
-        onCollapse={() => setOpenBasic(false)}
+        onCollapse={() => {
+          if (description.trim().length > 0 && description.trim().length < descriptionMinLength) {
+            setShowDescriptionMin(true);
+          }
+          setOpenBasic(false);
+        }}
       >
         <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
           {identityLocked ? (
@@ -2267,16 +2377,28 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           )}
-          <Fact icon={MapPin} label={companyCopy.addressLabel} className="col-span-full">
-            <Textarea
-              name="address"
-              rows={2}
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
-              className="min-h-[4.25rem] resize-y"
-              autoComplete="street-address"
+          <Fact icon={MapPin} label={companyCopy.postalCodeLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
+            <Input
+              name="postalCode"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              readOnly={locationLocked}
+              value={postalCode}
+              onChange={(event) => setPostalCode(keepDigits(event.target.value, 5))}
+              className="bg-white"
             />
           </Fact>
+          <Fact icon={MapPin} label={companyCopy.cityLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
+            <Input
+              name="city"
+              autoComplete="address-level2"
+              readOnly={locationLocked}
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+              className="bg-white"
+            />
+          </Fact>
+          <input type="hidden" name="address" value={address} />
           <input type="hidden" name="region" value={region} />
           <Fact icon={CalendarDays} label={companyCopy.foundedYearLabel}>
             <Input
@@ -2330,20 +2452,26 @@ export function CompanyDraftForm({
             maxLength={descriptionMaxLength}
             placeholder={companyCopy.descriptionPlaceholder}
             value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setDescription(next);
+              if (next.trim().length >= descriptionMinLength) {
+                setShowDescriptionMin(false);
+              }
+            }}
             aria-label={companyCopy.descriptionLabel}
             aria-required="true"
-            aria-invalid={description.trim().length > 0 && description.trim().length < descriptionMinLength ? true : undefined}
+            aria-invalid={showDescriptionMin && description.trim().length < descriptionMinLength ? true : undefined}
           />
           <span className="flex flex-wrap items-start justify-between gap-2 text-sm text-[#667085]">
-            {description.trim().length > 0 && description.trim().length < descriptionMinLength ? (
+            {showDescriptionMin && description.trim().length < descriptionMinLength ? (
               <span role="status" className="text-[#c0362c]">
                 {companyCopy.descriptionTooShort}
               </span>
             ) : (
               <span />
             )}
-            <span className="inline-flex items-center gap-1">
+            <span className="hidden items-center gap-1 lg:inline-flex">
               {description.length > 80 ? (
                 <InfoHint text={companyCopy.descriptionProgress} icon="warning" tone="warning" />
               ) : null}
@@ -2468,6 +2596,9 @@ export function CompanyDraftForm({
                 priceEstimate
                   ? {
                       amount: wholeEur(recommendedPriceCents(priceEstimate)),
+                      low: wholeEur(priceEstimate.lowCents),
+                      high: wholeEur(priceEstimate.highCents),
+                      input: recommendedPriceInput(priceEstimate),
                       onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
                       applied: euroCentsOrNull(askingPrice) === recommendedPriceCents(priceEstimate),
                     }
@@ -2490,6 +2621,52 @@ export function CompanyDraftForm({
         open={saveClosed === "structure" ? false : openStructure}
         dirty={structureDirty}
         done={structureDone}
+        summary={
+          <SavedFacts
+            rows={[
+              {
+                label: "A quién vendes",
+                value:
+                  customerBase === "business"
+                    ? companyCopy.customerBusiness
+                    : customerBase === "consumer"
+                      ? companyCopy.customerConsumer
+                      : customerBase === "mixed"
+                        ? companyCopy.customerMixed
+                        : "—",
+              },
+              {
+                label: companyCopy.productsLegend,
+                value: productPercents.filter((item) => item.trim().length > 0).length > 0 ? productPercents.filter((item) => item.trim().length > 0).map((item) => `${item} %`).join(" · ") : "—",
+              },
+              {
+                label: companyCopy.clientsLegend,
+                value: customerBase === "consumer" ? companyCopy.customerConsumerPublic : clientPercents.filter((item) => item.trim().length > 0).length > 0 ? clientPercents.filter((item) => item.trim().length > 0).map((item) => `${item} %`).join(" · ") : "—",
+              },
+              {
+                label: companyCopy.ownerDependenceLabel,
+                value:
+                  ownerDependence === "low"
+                    ? companyCopy.ownerDependenceLow
+                    : ownerDependence === "medium"
+                      ? companyCopy.ownerDependenceMedium
+                      : ownerDependence === "high"
+                        ? companyCopy.ownerDependenceHigh
+                        : "—",
+              },
+              {
+                label: companyCopy.premisesLabel,
+                value:
+                  premisesKind === "owned"
+                    ? companyCopy.premisesOwned
+                    : premisesKind === "rent"
+                      ? `${companyCopy.premisesRent}${rentMonthly ? ` · ${rentMonthly} €` : ""}${leaseYearsRemaining ? ` · ${leaseYearsRemaining} años` : ""}`
+                      : "—",
+              },
+              { label: companyCopy.recurringRevenueLabel, value: recurringRevenuePct.trim().length > 0 ? `${recurringRevenuePct} %` : "—" },
+            ]}
+          />
+        }
         onEdit={() => {
           setSaveClosed("");
           setOpenStructure(true);
@@ -2609,8 +2786,7 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
-      <SellerFiguresCard step={4} figures={investorPreview} reportYears={reportYears} />
-      {/* t76: raw accounting inputs are not for sellers; they stay mounted (hidden) so saving keeps the loaded values. */}
+      {/* t76: accounting inputs stay mounted (hidden) so save keeps loaded values. Tus cifras was a read-only Ficha duplicate. */}
       <div hidden>
       <Panel
         id="panel-income"
@@ -2805,6 +2981,14 @@ export function CompanyDraftForm({
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4" : "hidden"}>
+      {teaserDesk ? (
+        <SellerPdfCard
+          desk={teaserDesk}
+          previewHref="/mi-empresa/pdf/teaser?preview=1"
+          downloadHref="/mi-empresa/pdf/teaser?download=1"
+          onRegenerate={regenerateTeaserLinkAction}
+        />
+      ) : null}
       <Panel
         id="panel-ficha-preview"
         title={companyCopy.detailsDealTab}
@@ -2927,8 +3111,8 @@ function PublicFicha({
 
   return (
     <>
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-        <div className="flex min-w-0 flex-[1_1_15rem] flex-col gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-x-6 sm:gap-y-2">
+        <div className="flex min-w-0 w-full flex-col gap-1.5 sm:flex-1 sm:basis-60">
           {/* t91: "Generar otro" is a small link on the label row, top right of the name field. */}
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-[#2b3b4a]">
@@ -2959,10 +3143,10 @@ function PublicFicha({
             readOnly
             value={codename}
             aria-live="polite"
-            className="min-w-0 bg-[#f7f8fb] text-[#1c2740]"
+            className="min-w-0 bg-white text-[#1c2740]"
           />
         </div>
-        <div className="min-w-0 flex-[1_1_15rem]">
+        <div className="min-w-0 w-full sm:flex-1 sm:basis-60">
           <CardPhotoUploader photos={photos} recommended={recommended} onCount={(count) => onListed(count > 0 || Boolean(imageSrc))} />
         </div>
       </div>

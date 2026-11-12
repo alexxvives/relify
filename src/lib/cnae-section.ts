@@ -43,6 +43,23 @@ export type IndustrySector = {
 
 export const cnaeSectionLabels = sections.map((section) => section.label);
 
+export type CnaeSelectOption = { value: string; label: string; group?: string };
+
+/** CNAE class list grouped under section headers for the seller sector dropdown. */
+export function groupedCnaeOptions(
+  classes: readonly { code: string; title: string }[],
+  emptyLabel: string,
+): CnaeSelectOption[] {
+  return [
+    { value: "", label: emptyLabel },
+    ...classes.map((item) => ({
+      value: item.code,
+      label: `${item.code} — ${item.title}`,
+      group: cnaeSection(item.code)?.label,
+    })),
+  ];
+}
+
 export function cnaeSection(code: string): CnaeSection | null {
   const division = Number(code.slice(0, 2));
 

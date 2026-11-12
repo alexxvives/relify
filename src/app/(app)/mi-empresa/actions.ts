@@ -74,6 +74,8 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
   const parsed = companyDraftSchema.safeParse({
     legalName: readText(formData, "legalName"),
     address: readText(formData, "address"),
+    postalCode: readText(formData, "postalCode"),
+    city: readText(formData, "city"),
     codename: readText(formData, "codename"),
     region: readText(formData, "region"),
     foundedYear: readText(formData, "foundedYear"),
@@ -453,6 +455,7 @@ export async function regenerateTeaserLinkAction(): Promise<
   const result = await rotateTeaserToken(user);
   if (result.ok) {
     revalidatePath("/mi-empresa");
+    revalidatePath("/mi-empresa/detalles");
   }
   return result;
 }

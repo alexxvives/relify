@@ -18,9 +18,6 @@ import type { HomePendingAction } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
 import { InfoHint } from "@/components/ui/info-hint";
-import { SellerPdfCard } from "@/components/company-pdf-card";
-import { regenerateTeaserLinkAction } from "@/app/(app)/mi-empresa/actions";
-import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 const photoHref = "/mi-empresa/detalles?seccion=price#fotos";
 
@@ -36,7 +33,6 @@ export function SellerOverview({
   pending,
   sold = false,
   financialsPending = false,
-  teaserDesk = null,
 }: {
   sold?: boolean;
   /** CIF verified, SABI financials not imported yet: the charts area shows the 24 h overlay. */
@@ -52,7 +48,6 @@ export function SellerOverview({
   recommended?: CheckItem<RecommendedCheckKey>[];
   dashboard: SellerDashboardData;
   pending: HomePendingAction[];
-  teaserDesk?: SellerTeaserDesk | null;
 }) {
   // The photo is a recommendation, not a requirement: it never holds the meter back.
   const filled = checklist.items.filter((item) => item.done).length;
@@ -153,14 +148,6 @@ export function SellerOverview({
             </ul>
           </Card>
           <PendingActions side items={pending} empty={sellerCopy.pendingEmpty} />
-          {listing !== "missing" && teaserDesk ? (
-            <SellerPdfCard
-              desk={teaserDesk}
-              previewHref="/mi-empresa/pdf/teaser?preview=1"
-              downloadHref="/mi-empresa/pdf/teaser?download=1"
-              onRegenerate={regenerateTeaserLinkAction}
-            />
-          ) : null}
         </div>
       </div>
     </div>
