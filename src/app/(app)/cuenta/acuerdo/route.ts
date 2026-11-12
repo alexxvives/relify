@@ -1,6 +1,6 @@
 import { isIntEnvironment } from "@/lib/int-env";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { pdfResponse, readSignedDocument } from "@/server/signedDocuments";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { pdfResponse, readSignedDocument } from "@/lib/server/signed-documents";
 
 export async function GET(request: Request): Promise<Response> {
   const user = await getCurrentUser();

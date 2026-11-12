@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { ValuationRequestForm } from "@/components/valuation-request-form";
-import { ValuationPreview } from "@/components/valuation-preview";
-import { PublicSite } from "@/components/public-site";
+import { ValuationRequestForm } from "@/components/public/valuation-request-form";
+import { ValuationPreview } from "@/components/public/valuation-preview";
+import { PublicSite } from "@/components/landing/public-site";
 import { valuationCopy } from "@/lib/valuation-request";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import { pageSocialMetadata } from "@/lib/seo-head";
 import { readSiteUrl } from "@/lib/env";
 

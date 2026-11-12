@@ -1,9 +1,9 @@
 "use server";
 
 import { valuationCopy, valuationRequestSchema } from "@/lib/valuation-request";
-import { createValuationRequest } from "@/server/createValuationRequest";
-import { clientIp, takeThrottle } from "@/server/emailThrottle";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { createValuationRequest } from "@/lib/server/create-valuation-request";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export type ValuationState = { status: "idle" } | { status: "ok" } | { status: "error"; message: string };
 

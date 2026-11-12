@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: after repo reorg, `mailer.ts` is `src/lib/server/mailer.ts` with relative `../int-env` (not `../lib/`); unit tests live in `tests/unit/` and resolve `@/` via `vitest.config.ts`.
 - 2026-11-12: seller e2e sign-in timed out after QA screenshots — `/entrar` is 10 attempts / 15 min per email — TRUNCATE `email_throttle` on local PG before a second pass.
 - 2026-11-12: S14 price range tag wrapped under Precio de venta at 390 — MetricTile corner used `max-w-full` so the pill took a full row — `shrink-0` + header `flex-nowrap`.
 - 2026-11-12: Next 16 “1 issue” overlay covered the tab bar — `html` uses `scroll-smooth` — add `data-scroll-behavior="smooth"` on `<html>`.
@@ -27,7 +28,7 @@ Append-only. One line per project-specific pitfall:
 - 2026-11-11: Landing titles wrapped like posters — containers used `max-width: 12ch`/`14ch`/`18ch` or `max-w-[40rem]` around large clamp type, and waitlist coloured the second phrase in a `display:block` span — drop those; `text-wrap: pretty` is enough. ESLint flags `<br>` on landing/valorar/waitlist.
 - 2026-11-11: Process ficha showed the legal name after it was already struck — hide keyframes were 4.8s and redact 6.4s, so the name loop restarted under leftover bars — one 8s timeline: name on, then redact, name stays gone until redact retracts.
 - 2026-11-10: INT catch-all on the dashboard vanished after a pack upload with `--keep-vars` — packaged `wrangler.toml` `[vars] INT_EMAIL_CATCHALL=""` is still applied — never ship the catch-all as a var; `wrangler secret put INT_EMAIL_CATCHALL --name releva-int` only.
-- 2026-11-10: `src/server/mailer.test.ts` died with “Cannot find package '@/lib/int-env'” after a runtime `@/lib` import in `mailer.ts` — vitest resolves that file without the app alias for value imports — keep `mailer.ts` runtime imports relative (`../lib/...`), type-only `@/` imports are fine.
+- 2026-11-10: `src/lib/server/mailer.test.ts` died with “Cannot find package '@/lib/int-env'” after a runtime `@/lib` import in `mailer.ts` — vitest resolves that file without the app alias for value imports — keep `mailer.ts` runtime imports relative (`../lib/...`), type-only `@/` imports are fine.
 - 2026-11-10: Buyer pre-NDA labelled “EBITDA ajustado 750 k” and also “EBITDA 750 k” with only a pending row — `adjustmentsForBuyer` returned null, so `publishedEbitdaFromAdjustments` treated the copied accounts column as a legacy approved figure — return `[]` when every row was stripped, and never treat equal-to-accounts legacy as approved.
 - 2026-11-10: Seller marketplace preview applied a pending owner_salary (1,77 M / 2,3 años) while `/mercado` stayed 750 k — the preview built cents from form strings instead of `reportHeadline` — `MarketPreview` must call `marketCardFigures` on the same profile as the ficha.
 - 2026-11-10: Seller Resumen showed “EBITDA ajustado 0 €” with a pending ~1 M € owner_salary — headline trusted `project.adjustedEbitdaCents` (0 after a pending-only save against a 0 project column) — recompute from last closed year + approved rows only; pending never enters the sum.

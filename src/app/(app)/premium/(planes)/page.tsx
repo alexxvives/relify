@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { PremiumPlans } from "@/components/premium-plans";
-import { SignedInPage } from "@/components/signed-in-page";
+import { PremiumPlans } from "@/components/investor/premium-plans";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { billingCopy } from "@/lib/billing-copy";
-import { loadBuyerPlan } from "@/server/buyerPlan";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
+import { loadBuyerPlan } from "@/lib/server/buyer-plan";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
 import { isIntEnvironment } from "@/lib/int-env";
-import { requireRole } from "@/server/requireRole";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: billingCopy.title,

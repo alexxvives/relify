@@ -1,6 +1,6 @@
 # Round P — email inventory
 
-Every outbound message Relify can send today goes through `sendMail` in `src/server/mailer.ts`. Shared HTML/text layout: `src/lib/email/layout.ts`.
+Every outbound message Relify can send today goes through `sendMail` in `src/lib/server/mailer.ts`. Shared HTML/text layout: `src/lib/email/layout.ts`.
 
 **Senders**
 
@@ -34,7 +34,7 @@ There is no `admin@` address. Internal alerts all go to `info@itsrelify.com` (`S
 
 Welcome mail is not sent to the admin role. Connection / message / published mail never includes the company’s legal name, CIF or figures when the recipient is a buyer; owner mail may use the legal name only on `report-ready`.
 
-Callers: `src/server/auth.ts`, `src/server/completeOnboarding.ts`, `src/server/notifyReportReady.ts`, `src/server/emailNotices.ts`, `src/server/notifyWaitlistLead.ts` (`confirmWaitlistSignup`).
+Callers: `src/lib/server/auth.ts`, `src/lib/server/complete-onboarding.ts`, `src/lib/server/notify-report-ready.ts`, `src/lib/server/email-notices.ts`, `src/lib/server/notify-waitlist-lead.ts` (`confirmWaitlistSignup`).
 
 ---
 

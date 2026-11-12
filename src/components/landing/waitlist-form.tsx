@@ -5,7 +5,7 @@ import { ArrowRight, Briefcase, Building2, Landmark } from "lucide-react";
 import { joinWaitlistAction, type WaitlistState } from "@/app/lista-de-espera/actions";
 import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { waitlistCopy, waitlistOpensAt, type waitlistRoles } from "@/lib/waitlist";
-import { ConversionPing } from "@/components/cookie-consent";
+import { ConversionPing } from "@/components/auth/cookie-consent";
 
 type Role = (typeof waitlistRoles)[number];
 

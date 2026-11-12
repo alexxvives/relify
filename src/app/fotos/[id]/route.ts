@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { readProjectPhoto } from "@/server/projectPhotos";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { readProjectPhoto } from "@/lib/server/project-photos";
 
 const idPattern = /^[a-f0-9-]{36}$/;
 

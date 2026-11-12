@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { readSellerAdjustmentDocument } from "@/server/readAdjustmentDocument";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { readSellerAdjustmentDocument } from "@/lib/server/read-adjustment-document";
 
 const types: Record<string, string> = {
   pdf: "application/pdf",

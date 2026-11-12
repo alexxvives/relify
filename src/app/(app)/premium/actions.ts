@@ -3,15 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { startBuyerCheckout } from "@/server/startCheckout";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { startBuyerCheckout } from "@/lib/server/start-checkout";
 import {
   changeSubscriptionPlan,
   setSubscriptionCancel,
   startBillingPortal,
   startCardSetup,
   updateBillingEmail,
-} from "@/server/subscriptionDesk";
+} from "@/lib/server/subscription-desk";
 
 export type PlanActionState = { ok: false; message: string } | null;
 

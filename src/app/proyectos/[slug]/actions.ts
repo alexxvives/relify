@@ -4,17 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { accessCopy } from "@/lib/access-copy";
 import { projectAccessInputSchema, type ProjectAccessInput } from "@/lib/project-access";
-import { acceptNda } from "@/server/acceptNda";
-import { cancelProjectAccess } from "@/server/cancelProjectAccess";
-import { ensureNationalId } from "@/server/ensureNationalId";
-import { getCurrentUser, type CurrentUser } from "@/server/getCurrentUser";
-import { requestProjectAccess } from "@/server/requestProjectAccess";
+import { acceptNda } from "@/lib/server/accept-nda";
+import { cancelProjectAccess } from "@/lib/server/cancel-project-access";
+import { ensureNationalId } from "@/lib/server/ensure-national-id";
+import { getCurrentUser, type CurrentUser } from "@/lib/server/get-current-user";
+import { requestProjectAccess } from "@/lib/server/request-project-access";
 import { companyCopy } from "@/lib/company-copy";
 import { investorMessageSchema } from "@/lib/project-message";
-import { postInvestorMessage } from "@/server/postProjectMessage";
-import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
-import { markThreadRead } from "@/server/markThreadRead";
-import { toggleProjectFavorite, type FavoriteResult } from "@/server/toggleProjectFavorite";
+import { postInvestorMessage } from "@/lib/server/post-project-message";
+import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/lib/server/update-meeting-notes";
+import { markThreadRead } from "@/lib/server/mark-thread-read";
+import { toggleProjectFavorite, type FavoriteResult } from "@/lib/server/toggle-project-favorite";
 
 export type ProjectAccessActionState = { ok: true } | { ok: false; message: string } | null;
 

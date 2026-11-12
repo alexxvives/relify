@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FolderFileTree, type TreeNode } from "@/components/document-tree";
-import { SignedInPage } from "@/components/signed-in-page";
-import { WorkspaceNote } from "@/components/workspace-note";
+import { FolderFileTree, type TreeNode } from "@/components/seller/document-tree";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { WorkspaceNote } from "@/components/shell/workspace-note";
 import type { DataRoomFileView } from "@/lib/data-room";
 import { investorCopy } from "@/lib/investor-copy";
-import { listDataRoom } from "@/server/listDataRoom";
-import { requireRole } from "@/server/requireRole";
+import { listDataRoom } from "@/lib/server/list-data-room";
+import { requireRole } from "@/lib/server/require-role";
 import { Card } from "@/components/ui/form";
 
 export const metadata: Metadata = {

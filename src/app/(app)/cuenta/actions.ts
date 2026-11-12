@@ -10,17 +10,17 @@ import {
   parseAccountEmail,
   splitAccountName,
 } from "@/lib/auth-input";
-import { auth } from "@/server/auth";
-import { authFailureMessage } from "@/server/auth-failure";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { auth } from "@/lib/server/auth";
+import { authFailureMessage } from "@/lib/server/auth-failure";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   markNotificationRead,
   markNotificationsRead,
-} from "@/server/markNotificationsRead";
-import { takeThrottle } from "@/server/emailThrottle";
-import { mailConfigured } from "@/server/mailer";
-import { signOut } from "@/server/signOut";
-import { updateAccountProfile } from "@/server/updateAccountProfile";
+} from "@/lib/server/mark-notifications-read";
+import { takeThrottle } from "@/lib/server/email-throttle";
+import { mailConfigured } from "@/lib/server/mailer";
+import { signOut } from "@/lib/server/sign-out";
+import { updateAccountProfile } from "@/lib/server/update-account-profile";
 
 export type AccountFormState = {
   message: string;

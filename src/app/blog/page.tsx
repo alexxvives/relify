@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { BlogIndex } from "@/components/blog-index";
-import { NewsletterSignup } from "@/components/newsletter-signup";
-import { PublicSite } from "@/components/public-site";
+import { BlogIndex } from "@/components/public/blog-index";
+import { NewsletterSignup } from "@/components/public/newsletter-signup";
+import { PublicSite } from "@/components/landing/public-site";
 import { blogCopy, blogPosts } from "@/lib/blog";
 import { readSiteUrl } from "@/lib/env";
 import { pageSocialMetadata } from "@/lib/seo-head";

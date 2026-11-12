@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ProjectCard } from "@/components/project-card";
-import { PublicSite } from "@/components/public-site";
+import { ProjectCard } from "@/components/investor/project-card";
+import { PublicSite } from "@/components/landing/public-site";
 import { authCopy } from "@/lib/auth-copy";
 import { catalogCopy } from "@/lib/catalog-copy";
 import { signInHref } from "@/lib/sign-in-return";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { listPublicProjects } from "@/server/listPublicProjects";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { listPublicProjects } from "@/lib/server/list-public-projects";
 
 export async function generateMetadata(): Promise<Metadata> {
   const user = await getCurrentUser();

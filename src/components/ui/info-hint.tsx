@@ -5,9 +5,9 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { createPortal } from "react-dom";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { useCoarsePointer, useCompactViewport } from "@/components/ui/use-compact";
-import { placeBubble, tooltipBox } from "@/lib/tooltip-place";
+import { placeBubble, tooltipBox } from "@/lib/client/tooltip-place";
 
-export { placeBubble, tooltipBox } from "@/lib/tooltip-place";
+export { placeBubble, tooltipBox } from "@/lib/client/tooltip-place";
 
 /** Dark tooltip bubble shared by every hover/tap hint in the app. */
 export const tooltipBubble =

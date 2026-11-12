@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
-import { CookieConsent } from "@/components/cookie-consent";
-import { HashCleaner } from "@/components/hash-cleaner";
+import { CookieConsent } from "@/components/auth/cookie-consent";
+import { HashCleaner } from "@/components/shell/hash-cleaner";
 import {
   gaConsentBootstrapScript,
   gtmInstallScript,

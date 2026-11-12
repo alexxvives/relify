@@ -2,7 +2,42 @@
 
 Confidential marketplace for SME business sales. The product UI follows Deale.
 
-The app runs locally with `npm run dev`. Start at `AGENTS.md`, then `docs/STATUS.md`.
+Start at `AGENTS.md`, then `docs/STATUS.md`. Layout and domain rules: `ARCHITECTURE.md`.
+
+## Structure
+
+```
+src/app/                    Next.js App Router (routes must live under src/)
+src/components/ui/          shadcn primitives
+src/components/<feature>/   feature UI
+src/lib/                    shared helpers and Zod schemas
+src/lib/client/             browser-only helpers
+src/lib/server/             auth and domain services
+src/lib/db/                 Prisma client
+tests/unit/                 Vitest
+tests/e2e/                  Playwright (`tests/e2e/playwright.config.ts`)
+scripts/                    INT pack, seeds, deploy guards
+docs/                       product docs
+prisma/                     schema and migrations
+```
+
+Root configs that the tools require: `next.config.ts`, `vite.config.ts`, `vitest.config.ts`, `cloudflare.config.ts`, `tsconfig.json`, `eslint.config.mjs`.
+
+## Commands
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Next.js dev server |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest (`tests/unit`) |
+| `npm run e2e` | Playwright (desktop 1280 and mobile 390) |
+| `npm run build:vinext` | Cloudflare Worker build |
+| `npm run deploy` | Production Worker **Alex only** (guarded) |
+
+INT packaging is `node scripts/package-int-worker.mjs` after `npm run build:vinext`. Deploy INT with `scripts/deploy-int.sh`. Agents must never deploy production.
+
+Copy `.env.example` to `.env`. Required names are in `TECH_STACK.md`.
 
 ## Deploy (Cloudflare Workers)
 

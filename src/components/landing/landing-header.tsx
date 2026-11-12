@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { PublicMenu } from "@/components/landing/public-menu";
 import { isIntEnvironment } from "@/lib/int-env";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export async function LandingHeader() {
   const user = await getCurrentUser();

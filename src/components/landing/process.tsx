@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { MarketCard } from "@/components/market-card";
+import { MarketCard } from "@/components/investor/market-card";
 import { ProcessTimeline } from "@/components/landing/process-timeline";
 import { landingCopy } from "@/lib/landing-copy";
 import { landingPreviewHref } from "@/lib/showcase-card";

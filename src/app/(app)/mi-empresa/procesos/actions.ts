@@ -6,12 +6,12 @@ import { billingCopy } from "@/lib/billing-copy";
 import { eurosToCents } from "@/lib/company-draft";
 import { sellerCopy } from "@/lib/seller-copy";
 import { sellerMessageSchema } from "@/lib/project-message";
-import { acceptBuyer } from "@/server/acceptBuyer";
-import { acceptLoi } from "@/server/acceptLoi";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { postSellerMessage } from "@/server/postProjectMessage";
-import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/server/updateMeetingNotes";
-import { recordSuccessFee } from "@/server/recordSuccessFee";
+import { acceptBuyer } from "@/lib/server/accept-buyer";
+import { acceptLoi } from "@/lib/server/accept-loi";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { postSellerMessage } from "@/lib/server/post-project-message";
+import { approveMeeting, rescheduleMeeting, updateMeetingNotes } from "@/lib/server/update-meeting-notes";
+import { recordSuccessFee } from "@/lib/server/record-success-fee";
 
 export type SellerMessageState = { ok: true; message?: string } | { ok: false; message: string } | null;
 

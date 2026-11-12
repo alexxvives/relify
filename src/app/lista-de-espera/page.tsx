@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PublicSite } from "@/components/public-site";
+import { PublicSite } from "@/components/landing/public-site";
 import { WaitlistBoard } from "@/components/landing/waitlist-form";
 import { waitlistCopy } from "@/lib/waitlist";
 import { pageSocialMetadata } from "@/lib/seo-head";

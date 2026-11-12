@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
-import { stickyCtaShouldHide, type StickyBox } from "@/lib/sticky-cta-visibility";
+import { stickyCtaShouldHide, type StickyBox } from "@/lib/client/sticky-cta-visibility";
 
 function boxOf(el: Element | null): StickyBox | null {
   if (!(el instanceof HTMLElement)) {

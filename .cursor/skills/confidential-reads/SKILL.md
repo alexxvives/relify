@@ -27,7 +27,7 @@ Seller notices say "Un inversor" plus the codename. They do not include the inve
 
 ## When changing a read
 
-1. Parse input with Zod. Call a service in `src/server`. Do not query Prisma from a page or action.
+1. Parse input with Zod. Call a service in `src/lib/server`. Do not query Prisma from a page or action.
 2. Reuse `publicProjectSelect` / `publicProjectWhere` or `investorProjectSelect`. Add a column to the select only when this table allows that audience to see it.
 3. Extend the matching test in `src/lib/public-project.test.ts` or `src/lib/investor-project.test.ts` so the private keys stay absent.
 4. Money stays integer cents and is formatted in the UI.

@@ -1,6 +1,6 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { readContractFile } from "@/server/saleContract";
-import { pdfResponse } from "@/server/signedDocuments";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { readContractFile } from "@/lib/server/sale-contract";
+import { pdfResponse } from "@/lib/server/signed-documents";
 
 export async function GET(request: Request, context: { params: Promise<{ contractId: string }> }): Promise<Response> {
   const user = await getCurrentUser();

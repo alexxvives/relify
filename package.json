@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "test": "vitest run",
-    "e2e": "playwright test",
+    "e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "test:responsive": "node tests/e2e/responsive.test.mjs",
     "test:responsive:auth": "node tests/e2e/authenticated-responsive.test.mjs",
     "test:interactions": "node tests/e2e/authenticated-interactions.test.mjs",

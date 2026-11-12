@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { PlatformTermsForm } from "@/components/platform-terms-form";
-import { PlatformTermsText } from "@/components/platform-terms-text";
+import { PlatformTermsForm } from "@/components/auth/platform-terms-form";
+import { PlatformTermsText } from "@/components/auth/platform-terms-text";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export const metadata: Metadata = {
   title: platformTermsCopy.title,

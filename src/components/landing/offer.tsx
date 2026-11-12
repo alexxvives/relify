@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { OfferCarousel } from "@/components/landing/offer-carousel";
-import { MarketCard } from "@/components/market-card";
+import { MarketCard } from "@/components/investor/market-card";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { landingPreviewHref, showcaseToProjectCard } from "@/lib/showcase-card";
 

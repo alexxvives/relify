@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-import { InvestorHomeSkeleton } from "@/components/page-skeletons";
+import { InvestorHomeSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { InvestorHome } from "@/components/investor-home";
-import { SignedInPage } from "@/components/signed-in-page";
+import { InvestorHome } from "@/components/investor/investor-home";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { investorCopy } from "@/lib/investor-copy";
-import { loadInvestorDesk } from "@/server/investorDesk";
-import { investorFunnel } from "@/server/activityFunnel";
-import { listNotifications } from "@/server/listNotifications";
-import { listPublishedSectors } from "@/server/listPublishedSectors";
-import { requireRole } from "@/server/requireRole";
+import { loadInvestorDesk } from "@/lib/server/investor-desk";
+import { investorFunnel } from "@/lib/server/activity-funnel";
+import { listNotifications } from "@/lib/server/list-notifications";
+import { listPublishedSectors } from "@/lib/server/list-published-sectors";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: investorCopy.homeTitle,

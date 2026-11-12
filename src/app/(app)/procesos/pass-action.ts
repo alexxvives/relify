@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { passDiligence } from "@/server/passDiligence";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { passDiligence } from "@/lib/server/pass-diligence";
 
 export type PassDiligenceState = { ok: true } | { ok: false; message: string } | null;
 

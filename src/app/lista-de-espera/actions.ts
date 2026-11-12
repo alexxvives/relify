@@ -1,8 +1,8 @@
 "use server";
 
 import { waitlistCopy, waitlistSchema } from "@/lib/waitlist";
-import { clientIp, takeThrottle } from "@/server/emailThrottle";
-import { joinWaitlist } from "@/server/joinWaitlist";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
+import { joinWaitlist } from "@/lib/server/join-waitlist";
 
 export type WaitlistState = { status: "idle" } | { status: "ok" } | { status: "error"; message: string };
 

@@ -1,9 +1,0 @@
-{
-  "round": "s13",
-  "commit": "4df2de3b643c0841d0edfc74ddb3376228f4f411",
-  "tar_gz": "releva-int-deploy.tar.gz",
-  "tar_gz_sha256": "85f07501b5be21b7c5ef999378c24ceb9243b9bfd63793b0cdc94accd081fe0c",
-  "migrations": [],
-  "note": "No migration. Additive location fields already exist (postal_code, city, street). address column kept.",
-  "deployed": false
-}

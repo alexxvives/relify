@@ -63,7 +63,7 @@ Do not invent a new hex. Match the surface you are editing.
 1. **Accessibility (critical).** Text contrast ≥ 4.5:1 (≥ 3:1 for large text). Every image has `alt` (empty `alt=""` only when decorative). Icon-only buttons need `aria-label`. Never remove focus rings; use `focus-visible:outline`. Toggles expose `aria-pressed`; live updates use `aria-live="polite"`.
 2. **Touch and interaction (critical).** Hit targets ≥ 44×44 px on mobile (buttons `h-11`/`h-12`; `h-9` only for dense admin rows). Show pending state on every submit (`useActionState` `pending` → disabled + "…ando" label). No hover-only affordances.
 3. **Performance.** Use `next/image` with `sizes`; reserve space with `aspect-*` frames (no CLS). Images under ~150 KB; JPEG/WebP.
-4. **Style consistency.** One card pattern: `rounded-2xl border border-[#e7eaee] bg-white p-5`. Status as small rounded-full chips. Badges (e.g. "Verificado") use `VerifiedBadge` from `src/components/project-photo.tsx`.
+4. **Style consistency.** One card pattern: `rounded-2xl border border-[#e7eaee] bg-white p-5`. Status as small rounded-full chips. Badges (e.g. "Verificado") use `VerifiedBadge` from `src/components/investor/project-photo.tsx`.
 5. **Layout and responsive.** Mobile first; check 390 px and 1440 px. No horizontal scroll. Grids: `md:grid-cols-2 xl:grid-cols-3` for cards.
 6. **Typography and color.** Base 16 px, body line-height ~1.5, minimum 12 px for meta text (11 px only for image tags). Use `tabular-nums` for money and figures.
 7. **Animation.** 150–300 ms, opacity/transform only, respect `prefers-reduced-motion`.

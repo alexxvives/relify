@@ -14,9 +14,9 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
-      // Workers AI reads the Modelo 200 PDFs (src/server/financialExtraction.ts); no API key needed.
+      // Workers AI reads the Modelo 200 PDFs; no API key needed.
       AI: bindings.ai(),
-      // t73b: fallback transport only. Maileroo (MAILEROO_API_KEY) sends first; see src/server/mailer.ts.
+      // t73b: fallback transport only. Maileroo (MAILEROO_API_KEY) sends first; see src/lib/server/mailer.ts.
       EMAIL: bindings.sendEmail({
         allowedSenderAddresses: ["notificaciones@itsrelify.com", "info@itsrelify.com"],
       }),

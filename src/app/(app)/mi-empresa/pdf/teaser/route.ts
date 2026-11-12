@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { sellerTeaserPdf } from "@/server/companyPdfs";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { sellerTeaserPdf } from "@/lib/server/company-pdfs";
 
 export async function GET(request: Request): Promise<Response> {
   const user = await getCurrentUser();

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { investorProfileSchema, type InvestorProfileInput } from "@/lib/investor-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { saveInvestorPhoto, saveInvestorProfile } from "@/server/investorProfile";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { saveInvestorPhoto, saveInvestorProfile } from "@/lib/server/investor-profile";
 
 export type InvestorProfileState = { ok: true } | { ok: false; message: string } | null;
 

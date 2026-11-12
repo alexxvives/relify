@@ -1,5 +1,0 @@
-INT: apply prisma/migrations/20261110190000_seller_financing_negotiable_to_yes/migration.sql
-  UPDATE "project" SET "seller_financing" = 'yes' WHERE "seller_financing" = 'negotiable';
-
-PROD: do not apply from this package. storedSellerFinancing maps leftover "negotiable" to yes
-until Alex runs the same UPDATE. There is no Postgres enum to drop.

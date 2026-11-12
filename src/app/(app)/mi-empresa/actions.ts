@@ -1,6 +1,6 @@
 "use server";
 
-import { submitForReviewIfReady } from "@/server/submitForReview";
+import { submitForReviewIfReady } from "@/lib/server/submit-for-review";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
@@ -18,19 +18,19 @@ import {
   type ForecastYearInput,
 } from "@/lib/company-draft";
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
-import { addProjectPhotos, deleteProjectPhoto } from "@/server/projectPhotos";
-import { publishSellerProject } from "@/server/publishSellerProject";
-import { requestFigureCorrection } from "@/server/requestFigureCorrection";
-import { requestIdentityChange } from "@/server/requestIdentityChange";
-import { saveCompanyDraft } from "@/server/saveCompanyDraft";
-import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/server/saveEbitdaAdjustments";
-import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/server/storeAdjustmentDocument";
-import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
-import { startListingCheckout } from "@/server/startCheckout";
-import { uniqueCodename } from "@/server/uniqueCodename";
-import { rotateTeaserToken } from "@/server/companyPdfs";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { deleteProjectCover, writeProjectCover } from "@/lib/server/project-cover";
+import { addProjectPhotos, deleteProjectPhoto } from "@/lib/server/project-photos";
+import { publishSellerProject } from "@/lib/server/publish-seller-project";
+import { requestFigureCorrection } from "@/lib/server/request-figure-correction";
+import { requestIdentityChange } from "@/lib/server/request-identity-change";
+import { saveCompanyDraft } from "@/lib/server/save-company-draft";
+import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/lib/server/save-ebitda-adjustments";
+import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/lib/server/store-adjustment-document";
+import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/lib/server/seller-company";
+import { startListingCheckout } from "@/lib/server/start-checkout";
+import { uniqueCodename } from "@/lib/server/unique-codename";
+import { rotateTeaserToken } from "@/lib/server/company-pdfs";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { FaqSection } from "@/components/arc/blocks/faq-section/faq-section";
 import { ArrowRight, Check, ChartColumn, FileSearch, ShieldCheck } from "lucide-react";
-import { PublicSite } from "@/components/public-site";
+import { PublicSite } from "@/components/landing/public-site";
 import { PublishMorph } from "@/components/landing/publish-morph";
 
 const featureTones = [

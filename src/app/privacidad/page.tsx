@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LegalDoc } from "@/components/legal-doc";
+import { LegalDoc } from "@/components/public/legal-doc";
 import { privacyCopy } from "@/lib/legal-copy";
 import { pageSocialMetadata } from "@/lib/seo-head";
 import { readSiteUrl } from "@/lib/env";

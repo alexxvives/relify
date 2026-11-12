@@ -4,16 +4,16 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
-import { OnboardingForm } from "@/components/onboarding-form";
-import { OnboardingPlanResume } from "@/components/onboarding-plan-resume";
-import { loadBuyerPlan } from "@/server/buyerPlan";
-import { IntBadge } from "@/components/int-badge";
-import { Logo } from "@/components/logo";
+import { OnboardingForm } from "@/components/auth/onboarding-form";
+import { OnboardingPlanResume } from "@/components/auth/onboarding-plan-resume";
+import { loadBuyerPlan } from "@/lib/server/buyer-plan";
+import { IntBadge } from "@/components/shell/int-badge";
+import { Logo } from "@/components/shell/logo";
 import { isIntEnvironment } from "@/lib/int-env";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, type SignupRole } from "@/lib/auth-input";
-import { ConversionPing } from "@/components/cookie-consent";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { ConversionPing } from "@/components/auth/cookie-consent";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export const metadata: Metadata = {
   title: authCopy.onboardingTitle,

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AdminCompany } from "@/components/admin-company";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdminCompany } from "@/components/admin/admin-company";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
 import { madridToday } from "@/lib/meeting";
-import { getAdminCompanyByAccess } from "@/server/getAdminCompany";
-import { adminTeaserDesk } from "@/server/companyPdfs";
-import { requireRole } from "@/server/requireRole";
+import { getAdminCompanyByAccess } from "@/lib/server/get-admin-company";
+import { adminTeaserDesk } from "@/lib/server/company-pdfs";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: adminCopy.connectionsTitle,

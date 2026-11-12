@@ -1,6 +1,6 @@
 # Running Playwright E2E
 
-`npm run e2e` runs Playwright against **desktop 1280** and **mobile 390**. Vitest (`npm run test`) is unchanged.
+`npm run e2e` runs Playwright (`tests/e2e/playwright.config.ts`) against **desktop 1280** and **mobile 390**. Vitest (`npm run test`) runs `tests/unit`.
 
 ## Local
 

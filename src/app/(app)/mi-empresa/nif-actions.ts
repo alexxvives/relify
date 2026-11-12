@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { previewCompanyNif, verifyCompanyNif, type PreviewNifResult } from "@/server/verifyCompanyNif";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { previewCompanyNif, verifyCompanyNif, type PreviewNifResult } from "@/lib/server/verify-company-nif";
 
 export type VerifyNifState = { ok: true } | { ok: false; message: string } | null;
 

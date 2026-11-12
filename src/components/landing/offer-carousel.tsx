@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MarketCard } from "@/components/market-card";
+import { MarketCard } from "@/components/investor/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { landingPreviewHref } from "@/lib/showcase-card";
 

@@ -1,28 +1,28 @@
-import { submitForReviewIfReady } from "@/server/submitForReview";
+import { submitForReviewIfReady } from "@/lib/server/submit-for-review";
 import { Suspense } from "react";
-import { materializePendingCompanies } from "@/server/sellerCompany";
-import { SellerHomeSkeleton } from "@/components/page-skeletons";
+import { materializePendingCompanies } from "@/lib/server/seller-company";
+import { SellerHomeSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { CompanyNifDialog } from "@/components/company-nif-form";
-import { SellerOverview } from "@/components/seller-overview";
-import { SignedInPage } from "@/components/signed-in-page";
+import { CompanyNifDialog } from "@/components/seller/company-nif-form";
+import { SellerOverview } from "@/components/seller/seller-overview";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { projectImageSrc } from "@/lib/project-image";
 import { homePendingActions } from "@/lib/deal-pipeline";
 import { sellerCopy } from "@/lib/seller-copy";
-import { prisma } from "@/server/db";
-import { sellerFunnel } from "@/server/activityFunnel";
-import { projectSold } from "@/server/saleOutcome";
-import { getSellerOverview } from "@/server/getSellerOverview";
-import { getSellerDashboard } from "@/server/getSellerDashboard";
+import { prisma } from "@/lib/db";
+import { sellerFunnel } from "@/lib/server/activity-funnel";
+import { projectSold } from "@/lib/server/sale-outcome";
+import { getSellerOverview } from "@/lib/server/get-seller-overview";
+import { getSellerDashboard } from "@/lib/server/get-seller-dashboard";
 import { withoutOwnCompany } from "@/lib/notifications";
-import { listNotifications } from "@/server/listNotifications";
-import { listProjectMessages } from "@/server/listProjectMessages";
-import { getSellerListing } from "@/server/publishSellerProject";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { requireRole } from "@/server/requireRole";
-import { cardCover } from "@/server/projectCardCover";
-import { activeSellerProjectId } from "@/server/sellerCompany";
-import { companyNifIsVerified } from "@/server/verifyCompanyNif";
+import { listNotifications } from "@/lib/server/list-notifications";
+import { listProjectMessages } from "@/lib/server/list-project-messages";
+import { getSellerListing } from "@/lib/server/publish-seller-project";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
+import { requireRole } from "@/lib/server/require-role";
+import { cardCover } from "@/lib/server/project-card-cover";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
+import { companyNifIsVerified } from "@/lib/server/verify-company-nif";
 
 export const metadata: Metadata = {
   title: sellerCopy.homeTitle,

@@ -45,7 +45,7 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 - `INT_EMAIL_ENABLED` (legacy; it does not enable mail).
 - Production `EMAIL` send_email binding.
 
-See `src/lib/int-mail.ts` and `src/server/mailer.ts`.
+See `src/lib/int-mail.ts` and `src/lib/server/mailer.ts`.
 
 ## Stripe TEST (optional)
 

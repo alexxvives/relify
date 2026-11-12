@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LandingPage } from "@/components/landing-page";
+import { LandingPage } from "@/components/landing/landing-page";
 import { landingCopy } from "@/lib/landing-copy";
 import { isIntEnvironment } from "@/lib/int-env";
 import { intAbsoluteTitle, pageSocialMetadata } from "@/lib/seo-head";

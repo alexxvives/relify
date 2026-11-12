@@ -2,7 +2,7 @@
 
 ## What it does today (Round S, step 1)
 
-`/valorar` is a public Costa page (`src/app/valorar/page.tsx`) with a contact form (`src/components/valuation-request-form.tsx`).
+`/valorar` is a public Costa page (`src/app/valorar/page.tsx`) with a contact form (`src/components/public/valuation-request-form.tsx`).
 
 **Fields**
 

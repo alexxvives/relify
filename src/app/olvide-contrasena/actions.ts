@@ -2,8 +2,8 @@
 
 import { z } from "zod";
 import { authCopy } from "@/lib/auth-copy";
-import { auth } from "@/server/auth";
-import { clientIp, takeThrottle, throttleHash } from "@/server/emailThrottle";
+import { auth } from "@/lib/server/auth";
+import { clientIp, takeThrottle, throttleHash } from "@/lib/server/email-throttle";
 
 export type ForgotState = { sent: boolean; message: string } | null;
 export type ResetState = { message: string; invalid?: boolean } | null;

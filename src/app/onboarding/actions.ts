@@ -3,9 +3,9 @@
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, onboardingFieldMessage, onboardingSchema, splitAccountName, type OnboardingInput } from "@/lib/auth-input";
-import { completeOnboarding } from "@/server/completeOnboarding";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { startBuyerCheckout } from "@/server/startCheckout";
+import { completeOnboarding } from "@/lib/server/complete-onboarding";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { startBuyerCheckout } from "@/lib/server/start-checkout";
 
 export type OnboardingState = { message: string } | null;
 

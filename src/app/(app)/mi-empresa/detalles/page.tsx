@@ -1,21 +1,21 @@
 import { Suspense } from "react";
-import { CompanyDetailsSkeleton, FichaPublicaSkeleton } from "@/components/page-skeletons";
+import { CompanyDetailsSkeleton, FichaPublicaSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SellerCompanyPanel } from "@/components/seller-company-panel";
-import { SignedInPage } from "@/components/signed-in-page";
+import { SellerCompanyPanel } from "@/components/seller/seller-company-panel";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { isSellerFocusPanel } from "@/lib/company-profile";
 import { sellerCopy } from "@/lib/seller-copy";
-import { getCompanyDraft } from "@/server/getCompanyDraft";
-import { getSabiDetail } from "@/server/sabiDetail";
-import { getSabiRegistry } from "@/server/sabiRegistry";
-import { getSellerFichaExtras } from "@/server/sellerFichaExtras";
-import { cardCover, mergeLegacyCover } from "@/server/projectCardCover";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { getSellerListing } from "@/server/publishSellerProject";
-import { requireRole } from "@/server/requireRole";
-import { activeSellerProjectId } from "@/server/sellerCompany";
-import { companyNifIsVerified, getSellerCif } from "@/server/verifyCompanyNif";
+import { getCompanyDraft } from "@/lib/server/get-company-draft";
+import { getSabiDetail } from "@/lib/server/sabi-detail";
+import { getSabiRegistry } from "@/lib/server/sabi-registry";
+import { getSellerFichaExtras } from "@/lib/server/seller-ficha-extras";
+import { cardCover, mergeLegacyCover } from "@/lib/server/project-card-cover";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
+import { getSellerListing } from "@/lib/server/publish-seller-project";
+import { requireRole } from "@/lib/server/require-role";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
+import { companyNifIsVerified, getSellerCif } from "@/lib/server/verify-company-nif";
 import { isIntEnvironment } from "@/lib/int-env";
 
 export const metadata: Metadata = {

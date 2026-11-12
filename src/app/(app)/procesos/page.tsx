@@ -1,16 +1,16 @@
 import { Suspense } from "react";
-import { ProcessesSkeleton } from "@/components/page-skeletons";
+import { ProcessesSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { CancelledList, InvestorProcesses } from "@/components/investor-processes";
-import { SignedInPage } from "@/components/signed-in-page";
-import { ProcessesPlaceholder } from "@/components/processes-placeholder";
+import { CancelledList, InvestorProcesses } from "@/components/investor/investor-processes";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { ProcessesPlaceholder } from "@/components/shell/processes-placeholder";
 import { spanishDate } from "@/lib/deal-documents";
 import { madridToday } from "@/lib/meeting";
 import { investorCopy } from "@/lib/investor-copy";
-import { listClientContacts } from "@/server/engagementThread";
-import { listCancelledProcesses, loadInvestorDesk } from "@/server/investorDesk";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { requireRole } from "@/server/requireRole";
+import { listClientContacts } from "@/lib/server/engagement-thread";
+import { listCancelledProcesses, loadInvestorDesk } from "@/lib/server/investor-desk";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { requireRole } from "@/lib/server/require-role";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {

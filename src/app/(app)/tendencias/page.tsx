@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SellerTrends } from "@/components/seller-trends";
-import { SignedInPage } from "@/components/signed-in-page";
+import { SellerTrends } from "@/components/seller/seller-trends";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { homeForRole } from "@/lib/auth-input";
 import { sellerCopy } from "@/lib/seller-copy";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export const metadata: Metadata = {
   title: sellerCopy.trendsTitle,

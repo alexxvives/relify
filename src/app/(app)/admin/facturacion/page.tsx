@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { AdminBillingSkeleton } from "@/components/page-skeletons";
+import { AdminBillingSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AdminBilling } from "@/components/admin-billing";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdminBilling } from "@/components/admin/admin-billing";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
-import { getAdminBilling } from "@/server/getAdminBilling";
-import { requireRole } from "@/server/requireRole";
+import { getAdminBilling } from "@/lib/server/get-admin-billing";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: adminCopy.billingTitle,

@@ -1,15 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { approveProject } from "@/server/approveProject";
-import { changeAccountRole } from "@/server/changeAccountRole";
-import { grantInvestorPlan } from "@/server/grantInvestorPlan";
-import { requireRole } from "@/server/requireRole";
-import { setAccountSuspension } from "@/server/setAccountSuspension";
-import { setVerified } from "@/server/setVerified";
-import { unpublishProject } from "@/server/unpublishProject";
-import { approveEbitdaAdjustment } from "@/server/approveEbitdaAdjustment";
-import { rotateAdminTeaserToken } from "@/server/companyPdfs";
+import { approveProject } from "@/lib/server/approve-project";
+import { changeAccountRole } from "@/lib/server/change-account-role";
+import { grantInvestorPlan } from "@/lib/server/grant-investor-plan";
+import { requireRole } from "@/lib/server/require-role";
+import { setAccountSuspension } from "@/lib/server/set-account-suspension";
+import { setVerified } from "@/lib/server/set-verified";
+import { unpublishProject } from "@/lib/server/unpublish-project";
+import { approveEbitdaAdjustment } from "@/lib/server/approve-ebitda-adjustment";
+import { rotateAdminTeaserToken } from "@/lib/server/company-pdfs";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
 

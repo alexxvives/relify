@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/server/requireRole";
-import { updateValuationRequest } from "@/server/updateValuationRequest";
+import { requireRole } from "@/lib/server/require-role";
+import { updateValuationRequest } from "@/lib/server/update-valuation-request";
 import type { AdminActionState } from "@/app/(app)/admin/actions";
 
 function readText(formData: FormData, name: string): string {

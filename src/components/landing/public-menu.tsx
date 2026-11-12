@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IntBadge } from "@/components/int-badge";
+import { IntBadge } from "@/components/shell/int-badge";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/shell/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; showInt?: boolean }) {

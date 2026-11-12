@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BlogProse } from "@/components/blog-prose";
-import { NewsletterSignup } from "@/components/newsletter-signup";
-import { PublicSite } from "@/components/public-site";
+import { BlogProse } from "@/components/public/blog-prose";
+import { NewsletterSignup } from "@/components/public/newsletter-signup";
+import { PublicSite } from "@/components/landing/public-site";
 import { blogCopy, blogPost, blogPosts, formatBlogDate } from "@/lib/blog";
 import { readSiteUrl } from "@/lib/env";
 

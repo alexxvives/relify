@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { useModalScrollLock } from "@/components/file-preview-dialog";
+import { useModalScrollLock } from "@/components/investor/file-preview-dialog";
 
 export function BottomSheet({
   open,

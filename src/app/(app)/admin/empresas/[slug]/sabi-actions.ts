@@ -1,20 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/server/requireRole";
+import { requireRole } from "@/lib/server/require-role";
 import {
   notifyReportReady,
   type NotifyReportResult,
-} from "@/server/notifyReportReady";
-import { getCurrentUser } from "@/server/getCurrentUser";
+} from "@/lib/server/notify-report-ready";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   listSabiJobs,
   startSabiImportJob,
   type SabiJobStart,
   type SabiJobView,
-} from "@/server/sabiJobs";
+} from "@/lib/server/sabi-jobs";
 
-import { setProjectPhotoHidden } from "@/server/projectPhotos";
+import { setProjectPhotoHidden } from "@/lib/server/project-photos";
 
 /** t84: admin moderation of seller gallery photos (hide / show). */
 export async function setProjectPhotoHiddenAction(photoId: string, hidden: boolean): Promise<{ ok: boolean }> {

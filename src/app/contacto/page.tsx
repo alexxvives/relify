@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Building2, HelpCircle, Mail, Users } from "lucide-react";
-import { ContactForm } from "@/components/contact-form";
-import { PublicSite } from "@/components/public-site";
+import { ContactForm } from "@/components/public/contact-form";
+import { PublicSite } from "@/components/landing/public-site";
 import { readSiteUrl } from "@/lib/env";
 import { pageSocialMetadata } from "@/lib/seo-head";
 import { shellCopy } from "@/lib/shell";

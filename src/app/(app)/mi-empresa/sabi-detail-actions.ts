@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/server/requireRole";
-import { saveSabiDetail } from "@/server/sabiDetail";
-import { activeSellerProjectId } from "@/server/sellerCompany";
+import { requireRole } from "@/lib/server/require-role";
+import { saveSabiDetail } from "@/lib/server/sabi-detail";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
 
 export type SabiDetailState = { saved: boolean; message: string } | null;
 

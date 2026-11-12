@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PublicSite } from "@/components/public-site";
-import { CookiePreferencesLink } from "@/components/cookie-consent";
+import { PublicSite } from "@/components/landing/public-site";
+import { CookiePreferencesLink } from "@/components/auth/cookie-consent";
 import { cookiesCopy } from "@/lib/cookies-copy";
 import { pageSocialMetadata } from "@/lib/seo-head";
 import { readSiteUrl } from "@/lib/env";

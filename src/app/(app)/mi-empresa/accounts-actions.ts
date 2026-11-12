@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
 import { centsToEuroInput } from "@/lib/company-draft";
 import type { BalanceInputKey, PnlInputKey } from "@/lib/company-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { readAnnualAccounts, type AnnualAccountsRead } from "@/server/readAnnualAccounts";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { readAnnualAccounts, type AnnualAccountsRead } from "@/lib/server/read-annual-accounts";
 
 export type AccountsStatement = {
   year: number;

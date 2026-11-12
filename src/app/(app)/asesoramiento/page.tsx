@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import { AdvisorySkeleton } from "@/components/page-skeletons";
+import { AdvisorySkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { AdvisoryPicker } from "@/components/advisory-picker";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisoryPicker } from "@/components/advisor/advisory-picker";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { selectedEngagementCompany } from "@/lib/advisor-directory";
 import { advisoryCopy } from "@/lib/advisory";
-import { listInvestorNdaCompanies } from "@/server/listInvestorNdaCompanies";
-import { listPublicAdvisors } from "@/server/listPublicAdvisors";
-import { requireRole } from "@/server/requireRole";
+import { listInvestorNdaCompanies } from "@/lib/server/list-investor-nda-companies";
+import { listPublicAdvisors } from "@/lib/server/list-public-advisors";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: advisoryCopy.title,

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { ArcScope } from "@/components/arc/arc-scope";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
 import { subscribeNewsletter } from "@/app/contacto/actions";
-import { CookiePreferencesLink } from "@/components/cookie-consent";
-import { Logo } from "@/components/logo";
+import { CookiePreferencesLink } from "@/components/auth/cookie-consent";
+import { Logo } from "@/components/shell/logo";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function LandingFooter() {

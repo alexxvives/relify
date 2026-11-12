@@ -10,7 +10,7 @@ import {
   assertPaymentsEnabled,
   shouldBlockExternalApi,
   shouldBlockWebhook,
-} from "@/server/int-guards";
+} from "@/lib/server/int-guards";
 
 console.log("=== INT Runtime Environment Verification ===\n");
 

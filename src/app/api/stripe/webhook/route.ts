@@ -1,8 +1,8 @@
-import { prisma } from "@/server/db";
-import { fulfillCheckout, syncSubscription } from "@/server/fulfillCheckout";
-import { assertPaymentsEnabled } from "@/server/int-guards";
+import { prisma } from "@/lib/db";
+import { fulfillCheckout, syncSubscription } from "@/lib/server/fulfill-checkout";
+import { assertPaymentsEnabled } from "@/lib/server/int-guards";
 import { logRouteError } from "@/lib/route-error";
-import { readStripeWebhookSecret, stripeClient } from "@/server/stripe";
+import { readStripeWebhookSecret, stripeClient } from "@/lib/server/stripe";
 import type Stripe from "stripe";
 
 async function handleStripeEvent(event: Stripe.Event): Promise<void> {

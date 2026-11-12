@@ -1,7 +1,7 @@
 "use server";
 
-import { saveContactMessage, saveNewsletterSubscriber, type ContactInput } from "@/server/publicInbox";
-import { clientIp, takeThrottle } from "@/server/emailThrottle";
+import { saveContactMessage, saveNewsletterSubscriber, type ContactInput } from "@/lib/server/public-inbox";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
 
 export async function sendContactMessage(input: ContactInput) {
   if (!(await takeThrottle(`contact:ip:${await clientIp()}`, 8, 60 * 60, false))) {

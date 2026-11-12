@@ -22,7 +22,7 @@ Comprehensive safety hardening for INT environment based on e88e484 security rev
 ### 3. Upload Blocking (CRITICAL)
 **Problem**: Uploads not disabled  
 **Fix**: Server-side fail-closed guards across all upload actions  
-**Files**: `src/server/int-guards.ts`, `src/server/storeAdjustmentDocument.ts`, `src/server/signedDocuments.ts`
+**Files**: `src/lib/server/int-guards.ts`, `src/lib/server/store-adjustment-document.ts`, `src/lib/server/signed-documents.ts`
 
 ### 4. Email/Payment/API Blocking (CRITICAL)
 **Problem**: Not truly fail-closed, could be accidentally enabled  
@@ -33,7 +33,7 @@ Comprehensive safety hardening for INT environment based on e88e484 security rev
 - Webhook delivery
 - External billable APIs (EInforma, ApiEmpresas, Context7)
 
-**Files**: `src/server/int-guards.ts`, `src/server/mailer.ts`, `src/server/fulfillCheckout.ts`
+**Files**: `src/lib/server/int-guards.ts`, `src/lib/server/mailer.ts`, `src/lib/server/fulfill-checkout.ts`
 
 ### 5. Runtime Environment Detection
 **Problem**: Need to verify built adapter environment, not just process.env  
@@ -140,17 +140,17 @@ Before first INT deploy:
 - `scripts/build-int-dry-run.sh` - Credential-free build verification
 - `scripts/seed-int.ts` - Synthetic data seeding
 - `scripts/verify-int-runtime.ts` - Runtime guard verification
-- `src/server/int-guards.ts` - Centralized fail-closed guards
+- `src/lib/server/int-guards.ts` - Centralized fail-closed guards
 
 ### Modified Files
 - `package.json` - Added `seed:int` and `verify:int` commands
 - `scripts/deploy-int.sh` - Safe redaction, migration prompt
 - `src/lib/int-env.ts` - Exact resource validation, safe logging
 - `src/lib/int-env.test.ts` - Updated test expectations
-- `src/server/fulfillCheckout.ts` - Payment guard
-- `src/server/mailer.ts` - Email guard
-- `src/server/signedDocuments.ts` - Upload guard
-- `src/server/storeAdjustmentDocument.ts` - Upload guard
+- `src/lib/server/fulfill-checkout.ts` - Payment guard
+- `src/lib/server/mailer.ts` - Email guard
+- `src/lib/server/signed-documents.ts` - Upload guard
+- `src/lib/server/store-adjustment-document.ts` - Upload guard
 
 ## Next Steps
 

@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-import { AdvisorySkeleton } from "@/components/page-skeletons";
+import { AdvisorySkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AdvisoryPicker } from "@/components/advisory-picker";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisoryPicker } from "@/components/advisor/advisory-picker";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { selectedEngagementCompany } from "@/lib/advisor-directory";
 import { sellerCopy } from "@/lib/seller-copy";
-import { listPublicAdvisors } from "@/server/listPublicAdvisors";
-import { requireRole } from "@/server/requireRole";
-import { listSellerAdvisoryCompanies } from "@/server/sellerCompany";
-import { companyNifIsVerified } from "@/server/verifyCompanyNif";
+import { listPublicAdvisors } from "@/lib/server/list-public-advisors";
+import { requireRole } from "@/lib/server/require-role";
+import { listSellerAdvisoryCompanies } from "@/lib/server/seller-company";
+import { companyNifIsVerified } from "@/lib/server/verify-company-nif";
 
 export const metadata: Metadata = {
   title: sellerCopy.servicesTitle,

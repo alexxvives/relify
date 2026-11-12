@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { grantDataRoomSchema, storeDataRoomFileSchema } from "@/lib/data-room";
 import { sellerCopy } from "@/lib/seller-copy";
-import { createDataRoomFolder, deleteDataRoomFolder, renameDataRoomFolder } from "@/server/dataRoomFolders";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { grantDataRoomAccess } from "@/server/grantDataRoomAccess";
-import { setDataRoomFileShare } from "@/server/setDataRoomFileShare";
-import { shareDataRoomScope } from "@/server/shareDataRoomScope";
-import { dataRoomByteLimit } from "@/server/dataRoomDisk";
-import { deleteDataRoomFile } from "@/server/deleteDataRoomFile";
-import { renameDataRoomFile, storeDataRoomFile } from "@/server/storeDataRoomFile";
+import { createDataRoomFolder, deleteDataRoomFolder, renameDataRoomFolder } from "@/lib/server/data-room-folders";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { grantDataRoomAccess } from "@/lib/server/grant-data-room-access";
+import { setDataRoomFileShare } from "@/lib/server/set-data-room-file-share";
+import { shareDataRoomScope } from "@/lib/server/share-data-room-scope";
+import { dataRoomByteLimit } from "@/lib/server/data-room-disk";
+import { deleteDataRoomFile } from "@/lib/server/delete-data-room-file";
+import { renameDataRoomFile, storeDataRoomFile } from "@/lib/server/store-data-room-file";
 
 export type DataRoomActionState = { ok: true } | { ok: false; message: string } | null;
 

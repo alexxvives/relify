@@ -1,17 +1,17 @@
 import { Suspense } from "react";
-import { SellerProcessesSkeleton } from "@/components/page-skeletons";
+import { SellerProcessesSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SellerProcesses } from "@/components/seller-processes";
-import { SignedInPage } from "@/components/signed-in-page";
+import { SellerProcesses } from "@/components/seller/seller-processes";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
-import { listClientContacts } from "@/server/engagementThread";
-import { listPendingMatches } from "@/server/listPendingMatches";
-import { listProjectMessages } from "@/server/listProjectMessages";
-import { requireRole } from "@/server/requireRole";
-import { activeSellerProjectId, sellerProcessScope } from "@/server/sellerCompany";
-import { companyNifIsVerified } from "@/server/verifyCompanyNif";
+import { listClientContacts } from "@/lib/server/engagement-thread";
+import { listPendingMatches } from "@/lib/server/list-pending-matches";
+import { listProjectMessages } from "@/lib/server/list-project-messages";
+import { requireRole } from "@/lib/server/require-role";
+import { activeSellerProjectId, sellerProcessScope } from "@/lib/server/seller-company";
+import { companyNifIsVerified } from "@/lib/server/verify-company-nif";
 
 export const metadata: Metadata = {
   title: sellerCopy.processesTitle,

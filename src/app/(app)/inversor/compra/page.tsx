@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SaleSkeleton } from "@/components/page-skeletons";
-import { BuyerPurchaseCompleted } from "@/components/sale-completed";
-import { SignedInPage } from "@/components/signed-in-page";
-import { requireRole } from "@/server/requireRole";
-import { buyerPurchaseSummary } from "@/server/saleOutcome";
+import { SaleSkeleton } from "@/components/shell/page-skeletons";
+import { BuyerPurchaseCompleted } from "@/components/seller/sale-completed";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { requireRole } from "@/lib/server/require-role";
+import { buyerPurchaseSummary } from "@/lib/server/sale-outcome";
 
 export const metadata: Metadata = {
   title: "Empresa comprada",

@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { adminTeaserPdf } from "@/server/companyPdfs";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { adminTeaserPdf } from "@/lib/server/company-pdfs";
 
 export async function GET(
   request: Request,

@@ -8,8 +8,8 @@ import {
   signUpSchema,
   type SignUpInput,
 } from "@/lib/auth-input";
-import { clientIp, takeThrottle } from "@/server/emailThrottle";
-import { signUp } from "@/server/signUp";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
+import { signUp } from "@/lib/server/sign-up";
 
 export type SignUpState = { message: string } | null;
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PublicSite } from "@/components/public-site";
+import { PublicSite } from "@/components/landing/public-site";
 
 const copy = {
   kicker: "404",

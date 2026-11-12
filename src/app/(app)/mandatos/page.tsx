@@ -1,16 +1,16 @@
 import { Suspense } from "react";
-import { AdvisorHomeSkeleton } from "@/components/page-skeletons";
+import { AdvisorHomeSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { AdvisorHome } from "@/components/advisor-home";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisorHome } from "@/components/advisor/advisor-home";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorProfileChecks } from "@/lib/advisor-profile";
-import { getAdvisorDesk } from "@/server/advisoryEngagement";
-import { getAdvisorProfile } from "@/server/getAdvisorProfile";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { listNotifications } from "@/server/listNotifications";
-import { listPublishedSectors } from "@/server/listPublishedSectors";
-import { requireRole } from "@/server/requireRole";
+import { getAdvisorDesk } from "@/lib/server/advisory-engagement";
+import { getAdvisorProfile } from "@/lib/server/get-advisor-profile";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
+import { listNotifications } from "@/lib/server/list-notifications";
+import { listPublishedSectors } from "@/lib/server/list-published-sectors";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: advisorCopy.homeTitle,

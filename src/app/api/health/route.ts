@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readHealth } from "@/server/health";
+import { readHealth } from "@/lib/server/health";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

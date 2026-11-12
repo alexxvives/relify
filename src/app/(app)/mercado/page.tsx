@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { MarketSkeleton } from "@/components/page-skeletons";
+import { MarketSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { MarketBrowser } from "@/components/market-browser";
-import { SignedInPage } from "@/components/signed-in-page";
+import { MarketBrowser } from "@/components/investor/market-browser";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { marketCopy } from "@/lib/market-copy";
 import { pageSocialMetadata } from "@/lib/seo-head";
 import { readSiteUrl } from "@/lib/env";
-import { listPublicProjects } from "@/server/listPublicProjects";
-import { requireRole } from "@/server/requireRole";
-import { listFavoriteSlugs } from "@/server/toggleProjectFavorite";
+import { listPublicProjects } from "@/lib/server/list-public-projects";
+import { requireRole } from "@/lib/server/require-role";
+import { listFavoriteSlugs } from "@/lib/server/toggle-project-favorite";
 
 export function generateMetadata(): Metadata {
   return {

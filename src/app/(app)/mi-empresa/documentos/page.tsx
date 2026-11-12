@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-import { DocumentsSkeleton } from "@/components/page-skeletons";
+import { DocumentsSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SellerDocuments } from "@/components/seller-documents";
-import { SignedInPage } from "@/components/signed-in-page";
+import { SellerDocuments } from "@/components/seller/seller-documents";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
-import { sellerAdvisorAccess } from "@/server/advisoryEngagement";
-import { listDataRoom } from "@/server/listDataRoom";
-import { activeSellerProjectId } from "@/server/sellerCompany";
-import { requireRole } from "@/server/requireRole";
-import { companyNifIsVerified } from "@/server/verifyCompanyNif";
+import { sellerAdvisorAccess } from "@/lib/server/advisory-engagement";
+import { listDataRoom } from "@/lib/server/list-data-room";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
+import { requireRole } from "@/lib/server/require-role";
+import { companyNifIsVerified } from "@/lib/server/verify-company-nif";
 
 export const metadata: Metadata = {
   title: sellerCopy.documentsTitle,

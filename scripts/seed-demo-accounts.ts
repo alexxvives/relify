@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/db";
 
 const password = "@Releva1z2x";
 const projectId = "demo-project-cala";

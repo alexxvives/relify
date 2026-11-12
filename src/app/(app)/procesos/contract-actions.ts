@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { reviewSaleContract, signSaleContract, uploadSaleContract } from "@/server/saleContract";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { reviewSaleContract, signSaleContract, uploadSaleContract } from "@/lib/server/sale-contract";
 
 export type ContractActionState = { ok: boolean; message: string } | null;
 

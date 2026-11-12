@@ -3,8 +3,8 @@
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import { destinationForUser, signInFieldMessage, signInSchema, type SignInInput } from "@/lib/auth-input";
-import { clientIp, takeThrottle, throttleHash } from "@/server/emailThrottle";
-import { signIn } from "@/server/signIn";
+import { clientIp, takeThrottle, throttleHash } from "@/lib/server/email-throttle";
+import { signIn } from "@/lib/server/sign-in";
 
 export type SignInState = { message: string } | null;
 

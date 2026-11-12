@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AuthScreen } from "@/components/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { authCopy } from "@/lib/auth-copy";
 
 export const metadata: Metadata = {

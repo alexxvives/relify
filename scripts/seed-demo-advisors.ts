@@ -4,7 +4,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { corporateIsComplete } from "@/lib/advisor-profile";
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/db";
 
 type Svc = "DUE_DILIGENCE" | "BUSINESS_PLAN" | "COMPANY_VALUATION" | "LEGAL_CONSULTING" | "LABOR_CONSULTING" | "TAX_CONSULTING";
 

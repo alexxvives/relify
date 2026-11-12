@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Repo layout: src/app, feature components, lib/server + lib/db, tests/unit
+
+Routes stay in `src/app` (Next.js forbids a root `app/` next to `src/`). Domain services moved from `src/server` to kebab-case files in `src/lib/server`; Prisma lives in `src/lib/db`. Feature UI sits in `src/components/<feature>`. Unit tests sit in `tests/unit` (e2e in `tests/e2e`). Pure moves/renames and dead-file removal; no behavior change.
+
 ## 2026-11-12 — Round S14 asking-price card and Perfil ciego on /cuenta
 
 Precio de venta on Ficha is the amount, the pencil, and a three-state range tag (`Por debajo del rango` / `Dentro del rango` / `Por encima del rango`). The sheet holds the input, the t93 red→green bar with a live black dot, a compact equity vs debt-free control, and the recommended price as a chip plus Usar. Perfil ciego leaves Ficha and sits on `/cuenta` until a later home for it is chosen. Admin company pages keep the teaser card.
@@ -270,7 +274,7 @@ The public homepage is server-rendered and indexable. Copy, titles, and internal
 
 ## 2026-10-03 — Mercantile registry stays behind a server fixture
 
-Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Relify prefills from a server-side fixture adapter in `src/server/lookupCompanyRegistry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
+Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Relify prefills from a server-side fixture adapter in `src/lib/server/lookup-company-registry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
 
 ## 2026-10-03 — Advisor workspace follows Deale, without a website field
 

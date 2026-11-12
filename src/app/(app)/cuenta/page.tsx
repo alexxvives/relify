@@ -1,22 +1,22 @@
 import { Suspense } from "react";
-import { AccountSkeleton } from "@/components/page-skeletons";
+import { AccountSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { regenerateTeaserLinkAction } from "@/app/(app)/mi-empresa/actions";
-import { AccountSettings } from "@/components/account-settings";
-import { SellerPdfCard } from "@/components/company-pdf-card";
-import { SignedPlatformTerms } from "@/components/signed-platform-terms";
-import { SignedInPage } from "@/components/signed-in-page";
-import { InvestorAccount } from "@/components/investor-account";
+import { AccountSettings } from "@/components/account/account-settings";
+import { SellerPdfCard } from "@/components/seller/company-pdf-card";
+import { SignedPlatformTerms } from "@/components/auth/signed-platform-terms";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { InvestorAccount } from "@/components/account/investor-account";
 import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
-import { getAccountNationalId } from "@/server/getAccountNationalId";
-import { sellerTeaserDesk } from "@/server/companyPdfs";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getAccountNationalId } from "@/lib/server/get-account-national-id";
+import { sellerTeaserDesk } from "@/lib/server/company-pdfs";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   investorGazeAvatar,
   loadInvestorDraft,
-} from "@/server/investorProfile";
+} from "@/lib/server/investor-profile";
 
 export const metadata: Metadata = {
   title: authCopy.accountTitle,

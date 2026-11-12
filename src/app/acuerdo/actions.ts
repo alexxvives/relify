@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { prisma } from "@/server/db";
-import { ensureNationalId } from "@/server/ensureNationalId";
-import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { prisma } from "@/lib/db";
+import { ensureNationalId } from "@/lib/server/ensure-national-id";
+import { storeSignedDocumentQuietly } from "@/lib/server/signed-documents";
 
 export type TermsState = { ok: false; message: string } | null;
 
