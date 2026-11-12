@@ -12,7 +12,7 @@ import {
 } from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
-import { OG_IMAGE_ALT, OG_IMAGE_PATH, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
+import { OG_IMAGE_ALT, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -85,7 +85,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={OG_IMAGE_ALT} />
         <meta name="twitter:image" content={og} />
-        <link rel="preload" as="image" href={OG_IMAGE_PATH} />
         {analyticsReady ? (
           <script dangerouslySetInnerHTML={{ __html: gaConsentBootstrapScript() }} />
         ) : null}

@@ -71,50 +71,33 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
         </h2>
         <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
 
-        <ul className="mt-5 grid gap-2 lg:hidden">
+        <ul className="mt-5 grid grid-cols-3 gap-2 lg:hidden">
           {copy.columns.map((column) => {
             const selected = column.id === role;
             const Icon = pathIcons[column.id];
             return (
               <li key={column.id}>
-                <div
-                  className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${
+                <button
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={column.role}
+                  onClick={() => {
+                    setHint(false);
+                    onSelect(column.id);
+                  }}
+                  className={`flex min-h-[5.5rem] w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-1.5 py-3 text-center ${
                     selected ? "bg-public-ink text-white" : "bg-public-card text-public-ink shadow-public"
                   }`}
                 >
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => {
-                      setHint(false);
-                      onSelect(column.id);
-                    }}
-                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
-                  >
-                    <span
-                      className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${
-                        selected ? "bg-white/15 text-white" : "bg-public-sand text-public-clay"
-                      }`}
-                    >
-                      <Icon className="size-5" aria-hidden />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-lg font-medium tracking-tight">{column.role}</span>
-                      <span className={`block truncate text-sm ${selected ? "text-white/75" : "text-public-muted"}`}>
-                        {column.line}
-                      </span>
-                    </span>
-                  </button>
-                  <Link
-                    href={column.href}
-                    aria-label={column.cta}
-                    className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full ${
-                      selected ? "bg-white text-public-ink" : "bg-public-clay text-white"
+                  <span
+                    className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                      selected ? "bg-white/15 text-white" : "bg-public-sand text-public-clay"
                     }`}
                   >
-                    <ArrowRight className="size-4" aria-hidden />
-                  </Link>
-                </div>
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <span className="text-[13px] font-medium tracking-tight sm:text-sm">{column.role}</span>
+                </button>
               </li>
             );
           })}

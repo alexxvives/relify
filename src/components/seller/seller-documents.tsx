@@ -606,11 +606,13 @@ export function SellerDocuments({
   folders,
   shares,
   advisors,
+  teaser = null,
 }: {
   files: OwnerFileView[];
   folders: string[];
   shares: DataRoomShareView[];
   advisors: DocumentAdvisor[];
+  teaser?: ReactNode;
 }) {
   const [folder, setFolder] = useState<string | null>(null);
   const [namingFolder, setNamingFolder] = useState(false);
@@ -626,6 +628,8 @@ export function SellerDocuments({
   }
 
   return (
+    <div className="flex flex-col gap-4">
+      {folder === null ? teaser : null}
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
         <>
@@ -766,6 +770,7 @@ export function SellerDocuments({
           setOpenFile(null);
         }}
       />
+    </div>
     </div>
   );
 }

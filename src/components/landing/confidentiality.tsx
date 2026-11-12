@@ -1,3 +1,4 @@
+import { FileCheck, ShieldCheck, Tags } from "lucide-react";
 import { landingCopy } from "@/lib/landing-copy";
 
 export function Confidentiality() {
@@ -15,6 +16,9 @@ export function Confidentiality() {
         </div>
         <div className="mt-5 grid gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-3">
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <span className="mb-3 inline-flex size-11 items-center justify-center rounded-2xl bg-white text-public-clay shadow-sm lg:hidden">
+              <ShieldCheck className="size-5" aria-hidden />
+            </span>
             <div className="releva-float hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <div className="space-y-2" aria-hidden="true">
                 <div className="h-2 w-2/3 rounded-full bg-public-line" />
@@ -35,6 +39,9 @@ export function Confidentiality() {
             <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.privacyBody}</p>
           </article>
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <span className="mb-3 inline-flex size-11 items-center justify-center rounded-2xl bg-white text-public-clay shadow-sm lg:hidden">
+              <Tags className="size-5" aria-hidden />
+            </span>
             <div className="releva-toast hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <p className="text-xs text-public-muted">Ejemplo</p>
               <p className="mt-1 font-medium text-public-ink">{copy.toastTitle}</p>
@@ -54,6 +61,9 @@ export function Confidentiality() {
             <p className="mt-1 text-sm leading-6 text-public-muted sm:mt-2">{copy.namesBody}</p>
           </article>
           <article className="flex flex-col rounded-[20px] bg-public-sand p-4 sm:rounded-[24px]">
+            <span className="mb-3 inline-flex size-11 items-center justify-center rounded-2xl bg-white text-public-clay shadow-sm lg:hidden">
+              <FileCheck className="size-5" aria-hidden />
+            </span>
             <div className="releva-float-late hidden rounded-2xl bg-white p-4 shadow-sm lg:block">
               <p className="text-sm font-medium text-public-ink">{copy.ndaFile}</p>
               <div className="mt-3 space-y-2" aria-hidden="true">

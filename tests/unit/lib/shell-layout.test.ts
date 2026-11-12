@@ -68,10 +68,11 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(draftForm).toMatch(/data-price-bar/);
     expect(draftForm).toMatch(/data-asking-price-sheet/);
     expect(draftForm).toMatch(/data-price-dot/);
+    expect(draftForm).toMatch(/data-price-recommend/);
     expect(draftForm).toMatch(/priceBarGradient/);
     const sheet = draftForm.slice(draftForm.indexOf("data-asking-price-sheet"));
-    expect(sheet).toMatch(/<PriceBar /);
-    expect(sheet).toMatch(/data-recommended-chip/);
+    expect(sheet).toMatch(/<PriceBar[\s>]/);
+    expect(sheet).toMatch(/data-use-recommended/);
     expect(sheet).toMatch(/data-asking-includes/);
     expect(draftForm).toMatch(/data-price-standing/);
     expect(draftForm).not.toMatch(/suggestedPrice/);
@@ -84,10 +85,12 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(draftForm).not.toMatch(/teaserDesk/);
   });
 
-  it("puts Perfil ciego on /cuenta for sellers", () => {
-    expect(cuentaPage).toMatch(/SellerPdfCard/);
-    expect(cuentaPage).toMatch(/sellerTeaserDesk/);
-    expect(cuentaPage).toMatch(/middle=\{teaser\}/);
+  it("puts Perfil ciego on Mis documentos, not /cuenta", () => {
+    const documentosPage = readFileSync(path.join(process.cwd(), "src/app/(app)/mi-empresa/documentos/page.tsx"), "utf8");
+    expect(cuentaPage).not.toMatch(/SellerPdfCard/);
+    expect(cuentaPage).not.toMatch(/sellerTeaserDesk/);
+    expect(documentosPage).toMatch(/SellerPdfCard/);
+    expect(documentosPage).toMatch(/sellerTeaserDesk/);
   });
 
   it("renders auth as a single surface below md", () => {
@@ -96,11 +99,11 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(authScreen).toMatch(/md:rounded-\[1\.75rem\] md:border md:border-white\/80 md:bg-white\/95/);
   });
 
-  it("keeps Perfil ciego as a compact row with overflow actions", () => {
+  it("keeps Perfil ciego as a preview card with overflow actions", () => {
     expect(teaserCard).toMatch(/data-teaser-card/);
     expect(teaserCard).toMatch(/Más acciones|moreActions/);
-    expect(teaserCard).toMatch(/previewOnDemand/);
-    expect(teaserCard).not.toMatch(/lg:grid lg:grid-cols-\[7\.5rem/);
+    expect(teaserCard).toMatch(/data-teaser-preview/);
+    expect(teaserCard).not.toMatch(/previewOnDemand/);
   });
 
   it("does not render the 50% EBITDA adjustment warning", () => {
@@ -113,5 +116,11 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(draftForm).toMatch(/flex min-w-0 flex-nowrap items-center gap-2/);
     expect(draftForm).toMatch(/min-w-0 truncate/);
     expect(draftForm).toMatch(/flex shrink-0 flex-nowrap items-center/);
+  });
+
+  it("finishes a section with Guardar instead of an up-arrow collapse", () => {
+    expect(draftForm).toMatch(/savePanel/);
+    expect(draftForm).toMatch(/cancelPanel/);
+    expect(draftForm).not.toMatch(/ChevronUp/);
   });
 });

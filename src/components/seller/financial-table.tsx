@@ -52,16 +52,16 @@ export function FinancialTable({
         {grid ? <AlignedColumns years={years.length} /> : null}
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
-            <th className={`py-3 pr-4 text-left font-medium ${grid ? "font-semibold text-[#1c2740]" : aligned ? "w-[44%] font-semibold text-[#1c2740]" : ""}`}>{title ?? companyCopy.evolutionLabel}</th>
+            <th className={`py-3 pr-4 text-left font-medium whitespace-nowrap ${grid ? "font-semibold text-[#1c2740]" : aligned ? "w-[44%] font-semibold text-[#1c2740]" : ""}`}>{title ?? companyCopy.evolutionLabel}</th>
             {years.map((year) => (
               <th
                 key={`${year.forecast ? "forecast" : "closed"}-${year.year}`}
-                className={year.forecast ? "bg-[#fff8db] px-3 py-3 text-right font-medium" : "px-3 py-3 text-right font-medium"}
+                className={year.forecast ? "bg-[#fff8db] px-3 py-3 text-right font-medium whitespace-nowrap" : "px-3 py-3 text-right font-medium whitespace-nowrap"}
               >
                 {year.forecast ? `${companyCopy.forecastMark} ${year.year}` : year.year}
               </th>
             ))}
-            {showTrend ? <th className="px-3 py-3 text-center font-medium">{trend ? "Tendencia" : ""}</th> : null}
+            {showTrend ? <th className="px-3 py-3 text-center font-medium whitespace-nowrap">{trend ? "Tendencia" : ""}</th> : null}
             {showShare ? (
               <th className="px-3 py-3 text-left font-medium whitespace-nowrap">{base !== null ? `% s/ ${shareLabel} ${years[baseIndex]?.year}` : ""}</th>
             ) : null}
@@ -98,8 +98,8 @@ export function FinancialTable({
  */
 export function AlignedColumns({ years }: { years: number }) {
   const label = 26;
-  const trend = 9;
-  const share = 14;
+  const trend = 12;
+  const share = 12;
   const year = years > 0 ? (100 - label - trend - share) / years : 0;
   return (
     <colgroup>

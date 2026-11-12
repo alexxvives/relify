@@ -366,11 +366,7 @@ export function MarketCard({
             edge="left"
             ink={adjustedKnown && project.adjustedEbitdaCents < 0 ? "text-[#b42318]" : undefined}
             hint={ebitdaHint(project, ebitda)}
-            note={ebitda.pendingReview ? (
-              <span className="text-[11px] font-medium text-[#b45f06]">{companyCopy.adjustmentInReview}</span>
-            ) : (
-              ebitdaMarginNote(project, ebitda)
-            )}
+            note={ebitdaMarginNote(project, ebitda)}
           />
           <div className="col-span-2 flex flex-col items-center gap-1 border-t border-[#eceff4] px-4 py-3 text-center">
             <dt className="text-xs font-medium text-[#667085]">Precio de venta</dt>

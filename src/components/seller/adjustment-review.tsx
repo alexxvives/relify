@@ -42,11 +42,11 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
         aria-labelledby="adjustment-review-title"
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        style={{ width: "min(100%, 24rem)", maxWidth: "24rem" }}
-        className="flex max-h-[min(32rem,calc(100dvh-2rem))] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none"
+        style={{ width: "min(100%, 42rem)", maxWidth: "42rem" }}
+        className="flex max-h-[min(44rem,calc(100dvh-2rem))] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none"
       >
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#eef0f4] px-4 py-3">
-          <h2 id="adjustment-review-title" className="text-sm font-semibold text-[#1c2740]">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#eef0f4] px-5 py-4 sm:px-7">
+          <h2 id="adjustment-review-title" className="text-lg font-semibold text-[#1c2740]">
             Ajustes al EBITDA
           </h2>
           <button
@@ -58,7 +58,7 @@ function AdjustmentReviewDialog({ onClose, children }: { onClose: () => void; ch
             <X className="size-4" aria-hidden />
           </button>
         </header>
-        <div className="min-h-0 overflow-y-auto">{children}</div>
+        <div className="min-h-0 overflow-y-auto px-1 py-1 sm:px-2 sm:py-2">{children}</div>
       </div>
     </div>,
     document.body,

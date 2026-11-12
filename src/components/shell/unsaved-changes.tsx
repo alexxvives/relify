@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { CircleAlert, X } from "lucide-react";
 
 const unsavedCopy = {
   title: "Tienes cambios sin guardar",
   body: "Si sales ahora, se pierden los cambios de esta página.",
   failedTitle: "No se han podido guardar los cambios",
-  failedBody: "Puedes seguir editando e intentarlo de nuevo, o salir sin guardar.",
+  failedBody: "Ha habido un problema al guardar. Puedes reintentarlo ahora, seguir editando o salir sin guardar.",
   stay: "Seguir editando",
   discard: "Salir sin guardar",
   save: "Guardar y salir",
+  retry: "Reintentar",
 } as const;
 
 const secondary =
@@ -147,11 +148,16 @@ export function UnsavedChangesGuard({
         >
           <X className="size-4" aria-hidden />
         </button>
+        {saveFailed ? (
+          <span className="mb-3 inline-flex size-10 items-center justify-center rounded-full bg-[#fdecea] text-[#c0362c]">
+            <CircleAlert className="size-5" aria-hidden />
+          </span>
+        ) : null}
         <h2 id="unsaved-title" className="pr-8 text-base font-semibold text-[#1c2740]">
           {saveFailed ? unsavedCopy.failedTitle : unsavedCopy.title}
         </h2>
-        <p id="unsaved-body" className="mt-1 text-sm leading-5 text-[#5c6b78]">{saveFailed ? unsavedCopy.failedBody : unsavedCopy.body}</p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <p id="unsaved-body" className="mt-1.5 text-sm leading-6 text-[#5c6b78]">{saveFailed ? unsavedCopy.failedBody : unsavedCopy.body}</p>
+        <div className={`mt-5 grid gap-2 ${saveFailed || !onSave ? "grid-cols-2" : "grid-cols-2"}`}>
           {onSave && !saveFailed ? null : (
             <button type="button" onClick={dismiss} className={secondary}>
               {unsavedCopy.stay}
@@ -167,7 +173,7 @@ export function UnsavedChangesGuard({
           >
             {unsavedCopy.discard}
           </button>
-          {onSave ? (
+          {onSave && !saveFailed ? (
             <button
               type="button"
               onClick={() => {
@@ -180,6 +186,18 @@ export function UnsavedChangesGuard({
             </button>
           ) : null}
         </div>
+        {onSave && saveFailed ? (
+          <button
+            type="button"
+            onClick={() => {
+              dismiss();
+              onSave(next);
+            }}
+            className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#465ab4] px-3 text-sm font-semibold text-white hover:bg-[#3a4c9c] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+          >
+            {unsavedCopy.retry}
+          </button>
+        ) : null}
       </div>
     </div>
   );

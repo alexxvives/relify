@@ -16,10 +16,14 @@ export function AppToast({
   message,
   tone = "ok",
   pulse = 0,
+  onRetry,
+  retryLabel = "Reintentar",
 }: {
   message: string | null;
   tone?: "ok" | "error";
   pulse?: number;
+  onRetry?: () => void;
+  retryLabel?: string;
 }) {
   const token = `${message ?? ""}\0${pulse}`;
   const [seen, setSeen] = useState(token);
@@ -67,6 +71,18 @@ export function AppToast({
           </span>
         )}
         <span className="min-w-0 flex-1 pt-0.5 text-sm leading-6 font-medium">{message}</span>
+        {!ok && onRetry ? (
+          <button
+            type="button"
+            onClick={() => {
+              setHidden(true);
+              onRetry();
+            }}
+            className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#c2413a] px-3 text-xs font-semibold text-white hover:bg-[#a83731] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2413a]"
+          >
+            {retryLabel}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => {

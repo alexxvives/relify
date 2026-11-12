@@ -223,3 +223,21 @@ export function priceBarPosition(cents: number, estimate: Pick<PriceEstimate, "l
   if (cents <= highCents) return priceBarZone.low + (priceBarZone.high - priceBarZone.low) * share(cents, lowCents, highCents);
   return priceBarZone.high + (1 - priceBarZone.high) * share(cents, highCents, maxCents);
 }
+
+/** Inverse of `priceBarPosition`: a 0..1 bar share (clamped) back to cents. */
+export function priceFromBarPosition(t: number, estimate: Pick<PriceEstimate, "lowCents" | "highCents">): number {
+  const clamped = Math.min(1, Math.max(0, t));
+  const { minCents, maxCents } = priceBarEnds(estimate);
+  const { lowCents, highCents } = estimate;
+  const lerp = (from: number, to: number, share: number) => Math.round(from + (to - from) * share);
+  if (clamped <= priceBarZone.low) {
+    const span = priceBarZone.low;
+    return lerp(minCents, lowCents, span > 0 ? clamped / span : 0);
+  }
+  if (clamped <= priceBarZone.high) {
+    const span = priceBarZone.high - priceBarZone.low;
+    return lerp(lowCents, highCents, span > 0 ? (clamped - priceBarZone.low) / span : 0.5);
+  }
+  const span = 1 - priceBarZone.high;
+  return lerp(highCents, maxCents, span > 0 ? (clamped - priceBarZone.high) / span : 1);
+}

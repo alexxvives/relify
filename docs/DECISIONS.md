@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Round S15 overlay hero, draggable price, teaser on documentos
+
+Mobile hero is one image card: title and the two CTAs overlay a dark gradient (no slicing white band). The asking-price bar is a slider (pointer, touch, arrows) synced both ways with the input, with a blue recommended tick and **Usar precio recomendado**. Seller draft autosave revalidates `/mi-empresa` only — vinext treats `revalidatePath` of the open `/mi-empresa/detalles` URL as a hard navigation and blocks the loop as Error al guardar. Perfil ciego leaves `/cuenta` and sits on Mis documentos with an always-on PDF thumb. Duplicate unused brand/hero files at the repo root are deleted; `neon.ts` stays because it is Neon CLI config.
+
 ## 2026-11-12 — Repo layout: src/app, feature components, lib/server + lib/db, tests/unit
 
 Routes stay in `src/app` (Next.js forbids a root `app/` next to `src/`). Domain services moved from `src/server` to kebab-case files in `src/lib/server`; Prisma lives in `src/lib/db`. Feature UI sits in `src/components/<feature>`. Unit tests sit in `tests/unit` (e2e in `tests/e2e`). Pure moves/renames and dead-file removal; no behavior change.

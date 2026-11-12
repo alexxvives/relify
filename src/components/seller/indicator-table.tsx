@@ -29,15 +29,15 @@ export function IndicatorTable({ years, rows, aligned = false }: { years: { year
         {aligned ? <AlignedColumns years={years.length} /> : null}
         <thead>
           <tr className="border-b border-[#e6e9f0] text-[#3d34b8]">
-            <th className={`py-3 pr-4 text-left font-medium ${aligned ? "font-semibold text-[#1c2740]" : ""}`}>{companyCopy.evolutionLabel}</th>
+            <th className={`py-3 pr-4 text-left font-medium whitespace-nowrap ${aligned ? "font-semibold text-[#1c2740]" : ""}`}>{companyCopy.evolutionLabel}</th>
             {years.map((year, index) => (
-              <th key={`${index}-${year.year}`} className="px-3 py-3 text-right font-medium">
+              <th key={`${index}-${year.year}`} className="px-3 py-3 text-right font-medium whitespace-nowrap">
                 {year.year}
               </th>
             ))}
             {aligned ? (
               <>
-                <th className="px-3 py-3 text-center font-medium">Tendencia</th>
+                <th className="px-3 py-3 text-center font-medium whitespace-nowrap">Tendencia</th>
                 <th />
               </>
             ) : null}

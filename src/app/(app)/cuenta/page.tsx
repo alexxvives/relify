@@ -2,16 +2,13 @@ import { Suspense } from "react";
 import { AccountSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { regenerateTeaserLinkAction } from "@/app/(app)/mi-empresa/actions";
 import { AccountSettings } from "@/components/account/account-settings";
-import { SellerPdfCard } from "@/components/seller/company-pdf-card";
 import { SignedPlatformTerms } from "@/components/auth/signed-platform-terms";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { InvestorAccount } from "@/components/account/investor-account";
 import { authCopy } from "@/lib/auth-copy";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/lib/server/get-account-national-id";
-import { sellerTeaserDesk } from "@/lib/server/company-pdfs";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   investorGazeAvatar,
@@ -39,20 +36,9 @@ async function AccountPageContent() {
     user.role === "investor"
       ? await loadInvestorDraft(user.id, user.email)
       : null;
-  const teaserDesk = user.role === "seller" ? await sellerTeaserDesk(user.id) : null;
-
   const agreement = user.termsAcceptedAt ? (
     <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} />
   ) : null;
-  const teaser =
-    teaserDesk ? (
-      <SellerPdfCard
-        desk={teaserDesk}
-        previewHref="/mi-empresa/pdf/teaser?preview=1"
-        downloadHref="/mi-empresa/pdf/teaser?download=1"
-        onRegenerate={regenerateTeaserLinkAction}
-      />
-    ) : null;
 
   return (
     <>
@@ -77,7 +63,6 @@ async function AccountPageContent() {
           phone={user.phone}
           nationalId={nationalId}
           agreement={agreement}
-          middle={teaser}
         />
       )}
     </>

@@ -266,24 +266,24 @@ function AdjustmentBridge({
   return (
     <div className="text-sm">
       <dl className="grid grid-cols-3 border-b border-[#eef0f4] text-center tabular-nums">
-        <div className="px-2 py-2.5">
-          <dt className="text-[11px] font-medium text-[#667085]">Cuentas</dt>
-          <dd className="mt-0.5 text-xs font-semibold text-[#1c2740]">{formatEur(ebitdaCents)}</dd>
+        <div className="px-3 py-4 sm:px-5">
+          <dt className="text-xs font-medium text-[#667085]">Cuentas</dt>
+          <dd className="mt-1.5 text-sm font-semibold text-[#1c2740] sm:text-base">{formatEur(ebitdaCents)}</dd>
         </div>
-        <div className="border-x border-[#eef0f4] px-2 py-2.5">
-          <dt className="text-[11px] font-medium text-[#667085]">Ajustes</dt>
-          <dd className={`mt-0.5 text-xs font-semibold ${adjustedCents - ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{signed(adjustedCents - ebitdaCents)}</dd>
+        <div className="border-x border-[#eef0f4] px-3 py-4 sm:px-5">
+          <dt className="text-xs font-medium text-[#667085]">Ajustes</dt>
+          <dd className={`mt-1.5 text-sm font-semibold sm:text-base ${adjustedCents - ebitdaCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{signed(adjustedCents - ebitdaCents)}</dd>
         </div>
-        <div className="bg-[#f4f7ff] px-2 py-2.5">
-          <dt className="text-[11px] font-medium text-[#465ab4]">Ajustado</dt>
-          <dd className={`mt-0.5 text-xs font-semibold ${adjustedCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{formatEur(adjustedCents)}</dd>
+        <div className="bg-[#f4f7ff] px-3 py-4 sm:px-5">
+          <dt className="text-xs font-medium text-[#465ab4]">Ajustado</dt>
+          <dd className={`mt-1.5 text-sm font-semibold sm:text-base ${adjustedCents < 0 ? "text-[#b42318]" : "text-[#1c2740]"}`}>{formatEur(adjustedCents)}</dd>
         </div>
       </dl>
-      <ul>
+      <ul className="px-1 py-1 sm:px-2">
         {rows.map((row) => {
           const href = row.documentId ? adjustmentDocumentHref(role, slug, row.documentId) : null;
           return (
-            <li key={row.id} className="border-b border-[#f2f4f7] px-4 py-3 last:border-b-0">
+            <li key={row.id} className="border-b border-[#f2f4f7] px-4 py-4 last:border-b-0 sm:px-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm leading-5 font-medium text-[#1c2740]">{ebitdaAdjustmentLabels[row.type]}</p>
@@ -415,9 +415,7 @@ function dealReading(project: InvestorProjectProfile, hasSabi: boolean) {
     multipleNote =
       reportedMultiple !== null && Math.abs(reportedMultiple - multiple) >= 0.05
         ? `${fmt(reportedMultiple)} sobre EBITDA de las cuentas`
-        : pending
-          ? companyCopy.adjustmentInReview
-          : null;
+        : null;
   } else if (reportedMultiple !== null) {
     multipleText = `${fmt(reportedMultiple)} cuentas`;
     multipleNote = "EBITDA ajustado negativo; calculado sobre el EBITDA de las cuentas";
@@ -876,14 +874,9 @@ export function CompanyReport({
               ) : null
             }
             sub={
-              <>
-                {shownEbitda.pendingReview ? (
-                  <span className="font-medium text-[#b45f06]">{companyCopy.adjustmentInReview}</span>
-                ) : null}
-                <span title={shownEbitda.secondaryCents !== null ? `${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.${reportedMarginHint ? ` ${reportedMarginHint}` : ""}` : (reportedMarginHint ?? undefined)}>
-                  {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
-                </span>
-              </>
+              <span title={shownEbitda.secondaryCents !== null ? `${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.${reportedMarginHint ? ` ${reportedMarginHint}` : ""}` : (reportedMarginHint ?? undefined)}>
+                {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
+              </span>
             }
           />
           <Kpi

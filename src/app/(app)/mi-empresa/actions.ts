@@ -31,6 +31,7 @@ import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSel
 import { startListingCheckout } from "@/lib/server/start-checkout";
 import { uniqueCodename } from "@/lib/server/unique-codename";
 import { rotateTeaserToken } from "@/lib/server/company-pdfs";
+import { sellerDraftAutosaveRevalidatePaths } from "@/lib/seller-draft-cache";
 
 export type CompanyDraftState = { message: string; saved: boolean } | null;
 
@@ -158,8 +159,9 @@ export async function saveCompanyDraftAction(
     await submitForReviewIfReady(user.id, activeId);
   }
 
-  revalidatePath("/mi-empresa");
-  revalidatePath("/mi-empresa/detalles");
+  for (const path of sellerDraftAutosaveRevalidatePaths) {
+    revalidatePath(path);
+  }
   return { message: companyCopy.saved, saved: true };
 }
 
@@ -171,8 +173,9 @@ export async function saveEbitdaAdjustmentsAction(raw: string): Promise<SaveEbit
   }
   const result = await saveEbitdaAdjustments(user, typeof raw === "string" ? raw.slice(0, 20000) : "");
   if (result.ok) {
-    revalidatePath("/mi-empresa");
-    revalidatePath("/mi-empresa/detalles");
+    for (const path of sellerDraftAutosaveRevalidatePaths) {
+      revalidatePath(path);
+    }
   }
   return result;
 }
@@ -455,8 +458,7 @@ export async function regenerateTeaserLinkAction(): Promise<
   const result = await rotateTeaserToken(user);
   if (result.ok) {
     revalidatePath("/mi-empresa");
-    revalidatePath("/mi-empresa/detalles");
-    revalidatePath("/cuenta");
+    revalidatePath("/mi-empresa/documentos");
   }
   return result;
 }

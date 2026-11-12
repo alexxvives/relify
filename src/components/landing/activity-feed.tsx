@@ -101,7 +101,7 @@ export function ActivityFeed() {
                 const SectorIcon = sectorIcon[item.sector];
                 return (
                   <article key={`${item.project}-${index}`} className="rounded-2xl bg-white p-4 text-public-ink shadow-sm">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3">
                       <MarginDonut pct={item.marginPct} />
                       <div className="min-w-0 flex-1">
                         <p className="flex items-center gap-2 text-xs text-public-muted">
@@ -122,9 +122,6 @@ export function ActivityFeed() {
                       </span>
                       <span className="rounded-[var(--field-radius)] bg-[#eef6f4] px-2 py-1 tabular-nums text-[#0f6b62]">
                         EBITDA {item.ebitda}
-                      </span>
-                      <span className="rounded-[var(--field-radius)] bg-[#eef6f4] px-2 py-1 tabular-nums text-[#0f6b62]">
-                        Margen EBITDA
                       </span>
                     </div>
                   </article>

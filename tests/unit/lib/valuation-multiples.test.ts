@@ -95,7 +95,7 @@ describe("valuation multiples", () => {
   });
 
   it("t93: places a price on the bar", async () => {
-    const { priceBarPosition, priceBarEnds } = await import("@/lib/valuation-multiples");
+    const { priceBarPosition, priceBarEnds, priceFromBarPosition } = await import("@/lib/valuation-multiples");
     const estimate = { lowCents: 400_000_00, highCents: 600_000_00 };
     expect(priceBarEnds(estimate)).toEqual({ minCents: 200_000_00, maxCents: 900_000_00 });
     expect(priceBarPosition(400_000_00, estimate)).toBeCloseTo(0.35);
@@ -105,5 +105,10 @@ describe("valuation multiples", () => {
     expect(priceBarPosition(10_000_000_00, estimate)).toBe(1);
     expect(priceBarPosition(300_000_00, estimate)).toBeCloseTo(0.175);
     expect(priceBarPosition(5, { lowCents: 0, highCents: 0 })).toBeGreaterThanOrEqual(0);
+    expect(priceFromBarPosition(0.35, estimate)).toBeCloseTo(400_000_00, -2);
+    expect(priceFromBarPosition(0.5, estimate)).toBeCloseTo(500_000_00, -2);
+    expect(priceFromBarPosition(0.65, estimate)).toBeCloseTo(600_000_00, -2);
+    expect(priceFromBarPosition(0, estimate)).toBe(200_000_00);
+    expect(priceFromBarPosition(1, estimate)).toBe(900_000_00);
   });
 });

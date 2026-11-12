@@ -176,7 +176,7 @@ export function HowItWorks({ role }: { role: FlowRole }) {
 
         <ol className="releva-how-mobile lg:hidden">
           {track.steps.map((step) => (
-            <li key={step.n} className="releva-how-mobile-card">
+            <li key={step.n} className="releva-how-mobile-card text-center">
               <span className="text-[11px] font-semibold tracking-[0.16em] text-public-clay uppercase">Paso {step.n}</span>
               <h3 className="mt-1 text-base font-medium tracking-tight text-public-ink">{step.title}</h3>
               <p className="mt-1 line-clamp-2 text-sm leading-5 text-public-muted">{step.body}</p>

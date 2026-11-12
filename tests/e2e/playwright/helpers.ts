@@ -560,6 +560,10 @@ export async function expectWindowScrolls(page: Page, label: string): Promise<vo
     }
     window.scrollTo(0, 0);
   });
+  await page.waitForFunction(() => {
+    const scroller = document.scrollingElement ?? document.documentElement;
+    return scroller.scrollHeight > scroller.clientHeight + 40;
+  });
   const locked = await page.evaluate(() => ({
     htmlOverflow: getComputedStyle(document.documentElement).overflow,
     htmlOverflowY: getComputedStyle(document.documentElement).overflowY,

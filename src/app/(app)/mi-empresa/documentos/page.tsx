@@ -2,10 +2,13 @@ import { Suspense } from "react";
 import { DocumentsSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { regenerateTeaserLinkAction } from "@/app/(app)/mi-empresa/actions";
 import { SellerDocuments } from "@/components/seller/seller-documents";
+import { SellerPdfCard } from "@/components/seller/company-pdf-card";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
 import { sellerAdvisorAccess } from "@/lib/server/advisory-engagement";
+import { sellerTeaserDesk } from "@/lib/server/company-pdfs";
 import { listDataRoom } from "@/lib/server/list-data-room";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 import { requireRole } from "@/lib/server/require-role";
@@ -25,10 +28,23 @@ async function DocumentsPageContent() {
   }
 
   const projectId = await activeSellerProjectId(user.id);
-  const [room, access] = await Promise.all([listDataRoom(user), sellerAdvisorAccess(user.id, projectId)]);
+  const [room, access, teaserDesk] = await Promise.all([
+    listDataRoom(user),
+    sellerAdvisorAccess(user.id, projectId),
+    sellerTeaserDesk(user.id),
+  ]);
   if (room.audience !== "owner") {
     redirect("/mi-empresa");
   }
+
+  const teaser = teaserDesk ? (
+    <SellerPdfCard
+      desk={teaserDesk}
+      previewHref="/mi-empresa/pdf/teaser?preview=1"
+      downloadHref="/mi-empresa/pdf/teaser?download=1"
+      onRegenerate={regenerateTeaserLinkAction}
+    />
+  ) : null;
 
   return (
     <>
@@ -42,6 +58,7 @@ async function DocumentsPageContent() {
           folders: row.folders,
           fileIds: row.fileIds,
         }))}
+        teaser={teaser}
       />
     </>
   );

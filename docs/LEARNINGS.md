@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: Error al guardar plus vinext `Prevented repeated hard navigation` on `/mi-empresa/detalles` — `revalidatePath` of the open URL is a hard nav on vinext — autosave only `revalidatePath("/mi-empresa")`.
+- 2026-11-12: Playwright `/mercado` scroll at 1440 stayed at 0 — two cards fit the viewport so the 2400px pad and the wheel ran in the same tick — `waitForFunction` until `scrollHeight` exceeds the viewport before wheeling.
+- 2026-11-12: GitHub `main` still shows `hero_city*.png` at repo root — those copies are deleted on the reorg/S15 branch; keep `neon.ts` (Neon CLI) and `int-resources.json`; canonical assets live under `public/`.
 - 2026-11-12: after repo reorg, `mailer.ts` is `src/lib/server/mailer.ts` with relative `../int-env` (not `../lib/`); unit tests live in `tests/unit/` and resolve `@/` via `vitest.config.ts`.
 - 2026-11-12: seller e2e sign-in timed out after QA screenshots — `/entrar` is 10 attempts / 15 min per email — TRUNCATE `email_throttle` on local PG before a second pass.
 - 2026-11-12: S14 price range tag wrapped under Precio de venta at 390 — MetricTile corner used `max-w-full` so the pill took a full row — `shrink-0` + header `flex-nowrap`.

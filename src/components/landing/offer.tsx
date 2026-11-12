@@ -29,7 +29,7 @@ export function Offer() {
             </h2>
             <p className="mt-3 hidden text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
           </div>
-          <p className="inline-flex items-center gap-2 self-start rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm lg:self-auto">
+          <p className="hidden items-center gap-2 self-start rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm sm:inline-flex lg:self-auto">
             <span className="relative flex size-2">
               <span className="absolute hidden size-full animate-ping rounded-full bg-[#2fc4b2] opacity-60 motion-reduce:animate-none sm:inline-flex" />
               <span className="relative inline-flex size-2 rounded-full bg-[#0f766e]" />
