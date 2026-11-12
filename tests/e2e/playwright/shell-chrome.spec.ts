@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { destinationsForRole } from "../../../src/lib/shell";
 import {
+  expectControlCenterTappable,
   expectLastContentControlAboveChrome,
+  expectLastContentControlTappable,
+  placeJustAboveChrome,
   roleCreds,
   signInAs,
   type E2ERole,
@@ -36,4 +39,125 @@ test.describe("signed-in compact chrome", () => {
       }
     });
   }
+});
+
+const compactWidths = [390, 375, 360] as const;
+
+async function openFirstProject(page: Parameters<typeof signInAs>[0]): Promise<boolean> {
+  await page.goto("/mercado");
+  const applyFilters = page.getByRole("button", { name: /ver empresas/i });
+  if (await applyFilters.isVisible().catch(() => false)) {
+    await applyFilters.click();
+  }
+  const card = page.locator("a[href*='/proyectos/']").first();
+  if ((await card.count()) === 0) {
+    return false;
+  }
+  await card.click({ force: true });
+  await expect(page).toHaveURL(/\/proyectos\//);
+  return true;
+}
+
+test.describe("sticky CTA never covers inline controls", () => {
+  test("seller teaser actions and last controls stay tappable at 390/375/360", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "compact chrome only");
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and password");
+    test.setTimeout(120_000);
+    const signedIn = await signInAs(page, "seller");
+    expect(signedIn).toBe(true);
+    for (const width of compactWidths) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("/mi-empresa");
+      const actions = page.locator("[data-teaser-actions]");
+      if ((await actions.count()) === 0) {
+        continue;
+      }
+      await expect(actions).toBeVisible();
+      await placeJustAboveChrome(page, actions);
+      const download = actions.getByRole("link", { name: /descargar pdf/i });
+      const copy = actions.getByRole("button", { name: /copiar/i });
+      const regenerate = actions.getByRole("button", { name: /regenerar/i });
+      await expectControlCenterTappable(page, copy);
+      await expectControlCenterTappable(page, regenerate);
+      await expectControlCenterTappable(page, download);
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/mi-empresa@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+      await page.goto("/mi-empresa/detalles");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/mi-empresa/detalles@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+      await page.goto("/cuenta");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/cuenta@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+    }
+  });
+
+  test("investor ficha last control stays tappable at 390/375/360", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "compact chrome only");
+    test.skip(!roleCreds("investor"), "Set E2E_INVESTOR_EMAIL and password");
+    test.setTimeout(120_000);
+    const signedIn = await signInAs(page, "investor");
+    expect(signedIn).toBe(true);
+    for (const width of compactWidths) {
+      await page.setViewportSize({ width, height: 844 });
+      const opened = await openFirstProject(page);
+      if (!opened) {
+        continue;
+      }
+      const connect = page.locator("[data-sticky-twin]").first();
+      if ((await connect.count()) > 0 && (await connect.isVisible().catch(() => false))) {
+        await placeJustAboveChrome(page, connect);
+        const control = connect.locator("a[href], button").first();
+        if ((await control.count()) > 0) {
+          await expectControlCenterTappable(page, control);
+        }
+      }
+      await page.goto("/cuenta");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/cuenta@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+    }
+  });
+
+  test("admin last control stays tappable at 390/375/360", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "compact chrome only");
+    test.skip(!roleCreds("admin"), "Set E2E_ADMIN_EMAIL and password");
+    test.setTimeout(120_000);
+    const signedIn = await signInAs(page, "admin");
+    expect(signedIn).toBe(true);
+    for (const width of compactWidths) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("/admin");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/admin@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+      await page.goto("/admin/empresas");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/admin/empresas@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+      const companyHref = await page.locator("a[href*='/admin/empresas/']").first().getAttribute("href");
+      if (companyHref && companyHref !== "/admin/empresas") {
+        await page.goto(companyHref);
+        const actions = page.locator("[data-teaser-actions]");
+        if ((await actions.count()) > 0 && (await actions.isVisible().catch(() => false))) {
+          await placeJustAboveChrome(page, actions);
+          const copy = actions.getByRole("button", { name: /copiar/i });
+          const regenerate = actions.getByRole("button", { name: /regenerar/i });
+          const download = actions.getByRole("link", { name: /descargar pdf/i });
+          await expectControlCenterTappable(page, copy);
+          await expectControlCenterTappable(page, regenerate);
+          await expectControlCenterTappable(page, download);
+        }
+        await expectLastContentControlTappable(page).catch((error: unknown) => {
+          throw new Error(`admin company@${width}: ${error instanceof Error ? error.message : String(error)}`);
+        });
+      }
+      await page.goto("/cuenta");
+      await expectLastContentControlTappable(page).catch((error: unknown) => {
+        throw new Error(`/cuenta@${width}: ${error instanceof Error ? error.message : String(error)}`);
+      });
+    }
+  });
 });

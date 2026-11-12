@@ -165,8 +165,8 @@ export function AccountSettings({
           ) : null}
           {dirty ? (
             <>
-              <div className="hidden justify-end lg:flex">
-                <Button type="submit" disabled={profilePending}>
+              <div className="flex justify-end" data-sticky-twin>
+                <Button type="submit" disabled={profilePending} className="max-lg:h-12 max-lg:w-full max-lg:rounded-full">
                   {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
                 </Button>
               </div>

@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-12: sticky Descargar covered teaser Copiar/Regenerar mid-scroll — padding only helps at max scroll — hide `.shell-sticky-cta` while `[data-sticky-twin]` intersects the viewport (IntersectionObserver) and assert elementFromPoint on the action centers.
 - 2026-11-12: Copiar/Regenerar on /mi-empresa sat under the tab bar at max scroll — shell padding-bottom was tab bar only, not sticky CTA height — pad `--layout-pad + --shell-tabbar + --shell-sticky` and assert the last content control in Playwright.
 - 2026-11-12: home `/` dropped the `[INT]` title prefix — child `metadata.title` as a string became an absolute title and skipped `title.template` — use `intAbsoluteTitle` on that page.
 - 2026-11-11: cookie corner card intercepted /valorar on 390 — use a full-width bottom bar, `pointer-events: none` on the wrapper, and body padding equal to the bar height.

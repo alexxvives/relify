@@ -77,13 +77,15 @@ export function SellerPdfCard({
   );
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
+    <section data-sticky-twin className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
       <div className="flex flex-col gap-3 border-b border-[#eef0f3] px-5 py-4">
         <div>
           <h2 className="text-base font-semibold text-[#1c2740]">{companyPdfCopy.sellerTitle}</h2>
           <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.sellerBody}</p>
         </div>
-        <div className="sm:hidden">{actions}</div>
+        <div className="sm:hidden" data-teaser-actions>
+          {actions}
+        </div>
       </div>
       <div className="grid gap-5 p-5 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:items-start">
         <div className="mx-auto w-28 sm:mx-0 sm:w-[7.5rem]">

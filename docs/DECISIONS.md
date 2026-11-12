@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-12 — Round S12c hide sticky CTA while the inline twin is on screen
+
+A compact `.shell-sticky-cta` is a duplicate of an in-page action. While `[data-sticky-twin]` intersects the viewport, the bar is `invisible` / `pointer-events-none` / `inert` and `--shell-sticky` is 0. Teaser Copiar / Regenerar / Descargar stay tappable; Descargar returns as a sticky when the card leaves the screen. The same twin is on `/cuenta` Guardar, `/premium` plan cards, and the marketplace ficha Connect row. Shell padding still clears the tab bar at max scroll.
+
 ## 2026-11-12 — Round S12b shell padding, Dirección, home [INT], compact cookies
 
 Compact signed-in padding is `--layout-pad + --shell-tabbar + --shell-sticky`. `--shell-tabbar` already includes `env(safe-area-inset-bottom)`. A mounted `.shell-sticky-cta` sets `--shell-sticky` (measured, 4.75rem fallback). Dirección is a 2-line textarea. The home `/` title uses `intAbsoluteTitle` so `[INT]` cannot be dropped by an absolute child title. The mobile cookie sheet is ≤35vh with Rechazar/Aceptar side by side; `body` padding and public sticky CTAs use `--relify-consent-h`.

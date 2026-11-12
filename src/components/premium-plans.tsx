@@ -127,7 +127,7 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
           </button>
         </div>
       </div>
-      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3" data-sticky-twin>
         {plans.map((item) => {
           const active = plan === item.id;
           const Icon = item.icon;
@@ -186,7 +186,7 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                   </li>
                 ))}
               </ul>
-              <div className={`mt-auto ${item.id === "limited" && plan === "none" ? "max-lg:hidden" : ""}`}>
+              <div className="mt-auto">
                 {item.id === "limited" && plan === "none" ? <PlanButton plan="limited" label={billingCopy.chooseLimited} /> : null}
                 {item.id === "unlimited" && plan === "none" ? <PlanButton plan="unlimited" label={billingCopy.chooseUnlimited} /> : null}
                 {!active && plan !== "none" && (item.id === "limited" || item.id === "unlimited") ? (

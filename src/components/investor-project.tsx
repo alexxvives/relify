@@ -137,6 +137,18 @@ export function InvestorProject({
 
       {access === "none" || access === "requested" ? (
         <>
+          <div className="lg:hidden" data-sticky-twin>
+            {access === "requested" ? (
+              <Link
+                href="/procesos"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
+              >
+                Firmar en Mis procesos
+              </Link>
+            ) : (
+              <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
+            )}
+          </div>
           <ShellStickyCtaBar>
             {access === "requested" ? (
               <Link
