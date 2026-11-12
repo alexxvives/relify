@@ -12,7 +12,7 @@ import {
 } from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
-import { OG_IMAGE_ALT, OG_IMAGE_PATH, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
+import { OG_IMAGE_ALT, OG_IMAGE_PATH, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,11 +45,10 @@ export const viewport: Viewport = {
 export function generateMetadata(): Metadata {
   const siteUrl = readSiteUrl();
   const isInt = process.env.INT_ENVIRONMENT === "true";
-  const title = isInt ? `[INT] ${landingCopy.title}` : landingCopy.title;
 
   return {
     metadataBase: siteUrl,
-    title,
+    title: intPrefixedTitle(isInt, landingCopy.title),
     description: landingCopy.description,
     icons: rootIcons(),
     ...(isInt && {

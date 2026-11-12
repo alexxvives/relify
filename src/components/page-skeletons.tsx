@@ -600,7 +600,7 @@ export function AdvisorySkeleton() {
 export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
   return (
     <Shell>
-      <div className="grid items-stretch gap-6 md:grid-cols-[minmax(0,1fr)_15rem]">
+      <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
           <div
             className={
@@ -617,7 +617,7 @@ export function AccountSkeleton({ buyer = false }: { buyer?: boolean }) {
             </div>
           </div>
         </Card>
-        <div className="mx-auto flex w-full max-w-60 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white md:mx-0 md:max-w-none">
+        <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
           <div className="flex-1 space-y-2 p-4">
             <B className="h-3 w-16" />
             <B className="h-3 w-3/4" />

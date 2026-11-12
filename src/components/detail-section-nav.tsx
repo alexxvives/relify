@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Minimize2, Pencil } from "lucide-react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { useScrollSpy } from "@/components/use-scroll-spy";
 import { ViewportPortal } from "@/components/viewport-portal";
 
@@ -130,7 +131,7 @@ function ProgressTrackerOverlay({
   return (
     <ViewportPortal>
     <div
-      className="pointer-events-none fixed right-3 bottom-[calc(var(--shell-tabbar,3.5rem)+0.75rem)] z-40 lg:top-3 lg:right-4 lg:bottom-auto"
+      className="pointer-events-none fixed right-3 bottom-[calc(var(--shell-tabbar,3.5rem)+0.75rem)] z-40 hidden lg:top-3 lg:right-4 lg:bottom-auto lg:block"
       data-section-tracker="true"
     >
       <div className="pointer-events-auto flex flex-col items-end">
@@ -173,7 +174,7 @@ function ProgressTrackerOverlay({
 
 /**
  * Section navigation + progress for /mi-empresa/detalles (Información empresa only).
- * Below lg: sticky horizontal pills plus a small completion ring.
+ * Compact: completion ring in the page header opens a bottom sheet.
  * lg–xl: collapsed pill at top-right; xl: expanded sticky card at top-right.
  */
 export function DetailSectionNav({
@@ -193,6 +194,7 @@ export function DetailSectionNav({
   /** Required fields that live outside the visible sections (e.g. on the other tab) open their tab first. */
   onMissing?: (id: string) => boolean;
 }) {
+  const [sheetOpen, setSheetOpen] = useState(false);
   const { active, go } = useScrollSpy(
     items.map((item) => item.id),
     120,
@@ -204,6 +206,7 @@ export function DetailSectionNav({
   }));
 
   function collapseTrackerIfCompact() {
+    setSheetOpen(false);
     if (window.matchMedia("(max-width: 1279px)").matches) {
       window.localStorage.setItem(progressTrackerKey, "0");
       window.dispatchEvent(new Event(progressTrackerEvent));
@@ -234,12 +237,9 @@ export function DetailSectionNav({
     };
   }
 
-  return (
+  function renderList() {
+    return (
     <>
-      <ProgressTrackerOverlay
-        label="Tu progreso"
-        trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
-      >
           <div className="mb-2 flex items-center gap-3 px-2 pt-1 pb-2">
             <CompletionRing done={progress.done} total={progress.total} size={48} />
             <div className="min-w-0">
@@ -304,6 +304,32 @@ export function DetailSectionNav({
               );
             })}
           </ul>
+    </>
+    );
+  }
+
+  return (
+    <>
+      <div className="lg:hidden">
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={sheetOpen}
+          aria-label="Mostrar tu progreso"
+          onClick={() => setSheetOpen(true)}
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#e6e9f0] bg-white shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+        >
+          <CompletionRing done={progress.done} total={progress.total} size={36} />
+        </button>
+        <BottomSheet open={sheetOpen} title="Tu progreso" onClose={() => setSheetOpen(false)}>
+          {renderList()}
+        </BottomSheet>
+      </div>
+      <ProgressTrackerOverlay
+        label="Tu progreso"
+        trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
+      >
+        {renderList()}
       </ProgressTrackerOverlay>
     </>
   );

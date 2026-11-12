@@ -112,3 +112,6 @@ Append-only. One line per project-specific pitfall:
 - 2026-11-09: a floating section tracker over a full-width form covers inputs — keep it out of flow and add `xl:pr-[18.5rem]` so the expanded 276px card sits in that gutter.
 - 2026-11-11: `next typecheck` failed after new App Router routes with stale `.next/types` — `rm -rf .next && npx next typegen` before `tsc`.
 - 2026-11-11: vitest could not load a file after a value import from `@/lib/landing-copy` — the unit test runner has no `@/` alias; type-only imports were erased — keep relative imports in files that tests load.
+- 2026-11-11: vitest cannot import a client component that pulls `@/components` — extract `placeBubble` to `src/lib/tooltip-place.ts` and test that file with a relative import.
+- 2026-11-11: `next dev` started without `DATABASE_URL` fail-closes sign-in (`[throttle] counter unavailable; denying`) — start Next with the same DB URL the unit tests use.
+- 2026-11-11: Playwright signed-in shots after e2e hit `email_throttle` — `DELETE FROM email_throttle` before a capture run.

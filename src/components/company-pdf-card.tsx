@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { PdfThumb } from "@/components/pdf-pages";
+import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { companyPdfCopy, type SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 export function SellerPdfCard({
@@ -46,11 +47,43 @@ export function SellerPdfCard({
     });
   }
 
+  const actions = (
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <a
+        href={downloadHref}
+        className="inline-flex h-11 items-center justify-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white"
+      >
+        {companyPdfCopy.teaserDownload}
+      </a>
+      <button
+        type="button"
+        onClick={() => {
+          void copyLink();
+        }}
+        disabled={!shareUrl}
+        className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-50"
+      >
+        {copied ? companyPdfCopy.copiedShare : companyPdfCopy.copyShare}
+      </button>
+      <button
+        type="button"
+        onClick={regenerate}
+        disabled={pending}
+        className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-60"
+      >
+        {pending ? companyPdfCopy.regeneratingShare : companyPdfCopy.regenerateShare}
+      </button>
+    </div>
+  );
+
   return (
     <section className="overflow-hidden rounded-2xl border border-[#e7eaee] bg-white">
-      <div className="border-b border-[#eef0f3] px-5 py-4">
-        <h2 className="text-base font-semibold text-[#1c2740]">{companyPdfCopy.sellerTitle}</h2>
-        <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.sellerBody}</p>
+      <div className="flex flex-col gap-3 border-b border-[#eef0f3] px-5 py-4">
+        <div>
+          <h2 className="text-base font-semibold text-[#1c2740]">{companyPdfCopy.sellerTitle}</h2>
+          <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.sellerBody}</p>
+        </div>
+        <div className="sm:hidden">{actions}</div>
       </div>
       <div className="grid gap-5 p-5 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:items-start">
         <div className="mx-auto w-28 sm:mx-0 sm:w-[7.5rem]">
@@ -70,7 +103,7 @@ export function SellerPdfCard({
             {desk.published ? companyPdfCopy.shareHint : companyPdfCopy.shareHintUnpublished}
           </p>
           {shareUrl ? (
-            <p className="mt-2 truncate rounded-xl bg-[#f7f8fb] px-3 py-2 font-mono text-xs text-[#1c2740]" title={shareUrl}>
+            <p className="mt-2 break-all rounded-xl bg-[#f7f8fb] px-3 py-2 font-mono text-xs text-[#1c2740]" title={shareUrl}>
               {shareUrl}
             </p>
           ) : null}
@@ -78,32 +111,7 @@ export function SellerPdfCard({
             {companyPdfCopy.downloadsLabel}:{" "}
             <span className="font-semibold text-[#1c2740]">{desk.downloads}</span>
           </p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <a
-              href={downloadHref}
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white"
-            >
-              {companyPdfCopy.teaserDownload}
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                void copyLink();
-              }}
-              disabled={!shareUrl}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-50"
-            >
-              {copied ? companyPdfCopy.copiedShare : companyPdfCopy.copyShare}
-            </button>
-            <button
-              type="button"
-              onClick={regenerate}
-              disabled={pending}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium text-[#1c2740] disabled:opacity-60"
-            >
-              {pending ? companyPdfCopy.regeneratingShare : companyPdfCopy.regenerateShare}
-            </button>
-          </div>
+          <div className="mt-4 hidden sm:block">{actions}</div>
           {note ? (
             <p className="mt-3 text-sm text-[#3d4a63]" role="status">
               {note}
@@ -115,6 +123,15 @@ export function SellerPdfCard({
         <h3 className="text-sm font-semibold text-[#1c2740]">{companyPdfCopy.dossierInfoTitle}</h3>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyPdfCopy.dossierInfoBody}</p>
       </div>
+      <div className="h-16 lg:hidden" aria-hidden />
+      <ShellStickyCtaBar>
+        <a
+          href={downloadHref}
+          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#1c2740] px-4 text-sm font-medium text-white"
+        >
+          {companyPdfCopy.teaserDownload}
+        </a>
+      </ShellStickyCtaBar>
     </section>
   );
 }

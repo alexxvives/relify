@@ -39,6 +39,8 @@ export const platformTermsCopy = {
   accept: "Acepto el acuerdo",
   signedTitle: "Tu acuerdo con Relify",
   signedOn: "Firmado",
+  viewPdf: "Ver PDF",
+  downloadPdf: "Descargar",
   signedMissing: "La firma todavía no está en tu cuenta.",
   pending: "Guardando…",
   required: "Marca la casilla para continuar.",

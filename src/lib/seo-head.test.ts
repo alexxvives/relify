@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { OG_IMAGE_PATH, headContainsIconAndOgImage, ogImageUrl, pageSocialMetadata, rootIcons } from "./seo-head";
+import { OG_IMAGE_PATH, headContainsIconAndOgImage, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "./seo-head";
 
 describe("headContainsIconAndOgImage", () => {
   it("accepts rel=icon and og:image inside <head>", () => {
@@ -10,6 +10,19 @@ describe("headContainsIconAndOgImage", () => {
   it("rejects the vinext streamed-into-body case", () => {
     const html = `<!doctype html><html><head><title>Relify</title></head><body><link rel="icon" href="/icon.png" data-vinext-streamed-icon="1"><meta property="og:image" content="https://itsrelify.com/og.jpg"></body></html>`;
     expect(headContainsIconAndOgImage(html)).toBe(false);
+  });
+});
+
+describe("intPrefixedTitle", () => {
+  it("leaves production titles unprefixed", () => {
+    expect(intPrefixedTitle(false, "Detalles de empresa")).toBe("Detalles de empresa");
+  });
+
+  it("prefixes the default and every child title on INT", () => {
+    expect(intPrefixedTitle(true, "Plataforma digital para comprar empresas")).toEqual({
+      default: "[INT] Plataforma digital para comprar empresas",
+      template: "[INT] %s",
+    });
   });
 });
 

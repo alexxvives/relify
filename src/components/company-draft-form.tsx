@@ -499,12 +499,12 @@ function MetricTile({
 }) {
   return (
     <div className="@container relative flex h-full min-h-[6.5rem] min-w-0 flex-col gap-2 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <div className="flex min-h-7 min-w-0 items-center justify-between gap-x-2">
+      <div className="flex min-h-7 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {action}
         </div>
-        {corner ? <div className="min-w-0 shrink">{corner}</div> : null}
+        {corner ? <div className="min-w-0 max-w-full">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
@@ -551,7 +551,7 @@ function FichaMetrics({
   const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
   return (
     <div className="@container mt-6">
-    <div className="grid grid-cols-1 items-stretch gap-3 @min-[22rem]:grid-cols-2 @min-[48rem]:grid-cols-3">
+    <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <div id="panel-asking-price" className="h-full min-w-0 scroll-mt-24">
         <FigureField
           label={companyCopy.askingPriceLabel}
@@ -564,10 +564,10 @@ function FichaMetrics({
                 type="button"
                 onClick={recommended.onUse}
                 aria-label={companyCopy.applySuggestedAria.replace("{amount}", recommended.amount)}
-                className="inline-flex h-11 max-w-full items-center gap-1 rounded-full bg-[#eef1fb] px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none lg:h-7 lg:px-2 lg:text-[11px]"
+                className="inline-flex h-auto min-h-11 max-w-full flex-wrap items-center gap-x-1 gap-y-0.5 rounded-full bg-[#eef1fb] px-3 py-1.5 text-left text-xs font-semibold text-[#465ab4] hover:bg-[#e4e9f8] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none lg:min-h-7 lg:px-2 lg:py-1 lg:text-[11px]"
               >
                 <Sparkles className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 truncate">
+                <span className="min-w-0 whitespace-normal">
                   {companyCopy.suggestedPrice}{" "}
                   <span className="whitespace-nowrap text-[#1c2740] tabular-nums">{recommended.amount}</span>
                 </span>
@@ -640,7 +640,7 @@ function FichaMetrics({
       <div
         role="radiogroup"
         aria-labelledby="asking-price-includes-label"
-        className="mt-3 grid grid-cols-2 gap-2"
+        className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
       >
         {askingPriceIncludesKinds.map((option) => {
           const selected = askingPriceIncludes === option;
@@ -2203,9 +2203,12 @@ export function CompanyDraftForm({
         onDismissFailed={() => setLeaveFailedHref(null)}
       />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      <h1 className="min-w-0 text-2xl tracking-tight text-public-ink sm:text-3xl">
-        {sellerCopy.detailsTitle}
-      </h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="min-w-0 text-2xl tracking-tight text-public-ink sm:text-3xl">
+          {sellerCopy.detailsTitle}
+        </h1>
+        {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
+      </div>
       <FloatingSegmentedTabs
         label={companyCopy.tabsLabel}
         tabs={[
@@ -2219,7 +2222,6 @@ export function CompanyDraftForm({
         }}
       />
       <div className="relative flex flex-col gap-4">
-      {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
@@ -2239,9 +2241,9 @@ export function CompanyDraftForm({
         }}
         onCollapse={() => setOpenBasic(false)}
       >
-        <div className="@container grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
           {identityLocked ? (
-            <div className="col-span-2 grid grid-cols-1 gap-6 @min-[24rem]:grid-cols-2">
+            <div className="col-span-full grid grid-cols-1 gap-6 sm:grid-cols-2">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <LockedIdentityInput name="legalName" value={legalName} />
               </Fact>
@@ -2250,7 +2252,7 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           ) : (
-            <div className="col-span-2 grid grid-cols-1 gap-6 @min-[24rem]:grid-cols-2">
+            <div className="col-span-full grid grid-cols-1 gap-6 sm:grid-cols-2">
               <Fact id="panel-identity" icon={Building2} label={companyCopy.factName}>
                 <Input name="legalName" value={legalName} onChange={(event) => setLegalName(event.target.value)} />
               </Fact>
@@ -2265,7 +2267,7 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           )}
-          <Fact icon={MapPin} label={companyCopy.addressLabel}>
+          <Fact icon={MapPin} label={companyCopy.addressLabel} className="col-span-full">
             <Input
               name="address"
               value={address}

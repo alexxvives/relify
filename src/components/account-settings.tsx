@@ -106,7 +106,7 @@ export function AccountSettings({
   return (
     <div className="flex flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
-      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_15rem]" : ""}>
+      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
       <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
           <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
@@ -170,7 +170,7 @@ export function AccountSettings({
                   {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
                 </Button>
               </div>
-              <div className="h-16 lg:hidden" aria-hidden />
+              <div className="h-20 lg:hidden" aria-hidden />
               <ShellStickyCtaBar>
                 <Button type="submit" disabled={profilePending} block className="h-12 w-full rounded-full">
                   {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
@@ -180,9 +180,7 @@ export function AccountSettings({
           ) : null}
         </form>
       </Card>
-      {agreement ? (
-        <div className="mx-auto flex w-full max-w-60 md:mx-0 md:max-w-none">{agreement}</div>
-      ) : null}
+      {agreement ? <div className="min-w-0 w-full">{agreement}</div> : null}
       </div>
 
       {middle}

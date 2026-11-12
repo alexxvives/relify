@@ -4,7 +4,10 @@ import { BadgeCheck, CircleAlert, CircleHelp, Info } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { useCoarsePointer } from "@/components/ui/use-compact";
+import { useCoarsePointer, useCompactViewport } from "@/components/ui/use-compact";
+import { placeBubble, tooltipBox } from "@/lib/tooltip-place";
+
+export { placeBubble, tooltipBox } from "@/lib/tooltip-place";
 
 /** Dark tooltip bubble shared by every hover/tap hint in the app. */
 export const tooltipBubble =
@@ -22,39 +25,13 @@ const iconTone = {
 
 /** t71: every tooltip wraps between ~240 px and 360 px wide (auto: short labels shrink to fit, still max 360 px). */
 const widths = { auto: { min: 0, max: 360 }, md: { min: 240, max: 320 }, lg: { min: 280, max: 360 } } as const;
-const margin = 8;
-
-/** t71: fixed-position bubble style shared with the chart tooltips: wraps, never wider than the viewport. */
-export function tooltipBox(pos: { left: number; top: number } | null, size: { min: number; max: number } = { min: 240, max: 360 }) {
-  return {
-    position: "fixed" as const,
-    left: pos?.left ?? -9999,
-    top: pos?.top ?? -9999,
-    width: "max-content",
-    minWidth: size.min > 0 ? `min(${size.min}px, calc(100vw - ${margin * 2}px))` : undefined,
-    maxWidth: `min(${size.max}px, calc(100vw - ${margin * 2}px))`,
-    overflowWrap: "break-word" as const,
-  };
-}
-
-/** t71: place a bubble centred over (or under) an anchor rect, clamped to the viewport. */
-export function placeBubble(anchor: DOMRect, box: DOMRect, align: "start" | "center" | "end" = "center", side: "top" | "bottom" = "top") {
-  const viewport = document.documentElement.clientWidth;
-  const want = align === "center" ? anchor.left + anchor.width / 2 - box.width / 2 : align === "end" ? anchor.right - box.width : anchor.left;
-  const left = Math.min(Math.max(want, margin), Math.max(viewport - box.width - margin, margin));
-  const above = anchor.top - box.height - margin;
-  const below = anchor.bottom + margin;
-  const fitsAbove = above >= margin;
-  const fitsBelow = below + box.height <= window.innerHeight - margin;
-  const top = side === "top" ? (fitsAbove || !fitsBelow ? above : below) : fitsBelow || !fitsAbove ? below : above;
-  return { left, top: Math.max(top, margin) };
-}
 
 /**
  * Icon with a tooltip. t70: it opens only from its own trigger (hover, keyboard focus, tap) and is
  * rendered in a portal with fixed coordinates clamped to the viewport, so overflow/scroll containers
  * and parent hover states can no longer clip or trigger it.
- * On a coarse pointer the same tap opens a bottom sheet, so the copy is never hover-only.
+ * On a coarse pointer or a compact viewport the same tap opens a bottom sheet, so the copy
+ * is never a desktop tooltip that jumps to the top of the screen.
  */
 export function InfoHint({
   text,
@@ -84,11 +61,12 @@ export function InfoHint({
   const trigger = useRef<HTMLSpanElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
   const coarse = useCoarsePointer();
+  const compact = useCompactViewport();
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
-  const useSheet = coarse && !hoverOnly;
+  const useSheet = !hoverOnly && (coarse || compact);
 
   const place = useCallback(() => {
     const anchor = trigger.current?.getBoundingClientRect();

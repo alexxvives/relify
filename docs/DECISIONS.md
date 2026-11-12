@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-11 — Round S12 mobile QA at 390
+
+INT 390 findings on the S11 shell: Información empresa / Ficha pública tabs stay in document flow under the title (sticky below the app bar) instead of a `fixed top-14` overlay that covered “Detalles de empresa”. Tu progreso on compact is a header ring that opens a sheet, not a floating 5/9 chip over the form. Info hints use a bottom sheet on compact viewports as well as coarse pointers, so a desktop tooltip cannot jump to `top: 8px` and cover the tabs. Tu empresa is one column below `sm`; Dirección spans the row. Sugerido wraps the full amount. `/cuenta` on mobile is a summary card with Ver PDF / Descargar, not an unreadably small PDF embed. Teaser Descargar sits at the top of the card and in a sticky bar above the tab bar. INT document titles use `title.template` `[INT] %s`. Shell content padding-bottom stays `--layout-pad + --shell-tabbar` (tab bar height already includes the safe area).
+
 ## 2026-11-11 — Round S11 mobile-native pattern swaps
 
 Compact viewports swap desktop chrome instead of shrinking it: a bottom tab bar (three short-label destinations + Más), bottom sheets for the landing menu, marketplace filters, and coarse-pointer info hints, sticky CTA bars for primary conversion, horizontal chip rows, and admin waitlist/cuentas as stacked cards below `md`. `lg:` keeps the current rail, dropdowns, and tables. Hit areas are 44px, inputs stay ≥16px, shell height is `100svh`, and `touch-action: manipulation` is on controls. No new type or color system.

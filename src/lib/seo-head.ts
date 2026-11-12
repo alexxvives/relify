@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
 
+/** INT document titles match the INT badge: `[INT] …`. Child `metadata.title` uses the template. */
+export function intPrefixedTitle(isInt: boolean, defaultTitle: string): Metadata["title"] {
+  if (!isInt) {
+    return defaultTitle;
+  }
+  return {
+    default: `[INT] ${defaultTitle}`,
+    template: "[INT] %s",
+  };
+}
+
 export const OG_IMAGE_PATH = "/og.jpg";
 export const OG_IMAGE_ALT = "Relify — plataforma para comprar y vender pymes";
 export const OG_IMAGE_WIDTH = 1200;

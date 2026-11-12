@@ -2786,6 +2786,10 @@ header:has([data-menu-open="true"]) {
     --shell-tabbar: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
   }
 
+  .shell-content {
+    scroll-padding-top: calc(3.5rem + 0.5rem);
+  }
+
   .shell[data-keyboard="true"] {
     --shell-tabbar: 0px;
   }

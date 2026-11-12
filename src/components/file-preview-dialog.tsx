@@ -106,7 +106,7 @@ export function FilePreviewDialog({
             <a
               href={downloadHref(file.href)}
               download={file.fileName}
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#465ab4] px-3 text-sm font-medium text-white hover:bg-[#3b4da0] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#465ab4] px-3 text-sm font-medium text-white hover:bg-[#3b4da0] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
             >
               <Download className="size-4" aria-hidden />
               <span className="hidden sm:inline">Descargar</span>
@@ -117,7 +117,7 @@ export function FilePreviewDialog({
             onClick={() => {
               dialogRef.current?.close();
             }}
-            className="inline-flex size-9 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
             aria-label={sellerCopy.closeDocument}
           >
             <X className="size-5" aria-hidden />
