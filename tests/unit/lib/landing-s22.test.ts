@@ -68,7 +68,26 @@ describe("Round S22 landing and product bits", () => {
     const block = skeleton.slice(skeleton.indexOf("export function ProjectSkeleton"));
     expect(block).toMatch(/Tabs count=\{3\}/);
     expect(block).toMatch(/rounded-\[1\.75rem\]/);
+    expect(block).toMatch(/layout-track/);
+    expect(block).toMatch(/\{Array\.from\(\{ length: 8 \}/);
+    expect(block).toMatch(/h-\[415px\]/);
+    expect(block).toMatch(/sm:h-\[438px\]/);
     expect(block).not.toMatch(/Tabs count=\{4\}/);
+  });
+
+  it("wraps GooeyNav so the last ficha section is not clipped", () => {
+    const css = read("src/components/ui/gooey-nav/GooeyNav.css");
+    expect(css).toMatch(/flex-wrap: wrap/);
+    expect(css).toMatch(/justify-content: center/);
+    expect(css).not.toMatch(/flex-wrap: nowrap/);
+    const nav = read("src/components/seller/report-nav.tsx");
+    expect(nav).not.toMatch(/overflow-x-auto/);
+    expect(nav).toMatch(/flex-wrap justify-center/);
+  });
+
+  it("shortens the disabled dropzone line", () => {
+    expect(read("src/lib/seller-copy.ts")).toMatch(/documentsUploadDisabled: "Subida desactivada en pruebas"/);
+    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/col-span-2 md:col-span-1/);
   });
 
   it("drops the buyer company-tab documentation block and renames Chat", () => {

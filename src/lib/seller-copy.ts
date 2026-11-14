@@ -78,7 +78,7 @@ export const sellerCopy = {
   dropToUpload: "Suelta para subir",
   chooseDocuments: "Elegir archivos",
   chooseDocumentsOff: "Solo lectura en este entorno",
-  documentsUploadDisabled: "Subida de archivos desactivada en el entorno de pruebas",
+  documentsUploadDisabled: "Subida desactivada en pruebas",
   documentUploaded: "Listo",
   openDocument: "Abrir documento",
   documentViewerBody: "Este archivo se guardó solo con el nombre. Vuelve a subirlo para poder abrirlo.",

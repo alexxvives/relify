@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-14 — Round S22b INT QA: skeleton height, wrapping GooeyNav, dropzone line
+
+`ProjectSkeleton` banner is a locked `h-[415px] sm:h-[438px]` with an 8-step pipeline placeholder so `/proyectos/[slug]` does not jump (CLS 0 under 3G). Ficha GooeyNav wraps and centres instead of clipping **Detalle de cuentas**; sm padding is tighter (`--gn-x: 10px`), icons hide below `sm`. Disabled dropzone copy is **Subida desactivada en pruebas**, with extra padding, and the tile spans two columns below `md`. No Prisma schema migration.
+
 ## 2026-11-14 — Round S22 INT feedback: dropzone, GooeyNav, signup terms
 
 Path-switch FadeContent blur is 1.6s and clipped to the steps (`isolate overflow-hidden`). Mis documentos uses Bencho’s MIT **Upload dropzone** (`src/components/seller/upload-dropzone.tsx`) with Bencho comments kept, tokens mapped on `.upl` (`--card/--fill-on/--fill-slab/--font-ui/--ink/--ok/--pane-edge/--signal` → Relify navy/sand/ok), `motion/react` + `lucide-react` already in the tree (no `framer-motion`). Real desktop drop/click uploads, 20 MB, inhale/suck/gulp, progress roll + tick, Spanish too-big shake; INT disabled looks muted. React Bits **Folder** is every folder (grey `#9aa3b2`, Relify accent `#465ab4` last, `openOn="click"`, bounce 0.78). **Así se ve una operación** is title-left / reel-right again (`lg:grid-cols-[1.1fr_0.9fr]`). React Bits **TextMorph** needs the Pro registry (`@reactbits-starter` + licence) — SwapVerb stays; hero type is larger. **GooeyNav** (TS+CSS, WebGL + CSS fallback) is the ficha section bar, lazy, navy pill, skipped under reduced motion. `/registro` requires Términos + Privacidad and writes existing `User.termsAcceptedAt` (no Prisma migration); plan cards drop `Al pagar aceptas…`. How-it-works flow intro is gone. Buyer ficha drops the company-tab ProcessRoom, Chat is **Chat / Documentos**, banner download is icon + **Teaser**. Landing nav hover fills `h-11`. Landing intros no longer use pretty/balance/max-w wraps. No Prisma schema migration. Data-room R2 and hero compression stay pending Alex.

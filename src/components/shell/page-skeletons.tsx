@@ -682,18 +682,37 @@ export function ProjectSkeleton() {
   return (
     <Shell>
       <Bare className="h-4 w-36" />
-      <div className="relative overflow-hidden rounded-[1.75rem] bg-[#1c2740] px-6 py-8 sm:px-8 sm:py-10">
-        <div className="mb-5 flex items-start justify-between">
+      <div className="relative flex h-[415px] flex-col overflow-hidden rounded-[1.75rem] bg-[#1c2740] px-6 py-8 sm:h-[438px] sm:px-8 sm:py-10">
+        <div className="relative z-10 mb-5 flex items-start justify-between gap-2 sm:mb-6">
           <Bare className="h-11 w-24 rounded-full bg-white/20" />
           <Bare className="size-11 rounded-full bg-white/20" />
         </div>
-        <div className="mx-auto flex max-w-3xl flex-col items-center">
-          <Bare className="size-10 rounded-2xl bg-white/15" />
-          <Bare className="mt-3 h-12 w-64 bg-white/20 sm:h-16 sm:w-80" />
-          <div className="mt-4 flex gap-2">
-            <Bare className="h-6 w-20 rounded-full bg-white/15" />
-            <Bare className="h-6 w-24 rounded-full bg-white/15" />
-            <Bare className="h-6 w-16 rounded-full bg-white/15" />
+        <div className="relative z-10 mx-auto max-w-3xl text-center">
+          <Bare className="mx-auto mb-3 size-10 rounded-2xl bg-white/15" />
+          <Bare className="mx-auto h-12 w-64 max-w-full bg-white/20 sm:h-14 sm:w-80" />
+          <ul className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Bare className="h-6 w-20 rounded-full bg-white/15 sm:h-7" />
+            <Bare className="h-6 w-24 rounded-full bg-white/15 sm:h-7" />
+            <Bare className="h-6 w-40 rounded-full bg-white/15 sm:h-7" />
+          </ul>
+        </div>
+        <div className="relative z-10 mt-auto">
+          <div className="layout-table px-1 pt-6 pb-2">
+            <ol className="layout-track relative mx-auto items-start" aria-hidden>
+              {Array.from({ length: 8 }, (_, index) => (
+                <li key={index} className="min-w-0">
+                  <span className="relative z-10 flex h-7 items-center justify-center">
+                    <Bare className="size-6 rounded-full bg-white/20" />
+                  </span>
+                  <span className="max-sm:hidden">
+                    <Bare className="mt-2 h-4 w-14 bg-white/15" />
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-3 flex items-center justify-center sm:hidden">
+              <Bare className="h-5 w-40 bg-white/15" />
+            </p>
           </div>
         </div>
       </div>

@@ -272,3 +272,13 @@
 @keyframes upl-pop { from { scale: 0; } }
 
 @keyframes upl-back { from { scale: 0.7; opacity: 0; } }
+
+/* Relify: room for the Spanish disabled line on a 390px tile. */
+.upl-zone {
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+.upl-say {
+  padding-inline: 8px;
+  line-height: 1.35;
+}

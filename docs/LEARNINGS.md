@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-14: `/proyectos/[slug]` skeleton must lock the banner at 415px/438px (390/1440) including the 8-step pipeline — matching inner bones without a fixed height still jumped ~16–50px.
 - 2026-11-14: React Bits TextMorph (`npx shadcn add @reactbits-starter/text-morph-tw`) needs a Pro registry + `REACTBITS_LICENSE_KEY` — keep SwapVerb until Alex has a licence.
 - 2026-11-14: Bencho Upload dropzone source is `cabralorenzo/bencho` `blocks/upload-dropzone`; WebFetch strips JSX — curl the raw GitHub files. Import `motion/react`, not a new `framer-motion`.
 - 2026-11-14: `/registro` now requires Términos/Privacidad and writes `termsAcceptedAt`, so the paid-plan “Al pagar aceptas…” line can go; existing accounts without that timestamp still get `PlatformTermsDialog`.

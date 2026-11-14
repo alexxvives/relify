@@ -5,17 +5,19 @@
   --gn-x: 16px;
   --gn-y: 9px;
   position: relative;
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   max-width: 100%;
+  justify-content: center;
   font-size: var(--gn-font);
   line-height: 1.2;
 }
 
 .gooey-nav--sm {
-  --gn-pad: 5px;
+  --gn-pad: 4px;
   --gn-gap: 2px;
   --gn-font: 13px;
-  --gn-x: 13px;
+  --gn-x: 10px;
   --gn-y: 7px;
 }
 
@@ -38,6 +40,7 @@
 
 .gooey-nav__stage {
   position: relative;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -62,6 +65,8 @@
   position: relative;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
   gap: var(--gn-gap);
   margin: 0;
   padding: 0;
@@ -84,7 +89,7 @@
 .gooey-nav__link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: var(--gn-y) var(--gn-x);
   border: none;
   border-radius: 999px;
@@ -140,10 +145,21 @@
 
 .gooey-nav--scroll {
   display: flex;
-  width: max-content;
-  max-width: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 .gooey-nav--scroll .gooey-nav__list {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 639px) {
+  .gooey-nav--sm {
+    --gn-x: 8px;
+    --gn-font: 12px;
+  }
+  .gooey-nav__icon {
+    display: none;
+  }
 }

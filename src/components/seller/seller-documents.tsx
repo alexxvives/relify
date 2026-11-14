@@ -783,7 +783,7 @@ export function SellerDocuments({
           </div>
           <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
             {folder === relevaDraftFolder ? null : (
-            <li>
+            <li className="col-span-2 md:col-span-1">
               <DocumentDrop folder={folder} disabled={uploadsDisabled} />
             </li>
             )}

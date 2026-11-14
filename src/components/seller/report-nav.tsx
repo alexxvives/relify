@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
 import { useScrollSpy } from "@/components/shell/use-scroll-spy";
 import {
   Briefcase,
@@ -71,19 +71,9 @@ export function ReportNav({
 }) {
   const ids = items.map((item) => item.id);
   const { active, go: scrollTo } = useScrollSpy(ids, belowFloatingTabs ? spyOffset + 56 : spyOffset);
-  const [edges, setEdges] = useState({ start: false, end: false });
-  const track = useRef<HTMLDivElement>(null);
   const top = belowFloatingTabs ? "top-[7.75rem] sm:top-[8.25rem] lg:top-[5.25rem]" : "top-14 sm:top-16 lg:top-3";
   const [Gooey, setGooey] = useState<ComponentType<GooeyProps> | null>(null);
   const activeIndex = Math.max(0, items.findIndex((item) => item.id === active));
-
-  const measureEdges = useCallback(() => {
-    const el = track.current;
-    if (!el) {
-      return;
-    }
-    setEdges({ start: el.scrollLeft > 4, end: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
-  }, []);
 
   useEffect(() => {
     if (reducedMotion()) {
@@ -99,24 +89,6 @@ export function ReportNav({
       alive = false;
     };
   }, []);
-
-  useEffect(() => {
-    const el = track.current;
-    const pill =
-      el?.querySelector<HTMLElement>(`[data-section="${active}"]`) ??
-      el?.querySelectorAll<HTMLElement>(".gooey-nav__list:not(.gooey-nav__list--active) .gooey-nav__item")[activeIndex];
-    if (!el || !pill) {
-      return;
-    }
-    const left = pill.offsetLeft - el.clientWidth / 2 + pill.clientWidth / 2;
-    el.scrollTo({ left: Math.max(0, left), behavior: reducedMotion() ? "auto" : "smooth" });
-  }, [active, activeIndex]);
-
-  useEffect(() => {
-    measureEdges();
-    window.addEventListener("resize", measureEdges);
-    return () => window.removeEventListener("resize", measureEdges);
-  }, [measureEdges]);
 
   function go(event: MouseEvent<HTMLAnchorElement>, id: string) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
@@ -159,7 +131,6 @@ export function ReportNav({
     }
   }
 
-  const fade = `${edges.start ? "transparent 0, #000 2rem" : "#000 0"}, ${edges.end ? "#000 calc(100% - 2rem), transparent 100%" : "#000 100%"}`;
   const gooeyItems: GooeyNavItem[] = items.map((item) => {
     const Icon = icons[item.id] ?? Sparkles;
     return { label: item.label, icon: <Icon className="size-4" aria-hidden /> };
@@ -168,12 +139,7 @@ export function ReportNav({
   return (
     <nav aria-label={label} className={`sticky z-30 mx-auto w-full max-w-4xl ${top}`}>
       <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
-        <div
-          ref={track}
-          onScroll={measureEdges}
-          className="flex min-w-0 flex-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ maskImage: `linear-gradient(to right, ${fade})`, WebkitMaskImage: `linear-gradient(to right, ${fade})` }}
-        >
+        <div className="flex min-w-0 flex-1 justify-center">
           {Gooey ? (
             <Gooey
               items={gooeyItems}
@@ -186,10 +152,9 @@ export function ReportNav({
               activeTextColor="#ffffff"
               size="sm"
               frame={false}
-              className="gooey-nav--scroll"
             />
           ) : (
-            <ul className="flex min-w-0 flex-1 gap-1">
+            <ul className="flex min-w-0 flex-1 flex-wrap justify-center gap-1">
               {items.map((item, index) => {
                 const Icon = icons[item.id] ?? Sparkles;
                 const current = item.id === active;
@@ -201,11 +166,11 @@ export function ReportNav({
                       aria-current={current ? "location" : undefined}
                       onClick={(event) => go(event, item.id)}
                       onKeyDown={(event) => keys(event, index)}
-                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
+                      className={`inline-flex min-h-11 items-center gap-1 rounded-xl px-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none ${
                         current ? "bg-[#1c2740] text-white shadow-sm" : "text-[#3d4a63] hover:bg-[#e6f4f2] hover:text-[#0f766e]"
                       }`}
                     >
-                      <Icon className={`size-4 shrink-0 ${current ? "text-[#7fd6cc]" : "text-[#8b95a7]"}`} aria-hidden />
+                      <Icon className={`size-4 shrink-0 max-sm:hidden ${current ? "text-[#7fd6cc]" : "text-[#8b95a7]"}`} aria-hidden />
                       {item.label}
                     </a>
                   </li>
