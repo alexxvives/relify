@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { TryFreeButton } from "@/components/landing/try-free-button";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -320,12 +320,7 @@ export function Hero({ wash = false }: { wash?: boolean }) {
             </span>
           </h1>
           <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-center justify-center gap-2.5 sm:max-w-none">
-            <Link
-              href="/registro"
-              className="inline-flex h-12 min-h-11 w-full max-w-xs items-center justify-center rounded-full bg-public-clay px-8 font-semibold text-white shadow-[0_10px_22px_-12px_rgb(15_110_115_/_0.75)] transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:w-auto"
-            >
-              {copy.cta}
-            </Link>
+            <TryFreeButton href="/registro" className="w-full max-w-xs sm:w-auto" label={copy.cta} />
           </div>
         </div>
         {open ? (

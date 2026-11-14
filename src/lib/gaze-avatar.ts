@@ -1,3 +1,5 @@
+const waitlistSeeds = ["alba", "nube", "cala", "duna", "bruma", "olivo", "roble", "faro"] as const;
+
 function hashSeed(seed: string): number {
   let hash = 0;
   for (let index = 0; index < seed.length; index += 1) {
@@ -6,9 +8,12 @@ function hashSeed(seed: string): number {
   return hash;
 }
 
-/** Local geometric avatar. CSP blocks remote image hosts (`img-src 'self' data: blob:`). */
+/** DiceBear Gaze portraits vendored at `/waitlist/*.svg` (CSP `img-src 'self'`). Unknown seeds stay local. */
 export function gazeAvatarUrl(seed: string): string {
   const safe = seed.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32) || "relify";
+  if ((waitlistSeeds as readonly string[]).includes(safe)) {
+    return `/waitlist/${safe}.svg`;
+  }
   const hash = hashSeed(safe);
   const ink = "#1c2740";
   const clay = "#0f6e73";

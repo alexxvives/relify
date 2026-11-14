@@ -591,13 +591,13 @@
   display: inline;
   background-image: linear-gradient(
     118deg,
-    #6b4200 0%,
-    #7a4e00 38%,
-    #c9a227 46%,
-    #fff6c8 50%,
-    #c9a227 54%,
-    #7a4e00 62%,
-    #6b4200 100%
+    #f5b700 0%,
+    #ffc400 38%,
+    #ffe082 46%,
+    #fff8dc 50%,
+    #ffe082 54%,
+    #ffc400 62%,
+    #f5b700 100%
   );
   background-size: 240% 180%;
   background-position: 130% -20%;
@@ -605,6 +605,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0.6px 0 rgb(28 39 64 / 0.38));
   animation: releva-gold-streak 4s ease-in-out infinite;
 }
 
@@ -625,8 +626,9 @@
     background-image: none;
     -webkit-background-clip: unset;
     background-clip: unset;
-    color: #7a4e00;
-    -webkit-text-fill-color: #7a4e00;
+    color: #f5b700;
+    -webkit-text-fill-color: #f5b700;
+    filter: drop-shadow(0 0.6px 0 rgb(28 39 64 / 0.4));
   }
 }
 
@@ -1859,11 +1861,11 @@ header:has([data-menu-open="true"]) {
 
 .releva-land-pipe-track {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.25rem;
   margin: 1.75rem 0 0;
-  padding: 0.5rem 0 0;
+  padding: 1.15rem 0 0;
   list-style: none;
   overflow-x: auto;
   scrollbar-width: none;
@@ -1882,9 +1884,9 @@ header:has([data-menu-open="true"]) {
 .releva-land-pipe-step:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 0.7rem;
-  left: calc(50% + 0.7rem);
-  right: calc(-50% + 0.7rem);
+  top: 1.575rem;
+  left: calc(50% + 0.55rem);
+  right: calc(-50% + 0.55rem);
   height: 2px;
   background: #d7e4e6;
 }
@@ -1899,7 +1901,7 @@ header:has([data-menu-open="true"]) {
   width: 100%;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
   padding: 0;
   border: 0;
   background: none;
@@ -1913,6 +1915,7 @@ header:has([data-menu-open="true"]) {
   border-radius: 999px;
   border: 2px solid #c5d4d6;
   background: #fff;
+  transform-origin: center center;
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s, border-color 0.35s, box-shadow 0.35s;
 }
 
@@ -1922,12 +1925,10 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-land-pipe-current .releva-land-pipe-dot {
-  width: 1.35rem;
-  height: 1.35rem;
   border-color: var(--public-clay);
   background: #2fc4b2;
   box-shadow: 0 0 0 6px rgb(47 196 178 / 0.18);
-  transform: scale(1.15);
+  transform: scale(1.35);
 }
 
 .releva-land-pipe-label {
@@ -1940,27 +1941,47 @@ header:has([data-menu-open="true"]) {
 
 .releva-land-pipe-current .releva-land-pipe-label {
   color: var(--public-ink);
-  transform: scale(1.06);
 }
 
-.releva-land-pipe-detail {
-  margin: 1.15rem auto 0;
+.releva-land-pipe-callout {
+  margin: 1.35rem auto 0;
   max-width: 36rem;
-  padding: 0.9rem 1.1rem;
+  padding: 1.1rem 1.25rem 1.2rem;
   border: 1px solid #dde7ea;
-  border-radius: 1rem;
-  background: #fff;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
+  box-shadow: 0 18px 40px -28px rgb(28 39 64 / 0.45);
+  text-align: center;
+  animation: releva-land-pipe-zoom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.releva-land-pipe-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--public-clay);
+}
+
+.releva-land-pipe-callout h4 {
+  margin-top: 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--public-ink);
+}
+
+.releva-land-pipe-callout p:last-child {
+  margin-top: 0.4rem;
   color: var(--public-muted);
   font-size: 0.95rem;
   line-height: 1.55;
-  text-align: center;
-  animation: releva-land-pipe-zoom 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes releva-land-pipe-zoom {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -2705,6 +2726,69 @@ header:has([data-menu-open="true"]) {
   animation: releva-app-toast-in 0.28s ease-out;
 }
 
+.releva-toast-stack {
+  position: fixed;
+  right: 1.25rem;
+  bottom: calc(1.25rem + var(--shell-tabbar, 0px));
+  z-index: 80;
+  width: min(24rem, calc(100vw - 2.5rem));
+  animation: releva-app-toast-in 0.28s ease-out;
+}
+
+.releva-toast-stack-ghost {
+  position: absolute;
+  right: 0.7rem;
+  left: 0.7rem;
+  bottom: 0.45rem;
+  height: 100%;
+  border-radius: 1.15rem;
+  background: #fff;
+  border: 1px solid #e7eaee;
+  transform-origin: center bottom;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+}
+
+.releva-toast-stack-ghost[data-layer="1"] {
+  transform: translateY(-0.45rem) scale(0.97);
+  opacity: 0.72;
+}
+
+.releva-toast-stack-ghost[data-layer="2"] {
+  transform: translateY(-0.9rem) scale(0.94);
+  opacity: 0.42;
+}
+
+.releva-toast-stack:hover .releva-toast-stack-ghost[data-layer="1"],
+.releva-toast-stack:focus-within .releva-toast-stack-ghost[data-layer="1"] {
+  transform: translateY(-3.4rem) scale(0.98);
+  opacity: 0.9;
+}
+
+.releva-toast-stack:hover .releva-toast-stack-ghost[data-layer="2"],
+.releva-toast-stack:focus-within .releva-toast-stack-ghost[data-layer="2"] {
+  transform: translateY(-6.5rem) scale(0.96);
+  opacity: 0.7;
+}
+
+.releva-toast-stack-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  box-shadow: 0 22px 44px -22px rgb(28 39 64 / 0.35);
+}
+
+.releva-toast-stack-ok {
+  border: 1px solid #cfe6d8;
+  background: #f4fbf7;
+  color: #14532d;
+}
+
+.releva-toast-stack-error {
+  border: 1px solid #f3c1bd;
+  background: #fff7f6;
+  color: #7a1f1a;
+}
+
 .releva-app-toast-bar {
   transform-origin: left center;
   animation: releva-app-toast-bar 4.2s linear forwards;
@@ -2773,22 +2857,24 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-hero-glass .releva-gold-shine {
+    filter: none;
     background-image: linear-gradient(
       118deg,
-      #c9a227 0%,
-      #d4ae32 38%,
-      #fff6c8 48%,
+      #ffc400 0%,
+      #ffd54a 38%,
+      #fff3b0 48%,
       #ffffff 50%,
-      #fff6c8 52%,
-      #d4ae32 62%,
-      #c9a227 100%
+      #fff3b0 52%,
+      #ffd54a 62%,
+      #ffc400 100%
     );
   }
 
   @media (prefers-reduced-motion: reduce) {
     .releva-hero-glass .releva-gold-shine {
-      color: #e8c547;
-      -webkit-text-fill-color: #e8c547;
+      color: #ffc400;
+      -webkit-text-fill-color: #ffc400;
+      filter: none;
     }
   }
 
@@ -2930,6 +3016,8 @@ header:has([data-menu-open="true"]) {
   .releva-cursor,
   .releva-toast,
   .releva-app-toast,
+  .releva-toast-stack,
+  .releva-toast-stack-ghost,
   .releva-app-toast-bar,
   .releva-bar,
   .landing-metric,
@@ -2961,7 +3049,7 @@ header:has([data-menu-open="true"]) {
   .releva-city-spot .releva-city-pin::after,
   .releva-swap-word,
   .releva-gold-shine,
-  .releva-land-pipe-detail,
+  .releva-land-pipe-callout,
   .releva-hv-stamp-on,
   .releva-how-travel .releva-how-rail-light,
   .releva-path-wait,
@@ -3658,6 +3746,12 @@ header:has([data-menu-open="true"]) {
   background: #161b2e;
   color: white;
   box-shadow: 0 28px 50px rgb(20 24 42 / 24%);
+}
+
+.releva-flip-counter {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
 
 .releva-flip b,

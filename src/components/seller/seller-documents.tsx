@@ -32,6 +32,7 @@ export type DocumentAdvisor = {
 type ShareScope = { kind: "file"; fileId: string } | { kind: "folder"; folder: string } | { kind: "room" };
 import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
 import { Button, Input } from "@/components/ui/form";
+import { RelifyFolder } from "@/components/seller/relify-folder";
 import { relevaDraftFolder } from "@/lib/releva-drafts";
 import { companyPdfCopy, type SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
@@ -471,16 +472,24 @@ function FolderCard({
         </form>
       ) : (
         <>
+          {featured ? (
+            <div className="flex min-h-44 w-full flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]">
+              <RelifyFolder />
+              <button type="button" onClick={onOpen} className="mt-2">
+                <span className="block text-sm font-semibold text-[#1c2740]">{name}</span>
+                <span className="mt-1 block text-xs text-[#667085]">
+                  {documentCountLabel(count)}
+                  {updatedAt ? ` · ${folderDate(updatedAt)}` : ""}
+                </span>
+              </button>
+            </div>
+          ) : (
           <button
             type="button"
             onClick={onOpen}
-            className={
-              featured
-                ? "flex h-44 w-full flex-col items-center justify-center rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
-                : "flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
-            }
+            className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
           >
-            <FolderOpenIcon size={64} className={featured ? "text-[#465ab4]" : count > 0 ? "text-[#8f9bd6]" : "text-[#d5dbe3]"} aria-hidden />
+            <FolderOpenIcon size={64} className={count > 0 ? "text-[#8f9bd6]" : "text-[#d5dbe3]"} aria-hidden />
             <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 text-xs text-[#667085]">
               {documentCountLabel(count)}
@@ -492,6 +501,7 @@ function FolderCard({
               </span>
             ) : null}
           </button>
+          )}
           {locked ? null : (
             <>
           <div className="absolute top-3 left-3 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">{share}</div>

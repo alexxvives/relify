@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Menu } from "lucide-react";
+import { TryFreeButton } from "@/components/landing/try-free-button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { landingCopy } from "@/lib/landing-copy";
 
@@ -83,9 +84,7 @@ export function LandingNav({
           <Link href="/entrar" className={ghostLink}>
             {landingCopy.signInCta}
           </Link>
-          <Link href="/registro" className={solidLink}>
-            {landingCopy.tryFreeCta}
-          </Link>
+          <TryFreeButton href="/registro" />
         </div>
       )}
       <button
@@ -120,13 +119,7 @@ export function LandingNav({
               >
                 {landingCopy.signInCta}
               </Link>
-              <Link
-                href="/registro"
-                className={`${solidLink} w-full`}
-                onClick={() => onMenuOpenChange(false)}
-              >
-                {landingCopy.tryFreeCta}
-              </Link>
+              <TryFreeButton href="/registro" className="w-full" onClick={() => onMenuOpenChange(false)} />
             </div>
           )
         }

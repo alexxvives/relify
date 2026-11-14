@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { EyeIcon } from "@/components/ui/eye";
 import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
@@ -12,6 +13,8 @@ import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
+
+const PixelCard = dynamic(() => import("@/components/PixelCard"), { ssr: false });
 
 function Note({ state }: { state: PlanActionState }) {
   if (!state) {
@@ -131,15 +134,14 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
         {plans.map((item) => {
           const active = plan === item.id;
           const Icon = item.icon;
-          return (
+          const body = (
             <section
-              key={item.id}
               className={
-                active
-                  ? "relative flex flex-col rounded-[2rem] border-2 border-[#17663a] bg-white p-6"
-                  : item.recommended
-                    ? "relative flex flex-col rounded-[2rem] border-2 border-[#465ab4] bg-white p-6"
-                    : "relative flex flex-col rounded-[2rem] border border-[#e7eaee] bg-white p-6"
+                item.recommended
+                  ? "relative flex h-full flex-col bg-transparent p-6"
+                  : active
+                    ? "relative flex h-full flex-col rounded-[2rem] border-2 border-[#17663a] bg-white p-6"
+                    : "relative flex h-full flex-col rounded-[2rem] border border-[#e7eaee] bg-white p-6"
               }
             >
               <div className="flex items-start justify-between gap-3">
@@ -202,6 +204,22 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                 ) : null}
               </div>
             </section>
+          );
+          return item.recommended ? (
+            <PixelCard
+              key={item.id}
+              theme="light"
+              variant="blue"
+              gap={7}
+              speed={35}
+              className="!flex !h-full !w-full !min-h-full flex-col !place-items-stretch rounded-[2rem] border-2 border-[#465ab4]"
+              radius={32}
+              noFocus
+            >
+              {body}
+            </PixelCard>
+          ) : (
+            <div key={item.id}>{body}</div>
           );
         })}
       </div>

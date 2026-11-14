@@ -56,46 +56,46 @@ export function AppToast({
   const ok = tone === "ok";
 
   return createPortal(
-    <div
-      role={ok ? "status" : "alert"}
-      className={
-        ok
-          ? "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-[#b7e4c7] bg-[#f4fbf7] text-[#14532d] shadow-[0_22px_44px_-22px_rgba(20,83,45,0.45)]"
-          : "releva-app-toast fixed right-5 bottom-5 z-[80] w-[min(36rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-[#f3c1bd] bg-[#fff7f6] text-[#7a1f1a] shadow-[0_22px_44px_-22px_rgba(122,31,26,0.4)]"
-      }
-    >
-      <div className="flex items-start gap-3 px-4 py-3.5">
-        {ok ? null : (
-          <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#c2413a] text-white">
-            <CircleAlert className="size-3.5" aria-hidden />
-          </span>
-        )}
-        <span className="min-w-0 flex-1 pt-0.5 text-sm leading-6 font-medium">{message}</span>
-        {!ok && onRetry ? (
+    <div className="releva-toast-stack" data-tone={ok ? "ok" : "error"}>
+      <span className="releva-toast-stack-ghost" data-layer="2" aria-hidden />
+      <span className="releva-toast-stack-ghost" data-layer="1" aria-hidden />
+      <div
+        role={ok ? "status" : "alert"}
+        className={ok ? "releva-toast-stack-card releva-toast-stack-ok" : "releva-toast-stack-card releva-toast-stack-error"}
+      >
+        <div className="flex items-start gap-3 px-4 py-3.5">
+          {ok ? null : (
+            <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#c2413a] text-white">
+              <CircleAlert className="size-3.5" aria-hidden />
+            </span>
+          )}
+          <span className="min-w-0 flex-1 pt-0.5 text-sm leading-6 font-medium">{message}</span>
+          {!ok && onRetry ? (
+            <button
+              type="button"
+              onClick={() => {
+                setHidden(true);
+                onRetry();
+              }}
+              className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#c2413a] px-3 text-xs font-semibold text-white hover:bg-[#a83731] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2413a]"
+            >
+              {retryLabel}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
               setHidden(true);
-              onRetry();
             }}
-            className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#c2413a] px-3 text-xs font-semibold text-white hover:bg-[#a83731] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2413a]"
+            className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-current/70 hover:bg-black/5"
+            aria-label="Cerrar"
           >
-            {retryLabel}
+            <X className="size-3.5" aria-hidden />
           </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={() => {
-            setHidden(true);
-          }}
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-current/70 hover:bg-black/5"
-          aria-label="Cerrar"
-        >
-          <X className="size-3.5" aria-hidden />
-        </button>
-      </div>
-      <div className="h-1 bg-black/5">
-        <div className={ok ? "releva-app-toast-bar h-full bg-[#1f8a4c]" : "releva-app-toast-bar h-full bg-[#c2413a]"} />
+        </div>
+        <div className="h-1 bg-black/5">
+          <div className={ok ? "releva-app-toast-bar h-full bg-[#17663a]" : "releva-app-toast-bar h-full bg-[#c2413a]"} />
+        </div>
       </div>
     </div>,
     document.body,

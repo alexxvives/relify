@@ -27,6 +27,8 @@ describe("landing v2 React Bits upgrade", () => {
     expect(v2).toMatch(/LandingAurora/);
     expect(v2).toMatch(/LandingCifras/);
     expect(v2).toMatch(/LandingReveal/);
+    expect(v2).toMatch(/electricLogo/);
+    expect(read("src/components/landing/landing-page.tsx")).not.toMatch(/electricLogo/);
     expect(v2).not.toMatch(/landingCopy\.stats/);
     expect(read("src/components/landing/fade-content.tsx")).toMatch(/prefers-reduced-motion/);
     expect(read("src/components/landing/landing-motion.ts")).toMatch(/prefers-reduced-motion/);

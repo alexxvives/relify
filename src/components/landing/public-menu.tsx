@@ -4,9 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IntBadge } from "@/components/shell/int-badge";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { Logo } from "@/components/shell/logo";
+import { LandingMark } from "@/components/landing/landing-mark";
 
-export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; showInt?: boolean }) {
+export function PublicMenu({
+  signedIn,
+  showInt = false,
+  electricLogo = false,
+}: {
+  signedIn: boolean;
+  showInt?: boolean;
+  electricLogo?: boolean;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -30,7 +38,7 @@ export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; s
     >
       <Link href="/" className="relative z-20 flex min-h-11 min-w-0 shrink-0 items-center gap-2 pl-2" aria-label="Relify">
         {showInt ? <IntBadge /> : null}
-        <Logo />
+        <LandingMark electric={electricLogo} />
       </Link>
       <LandingNav
         menuOpen={mobileOpen}

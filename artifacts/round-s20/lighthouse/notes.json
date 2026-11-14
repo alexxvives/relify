@@ -1,0 +1,64 @@
+{
+  "environment": "next dev (unminified), simulated mobile 390, cookie relify_consent=essential",
+  "default": {
+    "url": "http://localhost:3000/",
+    "performance": 67,
+    "fcp": "1.4 s",
+    "lcp": "14.2 s",
+    "cls": "0",
+    "tbt": "300 ms",
+    "runs": [
+      {
+        "performance": 67,
+        "fcp": "1.4 s",
+        "lcp": "14.2 s",
+        "cls": "0",
+        "tbt": "300 ms"
+      },
+      {
+        "performance": 61,
+        "fcp": "1.1 s",
+        "lcp": "14.8 s",
+        "cls": "0",
+        "tbt": "500 ms"
+      },
+      {
+        "performance": 64,
+        "fcp": "1.1 s",
+        "lcp": "8.0 s",
+        "cls": "0",
+        "tbt": "410 ms"
+      }
+    ]
+  },
+  "v2": {
+    "url": "http://localhost:3000/?v=2",
+    "performance": 64,
+    "fcp": "1.1 s",
+    "lcp": "6.5 s",
+    "cls": "0",
+    "tbt": "380 ms"
+  },
+  "baseline_s19": {
+    "performance": 64,
+    "fcp": "1.1 s",
+    "lcp": "17.4 s",
+    "cls": "0",
+    "tbt": "390 ms"
+  },
+  "cpu": [
+    {
+      "label": "v2-desktop-electric",
+      "frames": 40,
+      "elapsed": 1506.2000000011176,
+      "fps": 27
+    },
+    {
+      "label": "default-desktop",
+      "frames": 50,
+      "elapsed": 1503.7000000011176,
+      "fps": 33
+    }
+  ],
+  "note": "Scores are next dev, not a production Worker build. Best of 3 default runs reported. CLS stayed 0. StarBorder/GlareHover desktop-only; FadeContent on path switch; ElectricLogo desktop /?v=2 only."
+}

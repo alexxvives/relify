@@ -6,6 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-14: waitlist Gaze faces became smileys in `2a5c6f7` because CSP `img-src 'self' data: blob:` blocks `api.dicebear.com` — vendor the SVGs under `public/waitlist/` instead of remote URLs or generated smileys.
+- 2026-11-14: a module-level `next/dynamic` of ElectricLogo on the public header pulled `ogl` into `/` — import the chunk only when the `/?v=2` desktop trial mounts.
+- 2026-11-14: ElectricLogo in the header is overkill (~27 fps vs ~33 fps on the wordmark over 1.5s) — keep it as a `/?v=2` desktop trial, paused when the tab is hidden.
 - 2026-11-14: `.shell-content { overflow-x: clip }` made `position:sticky` section nav jump via ViewportPortal — clip horizontal overflow on `html` instead, keep sticky on the bar itself.
 - 2026-11-14: S17 help box inverted title/body and kept the email row — keep title ¿Necesitas ayuda?, body exactly Llámanos o escríbenos., phone number only (no Llamar, no email).
 - 2026-11-14: landing honesty test failed the new hero title — it banned the exact phrase `empresas rentables`, which S17 uses as positioning, not a live-market claim — do not keep that exact string in the ban list.

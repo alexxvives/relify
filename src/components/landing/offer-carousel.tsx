@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MarketCard } from "@/components/investor/market-card";
+import { OfferGlare } from "@/components/landing/offer-glare";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { landingPreviewHref } from "@/lib/showcase-card";
 
@@ -83,7 +84,9 @@ export function OfferCarousel({ projects }: { projects: readonly PublicProjectCa
       >
         {projects.map((project) => (
           <li key={project.slug}>
-            <MarketCard project={project} href={landingPreviewHref} />
+            <OfferGlare>
+              <MarketCard project={project} href={landingPreviewHref} />
+            </OfferGlare>
           </li>
         ))}
       </ul>

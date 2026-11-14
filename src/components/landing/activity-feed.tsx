@@ -79,22 +79,22 @@ export function ActivityFeed() {
           <div className="absolute right-[38%] -bottom-16 h-56 w-64 rotate-6 rounded-[42px] bg-[#14998a]/90" />
           <div className="absolute top-10 right-[42%] h-24 w-40 -rotate-12 rounded-[28px] bg-public-clay/70" />
         </div>
-        <div className="relative grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
-          <div>
-            <p className="text-sm tracking-[0.16em] text-white/75 uppercase">{copy.kicker}</p>
-            <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 text-white sm:mt-3">
-              {copy.heading}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-white/80 sm:mt-3 sm:text-[16px] sm:leading-7">{copy.intro}</p>
-            <Link
-              href={copy.ctaHref}
-              className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-public-ink sm:w-auto"
-            >
-              {copy.cta}
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
-          <div className="releva-mask-y h-[240px] overflow-hidden sm:h-[440px]">
+        <div className="relative mx-auto max-w-3xl text-center">
+          <p className="text-sm tracking-[0.16em] text-white/75 uppercase">{copy.kicker}</p>
+          <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 text-white sm:mt-3">
+            {copy.heading}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-pretty text-white/80 sm:mt-3 sm:text-[16px] sm:leading-7">{copy.intro}</p>
+          <Link
+            href={copy.ctaHref}
+            className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-public-ink sm:w-auto"
+          >
+            {copy.cta}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+        <div className="relative mt-8 grid items-center gap-6 lg:grid-cols-1 lg:gap-10">
+          <div className="releva-mask-y mx-auto h-[240px] w-full max-w-xl overflow-hidden sm:h-[440px]">
             <div className="releva-reel-down flex flex-col gap-3">
               {loop.map((item, index) => {
                 const KindIcon = kindIcon[item.kind];

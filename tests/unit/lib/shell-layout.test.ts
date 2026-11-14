@@ -171,7 +171,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
 
   it("puts the dossier download in the buyer banner and drops the LOI template link", () => {
     expect(investorProject).toMatch(/bannerAction=/);
-    expect(banner).toMatch(/absolute top-5 left-5/);
+    expect(banner).toMatch(/data-banner-action/);
     expect(banner).not.toMatch(/bannerAction \? <div className="mt-5 flex justify-center">/);
     expect(investorProject).toMatch(/dossierDownload/);
     expect(investorProject).not.toMatch(/BuyerDossierLink/);
@@ -206,7 +206,7 @@ describe("S17 landing hero title and header", () => {
 
   it("shows ghost Iniciar sesión and primary Prueba gratis on desktop and mobile", () => {
     expect(landingNav).toMatch(/landingCopy\.signInCta/);
-    expect(landingNav).toMatch(/landingCopy\.tryFreeCta/);
+    expect(landingNav).toMatch(/TryFreeButton/);
     expect(landingNav).toMatch(/href="\/entrar"/);
     expect(landingNav).toMatch(/href="\/registro"/);
     expect(landingNav).toMatch(/ghostLink/);
@@ -215,8 +215,8 @@ describe("S17 landing hero title and header", () => {
   it("animates rentables with a gold clip sweep and a static gold when motion is reduced", () => {
     expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*background-clip:\s*text/);
     expect(css).toMatch(/@keyframes releva-gold-streak/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#7a4e00/);
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#6b4200[\s\S]*#7a4e00[\s\S]*#fff6c8/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#f5b700/);
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#f5b700[\s\S]*#ffc400[\s\S]*#fff8dc/);
     expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
   });
 

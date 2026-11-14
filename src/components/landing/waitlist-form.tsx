@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { ArrowRight, Briefcase, Building2, Landmark } from "lucide-react";
+import Counter from "@/components/Counter";
 import { joinWaitlistAction, type WaitlistState } from "@/app/lista-de-espera/actions";
 import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { waitlistCopy, waitlistOpensAt, type waitlistRoles } from "@/lib/waitlist";
@@ -32,17 +33,22 @@ function partsLeft(now: number) {
   ];
 }
 
-function FlipUnit({ value, previous, label }: { value: string; previous: string; label: string }) {
-  const play = value !== previous;
+function FlipUnit({ value, label }: { value: number; label: string }) {
   return (
     <li>
-      <div className="releva-flip">
-        <b>{value}</b>
-        {play ? (
-          <span className="releva-flip-leaf" key={value}>
-            <span>{previous}</span>
-          </span>
-        ) : null}
+      <div className="releva-flip releva-flip-counter">
+        <Counter
+          value={value}
+          minDigits={2}
+          direction="down"
+          bounce={0.3}
+          stagger={0.06}
+          duration={1.1}
+          fontSize="clamp(3.4rem, 7vw, 7.2rem)"
+          fontWeight={600}
+          textColor="#ffffff"
+          intro={false}
+        />
       </div>
       <span>{label}</span>
     </li>
@@ -50,29 +56,22 @@ function FlipUnit({ value, previous, label }: { value: string; previous: string;
 }
 
 function WaitlistClock() {
-  const [clock, setClock] = useState<{ now: number | null; previous: number | null }>({ now: null, previous: null });
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setClock((current) => ({ now: Date.now(), previous: current.now }));
+      setNow(Date.now());
     }, 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  const now = clock.now;
   const parts = partsLeft(now ?? opensAt);
-  const before = partsLeft(clock.previous ?? now ?? opensAt);
 
   return (
     <div className="releva-wait-clock" aria-label="Cuenta atrás hasta la apertura del marketplace">
       <ol>
-        {parts.map((part, index) => (
-          <FlipUnit
-            key={part.label}
-            value={now === null ? "00" : String(part.value).padStart(2, "0")}
-            previous={now === null ? "00" : String(before[index]?.value ?? part.value).padStart(2, "0")}
-            label={part.label}
-          />
+        {parts.map((part) => (
+          <FlipUnit key={part.label} value={part.value} label={part.label} />
         ))}
       </ol>
     </div>

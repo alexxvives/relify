@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { OfferCarousel } from "@/components/landing/offer-carousel";
+import { OfferGlare } from "@/components/landing/offer-glare";
 import { MarketCard } from "@/components/investor/market-card";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { landingPreviewHref, showcaseToProjectCard } from "@/lib/showcase-card";
@@ -21,15 +22,13 @@ export function Offer() {
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 pt-8 pb-6 sm:px-8 sm:pt-20 sm:pb-16">
       <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[1.5rem] border border-[#dde7ea] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7f8_100%)] p-4 text-[#1c2740] shadow-[0_30px_80px_-50px_rgba(28,39,64,0.45)] sm:rounded-[2rem] sm:p-8 lg:p-12">
         <div aria-hidden className="pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full bg-[radial-gradient(circle,rgba(47,196,178,0.16),transparent_65%)]" />
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
-          <div>
-            <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>
-            <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
-              {copy.heading}
-            </h2>
-            <p className="mt-3 hidden text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
-          </div>
-          <p className="hidden items-center gap-2 self-start rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm sm:inline-flex lg:self-auto">
+        <div className="relative mx-auto max-w-3xl text-center">
+          <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>
+          <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
+            {copy.heading}
+          </h2>
+          <p className="mt-3 hidden text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
+          <p className="mt-4 hidden items-center justify-center gap-2 rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm sm:inline-flex">
             <span className="relative flex size-2">
               <span className="absolute hidden size-full animate-ping rounded-full bg-[#2fc4b2] opacity-60 motion-reduce:animate-none sm:inline-flex" />
               <span className="relative inline-flex size-2 rounded-full bg-[#0f766e]" />
@@ -45,7 +44,9 @@ export function Offer() {
         <ul className="relative mt-10 hidden grid-cols-1 gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {visible.map((project, index) => (
             <li key={project.slug} className={`releva-peek-reveal ${firstRow[index]}`} style={{ ["--i" as string]: index }}>
-              <MarketCard project={project} href={landingPreviewHref} />
+              <OfferGlare>
+                <MarketCard project={project} href={landingPreviewHref} />
+              </OfferGlare>
             </li>
           ))}
         </ul>

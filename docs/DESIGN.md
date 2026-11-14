@@ -43,7 +43,7 @@ Do not restyle one into the other unless the task says so.
 | Fonts | DM Sans (UI, `font-sans`). Instrument Serif is the word Relify, on public pages and in the signed-in shell. |
 | Radius | cards `rounded-2xl`/`rounded-3xl`, buttons and chips `rounded-full` or the form kit's `rounded-xl` |
 
-Do not invent a new hex. Match the surface you are editing.
+Do not invent a new hex. Match the surface you are editing. Landing **rentables** is a documented exception (`#f5b700` / `#ffc400`, overlay `#ffc400`; see DECISIONS).
 
 ## Reuse these
 

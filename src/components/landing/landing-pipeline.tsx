@@ -46,10 +46,11 @@ export function LandingPipeline() {
         })}
       </ol>
       {current ? (
-        <p key={current.id} className="releva-land-pipe-detail">
-          <span className="font-semibold text-public-ink">{current.label}. </span>
-          {current.detail}
-        </p>
+        <article key={current.id} className="releva-land-pipe-callout">
+          <p className="releva-land-pipe-kicker">Paso {active + 1}</p>
+          <h4>{current.label}</h4>
+          <p>{current.detail}</p>
+        </article>
       ) : null}
     </div>
   );
