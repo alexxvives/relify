@@ -6,6 +6,7 @@ import { platformTermsCopy } from "@/lib/platform-terms";
 import { useSigner } from "@/components/investor/signer-context";
 import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
 import { authCopy } from "@/lib/auth-copy";
+import { identityOnSign } from "@/lib/identity-declaration";
 import { Input } from "@/components/ui/form";
 
 function exportJpeg(canvas: HTMLCanvasElement): string {
@@ -38,9 +39,10 @@ export function SignaturePad({
   const moved = useRef(false);
   const [signed, setSigned] = useState(false);
   const { nationalIdMissing, nationalIdMasked } = useSigner();
-  const askId = nationalIdMissing;
-  const confirmStored = collectIdentity && !nationalIdMissing;
-  const declareIdentity = collectIdentity || askId;
+  const identity = identityOnSign({ nationalIdMissing, collectIdentity });
+  const askId = identity === "ask";
+  const confirmStored = identity === "confirm";
+  const declareIdentity = identity !== "skip";
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;

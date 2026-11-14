@@ -483,13 +483,6 @@ export function AppFrame({
                   <PhoneIcon size={16} aria-hidden />
                   {shellCopy.helpPhone}
                 </a>
-                <a
-                  href={shellCopy.helpEmailHref}
-                  className="group inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] px-3 text-sm font-medium text-[#d6dbe6] hover:bg-[#262d40] hover:text-white"
-                >
-                  <MailIcon size={16} aria-hidden />
-                  <span className="truncate">{shellCopy.helpEmail}</span>
-                </a>
               </div>
             </details>
           ) : null}

@@ -3,6 +3,7 @@ import { buyerProjectView } from "@/lib/report-veil";
 import { toInvestorProject } from "@/lib/investor-project";
 import { accessFromConnection } from "@/lib/project-access";
 import { investorProcessFiles } from "@/lib/deal-pipeline";
+import { sharedFileIds } from "@/lib/data-room";
 
 const closedYear = {
   year: 2024,
@@ -115,5 +116,26 @@ describe("post-NDA buyer ficha", () => {
     expect(investorProcessFiles({ ndaAcceptedAt: new Date(), granted: true, files })).toEqual([
       { folder: "Cuentas", fileName: "pyg.pdf", id: "f1", stored: true },
     ]);
+  });
+
+  it("shows only files the seller shared with that buyer", () => {
+    const files = [
+      { id: "shared-cuentas", folder: "Financiero", fileName: "cuentas-2024.pdf" },
+      { id: "private-pacto", folder: "Legal", fileName: "pacto-socios.pdf" },
+    ];
+    const visible = sharedFileIds({
+      files,
+      investorId: "buyer-1",
+      granted: true,
+      shares: [{ fileId: "shared-cuentas", investorId: "buyer-1" }],
+    });
+    expect([...visible]).toEqual(["shared-cuentas"]);
+    expect(
+      investorProcessFiles({
+        ndaAcceptedAt: new Date(),
+        granted: true,
+        files: files.filter((file) => visible.has(file.id)),
+      }).map((file) => file.fileName),
+    ).toEqual(["cuentas-2024.pdf"]);
   });
 });

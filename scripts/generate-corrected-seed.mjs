@@ -147,6 +147,9 @@ async function generateCorrectedSeed() {
     lines.push(`ON CONFLICT (email) DO UPDATE SET`);
     lines.push(`  onboarded_at = EXCLUDED.onboarded_at,`);
     lines.push(`  terms_accepted_at = EXCLUDED.terms_accepted_at;`);
+    if (key === "buyer") {
+      lines.push(`UPDATE "user" SET national_id = '12345678Z' WHERE id = ${sqlString(userId)} AND (national_id IS NULL OR btrim(national_id) = '');`);
+    }
     
     // Account PK is id. Better Auth signInEmail matches account_id to user.id, not email.
     const accountRowId = deterministicUUID("int-account", email);
@@ -310,6 +313,35 @@ async function generateCorrectedSeed() {
   lines.push(`INSERT INTO "project_access" (id, project_id, investor_id, requested_at, seller_accepted_at, nda_accepted_at)`);
   lines.push(`VALUES (${sqlString(accessId)}, ${sqlString(manualProjectId)}, ${sqlString(userIds["buyer"])}, ${sqlTimestamp(twoDaysAgo)}, ${sqlTimestamp(onePointFiveDaysAgo)}, ${sqlTimestamp(oneDayAgo)})`);
   lines.push(`ON CONFLICT (project_id, investor_id) DO NOTHING;`);
+
+  const folderFin = deterministicUUID("int-folder", `${manualProjectId}-Financiero`);
+  const folderFis = deterministicUUID("int-folder", `${manualProjectId}-Fiscal`);
+  const folderLeg = deterministicUUID("int-folder", `${manualProjectId}-Legal`);
+  const fileCuentas = deterministicUUID("int-file", `${manualProjectId}-cuentas-2024`);
+  const fileModelo = deterministicUUID("int-file", `${manualProjectId}-modelo-200`);
+  const filePacto = deterministicUUID("int-file", `${manualProjectId}-pacto-socios`);
+  const grantId = deterministicUUID("int-grant", `${userIds["buyer"]}-${manualProjectId}`);
+  const shareCuentas = deterministicUUID("int-share", `${fileCuentas}-${userIds["buyer"]}`);
+  const shareModelo = deterministicUUID("int-share", `${fileModelo}-${userIds["buyer"]}`);
+  lines.push("");
+  lines.push("-- Consultoría Servicios data room: two files shared with the buyer, pacto-socios not shared");
+  lines.push(`INSERT INTO data_room_folder (id, project_id, name, hidden, created_at) VALUES`);
+  lines.push(`  (${sqlString(folderFin)}, ${sqlString(manualProjectId)}, 'Financiero', false, ${sqlTimestamp(now)}),`);
+  lines.push(`  (${sqlString(folderFis)}, ${sqlString(manualProjectId)}, 'Fiscal', false, ${sqlTimestamp(now)}),`);
+  lines.push(`  (${sqlString(folderLeg)}, ${sqlString(manualProjectId)}, 'Legal', false, ${sqlTimestamp(now)})`);
+  lines.push(`ON CONFLICT (project_id, name) DO NOTHING;`);
+  lines.push(`INSERT INTO data_room_file (id, project_id, file_name, folder, created_at) VALUES`);
+  lines.push(`  (${sqlString(fileCuentas)}, ${sqlString(manualProjectId)}, 'cuentas-2024.pdf', 'Financiero', ${sqlTimestamp(now)}),`);
+  lines.push(`  (${sqlString(fileModelo)}, ${sqlString(manualProjectId)}, 'modelo-200.pdf', 'Fiscal', ${sqlTimestamp(now)}),`);
+  lines.push(`  (${sqlString(filePacto)}, ${sqlString(manualProjectId)}, 'pacto-socios.pdf', 'Legal', ${sqlTimestamp(now)})`);
+  lines.push(`ON CONFLICT (id) DO UPDATE SET file_name = EXCLUDED.file_name, folder = EXCLUDED.folder;`);
+  lines.push(`INSERT INTO data_room_grant (id, project_id, investor_id, granted_at)`);
+  lines.push(`VALUES (${sqlString(grantId)}, ${sqlString(manualProjectId)}, ${sqlString(userIds["buyer"])}, ${sqlTimestamp(now)})`);
+  lines.push(`ON CONFLICT (project_id, investor_id) DO NOTHING;`);
+  lines.push(`INSERT INTO data_room_file_share (id, file_id, investor_id, created_at) VALUES`);
+  lines.push(`  (${sqlString(shareCuentas)}, ${sqlString(fileCuentas)}, ${sqlString(userIds["buyer"])}, ${sqlTimestamp(now)}),`);
+  lines.push(`  (${sqlString(shareModelo)}, ${sqlString(fileModelo)}, ${sqlString(userIds["buyer"])}, ${sqlTimestamp(now)})`);
+  lines.push(`ON CONFLICT (file_id, investor_id) DO NOTHING;`);
   
   // Advisor mandate
   lines.push("");

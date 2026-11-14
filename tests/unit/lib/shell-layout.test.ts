@@ -155,10 +155,15 @@ describe("S17 buyer ficha and seller surfaces", () => {
     expect(metrics).not.toMatch(/netResult|Resultado neto/);
   });
 
-  it("renames help to Llámanos o escríbenos and shows only the phone number", () => {
-    expect(shellCopySource).toMatch(/helpTitle: "Llámanos o escríbenos\."/);
+  it("keeps seller help as Necesitas ayuda with Llámanos body and the phone only", () => {
+    expect(shellCopySource).toMatch(/helpTitle: "¿Necesitas ayuda\?"/);
+    expect(shellCopySource).toMatch(/helpBody: "Llámanos o escríbenos\."/);
+    expect(shellCopySource).toMatch(/helpPhone: "\+34 689 99 43 85"/);
+    expect(shellCopySource).not.toMatch(/Te acompañamos a rellenar la ficha/);
     expect(appFrame).toMatch(/shellCopy\.helpPhone/);
     expect(appFrame).not.toMatch(/shellCopy\.helpCall/);
+    expect(appFrame).not.toMatch(/shellCopy\.helpEmail/);
+    expect(appFrame).not.toMatch(/Llamar/);
   });
 
   it("puts the dossier download in the buyer banner and drops the LOI template link", () => {

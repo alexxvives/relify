@@ -23,4 +23,26 @@ test.describe("buyer marketplace", () => {
     await expectNoIdentityLeak(page);
     await expect(page.locator("body")).toContainText(/facturación|ebitda|conectar|solicitud/i);
   });
+
+  test("LOI sign dialog skips DNI when national_id is already stored", async ({ page }) => {
+    test.skip(!roleCreds("investor"), "Set E2E_INVESTOR_EMAIL and E2E_INVESTOR_PASSWORD");
+    const signedIn = await signInAs(page, "investor");
+    expect(signedIn).toBe(true);
+    await page.goto("/procesos");
+    await expect(page.locator(".shell-content")).toBeVisible({ timeout: 20_000 });
+    const loiButtons = page.getByRole("button", { name: /proceder al loi|firmar loi/i });
+    const consultoria = page.locator("li").filter({ hasText: /consultoría servicios/i }).filter({ has: loiButtons }).first();
+    const anyLoi = page.locator("li").filter({ has: loiButtons }).first();
+    const scope = (await consultoria.count()) > 0 ? consultoria : anyLoi;
+    await expect(scope).toBeVisible({ timeout: 15_000 });
+    const proceed = scope.getByRole("button", { name: /proceder al loi/i });
+    if (await proceed.isVisible().catch(() => false)) {
+      await proceed.click();
+    }
+    await scope.getByRole("button", { name: /firmar loi/i }).click();
+    const dialog = page.getByRole("dialog").filter({ hasText: /carta de intenciones/i });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('input[name="nationalId"]')).toHaveCount(0);
+    await expect(dialog.getByText(/dni\/nie/i)).toHaveCount(0);
+  });
 });
