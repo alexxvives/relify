@@ -590,28 +590,32 @@
 .releva-gold-shine {
   display: inline;
   background-image: linear-gradient(
-    105deg,
-    #a47208 0%,
-    #b8860b 28%,
-    #e8c547 48%,
-    #c9a227 62%,
-    #a47208 100%
+    118deg,
+    #6b4200 0%,
+    #7a4e00 38%,
+    #c9a227 46%,
+    #fff6c8 50%,
+    #c9a227 54%,
+    #7a4e00 62%,
+    #6b4200 100%
   );
-  background-size: 240% 100%;
-  background-position: 0% 50%;
+  background-size: 240% 180%;
+  background-position: 130% -20%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: releva-gold-sweep 3.8s ease-in-out infinite;
+  animation: releva-gold-streak 4s ease-in-out infinite;
 }
 
-@keyframes releva-gold-sweep {
-  0% {
-    background-position: 0% 50%;
+@keyframes releva-gold-streak {
+  0%,
+  18% {
+    background-position: 130% -20%;
   }
+  42%,
   100% {
-    background-position: 100% 50%;
+    background-position: -30% 120%;
   }
 }
 
@@ -621,8 +625,8 @@
     background-image: none;
     -webkit-background-clip: unset;
     background-clip: unset;
-    color: #a47208;
-    -webkit-text-fill-color: #a47208;
+    color: #7a4e00;
+    -webkit-text-fill-color: #7a4e00;
   }
 }
 
@@ -773,6 +777,10 @@
   border-radius: 1.15rem;
   background: #fff;
   padding: 0.9rem 1rem;
+}
+
+.releva-how-mobile-card .releva-hv-card {
+  margin-top: 0.75rem;
 }
 
 .releva-ficha-reveal {
@@ -1125,10 +1133,32 @@
 }
 
 @media (max-width: 639px) {
+  .releva-process-steps {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: -0.25rem;
+    padding: 0.15rem 0.25rem 0.5rem;
+  }
+
+  .releva-process-steps::-webkit-scrollbar {
+    display: none;
+  }
+
   .releva-process-step {
+    flex: 0 0 82%;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
+    scroll-snap-align: start;
+    border: 1px solid #dde7ea;
+    border-radius: 1.15rem;
+    background: #fff;
+    padding: 1rem 1.05rem;
   }
 }
 
@@ -1706,8 +1736,8 @@ header:has([data-menu-open="true"]) {
   grid-template-columns: 26px minmax(0, 1fr);
   gap: 20px;
   align-content: center;
-  min-height: 42vh;
-  padding: 3vh 0;
+  min-height: 0;
+  padding: 1.15rem 0;
 }
 
 .releva-how-rail {
@@ -1717,7 +1747,41 @@ header:has([data-menu-open="true"]) {
   left: 13px;
   display: block;
   width: 1px;
+  overflow: hidden;
   background: rgb(18 52 58 / 0.14);
+}
+
+.releva-how-rail-light {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  width: 3px;
+  height: 0;
+  border-radius: 99px;
+  background: linear-gradient(180deg, rgb(15 110 115 / 0), var(--public-clay) 40%, #2fc4b2);
+  box-shadow: 0 0 12px rgb(47 196 178 / 0.45);
+  transition: height 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.releva-how-done .releva-how-rail-light {
+  height: 100%;
+}
+
+.releva-how-on .releva-how-rail-light {
+  height: 52%;
+}
+
+.releva-how-travel .releva-how-rail-light {
+  animation: releva-how-travel 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes releva-how-travel {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
 }
 
 .releva-how-step:first-child .releva-how-rail {
@@ -1785,12 +1849,123 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-how-inline {
-  display: none;
+  display: block;
 }
 
 .releva-how-visual {
   position: sticky;
   top: clamp(124px, calc(-215px + 50vh), 300px);
+}
+
+.releva-land-pipe-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin: 1.75rem 0 0;
+  padding: 0.5rem 0 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.releva-land-pipe-track::-webkit-scrollbar {
+  display: none;
+}
+
+.releva-land-pipe-step {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 3.5rem;
+}
+
+.releva-land-pipe-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  left: calc(50% + 0.7rem);
+  right: calc(-50% + 0.7rem);
+  height: 2px;
+  background: #d7e4e6;
+}
+
+.releva-land-pipe-done:not(:last-child)::after,
+.releva-land-pipe-current:not(:last-child)::after {
+  background: var(--public-clay);
+}
+
+.releva-land-pipe-hit {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.releva-land-pipe-dot {
+  display: block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  border: 2px solid #c5d4d6;
+  background: #fff;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s, border-color 0.35s, box-shadow 0.35s;
+}
+
+.releva-land-pipe-done .releva-land-pipe-dot {
+  border-color: var(--public-clay);
+  background: var(--public-clay);
+}
+
+.releva-land-pipe-current .releva-land-pipe-dot {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-color: var(--public-clay);
+  background: #2fc4b2;
+  box-shadow: 0 0 0 6px rgb(47 196 178 / 0.18);
+  transform: scale(1.15);
+}
+
+.releva-land-pipe-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--public-muted);
+  text-align: center;
+}
+
+.releva-land-pipe-current .releva-land-pipe-label {
+  color: var(--public-ink);
+  transform: scale(1.06);
+}
+
+.releva-land-pipe-detail {
+  margin: 1.15rem auto 0;
+  max-width: 36rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid #dde7ea;
+  border-radius: 1rem;
+  background: #fff;
+  color: var(--public-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  text-align: center;
+  animation: releva-land-pipe-zoom 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes releva-land-pipe-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .releva-hv-stage {
@@ -1911,11 +2086,84 @@ header:has([data-menu-open="true"]) {
   text-transform: uppercase;
 }
 
+.releva-hv-example {
+  margin: 2px 0 8px;
+  padding: 10px 12px;
+  border: 1px solid rgb(18 52 58 / 0.08);
+  border-radius: 14px;
+  background: #f7fbfb;
+}
+
+.releva-hv-example-kicker {
+  display: inline-flex;
+  margin-bottom: 4px;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #7a4e00;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.releva-hv-example-name {
+  display: block;
+  color: var(--public-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.releva-hv-example-meta {
+  display: block;
+  margin-top: 2px;
+  color: var(--public-muted);
+  font-size: 12px;
+}
+
+.releva-hv-stamp {
+  display: none;
+  margin: 4px auto 2px;
+  width: 6.4rem;
+  height: 6.4rem;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #17663a;
+  border-radius: 50%;
+  color: #17663a;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-12deg) scale(0.6);
+  opacity: 0;
+}
+
+.releva-hv-stamp-on {
+  display: flex;
+  animation: releva-hv-stamp-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes releva-hv-stamp-in {
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-12deg) scale(1);
+  }
+}
+
 .releva-hv-bars {
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: 44px;
+  height: 88px;
 }
 
 .releva-hv-bar {
@@ -2524,6 +2772,19 @@ header:has([data-menu-open="true"]) {
     text-shadow: 0 1px 18px rgb(8 16 24 / 0.45);
   }
 
+  .releva-hero-glass .releva-gold-shine {
+    background-image: linear-gradient(
+      118deg,
+      #c9a227 0%,
+      #d4ae32 38%,
+      #fff6c8 48%,
+      #ffffff 50%,
+      #fff6c8 52%,
+      #d4ae32 62%,
+      #c9a227 100%
+    );
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .releva-hero-glass .releva-gold-shine {
       color: #e8c547;
@@ -2585,6 +2846,10 @@ header:has([data-menu-open="true"]) {
 }
 
 @media (min-width: 1024px) {
+  .releva-how-inline {
+    display: none;
+  }
+
   .releva-path-cursor {
     position: absolute;
     z-index: 5;
@@ -2607,7 +2872,7 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-how-inline {
-    display: none;
+    display: block;
   }
 
   .releva-how-step {
@@ -2696,6 +2961,9 @@ header:has([data-menu-open="true"]) {
   .releva-city-spot .releva-city-pin::after,
   .releva-swap-word,
   .releva-gold-shine,
+  .releva-land-pipe-detail,
+  .releva-hv-stamp-on,
+  .releva-how-travel .releva-how-rail-light,
   .releva-path-wait,
   .releva-path-wait .releva-path-mark {
     animation: none;
@@ -2707,6 +2975,16 @@ header:has([data-menu-open="true"]) {
 
   .releva-hv-progress-fill {
     transition: none;
+  }
+
+  .releva-hv-stamp-on {
+    display: flex;
+    opacity: 1;
+    transform: rotate(-12deg) scale(1);
+  }
+
+  .releva-land-pipe-current .releva-land-pipe-dot {
+    transform: none;
   }
 
   .releva-ficha-legal {
@@ -2983,7 +3261,7 @@ header:has([data-menu-open="true"]) {
   padding-bottom: calc(var(--layout-pad) + var(--shell-tabbar) + var(--shell-sticky));
   scroll-padding-bottom: calc(var(--shell-tabbar) + var(--shell-sticky));
   overflow-wrap: break-word;
-  overflow-x: clip;
+  /* Horizontal clip lives on html so position:sticky section nav can stick to the viewport. */
 }
 
 .shell-content > * {

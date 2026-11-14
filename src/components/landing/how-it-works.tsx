@@ -111,90 +111,57 @@ function useCount(target: number, startAt: number, play: boolean) {
   return value;
 }
 
-export function HowItWorks({ role }: { role: FlowRole }) {
+export function HowItWorks({ role, travel = 0 }: { role: FlowRole; travel?: number }) {
   const copy = landingCopy.home.flow;
-  const roleName = landingCopy.home.paths.columns.find((column) => column.id === role)?.role;
   const track = copy.tracks[role];
-  const stepsRef = useRef<Array<HTMLLIElement | null>>([]);
   const [active, setActive] = useState(0);
   const current = track.steps[active] ?? track.steps[0];
 
   useEffect(() => {
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const mid = window.innerHeight / 2;
-      let best = 0;
-      let distance = Number.POSITIVE_INFINITY;
-      stepsRef.current.forEach((node, index) => {
-        if (!node) {
-          return;
-        }
-        const rect = node.getBoundingClientRect();
-        const delta = Math.abs(rect.top + rect.height / 2 - mid);
-        if (delta < distance) {
-          distance = delta;
-          best = index;
-        }
-      });
-      setActive((previous) => (previous === best ? previous : best));
-    };
-    const onScroll = () => {
-      if (frame !== 0) {
-        return;
-      }
-      frame = window.requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    if (typeof window === "undefined" || prefersStill()) {
+      return;
+    }
+    const dwell = 5600;
+    const timers = track.steps.slice(1).map((_, index) =>
+      window.setTimeout(() => {
+        setActive(index + 1);
+      }, dwell * (index + 1)),
+    );
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame !== 0) {
-        window.cancelAnimationFrame(frame);
+      for (const timer of timers) {
+        window.clearTimeout(timer);
       }
     };
-  }, [role]);
+  }, [track.steps]);
 
   if (!current) {
     return null;
   }
 
-  const heading = roleName ? `${roleName}. ${copy.heading}` : copy.heading;
-
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-24">
-      <div className="mx-auto w-full max-w-[1100px]">
-        <div className="mx-auto mb-5 text-center sm:mb-14">
-          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} key={role} className="releva-hero-rise releva-section-title mt-2 text-pretty sm:mt-3">
-            {heading}
-          </h2>
-          <p className="mt-3 text-[16px] leading-7 text-pretty text-public-muted sm:mt-4">{copy.intro}</p>
-        </div>
+    <div id={copy.id} className="mt-8 sm:mt-12">
+      <p className="text-center text-[16px] leading-7 text-pretty text-public-muted">{copy.intro}</p>
+      <ol className="releva-how-mobile mt-5 lg:hidden">
+        {track.steps.map((step) => (
+          <li key={step.n} className="releva-how-mobile-card">
+            <span className="text-[11px] font-semibold tracking-[0.16em] text-public-clay uppercase">Paso {step.n}</span>
+            <h3 className="mt-1 text-base font-medium tracking-tight text-public-ink">{step.title}</h3>
+            <p className="mt-1 text-sm leading-5 text-public-muted">{step.body}</p>
+            <InlinePanel step={step} />
+          </li>
+        ))}
+      </ol>
 
-        <ol className="releva-how-mobile lg:hidden">
-          {track.steps.map((step) => (
-            <li key={step.n} className="releva-how-mobile-card text-center">
-              <span className="text-[11px] font-semibold tracking-[0.16em] text-public-clay uppercase">Paso {step.n}</span>
-              <h3 className="mt-1 text-base font-medium tracking-tight text-public-ink">{step.title}</h3>
-              <p className="mt-1 line-clamp-2 text-sm leading-5 text-public-muted">{step.body}</p>
-            </li>
-          ))}
-        </ol>
-
-        <div className="releva-how-grid hidden lg:grid">
-          <ol className="releva-how-steps">
-            {track.steps.map((step, index) => (
-              <li
-                key={step.n}
-                ref={(node) => {
-                  stepsRef.current[index] = node;
-                }}
-                className={`releva-how-step${index === active ? " releva-how-on" : ""}`}
-              >
+      <div className="releva-how-grid mt-8 hidden lg:grid">
+        <ol className={`releva-how-steps${travel > 0 ? " releva-how-travel" : ""}`}>
+          {track.steps.map((step, index) => (
+            <li
+              key={step.n}
+              className={`releva-how-step${index === active ? " releva-how-on" : ""}${index < active ? " releva-how-done" : ""}`}
+            >
+              <button type="button" className="contents" onClick={() => setActive(index)}>
                 <span className="releva-how-rail" aria-hidden="true">
+                  <span className="releva-how-rail-light" />
                   <span className="releva-how-dot" />
                 </span>
                 <div className="releva-how-copy">
@@ -202,16 +169,15 @@ export function HowItWorks({ role }: { role: FlowRole }) {
                   <h3 className="releva-how-title">{step.title}</h3>
                   <p className="releva-how-body">{step.body}</p>
                 </div>
-                <InlinePanel step={step} />
-              </li>
-            ))}
-          </ol>
-          <div className="releva-how-visual" aria-hidden="true">
-            <FadingPanel step={current} token={`${role}-${current.n}`} />
-          </div>
+              </button>
+            </li>
+          ))}
+        </ol>
+        <div className="releva-how-visual" aria-hidden="true">
+          <FadingPanel step={current} token={`${role}-${current.n}-${travel}`} />
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -337,67 +303,32 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
     fills.map((_, index) => 700 + index * 380),
     play && typed.done,
   );
-  const chartsOn = useDelays([700 + fills.length * 380 + 180], play && typed.done)[0] === true;
+  const chartsOn = useDelays([280], play && typed.done)[0] === true;
   const filled = fillFlags.filter(Boolean).length;
   const done = picks.filter(Boolean).length + (typed.done ? 1 : 0) + filled + (chartsOn ? 1 : 0);
   const width = Math.min(100, 8 + 18 * done);
 
+  const typeField = panel.fields.find((field) => field.kind === "type");
+  const choiceFields = panel.fields.filter((field) => field.kind === "choice");
+
   return (
     <div className="releva-hv-body">
-      {panel.fields.map((field, index) => {
-        if (field.kind === "type") {
-          return (
-            <div key={field.label} className="releva-hv-row releva-hv-field" style={{ animationDelay: `${0.06 + index * 0.07}s` }}>
-              <span className="releva-hv-label">{field.label}</span>
-              <span className="releva-hv-input">
-                {typed.shown}
-                <span className={typed.done ? "releva-hv-caret" : "releva-hv-caret releva-hv-caret-blink"} />
-              </span>
-            </div>
-          );
-        }
-        const choiceOrdinal = panel.fields.slice(0, index).filter((item) => item.kind === "choice").length;
-        const picked = picks[choiceOrdinal] === true;
-        return (
-          <div key={field.label} className="releva-hv-row releva-hv-field" style={{ animationDelay: `${0.06 + index * 0.07}s` }}>
-            <span className="releva-hv-label">{field.label}</span>
-            <span className="releva-hv-opts">
-              {field.options.map((option, optionIndex) => {
-                const on = picked && optionIndex === 0;
-                return (
-                  <span key={option} className={on ? "releva-hv-opt releva-hv-opt-on" : "releva-hv-opt"}>
-                    {on ? (
-                      <span className="releva-hv-tick">
-                        <Tick />
-                      </span>
-                    ) : null}
-                    {option}
-                  </span>
-                );
-              })}
-            </span>
-          </div>
-        );
-      })}
-      {fills.map((row, index) => {
-        const ready = fillFlags[index] === true;
-        return (
-          <div key={row.label} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.18 + index * 0.07}s` }}>
-            <span className="releva-hv-task-name">{row.label}</span>
-            {ready ? (
-              <span className="releva-hv-state">
-                <Tick />
-                {row.value}
-              </span>
-            ) : (
-              <span className="releva-hv-state releva-hv-state-pending">
-                <span className="releva-hv-spinner" aria-hidden="true" />
-                Leyendo
-              </span>
-            )}
-          </div>
-        );
-      })}
+      {typeField ? (
+        <div className="releva-hv-row releva-hv-field" style={{ animationDelay: "0.06s" }}>
+          <span className="releva-hv-label">{typeField.label}</span>
+          <span className="releva-hv-input">
+            {typed.shown}
+            <span className={typed.done ? "releva-hv-caret" : "releva-hv-caret releva-hv-caret-blink"} />
+          </span>
+        </div>
+      ) : null}
+      {charts.length > 0 && typed.done ? (
+        <div className="releva-hv-example releva-hv-row" style={{ animationDelay: "0.12s" }}>
+          <span className="releva-hv-example-kicker">Datos de ejemplo</span>
+          <span className="releva-hv-example-name">Proyecto Alba</span>
+          <span className="releva-hv-example-meta">Industria · estructuras metálicas · Valencia</span>
+        </div>
+      ) : null}
       {charts.length > 0 ? (
         <div className={chartsOn ? "releva-hv-charts releva-hv-charts-on" : "releva-hv-charts"}>
           {charts.map((chart) => {
@@ -422,6 +353,48 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
           })}
         </div>
       ) : null}
+      {fills.map((row, index) => {
+        const ready = fillFlags[index] === true;
+        return (
+          <div key={row.label} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.18 + index * 0.07}s` }}>
+            <span className="releva-hv-task-name">{row.label}</span>
+            {ready ? (
+              <span className="releva-hv-state">
+                <Tick />
+                {row.value}
+              </span>
+            ) : (
+              <span className="releva-hv-state releva-hv-state-pending">
+                <span className="releva-hv-spinner" aria-hidden="true" />
+                Leyendo
+              </span>
+            )}
+          </div>
+        );
+      })}
+      {choiceFields.map((field, index) => {
+        const picked = picks[index] === true;
+        return (
+          <div key={field.label} className="releva-hv-row releva-hv-field" style={{ animationDelay: `${0.06 + index * 0.07}s` }}>
+            <span className="releva-hv-label">{field.label}</span>
+            <span className="releva-hv-opts">
+              {field.options.map((option, optionIndex) => {
+                const on = picked && optionIndex === 0;
+                return (
+                  <span key={option} className={on ? "releva-hv-opt releva-hv-opt-on" : "releva-hv-opt"}>
+                    {on ? (
+                      <span className="releva-hv-tick">
+                        <Tick />
+                      </span>
+                    ) : null}
+                    {option}
+                  </span>
+                );
+              })}
+            </span>
+          </div>
+        );
+      })}
       <div className="releva-hv-row releva-hv-foot" style={{ animationDelay: `${0.06 + panel.fields.length * 0.07}s` }}>
         <span className="releva-hv-progress" aria-hidden="true">
           <span className="releva-hv-progress-fill" style={{ width: `${width}%` }} />
@@ -437,7 +410,10 @@ function TaskBody({ panel, play }: { panel: TaskPanel; play: boolean }) {
     panel.rows.map((_, index) => 650 + 430 * index),
     play,
   );
-  const foot = useDelays([650 + 430 * panel.rows.length], play)[0] === true;
+  const stampAt = 650 + 430 * panel.rows.length + 280;
+  const foot = useDelays([stampAt + 200], play)[0] === true;
+  const stamped = useDelays([stampAt], play)[0] === true;
+  const stamp = "stamp" in panel ? panel.stamp : undefined;
 
   return (
     <div className="releva-hv-body">
@@ -460,6 +436,7 @@ function TaskBody({ panel, play }: { panel: TaskPanel; play: boolean }) {
           </div>
         );
       })}
+      {stamp ? <span className={stamped ? "releva-hv-stamp releva-hv-stamp-on" : "releva-hv-stamp"}>{stamp}</span> : null}
       <div className={foot ? "releva-hv-foot releva-hv-foot-in" : "releva-hv-foot"}>
         <span className="releva-hv-strong">{panel.strong}</span>
         <span className="releva-hv-note">{panel.note}</span>

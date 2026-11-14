@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-14: `.shell-content { overflow-x: clip }` made `position:sticky` section nav jump via ViewportPortal — clip horizontal overflow on `html` instead, keep sticky on the bar itself.
 - 2026-11-14: S17 help box inverted title/body and kept the email row — keep title ¿Necesitas ayuda?, body exactly Llámanos o escríbenos., phone number only (no Llamar, no email).
 - 2026-11-14: landing honesty test failed the new hero title — it banned the exact phrase `empresas rentables`, which S17 uses as positioning, not a live-market claim — do not keep that exact string in the ban list.
 - 2026-11-14: Playwright admin last-control at 390 failed on `/admin/empresas/int-consultoria-servicios` — closed `<details>` still expose `position:absolute` chart bars (`tabindex=0`) in the viewport — skip `details:not([open])` in the chrome helper.

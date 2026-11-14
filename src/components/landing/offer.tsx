@@ -50,14 +50,10 @@ export function Offer() {
           ))}
         </ul>
 
-        <div className="mt-6 rounded-2xl border border-[#cfe6e3] bg-white px-4 py-5 text-center sm:hidden">
-          <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[#f3f7f8] text-[#0f766e] ring-1 ring-[#cfe6e3]">
-            <LockKeyhole className="size-5" aria-hidden />
-          </span>
-          <h3 className="mt-3 text-lg font-medium tracking-tight">{copy.lockedTitle}</h3>
+        <div className="mt-6 sm:hidden">
           <Link
             href={copy.waitlistHref}
-            className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0f766e] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(15,118,110,0.8)] transition-colors hover:bg-[#1c2740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e]"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0f766e] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(15,118,110,0.8)] transition-colors hover:bg-[#1c2740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e]"
           >
             {copy.lockedCta}
             <ArrowRight className="size-4" aria-hidden="true" />

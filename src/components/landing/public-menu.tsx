@@ -7,34 +7,7 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { Logo } from "@/components/shell/logo";
 
 export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; showInt?: boolean }) {
-  const [onDark, setOnDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const menu = document.querySelector("[data-releva-menu]");
-    if (!(menu instanceof HTMLElement)) {
-      return;
-    }
-
-    const read = () => {
-      if (mobileOpen) {
-        setOnDark(false);
-        return;
-      }
-      const rect = menu.getBoundingClientRect();
-      const hits = document.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      const behind = hits.find((node) => !node.closest("header"));
-      setOnDark(Boolean(behind?.closest(".releva-hero-glass, .bg-public-ink")));
-    };
-
-    read();
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
-    return () => {
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
-    };
-  }, [mobileOpen]);
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -60,7 +33,6 @@ export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; s
         <Logo />
       </Link>
       <LandingNav
-        onDark={mobileOpen ? false : onDark}
         menuOpen={mobileOpen}
         onMenuOpenChange={setMobileOpen}
         signedIn={signedIn}

@@ -9,14 +9,18 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/lib/server/seller-ficha-extras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/shell/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, CircleCheck, Clock, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Tags, TrendingDown, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, CircleCheck, Clock, Download, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Tags, TrendingDown, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/shell/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
-import { CompanyBanner } from "@/components/seller/company-banner";
+import { CompanyFichaView, FichaLockedNote } from "@/components/company/company-ficha-view";
+import { FavoriteButton } from "@/components/investor/favorite-button";
+import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { bannerChips } from "@/lib/sector-theme";
 import { CompanyReport } from "@/components/seller/company-report";
+import { landingDealSteps } from "@/lib/deal-pipeline";
+import { companyPdfCopy } from "@/lib/company-pdf-copy";
 import type { SabiYear } from "@/lib/sabi/insights";
 import { OptionSelect } from "@/components/ui/option-select";
 import { FloatingSegmentedTabs } from "@/components/seller/seller-tabs";
@@ -441,7 +445,7 @@ function PriceStandingTag({ estimate, askingCents }: { estimate: PriceEstimate; 
   return (
     <span
       data-price-standing={priceStanding(askingCents, estimate)}
-      className={`inline-flex max-w-full shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${standing.className}`}
+      className={`inline-flex max-w-full shrink-0 items-center self-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] leading-none font-medium ${standing.className}`}
     >
       <Icon className="size-3" aria-hidden />
       {standing.text}
@@ -659,25 +663,27 @@ function AskingPriceField({
             </button>
           ) : null
         }
-        corner={estimate && !disabledReason ? <PriceStandingTag estimate={estimate} askingCents={euroCentsOrNull(value)} /> : null}
       >
         <input type="hidden" name={name} value={value} />
         <input type="hidden" name="askingPriceIncludes" value={askingPriceIncludes} />
-        <button
-          type="button"
-          onClick={editable ? openSheet : undefined}
-          className={`min-w-0 text-left ${editable ? "cursor-pointer" : "cursor-default"}`}
-        >
-          {disabledReason ? (
-            <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
-          ) : unset ? (
-            <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
-          ) : (
-            <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
-              {shown.length > 0 ? `${shown}\u00a0€` : "—"}
-            </span>
-          )}
-        </button>
+        <div className="mt-2 flex min-w-0 items-center gap-x-2">
+          <button
+            type="button"
+            onClick={editable ? openSheet : undefined}
+            className={`min-w-0 self-center text-left leading-none ${editable ? "cursor-pointer" : "cursor-default"}`}
+          >
+            {disabledReason ? (
+              <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{disabledReason}</span>
+            ) : unset ? (
+              <span className="text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]">{unsetText}</span>
+            ) : (
+              <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">
+                {shown.length > 0 ? `${shown}\u00a0€` : "—"}
+              </span>
+            )}
+          </button>
+          {estimate && !disabledReason ? <PriceStandingTag estimate={estimate} askingCents={euroCentsOrNull(value)} /> : null}
+        </div>
       </MetricTile>
       {open ? (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-[#0b1220]/55 pb-[var(--shell-tabbar,0px)] sm:items-center sm:p-4 sm:pb-4" onClick={() => setOpen(false)}>
@@ -3279,34 +3285,67 @@ export function CompanyDraftForm({
             </div>
             <InfoHint text={companyCopy.previewLockNote} icon="info" align="end" width="lg" />
           </div>
-          <CompanyBanner
+          <CompanyFichaView
             heading="p"
             title={investorPreview.codename.trim().length > 0 ? investorPreview.codename : companyCopy.codenameLabel}
             sector={principalCnae ? sectorKeyFromCnae(principalCnae) : null}
             chips={bannerChips({ sector: principalCnae ? sectorKeyFromCnae(principalCnae) : null, region: investorPreview.region, foundedYear })}
-          />
-          <div id="ficha-section-nav-slot" />
-          <CompanyReport navBelowTabs showSectionNav={tab === "deal"} project={previewProject} sellerPreview={{
-            mixAction: (
-              <KitButton
-                type="button"
-                tone="outline"
-                size="sm"
-                onClick={() => {
-                  setTab("company");
-                  setOpenStructure(true);
-                  requestAnimationFrame(() => document.getElementById("panel-structure")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-                }}
+            bannerAction={
+              <a
+                href="/mi-empresa/pdf/teaser?download=1"
+                title={companyCopy.previewOwnerTeaser}
+                className="inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-[#1c2740] hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none sm:px-4"
               >
-                {companyCopy.fillMixAction}
-              </KitButton>
-            ),
-          }} role="buyer" figuresOpen={previewOpen} lockedNote={companyCopy.figuresLocked} lockAction={
-            // t91: the real pre-NDA buyer view, CTA included; in the preview it is only a picture of the button.
-            <span className="inline-flex h-11 cursor-default items-center justify-center rounded-xl bg-[#1c2740] px-5 text-sm font-medium text-white" title="Vista previa: así ve el botón el comprador">
-              {accessCopy.connect}
-            </span>
-          } />
+                <Download className="size-4" aria-hidden />
+                <span className="sm:hidden">{companyPdfCopy.teaserDownloadShort}</span>
+                <span className="hidden sm:inline">{companyPdfCopy.teaserDownload}</span>
+              </a>
+            }
+            progress={<DealPipeline steps={landingDealSteps(0)} role="investor" onDark hideAsideCue hideWaitingCue hideQaNote />}
+            favorite={
+              <FavoriteButton
+                slug={investorPreview.slug}
+                favorited={false}
+                disabled
+                title={companyCopy.previewOwnerFavorite}
+              />
+            }
+            tabs={{
+              company: (
+                <CompanyReport
+                  navBelowTabs
+                  showSectionNav={tab === "deal"}
+                  project={previewProject}
+                  sellerPreview={{
+                    mixAction: (
+                      <KitButton
+                        type="button"
+                        tone="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTab("company");
+                          setOpenStructure(true);
+                          requestAnimationFrame(() => document.getElementById("panel-structure")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                        }}
+                      >
+                        {companyCopy.fillMixAction}
+                      </KitButton>
+                    ),
+                  }}
+                  role="buyer"
+                  figuresOpen={previewOpen}
+                  lockedNote={companyCopy.figuresLocked}
+                  lockAction={
+                    <span className="inline-flex h-11 cursor-default items-center justify-center rounded-xl bg-[#1c2740] px-5 text-sm font-medium text-white" title="Vista previa: así ve el botón el comprador">
+                      {accessCopy.connect}
+                    </span>
+                  }
+                />
+              ),
+              questions: <FichaLockedNote text={companyCopy.previewChat} />,
+              meetings: <FichaLockedNote text={companyCopy.previewMeetings} />,
+            }}
+          />
         </div>
       </Panel>
       </div>

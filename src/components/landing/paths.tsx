@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Briefcase, MousePointer2, Search, Store } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
@@ -58,7 +58,15 @@ function PathPointer() {
   );
 }
 
-export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: FlowRole) => void }) {
+export function Paths({
+  role,
+  onSelect,
+  children = null,
+}: {
+  role: FlowRole;
+  onSelect: (role: FlowRole) => void;
+  children?: ReactNode;
+}) {
   const copy = landingCopy.home.paths;
   const [hint, setHint] = useState(true);
 
@@ -140,6 +148,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
           })}
           </div>
         </div>
+        {children}
       </div>
     </section>
   );

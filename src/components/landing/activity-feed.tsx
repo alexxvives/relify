@@ -100,19 +100,8 @@ export function ActivityFeed() {
                 const KindIcon = kindIcon[item.kind];
                 const SectorIcon = sectorIcon[item.sector];
                 return (
-                  <article key={`${item.project}-${index}`} className="rounded-2xl bg-white p-4 text-public-ink shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <MarginDonut pct={item.marginPct} />
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 text-xs text-public-muted">
-                          <KindIcon className="size-3.5 shrink-0 text-public-clay" aria-hidden />
-                          {kindLabel[item.kind]} · {item.project}
-                        </p>
-                        <h3 className="mt-1 font-medium">{item.title}</h3>
-                        <p className="text-sm text-public-muted">{item.body}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium">
+                  <article key={`${item.project}-${index}`} className="relative rounded-2xl bg-white p-4 text-public-ink shadow-sm">
+                    <div className="mb-3 flex flex-wrap justify-end gap-1.5 text-[11px] font-medium">
                       <span className="inline-flex items-center gap-1 rounded-[var(--field-radius)] bg-public-sand px-2 py-1">
                         <SectorIcon className="size-3" aria-hidden />
                         {showcaseSectorLabels[item.sector]}
@@ -123,6 +112,17 @@ export function ActivityFeed() {
                       <span className="rounded-[var(--field-radius)] bg-[#eef6f4] px-2 py-1 tabular-nums text-[#0f6b62]">
                         EBITDA {item.ebitda}
                       </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <MarginDonut pct={item.marginPct} />
+                      <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-2 text-xs text-public-muted">
+                          <KindIcon className="size-3.5 shrink-0 text-public-clay" aria-hidden />
+                          {kindLabel[item.kind]} · {item.project}
+                        </p>
+                        <h3 className="mt-1 font-medium">{item.title}</h3>
+                        <p className="text-sm text-public-muted">{item.body}</p>
+                      </div>
                     </div>
                   </article>
                 );

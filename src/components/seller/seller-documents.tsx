@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, Lock, Share2 } from "lucide-react";
+import { ChevronLeft, Download, Link2, Lock, Share2 } from "lucide-react";
 import { InfoHint } from "@/components/ui/info-hint";
 import { Trash2Icon } from "@/components/ui/trash-2";
 import { FileTextIcon } from "@/components/ui/file-text";
@@ -32,6 +32,8 @@ export type DocumentAdvisor = {
 type ShareScope = { kind: "file"; fileId: string } | { kind: "folder"; folder: string } | { kind: "room" };
 import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
 import { Button, Input } from "@/components/ui/form";
+import { relevaDraftFolder } from "@/lib/releva-drafts";
+import { companyPdfCopy, type SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 function ActionNote({ state, saved }: { state: DataRoomActionState; saved: string }) {
   if (!state) {
@@ -407,6 +409,8 @@ function FolderCard({
   viewers = 0,
   onOpen,
   share,
+  featured = false,
+  locked = false,
 }: {
   name: string;
   count: number;
@@ -414,6 +418,8 @@ function FolderCard({
   viewers?: number;
   onOpen: () => void;
   share: ReactNode;
+  featured?: boolean;
+  locked?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(name);
@@ -468,9 +474,13 @@ function FolderCard({
           <button
             type="button"
             onClick={onOpen}
-            className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
+            className={
+              featured
+                ? "flex h-44 w-full flex-col items-center justify-center rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
+                : "flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 text-center"
+            }
           >
-            <FolderOpenIcon size={64} className={count > 0 ? "text-[#8f9bd6]" : "text-[#d5dbe3]"} aria-hidden />
+            <FolderOpenIcon size={64} className={featured ? "text-[#465ab4]" : count > 0 ? "text-[#8f9bd6]" : "text-[#d5dbe3]"} aria-hidden />
             <span className="mt-3 text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 text-xs text-[#667085]">
               {documentCountLabel(count)}
@@ -482,6 +492,8 @@ function FolderCard({
               </span>
             ) : null}
           </button>
+          {locked ? null : (
+            <>
           <div className="absolute top-3 left-3 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">{share}</div>
           <div className="absolute top-3 right-3 flex items-center transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">
             <button
@@ -496,6 +508,8 @@ function FolderCard({
             </button>
             <FolderDelete name={name} />
           </div>
+            </>
+          )}
         </>
       )}
     </li>
@@ -569,6 +583,9 @@ function FileCard({
             <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
           </button>
           {file.platform ? null : <div className="absolute top-2 left-2 z-10">{share}</div>}
+          <div className="absolute bottom-2 right-2 z-10">
+            <CopyFileLink href={fileHref(file)} />
+          </div>
           {file.viewers.length > 0 ? (
             <span className="absolute bottom-2 left-2 z-10 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
               {file.viewers.map((viewer) => (
@@ -582,6 +599,7 @@ function FileCard({
               ))}
             </span>
           ) : null}
+          {file.platform ? null : (
           <div className="absolute top-2 right-2 z-10 flex items-center">
             <button
               type="button"
@@ -595,9 +613,67 @@ function FileCard({
             </button>
             <FileDelete id={file.id} />
           </div>
+          )}
         </>
       )}
     </li>
+  );
+}
+
+function TeaserFileCard({
+  desk,
+  onOpen,
+}: {
+  desk: SellerTeaserDesk;
+  onOpen: () => void;
+}) {
+  const fileName = `${companyPdfCopy.teaserFile}.pdf`;
+  return (
+    <li className="relative" data-teaser-card>
+      <button
+        type="button"
+        data-teaser-preview
+        onClick={onOpen}
+        aria-label={fileName}
+        className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
+      >
+        <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
+        <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{fileName}</span>
+      </button>
+      <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1" data-teaser-actions>
+        <a
+          href="/mi-empresa/pdf/teaser?download=1"
+          aria-label={companyPdfCopy.teaserDownload}
+          className="inline-flex size-8 items-center justify-center rounded-full border border-[#e7eaee] bg-white text-[#465ab4] hover:bg-[#eef1fb]"
+        >
+          <Download className="size-3.5" aria-hidden />
+        </a>
+        <CopyFileLink href="/mi-empresa/pdf/teaser?preview=1" shareUrl={desk.shareUrl} />
+      </div>
+    </li>
+  );
+}
+
+function CopyFileLink({ href, shareUrl }: { href: string | null; shareUrl?: string }) {
+  const [copied, setCopied] = useState(false);
+  const ready = Boolean(shareUrl || href);
+
+  return (
+    <button
+      type="button"
+      aria-label={copied ? companyPdfCopy.copiedShare : companyPdfCopy.copyShare}
+      disabled={!ready}
+      onClick={() => {
+        const target = shareUrl ?? (href ? (href.startsWith("http") ? href : `${window.location.origin}${href}`) : "");
+        if (target.length === 0) {
+          return;
+        }
+        void navigator.clipboard.writeText(target).then(() => setCopied(true)).catch(() => undefined);
+      }}
+      className="inline-flex size-8 items-center justify-center rounded-full border border-[#e7eaee] bg-white text-[#465ab4] hover:bg-[#eef1fb] disabled:opacity-50"
+    >
+      <Link2 className="size-3.5" aria-hidden />
+    </button>
   );
 }
 
@@ -612,15 +688,18 @@ export function SellerDocuments({
   folders: string[];
   shares: DataRoomShareView[];
   advisors: DocumentAdvisor[];
-  teaser?: ReactNode;
+  teaser?: SellerTeaserDesk | null;
 }) {
   const [folder, setFolder] = useState<string | null>(null);
   const [namingFolder, setNamingFolder] = useState(false);
   const [openFile, setOpenFile] = useState<OwnerFileView | null>(null);
+  const [openTeaser, setOpenTeaser] = useState(false);
   const [createState, createAction, createPending] = useActionState(createDataRoomFolderAction, null);
   const [createClosed, setCreateClosed] = useState<DataRoomActionState>(null);
   const listed = filesWithBytes(files);
   const inFolder = listed.filter((file) => file.folder === folder);
+  const relifyCount = listed.filter((file) => file.folder === relevaDraftFolder).length + (teaser ? 1 : 0);
+  const otherFolders = folders.filter((name) => name !== relevaDraftFolder);
 
   if (createState?.ok && createState !== createClosed) {
     setCreateClosed(createState);
@@ -645,6 +724,16 @@ export function SellerDocuments({
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <FolderCard
+            name={relevaDraftFolder}
+            count={relifyCount}
+            featured
+            locked
+            onOpen={() => {
+              setFolder(relevaDraftFolder);
+            }}
+            share={null}
+          />
           <li>
             {namingFolder ? (
               <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
@@ -692,7 +781,7 @@ export function SellerDocuments({
               </button>
             )}
           </li>
-          {folders.map((name) => (
+          {otherFolders.map((name) => (
             <FolderCard
               key={name}
               name={name}
@@ -730,17 +819,29 @@ export function SellerDocuments({
               <ChevronLeft className="size-4" aria-hidden />
               {folder}
             </button>
-            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length)}</p>
+            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length + (folder === relevaDraftFolder && teaser ? 1 : 0))}</p>
           </div>
           <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {folder === relevaDraftFolder ? null : (
             <li>
               <DocumentDrop folder={folder} />
             </li>
+            )}
+            {folder === relevaDraftFolder && teaser ? (
+              <TeaserFileCard
+                desk={teaser}
+                onOpen={() => {
+                  setOpenFile(null);
+                  setOpenTeaser(true);
+                }}
+              />
+            ) : null}
               {inFolder.map((file) => (
                 <FileCard
                   key={file.id}
                   file={file}
                   onOpen={() => {
+                    setOpenTeaser(false);
                     setOpenFile(file);
                   }}
                   share={
@@ -761,16 +862,22 @@ export function SellerDocuments({
       )}
       <FilePreviewDialog
         file={
-          openFile
-            ? { fileName: openFile.fileName, folder: openFile.folder, href: fileHref(openFile) }
-            : null
+          openTeaser
+            ? {
+                fileName: `${companyPdfCopy.teaserFile}.pdf`,
+                folder: relevaDraftFolder,
+                href: "/mi-empresa/pdf/teaser?preview=1",
+              }
+            : openFile
+              ? { fileName: openFile.fileName, folder: openFile.folder, href: fileHref(openFile) }
+              : null
         }
         onClose={() => {
+          setOpenTeaser(false);
           setOpenFile(null);
         }}
       />
     </div>
-      {folder === null && teaser ? <div className="flex justify-center">{teaser}</div> : null}
     </div>
   );
 }

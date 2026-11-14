@@ -14,4 +14,11 @@ describe("releva drafts", () => {
     expect(Buffer.from(pdf?.bytes ?? []).toString("latin1")).toContain("Helvetica-Bold");
     expect(Buffer.from(pdf?.bytes ?? []).toString("latin1")).toContain("Acuerdo de confidencialidad");
   });
+
+  it("builds the Relify services agreement draft", () => {
+    const pdf = relevaDraftPdf("releva-terms");
+    expect(pdf?.fileName).toBe("Acuerdo-de-uso-de-Relify.pdf");
+    expect(Buffer.from(pdf?.bytes ?? []).subarray(0, 5).toString()).toBe("%PDF-");
+    expect(Buffer.from(pdf?.bytes ?? []).toString("latin1")).toMatch(/Relify/);
+  });
 });

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-14 — Round S19 landing ficha, Relify folder, sticky nav
+
+Default `/` landing (and shared `/?v=2` sections): larger mobile hero title; **rentables** gold is darker (`#6b4200` / `#7a4e00`) with a diagonal light streak every 4s (reduced-motion static `#7a4e00`; overlay keeps a brighter streak). Exception to DESIGN “do not invent hex”. Paths and how-it-works are one section under **Tres formas de entrar**; clicking a path runs a traveling rail through that track’s steps. CIF / publish / NDA pipeline cards are example animations. Buyer `/proyectos/[slug]` and seller ficha preview share `CompanyFichaView`. Section nav is CSS `position: sticky` and always `max-w-4xl` centered. Mis documentos lists a highlighted Relify folder (teaser + NDA/LOI/terms drafts). Header ink stays dark over the hero. Data-room R2 and hero image compression stay pending Alex — write path and `unoptimized` images are the change points. No Prisma schema migration.
+
 ## 2026-11-14 — Round S18 banner, hero overlay, gold, React Bits landing v2
 
 Buyer `/proyectos/[slug]` puts **Descargar cuaderno de venta** at the top-left of the hero banner (`absolute top-5 left-5`). Landing **Prueba gratis** stays inside `.releva-hero-copy` (absolute overlay); mobile `.releva-city-static` is in-flow so the card height follows the image, not the CTA. **rentables** gold is `#a47208` / `#b8860b` with a `#e8c547` shine (WCAG AA for large text on white; overlay reduced-motion uses `#e8c547`). Exception to DESIGN “do not invent hex”.

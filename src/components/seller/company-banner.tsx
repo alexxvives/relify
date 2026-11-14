@@ -106,11 +106,19 @@ export function CompanyBanner({
           aria-hidden
         />
       ) : null}
-      {bannerAction ? (
-        <div className="absolute top-5 left-5 z-10 flex max-w-[min(100%-5.5rem,20rem)]">{bannerAction}</div>
+      {bannerAction || children ? (
+        <div className="relative z-10 mb-5 flex items-start justify-between gap-2 sm:mb-6">
+          <div className="flex min-w-0 max-w-[min(100%-3.5rem,20rem)]" data-banner-action>
+            {bannerAction}
+          </div>
+          {children ? (
+            <div className="flex shrink-0 items-center gap-2" data-banner-favorite>
+              {children}
+            </div>
+          ) : null}
+        </div>
       ) : null}
-      {children ? <div className="absolute top-5 right-5 z-10 flex items-center gap-2">{children}</div> : null}
-      <div className={`relative z-10 mx-auto max-w-3xl text-center ${bannerAction ? "pt-12 sm:pt-14" : ""}`}>
+      <div className="relative z-10 mx-auto max-w-3xl text-center">
         {themed && SectorIcon ? (
           <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/25" aria-hidden>
             <SectorIcon className="size-5 text-white" />

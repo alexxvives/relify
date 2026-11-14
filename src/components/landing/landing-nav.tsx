@@ -9,22 +9,15 @@ import { landingCopy } from "@/lib/landing-copy";
 const solidLink =
   "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-public-clay px-5 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgb(15_110_115_/_0.7)] transition hover:bg-public-clay-deep";
 
-function ghostLink(onDark: boolean) {
-  return `inline-flex h-11 min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition ${
-    onDark
-      ? "border-white/45 text-white hover:bg-white/10"
-      : "border-public-ink/18 text-public-ink hover:bg-public-sand"
-  }`;
-}
+const ghostLink =
+  "inline-flex h-11 min-h-11 items-center justify-center rounded-full border border-public-ink/18 px-4 text-sm font-medium text-public-ink transition hover:bg-public-sand";
 
 export function LandingNav({
-  onDark = false,
   menuOpen,
   onMenuOpenChange,
   signedIn,
   accountHref,
 }: {
-  onDark?: boolean;
   menuOpen: boolean;
   onMenuOpenChange: (open: boolean) => void;
   signedIn: boolean;
@@ -44,14 +37,14 @@ export function LandingNav({
             {group.links.length === 1 && group.links[0] ? (
               <Link
                 href={group.links[0].href}
-                className={`flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+                className="flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] text-public-muted hover:text-public-ink xl:px-3"
               >
                 {group.label}
               </Link>
             ) : (
             <button
               type="button"
-              className={`flex min-h-11 items-center gap-1 rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+              className="flex min-h-11 items-center gap-1 rounded-full px-2.5 py-2 text-[15px] text-public-muted hover:text-public-ink xl:px-3"
               aria-expanded={open === group.label}
             >
               {group.label}
@@ -75,7 +68,7 @@ export function LandingNav({
         ))}
         <Link
           href={landingCopy.waitlistNav.href}
-          className={`flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] xl:px-3 ${onDark ? "text-white hover:bg-white/15" : "text-public-ink hover:bg-public-sand"}`}
+          className="flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] text-public-ink hover:bg-public-sand xl:px-3"
         >
           {landingCopy.waitlistNav.label}
         </Link>
@@ -87,7 +80,7 @@ export function LandingNav({
         </Link>
       ) : (
         <div className="max-lg:hidden flex items-center gap-2">
-          <Link href="/entrar" className={ghostLink(onDark)}>
+          <Link href="/entrar" className={ghostLink}>
             {landingCopy.signInCta}
           </Link>
           <Link href="/registro" className={solidLink}>
@@ -97,7 +90,7 @@ export function LandingNav({
       )}
       <button
         type="button"
-        className={`inline-flex size-11 items-center justify-center lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
+        className="inline-flex size-11 items-center justify-center text-public-ink lg:hidden"
         aria-expanded={menuOpen}
         aria-controls="landing-mobile-menu"
         aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
@@ -122,7 +115,7 @@ export function LandingNav({
             <div className="flex flex-col gap-2">
               <Link
                 href="/entrar"
-                className={`${ghostLink(false)} w-full`}
+                className={`${ghostLink} w-full`}
                 onClick={() => onMenuOpenChange(false)}
               >
                 {landingCopy.signInCta}

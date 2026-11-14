@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { HowItWorks } from "@/components/landing/how-it-works";
+import { LandingPipeline } from "@/components/landing/landing-pipeline";
 import { Paths } from "@/components/landing/paths";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
@@ -10,18 +11,15 @@ export function PathAndFlow() {
   const [pulse, setPulse] = useState(0);
 
   return (
-    <>
-      <Paths
-        role={role}
-        onSelect={(next) => {
-          setRole(next);
-          setPulse((count) => count + 1);
-        }}
-      />
-      <div className="releva-path-bridge hidden lg:flex" aria-hidden="true">
-        <span key={pulse} className="releva-path-connector" data-pulse={pulse > 0 ? "true" : "false"} />
-      </div>
-      <HowItWorks role={role} />
-    </>
+    <Paths
+      role={role}
+      onSelect={(next) => {
+        setRole(next);
+        setPulse((count) => count + 1);
+      }}
+    >
+      <HowItWorks key={`${role}-${pulse}`} role={role} travel={pulse} />
+      <LandingPipeline />
+    </Paths>
   );
 }

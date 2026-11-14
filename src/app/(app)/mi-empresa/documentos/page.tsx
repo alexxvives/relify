@@ -3,7 +3,6 @@ import { DocumentsSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerDocuments } from "@/components/seller/seller-documents";
-import { SellerPdfCard } from "@/components/seller/company-pdf-card";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { sellerCopy } from "@/lib/seller-copy";
 import { sellerAdvisorAccess } from "@/lib/server/advisory-engagement";
@@ -36,14 +35,6 @@ async function DocumentsPageContent() {
     redirect("/mi-empresa");
   }
 
-  const teaser = teaserDesk ? (
-    <SellerPdfCard
-      desk={teaserDesk}
-      previewHref="/mi-empresa/pdf/teaser?preview=1"
-      downloadHref="/mi-empresa/pdf/teaser?download=1"
-    />
-  ) : null;
-
   return (
     <>
       <SellerDocuments
@@ -56,7 +47,7 @@ async function DocumentsPageContent() {
           folders: row.folders,
           fileIds: row.fileIds,
         }))}
-        teaser={teaser}
+        teaser={teaserDesk}
       />
     </>
   );

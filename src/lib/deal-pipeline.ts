@@ -161,6 +161,20 @@ export function pipelineStatus(steps: readonly DealStep[]): string {
   return steps.find((step) => step.state === "current")?.label ?? steps[steps.length - 1]?.label ?? "";
 }
 
+/** Public landing specimen: one step is current, earlier steps are done. */
+export function landingDealSteps(currentIndex: number): DealStep[] {
+  const clamped = Math.min(dealStepIds.length - 1, Math.max(0, currentIndex));
+  return dealStepIds.map((id, index) => {
+    const copy = stepCopy[id];
+    return {
+      id,
+      label: copy.label,
+      detail: copy.investor,
+      state: index < clamped ? "done" : index === clamped ? "current" : "upcoming",
+    };
+  });
+}
+
 export type StepCue = {
   yours: boolean;
   action: string;

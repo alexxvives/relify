@@ -228,9 +228,9 @@ function Kpi({
           <FieldHint text={hint} align="end" wide />
         </span>
       </div>
-      <div className="mt-2 flex min-w-0 items-baseline gap-x-2">
+      <div className="mt-2 flex min-w-0 items-center gap-x-2">
         <span className={`whitespace-nowrap leading-none font-bold tracking-tight tabular-nums ${long ? "text-xl" : "text-3xl"} ${tone === "loss" ? "text-[#a12f2f]" : tone === "pending" ? "text-[#8b95a7]" : "text-[#1c2740]"}`}>{value}</span>
-        {sub ? <span className="inline-flex min-w-0 flex-wrap items-baseline gap-x-2 text-[11px] leading-4 text-[#8b95a7]">{sub}</span> : null}
+        {sub ? <span className="inline-flex min-w-0 flex-wrap items-center gap-x-2 text-[11px] leading-none text-[#8b95a7]">{sub}</span> : null}
       </div>
     </div>
   );
@@ -835,13 +835,7 @@ export function CompanyReport({
   return (
     <div className="relative flex min-w-0 flex-col gap-4">
       {showSectionNav ? (
-        <ReportNav
-          items={sections}
-          label={companyReportCopy.nav}
-          belowFloatingTabs={navBelowTabs}
-          inlineUntilSticky
-          hostId={navBelowTabs ? "ficha-section-nav-slot" : undefined}
-        />
+        <ReportNav items={sections} label={companyReportCopy.nav} belowFloatingTabs={navBelowTabs} />
       ) : null}
       <div className="flex min-w-0 flex-col gap-4">
 

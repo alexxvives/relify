@@ -15,7 +15,7 @@ import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
 import { dataRoomFileIsStored } from "@/lib/server/data-room-disk";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
-import { relevaDraftFolder } from "@/lib/releva-drafts";
+import { relevaDraftFolder, relevaDrafts } from "@/lib/releva-drafts";
 
 export type OwnerDataRoom = {
   audience: "owner";
@@ -110,15 +110,14 @@ export async function listDataRoom(
       granted: granted.has(access.investorId),
     }));
 
-    // Process paperwork (NDA, carta de intenciones, contrato) lives in each process's "Documentación",
-    // so the platform's "Relify" folder of blank templates is no longer listed in Mis documentos.
-    const folders = visibleFolderNames({
-      records: folderRows,
-      usedByFiles: files.map((file) => file.folder),
-    }).filter((folder) => folder !== relevaDraftFolder);
-    const stored = files
-      .filter((file) => file.folder !== relevaDraftFolder)
-      .map((file) => ({
+    const folders = [
+      relevaDraftFolder,
+      ...visibleFolderNames({
+        records: folderRows,
+        usedByFiles: files.map((file) => file.folder),
+      }).filter((folder) => folder !== relevaDraftFolder),
+    ];
+    const stored = files.map((file) => ({
         ...toDataRoomFileView(file),
         id: file.id,
         stored: dataRoomFileIsStored(file.id),
@@ -130,11 +129,22 @@ export async function listDataRoom(
         }),
         uploadedAt: file.createdAt.toISOString(),
       }));
+    const present = new Set(stored.filter((file) => file.folder === relevaDraftFolder).map((file) => file.fileName));
+    const library = relevaDrafts
+      .filter((draft) => !present.has(draft.fileName))
+      .map((draft) => ({
+        folder: relevaDraftFolder,
+        fileName: draft.fileName,
+        id: draft.id,
+        stored: false,
+        platform: true as const,
+        viewers: [] as OwnerFileView["viewers"],
+      }));
 
     return {
       audience: "owner",
       folders,
-      files: filesWithBytes(stored),
+      files: filesWithBytes([...library, ...stored]),
       shares: investors.map((access) =>
         toDataRoomShareView({
           id: access.accessId,

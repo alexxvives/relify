@@ -79,6 +79,10 @@ test.describe("sticky CTA never covers inline controls", () => {
       await page.goto("/cuenta");
       await expect(page.locator("[data-teaser-card]")).toHaveCount(0);
       await page.goto("/mi-empresa/documentos");
+      const relifyFolder = page.getByRole("button", { name: /Relify/i }).first();
+      if ((await relifyFolder.count()) > 0) {
+        await relifyFolder.click();
+      }
       const actions = page.locator("[data-teaser-actions]");
       if ((await actions.count()) > 0) {
         await expect(actions.first()).toBeVisible();

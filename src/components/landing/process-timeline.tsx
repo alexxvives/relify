@@ -15,7 +15,7 @@ export function ProcessTimeline({ steps }: { steps: readonly Step[] }) {
               {copy.stepLabel} {step.n}
             </p>
             <h3 className="mt-0.5 text-base font-medium tracking-tight text-[#1c2740] sm:text-xl">{step.title}</h3>
-            <p className="mt-1 hidden text-sm leading-6 text-[#3d4a63] sm:block">{step.body}</p>
+            <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{step.body}</p>
           </div>
         </li>
       ))}

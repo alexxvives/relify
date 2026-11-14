@@ -22,6 +22,7 @@ export function dataRoomFileIsStored(id: string): boolean {
   return target !== null && existsSync(target);
 }
 
+/** Bytes live on disk today. Keep this as the single write so an R2 backend can slot in later (pending Alex). */
 export async function writeDataRoomBytes(
   id: string,
   bytes: Uint8Array,

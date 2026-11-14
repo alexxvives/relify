@@ -259,6 +259,7 @@ export function Hero({ wash = false }: { wash?: boolean }) {
         {/* Alex (t32): city + spots share one 3:2 box so the price pins stay on their buildings at every width. */}
         <div className="releva-city-box hidden lg:block">
         <div className="releva-city-frame" aria-hidden="true">
+          {/* Hero bitmap: keep `unoptimized` until Alex signs off image compression. */}
           <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
           {spots.map((spot) => (
             <Image
@@ -311,7 +312,7 @@ export function Hero({ wash = false }: { wash?: boolean }) {
           />
         </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(1.5rem,6.6vw,2.15rem)] leading-[1.05] text-balance text-public-ink lg:text-[clamp(1.85rem,4.4cqi,3.75rem)]">
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(1.95rem,8.8vw,2.75rem)] leading-[1.05] text-balance text-public-ink lg:text-[clamp(1.85rem,4.4cqi,3.75rem)]">
             <span className="block">El mercado inteligente para</span>
             <span className="block">
               <SwapVerb /> empresas{" "}

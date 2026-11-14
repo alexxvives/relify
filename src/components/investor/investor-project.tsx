@@ -1,13 +1,11 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
-import { CompanyBanner } from "@/components/seller/company-banner";
+import { CompanyFichaView, FichaLockedNote } from "@/components/company/company-ficha-view";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { bannerChips } from "@/lib/sector-theme";
 import { CompanyReport } from "@/components/seller/company-report";
 import { DealPipeline, ProcessRoom } from "@/components/investor/deal-pipeline";
 import { LiveRefresh } from "@/components/shell/live-refresh";
-import { InvestorProjectTabs } from "@/components/investor/investor-project-tabs";
 import { MeetingDesk } from "@/components/investor/meeting-desk";
 import { ProjectThread } from "@/components/investor/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
@@ -28,15 +26,6 @@ import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
 import { companyPdfCopy } from "@/lib/company-pdf-copy";
-
-function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-[#e6e9f0] bg-white px-6 py-12 text-center">
-      <p className="mx-auto max-w-lg text-sm leading-6 text-[#5c6b78]">{text}</p>
-      {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
-    </section>
-  );
-}
 
 export function InvestorProject({
   project,
@@ -107,7 +96,7 @@ export function InvestorProject({
         {companyCopy.backToMarket}
       </Link>
 
-      <CompanyBanner
+      <CompanyFichaView
         title={project.codename}
         sector={bannerSector}
         chips={bannerChips({ sector: bannerSector, region: project.region, foundedYear: project.foundedYear })}
@@ -139,49 +128,49 @@ export function InvestorProject({
             />
           ) : null
         }
-      >
-        <FavoriteButton slug={project.slug} favorited={favorited} />
-        <div className="hidden lg:block">
-          <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
-        </div>
-      </CompanyBanner>
-
-      {access === "none" || access === "requested" ? (
-        <>
-          <div className="lg:hidden" data-sticky-twin>
-            {access === "requested" ? (
-              <Link
-                href="/procesos"
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
-              >
-                Firmar en Mis procesos
-              </Link>
-            ) : (
-              <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
-            )}
+        favorite={<FavoriteButton slug={project.slug} favorited={favorited} />}
+        bannerExtra={
+          <div className="hidden lg:block">
+            <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
           </div>
-          <ShellStickyCtaBar>
-            {access === "requested" ? (
-              <Link
-                href="/procesos"
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
-              >
-                Firmar en Mis procesos
-              </Link>
-            ) : (
-              <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
-            )}
-          </ShellStickyCtaBar>
-        </>
-      ) : null}
-
-      {access === "accepted" && signedOffer ? (
-        <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} accessId={accessId} />
-      ) : null}
-
-      <InvestorProjectTabs
+        }
+        afterBanner={
+          <>
+            {access === "none" || access === "requested" ? (
+              <>
+                <div className="lg:hidden" data-sticky-twin>
+                  {access === "requested" ? (
+                    <Link
+                      href="/procesos"
+                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
+                    >
+                      Firmar en Mis procesos
+                    </Link>
+                  ) : (
+                    <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
+                  )}
+                </div>
+                <ShellStickyCtaBar>
+                  {access === "requested" ? (
+                    <Link
+                      href="/procesos"
+                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#17663a] px-4 text-sm font-medium text-white"
+                    >
+                      Firmar en Mis procesos
+                    </Link>
+                  ) : (
+                    <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="center" />
+                  )}
+                </ShellStickyCtaBar>
+              </>
+            ) : null}
+            {access === "accepted" && signedOffer ? (
+              <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} accessId={accessId} />
+            ) : null}
+          </>
+        }
         initialTab={initialTab}
-        panels={{
+        tabs={{
           company: (
             <div className="grid min-w-0 gap-6">
               <div className="flex min-w-0 flex-col gap-6">
@@ -208,11 +197,11 @@ export function InvestorProject({
             </div>
           ),
           questions: access === "awaiting-seller" ? (
-            <LockedNote text={companyCopy.threadWaiting} />
+            <FichaLockedNote text={companyCopy.threadWaiting} />
           ) : access === "requested" ? (
-            <LockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
+            <FichaLockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
           ) : locked ? (
-            <LockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />} />
+            <FichaLockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />} />
           ) : (
             <section className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
@@ -243,11 +232,11 @@ export function InvestorProject({
             </section>
           ),
           meetings: access === "awaiting-seller" ? (
-            <LockedNote text={companyCopy.threadWaiting} />
+            <FichaLockedNote text={companyCopy.threadWaiting} />
           ) : access === "requested" ? (
-            <LockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
+            <FichaLockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
           ) : locked ? (
-            <LockedNote
+            <FichaLockedNote
               text={companyCopy.threadLocked}
               action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />}
             />

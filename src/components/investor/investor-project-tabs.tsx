@@ -51,7 +51,7 @@ export function InvestorProjectTabs({
                     : "inline-flex h-11 items-center justify-center rounded-full px-2 text-sm text-[#5c6b78]"
                 }
               >
-                {item.label}
+                {companyCopy.tabsCompact[item.id]}
               </button>
             );
           })}

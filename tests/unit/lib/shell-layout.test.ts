@@ -89,8 +89,9 @@ describe("S13b scroll lock and seller surfaces", () => {
     const documentosPage = readFileSync(path.join(process.cwd(), "src/app/(app)/mi-empresa/documentos/page.tsx"), "utf8");
     expect(cuentaPage).not.toMatch(/SellerPdfCard/);
     expect(cuentaPage).not.toMatch(/sellerTeaserDesk/);
-    expect(documentosPage).toMatch(/SellerPdfCard/);
+    expect(documentosPage).not.toMatch(/SellerPdfCard/);
     expect(documentosPage).toMatch(/sellerTeaserDesk/);
+    expect(documentosPage).toMatch(/teaser=\{teaserDesk\}/);
   });
 
   it("renders auth as a single surface below md", () => {
@@ -133,6 +134,7 @@ const appFrame = readFileSync(path.join(process.cwd(), "src/components/shell/app
 const banner = readFileSync(path.join(process.cwd(), "src/components/seller/company-banner.tsx"), "utf8");
 const investorProject = readFileSync(path.join(process.cwd(), "src/components/investor/investor-project.tsx"), "utf8");
 const companyReport = readFileSync(path.join(process.cwd(), "src/components/seller/company-report.tsx"), "utf8");
+const reportNav = readFileSync(path.join(process.cwd(), "src/components/seller/report-nav.tsx"), "utf8");
 const investorProcesses = readFileSync(path.join(process.cwd(), "src/components/investor/investor-processes.tsx"), "utf8");
 const sellerProcesses = readFileSync(path.join(process.cwd(), "src/components/seller/seller-processes.tsx"), "utf8");
 
@@ -182,7 +184,9 @@ describe("S17 buyer ficha and seller surfaces", () => {
     expect(companyReport).toMatch(/report-section-aside[\s\S]*whitespace-nowrap/);
     expect(companyReport).toMatch(/report-section-aside[\s\S]*truncate/);
     expect(companyReport).toMatch(/report-section-title min-w-0 shrink-0/);
-    expect(companyReport).toMatch(/inlineUntilSticky/);
+    expect(reportNav).toMatch(/sticky z-30 mx-auto w-full max-w-4xl/);
+    expect(reportNav).not.toMatch(/ViewportPortal/);
+    expect(companyReport).not.toMatch(/inlineUntilSticky/);
   });
 });
 
@@ -210,9 +214,9 @@ describe("S17 landing hero title and header", () => {
 
   it("animates rentables with a gold clip sweep and a static gold when motion is reduced", () => {
     expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*background-clip:\s*text/);
-    expect(css).toMatch(/@keyframes releva-gold-sweep/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#a47208/);
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#a47208[\s\S]*#b8860b[\s\S]*#e8c547/);
+    expect(css).toMatch(/@keyframes releva-gold-streak/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#7a4e00/);
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#6b4200[\s\S]*#7a4e00[\s\S]*#fff6c8/);
     expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
   });
 

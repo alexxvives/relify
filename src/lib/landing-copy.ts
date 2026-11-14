@@ -265,6 +265,11 @@ export const landingCopy = {
       kicker: "Cómo funciona",
       heading: "Simple desde el primer paso",
       intro: "Qué datos dejas, qué prepara Relify y cuándo entra la otra parte, con el nombre de la sociedad todavía fuera.",
+      pipeline: {
+        kicker: "El proceso",
+        heading: "Así avanza una operación",
+        intro: "Los mismos pasos que dentro de Relify: de la solicitud a la venta. El paso activo se acerca.",
+      },
       cta: {
         vender: { href: "/registro?rol=empresa", label: "Crear cuenta de empresa" },
         comprar: { href: "/registro?rol=inversor", label: "Crear cuenta de comprador" },
@@ -306,6 +311,7 @@ export const landingCopy = {
               chip: "Sin el nombre",
               panel: {
                 kind: "tasks",
+                stamp: "Publicado",
                 strong: "Ficha publicada, sin la sociedad.",
                 note: "Los compradores ven cifras y región, no el nombre.",
                 rows: [
