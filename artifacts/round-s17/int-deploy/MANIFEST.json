@@ -1,0 +1,12 @@
+{
+  "round": "s17",
+  "commit": "a0622fb8d52eb6cf6e38004d7e5585c7c3b6075b",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "2acfcb750a052482ec468e837e1f4f2d7cd490f5279ffb216e6fd5c8815c6c76",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql"
+  ],
+  "note": "No Prisma migration. Additive INT SQL for Consultor\u00eda Servicios years. Landing trial CTAs. Not deployed.",
+  "deployed": false
+}
