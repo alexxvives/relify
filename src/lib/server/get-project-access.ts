@@ -1,5 +1,6 @@
 import { cache } from "react";
 import {
+  accessFromConnection,
   projectAccessInputSchema,
   type ProjectAccessView,
 } from "@/lib/project-access";
@@ -30,14 +31,6 @@ export const getProjectAccess = cache(
       },
     });
 
-    if (!row || row.cancelledAt !== null) {
-      return "none";
-    }
-
-    if (row.sellerAcceptedAt === null) {
-      return "awaiting-seller";
-    }
-
-    return row.ndaAcceptedAt === null ? "requested" : "accepted";
+    return accessFromConnection(row);
   },
 );

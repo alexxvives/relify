@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acceptNdaOutcome, ndaAccessGate, reconnectAccessReset, requestAccessOutcome } from "@/lib/project-access";
+import { acceptNdaOutcome, accessFromConnection, ndaAccessGate, reconnectAccessReset, requestAccessOutcome } from "@/lib/project-access";
 
 const investor = {
   onboarded: true,
@@ -64,6 +64,40 @@ describe("acceptNdaOutcome", () => {
       ok: false,
       code: "forbidden",
     });
+  });
+});
+
+describe("accessFromConnection", () => {
+  it("maps each buyer stage from the stored timestamps", () => {
+    expect(accessFromConnection(null)).toBe("none");
+    expect(
+      accessFromConnection({
+        sellerAcceptedAt: null,
+        ndaAcceptedAt: null,
+        cancelledAt: new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ).toBe("none");
+    expect(
+      accessFromConnection({
+        sellerAcceptedAt: null,
+        ndaAcceptedAt: null,
+        cancelledAt: null,
+      }),
+    ).toBe("awaiting-seller");
+    expect(
+      accessFromConnection({
+        sellerAcceptedAt: new Date("2026-01-02T00:00:00.000Z"),
+        ndaAcceptedAt: null,
+        cancelledAt: null,
+      }),
+    ).toBe("requested");
+    expect(
+      accessFromConnection({
+        sellerAcceptedAt: new Date("2026-01-02T00:00:00.000Z"),
+        ndaAcceptedAt: new Date("2026-01-03T00:00:00.000Z"),
+        cancelledAt: null,
+      }),
+    ).toBe("accepted");
   });
 });
 

@@ -80,7 +80,7 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
     seller: "Aceptas al comprador si encaja. Después le toca firmar el acuerdo de confidencialidad.",
   },
   nda: {
-    label: "Confidencialidad",
+    label: "NDA",
     investor: "Firmas el acuerdo de confidencialidad. Sin esa firma no se abre el detalle ni el chat.",
     seller: "El comprador debe firmar el acuerdo de confidencialidad para seguir. Tú no firmas este paso.",
   },
@@ -91,7 +91,7 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
       "El comprador preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
   },
   loi: {
-    label: "Carta de intenciones",
+    label: "LOI",
     investor: "Firmas la carta de intenciones. No obliga a cerrar la compra.",
     seller: "El comprador firma la carta de intenciones y te llega como oferta indicativa.",
   },

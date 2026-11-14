@@ -6,7 +6,7 @@ test.describe("visitor landing and public forms", () => {
   test("landing loads and links to registro", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("body")).toBeVisible();
-    const register = page.getByRole("link", { name: /crear cuenta|registro|publicar/i }).first();
+    const register = page.getByRole("link", { name: /prueba gratis|crear cuenta|registro|publicar/i }).first();
     await expect(register).toBeVisible();
   });
 
@@ -108,7 +108,7 @@ test.describe("visitor landing and public forms", () => {
       if (rejectBox && acceptBox) {
         expect(Math.abs(rejectBox.y - acceptBox.y)).toBeLessThan(8);
       }
-      const stickyBuy = page.locator("a[href='/registro?rol=inversor']").last();
+      const stickyBuy = page.locator(".releva-hero-actions a[href='/registro']");
       const stickyBox = await stickyBuy.boundingBox();
       expect(stickyBox, "hero CTA stays on screen with the cookie sheet").not.toBeNull();
       if (box && stickyBox) {
@@ -118,7 +118,7 @@ test.describe("visitor landing and public forms", () => {
     await expect(banner.getByRole("link", { name: /política de cookies/i })).toBeVisible();
     await expect(banner.getByRole("link", { name: /^privacidad$/i })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: /^términos$/i })).toHaveCount(0);
-    const register = page.getByRole("link", { name: /crear cuenta|registro|publicar/i }).first();
+    const register = page.getByRole("link", { name: /prueba gratis|crear cuenta|registro|publicar/i }).first();
     await expect(register).toBeVisible();
     await register.click();
     await expect(page).toHaveURL(/\/registro/);

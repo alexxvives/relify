@@ -264,6 +264,7 @@ function AdvisorNdaDialog({
             <input type="hidden" name="signature" value={signature} />
             <SignaturePad
               invalid={needsSignature}
+              collectIdentity
               onChange={(value) => {
                 setSignature(value);
                 if (value.length > 0) {
@@ -326,6 +327,7 @@ export function AdvisorNdaForm({ engagementId, text }: { engagementId: string; t
         <input type="hidden" name="signature" value={signature} />
         <SignaturePad
           invalid={needsSignature}
+          collectIdentity
           onChange={(value) => {
             setSignature(value);
             if (value.length > 0) {

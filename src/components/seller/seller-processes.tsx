@@ -330,7 +330,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 nda
                 ndaHref={`/acuerdos/nda/${thread.accessId}`}
                 loiHref={thread.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${thread.accessId}` : null}
-                loiTemplateHref={`/acuerdos/loi-plantilla/${thread.accessId}`}
                 contractHref={thread.contract?.signedHref ?? thread.contract?.current?.href ?? null}
                 contractSigned={Boolean(thread.contract?.signedHref)}
                 empty={sellerCopy.documentsEmpty}

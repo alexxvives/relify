@@ -566,6 +566,7 @@ function ProcessSignDialog({
             <input type="hidden" name="signature" value={signature} />
             <SignaturePad
               invalid={needsSignature}
+              collectIdentity={kind === "nda"}
               onChange={(value) => {
                 setSignature(value);
                 if (value.length > 0) {

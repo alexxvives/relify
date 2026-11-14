@@ -7,20 +7,28 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { landingCopy } from "@/lib/landing-copy";
 
 const solidLink =
-  "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-public-clay px-4 text-sm font-medium text-white transition hover:bg-public-clay-deep";
+  "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-public-clay px-5 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgb(15_110_115_/_0.7)] transition hover:bg-public-clay-deep";
+
+function ghostLink(onDark: boolean) {
+  return `inline-flex h-11 min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition ${
+    onDark
+      ? "border-white/45 text-white hover:bg-white/10"
+      : "border-public-ink/18 text-public-ink hover:bg-public-sand"
+  }`;
+}
 
 export function LandingNav({
   onDark = false,
   menuOpen,
   onMenuOpenChange,
+  signedIn,
   accountHref,
-  accountLabel,
 }: {
   onDark?: boolean;
   menuOpen: boolean;
   onMenuOpenChange: (open: boolean) => void;
+  signedIn: boolean;
   accountHref: string;
-  accountLabel: string;
 }) {
   const [open, setOpen] = useState<string | null>(null);
 
@@ -73,9 +81,20 @@ export function LandingNav({
         </Link>
       </nav>
       <div className="relative z-20 ml-auto flex items-center gap-2">
-      <Link href={accountHref} className={`${solidLink} max-lg:hidden`}>
-        {accountLabel}
-      </Link>
+      {signedIn ? (
+        <Link href={accountHref} className={`${solidLink} max-lg:hidden`}>
+          {landingCopy.accountCta}
+        </Link>
+      ) : (
+        <div className="max-lg:hidden flex items-center gap-2">
+          <Link href="/entrar" className={ghostLink(onDark)}>
+            {landingCopy.signInCta}
+          </Link>
+          <Link href="/registro" className={solidLink}>
+            {landingCopy.tryFreeCta}
+          </Link>
+        </div>
+      )}
       <button
         type="button"
         className={`inline-flex size-11 items-center justify-center lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
@@ -91,13 +110,32 @@ export function LandingNav({
         title="Menú"
         onClose={() => onMenuOpenChange(false)}
         footer={
-          <Link
-            href={accountHref}
-            className={`${solidLink} w-full`}
-            onClick={() => onMenuOpenChange(false)}
-          >
-            {accountLabel}
-          </Link>
+          signedIn ? (
+            <Link
+              href={accountHref}
+              className={`${solidLink} w-full`}
+              onClick={() => onMenuOpenChange(false)}
+            >
+              {landingCopy.accountCta}
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/entrar"
+                className={`${ghostLink(false)} w-full`}
+                onClick={() => onMenuOpenChange(false)}
+              >
+                {landingCopy.signInCta}
+              </Link>
+              <Link
+                href="/registro"
+                className={`${solidLink} w-full`}
+                onClick={() => onMenuOpenChange(false)}
+              >
+                {landingCopy.tryFreeCta}
+              </Link>
+            </div>
+          )
         }
       >
         <div id="landing-mobile-menu" className="flex flex-col gap-1 pb-2">

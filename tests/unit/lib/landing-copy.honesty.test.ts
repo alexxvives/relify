@@ -26,7 +26,6 @@ const banned = [
   "primer día ya",
   "antes de que se llene",
   "de 120",
-  "empresas rentables",
   "El mercado en marcha",
 ];
 
@@ -35,5 +34,14 @@ describe("public landing copy", () => {
     for (const phrase of banned) {
       expect(publicCopy.includes(phrase), phrase).toBe(false);
     }
+  });
+});
+
+describe("S17 landing hero and header CTAs", () => {
+  it("uses one free-trial CTA and a sign-in ghost", () => {
+    expect(landingCopy.home.title).toBe("El mercado inteligente para comprar y vender empresas rentables");
+    expect(landingCopy.home.cta).toBe("Prueba gratis");
+    expect(landingCopy.tryFreeCta).toBe("Prueba gratis");
+    expect(landingCopy.signInCta).toBe("Iniciar sesión");
   });
 });

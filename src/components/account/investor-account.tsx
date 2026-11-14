@@ -11,7 +11,7 @@ export function InvestorAccount({
   lastName,
   email,
   phone,
-  nationalId,
+  nationalIdMasked,
   displayName,
   initial,
   draft,
@@ -22,7 +22,7 @@ export function InvestorAccount({
   lastName: string | null;
   email: string;
   phone: string | null;
-  nationalId: string | null;
+  nationalIdMasked: string | null;
   displayName: string;
   initial: DemoInvestorProfile | null;
   draft: InvestorProfileDraft;
@@ -52,7 +52,7 @@ export function InvestorAccount({
       lastName={lastName}
       email={email}
       phone={phone}
-      nationalId={nationalId}
+      nationalIdMasked={nationalIdMasked}
       photo={photoSlot}
       middle={
         <InvestorProfile

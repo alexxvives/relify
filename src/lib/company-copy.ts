@@ -59,6 +59,7 @@ export const companyCopy = {
   adjustmentsTooLarge: "Un ajuste no puede ser mayor que la facturación del ejercicio.",
   adjustmentsCount: "Puedes indicar hasta 10 ajustes al EBITDA.",
   ebitdaMarginLabel: "Margen EBITDA",
+  adjustedEbitdaMarginLabel: "Margen EBITDA ajustado",
   opexLabel: "OPEX",
   askingPriceLabel: "Precio de venta",
   priceUnset: "Sin definir",
@@ -343,7 +344,8 @@ export const companyCopy = {
   postalCodeInvalid: "Escribe un código postal de 5 dígitos.",
   locationFromRegistry: "Dato del registro mercantil",
   confidentialHint: "La razón social, el NIF y la ubicación se guardan en tu borrador y no salen en la ficha pública.",
-  askingPriceHelp: "El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado.",
+  askingPriceHelp:
+    "El rango orientativo es el EBITDA ajustado multiplicado por el múltiplo sectorial mínimo y máximo.",
   applySuggestedInSheet: "Usar",
   priceRangeTitle: "Rango orientativo",
   askingPriceSheetTitle: "Precio de venta",

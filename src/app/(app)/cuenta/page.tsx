@@ -7,6 +7,7 @@ import { SignedPlatformTerms } from "@/components/auth/signed-platform-terms";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { InvestorAccount } from "@/components/account/investor-account";
 import { authCopy } from "@/lib/auth-copy";
+import { maskNationalId } from "@/lib/spanish-cif";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { getAccountNationalId } from "@/lib/server/get-account-national-id";
 import { getCurrentUser } from "@/lib/server/get-current-user";
@@ -31,7 +32,8 @@ async function AccountPageContent() {
     redirect("/onboarding");
   }
 
-  const nationalId = await getAccountNationalId(user.id);
+  const storedNationalId = await getAccountNationalId(user.id);
+  const nationalIdMasked = storedNationalId ? maskNationalId(storedNationalId) : null;
   const investorDraft =
     user.role === "investor"
       ? await loadInvestorDraft(user.id, user.email)
@@ -48,7 +50,7 @@ async function AccountPageContent() {
           lastName={user.lastName}
           email={user.email}
           phone={user.phone}
-          nationalId={nationalId}
+          nationalIdMasked={nationalIdMasked}
           displayName={user.displayName}
           initial={demoInvestorProfile(user.email)}
           draft={investorDraft}
@@ -61,7 +63,7 @@ async function AccountPageContent() {
           lastName={user.lastName}
           email={user.email}
           phone={user.phone}
-          nationalId={nationalId}
+          nationalIdMasked={nationalIdMasked}
           agreement={agreement}
         />
       )}

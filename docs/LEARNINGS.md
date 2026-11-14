@@ -6,6 +6,10 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-14: landing honesty test failed the new hero title — it banned the exact phrase `empresas rentables`, which S17 uses as positioning, not a live-market claim — do not keep that exact string in the ban list.
+- 2026-11-14: Playwright admin last-control at 390 failed on `/admin/empresas/int-consultoria-servicios` — closed `<details>` still expose `position:absolute` chart bars (`tabindex=0`) in the viewport — skip `details:not([open])` in the chrome helper.
+- 2026-11-14: prod `/api/health` 404 — the route landed in Round S8 on stacked branches and is present at S16 `a4844ed`; `main` never received it — do not “restore” on main from this round.
+- 2026-11-14: post-NDA Consultoría Servicios showed empty charts — INT seed had no `project_year` rows for that slug — apply `prisma/int-consultoria-years.sql` on INT (data, not a Prisma migration).
 - 2026-11-12: financing % and años looked borderless — a full-height input inherits the unlayered white `input` background and covers the label border — use `input.relify-inset` (transparent, auto height) inside the bordered label.
 - 2026-11-12: Error al guardar plus vinext `Prevented repeated hard navigation` on `/mi-empresa/detalles` — `revalidatePath` of the open URL is a hard nav on vinext — autosave only `revalidatePath("/mi-empresa")`.
 - 2026-11-12: Playwright `/mercado` scroll at 1440 stayed at 0 — two cards fit the viewport so the 2400px pad and the wheel ran in the same tick — `waitForFunction` until `scrollHeight` exceeds the viewport before wheeling.

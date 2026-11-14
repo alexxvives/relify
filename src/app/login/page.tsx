@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Direct sign-in for admins and existing users while the landing's "Acceder" button points to the waitlist. */
+/** Alias kept so old /login bookmarks still reach /entrar. */
 export default function LoginPage() {
   redirect("/entrar");
 }

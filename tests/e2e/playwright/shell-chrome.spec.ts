@@ -85,13 +85,9 @@ test.describe("sticky CTA never covers inline controls", () => {
         await placeJustAboveChrome(page, actions.first());
         const download = actions.getByRole("link", { name: /descargar teaser/i });
         await expectControlCenterTappable(page, download);
-        const more = actions.getByRole("button", { name: /más acciones/i });
-        await more.click();
-        const copy = page.getByRole("menuitem", { name: /copiar/i });
-        const regenerate = page.getByRole("menuitem", { name: /regenerar/i });
-        await expect(copy).toBeVisible();
-        await expect(regenerate).toBeVisible();
-        await page.keyboard.press("Escape");
+        const copy = actions.getByRole("button", { name: /copiar enlace/i });
+        await expectControlCenterTappable(page, copy);
+        await expect(page.getByRole("button", { name: /regenerar/i })).toHaveCount(0);
       }
       await page.goto("/mi-empresa/detalles");
       await expectLastContentControlTappable(page).catch((error: unknown) => {
@@ -171,11 +167,9 @@ test.describe("sticky CTA never covers inline controls", () => {
           await placeJustAboveChrome(page, actions);
           const download = actions.getByRole("link", { name: /descargar teaser/i });
           await expectControlCenterTappable(page, download);
-          const more = actions.getByRole("button", { name: /más acciones/i });
-          await more.click();
-          await expect(page.getByRole("menuitem", { name: /copiar/i })).toBeVisible();
-          await expect(page.getByRole("menuitem", { name: /regenerar/i })).toBeVisible();
-          await page.keyboard.press("Escape");
+          const copy = actions.getByRole("button", { name: /copiar enlace/i });
+          await expectControlCenterTappable(page, copy);
+          await expect(page.getByRole("button", { name: /regenerar/i })).toHaveCount(0);
         }
         await expectLastContentControlTappable(page).catch((error: unknown) => {
           throw new Error(`admin company@${width}: ${error instanceof Error ? error.message : String(error)}`);

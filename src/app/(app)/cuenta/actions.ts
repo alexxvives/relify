@@ -12,6 +12,8 @@ import {
 } from "@/lib/auth-input";
 import { auth } from "@/lib/server/auth";
 import { authFailureMessage } from "@/lib/server/auth-failure";
+import { identityDeclared } from "@/lib/identity-declaration";
+import { getAccountNationalId } from "@/lib/server/get-account-national-id";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   markNotificationRead,
@@ -54,10 +56,16 @@ export async function updateAccountAction(
     return { message: authCopy.fullNameRequired, saved: false };
   }
 
+  const storedId = await getAccountNationalId(user.id);
+  const submittedId = readText(formData, "nationalId").trim();
+  const keepStored = formData.get("nationalIdKeep") === "1" && submittedId.length === 0 && Boolean(storedId);
+  if (!keepStored && !identityDeclared(formData.get("identityDeclared"))) {
+    return { message: authCopy.identityDeclarationRequired, saved: false };
+  }
   const parsed = accountProfileSchema.safeParse({
     name: split.name,
     lastName: split.lastName,
-    nationalId: readText(formData, "nationalId"),
+    nationalId: keepStored ? (storedId ?? "") : submittedId,
     phoneCountry: readText(formData, "phoneCountry"),
     phone: readText(formData, "phone"),
   });

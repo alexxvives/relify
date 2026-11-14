@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { CompanyBanner } from "@/components/seller/company-banner";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { bannerChips } from "@/lib/sector-theme";
@@ -27,7 +27,7 @@ import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { formatWholeEur } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sellerCopy } from "@/lib/seller-copy";
-import { BuyerDossierLink } from "@/components/investor/buyer-dossier-link";
+import { companyPdfCopy } from "@/lib/company-pdf-copy";
 
 function LockedNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
@@ -111,6 +111,17 @@ export function InvestorProject({
         title={project.codename}
         sector={bannerSector}
         chips={bannerChips({ sector: bannerSector, region: project.region, foundedYear: project.foundedYear })}
+        bannerAction={
+          access === "accepted" ? (
+            <a
+              href={`/proyectos/${project.slug}/pdf/dossier?download=1`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#1c2740] hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+            >
+              <Download className="size-4" aria-hidden />
+              {companyPdfCopy.dossierDownload}
+            </a>
+          ) : null
+        }
         progress={
           steps.length > 0 ? (
             <DealPipeline
@@ -182,7 +193,16 @@ export function InvestorProject({
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}
                 />
-                {access === "accepted" ? <BuyerDossierLink slug={project.slug} loiAccessId={accessId || null} /> : null}
+                {access === "accepted" ? (
+                  <ProcessRoom
+                    files={documents}
+                    bodies={chat.map((message) => message.body)}
+                    nda
+                    ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
+                    loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
+                    empty={sellerCopy.documentsEmpty}
+                  />
+                ) : null}
                 <RelatedCompanies items={recommendations} />
               </div>
             </div>
@@ -218,7 +238,6 @@ export function InvestorProject({
                 nda
                 ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
                 loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
-                loiTemplateHref={accessId.length > 0 ? `/acuerdos/loi-plantilla/${accessId}` : null}
                 empty={sellerCopy.documentsEmpty}
               />
             </section>

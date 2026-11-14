@@ -471,11 +471,13 @@ function PriceBar({
   askingCents,
   recommendedCents = null,
   onChange,
+  onCommit,
 }: {
   estimate: PriceEstimate;
   askingCents: number | null;
   recommendedCents?: number | null;
   onChange?: (cents: number) => void;
+  onCommit?: (cents: number) => void;
 }) {
   const { minCents, maxCents } = priceBarEnds(estimate);
   const marked = askingCents !== null && askingCents > 0 ? askingCents : null;
@@ -483,9 +485,18 @@ function PriceBar({
   const rec = recommendedCents !== null && recommendedCents > 0 ? priceBarPosition(recommendedCents, estimate) : null;
   const bar = useRef<HTMLDivElement>(null);
   const value = marked ?? minCents;
+  const interactive = Boolean(onChange || onCommit);
 
-  function setFromClientX(clientX: number) {
-    if (!onChange) {
+  function applyCents(next: number, commit: boolean) {
+    const clamped = Math.min(maxCents, Math.max(minCents, next));
+    onChange?.(clamped);
+    if (commit) {
+      onCommit?.(clamped);
+    }
+  }
+
+  function setFromClientX(clientX: number, commit: boolean) {
+    if (!interactive) {
       return;
     }
     const node = bar.current;
@@ -494,42 +505,49 @@ function PriceBar({
     }
     const rect = node.getBoundingClientRect();
     const share = rect.width <= 0 ? 0 : Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    const snapped = snapAskingCents(priceFromBarPosition(share, estimate));
-    onChange(Math.min(maxCents, Math.max(minCents, snapped)));
+    applyCents(snapAskingCents(priceFromBarPosition(share, estimate)), commit);
   }
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!onChange) {
+    if (!interactive) {
       return;
     }
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    setFromClientX(event.clientX);
+    setFromClientX(event.clientX, false);
   }
 
   function onPointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (!onChange || !event.currentTarget.hasPointerCapture(event.pointerId)) {
+    if (!interactive || !event.currentTarget.hasPointerCapture(event.pointerId)) {
       return;
     }
-    setFromClientX(event.clientX);
+    setFromClientX(event.clientX, false);
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (!interactive || !event.currentTarget.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+    setFromClientX(event.clientX, true);
+    event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (!onChange) {
+    if (!interactive) {
       return;
     }
     if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
       event.preventDefault();
-      onChange(Math.max(minCents, stepAskingCents(value, -1)));
+      applyCents(stepAskingCents(value, -1), true);
     } else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
       event.preventDefault();
-      onChange(Math.min(maxCents, stepAskingCents(value, 1)));
+      applyCents(stepAskingCents(value, 1), true);
     } else if (event.key === "Home") {
       event.preventDefault();
-      onChange(minCents);
+      applyCents(minCents, true);
     } else if (event.key === "End") {
       event.preventDefault();
-      onChange(maxCents);
+      applyCents(maxCents, true);
     }
   }
 
@@ -538,16 +556,18 @@ function PriceBar({
       <div
         ref={bar}
         role="slider"
-        tabIndex={onChange ? 0 : undefined}
+        tabIndex={interactive ? 0 : undefined}
         aria-label={companyCopy.askingPriceLabel}
         aria-valuemin={minCents}
         aria-valuemax={maxCents}
         aria-valuenow={value}
         aria-valuetext={wholeEur(value)}
-        onPointerDown={onChange ? onPointerDown : undefined}
-        onPointerMove={onChange ? onPointerMove : undefined}
-        onKeyDown={onChange ? onKeyDown : undefined}
-        className={`relative h-3 touch-none rounded-full ${onChange ? "cursor-ew-resize" : ""}`}
+        onPointerDown={interactive ? onPointerDown : undefined}
+        onPointerMove={interactive ? onPointerMove : undefined}
+        onPointerUp={interactive ? onPointerUp : undefined}
+        onPointerCancel={interactive ? onPointerUp : undefined}
+        onKeyDown={interactive ? onKeyDown : undefined}
+        className={`relative h-3 touch-none rounded-full ${interactive ? "cursor-ew-resize" : ""}`}
         style={{ background: priceBarGradient }}
       >
         {rec !== null ? (
@@ -591,7 +611,6 @@ function AskingPriceField({
   recommended = null,
   unsetText,
   disabledReason = null,
-  help,
   estimate = null,
   askingPriceIncludes,
   onAskingPriceIncludes,
@@ -603,7 +622,6 @@ function AskingPriceField({
   recommended?: { amount: string; low: string; high: string; input: string; onUse: () => void; applied?: boolean } | null;
   unsetText: string;
   disabledReason?: string | null;
-  help: string;
   estimate?: PriceEstimate | null;
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
   onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
@@ -626,6 +644,7 @@ function AskingPriceField({
     <>
       <MetricTile
         label={label}
+        hint={estimate ? <AskingPriceRangeHint estimate={estimate} /> : null}
         action={
           editable ? (
             <button
@@ -742,6 +761,9 @@ function AskingPriceField({
                     askingCents={liveCents}
                     recommendedCents={recommended ? optionalEurosToCents(recommended.input) : null}
                     onChange={(cents) => {
+                      setDraft(centsToAskingInput(cents));
+                    }}
+                    onCommit={(cents) => {
                       const next = centsToAskingInput(cents);
                       setDraft(next);
                       onChange(next);
@@ -760,7 +782,6 @@ function AskingPriceField({
                       {companyCopy.useRecommended}
                     </button>
                   ) : null}
-                  <p className="mt-2 text-xs leading-5 text-[#667085]">{help}</p>
                 </div>
               ) : (
                 <p className="text-sm leading-6 text-[#3d4a63]">
@@ -783,11 +804,13 @@ function AskingPriceField({
 function MetricTile({
   label,
   action = null,
+  hint = null,
   corner = null,
   children,
 }: {
   label: string;
   action?: ReactNode;
+  hint?: ReactNode;
   corner?: ReactNode;
   children: ReactNode;
 }) {
@@ -796,12 +819,34 @@ function MetricTile({
       <div className="flex min-h-7 min-w-0 flex-nowrap items-center justify-between gap-x-2">
         <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
+          {hint}
           {action}
         </div>
         {corner ? <div className="min-w-0 shrink-0">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
+  );
+}
+
+function AskingPriceRangeHint({ estimate }: { estimate: PriceEstimate }) {
+  const minMultiple = estimate.multipleLow.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const maxMultiple = estimate.multipleHigh.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return (
+    <InfoHint text={companyCopy.askingPriceHelp} icon="info" width="lg" size="sm" content={
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold">Cómo se calcula el rango</p>
+        <p className="leading-5">EBITDA ajustado × múltiplo sectorial (mín.–máx.) = rango orientativo</p>
+        <div className="rounded-lg bg-white/10 px-2.5 py-2 font-medium tabular-nums">
+          <p>
+            EBITDA aj. × {minMultiple}x = {wholeEur(estimate.lowCents)}
+          </p>
+          <p className="mt-1">
+            EBITDA aj. × {maxMultiple}x = {wholeEur(estimate.highCents)}
+          </p>
+        </div>
+      </div>
+    } />
   );
 }
 
@@ -816,7 +861,7 @@ function FichaMetrics({
   ebitda,
   adjustedEbitda,
   margin,
-  netResult,
+  adjustedMargin,
   priceBlocked = false,
   adjustmentCount,
   pendingCount = 0,
@@ -832,7 +877,7 @@ function FichaMetrics({
   ebitda: string;
   adjustedEbitda: string;
   margin: string;
-  netResult: string;
+  adjustedMargin: string;
   priceBlocked?: boolean;
   adjustmentCount: number;
   pendingCount?: number;
@@ -857,17 +902,13 @@ function FichaMetrics({
           recommended={priceBlocked ? null : recommended}
           unsetText={companyCopy.priceUnset}
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
-          help={companyCopy.askingPriceHelp}
           estimate={priceBlocked ? null : estimate}
           askingPriceIncludes={askingPriceIncludes}
           onAskingPriceIncludes={onAskingPriceIncludes}
         />
       </div>
-      <div className="h-full min-w-0">
-      <MetricTile label={companyCopy.ebitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
-      </MetricTile>
-      </div>
+      <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
+      <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
       <div id="ebitda-ajustado" className="h-full min-w-0 scroll-mt-24">
         <MetricTile
@@ -910,10 +951,12 @@ function FichaMetrics({
           )}
         </MetricTile>
       </div>
-      <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
-      <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
-      {/* t85: 6th tile completes the 3×2 grid; net result of the same closed year, from the stored accounts. */}
-      <ReadOnlyFigure label="Resultado neto" value={netResult} />
+      <MetricTile label={companyCopy.ebitdaMarginLabel}>
+        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+      </MetricTile>
+      <MetricTile label={companyCopy.adjustedEbitdaMarginLabel}>
+        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{adjustedMargin}</span>
+      </MetricTile>
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
     </div>
     </div>
@@ -2119,12 +2162,6 @@ export function CompanyDraftForm({
   // t80: a negative EBITDA is still the real figure (it used to be dropped, so DEALE showed "Pendiente de cargar").
   // Only the price estimate needs a positive basis, and euroCentsOrNull below stays unsigned for that.
   const ebitdaFromAccounts = ebitdaCentsFromAccounts !== null ? eurosToCentsLabel(ebitdaCentsFromAccounts) : null;
-  // t85: net result of the account year, read from the stored accounts (detailRows), never typed by the seller.
-  const netResultCents = (() => {
-    const row = fichaExtras?.detailRows?.find((line) => line.key === "netResultCents");
-    const column = accountYear ? (fichaExtras?.detailYears ?? []).findIndex((column) => String(column.year) === accountYear.year) : -1;
-    return row && column >= 0 ? (row.values[column] ?? null) : null;
-  })();
   // t82: live bridge base = the stored accounts EBITDA the server will use, else the loaded statements.
   const storedEbitdaCents = signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : null;
   const adjustmentBaseCents =
@@ -2800,7 +2837,7 @@ export function CompanyDraftForm({
                 />
               )}
               margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-              netResult={netResultCents !== null ? eurosToCentsLabel(netResultCents) : ""}
+              adjustedMargin={marginText(salesFromAccounts ?? revenue, adjustedEbitda)}
               priceBlocked={priceBlocked}
               recommended={
                 priceEstimate

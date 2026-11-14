@@ -5,6 +5,7 @@ import {
   isValidSpanishNie,
   isValidSpanishPersonId,
   isValidSpanishTaxId,
+  maskNationalId,
   normalizeCif,
 } from "@/lib/spanish-cif";
 
@@ -37,5 +38,13 @@ describe("isValidSpanishTaxId", () => {
     expect(isValidSpanishPersonId("12345678Z")).toBe(true);
     expect(isValidSpanishPersonId("X0000000T")).toBe(true);
     expect(isValidSpanishPersonId("A00000000")).toBe(false);
+  });
+});
+
+describe("maskNationalId", () => {
+  it("keeps the last three characters and never returns the full id", () => {
+    expect(maskNationalId("12345678Z")).toBe("••••••78Z");
+    expect(maskNationalId("X0000000T")).toBe("••••••00T");
+    expect(maskNationalId("12345678Z")).not.toContain("123456");
   });
 });

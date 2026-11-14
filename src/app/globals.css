@@ -583,6 +583,45 @@
   animation: releva-swap-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.releva-gold-shine {
+  display: inline;
+  background-image: linear-gradient(
+    105deg,
+    #a87f2c 0%,
+    #d4b062 22%,
+    #f3e2b3 46%,
+    #ecd08a 58%,
+    #a87f2c 100%
+  );
+  background-size: 240% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: releva-gold-sweep 3.8s ease-in-out infinite;
+}
+
+@keyframes releva-gold-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .releva-gold-shine {
+    animation: none;
+    background-image: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: #a87f2c;
+    -webkit-text-fill-color: #a87f2c;
+  }
+}
+
 /* t32: the city box keeps the image's 3:2 ratio so the % spot positions map to the
    picture at every width (it used to stretch with 100svh and drift on 2560/390). */
 .releva-city-box {
@@ -2444,7 +2483,7 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-hero-glass .releva-hero-title {
-    font-size: clamp(2.25rem, 5.4cqi, 5.2rem);
+    font-size: clamp(1.85rem, 4.4cqi, 3.75rem);
   }
 
   .releva-hero-actions {
@@ -2473,9 +2512,10 @@ header:has([data-menu-open="true"]) {
     order: 0;
     z-index: 10;
     justify-content: space-between;
-    align-items: stretch;
+    align-items: center;
+    width: 100%;
     padding: 1.2rem 1.15rem 1.25rem;
-    text-align: left;
+    text-align: center;
     text-shadow: none;
     background:
       linear-gradient(180deg, rgb(8 16 24 / 0.62) 0%, rgb(8 16 24 / 0.22) 34%, transparent 52%),
@@ -2487,8 +2527,15 @@ header:has([data-menu-open="true"]) {
     text-shadow: 0 1px 18px rgb(8 16 24 / 0.45);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .releva-hero-glass .releva-gold-shine {
+      color: #f3e2b3;
+      -webkit-text-fill-color: #f3e2b3;
+    }
+  }
+
   .releva-hero-actions {
-    align-items: stretch;
+    align-items: center;
     margin-top: 0;
     width: 100%;
     max-width: none;
@@ -2651,6 +2698,7 @@ header:has([data-menu-open="true"]) {
   .releva-city-pin,
   .releva-city-spot .releva-city-pin::after,
   .releva-swap-word,
+  .releva-gold-shine,
   .releva-path-wait,
   .releva-path-wait .releva-path-mark {
     animation: none;

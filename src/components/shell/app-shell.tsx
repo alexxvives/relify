@@ -61,7 +61,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SignerProvider nationalIdMissing={user.nationalIdMissing}>
+    <SignerProvider nationalIdMissing={user.nationalIdMissing} nationalIdMasked={user.nationalIdMasked}>
     <AppFrame
       name={user.displayName}
       destinations={destinations}

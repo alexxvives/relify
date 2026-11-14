@@ -148,8 +148,8 @@ function ReportSection({
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#e6f4f2] text-[#0f766e]">
           <Icon className="size-5" aria-hidden />
         </span>
-        <h2 className="report-section-title min-w-0 flex-1 text-lg font-semibold text-[#1c2740]">{title}</h2>
-        {aside ? <span className="report-section-aside max-w-[min(40%,6.5rem)] shrink text-right text-xs leading-snug text-pretty text-[#5c6b78] sm:max-w-[min(45%,12rem)] sm:text-sm">{aside}</span> : null}
+        <h2 className="report-section-title min-w-0 shrink-0 text-lg font-semibold text-[#1c2740]">{title}</h2>
+        {aside ? <span className="report-section-aside min-w-0 flex-1 truncate text-right text-xs leading-snug whitespace-nowrap text-[#5c6b78] sm:text-sm">{aside}</span> : null}
         <ChevronDown className="size-4 min-w-0 shrink text-[#5c6b78] transition-transform group-open/section:rotate-180 sm:size-5" aria-hidden />
       </summary>
       <div className="border-t border-[#eef0f4] px-4 pt-4 pb-5 sm:px-6 sm:pb-6">
@@ -833,19 +833,19 @@ export function CompanyReport({
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <div className={`relative flex min-w-0 flex-col gap-4 ${showSectionNav && !navBelowTabs ? "pt-16" : ""}`}>
+    <div className="relative flex min-w-0 flex-col gap-4">
       {showSectionNav ? (
         <ReportNav
           items={sections}
           label={companyReportCopy.nav}
           belowFloatingTabs={navBelowTabs}
-          inlineUntilSticky={navBelowTabs}
+          inlineUntilSticky
           hostId={navBelowTabs ? "ficha-section-nav-slot" : undefined}
         />
       ) : null}
       <div className="flex min-w-0 flex-col gap-4">
 
-      <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint}>
+      <ReportSection id="resumen" icon={Sparkles} title={companyReportCopy.summary} intro={companyReportCopy.summaryHint} open>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
           <Kpi label={companyCopy.revenueLabel} value={compactEur(headline.revenueCents)} hint={`${companyCopy.revenueHint} Último ejercicio de referencia: ${formatEur(headline.revenueCents)}.`} />
           <Kpi

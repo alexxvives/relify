@@ -272,6 +272,22 @@ async function generateCorrectedSeed() {
   lines.push(`INSERT INTO "project_cnae" (id, project_id, code, role, position)`);
   lines.push(`VALUES (${sqlString(manualCnaeId)}, ${sqlString(manualProjectId)}, '70.22', 'principal', 0)`);
   lines.push(`ON CONFLICT (project_id, code) DO NOTHING;`);
+
+  const consultoriaYears = [
+    { year: 2022, sales: 170000000, ebitda: 32000000, netResult: 24000000, totalAssets: 125000000, equity: 59000000 },
+    { year: 2023, sales: 185000000, ebitda: 36000000, netResult: 27000000, totalAssets: 140000000, equity: 67000000 },
+    { year: 2024, sales: 200000000, ebitda: 40000000, netResult: 30000000, totalAssets: 160000000, equity: 77000000 },
+  ];
+  for (const { year, sales, ebitda, netResult, totalAssets, equity } of consultoriaYears) {
+    const yearId = deterministicUUID("int-year", `${manualProjectId}-${year}`);
+    lines.push("");
+    lines.push(`INSERT INTO "project_year" (id, project_id, year, kind, data_source, sales_cents, ebitda_cents, net_result_cents, total_assets_cents, equity_cents)`);
+    lines.push(`VALUES (${sqlString(yearId)}, ${sqlString(manualProjectId)}, ${year}, 'closed', 'vendedor', ${sales}, ${ebitda}, ${netResult}, ${totalAssets}, ${equity})`);
+    lines.push(`ON CONFLICT (project_id, year) DO UPDATE SET`);
+    lines.push(`  sales_cents = EXCLUDED.sales_cents,`);
+    lines.push(`  ebitda_cents = EXCLUDED.ebitda_cents,`);
+    lines.push(`  net_result_cents = EXCLUDED.net_result_cents;`);
+  }
   
   // Buyer NDA states
   lines.push("");

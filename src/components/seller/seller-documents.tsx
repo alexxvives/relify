@@ -629,7 +629,6 @@ export function SellerDocuments({
 
   return (
     <div className="flex flex-col gap-4">
-      {folder === null ? teaser : null}
     <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
       {folder === null ? (
         <>
@@ -771,6 +770,7 @@ export function SellerDocuments({
         }}
       />
     </div>
+      {folder === null && teaser ? <div className="flex justify-center">{teaser}</div> : null}
     </div>
   );
 }

@@ -18,9 +18,9 @@ describe("dealPipeline", () => {
     expect(steps.map((step) => step.label)).toEqual([
       "Solicitud",
       "Conexión",
-      "Confidencialidad",
+      "NDA",
       "Preguntas",
-      "Carta de intenciones",
+      "LOI",
       "Revisión",
       "Contrato",
       "Venta",

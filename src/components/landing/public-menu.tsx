@@ -5,7 +5,6 @@ import Link from "next/link";
 import { IntBadge } from "@/components/shell/int-badge";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { Logo } from "@/components/shell/logo";
-import { landingCopy } from "@/lib/landing-copy";
 
 export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; showInt?: boolean }) {
   const [onDark, setOnDark] = useState(false);
@@ -64,8 +63,8 @@ export function PublicMenu({ signedIn, showInt = false }: { signedIn: boolean; s
         onDark={mobileOpen ? false : onDark}
         menuOpen={mobileOpen}
         onMenuOpenChange={setMobileOpen}
-        accountHref={signedIn ? "/cuenta" : landingCopy.waitlistNav.href}
-        accountLabel={signedIn ? landingCopy.accountCta : landingCopy.signInCta}
+        signedIn={signedIn}
+        accountHref={signedIn ? "/cuenta" : "/entrar"}
       />
     </div>
   );

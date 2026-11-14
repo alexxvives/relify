@@ -42,6 +42,7 @@ export function InfoHint({
   width = "md",
   size = "md",
   hoverOnly = false,
+  content = null,
   children,
 }: {
   text: string;
@@ -53,6 +54,8 @@ export function InfoHint({
   size?: "sm" | "md";
   /** Wrap an existing control. Hover and focus open the bubble; the control keeps its own click. */
   hoverOnly?: boolean;
+  /** Optional visual body instead of the plain `text` (aria-label still uses `text`). */
+  content?: ReactNode;
   /** Optional custom trigger instead of the icon. */
   children?: ReactNode;
 }) {
@@ -159,16 +162,16 @@ export function InfoHint({
               id={id}
               role="tooltip"
               style={tooltipBox(pos, widths[width])}
-              className={`pointer-events-none z-[100] ${tooltipBubble}`}
+              className={`pointer-events-none z-[100] ${content ? "rounded-xl bg-[#1c2740] px-3 py-2.5 text-left text-xs leading-5 font-normal text-white shadow-lg" : tooltipBubble}`}
             >
-              {text}
+              {content ?? text}
             </span>,
             document.body,
           )
         : null}
       {useSheet ? (
         <BottomSheet open={sheetOpen} title="Ayuda" onClose={() => setSheetOpen(false)}>
-          <p className="text-sm leading-6 text-[#3d4a63]">{text}</p>
+          {content ? <div className="text-sm leading-6 text-[#3d4a63]">{content}</div> : <p className="text-sm leading-6 text-[#3d4a63]">{text}</p>}
         </BottomSheet>
       ) : null}
     </span>

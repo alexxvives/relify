@@ -16,6 +16,7 @@ export function CompanyBanner({
   sector = null,
   chips = [],
   variant = "hero",
+  bannerAction = null,
 }: {
   title: string;
   subtitle?: string;
@@ -36,6 +37,8 @@ export function CompanyBanner({
    * sector tile, the name, small chips, status, readiness chip, then deal progress and cue on the light page.
    */
   variant?: "hero" | "compact";
+  /** Extra control under the chips (buyer dossier download). */
+  bannerAction?: ReactNode;
 }) {
   const Title = heading;
   if (variant === "compact") {
@@ -71,6 +74,7 @@ export function CompanyBanner({
           {children ? <div className="ml-auto flex items-center gap-2">{children}</div> : null}
         </div>
         {progress ? <div>{progress}</div> : null}
+        {bannerAction ? <div className="flex">{bannerAction}</div> : null}
         {cue ? <div className="flex">{cue}</div> : null}
       </header>
     );
@@ -121,6 +125,7 @@ export function CompanyBanner({
             ))}
           </ul>
         ) : null}
+        {bannerAction ? <div className="mt-5 flex justify-center">{bannerAction}</div> : null}
         {subtitle || status ? (
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#e7ecff]">
           {subtitle ? (

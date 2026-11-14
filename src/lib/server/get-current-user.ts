@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth-input";
 import { auth } from "@/lib/server/auth";
 import { prisma } from "@/lib/db";
+import { maskNationalId } from "@/lib/spanish-cif";
 
 export type CurrentUser = {
   id: string;
@@ -22,6 +23,8 @@ export type CurrentUser = {
   termsAcceptedAt: Date | null;
   /** Signed documents show the DNI/NIE; older accounts may still need to add it. */
   nationalIdMissing: boolean;
+  /** Masked DNI/NIE for UI. The full value never leaves the server on this object. */
+  nationalIdMasked: string | null;
 };
 
 export async function getAuthoritativeAuthSession(
@@ -77,5 +80,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     termsAccepted: stored.termsAcceptedAt !== null,
     termsAcceptedAt: stored.termsAcceptedAt,
     nationalIdMissing: !stored.nationalId,
+    nationalIdMasked: stored.nationalId ? maskNationalId(stored.nationalId) : null,
   };
 });

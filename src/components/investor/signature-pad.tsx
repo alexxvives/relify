@@ -4,6 +4,8 @@ import { useRef, useState, type PointerEvent } from "react";
 import { Eraser } from "lucide-react";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { useSigner } from "@/components/investor/signer-context";
+import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
+import { authCopy } from "@/lib/auth-copy";
 import { Input } from "@/components/ui/form";
 
 function exportJpeg(canvas: HTMLCanvasElement): string {
@@ -23,16 +25,22 @@ function exportJpeg(canvas: HTMLCanvasElement): string {
 export function SignaturePad({
   invalid,
   onChange,
+  collectIdentity = false,
 }: {
   invalid: boolean;
   onChange: (dataUrl: string) => void;
+  /** NDA (and first-time LOI) collect or confirm the signer DNI/NIE. LOI reuse skips the field. */
+  collectIdentity?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   // Only a real stroke counts: a bare click must not produce a blank "signature".
   const moved = useRef(false);
   const [signed, setSigned] = useState(false);
-  const { nationalIdMissing } = useSigner();
+  const { nationalIdMissing, nationalIdMasked } = useSigner();
+  const askId = nationalIdMissing;
+  const confirmStored = collectIdentity && !nationalIdMissing;
+  const declareIdentity = collectIdentity || askId;
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
@@ -59,21 +67,28 @@ export function SignaturePad({
 
   return (
     <div>
-      {nationalIdMissing ? (
-        <label className="mb-4 block">
-          <span className="text-sm font-medium text-[#1c2740]">DNI o NIE del firmante</span>
-          <span className="mt-0.5 block text-xs text-[#5c6b78]">Aparece en el documento firmado. Solo te lo pedimos una vez.</span>
+      {askId ? (
+        <label className="mb-3 block">
+          <span className="text-sm font-medium text-[#1c2740]">{authCopy.nationalIdLabel}</span>
+          <span className="mt-0.5 block text-xs text-[#5c6b78]">Aparece en el documento firmado. Lo guardamos en tu cuenta para no pedírtelo otra vez.</span>
           <Input
             name="nationalId"
             required
             autoComplete="off"
             inputMode="text"
             maxLength={12}
-            placeholder="12345678Z"
+            placeholder={authCopy.nationalIdPlaceholder}
             className="mt-2 placeholder:normal-case"
           />
         </label>
       ) : null}
+      {confirmStored ? (
+        <p className="mb-2 text-xs leading-5 text-[#5c6b78]">
+          {authCopy.nationalIdKeep}
+          {nationalIdMasked ? ` ${nationalIdMasked}` : ""}
+        </p>
+      ) : null}
+      {declareIdentity ? <IdentityDeclarationCheckbox /> : null}
       <p className="text-sm font-medium text-[#1c2740]">{platformTermsCopy.signLabel}</p>
       <div className="relative mt-2">
         <canvas

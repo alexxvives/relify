@@ -99,11 +99,14 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(authScreen).toMatch(/md:rounded-\[1\.75rem\] md:border md:border-white\/80 md:bg-white\/95/);
   });
 
-  it("keeps Perfil ciego as a preview card with overflow actions", () => {
+  it("keeps Perfil ciego as a preview card with a copy-link icon and no Regenerar", () => {
     expect(teaserCard).toMatch(/data-teaser-card/);
-    expect(teaserCard).toMatch(/Más acciones|moreActions/);
     expect(teaserCard).toMatch(/data-teaser-preview/);
+    expect(teaserCard).toMatch(/Link2/);
     expect(teaserCard).not.toMatch(/previewOnDemand/);
+    expect(teaserCard).not.toMatch(/moreActions/);
+    expect(teaserCard).not.toMatch(/regenerateShare/);
+    expect(teaserCard).not.toMatch(/onRegenerate/);
   });
 
   it("does not render the 50% EBITDA adjustment warning", () => {
@@ -122,5 +125,85 @@ describe("S13b scroll lock and seller surfaces", () => {
     expect(draftForm).toMatch(/savePanel/);
     expect(draftForm).toMatch(/cancelPanel/);
     expect(draftForm).not.toMatch(/ChevronUp/);
+  });
+});
+
+const shellCopySource = readFileSync(path.join(process.cwd(), "src/lib/shell.ts"), "utf8");
+const appFrame = readFileSync(path.join(process.cwd(), "src/components/shell/app-frame.tsx"), "utf8");
+const investorProject = readFileSync(path.join(process.cwd(), "src/components/investor/investor-project.tsx"), "utf8");
+const companyReport = readFileSync(path.join(process.cwd(), "src/components/seller/company-report.tsx"), "utf8");
+const investorProcesses = readFileSync(path.join(process.cwd(), "src/components/investor/investor-processes.tsx"), "utf8");
+const sellerProcesses = readFileSync(path.join(process.cwd(), "src/components/seller/seller-processes.tsx"), "utf8");
+
+describe("S17 buyer ficha and seller surfaces", () => {
+  it("commits the asking-price bar on release, not on every pointer move", () => {
+    expect(draftForm).toMatch(/onCommit\?: \(cents: number\) => void/);
+    const sheetBar = draftForm.slice(draftForm.indexOf("data-asking-price-sheet"));
+    expect(sheetBar).toMatch(/onChange=\{\(cents\) => \{\s*setDraft\(centsToAskingInput\(cents\)\);\s*\}\}/);
+    expect(sheetBar).toMatch(/onCommit=\{\(cents\) => \{[\s\S]*?onChange\(next\);/);
+  });
+
+  it("explains the price range with an info tooltip, not the old sentence", () => {
+    expect(draftForm).not.toMatch(/El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado/);
+    expect(draftForm).toMatch(/AskingPriceRangeHint/);
+    expect(draftForm).toMatch(/EBITDA ajustado × múltiplo sectorial/);
+  });
+
+  it("orders Datos de la ficha without Resultado neto", () => {
+    const metrics = draftForm.slice(draftForm.indexOf("function FichaMetrics"), draftForm.indexOf("function SellerFinancingField"));
+    expect(metrics).toMatch(/askingPriceLabel[\s\S]*revenueLabel[\s\S]*ebitdaLabel[\s\S]*adjustedEbitdaLabel[\s\S]*ebitdaMarginLabel[\s\S]*adjustedEbitdaMarginLabel/);
+    expect(metrics).not.toMatch(/netResult|Resultado neto/);
+  });
+
+  it("renames help to Llámanos o escríbenos and shows only the phone number", () => {
+    expect(shellCopySource).toMatch(/helpTitle: "Llámanos o escríbenos\."/);
+    expect(appFrame).toMatch(/shellCopy\.helpPhone/);
+    expect(appFrame).not.toMatch(/shellCopy\.helpCall/);
+  });
+
+  it("puts the dossier download in the buyer banner and drops the LOI template link", () => {
+    expect(investorProject).toMatch(/bannerAction=/);
+    expect(investorProject).toMatch(/dossierDownload/);
+    expect(investorProject).not.toMatch(/BuyerDossierLink/);
+    expect(investorProject).not.toMatch(/loiTemplateHref/);
+    expect(investorProcesses).not.toMatch(/loiTemplateHref/);
+    expect(sellerProcesses).not.toMatch(/loiTemplateHref/);
+  });
+
+  it("keeps collapsed report asides on one line and sticks the buyer section nav after it leaves flow", () => {
+    expect(companyReport).toMatch(/report-section-aside[\s\S]*whitespace-nowrap/);
+    expect(companyReport).toMatch(/report-section-aside[\s\S]*truncate/);
+    expect(companyReport).toMatch(/report-section-title min-w-0 shrink-0/);
+    expect(companyReport).toMatch(/inlineUntilSticky/);
+  });
+});
+
+const heroSource = readFileSync(path.join(process.cwd(), "src/components/landing/hero.tsx"), "utf8");
+const landingNav = readFileSync(path.join(process.cwd(), "src/components/landing/landing-nav.tsx"), "utf8");
+
+describe("S17 landing hero title and header", () => {
+  it("keeps one signup CTA, the rotating verb, and a gold shine on rentables", () => {
+    expect(heroSource).toMatch(/El mercado inteligente para/);
+    expect(heroSource).toMatch(/<SwapVerb \/> empresas/);
+    expect(heroSource).toMatch(/releva-gold-shine">rentables/);
+    expect(heroSource).toMatch(/href="\/registro"/);
+    expect(heroSource).not.toMatch(/Comprar una empresa/);
+    expect(heroSource).not.toMatch(/Vender tu empresa/);
+    expect(heroSource).not.toMatch(/registro\?rol=/);
+  });
+
+  it("shows ghost Iniciar sesión and primary Prueba gratis on desktop and mobile", () => {
+    expect(landingNav).toMatch(/landingCopy\.signInCta/);
+    expect(landingNav).toMatch(/landingCopy\.tryFreeCta/);
+    expect(landingNav).toMatch(/href="\/entrar"/);
+    expect(landingNav).toMatch(/href="\/registro"/);
+    expect(landingNav).toMatch(/ghostLink/);
+  });
+
+  it("animates rentables with a gold clip sweep and a static gold when motion is reduced", () => {
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*background-clip:\s*text/);
+    expect(css).toMatch(/@keyframes releva-gold-sweep/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#a87f2c/);
+    expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
   });
 });

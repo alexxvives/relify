@@ -78,6 +78,18 @@ export function isValidSpanishPersonId(value: string): boolean {
   return isValidSpanishDni(value) || isValidSpanishNie(value);
 }
 
+/** Last three characters stay visible; the rest is a bullet. Never log or render the full id in UI. */
+export function maskNationalId(value: string): string {
+  const id = normalizeCif(value);
+  if (id.length === 0) {
+    return "";
+  }
+  if (id.length <= 3) {
+    return "•".repeat(id.length);
+  }
+  return `${"•".repeat(id.length - 3)}${id.slice(-3)}`;
+}
+
 export function isValidSpanishTaxId(value: string): boolean {
   return isValidSpanishPersonId(value) || isValidSpanishCif(value);
 }

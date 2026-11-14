@@ -5,7 +5,8 @@ export const landingCopy = {
   intro:
     "Facilitamos la compraventa con cifras a la vista, nombres de proyecto y un recorrido que mantiene la sociedad fuera de la ficha pública.",
   registerCta: "Regístrate gratis ahora",
-  signInCta: "Acceder",
+  signInCta: "Iniciar sesión",
+  tryFreeCta: "Prueba gratis",
   accountCta: "Cuenta",
   catalogCta: "Empresas en venta",
   words: ["comprar", "vender", "asesorar"],
@@ -148,12 +149,12 @@ export const landingCopy = {
     ],
   },
   home: {
-    title: "Un mercado para comprar y vender empresas",
+    title: "El mercado inteligente para comprar y vender empresas rentables",
     description:
       "En Relify las fichas se leen por facturación, EBITDA y precio, sin la razón social. Publicas la tuya o pides conexión a las que encajan.",
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
-    cta: "Comprar una empresa",
+    cta: "Prueba gratis",
     sellCta: "Vender tu empresa",
     step: "Ficha pública",
     buyersKicker: "Empresarios que buscan",

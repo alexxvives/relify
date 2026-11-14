@@ -311,24 +311,19 @@ export function Hero() {
           />
         </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(1.85rem,8vw,2.4rem)] leading-[0.96] text-public-ink lg:text-[clamp(2.25rem,5.4cqi,5.2rem)]">
-            <span className="block">Un mercado para</span>
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(1.5rem,6.6vw,2.15rem)] leading-[1.05] text-balance text-public-ink lg:text-[clamp(1.85rem,4.4cqi,3.75rem)]">
+            <span className="block">El mercado inteligente para</span>
             <span className="block">
-              <SwapVerb /> empresas
+              <SwapVerb /> empresas{" "}
+              <span className="releva-gold-shine">rentables</span>
             </span>
           </h1>
-          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-stretch justify-center gap-2.5 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-center justify-center gap-2.5 sm:max-w-none">
             <Link
-              href="/registro?rol=inversor"
-              className="inline-flex h-12 min-h-11 items-center justify-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
+              href="/registro"
+              className="inline-flex h-12 min-h-11 w-full max-w-xs items-center justify-center rounded-full bg-public-clay px-8 font-semibold text-white shadow-[0_10px_22px_-12px_rgb(15_110_115_/_0.75)] transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:w-auto"
             >
               {copy.cta}
-            </Link>
-            <Link
-              href="/registro?rol=empresa"
-              className="inline-flex h-12 min-h-11 items-center justify-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
-            >
-              {copy.sellCta}
             </Link>
           </div>
         </div>

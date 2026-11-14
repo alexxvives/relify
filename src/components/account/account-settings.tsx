@@ -10,6 +10,7 @@ import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
 import { accountDisplayName } from "@/lib/auth-input";
 import { readStoredPhone } from "@/lib/phone-countries";
+import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
 import { Button, Card, Field, Input, PasswordInput } from "@/components/ui/form";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 
@@ -18,7 +19,7 @@ export function AccountSettings({
   lastName: initialLastName,
   email: initialEmail,
   phone: initialPhone,
-  nationalId: initialNationalId,
+  nationalIdMasked: initialNationalIdMasked,
   photo = null,
   middle = null,
   agreement = null,
@@ -27,7 +28,7 @@ export function AccountSettings({
   lastName: string | null;
   email: string;
   phone: string | null;
-  nationalId: string | null;
+  nationalIdMasked: string | null;
   photo?: ReactNode;
   middle?: ReactNode;
   agreement?: ReactNode;
@@ -42,18 +43,21 @@ export function AccountSettings({
     email: initialEmail,
     phoneCountry: storedPhone.iso,
     phone: storedPhone.national,
-    nationalId: initialNationalId ?? "",
+    nationalId: "",
   };
+  const storedMasked = initialNationalIdMasked ?? "";
   const [fullName, setFullName] = useState(starting.fullName);
   const [email, setEmail] = useState(starting.email);
   const [phoneCountry, setPhoneCountry] = useState(starting.phoneCountry);
   const [phone, setPhone] = useState(starting.phone);
-  const [nationalId, setNationalId] = useState(starting.nationalId);
+  const [nationalId, setNationalId] = useState("");
+  const [editingId, setEditingId] = useState(storedMasked.length === 0);
   const [baseline, setBaseline] = useState(starting);
   const [seenSave, setSeenSave] = useState<AccountFormState>(null);
   const [profileState, updateProfile, profilePending] = useActionState<AccountFormState, FormData>(updateAccountAction, null);
   const [passwordState, changePassword, passwordPending] = useActionState<AccountFormState, FormData>(changePasswordAction, null);
   const [deleteState, deleteAccount, deletePending] = useActionState<AccountFormState, FormData>(deleteAccountAction, null);
+  const keepStoredId = storedMasked.length > 0 && !editingId;
   const dirty =
     fullName !== baseline.fullName ||
     email !== baseline.email ||
@@ -123,17 +127,40 @@ export function AccountSettings({
                 onChange={(event) => setFullName(event.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm font-medium">
+            <div className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.nationalIdLabel}
-              <Input
-                name="nationalId"
-                autoComplete="off"
-                required
-                maxLength={12}
-                value={nationalId}
-                onChange={(event) => setNationalId(event.target.value.toUpperCase())}
-              />
-            </label>
+              {keepStoredId ? (
+                <>
+                  <input type="hidden" name="nationalIdKeep" value="1" />
+                  <span className="flex min-h-11 items-center justify-between gap-2 rounded-[var(--field-radius)] border border-[#e1e5eb] bg-[#fbfbfc] px-3 text-sm font-normal tracking-widest text-[#1c2740]">
+                    <span className="tabular-nums">{storedMasked}</span>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold tracking-normal text-[#465ab4] hover:underline"
+                      onClick={() => {
+                        setEditingId(true);
+                        setNationalId("");
+                      }}
+                    >
+                      {authCopy.nationalIdChange}
+                    </button>
+                  </span>
+                  <span className="text-xs font-normal text-[#5c6b78]">{authCopy.nationalIdMaskedHint}</span>
+                </>
+              ) : (
+                <>
+                  <Input
+                    name="nationalId"
+                    autoComplete="off"
+                    required
+                    maxLength={12}
+                    value={nationalId}
+                    onChange={(event) => setNationalId(event.target.value.toUpperCase())}
+                  />
+                  <IdentityDeclarationCheckbox />
+                </>
+              )}
+            </div>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.emailFieldLabel}
               <Input

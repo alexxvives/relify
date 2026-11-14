@@ -18,7 +18,6 @@ import type { AdminCompanyMessage, AdminCompanyView, AdminSideAdvisor } from "@/
 import { Card } from "@/components/ui/form";
 import { PublishReadinessChip } from "@/components/admin/admin-publish-checks";
 import { SellerPdfCard } from "@/components/seller/company-pdf-card";
-import { regenerateAdminTeaserLinkAction } from "@/app/(app)/admin/actions";
 import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
 const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
@@ -107,7 +106,6 @@ export function AdminCompany({
                   desk={teaserDesk}
                   previewHref={`/admin/empresas/${view.profile.slug}/pdf/teaser?preview=1`}
                   downloadHref={`/admin/empresas/${view.profile.slug}/pdf/teaser?download=1`}
-                  onRegenerate={regenerateAdminTeaserLinkAction.bind(null, view.profile.slug)}
                 />
               ) : null}
             </div>

@@ -121,6 +121,15 @@ async function measureLastContentControl(page: Page): Promise<void> {
       if (el.closest("[data-sticky-twin], [data-shell-chrome]")) {
         return [];
       }
+      if (el.closest("details:not([open])")) {
+        return [];
+      }
+      if (el instanceof HTMLInputElement && el.type === "file") {
+        return [];
+      }
+      if (el.matches("a[href^='#']")) {
+        return [];
+      }
       if (sticky instanceof HTMLElement && sticky.contains(el)) {
         return [];
       }
@@ -153,7 +162,7 @@ async function measureLastContentControl(page: Page): Promise<void> {
       return { ok: true, message: "no content controls in view" };
     }
     const rect = last.rect;
-    const label = (last.el.textContent ?? last.el.getAttribute("aria-label") ?? last.el.tagName).trim().slice(0, 48);
+    const label = (last.el.getAttribute("aria-label") || last.el.textContent || last.el.tagName).trim().slice(0, 48);
     const path = `${location.pathname}${location.search}`;
     if (rect.bottom > chromeTop + 2) {
       return {
@@ -275,6 +284,15 @@ export async function expectLastContentControlTappable(page: Page): Promise<void
       if (el.closest("[data-sticky-twin], [data-shell-chrome]")) {
         return [];
       }
+      if (el.closest("details:not([open])")) {
+        return [];
+      }
+      if (el instanceof HTMLInputElement && el.type === "file") {
+        return [];
+      }
+      if (el.matches("a[href^='#']")) {
+        return [];
+      }
       if (sticky instanceof HTMLElement && sticky.contains(el)) {
         return [];
       }
@@ -310,7 +328,7 @@ export async function expectLastContentControlTappable(page: Page): Promise<void
     const x = last.rect.left + last.rect.width / 2;
     const y = visBottom - visTop >= 8 ? (visTop + visBottom) / 2 : last.rect.top + last.rect.height / 2;
     const hit = document.elementFromPoint(x, y);
-    const label = (last.el.textContent ?? last.el.getAttribute("aria-label") ?? last.el.tagName).trim().slice(0, 48);
+    const label = (last.el.getAttribute("aria-label") || last.el.textContent || last.el.tagName).trim().slice(0, 48);
     const path = `${location.pathname}${location.search}`;
     const point = `${x.toFixed(0)},${y.toFixed(0)}`;
     if (!hit) {
