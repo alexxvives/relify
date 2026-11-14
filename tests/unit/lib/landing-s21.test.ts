@@ -18,9 +18,7 @@ describe("Round S21 landing and product bits", () => {
     expect(read("src/components/investor/signature-pad.tsx")).toMatch(/IdentityDeclarationCheckbox/);
   });
 
-  it("keeps checkout terms because sign-up does not require them", () => {
-    expect(read("src/components/auth/sign-up-form.tsx")).not.toMatch(/términos|privacidad/);
-    expect(read("src/components/investor/premium-plans.tsx")).toMatch(/CheckoutLegalNote/);
+  it("keeps plan cards without the old IVA 21% line", () => {
     expect(read("src/components/investor/premium-plans.tsx")).not.toMatch(/IVA 21% no incluido/);
     expect(read("src/lib/billing-copy.ts")).toMatch(/IVA incluido/);
   });

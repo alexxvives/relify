@@ -3065,7 +3065,7 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-hero-glass .releva-hero-title {
-    font-size: clamp(1.85rem, 4.4cqi, 3.75rem);
+    font-size: clamp(2.4rem, 5.8cqi, 4.65rem);
   }
 
   .releva-hero-actions {

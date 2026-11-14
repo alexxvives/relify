@@ -38,14 +38,14 @@ export function LandingNav({
             {group.links.length === 1 && group.links[0] ? (
               <Link
                 href={group.links[0].href}
-                className="flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] text-public-muted hover:text-public-ink xl:px-3"
+                className="flex h-11 min-h-11 items-center rounded-full px-3 text-[15px] text-public-muted hover:bg-public-sand hover:text-public-ink xl:px-4"
               >
                 {group.label}
               </Link>
             ) : (
             <button
               type="button"
-              className="flex min-h-11 items-center gap-1 rounded-full px-2.5 py-2 text-[15px] text-public-muted hover:text-public-ink xl:px-3"
+              className="flex h-11 min-h-11 items-center gap-1 rounded-full px-3 text-[15px] text-public-muted hover:bg-public-sand hover:text-public-ink xl:px-4"
               aria-expanded={open === group.label}
             >
               {group.label}
@@ -69,7 +69,7 @@ export function LandingNav({
         ))}
         <Link
           href={landingCopy.waitlistNav.href}
-          className="flex min-h-11 items-center rounded-full px-2.5 py-2 text-[15px] text-public-ink hover:bg-public-sand xl:px-3"
+          className="flex h-11 min-h-11 items-center rounded-full px-3 text-[15px] text-public-ink hover:bg-public-sand xl:px-4"
         >
           {landingCopy.waitlistNav.label}
         </Link>

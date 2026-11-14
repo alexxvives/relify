@@ -52,7 +52,7 @@ export function RolePage(props: RolePageProps) {
           <div className="min-w-0">
             <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{kicker}</p>
             <h1 className="releva-page-title mt-4 text-balance sm:mt-5">{title}</h1>
-            <p className="mt-4 max-w-xl text-[16px] leading-7 text-public-muted sm:mt-6 sm:text-lg sm:leading-relaxed">{lead}</p>
+            <p className="mt-4 text-[16px] leading-7 text-public-muted sm:mt-6 sm:text-lg sm:leading-relaxed">{lead}</p>
             <div className="mt-6 flex w-full flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <Link
                 href={cta.href}
@@ -117,7 +117,7 @@ export function RolePage(props: RolePageProps) {
           <div>
             <p className="text-sm font-medium tracking-[0.16em] text-public-clay uppercase">Dentro de Relify</p>
             <h2 className="releva-section-title mt-2 text-balance sm:mt-3">{props.productTitle}</h2>
-            <p className="mt-3 hidden max-w-md text-[16px] leading-7 text-public-muted sm:mt-4 sm:block sm:text-lg sm:leading-relaxed">{props.productBody}</p>
+            <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block sm:text-lg sm:leading-relaxed">{props.productBody}</p>
           </div>
           <div className="overflow-hidden rounded-3xl border border-public-line bg-white p-2 shadow-public">
             <Image src={image} alt={imageAlt} width={1440} height={760} sizes="(min-width: 1024px) 760px, 100vw" className="h-auto w-full rounded-2xl" />

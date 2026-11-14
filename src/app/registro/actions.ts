@@ -17,6 +17,7 @@ function readSignUpForm(formData: FormData): SignUpInput | { message: string } {
   const parsed = signUpSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
+    acceptTerms: formData.get("acceptTerms"),
   });
 
   if (!parsed.success) {

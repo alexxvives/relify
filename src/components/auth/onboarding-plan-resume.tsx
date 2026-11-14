@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { resumePlanAction, type OnboardingState } from "@/app/onboarding/actions";
 import { BuyerPlanStep, type OnboardingPlanChoice } from "@/components/auth/onboarding-plan-step";
-import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { billingCopy } from "@/lib/billing-copy";
 import { authCopy } from "@/lib/auth-copy";
 
@@ -40,7 +39,6 @@ export function OnboardingPlanResume({ home }: { home: string }) {
           </button>
         )}
       </div>
-      {plan !== "none" ? <CheckoutLegalNote /> : null}
     </form>
   );
 }

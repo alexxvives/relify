@@ -8,7 +8,6 @@ import { HeartIcon } from "@/components/ui/heart";
 import { CheckIcon } from "@/components/ui/check";
 import { AppToast } from "@/components/shell/app-toast";
 import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/(app)/premium/actions";
-import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
@@ -168,11 +167,6 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                       ? billingCopy.unlimitedYearlyGross
                     : item.gross}
               </p>
-              {item.gross ? (
-                <div className="mt-3">
-                  <CheckoutLegalNote />
-                </div>
-              ) : null}
               {item.inherit ? <p className="mt-8 text-sm font-medium text-[#1c2740]">{item.inherit}</p> : null}
               <ul className={item.inherit ? "mt-3 flex flex-1 flex-col gap-3" : "mt-8 flex flex-1 flex-col gap-3"}>
                 {item.points.map((point) => (

@@ -14,6 +14,9 @@ test.describe("visitor landing and public forms", () => {
     await page.goto("/registro");
     await expect(page.locator('input[name="email"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(page.locator('input[name="acceptTerms"]')).toBeVisible();
+    await expect(page.getByRole("link", { name: /términos de uso/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /política de privacidad/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /crear cuenta/i })).toBeVisible();
   });
 

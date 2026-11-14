@@ -40,9 +40,11 @@ function PathSteps({ role, pulse }: { role: FlowRole; pulse: number }) {
   }
 
   return (
-    <Fade key={`${role}-${pulse}`} blur duration={0.8} trigger="mount" initialOpacity={0}>
-      {steps}
-    </Fade>
+    <div className="isolate overflow-hidden">
+      <Fade key={`${role}-${pulse}`} blur duration={1.6} trigger="mount" initialOpacity={0}>
+        {steps}
+      </Fade>
+    </div>
   );
 }
 

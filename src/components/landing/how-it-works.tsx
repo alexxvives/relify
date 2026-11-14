@@ -141,7 +141,6 @@ export function HowItWorks({ role, travel = 0 }: { role: FlowRole; travel?: numb
 
   return (
     <div id={copy.id} className="mt-8 sm:mt-12">
-      <p className="text-center text-[16px] leading-7 text-pretty text-public-muted">{copy.intro}</p>
       <ol className="releva-how-mobile mt-5 lg:hidden">
         {track.steps.map((step) => (
           <li key={step.n} className="releva-how-mobile-card">

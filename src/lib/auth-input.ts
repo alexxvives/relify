@@ -37,6 +37,7 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 export const signUpSchema = z.object({
   email: emailSchema,
   password: z.string().min(8).max(128),
+  acceptTerms: z.literal("on"),
 });
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
@@ -207,6 +208,10 @@ export function signUpFieldMessage(error: z.ZodError): string {
 
   if (field === "password") {
     return authCopy.passwordLength;
+  }
+
+  if (field === "acceptTerms") {
+    return authCopy.termsRequired;
   }
 
   return authCopy.invalidForm;

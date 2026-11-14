@@ -18,6 +18,7 @@ import { readStoredPhone, storedPhone } from "@/lib/phone-countries";
 const validSignUp = {
   email: "Ana@Example.com",
   password: "clave-segura",
+  acceptTerms: "on",
 } as const;
 
 describe("signUpSchema", () => {
@@ -25,7 +26,12 @@ describe("signUpSchema", () => {
     expect(signUpSchema.parse(validSignUp)).toEqual({
       email: "ana@example.com",
       password: "clave-segura",
+      acceptTerms: "on",
     });
+  });
+
+  it("requires accepting terms", () => {
+    expect(signUpSchema.safeParse({ email: "ana@example.com", password: "clave-segura" }).success).toBe(false);
   });
 
   it("rejects a short password and keeps admin off self-serve signup", () => {

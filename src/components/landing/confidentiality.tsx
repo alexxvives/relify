@@ -7,12 +7,14 @@ export function Confidentiality() {
   return (
     <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
-            {copy.heading}
-          </h2>
-          <p className="mt-3 text-[16px] leading-7 text-pretty text-public-muted [text-wrap:pretty] sm:mt-4 sm:[text-wrap:balance]">
+        <div className="text-center">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
+            <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
+              {copy.heading}
+            </h2>
+          </div>
+          <p className="mt-3 text-[16px] leading-7 text-public-muted sm:mt-4">
             {copy.intro}
           </p>
         </div>

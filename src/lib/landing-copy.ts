@@ -264,7 +264,7 @@ export const landingCopy = {
       id: "como-funciona",
       kicker: "Cómo funciona",
       heading: "Simple desde el primer paso",
-      intro: "Qué datos dejas, qué prepara Relify y cuándo entra la otra parte, con el nombre de la sociedad todavía fuera.",
+      intro: "",
       pipeline: {
         kicker: "El proceso",
         heading: "Así avanza una operación",
@@ -338,7 +338,7 @@ export const landingCopy = {
                 rows: [
                   { name: "Solicitud", value: "Aceptada" },
                   { name: "NDA", value: "Firmado" },
-                  { name: "Chat/Documentos", value: "Abierto" },
+                  { name: "Chat / Documentos", value: "Abierto" },
                 ],
                 count: { name: "Solicitudes", target: 3, suffix: " esta semana" },
                 strong: "El nombre sigue fuera.",
@@ -400,7 +400,7 @@ export const landingCopy = {
                 rows: [
                   { name: "Conexión", value: "Aceptada" },
                   { name: "NDA", value: "Firmado" },
-                  { name: "Chat/Documentos", value: "Abierto" },
+                  { name: "Chat / Documentos", value: "Abierto" },
                 ],
                 count: { name: "Fichas leídas", target: 6, suffix: " esta semana" },
                 strong: "Todo queda dentro de la operación.",

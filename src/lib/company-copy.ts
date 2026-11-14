@@ -253,13 +253,13 @@ export const companyCopy = {
   tabs: {
     company: "Información de la empresa",
     transaction: "Información de la transacción",
-    questions: "Chat",
+    questions: "Chat / Documentos",
     meetings: "Reuniones",
     offer: "Oferta indicativa",
   },
   tabsCompact: {
     company: "Empresa",
-    questions: "Chat",
+    questions: "Chat / Documentos",
     meetings: "Reuniones",
   },
   transactionIntro: "Así está planteada la operación. La razón social, el CIF, la dirección y los archivos siguen cerrados.",

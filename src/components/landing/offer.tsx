@@ -30,11 +30,13 @@ export function Offer() {
           </span>
           {copy.preview}
         </p>
-        <div className="relative mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>
-          <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
-            {copy.heading}
-          </h2>
+        <div className="relative text-center">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>
+            <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
+              {copy.heading}
+            </h2>
+          </div>
           <p className="mt-3 hidden text-[16px] leading-7 text-[#3d4a63] sm:mt-4 sm:block">{copy.intro}</p>
         </div>
 

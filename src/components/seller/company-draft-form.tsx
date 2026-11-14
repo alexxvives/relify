@@ -3300,8 +3300,7 @@ export function CompanyDraftForm({
                 className="inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-[#1c2740] hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none sm:px-4"
               >
                 <Download className="size-4" aria-hidden />
-                <span className="sm:hidden">{companyPdfCopy.teaserDownloadShort}</span>
-                <span className="hidden sm:inline">{companyPdfCopy.teaserDownload}</span>
+                {companyPdfCopy.teaserDownload}
               </a>
             }
             progress={<DealPipeline steps={landingDealSteps(0)} role="investor" onDark hideAsideCue hideWaitingCue hideQaNote />}

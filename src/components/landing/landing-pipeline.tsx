@@ -47,8 +47,8 @@ export function LandingPipeline() {
   return (
     <div className="releva-land-pipe mt-10 sm:mt-14">
       <p className="text-center text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-      <h3 className="releva-section-title mt-2 text-center text-pretty sm:mt-3">{copy.heading}</h3>
-      <p className="mx-auto mt-3 max-w-2xl text-center text-[16px] leading-7 text-pretty text-public-muted sm:mt-4">{copy.intro}</p>
+      <h3 className="releva-section-title mt-2 text-center sm:mt-3">{copy.heading}</h3>
+      <p className="mt-3 text-center text-[16px] leading-7 text-public-muted sm:mt-4">{copy.intro}</p>
       <ol className="releva-land-pipe-track" aria-label={copy.heading}>
         {steps.map((step, index) => {
           const state = index === active ? "current" : index < active ? "done" : "upcoming";

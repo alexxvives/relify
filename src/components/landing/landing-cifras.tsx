@@ -34,7 +34,7 @@ export function LandingCifras() {
         <h2 id={`${copy.cifrasId}-titulo`} className="releva-section-title mt-2 text-center">
           {copy.cifrasHeading}
         </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-[16px] leading-7 text-[#3d4a63]">{copy.cifrasIntro}</p>
+        <p className="mt-3 text-center text-[16px] leading-7 text-[#3d4a63]">{copy.cifrasIntro}</p>
         <p className="mt-2 text-center text-sm text-[#5c6b78]">
           {sample.codename} · {sample.region}
         </p>

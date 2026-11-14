@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { signUpAction, type SignUpState } from "@/app/registro/actions";
 import { ArrowRight, Briefcase, Building2, Handshake } from "lucide-react";
 import { NewPasswordField } from "@/components/auth/new-password-field";
@@ -77,6 +78,25 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
       <input type="hidden" name="signupRole" value={role} />
       <EmailField look="arc" />
       <NewPasswordField name="password" label={authCopy.passwordLabel} placeholder={authCopy.passwordPlaceholder} />
+      <label className="flex items-start gap-2.5 px-1 text-sm leading-5 text-[#5c6b78]">
+        <input
+          type="checkbox"
+          name="acceptTerms"
+          required
+          className="mt-0.5 size-4 shrink-0 rounded border-[#c5cdd8] text-[#1c2740] accent-[#1c2740]"
+        />
+        <span>
+          {authCopy.termsAcceptLead}{" "}
+          <Link href="/terminos" className="font-medium text-[#465ab4] underline-offset-2 hover:underline">
+            {authCopy.termsAcceptTerms}
+          </Link>{" "}
+          {authCopy.termsAcceptAnd}{" "}
+          <Link href="/privacidad" className="font-medium text-[#465ab4] underline-offset-2 hover:underline">
+            {authCopy.termsAcceptPrivacy}
+          </Link>
+          .
+        </span>
+      </label>
       {localMessage || state?.message ? (
         <p role="alert" className="text-sm text-destructive">
           {localMessage ?? state?.message}

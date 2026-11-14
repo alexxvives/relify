@@ -6,7 +6,9 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
-- 2026-11-14: `/registro` has no terms/privacy checkbox; `PlatformTermsDialog` blocks after sign-in (`termsAcceptedAt`) — keep the checkout legal line on paid plans.
+- 2026-11-14: React Bits TextMorph (`npx shadcn add @reactbits-starter/text-morph-tw`) needs a Pro registry + `REACTBITS_LICENSE_KEY` — keep SwapVerb until Alex has a licence.
+- 2026-11-14: Bencho Upload dropzone source is `cabralorenzo/bencho` `blocks/upload-dropzone`; WebFetch strips JSX — curl the raw GitHub files. Import `motion/react`, not a new `framer-motion`.
+- 2026-11-14: `/registro` now requires Términos/Privacidad and writes `termsAcceptedAt`, so the paid-plan “Al pagar aceptas…” line can go; existing accounts without that timestamp still get `PlatformTermsDialog`.
 - 2026-11-14: waitlist Gaze faces became smileys in `2a5c6f7` because CSP `img-src 'self' data: blob:` blocks `api.dicebear.com` — vendor the SVGs under `public/waitlist/` instead of remote URLs or generated smileys.
 - 2026-11-14: a module-level `next/dynamic` of ElectricLogo on the public header pulled `ogl` into `/` — import the chunk only when the `/?v=2` desktop trial mounts.
 - 2026-11-14: ElectricLogo in the header is overkill (~27 fps vs ~33 fps on the wordmark over 1.5s) — keep it as a `/?v=2` desktop trial, paused when the tab is hidden.

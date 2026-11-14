@@ -682,29 +682,38 @@ export function ProjectSkeleton() {
   return (
     <Shell>
       <Bare className="h-4 w-36" />
-      <Bare className="h-[220px] w-full rounded-2xl" />
-      <Tabs count={4} />
-      <Card>
-        <B className="h-6 w-48" />
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[0, 1, 2, 3].map((index) => (
-            <div key={index} className="flex gap-3">
-              <B className="size-9 shrink-0 rounded-xl" />
-              <div className="flex-1">
-                <B className="h-3 w-20" />
-                <B className="mt-2 h-4 w-28" />
-              </div>
-            </div>
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-[#1c2740] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="mb-5 flex items-start justify-between">
+          <Bare className="h-11 w-24 rounded-full bg-white/20" />
+          <Bare className="size-11 rounded-full bg-white/20" />
+        </div>
+        <div className="mx-auto flex max-w-3xl flex-col items-center">
+          <Bare className="size-10 rounded-2xl bg-white/15" />
+          <Bare className="mt-3 h-12 w-64 bg-white/20 sm:h-16 sm:w-80" />
+          <div className="mt-4 flex gap-2">
+            <Bare className="h-6 w-20 rounded-full bg-white/15" />
+            <Bare className="h-6 w-24 rounded-full bg-white/15" />
+            <Bare className="h-6 w-16 rounded-full bg-white/15" />
+          </div>
+        </div>
+      </div>
+      <Tabs count={3} />
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="flex gap-1 overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white p-1.5">
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <Bare key={index} className={`h-11 shrink-0 rounded-xl ${index === 0 ? "w-28 bg-[#1c2740]/80" : "w-24"}`} />
           ))}
         </div>
-        <B className="mt-6 h-4 w-40" />
-        <B className="mt-3 h-4 w-full" />
-      </Card>
+      </div>
       <Card>
-        <B className="h-6 w-56" />
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <B className="h-16 w-full rounded-xl" />
-          <B className="h-16 w-full rounded-xl" />
+        <div className="flex items-center gap-3">
+          <B className="size-9 rounded-xl" />
+          <B className="h-6 w-40" />
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((index) => (
+            <B key={index} className="h-24 w-full rounded-xl" />
+          ))}
         </div>
       </Card>
     </Shell>

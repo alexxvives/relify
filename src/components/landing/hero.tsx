@@ -312,7 +312,7 @@ export function Hero({ wash = false }: { wash?: boolean }) {
           />
         </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(1.95rem,8.8vw,2.75rem)] leading-[1.05] text-balance text-public-ink lg:text-[clamp(1.85rem,4.4cqi,3.75rem)]">
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(2.35rem,10.5vw,3.35rem)] leading-[1.05] text-public-ink lg:text-[clamp(2.4rem,5.8cqi,4.65rem)]">
             <span className="block">El mercado inteligente para</span>
             <span className="block">
               <SwapVerb /> empresas{" "}

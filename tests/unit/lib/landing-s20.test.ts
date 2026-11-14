@@ -10,7 +10,7 @@ describe("Round S20 landing and React Bits", () => {
     expect(read("src/components/landing/paths.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
     expect(read("src/components/landing/offer.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
     expect(read("src/components/landing/confidentiality.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
-    expect(read("src/components/landing/activity-feed.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
+    expect(read("src/components/landing/activity-feed.tsx")).toMatch(/lg:grid-cols-\[1\.1fr_0\.9fr\]/);
     expect(read("src/components/landing/process.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
   });
 
@@ -19,7 +19,7 @@ describe("Round S20 landing and React Bits", () => {
     expect(flow).toMatch(/fade-content/);
     expect(flow).toMatch(/blur/);
     expect(flow).toMatch(/trigger="mount"/);
-    expect(flow).toMatch(/duration=\{0\.8\}/);
+    expect(flow).toMatch(/duration=\{1\.6\}/);
   });
 
   it("drops ElectricLogo from the public header", () => {
@@ -35,11 +35,11 @@ describe("Round S20 landing and React Bits", () => {
     expect(read("src/components/landing/try-free-button.tsx")).toMatch(/#ffffff/);
   });
 
-  it("uses the Folder component only on the Relify folder", () => {
+  it("uses the Folder component on every documents folder", () => {
     const docs = read("src/components/seller/seller-documents.tsx");
-    expect(docs).toMatch(/RelifyFolder/);
+    expect(docs).toMatch(/DocumentsFolder/);
     expect(docs).toMatch(/FolderOpenIcon/);
-    expect(read("src/components/seller/relify-folder.tsx")).toMatch(/import\("@\/components\/Folder"\)/);
+    expect(read("src/components/seller/documents-folder.tsx")).toMatch(/import\("@\/components\/Folder"\)/);
   });
 
   it("does not wrap investor plans in PixelCard", () => {

@@ -182,16 +182,6 @@ export function InvestorProject({
                   lockedNote={access === "requested" ? companyCopy.figuresLockedNda : companyCopy.figuresLocked}
                   lockAction={figureAction}
                 />
-                {access === "accepted" ? (
-                  <ProcessRoom
-                    files={documents}
-                    bodies={chat.map((message) => message.body)}
-                    nda
-                    ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
-                    loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
-                    empty={sellerCopy.documentsEmpty}
-                  />
-                ) : null}
                 <RelatedCompanies items={recommendations} />
               </div>
             </div>

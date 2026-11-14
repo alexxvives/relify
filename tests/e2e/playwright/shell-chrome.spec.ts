@@ -87,7 +87,7 @@ test.describe("sticky CTA never covers inline controls", () => {
       if ((await actions.count()) > 0) {
         await expect(actions.first()).toBeVisible();
         await placeJustAboveChrome(page, actions.first());
-        const download = actions.getByRole("link", { name: /descargar teaser/i });
+        const download = actions.getByRole("link", { name: /^teaser$/i });
         await expectControlCenterTappable(page, download);
         const copy = actions.getByRole("button", { name: /copiar enlace/i });
         await expectControlCenterTappable(page, copy);
@@ -169,7 +169,7 @@ test.describe("sticky CTA never covers inline controls", () => {
         const actions = page.locator("[data-teaser-actions]");
         if ((await actions.count()) > 0 && (await actions.isVisible().catch(() => false))) {
           await placeJustAboveChrome(page, actions);
-          const download = actions.getByRole("link", { name: /descargar teaser/i });
+          const download = actions.getByRole("link", { name: /^teaser$/i });
           await expectControlCenterTappable(page, download);
           const copy = actions.getByRole("button", { name: /copiar enlace/i });
           await expectControlCenterTappable(page, copy);

@@ -11,6 +11,7 @@ import { listDataRoom } from "@/lib/server/list-data-room";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 import { requireRole } from "@/lib/server/require-role";
 import { companyNifIsVerified } from "@/lib/server/verify-company-nif";
+import { isIntEnvironment } from "@/lib/int-env";
 
 export const metadata: Metadata = {
   title: sellerCopy.documentsTitle,
@@ -48,6 +49,7 @@ async function DocumentsPageContent() {
           fileIds: row.fileIds,
         }))}
         teaser={teaserDesk}
+        uploadsDisabled={isIntEnvironment()}
       />
     </>
   );
