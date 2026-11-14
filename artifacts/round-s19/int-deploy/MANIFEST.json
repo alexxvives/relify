@@ -1,0 +1,13 @@
+{
+  "round": "s19",
+  "commit": "d188d425ec937dd095934e0a204371341035c9d4",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "7f07772d803d8b1ec9d4f0a468708e0020b4a429db6997ad5f83858790221a42",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql"
+  ],
+  "note": "No Prisma migration. Apply existing INT SQL if not already on the branch. Not deployed.",
+  "deployed": false
+}
