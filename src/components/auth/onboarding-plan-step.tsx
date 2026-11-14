@@ -95,9 +95,16 @@ export function BuyerPlanStep({
                   </span>
                 ) : null}
               </span>
-              <span className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{plan.price}</span>
-                {plan.id === "none" ? null : <span className="text-sm text-[#667085]">{billingCopy.onboardingPlanMonthly}</span>}
+              <span className="mt-3 flex flex-col gap-1">
+                <span className="flex items-baseline gap-1.5">
+                  <span className="text-4xl font-semibold tracking-tight text-[#1c2740] tabular-nums">{plan.price}</span>
+                  {plan.id === "none" ? null : <span className="text-sm text-[#667085]">{billingCopy.onboardingPlanMonthly}</span>}
+                </span>
+                {plan.id === "limited" ? (
+                  <span className="text-sm text-[#667085]">{billingCopy.limitedGross}</span>
+                ) : plan.id === "unlimited" ? (
+                  <span className="text-sm text-[#667085]">{billingCopy.unlimitedGross}</span>
+                ) : null}
               </span>
               <span className="mt-5 border-t border-[#e7eaee] pt-4 text-sm font-semibold text-[#465ab4]">
                 {plan.inherit ?? billingCopy.onboardingPlanFreeIncludes}
@@ -125,7 +132,7 @@ export function AdvisorPlanStep() {
           <span className="text-base font-semibold text-[#1c2740]">{billingCopy.advisorPlanPaidName}</span>
           <span className="mt-2 text-2xl font-semibold text-[#1c2740]">
             {billingCopy.advisorPlanPaidPrice}
-            <span className="text-xs font-normal text-[#667085]"> {billingCopy.onboardingPlanMonthly}</span>
+            <span className="text-xs font-normal text-[#667085]"> {billingCopy.onboardingPlanMonthly} {billingCopy.onboardingPlanVat}</span>
           </span>
           <span className="mt-3 text-sm font-medium text-[#465ab4]">{billingCopy.advisorPlanPaidInherit}</span>
           <PointList points={billingCopy.advisorPlanPaidPoints} />

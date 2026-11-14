@@ -74,7 +74,7 @@ export function Process() {
         <div className="relative mt-8 flex justify-center sm:mt-10">
           <Link
             href={copy.ctaHref}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0f766e] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(15,118,110,0.8)] transition-colors hover:bg-[#1c2740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] sm:w-fit"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-relify-btn px-6 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(28,39,64,0.7)] transition-colors hover:bg-relify-btn-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2740] sm:w-fit"
           >
             {copy.cta}
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />

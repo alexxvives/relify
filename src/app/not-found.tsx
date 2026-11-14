@@ -16,7 +16,7 @@ export default function NotFound() {
         </p>
         <h1 className="mt-6 max-w-lg text-lg font-medium text-public-ink sm:text-xl">{copy.title}</h1>
         <div className="mt-8 flex w-full max-w-md flex-col gap-2.5 sm:flex-row sm:justify-center sm:gap-3">
-          <Link href="/" className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-public-clay px-5 text-sm text-white hover:bg-public-clay-deep">
+          <Link href="/" className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-relify-btn px-5 text-sm text-white hover:bg-relify-btn-hover">
             {copy.home}
           </Link>
         </div>

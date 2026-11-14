@@ -212,11 +212,11 @@ describe("S17 landing hero title and header", () => {
     expect(landingNav).toMatch(/ghostLink/);
   });
 
-  it("animates rentables with a gold clip sweep and a static gold when motion is reduced", () => {
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*background-clip:\s*text/);
-    expect(css).toMatch(/@keyframes releva-gold-streak/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#f5b700/);
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#f5b700[\s\S]*#ffc400[\s\S]*#fff8dc/);
+  it("animates rentables with a solid high-contrast gold and a static gold when motion is reduced", () => {
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*-webkit-text-fill-color: #7a4a00/);
+    expect(css).toMatch(/@keyframes releva-gold-glow/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#7a4a00/);
+    expect(css).not.toMatch(/-webkit-text-fill-color: transparent/);
     expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
   });
 

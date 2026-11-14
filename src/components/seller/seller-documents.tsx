@@ -33,6 +33,7 @@ type ShareScope = { kind: "file"; fileId: string } | { kind: "folder"; folder: s
 import { documentCountLabel, sellerCopy } from "@/lib/seller-copy";
 import { Button, Input } from "@/components/ui/form";
 import { RelifyFolder } from "@/components/seller/relify-folder";
+import { PdfThumb } from "@/components/seller/pdf-pages";
 import { relevaDraftFolder } from "@/lib/releva-drafts";
 import { companyPdfCopy, type SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
@@ -587,10 +588,9 @@ function FileCard({
           <button
             type="button"
             onClick={onOpen}
-            className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
+            className="flex h-44 w-full flex-col overflow-hidden rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] text-left hover:border-[#c5d0f5]"
           >
-            <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
-            <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{file.fileName}</span>
+            <DocumentThumb src={fileHref(file)} fileName={file.fileName} />
           </button>
           {file.platform ? null : <div className="absolute top-2 left-2 z-10">{share}</div>}
           <div className="absolute bottom-2 right-2 z-10">
@@ -645,10 +645,9 @@ function TeaserFileCard({
         data-teaser-preview
         onClick={onOpen}
         aria-label={fileName}
-        className="flex h-44 w-full flex-col items-center justify-center rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 pt-6 text-center hover:border-[#c5d0f5]"
+        className="flex h-44 w-full flex-col overflow-hidden rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] text-left hover:border-[#c5d0f5]"
       >
-        <FileTextIcon size={64} className="text-[#465ab4]" aria-hidden />
-        <span className="mt-3 line-clamp-2 text-sm font-medium text-[#1c2740]">{fileName}</span>
+        <DocumentThumb src="/mi-empresa/pdf/teaser?preview=1" fileName={fileName} />
       </button>
       <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1" data-teaser-actions>
         <a
@@ -734,16 +733,6 @@ export function SellerDocuments({
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <FolderCard
-            name={relevaDraftFolder}
-            count={relifyCount}
-            featured
-            locked
-            onOpen={() => {
-              setFolder(relevaDraftFolder);
-            }}
-            share={null}
-          />
           <li>
             {namingFolder ? (
               <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
@@ -814,6 +803,16 @@ export function SellerDocuments({
               }
             />
           ))}
+          <FolderCard
+            name={relevaDraftFolder}
+            count={relifyCount}
+            featured
+            locked
+            onOpen={() => {
+              setFolder(relevaDraftFolder);
+            }}
+            share={null}
+          />
         </ul>
         </>
       ) : (
@@ -889,6 +888,38 @@ export function SellerDocuments({
       />
     </div>
     </div>
+  );
+}
+
+function isImageName(name: string) {
+  return /\.(png|jpe?g|webp|gif)$/i.test(name);
+}
+
+function DocumentThumb({ src, fileName }: { src: string | null; fileName: string }) {
+  const image = isImageName(fileName);
+  const pdf = fileName.toLowerCase().endsWith(".pdf") || (src?.includes("/pdf/") ?? false);
+
+  return (
+    <span className="relative block h-full w-full overflow-hidden bg-[#eef1f5]">
+      {src && pdf ? (
+        <PdfThumb
+          src={src}
+          title={fileName}
+          fallback={<FileTextIcon size={40} className="m-auto text-[#9aa6c2]" aria-hidden />}
+        />
+      ) : src && image ? (
+        <img src={src} alt="" className="h-full w-full object-cover object-top" />
+      ) : (
+        <span className="absolute inset-3 rounded-md bg-white shadow-[0_8px_18px_-14px_rgba(28,39,64,0.45)]" aria-hidden>
+          <span className="mt-3 ml-3 block h-2 w-1/3 rounded bg-[#e8ecf2]" />
+          <span className="mt-2 ml-3 block h-1.5 w-4/5 rounded bg-[#f1f3f6]" />
+          <span className="mt-1.5 ml-3 block h-1.5 w-2/3 rounded bg-[#f1f3f6]" />
+        </span>
+      )}
+      <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-gradient-to-t from-[#1c2740]/80 to-transparent px-2.5 pt-6 pb-2 text-[11px] font-medium text-white">
+        {fileName}
+      </span>
+    </span>
   );
 }
 

@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-14T13:45:50.819Z",
+  "cpu": [
+    {
+      "label": "v2-desktop-electric",
+      "frames": 40,
+      "elapsed": 1506.2000000011176,
+      "fps": 27
+    },
+    {
+      "label": "default-desktop",
+      "frames": 50,
+      "elapsed": 1503.7000000011176,
+      "fps": 33
+    }
+  ]
+}

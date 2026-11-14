@@ -54,7 +54,7 @@ export function OfferGlare({ children }: { children: ReactNode }) {
       softness={0.75}
       rimGlint={false}
       mode="hover"
-      className="!block h-full w-full !overflow-visible"
+      className="!block h-full w-full overflow-hidden rounded-[1.25rem]"
     >
       {children}
     </Glare>

@@ -12,7 +12,7 @@ export const authFieldClassName =
 export const authLabelClassName = "flex flex-col gap-1.5 text-sm font-medium text-[#5d7082]";
 
 export const authSubmitClassName =
-  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#14998a] text-[15px] font-medium text-white transition hover:bg-[#0f8578] disabled:opacity-50";
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-relify-btn text-[15px] font-medium text-white transition hover:bg-relify-btn-hover disabled:opacity-50";
 
 /** `arc` matches the sign-up password field (white, soft border, label above), so both fields read as one set. */
 export function EmailField({ look = "pill" }: { look?: "pill" | "arc" } = {}) {

@@ -16,7 +16,7 @@ export async function LandingPageV2() {
   const jsonLd = landingJsonLd(readSiteUrl());
 
   return (
-    <PublicSite dockedCta electricLogo>
+    <PublicSite dockedCta>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main className="relative">
         <LandingAurora />

@@ -16,7 +16,7 @@ export default function AppError({ error }: { error: Error & { digest?: string }
       <p className="mt-3 text-public-muted">Prueba de nuevo o vuelve al inicio.</p>
       <Link
         href="/"
-        className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-public-clay px-5 text-sm font-medium text-white hover:bg-public-clay-deep"
+        className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-relify-btn px-5 text-sm font-medium text-white hover:bg-relify-btn-hover"
       >
         Ir al inicio
       </Link>

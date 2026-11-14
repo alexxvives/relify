@@ -56,7 +56,7 @@ export function RolePage(props: RolePageProps) {
             <div className="mt-6 flex w-full flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <Link
                 href={cta.href}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-public-clay px-6 font-medium text-white transition-colors duration-200 hover:bg-public-clay-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay sm:w-auto"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-relify-btn px-6 font-medium text-white transition-colors duration-200 hover:bg-relify-btn-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2740] sm:w-auto"
               >
                 {cta.label}
                 <ArrowRight className="size-4" aria-hidden />

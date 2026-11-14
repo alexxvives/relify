@@ -10,7 +10,6 @@ import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
 import { accountDisplayName } from "@/lib/auth-input";
 import { readStoredPhone } from "@/lib/phone-countries";
-import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
 import { Button, Card, Field, Input, PasswordInput } from "@/components/ui/form";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 
@@ -157,7 +156,6 @@ export function AccountSettings({
                     value={nationalId}
                     onChange={(event) => setNationalId(event.target.value.toUpperCase())}
                   />
-                  <IdentityDeclarationCheckbox />
                 </>
               )}
             </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { AppToast } from "@/components/shell/app-toast";
 import { MarketCard } from "@/components/investor/market-card";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
@@ -1842,6 +1843,7 @@ export function CompanyDraftForm({
   // t95: the save runs outside a React transition. Inside one, the router refresh that follows revalidatePath kept the
   // action "pending" after the response had landed when the save started from the debounce timer.
   const [state, setState] = useState<CompanyDraftState>(null);
+  const [savePulse, setSavePulse] = useState(0);
   const [pending, setPending] = useState(false);
   const stateRef = useRef<CompanyDraftState>(null);
   async function action(data: FormData) {
@@ -1856,6 +1858,7 @@ export function CompanyDraftForm({
     stateRef.current = landed;
     setState(landed);
     setPending(false);
+    setSavePulse((current) => current + 1);
     const href = leaveHrefRef.current;
     if (href) {
       leaveHrefRef.current = null;
@@ -3357,6 +3360,13 @@ export function CompanyDraftForm({
           {statusMessage}
         </p>
       ) : null}
+      <AppToast
+        message={state && !pending ? (state.saved ? companyCopy.autosaveSaved : state.message) : null}
+        tone={state?.saved ? "ok" : "error"}
+        pulse={savePulse}
+        onRetry={state && !state.saved ? () => autoSaveRef.current() : undefined}
+        retryLabel={companyCopy.autosaveRetry}
+      />
     </form>
     </>
   );

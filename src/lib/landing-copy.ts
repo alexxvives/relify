@@ -286,21 +286,21 @@ export const landingCopy = {
               cardTitle: "Tu empresa",
               chip: "CIF",
               panel: {
-                kind: "form",
-                foot: "Con el CIF, el resto se rellena solo",
-                fields: [
-                  { kind: "type", label: "CIF de la empresa", text: "B12345678", startAt: 400 },
-                  { kind: "choice", label: "¿Qué vas a vender?", options: ["La empresa", "Una parte", "Aún no lo sé"], pickAt: 4200 },
+                kind: "cif",
+                label: "CIF de la empresa",
+                text: "B12345678",
+                submit: "Consultar",
+                loading: "Leyendo el registro",
+                ready: "Datos cargados",
+                company: "Proyecto Alba",
+                meta: "Industria · estructuras metálicas · Valencia",
+                pie: [
+                  { label: "A", value: 42, color: "#2fc4b2" },
+                  { label: "B", value: 33, color: "#465ab4" },
+                  { label: "C", value: 25, color: "#ffb703" },
                 ],
-                fills: [
-                  { label: "Actividad CNAE", value: "25.11 · Estructuras metálicas" },
-                  { label: "Región", value: "Valencia" },
-                  { label: "Constitución", value: "2009" },
-                ],
-                charts: [
-                  { label: "Facturación", unit: "K €", values: [820, 960, 1100, 1250] },
-                  { label: "EBITDA", unit: "K €", values: [140, 190, 250, 310] },
-                ],
+                bars: { label: "Facturación", unit: "K €", values: [820, 960, 1100, 1250], colors: ["#7dd3c7", "#2fc4b2", "#0f6e73", "#1c2740"] },
+                line: { label: "EBITDA", unit: "K €", values: [140, 190, 250, 310] },
               },
             },
             {

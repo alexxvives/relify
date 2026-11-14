@@ -1,16 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { dealStepIds, landingDealSteps } from "@/lib/deal-pipeline";
+import { useEffect, useState, type ComponentType } from "react";
+import {
+  CircleCheck,
+  FileSignature,
+  Handshake,
+  MessageCircle,
+  ScrollText,
+  Search,
+  Send,
+  ShieldCheck,
+} from "lucide-react";
+import { dealStepIds, landingDealSteps, type DealStepId } from "@/lib/deal-pipeline";
 import { landingCopy } from "@/lib/landing-copy";
 
 const dwell = 2400;
+
+const stepIcon: Record<DealStepId, ComponentType<{ className?: string }>> = {
+  solicitud: Send,
+  conexion: Handshake,
+  nda: ShieldCheck,
+  qa: MessageCircle,
+  loi: FileSignature,
+  diligence: Search,
+  documents: ScrollText,
+  close: CircleCheck,
+};
 
 export function LandingPipeline() {
   const copy = landingCopy.home.flow.pipeline;
   const [active, setActive] = useState(0);
   const steps = landingDealSteps(active);
   const current = steps[active];
+  const Icon = current ? stepIcon[current.id] : Send;
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -47,9 +69,14 @@ export function LandingPipeline() {
       </ol>
       {current ? (
         <article key={current.id} className="releva-land-pipe-callout">
-          <p className="releva-land-pipe-kicker">Paso {active + 1}</p>
-          <h4>{current.label}</h4>
-          <p>{current.detail}</p>
+          <span className="releva-land-pipe-icon" aria-hidden="true">
+            <Icon className="size-5" />
+          </span>
+          <div>
+            <p className="releva-land-pipe-kicker">Paso {active + 1}</p>
+            <h4>{current.label}</h4>
+            <p>{current.detail}</p>
+          </div>
         </article>
       ) : null}
     </div>

@@ -320,7 +320,7 @@ export function Hero({ wash = false }: { wash?: boolean }) {
             </span>
           </h1>
           <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-center justify-center gap-2.5 sm:max-w-none">
-            <TryFreeButton href="/registro" className="w-full max-w-xs sm:w-auto" label={copy.cta} />
+            <TryFreeButton href="/registro" size="hero" className="w-full max-w-xs sm:w-auto" label={copy.cta} />
           </div>
         </div>
         {open ? (

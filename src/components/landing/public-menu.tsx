@@ -9,11 +9,9 @@ import { LandingMark } from "@/components/landing/landing-mark";
 export function PublicMenu({
   signedIn,
   showInt = false,
-  electricLogo = false,
 }: {
   signedIn: boolean;
   showInt?: boolean;
-  electricLogo?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -38,7 +36,7 @@ export function PublicMenu({
     >
       <Link href="/" className="relative z-20 flex min-h-11 min-w-0 shrink-0 items-center gap-2 pl-2" aria-label="Relify">
         {showInt ? <IntBadge /> : null}
-        <LandingMark electric={electricLogo} />
+        <LandingMark />
       </Link>
       <LandingNav
         menuOpen={mobileOpen}

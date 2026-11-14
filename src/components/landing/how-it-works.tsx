@@ -6,6 +6,7 @@ import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 type Track = (typeof landingCopy.home.flow.tracks)[FlowRole];
 type FlowStep = Track["steps"][number];
 type FormPanel = Extract<FlowStep["panel"], { kind: "form" }>;
+type CifPanel = Extract<FlowStep["panel"], { kind: "cif" }>;
 type TaskPanel = Extract<FlowStep["panel"], { kind: "tasks" }>;
 type LivePanel = Extract<FlowStep["panel"], { kind: "live" }>;
 
@@ -272,6 +273,14 @@ function FadingPanel({ step, token }: { step: FlowStep; token: string }) {
 }
 
 function FlowCard({ step, play, enter = false }: { step: FlowStep; play: boolean; enter?: boolean }) {
+  if (step.panel.kind === "cif") {
+    return (
+      <div className={enter ? "releva-hv-card releva-hv-enter" : "releva-hv-card"}>
+        <CifBody panel={step.panel} play={play} />
+      </div>
+    );
+  }
+
   return (
     <div className={enter ? "releva-hv-card releva-hv-enter" : "releva-hv-card"}>
       <div className="releva-hv-head">
@@ -288,6 +297,122 @@ function FlowCard({ step, play, enter = false }: { step: FlowStep; play: boolean
   );
 }
 
+function CifBody({ panel, play }: { panel: CifPanel; play: boolean }) {
+  const typed = useTyped(panel.text, 280, play);
+  const beats = useDelays([280, 1180, 1700], play && typed.done);
+  const phase = beats[2] === true ? "charts" : beats[1] === true ? "ok" : beats[0] === true ? "load" : "type";
+
+  const pie = panel.pie;
+  const pieTotal = pie.reduce((sum, slice) => sum + slice.value, 0);
+  const pieStops = pie.reduce<{ stops: string[]; cursor: number }>(
+    (acc, slice) => {
+      const next = acc.cursor + (slice.value / pieTotal) * 100;
+      return { stops: [...acc.stops, `${slice.color} ${acc.cursor}% ${next}%`], cursor: next };
+    },
+    { stops: [], cursor: 0 },
+  ).stops;
+  const barPeak = Math.max(...panel.bars.values, 1);
+  const linePeak = Math.max(...panel.line.values, 1);
+  const linePoints = panel.line.values.map((value, index) => {
+    const x = 8 + (index / Math.max(panel.line.values.length - 1, 1)) * 112;
+    const y = 52 - (value / linePeak) * 40;
+    return `${x},${y}`;
+  });
+  const linePath = `M ${linePoints.join(" L ")}`;
+  const areaPath = `${linePath} L 120,56 L 8,56 Z`;
+
+  if (phase !== "charts") {
+    return (
+      <div className="releva-cif-stage">
+        <div className="releva-cif-popup">
+          <p className="releva-cif-kicker">{panel.label}</p>
+          {phase === "load" ? (
+            <div className="releva-cif-load">
+              <span className="releva-cif-spin" aria-hidden="true" />
+              {panel.loading}
+            </div>
+          ) : (
+            <>
+              <span className="releva-cif-field" data-ok={phase === "ok" ? "true" : undefined}>
+                <span>{typed.shown}</span>
+                {phase === "ok" ? (
+                  <span className="releva-cif-ok" aria-hidden="true">
+                    <Tick />
+                  </span>
+                ) : (
+                  <span className={typed.done ? "releva-hv-caret" : "releva-hv-caret releva-hv-caret-blink"} />
+                )}
+              </span>
+              {phase === "type" ? (
+                <button type="button" className="releva-cif-go" disabled={!typed.done}>
+                  {panel.submit}
+                </button>
+              ) : (
+                <p className="mt-3 text-center text-xs font-medium text-[#17663a]">{panel.ready}</p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="releva-cif-stage">
+      <div className="releva-cif-board">
+        <div className="releva-cif-head">
+          <strong>{panel.company}</strong>
+          <span>{panel.meta}</span>
+        </div>
+        <div className="releva-cif-charts">
+          <div className="releva-cif-card releva-cif-donut">
+            <p>Mix de clientes</p>
+            <span
+              className="relative size-24 rounded-full"
+              style={{ background: `conic-gradient(${pieStops.join(", ")})` }}
+              aria-hidden
+            >
+              <span className="absolute inset-4 rounded-full bg-white" />
+            </span>
+          </div>
+          <div className="releva-cif-card">
+            <p>
+              {panel.bars.label} · {panel.bars.unit}
+            </p>
+            <span className="releva-cif-bars">
+              {panel.bars.values.map((value, index) => (
+                <i
+                  key={`${panel.bars.label}-${index}`}
+                  style={{
+                    height: `${Math.max(14, Math.round((value / barPeak) * 100))}%`,
+                    background: panel.bars.colors[index] ?? "#2fc4b2",
+                    animationDelay: `${0.08 + index * 0.08}s`,
+                  }}
+                />
+              ))}
+            </span>
+          </div>
+        </div>
+        <div className="releva-cif-card">
+          <p>
+            {panel.line.label} · {panel.line.unit}
+          </p>
+          <svg className="releva-cif-line" viewBox="0 0 128 56" aria-hidden>
+            <defs>
+              <linearGradient id="releva-cif-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2fc4b2" />
+                <stop offset="100%" stopColor="#2fc4b2" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path className="fill" d={areaPath} />
+            <path d={linePath} />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
   const choiceDelays = panel.fields.map((field) => (field.kind === "choice" ? field.pickAt : -1)).filter((delay) => delay >= 0);
   const picks = useDelays(choiceDelays, play);
@@ -297,15 +422,7 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
     typedField?.kind === "type" ? typedField.startAt : 0,
     play && typedField?.kind === "type",
   );
-  const fills = "fills" in panel ? panel.fills : [];
-  const charts = "charts" in panel ? panel.charts : [];
-  const fillFlags = useDelays(
-    fills.map((_, index) => 700 + index * 380),
-    play && typed.done,
-  );
-  const chartsOn = useDelays([280], play && typed.done)[0] === true;
-  const filled = fillFlags.filter(Boolean).length;
-  const done = picks.filter(Boolean).length + (typed.done ? 1 : 0) + filled + (chartsOn ? 1 : 0);
+  const done = picks.filter(Boolean).length + (typed.done ? 1 : 0);
   const width = Math.min(100, 8 + 18 * done);
 
   const typeField = panel.fields.find((field) => field.kind === "type");
@@ -322,56 +439,6 @@ function FormBody({ panel, play }: { panel: FormPanel; play: boolean }) {
           </span>
         </div>
       ) : null}
-      {charts.length > 0 && typed.done ? (
-        <div className="releva-hv-example releva-hv-row" style={{ animationDelay: "0.12s" }}>
-          <span className="releva-hv-example-kicker">Datos de ejemplo</span>
-          <span className="releva-hv-example-name">Proyecto Alba</span>
-          <span className="releva-hv-example-meta">Industria · estructuras metálicas · Valencia</span>
-        </div>
-      ) : null}
-      {charts.length > 0 ? (
-        <div className={chartsOn ? "releva-hv-charts releva-hv-charts-on" : "releva-hv-charts"}>
-          {charts.map((chart) => {
-            const peak = Math.max(...chart.values, 1);
-            return (
-              <div key={chart.label} className="releva-hv-chart">
-                <span className="releva-hv-chart-label">
-                  {chart.label}
-                  {chart.unit ? ` · ${chart.unit}` : ""}
-                </span>
-                <span className="releva-hv-bars">
-                  {chart.values.map((value, barIndex) => (
-                    <span
-                      key={`${chart.label}-${barIndex}`}
-                      className="releva-hv-bar"
-                      style={{ height: `${Math.max(12, Math.round((value / peak) * 100))}%`, animationDelay: `${0.08 + barIndex * 0.08}s` }}
-                    />
-                  ))}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-      {fills.map((row, index) => {
-        const ready = fillFlags[index] === true;
-        return (
-          <div key={row.label} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.18 + index * 0.07}s` }}>
-            <span className="releva-hv-task-name">{row.label}</span>
-            {ready ? (
-              <span className="releva-hv-state">
-                <Tick />
-                {row.value}
-              </span>
-            ) : (
-              <span className="releva-hv-state releva-hv-state-pending">
-                <span className="releva-hv-spinner" aria-hidden="true" />
-                Leyendo
-              </span>
-            )}
-          </div>
-        );
-      })}
       {choiceFields.map((field, index) => {
         const picked = picks[index] === true;
         return (

@@ -22,23 +22,17 @@ describe("Round S20 landing and React Bits", () => {
     expect(flow).toMatch(/duration=\{0\.8\}/);
   });
 
-  it("keeps ElectricLogo as a v2 desktop trial with pause when the tab is hidden", () => {
-    const mark = read("src/components/landing/landing-mark.tsx");
-    expect(mark).toMatch(/ElectricLogo/);
-    expect(mark).toMatch(/\/logo\.svg/);
-    expect(mark).toMatch(/#10b949/);
-    expect(mark).toMatch(/#00f2ac/);
-    expect(mark).toMatch(/useLandingAurora/);
-    expect(mark).toMatch(/visibilityState/);
-    expect(read("src/components/ElectricLogo.tsx")).toMatch(/visibilitychange/);
-    expect(read("src/components/landing/landing-page.tsx")).not.toMatch(/electricLogo/);
+  it("drops ElectricLogo from the public header", () => {
+    expect(read("src/components/landing/landing-mark.tsx")).not.toMatch(/ElectricLogo/);
+    expect(read("src/components/landing/landing-page-v2.tsx")).not.toMatch(/electricLogo/);
+    expect(read("src/components/landing/public-site.tsx")).not.toMatch(/electricLogo/);
   });
 
   it("adds GlareHover to Empresas en venta cards and StarBorder to Prueba gratis", () => {
     expect(read("src/components/landing/offer.tsx")).toMatch(/OfferGlare/);
     expect(read("src/components/landing/offer-carousel.tsx")).toMatch(/OfferGlare/);
     expect(read("src/components/landing/try-free-button.tsx")).toMatch(/StarBorder/);
-    expect(read("src/components/landing/try-free-button.tsx")).toMatch(/#2fc4b2/);
+    expect(read("src/components/landing/try-free-button.tsx")).toMatch(/#ffffff/);
   });
 
   it("uses the Folder component only on the Relify folder", () => {
@@ -48,9 +42,9 @@ describe("Round S20 landing and React Bits", () => {
     expect(read("src/components/seller/relify-folder.tsx")).toMatch(/import\("@\/components\/Folder"\)/);
   });
 
-  it("wraps the featured investor plan in PixelCard", () => {
+  it("does not wrap investor plans in PixelCard", () => {
     const plans = read("src/components/investor/premium-plans.tsx");
-    expect(plans).toMatch(/PixelCard/);
+    expect(plans).not.toMatch(/PixelCard/);
     expect(plans).toMatch(/item\.recommended/);
   });
 

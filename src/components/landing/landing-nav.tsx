@@ -8,7 +8,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { landingCopy } from "@/lib/landing-copy";
 
 const solidLink =
-  "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-public-clay px-5 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgb(15_110_115_/_0.7)] transition hover:bg-public-clay-deep";
+  "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-relify-btn px-5 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgb(28_39_64_/_0.55)] transition hover:bg-relify-btn-hover";
 
 const ghostLink =
   "inline-flex h-11 min-h-11 items-center justify-center rounded-full border border-public-ink/18 px-4 text-sm font-medium text-public-ink transition hover:bg-public-sand";

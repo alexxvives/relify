@@ -12,7 +12,6 @@ import {
 } from "@/lib/auth-input";
 import { auth } from "@/lib/server/auth";
 import { authFailureMessage } from "@/lib/server/auth-failure";
-import { identityDeclared } from "@/lib/identity-declaration";
 import { getAccountNationalId } from "@/lib/server/get-account-national-id";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
@@ -59,9 +58,6 @@ export async function updateAccountAction(
   const storedId = await getAccountNationalId(user.id);
   const submittedId = readText(formData, "nationalId").trim();
   const keepStored = formData.get("nationalIdKeep") === "1" && submittedId.length === 0 && Boolean(storedId);
-  if (!keepStored && !identityDeclared(formData.get("identityDeclared"))) {
-    return { message: authCopy.identityDeclarationRequired, saved: false };
-  }
   const parsed = accountProfileSchema.safeParse({
     name: split.name,
     lastName: split.lastName,

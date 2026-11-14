@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { EyeIcon } from "@/components/ui/eye";
 import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
@@ -13,8 +12,6 @@ import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { billingCopy } from "@/lib/billing-copy";
 import type { BuyerPlanName } from "@/lib/billing";
-
-const PixelCard = dynamic(() => import("@/components/PixelCard"), { ssr: false });
 
 function Note({ state }: { state: PlanActionState }) {
   if (!state) {
@@ -33,12 +30,12 @@ function PlanButton({ plan, label, change = false }: { plan: "limited" | "unlimi
   const [state, action, pending] = useActionState(change ? changeBuyerPlanAction : startBuyerPlanAction, null);
 
   return (
-    <form action={action} className="mt-6 flex flex-col gap-2 max-lg:mt-0">
+    <form action={action} className="mt-8 flex flex-col gap-2 max-lg:mt-0">
       <input type="hidden" name="plan" value={plan} />
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#465ab4] px-4 text-sm font-semibold text-white disabled:opacity-60 lg:h-11"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-relify-btn px-4 text-sm font-semibold text-white hover:bg-relify-btn-hover disabled:opacity-60 lg:h-11"
       >
         {pending ? (change ? billingCopy.switching : billingCopy.choosing) : label}
       </button>
@@ -67,7 +64,7 @@ const plans = [
     inherit: billingCopy.limitedInherit,
     points: billingCopy.limitedPoints,
     icon: HeartHandshakeIcon,
-    wash: "bg-[#eef2ff] text-[#465ab4]",
+    wash: "bg-[#eef2ff] text-[#1c2740]",
     recommended: true,
   },
   {
@@ -78,7 +75,7 @@ const plans = [
     inherit: billingCopy.unlimitedInherit,
     points: billingCopy.unlimitedPoints,
     icon: HeartIcon,
-    wash: "bg-[#f4f7ff] text-[#465ab4]",
+    wash: "bg-[#f4f7ff] text-[#1c2740]",
     recommended: false,
   },
 ];
@@ -130,19 +127,19 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
           </button>
         </div>
       </div>
-      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3" data-sticky-twin>
+      <div className="mx-auto grid w-full max-w-[58rem] items-stretch justify-center gap-5 sm:grid-cols-2 lg:grid-cols-3" data-sticky-twin>
         {plans.map((item) => {
           const active = plan === item.id;
           const Icon = item.icon;
-          const body = (
+          const frame = item.recommended
+            ? "border-2 border-[#1c2740] shadow-[0_22px_48px_-28px_rgba(28,39,64,0.55)]"
+            : active
+              ? "border-2 border-[#17663a]"
+              : "border border-[#e7eaee]";
+          return (
             <section
-              className={
-                item.recommended
-                  ? "relative flex h-full flex-col bg-transparent p-6"
-                  : active
-                    ? "relative flex h-full flex-col rounded-[2rem] border-2 border-[#17663a] bg-white p-6"
-                    : "relative flex h-full flex-col rounded-[2rem] border border-[#e7eaee] bg-white p-6"
-              }
+              key={item.id}
+              className={`relative mx-auto flex h-full min-h-[32rem] w-full max-w-[18.5rem] flex-col rounded-[1.75rem] bg-white px-6 pt-7 pb-6 ${frame}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <span className={`inline-flex size-12 items-center justify-center rounded-2xl ${item.wash}`}>
@@ -151,11 +148,11 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                 {active ? (
                   <span className="rounded-full bg-[#e8f6ee] px-3 py-1 text-xs font-semibold text-[#17663a]">{billingCopy.yourPlan}</span>
                 ) : item.recommended ? (
-                  <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#465ab4]">{billingCopy.recommended}</span>
+                  <span className="rounded-full bg-[#1c2740] px-3 py-1 text-xs font-semibold text-white">{billingCopy.recommended}</span>
                 ) : null}
               </div>
-              <h2 className="mt-5 text-lg font-semibold text-[#1c2740]">{item.name}</h2>
-              <p className="releva-page-title mt-3 text-5xl leading-none text-[#1c2740]">
+              <h2 className="mt-6 text-lg font-semibold text-[#1c2740]">{item.name}</h2>
+              <p className="releva-page-title mt-4 text-5xl leading-none text-[#1c2740]">
                 {yearly && item.id === "limited"
                   ? billingCopy.limitedYearly
                   : yearly && item.id === "unlimited"
@@ -169,18 +166,15 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                     ? billingCopy.limitedYearlyGross
                     : yearly && item.id === "unlimited"
                       ? billingCopy.unlimitedYearlyGross
-                      : item.gross}
+                    : item.gross}
               </p>
               {item.gross ? (
-                <>
-                  <p className="mt-1 text-xs text-[#8b95a7]">{billingCopy.vatNote}</p>
-                  <div className="mt-2">
-                    <CheckoutLegalNote />
-                  </div>
-                </>
+                <div className="mt-3">
+                  <CheckoutLegalNote />
+                </div>
               ) : null}
-              {item.inherit ? <p className="mt-6 text-sm font-medium text-[#465ab4]">{item.inherit}</p> : null}
-              <ul className={item.inherit ? "mt-3 flex flex-1 flex-col gap-3" : "mt-6 flex flex-1 flex-col gap-3"}>
+              {item.inherit ? <p className="mt-8 text-sm font-medium text-[#1c2740]">{item.inherit}</p> : null}
+              <ul className={item.inherit ? "mt-3 flex flex-1 flex-col gap-3" : "mt-8 flex flex-1 flex-col gap-3"}>
                 {item.points.map((point) => (
                   <li key={point} className="flex items-start gap-2 text-sm">
                     <CheckIcon size={16} className="mt-0.5 shrink-0 text-[#17663a]" aria-hidden />
@@ -197,29 +191,13 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                 {active && plan !== "none" ? (
                   <Link
                     href="/premium/suscripcion"
-                    className="mt-6 flex h-11 w-full items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
+                    className="mt-8 flex h-11 w-full items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium"
                   >
                     {billingCopy.manage}
                   </Link>
                 ) : null}
               </div>
             </section>
-          );
-          return item.recommended ? (
-            <PixelCard
-              key={item.id}
-              theme="light"
-              variant="blue"
-              gap={7}
-              speed={35}
-              className="!flex !h-full !w-full !min-h-full flex-col !place-items-stretch rounded-[2rem] border-2 border-[#465ab4]"
-              radius={32}
-              noFocus
-            >
-              {body}
-            </PixelCard>
-          ) : (
-            <div key={item.id}>{body}</div>
           );
         })}
       </div>

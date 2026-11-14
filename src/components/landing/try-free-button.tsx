@@ -6,8 +6,7 @@ import type StarBorder from "@/components/StarBorder";
 import { useLandingAurora } from "@/components/landing/landing-motion";
 import { landingCopy } from "@/lib/landing-copy";
 
-const teal = "#2fc4b2";
-const clay = "#0f6e73";
+const navy = "#1c2740";
 
 type StarBorderComponent = typeof StarBorder;
 
@@ -16,16 +15,19 @@ export function TryFreeButton({
   className = "",
   label = landingCopy.tryFreeCta,
   onClick,
+  size = "nav",
 }: {
   href?: string;
   className?: string;
   label?: string;
   onClick?: () => void;
+  size?: "nav" | "hero";
 }) {
   const motion = useLandingAurora();
   const [Border, setBorder] = useState<StarBorderComponent | null>(null);
-  const shared = `h-12 min-h-11 px-8 text-sm font-semibold ${className}`.trim();
-  const plain = `inline-flex items-center justify-center rounded-full bg-public-clay text-white shadow-[0_8px_18px_-12px_rgb(15_110_115_/_0.7)] transition hover:bg-public-clay-deep ${shared}`;
+  const sizing = size === "hero" ? "h-12 min-h-12 px-8" : "h-11 min-h-11 px-4";
+  const shared = `${sizing} text-sm font-semibold ${className}`.trim();
+  const plain = `inline-flex items-center justify-center rounded-full bg-relify-btn text-white shadow-[0_8px_18px_-12px_rgb(28_39_64_/_0.55)] transition hover:bg-relify-btn-hover ${shared}`;
 
   useEffect(() => {
     if (!motion) {
@@ -55,13 +57,13 @@ export function TryFreeButton({
       as={Link}
       href={href}
       onClick={onClick}
-      color={teal}
-      backgroundColor={clay}
+      color="#ffffff"
+      backgroundColor={navy}
       textColor="#ffffff"
       duration={12}
       thickness={1.4}
       radius={999}
-      glow={0.35}
+      glow={0.28}
       sparkle={false}
       className={shared}
     >

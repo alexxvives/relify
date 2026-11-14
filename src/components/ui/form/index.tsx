@@ -117,12 +117,12 @@ export const Select = forwardRef<HTMLSelectElement, Omit<SelectHTMLAttributes<HT
 });
 
 const buttonTone = {
-  primary: "bg-[#465ab4] text-white hover:bg-[#3a4c9c]",
-  navy: "bg-[#1c2740] text-white hover:bg-[#2a3a5c]",
+  primary: "bg-relify-btn text-white hover:bg-relify-btn-hover",
+  navy: "bg-relify-btn text-white hover:bg-relify-btn-hover",
   teal: "bg-[#14998a] text-white hover:bg-[#0f8578]",
   outline: "border border-[#d5dbe4] bg-white text-[#1c2740] hover:bg-[#f4f6fb]",
   danger: "bg-[#c0362c] text-white hover:bg-[#a52d24]",
-  ghost: "text-[#465ab4] hover:bg-[#f4f6fb]",
+  ghost: "text-[#1c2740] hover:bg-[#f4f6fb]",
 } as const;
 
 const buttonSize = {
@@ -135,7 +135,7 @@ export type ButtonTone = keyof typeof buttonTone;
 
 export function buttonClass({ tone = "primary", size = "md", block = false }: { tone?: ButtonTone; size?: keyof typeof buttonSize; block?: boolean } = {}): string {
   return cn(
-    "inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4] disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2740] disabled:cursor-not-allowed disabled:opacity-60",
     buttonTone[tone],
     buttonSize[size],
     block ? "w-full" : "",
