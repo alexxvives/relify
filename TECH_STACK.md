@@ -64,6 +64,7 @@ Production: Cloudflare Workers, added with vinext after `npx vinext check` passe
 | @neon/env | 1.5.1 |
 | pdf-lib | 1.17.1 |
 | @pdf-lib/fontkit | 1.1.1 |
+| gsap | 3.15.1 |
 
 ## Environment
 

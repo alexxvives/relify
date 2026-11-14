@@ -115,7 +115,7 @@ export function InvestorProject({
           access === "accepted" ? (
             <a
               href={`/proyectos/${project.slug}/pdf/dossier?download=1`}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#1c2740] hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+              className="inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-[#1c2740] hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none sm:px-4"
             >
               <Download className="size-4" aria-hidden />
               {companyPdfCopy.dossierDownload}

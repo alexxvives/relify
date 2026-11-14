@@ -37,7 +37,7 @@ export function CompanyBanner({
    * sector tile, the name, small chips, status, readiness chip, then deal progress and cue on the light page.
    */
   variant?: "hero" | "compact";
-  /** Extra control under the chips (buyer dossier download). */
+  /** Extra control at the top-left of the hero banner (buyer dossier download). */
   bannerAction?: ReactNode;
 }) {
   const Title = heading;
@@ -106,8 +106,11 @@ export function CompanyBanner({
           aria-hidden
         />
       ) : null}
+      {bannerAction ? (
+        <div className="absolute top-5 left-5 z-10 flex max-w-[min(100%-5.5rem,20rem)]">{bannerAction}</div>
+      ) : null}
       {children ? <div className="absolute top-5 right-5 z-10 flex items-center gap-2">{children}</div> : null}
-      <div className="relative z-10 mx-auto max-w-3xl text-center">
+      <div className={`relative z-10 mx-auto max-w-3xl text-center ${bannerAction ? "pt-12 sm:pt-14" : ""}`}>
         {themed && SectorIcon ? (
           <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/25" aria-hidden>
             <SectorIcon className="size-5 text-white" />
@@ -125,7 +128,6 @@ export function CompanyBanner({
             ))}
           </ul>
         ) : null}
-        {bannerAction ? <div className="mt-5 flex justify-center">{bannerAction}</div> : null}
         {subtitle || status ? (
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#e7ecff]">
           {subtitle ? (

@@ -2,6 +2,12 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-14 — Round S18 banner, hero overlay, gold, React Bits landing v2
+
+Buyer `/proyectos/[slug]` puts **Descargar cuaderno de venta** at the top-left of the hero banner (`absolute top-5 left-5`). Landing **Prueba gratis** stays inside `.releva-hero-copy` (absolute overlay); mobile `.releva-city-static` is in-flow so the card height follows the image, not the CTA. **rentables** gold is `#a47208` / `#b8860b` with a `#e8c547` shine (WCAG AA for large text on white; overlay reduced-motion uses `#e8c547`). Exception to DESIGN “do not invent hex”.
+
+Landing v2 is `/?v=2` (noindex), default `/` unchanged. `components.json` registers `@react-bits` → `https://reactbits.dev/r/{name}.json`. Installed with `npx shadcn@latest add @react-bits/FadeContent-TS-TW @react-bits/CountUp-TS-TW @react-bits/Aurora-TS-TW` (moved to `src/components/landing/`). **gsap** `^3.15.1` is only for FadeContent. Skipped ShinyText/GradientText so **rentables** stays the custom gold. v2 CountUp uses Proyecto Alba 240/48/190 as labelled example cifras, never `landingCopy.stats`. Aurora is desktop-only and paused off when `prefers-reduced-motion`. No Prisma schema migration.
+
 ## 2026-11-14 — Round S17b help copy, LOI DNI reuse, INT buyer fixtures
 
 Seller `/mi-empresa` help stays titled **¿Necesitas ayuda?**, body exactly **Llámanos o escríbenos.**, and the phone number only (`+34 689 99 43 85`). No “Llamar”, no email row, no “Te acompañamos a rellenar la ficha.” Contact-page email is unchanged. NDA signing writes `user.national_id` via `ensureNationalId`; LOI `collectIdentity` is false so a stored id skips the DNI field (`identityOnSign` → `skip`). Additive INT-only SQL `prisma/int-consultoria-buyer-fixtures.sql` sets `int-comprador@test.local`’s DNI (signed NDA before this write existed) and seeds Consultoría Servicios data-room folders/files (two shared, pacto-socios not). No Prisma schema migration.

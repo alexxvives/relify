@@ -248,13 +248,13 @@ function SwapVerb() {
   );
 }
 
-export function Hero() {
+export function Hero({ wash = false }: { wash?: boolean }) {
   const copy = landingCopy.home;
   const [openId, setOpenId] = useState<string | null>(null);
   const open = spots.find((spot) => spot.id === openId) ?? null;
 
   return (
-    <section aria-labelledby="inicio" className="releva-hero releva-hero-sky">
+    <section aria-labelledby="inicio" className={wash ? "releva-hero releva-hero-sky releva-hero-sky-wash" : "releva-hero releva-hero-sky"}>
       <div className="releva-hero-glass">
         {/* Alex (t32): city + spots share one 3:2 box so the price pins stay on their buildings at every width. */}
         <div className="releva-city-box hidden lg:block">

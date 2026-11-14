@@ -8,9 +8,8 @@ import { PublicSite } from "@/components/landing/public-site";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
 
-export async function LandingPage() {
-  const siteUrl = readSiteUrl();
-  const jsonLd = {
+export function landingJsonLd(siteUrl: URL) {
+  return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Relify",
@@ -18,6 +17,10 @@ export async function LandingPage() {
     description: landingCopy.home.description,
     inLanguage: "es",
   };
+}
+
+export async function LandingPage() {
+  const jsonLd = landingJsonLd(readSiteUrl());
 
   return (
     <PublicSite dockedCta>

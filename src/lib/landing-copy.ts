@@ -155,6 +155,16 @@ export const landingCopy = {
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
     cta: "Prueba gratis",
+    v2: {
+      cifrasId: "cifras",
+      cifrasKicker: "Ejemplo de ficha",
+      cifrasHeading: "Así se leen las cifras",
+      cifrasIntro:
+        "Números de Proyecto Alba, la ficha de ejemplo. No son un recuento del mercado.",
+      revenue: "Facturación",
+      ebitda: "EBITDA",
+      price: "Precio de venta",
+    },
     sellCta: "Vender tu empresa",
     step: "Ficha pública",
     buyersKicker: "Empresarios que buscan",

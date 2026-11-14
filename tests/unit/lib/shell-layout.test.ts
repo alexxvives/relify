@@ -130,6 +130,7 @@ describe("S13b scroll lock and seller surfaces", () => {
 
 const shellCopySource = readFileSync(path.join(process.cwd(), "src/lib/shell.ts"), "utf8");
 const appFrame = readFileSync(path.join(process.cwd(), "src/components/shell/app-frame.tsx"), "utf8");
+const banner = readFileSync(path.join(process.cwd(), "src/components/seller/company-banner.tsx"), "utf8");
 const investorProject = readFileSync(path.join(process.cwd(), "src/components/investor/investor-project.tsx"), "utf8");
 const companyReport = readFileSync(path.join(process.cwd(), "src/components/seller/company-report.tsx"), "utf8");
 const investorProcesses = readFileSync(path.join(process.cwd(), "src/components/investor/investor-processes.tsx"), "utf8");
@@ -168,6 +169,8 @@ describe("S17 buyer ficha and seller surfaces", () => {
 
   it("puts the dossier download in the buyer banner and drops the LOI template link", () => {
     expect(investorProject).toMatch(/bannerAction=/);
+    expect(banner).toMatch(/absolute top-5 left-5/);
+    expect(banner).not.toMatch(/bannerAction \? <div className="mt-5 flex justify-center">/);
     expect(investorProject).toMatch(/dossierDownload/);
     expect(investorProject).not.toMatch(/BuyerDossierLink/);
     expect(investorProject).not.toMatch(/loiTemplateHref/);
@@ -208,7 +211,15 @@ describe("S17 landing hero title and header", () => {
   it("animates rentables with a gold clip sweep and a static gold when motion is reduced", () => {
     expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*background-clip:\s*text/);
     expect(css).toMatch(/@keyframes releva-gold-sweep/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#a87f2c/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#a47208/);
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#a47208[\s\S]*#b8860b[\s\S]*#e8c547/);
     expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
+  });
+
+  it("keeps the Prueba gratis CTA inside the hero overlay without growing the card", () => {
+    expect(css).toMatch(/\.releva-hero-copy \{[\s\S]*position:\s*absolute/);
+    expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*\.releva-city-static \{[\s\S]*position:\s*relative/);
+    expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*\.releva-hero-copy \{[\s\S]*justify-content:\s*flex-start/);
+    expect(heroSource).toMatch(/releva-hero-copy[\s\S]*releva-hero-actions/);
   });
 });

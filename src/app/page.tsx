@@ -8,14 +8,25 @@ import { readSiteUrl } from "@/lib/env";
 const title = landingCopy.home.title;
 const description = landingCopy.home.description;
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ v?: string }>;
+}): Promise<Metadata> {
+  const { v } = await searchParams;
   return {
     title: intAbsoluteTitle(isIntEnvironment(), title),
     description,
     ...pageSocialMetadata({ title, description, path: "/", origin: readSiteUrl() }),
+    ...(v === "2" ? { robots: { index: false, follow: false } } : {}),
   };
 }
 
-export default function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ v?: string }> }) {
+  const { v } = await searchParams;
+  if (v === "2") {
+    const { LandingPageV2 } = await import("@/components/landing/landing-page-v2");
+    return <LandingPageV2 />;
+  }
   return <LandingPage />;
 }
