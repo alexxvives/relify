@@ -75,6 +75,12 @@ export function SellerOverview({
             ) : dashboard.years.length === 0 ? (
               <>
                 <p className="mt-1 text-sm text-[#667085]">{sellerCopy.financeEmpty}</p>
+                <Link
+                  href="/mi-empresa/detalles"
+                  className="mt-3 inline-flex h-10 items-center rounded-full bg-[#1c2740] px-4 text-sm font-semibold text-white hover:bg-[#28375a]"
+                >
+                  {sellerCopy.detailsTitle}
+                </Link>
                 <FinanceChartsPlaceholder />
               </>
             ) : (

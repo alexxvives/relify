@@ -22,7 +22,6 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [roleAlert, setRoleAlert] = useState(0);
   const roleMissing = roleAlert > 0 && role === "";
-  const selected = intents.find((item) => item.id === role);
 
   return (
     <form
@@ -38,52 +37,51 @@ export function SignUpForm({ intent = null }: { intent?: SignupIntent | null }) 
         setLocalMessage(null);
       }}
     >
-      <div className="flex flex-col gap-1.5">
-        <div
-          key={roleAlert}
-          className={roleMissing ? "releva-shake flex rounded-full border border-[#d5dee8] bg-[#f7f8fb] p-1" : "flex rounded-full border border-[#d5dee8] bg-[#f7f8fb] p-1"}
-          role="radiogroup"
-          aria-label={authCopy.roleChoiceLabel}
-        >
-          {intents.map((item) => {
-            const pressed = role === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="radio"
-                aria-checked={pressed}
-                onClick={() => {
-                  setRole(item.id);
-                  setLocalMessage(null);
-                }}
-                className={
-                  pressed
-                    ? "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full bg-[#16324f] px-1 text-[11px] font-medium text-white sm:gap-1.5 sm:px-2 sm:text-sm"
-                    : roleMissing
-                      ? "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full px-1 text-[11px] font-medium text-[#c0362c] sm:gap-1.5 sm:px-2 sm:text-sm"
-                      : "inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full px-1 text-[11px] font-medium text-[#5c6b78] sm:gap-1.5 sm:px-2 sm:text-sm"
-                }
-              >
-                <item.Icon className="size-3.5 shrink-0" aria-hidden />
-                <span className="whitespace-nowrap">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        {selected ? (
-          <p className="px-1 text-center text-sm leading-5 text-[#7d8fa1]">{authCopy.roleHints[selected.id]}</p>
-        ) : null}
+      <div
+        key={roleAlert}
+        className={
+          roleMissing
+            ? "releva-shake grid grid-cols-3 gap-1 rounded-2xl border border-[#c0362c] bg-white p-1"
+            : "grid grid-cols-3 gap-1 rounded-2xl border border-[#d5dee8] bg-white p-1"
+        }
+        role="radiogroup"
+        aria-label={authCopy.roleChoiceLabel}
+      >
+        {intents.map((item) => {
+          const pressed = role === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="radio"
+              aria-checked={pressed}
+              onClick={() => {
+                setRole(item.id);
+                setLocalMessage(null);
+              }}
+              className={
+                pressed
+                  ? "inline-flex min-h-9 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-[#1c2740] px-1 py-1.5 text-center text-[10px] leading-tight font-semibold text-white min-[380px]:min-h-10 min-[380px]:flex-row min-[380px]:gap-1 min-[380px]:text-[11px] sm:min-h-11 sm:gap-1.5 sm:px-2 sm:text-sm"
+                  : roleMissing
+                    ? "inline-flex min-h-9 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center text-[10px] leading-tight font-semibold text-[#c0362c] min-[380px]:min-h-10 min-[380px]:flex-row min-[380px]:gap-1 min-[380px]:text-[11px] sm:min-h-11 sm:gap-1.5 sm:px-2 sm:text-sm"
+                    : "inline-flex min-h-9 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center text-[10px] leading-tight font-semibold text-[#5c6b78] hover:bg-[#f7f8fb] hover:text-[#1c2740] min-[380px]:min-h-10 min-[380px]:flex-row min-[380px]:gap-1 min-[380px]:text-[11px] sm:min-h-11 sm:gap-1.5 sm:px-2 sm:text-sm"
+              }
+            >
+              <item.Icon className="size-3 shrink-0 min-[380px]:size-3.5 sm:size-4" aria-hidden />
+              <span className="min-w-0">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
       <input type="hidden" name="signupRole" value={role} />
       <EmailField look="arc" />
-      <NewPasswordField name="password" label={authCopy.passwordLabel} placeholder={authCopy.passwordPlaceholder} />
-      <label className="flex items-start gap-2.5 px-1 text-sm leading-5 text-[#5c6b78]">
+      <NewPasswordField name="password" label={authCopy.passwordLabel} placeholder={authCopy.passwordPlaceholder} chips />
+      <label className="flex items-center gap-2 px-1 text-[11px] leading-4 text-[#5c6b78] sm:text-xs sm:leading-4">
         <input
           type="checkbox"
           name="acceptTerms"
           required
-          className="mt-0.5 size-4 shrink-0 rounded border-[#c5cdd8] text-[#1c2740] accent-[#1c2740]"
+          className="size-3.5 shrink-0 rounded border-[#c5cdd8] text-[#1c2740] accent-[#1c2740] sm:size-4"
         />
         <span>
           {authCopy.termsAcceptLead}{" "}

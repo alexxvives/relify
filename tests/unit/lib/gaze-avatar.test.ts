@@ -8,8 +8,9 @@ describe("gazeAvatarUrl", () => {
     expect(url).not.toMatch(/dicebear/i);
   });
 
-  it("keeps a local SVG data URI for unknown seeds", () => {
+  it("cycles vendored Gaze blob portraits for unknown seeds", () => {
     const url = gazeAvatarUrl("perfil-x");
-    expect(url.startsWith("data:image/svg+xml")).toBe(true);
+    expect(url).toMatch(/^\/waitlist\/(alba|nube|cala|duna|bruma|olivo|roble|faro)\.svg$/);
+    expect(url).not.toMatch(/data:image/);
   });
 });

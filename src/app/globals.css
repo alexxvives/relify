@@ -4711,6 +4711,37 @@ select:-webkit-autofill {
 .password-compact div:has(> input) button:hover { background: transparent; color: #2b3b4a; }
 .password-compact div:has(> input) button svg { width: 1rem; height: 1rem; }
 
+/* Signup: password rules as one compact chip row under the strength bar. */
+.password-chips ul[aria-label] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.password-chips ul[aria-label] li {
+  min-height: 0;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f1f4f8;
+  color: #5c6b78;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.password-chips ul[aria-label] li[data-met] {
+  background: #e7f6ee;
+  color: #1b7a45;
+}
+.password-chips ul[aria-label] li > span:first-child {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+.password-chips ul[aria-label] li > span:nth-child(3) {
+  display: none;
+}
+
 /* t60: animated rows in the "información inicial" modal. */
 @keyframes releva-row-in {
   from { opacity: 0; transform: translateY(8px); }

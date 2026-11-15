@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { WaitClockIcon } from "@/components/seller/nif-ready-icons";
 import { companyCopy } from "@/lib/company-copy";
+import { sellerCopy } from "@/lib/seller-copy";
 
 /**
  * Seller side: the CIF is in, the SABI financials are not loaded yet.
@@ -19,6 +21,12 @@ export function SabiPendingOverlay() {
             <span className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-xs font-semibold text-[#9a5b00]">{companyCopy.sabiPendingTag}</span>
           </p>
           <p className="mt-1 text-sm leading-6 text-[#3d4a63]">{companyCopy.sabiPendingBody}</p>
+          <Link
+            href="/mi-empresa/detalles"
+            className="mt-3 inline-flex h-10 items-center rounded-full bg-[#1c2740] px-4 text-sm font-semibold text-white hover:bg-[#28375a]"
+          >
+            {sellerCopy.detailsTitle}
+          </Link>
         </div>
       </div>
     </div>

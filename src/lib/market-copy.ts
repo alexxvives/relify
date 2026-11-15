@@ -4,7 +4,7 @@ export const marketCopy = {
   searchPlaceholder: "¿Qué estás buscando?",
   filtersAction: "Filtros",
   sortLabel: "Ordenar",
-  revenueLabel: "Facturación",
+  revenueLabel: "Precio de venta",
   ebitdaLabel: "EBITDA",
   regionLabel: "Región",
   regionAll: "Todas",

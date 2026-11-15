@@ -53,10 +53,14 @@ describe("filterMarketProjects", () => {
     ).toEqual(["proyecto-duna"]);
 
     expect(
-      filterMarketProjects(projects, { ...filters, revenueBand: "over-2m", sort: "revenue" }).map(
+      filterMarketProjects(projects, { ...filters, revenueBand: "1m-2m", sort: "price" }).map(
         (project) => project.codename,
       ),
     ).toEqual(["Proyecto Roble"]);
+
+    expect(
+      filterMarketProjects(projects, { ...filters, revenueBand: "over-2m" }).map((project) => project.codename),
+    ).toEqual([]);
 
     expect(filterMarketProjects(projects, { ...filters, query: "olivo" }).map((project) => project.slug)).toEqual([
       "proyecto-olivo",

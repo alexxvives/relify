@@ -9,10 +9,14 @@ describe("seller financing", () => {
     });
   });
 
-  it("maps leftover Negociable to Sí and drops terms for No", () => {
+  it("maps leftover Negociable to Sí and never writes year or percentage", () => {
     expect(sellerFinancingWrite({ sellerFinancing: "negotiable", sellerFinancingPct: "20", sellerFinancingYears: "3" })).toEqual({
       ok: true,
-      data: { sellerFinancing: "yes", sellerFinancingMaxPct: 20, sellerFinancingYears: 3 },
+      data: { sellerFinancing: "yes", sellerFinancingMaxPct: null, sellerFinancingYears: null },
+    });
+    expect(sellerFinancingWrite({ sellerFinancing: "yes", sellerFinancingPct: "20", sellerFinancingYears: "3" })).toEqual({
+      ok: true,
+      data: { sellerFinancing: "yes", sellerFinancingMaxPct: null, sellerFinancingYears: null },
     });
     expect(sellerFinancingWrite({ sellerFinancing: "no", sellerFinancingPct: "20", sellerFinancingYears: "3" })).toEqual({
       ok: true,

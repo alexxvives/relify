@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type KeyboardEvent } from "react";
+import { useEffect, useState, type ComponentType, type CSSProperties, type KeyboardEvent } from "react";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
 import { useCompactViewport } from "@/components/ui/use-compact";
 import type { GooeyNavItem } from "@/components/ui/gooey-nav/GooeyNav";
@@ -61,6 +61,8 @@ type GooeyProps = {
   activeTextColor?: string;
   size?: "sm" | "md" | "lg";
   frame?: boolean;
+  className?: string;
+  style?: CSSProperties;
 };
 
 function reducedMotion(): boolean {
@@ -125,7 +127,14 @@ function SegmentedTablist<T extends string>({
           color="#1c2740"
           activeTextColor="#ffffff"
           size="sm"
-          frame={false}
+          frame
+          className="gooey-nav--solid"
+          style={{
+            "--gn-frame": "#ffffff",
+            "--gn-frame-edge": "#e6e9f0",
+            "--gn-frame-highlight": "#ffffff",
+            "--gn-frame-shadow": "0 8px 24px -12px rgba(28, 39, 64, 0.35)",
+          } as CSSProperties}
         />
       </div>
     );
@@ -136,7 +145,7 @@ function SegmentedTablist<T extends string>({
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="pointer-events-auto inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-[#e6e9f0] bg-white/90 p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] backdrop-blur"
+      className="pointer-events-auto inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-[#e6e9f0] bg-white p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)]"
     >
       {tabs.map((item) => {
         const selected = item.id === value;

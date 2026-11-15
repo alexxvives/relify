@@ -9,10 +9,10 @@ import { createPasswordRules, PasswordStrength } from "@/components/arc/password
 const rules = createPasswordRules({
   minLength: 8,
   labels: {
-    length: (min) => `Al menos ${min} caracteres`,
+    length: (min) => `${min} caracteres`,
     case: "",
-    number: "Al menos un número",
-    symbol: "Al menos un símbolo",
+    number: "Un número",
+    symbol: "Un símbolo",
   },
 }).filter((rule) => rule.id !== "case");
 
@@ -29,13 +29,25 @@ const messages = {
   summary: ({ label, met, total }: { label: string; met: number; total: number }) => `Seguridad: ${label}. ${met} de ${total} requisitos cumplidos.`,
 };
 
-/** `compact` keeps the checklist out of the layout: it floats under the field only while the field is focused. */
-export function NewPasswordField({ name, label, placeholder, compact = false }: { name: string; label: string; placeholder?: string; compact?: boolean }) {
+/** `compact` keeps the checklist out of the layout: it floats under the field only while the field is focused. `chips` is one row of green-when-met pills. */
+export function NewPasswordField({
+  name,
+  label,
+  placeholder,
+  compact = false,
+  chips = false,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  compact?: boolean;
+  chips?: boolean;
+}) {
   const [focused, setFocused] = useState(false);
   const [typed, setTyped] = useState(false);
   return (
     <div
-      className={compact ? "password-compact" : undefined}
+      className={chips ? "password-chips" : compact ? "password-compact" : undefined}
       data-open={compact && focused ? "true" : undefined}
       data-typed={compact && typed ? "true" : undefined}
       onInput={(event) => {

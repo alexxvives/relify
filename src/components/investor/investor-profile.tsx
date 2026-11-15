@@ -240,7 +240,7 @@ export function InvestorProfile({
           </div>
           <Chip done={publicDone} />
         </div>
-        <div className="mt-5 grid min-w-0 items-start gap-6 @[68rem]:grid-cols-[minmax(0,71fr)_minmax(26rem,29fr)]">
+        <div className="mt-5 grid min-w-0 items-start gap-6 @[52rem]:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
         <div className="min-w-0">
         <fieldset id="lugar" className="scroll-mt-8 border-0 p-0">
           <legend className="text-sm">{investorCopy.locationLabel}</legend>
@@ -308,14 +308,14 @@ export function InvestorProfile({
           {investorCopy.searchLabel}
           <Textarea value={thesis} onChange={(event) => setThesis(event.target.value)} rows={4} />
         </label>
-        <div className="flex justify-center @[68rem]:hidden">
+        <div className="flex justify-center @[52rem]:hidden">
           <Button type="button" tone="navy" size="md" onClick={() => setPreviewOpen(true)}>
             {investorCopy.showCard}
           </Button>
         </div>
         </div>
         </div>
-        <div id="foto" className={`min-w-0 scroll-mt-24 @[68rem]:sticky @[68rem]:top-6 ${hidePhotoControl ? "hidden @[68rem]:block" : ""}`}>
+        <div id="foto" className={`min-w-0 scroll-mt-24 @[52rem]:sticky @[52rem]:top-6 ${hidePhotoControl ? "hidden @[52rem]:block" : ""}`}>
           {hidePhotoControl ? null : (
             <InvestorPhotoDrop
               photo={photo}
@@ -330,7 +330,7 @@ export function InvestorProfile({
               }}
             />
           )}
-          <div className={hidePhotoControl ? "hidden @[68rem]:block" : "mt-4 hidden @[68rem]:block"}>
+          <div className={hidePhotoControl ? "hidden @[52rem]:block" : "mt-4 hidden @[52rem]:block"}>
             <InvestorPublicCard label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName} profile={preview} />
           </div>
         </div>

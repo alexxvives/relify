@@ -1,6 +1,5 @@
 export const billingCopy = {
   title: "Planes",
-  intro: "Ver empresas es gratis. Conectar requiere un plan. Si la operación se cierra, la comisión queda registrada y no se cobra en este paso.",
   freeName: "Gratis",
   freePrice: "Gratis",
   freeBody: "Puedes mirar el catálogo. No puedes conectar.",

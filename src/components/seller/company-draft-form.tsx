@@ -983,83 +983,53 @@ const fieldInputClass =
 
 function SellerFinancingField({
   mode,
-  pct,
-  years,
   onMode,
-  onPct,
-  onYears,
 }: {
   mode: string;
-  pct: string;
-  years: string;
   onMode: (value: string) => void;
-  onPct: (value: string) => void;
-  onYears: (value: string) => void;
 }) {
-  const terms = mode === "yes";
   return (
     <div id="panel-seller-financing" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <input type="hidden" name="sellerFinancing" value={mode} />
-      <input type="hidden" name="sellerFinancingPct" value={terms ? pct : ""} />
-      <input type="hidden" name="sellerFinancingYears" value={terms ? years : ""} />
+      <input type="hidden" name="sellerFinancingPct" value="" />
+      <input type="hidden" name="sellerFinancingYears" value="" />
       <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
         ¿Aceptarías financiar parte del precio?
       </p>
       <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
         El comprador te pagaría una parte más adelante, a plazos.
       </p>
-      <div className="flex min-w-0 items-center gap-1.5">
-        <div
-          role="radiogroup"
-          data-flash
-          aria-labelledby="seller-financing-label"
-          aria-describedby="seller-financing-help"
-          className={`grid h-10 min-w-0 grid-cols-2 rounded-xl border border-[#e7eaee] bg-white p-0.5 ${terms ? "flex-[1.2]" : "w-full"}`}
-        >
-          {sellerFinancingModes.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-label={sellerFinancingLabels[option]}
-              aria-checked={mode === option}
-              onClick={() => onMode(option)}
-              className={`rounded-lg px-1 text-[11px] font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:px-3 sm:text-sm ${
-                mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
-              }`}
-            >
-              {sellerFinancingLabels[option]}
-            </button>
-          ))}
-        </div>
-        {terms ? (
-          <>
-            <label className="flex h-10 w-[5.5rem] shrink-0 items-center gap-1 overflow-hidden rounded-xl border border-[#c5ccd8] bg-white px-2.5">
-              <input
-                data-flash
-                inputMode="numeric"
-                aria-label="Porcentaje del precio financiado"
-                value={pct}
-                onChange={(event) => onPct(keepDigits(event.target.value, 3))}
-                className="relify-inset w-[4ch] min-w-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3]"
-                placeholder="20"
-              />
-              <span className="shrink-0 text-xs font-medium text-[#667085]">%</span>
-            </label>
-            <label className="flex h-10 min-w-0 flex-1 items-center gap-1 overflow-hidden rounded-xl border border-[#c5ccd8] bg-white px-2.5">
-              <input
-                data-flash
-                inputMode="numeric"
-                aria-label="Plazo de la financiación en años"
-                value={years}
-                onChange={(event) => onYears(keepDigits(event.target.value, 1))}
-                className="relify-inset w-[3ch] min-w-0 text-sm text-[#1c2740] placeholder:text-[#98a2b3]"
-                placeholder="3"
-              />
-              <span className="shrink-0 text-xs font-medium text-[#667085]">años</span>
-            </label>
-          </>
-        ) : null}
+      <div
+        role="radiogroup"
+        data-flash
+        aria-labelledby="seller-financing-label"
+        aria-describedby="seller-financing-help"
+        className="grid h-12 min-w-0 grid-cols-2 rounded-xl border border-[#e7eaee] bg-white p-0.5"
+      >
+        {sellerFinancingModes.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-label={option === "yes" ? "Sí, recomendado" : sellerFinancingLabels[option]}
+            aria-checked={mode === option}
+            onClick={() => onMode(option)}
+            className={`flex flex-col items-center justify-center rounded-lg px-1 leading-tight focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:flex-row sm:gap-1.5 sm:px-3 ${
+              mode === option ? "bg-[#1c2740] text-white" : "text-[#475467] hover:bg-[#f2f4f7]"
+            }`}
+          >
+            <span className="text-[11px] font-medium sm:text-sm">{sellerFinancingLabels[option]}</span>
+            {option === "yes" ? (
+              <span
+                className={`rounded-full px-1.5 py-px text-[10px] font-semibold ${
+                  mode === option ? "bg-white/15 text-white" : "bg-[#fff4d6] text-[#8a6112]"
+                }`}
+              >
+                Recomendado
+              </span>
+            ) : null}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -1901,8 +1871,8 @@ export function CompanyDraftForm({
   const [opex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
-  const [sellerFinancingPct, setSellerFinancingPct] = useState(initial.sellerFinancingPct);
-  const [sellerFinancingYears, setSellerFinancingYears] = useState(initial.sellerFinancingYears);
+  const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
+  const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [sellerStay, setSellerStay] = useState<string>(initial.sellerStay);
   const [ownerDependence, setOwnerDependence] = useState(initial.ownerDependence);
   const [premisesKind, setPremisesKind] = useState(initial.premisesKind);
@@ -2587,7 +2557,7 @@ export function CompanyDraftForm({
               {
                 icon: Handshake,
                 label: "Financiación vendedor",
-                value: sellerFinancing === "yes" ? `Sí${sellerFinancingPct ? ` · ${sellerFinancingPct} %` : ""}${sellerFinancingYears ? ` · ${sellerFinancingYears} años` : ""}` : sellerFinancing === "no" ? "No" : "—",
+                value: sellerFinancing === "yes" ? "Sí" : sellerFinancing === "no" ? "No" : "—",
               },
               { icon: Heart, label: "Permanencia", value: sellerStay && sellerStay in sellerStayLabels ? sellerStayLabels[sellerStay as keyof typeof sellerStayLabels] : "—" },
             ]}
@@ -2782,14 +2752,7 @@ export function CompanyDraftForm({
           </div>
         </div>
         <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <SellerFinancingField
-            mode={sellerFinancing}
-            pct={sellerFinancingPct}
-            years={sellerFinancingYears}
-            onMode={setSellerFinancing}
-            onPct={setSellerFinancingPct}
-            onYears={setSellerFinancingYears}
-          />
+          <SellerFinancingField mode={sellerFinancing} onMode={setSellerFinancing} />
           <SellerStayField value={sellerStay} onChange={setSellerStay} />
         </div>
       </Panel>

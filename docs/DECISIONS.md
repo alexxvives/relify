@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-15 — Round S24 registro, profile, marketplace price filter, INT CIF
+
+GooeyNav Información/Ficha pública uses a solid white framed pill. `/registro` drops the intro and role helpers, fits Empresa/Comprador/Asesor in a 3-col grid, compact terms, password chips. Buyer plans drop the commission intro. `/cuenta` drops the masked DNI hint and stacks before 1024–1280 cramp. Default avatars cycle vendored Gaze blobs (`/waitlist/*.svg`). Marketplace **Facturación** filter is **Precio de venta** on `askingPriceCents`. INT CIF lookup never hits billable APIs; **B12345674** mocks Obrador Ficticio; misses stay honest (no “hemos rellenado”). Seller home links to Detalles when empty. Seller financing is Sí/No (Sí = Recomendado); year/% columns stay nullable unused. No Prisma schema migration.
+
 ## 2026-11-15 — Round S23b folder graphic clicks
 
 A click on the 3D Folder graphic or peeking papers on `/mi-empresa/documentos` opens the folder view. Hover peek stays (`openOn="hover"` + `pointer-events-auto`). Folder `onActivate` forwards those clicks (papers had `stopPropagation`). The tile keeps Enter/Space. No Prisma schema migration.

@@ -15,6 +15,8 @@ import { normalizeCif } from "@/lib/spanish-cif";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { fetchApiEmpresas } from "@/lib/server/fetch-api-empresas";
+import { isIntEnvironment } from "@/lib/int-env";
+import { lookupIntRegistry } from "@/lib/int-registry-lookup";
 
 const searchUrl = "https://openmercantil.es/api/v1/search";
 const companyUrl = "https://openmercantil.es/api/v1/company";
@@ -24,6 +26,9 @@ export type { RegistryLookup };
 export async function lookupCompanyRegistry(
   cif: string,
 ): Promise<RegistryLookup> {
+  if (isIntEnvironment()) {
+    return lookupIntRegistry(cif);
+  }
   return createRegistryLookup({
     apiKey: process.env.APIEMPRESAS_API_KEY ?? null,
     now: () => new Date(),
@@ -76,6 +81,10 @@ async function writeCache(
 }
 
 async function lookupOpenMercantil(cif: string): Promise<RegistryLookup> {
+  const { shouldBlockExternalApi } = await import("./int-guards");
+  if (shouldBlockExternalApi("OPENMERCANTIL")) {
+    return { ok: false, code: "unavailable" };
+  }
   const normalized = normalizeCif(cif);
   const searchPayload = await readJson(
     `${searchUrl}?q=${encodeURIComponent(normalized)}`,

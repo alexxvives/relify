@@ -130,15 +130,21 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
                 <Check className="releva-check-draw size-9" strokeWidth={3} aria-hidden />
               </span>
               </span>
-              <h2 className="mt-5 text-2xl font-semibold tracking-tight">{companyCopy.nifReadyTitle}</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-[#5c6b78]">{companyCopy.nifReadyBody}</p>
+              <h2 className="mt-5 text-2xl font-semibold tracking-tight">
+                {state !== null && state.ok && state.filled ? companyCopy.nifReadyTitle : companyCopy.nifMissTitle}
+              </h2>
+              <p className="mt-2 max-w-md text-sm leading-6 text-[#5c6b78]">
+                {state !== null && state.ok && state.filled ? companyCopy.nifReadyBody : companyCopy.nifMissBody}
+              </p>
             </div>
             <ol className="mt-6 grid gap-3">
               <li className="releva-row-in flex items-start gap-3 rounded-2xl border border-[#cfe8e4] bg-[#f0faf8] p-4" style={{ animationDelay: "350ms" }}>
                 <FilledCheckIcon delayMs={550} />
                 <span>
                   <span className="block text-sm font-semibold">{companyCopy.nifReadyBasics}</span>
-                  <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">{companyCopy.nifReadyBasicsBody}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-[#5c6b78]">
+                    {state !== null && state.ok && state.filled ? companyCopy.nifReadyBasicsBody : companyCopy.nifMissBasicsBody}
+                  </span>
                 </span>
               </li>
               <li className="releva-row-in flex items-start gap-3 rounded-2xl border border-[#e1e6ee] bg-[#f7f8fb] p-4" style={{ animationDelay: "650ms" }}>
@@ -179,8 +185,8 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
               {match.legalName ? null : (
                 <p className="mt-3 text-sm leading-6 text-[#5c6b78]">
                   {match.failed
-                    ? "Ahora mismo no podemos consultar el registro mercantil para mostrarte el nombre. Revisa que el CIF es el de tu empresa antes de continuar."
-                    : "No encontramos ninguna empresa con este CIF en el registro mercantil. Revisa que está bien escrito antes de continuar."}
+                    ? "Ahora mismo no podemos consultar el registro mercantil. Puedes continuar y completar la ficha tú, o la revisamos en 24 h."
+                    : companyCopy.nifMissBody}
                 </p>
               )}
             </div>
@@ -237,12 +243,16 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
             )}
             <p className="mt-6 text-xl font-semibold tracking-tight">
               {phase === "filling"
-                ? companyCopy.nifFilling
+                ? match?.legalName
+                  ? companyCopy.nifFilling
+                  : companyCopy.nifChecking
                 : companyCopy.nifFilled}
             </p>
             <p className="mt-2 text-sm text-[#5c6b78]">
               {phase === "filling"
-                ? companyCopy.nifFillingBody
+                ? match?.legalName
+                  ? companyCopy.nifFillingBody
+                  : companyCopy.nifCheckingBody
                 : companyCopy.nifFilledBody}
             </p>
           </div>

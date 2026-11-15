@@ -3,6 +3,7 @@ import type { RegistryCompany } from "@/lib/company-registry";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { lookupCompanyRegistry } from "@/lib/server/lookup-company-registry";
+import { isIntEnvironment } from "@/lib/int-env";
 import { prisma } from "@/lib/db";
 import {
   activeSellerProjectId,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/server/seller-company";
 import { notifySabiRequest } from "@/lib/server/notify-sabi-request";
 
-export type VerifyNifResult = { ok: true } | { ok: false; message: string };
+export type VerifyNifResult = { ok: true; filled: boolean } | { ok: false; message: string };
 
 function prefillData(record: RegistryCompany) {
   return {
@@ -86,10 +87,13 @@ export async function verifyCompanyNif(
   const lookup = await lookupCompanyRegistry(cif);
 
   if (!lookup.ok) {
-    return { ok: false, message: companyCopy.nifRegistryUnavailable };
+    // INT never calls billable registries; continue without claiming a prefill.
+    if (!isIntEnvironment()) {
+      return { ok: false, message: companyCopy.nifRegistryUnavailable };
+    }
   }
 
-  const record = lookup.record;
+  const record = lookup.ok ? lookup.record : null;
 
   if (record) {
     const data = prefillData(record);
@@ -138,7 +142,7 @@ export async function verifyCompanyNif(
       where: { id: user.id },
       data: { pendingCif: null },
     });
-    return { ok: true };
+    return { ok: true, filled: record !== null };
   }
 
   // No draft yet: create the company now so it is visible to admins from the first minute.
@@ -150,7 +154,7 @@ export async function verifyCompanyNif(
     ownerEmail: user.email,
     slug: created.slug,
   });
-  return { ok: true };
+  return { ok: true, filled: record !== null };
 }
 
 export async function companyNifIsVerified(

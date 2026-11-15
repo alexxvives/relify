@@ -18,6 +18,9 @@ test.describe("visitor landing and public forms", () => {
     await expect(page.getByRole("link", { name: /términos de uso/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /política de privacidad/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /crear cuenta/i })).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Comprador" })).toBeVisible();
+    await expect(page.getByText(/únete a quienes compran/i)).toHaveCount(0);
+    await expect(page.getByText(/exploras empresas y pides conexión/i)).toHaveCount(0);
   });
 
   test("waitlist form is present and does not submit unless E2E_ALLOW_MUTATION", async ({ page }) => {

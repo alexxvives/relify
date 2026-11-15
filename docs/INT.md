@@ -47,6 +47,15 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 
 See `src/lib/int-mail.ts` and `src/lib/server/mailer.ts`.
 
+## Company CIF lookup (no billable APIs)
+
+INT never calls API Empresas or OpenMercantil (`shouldBlockExternalApi`). `lookupCompanyRegistry` uses `lookupIntRegistry` instead:
+
+- CIF **B12345674** returns the INT seed company **Obrador Ficticio Norte S.L.** so verification can be exercised end to end (name confirm, prefill, “hemos rellenado”).
+- Any other valid CIF is an honest miss: the seller can continue and fill Detalles de empresa, or wait for the 24 h review. The UI must not say the ficha was filled.
+
+Do not set `APIEMPRESAS_API_KEY` on `releva-int`.
+
 ## Data-room uploads (isolated)
 
 INT uploads are on. They never use production R2.

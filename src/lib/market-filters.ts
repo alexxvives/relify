@@ -80,7 +80,7 @@ export function filterMarketProjects(
       return false;
     }
 
-    if (filters.revenueBand !== "any" && !inBand(project.revenueCents, revenueBounds[filters.revenueBand])) {
+    if (filters.revenueBand !== "any" && !inBand(project.askingPriceCents, revenueBounds[filters.revenueBand])) {
       return false;
     }
 

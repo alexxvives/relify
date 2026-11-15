@@ -107,14 +107,14 @@ export function AccountSettings({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-6">
       <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
-      <div className={agreement ? "grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
+      <div className={agreement ? "grid items-stretch gap-6 lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_16rem] 2xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
       <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
-          <div className={photo ? "grid items-start gap-5 md:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
+          <div className={photo ? "grid items-start gap-5 sm:grid-cols-1 xl:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
           {photo}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-1 xl:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.fullNameLabel}
               <Input
@@ -144,7 +144,6 @@ export function AccountSettings({
                       {authCopy.nationalIdChange}
                     </button>
                   </span>
-                  <span className="text-xs font-normal text-[#5c6b78]">{authCopy.nationalIdMaskedHint}</span>
                 </>
               ) : (
                 <>
@@ -212,20 +211,20 @@ export function AccountSettings({
       <Card>
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
-        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 sm:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
           <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
           <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
           <Button
             type="submit"
             disabled={passwordPending}
-            className="xl:mt-7 md:col-span-2 xl:col-span-1"
+            className="xl:col-span-2 2xl:mt-7 2xl:col-span-1"
 >
             {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
           </Button>
           <AppToast message={passwordState?.saved ? passwordState.message : null} />
           {passwordState && !passwordState.saved ? (
-            <p role="alert" className="text-sm text-[#c0362c] md:col-span-2 xl:col-span-4">
+            <p role="alert" className="text-sm text-[#c0362c] xl:col-span-2 2xl:col-span-4">
               {passwordState.message}
             </p>
           ) : null}
@@ -235,7 +234,7 @@ export function AccountSettings({
       <Card tone="danger">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
-        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
           <label className="flex flex-col gap-2 text-sm font-medium">
             {authCopy.deleteConfirmLabel}
@@ -245,12 +244,12 @@ export function AccountSettings({
             type="submit"
             disabled={deletePending}
             tone="danger"
-            className="h-12 w-full rounded-full md:col-span-2 xl:mt-7 xl:col-span-1 xl:h-11 xl:w-auto xl:rounded-xl"
+            className="h-12 w-full rounded-full lg:col-span-2 xl:mt-7 xl:col-span-1 xl:h-11 xl:w-auto xl:rounded-xl"
 >
             {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
           </Button>
           {deleteState ? (
-            <p role="alert" className="text-sm text-[#c0362c] md:col-span-2 xl:col-span-3">
+            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-2 xl:col-span-3">
               {deleteState.message}
             </p>
           ) : null}

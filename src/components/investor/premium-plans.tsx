@@ -97,7 +97,6 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
         <h2 className="releva-page-title mt-3 text-4xl leading-[1.05] sm:text-5xl">
           Mira gratis. Conecta cuando toque.
         </h2>
-        <p className="mt-4 text-sm leading-6 text-white/80">{billingCopy.intro}</p>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
         {testMode ? (
           <p className="mx-auto mt-3 w-fit rounded-full bg-[#ffb703] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#1c2740] uppercase">

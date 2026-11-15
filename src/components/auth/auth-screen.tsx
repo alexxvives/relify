@@ -43,7 +43,7 @@ export function AuthScreen({
         : signingUp
           ? {
               title: authCopy.signUpCardTitle,
-              intro: authCopy.signUpIntro,
+              intro: "",
               form: <SignUpForm intent={intent} />,
             }
           : {
@@ -100,10 +100,12 @@ export function AuthScreen({
                   <h2 className="text-center text-xl sm:text-3xl short:text-2xl font-semibold tracking-tight text-[#16324f]">
                     {card.title}
                   </h2>
-                  <p className="mt-2 text-center text-sm leading-6 text-[#7d8fa1] sm:mt-3 sm:text-base sm:leading-7 short:mt-1 short:text-sm short:leading-5">
-                    {card.intro}
-                  </p>
-                  <div className="mt-5 sm:mt-8 short:mt-4">{card.form}</div>
+                  {card.intro ? (
+                    <p className="mt-2 text-center text-sm leading-6 text-[#7d8fa1] sm:mt-3 sm:text-base sm:leading-7 short:mt-1 short:text-sm short:leading-5">
+                      {card.intro}
+                    </p>
+                  ) : null}
+                  <div className={`${card.intro ? "mt-5 sm:mt-8 short:mt-4" : "mt-4 sm:mt-6 short:mt-3"}`}>{card.form}</div>
                   {mode === "forgot" || mode === "reset" ? (
                     <p className="mt-5 text-center text-[15px] text-[#7d8fa1] short:mt-3 short:text-sm">
                       <Link

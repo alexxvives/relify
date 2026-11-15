@@ -38,6 +38,12 @@
   backdrop-filter: blur(20px) saturate(1.6);
 }
 
+.gooey-nav--solid.gooey-nav--framed {
+  border: 1px solid var(--gn-frame-edge);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .gooey-nav__stage {
   position: relative;
   width: 100%;

@@ -48,20 +48,17 @@ function postedFinancingMode(value: string): SellerFinancingMode | null {
   return null;
 }
 
-/** What gets stored: null columns when unanswered; terms are dropped for "No". Invalid input returns ok: false. */
+/** What gets stored: Sí/No only. Year and percentage columns stay nullable and unused. */
 export function sellerFinancingWrite(
   input: SellerFinancingInput,
 ): { ok: true; data: { sellerFinancing: SellerFinancingMode | null; sellerFinancingMaxPct: number | null; sellerFinancingYears: number | null } } | { ok: false } {
   const mode = postedFinancingMode(input.sellerFinancing);
-  const terms = mode === "yes";
-  const pct = input.sellerFinancingPct.trim();
-  const years = input.sellerFinancingYears.trim();
   return {
     ok: true,
     data: {
       sellerFinancing: mode,
-      sellerFinancingMaxPct: terms && pct !== "" ? Number(pct) : null,
-      sellerFinancingYears: terms && years !== "" ? Number(years) : null,
+      sellerFinancingMaxPct: null,
+      sellerFinancingYears: null,
     },
   };
 }
