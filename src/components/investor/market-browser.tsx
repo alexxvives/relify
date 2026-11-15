@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Pagination, usePageParam } from "@/components/shell/pagination";
 import { ArrowUpDown, Check, SlidersHorizontal } from "lucide-react";
 import { FavoriteButton } from "@/components/investor/favorite-button";
-import { MarketCard, marketGridClass } from "@/components/investor/market-card";
+import { MarketCard, marketGridClass, marketGridFrameClass } from "@/components/investor/market-card";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { ChipRow, FilterChip } from "@/components/ui/chip-row";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -97,7 +97,7 @@ export function MarketBrowser({
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-        {heading ? <h1 className="text-2xl lg:text-3xl tracking-tight text-public-ink lg:justify-self-start">{heading}</h1> : <span />}
+        {heading ? <h1 className="text-2xl lg:text-[1.75rem] tracking-tight text-public-ink lg:justify-self-start">{heading}</h1> : <span />}
         <button
           type="button"
           role="switch"
@@ -256,8 +256,8 @@ export function MarketBrowser({
           </BottomSheet>
         </div>
         {/* Desktop full filter toolbar */}
-        <div className="hidden lg:grid grid-cols-1 items-end gap-2.5 lg:gap-3 lg:grid-cols-[1fr_1fr_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
-          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] sm:col-span-3 xl:col-span-1">
+        <div className="hidden lg:grid grid-cols-1 items-end gap-2.5 lg:gap-3 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))_auto]">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78] lg:col-span-4 xl:col-span-1">
             {marketCopy.searchLabel}
             <Input
               type="search"
@@ -324,6 +324,7 @@ export function MarketBrowser({
           <MutedMarketCards />
         </FilterEmptyState>
       ) : (
+        <div className={marketGridFrameClass}>
         <div className={`isolate ${marketGridClass}`}>
           {visible.map((project) => {
             return (
@@ -344,6 +345,7 @@ export function MarketBrowser({
               />
             );
           })}
+        </div>
         </div>
       )}
       <Pagination page={paging.page} pages={paging.pages} onChange={paging.setPage} />

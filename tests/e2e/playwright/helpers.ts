@@ -373,15 +373,9 @@ type FichaCheck = {
 
 export async function expectFichaCompactS13b(page: Page): Promise<void> {
   await page.locator(".shell-content").waitFor({ state: "visible" });
-  const sections = page.locator("#ficha-detalles details");
+  // S25: report sections are always open (no <details>).
+  const sections = page.locator("#ficha-detalles section.shell-anchor");
   await sections.first().waitFor({ state: "visible", timeout: 20_000 });
-  const last = sections.last();
-  if ((await last.count()) > 0) {
-    const opened = await last.getAttribute("open");
-    if (opened === null) {
-      await last.locator("summary").click();
-    }
-  }
   await expectLastContentControlAboveChrome(page);
   const result = await page.evaluate((): FichaCheck => {
     const splitWord = (root: ParentNode, word: string): boolean => {

@@ -100,13 +100,14 @@ export function ConnectControl({
   matchesLeft: number | null;
   profileComplete?: boolean;
   title?: string;
-  align?: "end" | "center";
+  /** "start": top-left of the ficha banner (Alex, S25). */
+  align?: "start" | "end" | "center";
 }) {
   const [requestState, requestAction, requestPending] = useActionState(requestProjectAccessAction, null);
   const [confirming, setConfirming] = useState(false);
   const accepted = status === "accepted";
   const requested = accepted || status === "requested" || status === "awaiting-seller" || requestState?.ok === true;
-  const stack = align === "center" ? "flex flex-col items-center gap-2" : "flex flex-col items-end gap-2";
+  const stack = align === "center" ? "flex flex-col items-center gap-2" : align === "start" ? "flex flex-col items-start gap-2" : "flex flex-col items-end gap-2";
 
   if (accepted || requested) {
     return null;
@@ -141,7 +142,7 @@ export function ConnectControl({
           <UserRound className="size-4" aria-hidden />
           {accessCopy.profileRequiredAction}
         </Link>
-        <p role="note" className="absolute top-full right-0 mt-2 w-max max-w-[16rem] rounded-xl bg-white/95 px-3 py-2 text-right text-xs leading-5 text-[#1c2740] shadow-lg">
+        <p role="note" className={`absolute top-full mt-2 w-max max-w-[16rem] rounded-xl bg-white/95 px-3 py-2 text-xs leading-5 text-[#1c2740] shadow-lg ${align === "start" ? "left-0 text-left" : "right-0 text-right"}`}>
           {accessCopy.profileRequiredShort}
         </p>
       </>

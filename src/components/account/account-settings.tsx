@@ -112,9 +112,13 @@ export function AccountSettings({
       <div className={agreement ? "grid items-stretch gap-6 lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_16rem] 2xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
       <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
-          <div className={photo ? "grid items-start gap-5 sm:grid-cols-1 xl:grid-cols-[8rem_minmax(0,1fr)]" : ""}>
+          {/* Alex (S25): photo beside the fields as soon as the card has room, and the fields in
+              pairs (Nombre | DNI/NIE, Email | Teléfono), so the avatar is never left alone on top. */}
+          <div className="@container/account">
+          <div className={photo ? "grid items-start gap-5 @[34rem]/account:grid-cols-[7rem_minmax(0,1fr)]" : ""}>
           {photo}
-          <div className="grid gap-4 sm:grid-cols-1 xl:grid-cols-2">
+          <div className="@container/fields min-w-0">
+          <div className="grid gap-4 @[26rem]/fields:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.fullNameLabel}
               <Input
@@ -181,6 +185,8 @@ export function AccountSettings({
             </label>
           </div>
           </div>
+          </div>
+          </div>
           <AppToast message={profileState?.saved ? profileState.message : null} />
           {profileState && !profileState.saved ? (
             <p role="alert" className="text-sm text-[#c0362c]">
@@ -211,23 +217,27 @@ export function AccountSettings({
       <Card>
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{authCopy.accountPasswordTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.accountPasswordIntro}</p>
-        <form action={changePassword} className="mt-4 grid min-w-0 items-start gap-4 sm:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
-          <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
-          <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
-          <Button
-            type="submit"
-            disabled={passwordPending}
-            className="xl:col-span-2 2xl:mt-7 2xl:col-span-1"
->
-            {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
-          </Button>
-          <AppToast message={passwordState?.saved ? passwordState.message : null} />
-          {passwordState && !passwordState.saved ? (
-            <p role="alert" className="text-sm text-[#c0362c] xl:col-span-2 2xl:col-span-4">
-              {passwordState.message}
-            </p>
-          ) : null}
+        {/* Alex (S25): the three fields always share one row; the button drops to its own row
+            (right-aligned) when it does not fit beside them. Phones stack. */}
+        <form action={changePassword} className="@container/password mt-4 min-w-0">
+          <div className="grid min-w-0 items-start gap-4 @[36rem]/password:grid-cols-3 @[60rem]/password:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+            <SecretField name="currentPassword" label={authCopy.passwordCurrent} autoComplete="current-password" />
+            <NewPasswordField name="newPassword" label={authCopy.passwordNew} compact />
+            <SecretField name="confirmPassword" label={authCopy.passwordConfirm} autoComplete="new-password" minLength={8} maxLength={128} />
+            <Button
+              type="submit"
+              disabled={passwordPending}
+              className="@[36rem]/password:col-span-3 @[36rem]/password:justify-self-end @[60rem]/password:col-span-1 @[60rem]/password:mt-7"
+            >
+              {passwordPending ? authCopy.onboardingPending : authCopy.passwordSave}
+            </Button>
+            <AppToast message={passwordState?.saved ? passwordState.message : null} />
+            {passwordState && !passwordState.saved ? (
+              <p role="alert" className="text-sm text-[#c0362c] @[36rem]/password:col-span-3 @[60rem]/password:col-span-4">
+                {passwordState.message}
+              </p>
+            ) : null}
+          </div>
         </form>
       </Card>
 

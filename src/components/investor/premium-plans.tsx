@@ -87,14 +87,14 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
   return (
     <div className="flex flex-col gap-8">
       <section
-        className="relative overflow-hidden rounded-[2rem] px-6 py-10 text-center text-white sm:px-10"
+        className="relative overflow-hidden rounded-[1.75rem] px-6 py-8 text-center text-white sm:px-10"
         style={{
           background:
             "radial-gradient(90% 120% at 0% 0%, #8ea2ff 0%, #465ab4 32%, #1c2740 70%)",
         }}
       >
         <p className="text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">Relify</p>
-        <h2 className="releva-page-title mt-3 text-4xl leading-[1.05] sm:text-5xl">
+        <h2 className="releva-page-title mt-3 text-3xl leading-[1.05] sm:text-4xl">
           Mira gratis. Conecta cuando toque.
         </h2>
         <p className="mx-auto mt-5 w-fit rounded-full bg-white/15 px-3 py-1 text-sm font-medium">{current}</p>
@@ -137,7 +137,7 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
           return (
             <section
               key={item.id}
-              className={`relative mx-auto flex h-full min-h-[32rem] w-full max-w-[18.5rem] flex-col rounded-[1.75rem] bg-white px-6 pt-7 pb-6 ${frame}`}
+              className={`relative mx-auto flex h-full min-h-[30rem] w-full max-w-[18.5rem] flex-col rounded-[1.5rem] bg-white px-5 pt-6 pb-5 ${frame}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <span className={`inline-flex size-12 items-center justify-center rounded-2xl ${item.wash}`}>
@@ -150,13 +150,15 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                 ) : null}
               </div>
               <h2 className="mt-6 text-lg font-semibold text-[#1c2740]">{item.name}</h2>
-              <p className="releva-page-title mt-4 text-5xl leading-none text-[#1c2740]">
-                {yearly && item.id === "limited"
-                  ? billingCopy.limitedYearly
-                  : yearly && item.id === "unlimited"
-                    ? billingCopy.unlimitedYearly
-                    : item.price}
-              </p>
+              <PlanPrice
+                text={
+                  yearly && item.id === "limited"
+                    ? billingCopy.limitedYearly
+                    : yearly && item.id === "unlimited"
+                      ? billingCopy.unlimitedYearly
+                      : item.price
+                }
+              />
               <p className="mt-2 text-sm text-[#667085]">
                 {item.gross === null
                   ? billingCopy.freeBody
@@ -202,5 +204,18 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
         </>
       ) : null}
     </div>
+  );
+}
+
+/** "20 €/mes" → big amount + small unit on one line, so the price never wraps (Alex, S25). */
+function PlanPrice({ text }: { text: string }) {
+  const split = text.indexOf(" ");
+  const amount = split === -1 ? text : text.slice(0, split);
+  const unit = split === -1 ? "" : text.slice(split + 1);
+  return (
+    <p className="releva-page-title mt-4 flex items-baseline gap-1.5 whitespace-nowrap leading-none text-[#1c2740]">
+      <span className="text-5xl">{amount}</span>
+      {unit ? <span className="text-xl font-semibold text-[#3d4a63]">{unit}</span> : null}
+    </p>
   );
 }

@@ -14,5 +14,7 @@ describe("securityHeaders", () => {
     expect(contentSecurityPolicy).toContain("https://www.googletagmanager.com");
     expect(contentSecurityPolicy).toContain("https://www.google-analytics.com");
     expect(contentSecurityPolicy).toContain("frame-src 'self' https://www.googletagmanager.com");
+    expect(contentSecurityPolicy).toMatch(/connect-src [^;]*https:\/\/photon\.komoot\.io/);
+    expect(contentSecurityPolicy).toMatch(/connect-src [^;]*https:\/\/nominatim\.openstreetmap\.org/);
   });
 });

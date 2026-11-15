@@ -54,8 +54,8 @@ describe("Round S23 landing, documents, and INT uploads", () => {
 
   it("keeps the ficha section bar only as wide as its buttons", () => {
     const nav = read("src/components/seller/report-nav.tsx");
-    expect(nav).toMatch(/inline-flex w-fit items-center gap-2 rounded-2xl border border-\[#e6e9f0\] bg-white\/95 p-1\.5 shadow-/);
-    expect(nav).toMatch(/mx-auto w-fit max-w-4xl/);
+    expect(nav).toMatch(/flex w-fit max-w-full items-center rounded-2xl border border-\[#e6e9f0\] bg-white\/95 p-1\.5 shadow-/);
+    expect(nav).toMatch(/mx-auto w-fit max-w-full/);
   });
 
   it("allows INT uploads on an isolated INT_UPLOADS bucket", () => {

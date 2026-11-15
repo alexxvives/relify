@@ -23,8 +23,8 @@ export async function SignedInPage({
 
   return (
     <>
-      {show ? <h1 className="text-3xl tracking-tight text-public-ink">{heading}</h1> : null}
-      <div className={show ? "mt-6" : undefined}>{children}</div>
+      {show ? <h1 className="text-2xl tracking-tight text-public-ink sm:text-[1.75rem]">{heading}</h1> : null}
+      <div className={show ? "mt-5" : undefined}>{children}</div>
     </>
   );
 }

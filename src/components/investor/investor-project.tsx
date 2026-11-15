@@ -109,7 +109,12 @@ export function InvestorProject({
               <Download className="size-4" aria-hidden />
               {companyPdfCopy.dossierDownload}
             </a>
-          ) : null
+          ) : (
+            // Alex (S25): "Ver planes" / "Conectar" sits top-left of the banner; the favourite stays top-right.
+            <div className="relative hidden lg:block">
+              <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} align="start" />
+            </div>
+          )
         }
         progress={
           steps.length > 0 ? (
@@ -129,11 +134,6 @@ export function InvestorProject({
           ) : null
         }
         favorite={<FavoriteButton slug={project.slug} favorited={favorited} />}
-        bannerExtra={
-          <div className="hidden lg:block">
-            <ConnectControl slug={project.slug} status={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />
-          </div>
-        }
         afterBanner={
           <>
             {access === "none" || access === "requested" ? (

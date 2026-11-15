@@ -79,10 +79,12 @@ describe("Round S22 landing and product bits", () => {
     const css = read("src/components/ui/gooey-nav/GooeyNav.css");
     expect(css).toMatch(/flex-wrap: wrap/);
     expect(css).toMatch(/justify-content: center/);
-    expect(css).not.toMatch(/flex-wrap: nowrap/);
+    // S25: the ficha uses a one-line, horizontally scrolling variant instead of wrapping.
+    expect(css).toMatch(/\.gooey-nav--nowrap[\s\S]*flex-wrap: nowrap/);
     const nav = read("src/components/seller/report-nav.tsx");
-    expect(nav).not.toMatch(/overflow-x-auto/);
-    expect(nav).toMatch(/flex-wrap justify-center/);
+    // S25: one line with a hidden-scrollbar scroller and fade edges.
+    expect(nav).toMatch(/releva-scroll-x/);
+    expect(nav).toMatch(/flex w-max flex-nowrap/);
   });
 
   it("shortens the disabled dropzone line", () => {

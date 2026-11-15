@@ -38,8 +38,14 @@ import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
  * flipped 3→4→3 (and 4→5→4) because the root font size steps up at 1800px and 2300px, which makes 21rem wider.
  * Four columns hold until 2560px.
  */
+/**
+ * Alex (S25): columns follow the content width, not the viewport, so the sidebar does not
+ * cost a column. ~1024–1280 laptops get 3 cards, wide screens 4, very wide 5.
+ * Wrap the grid in `marketGridFrameClass` (the query container).
+ */
+export const marketGridFrameClass = "@container/market";
 export const marketGridClass =
-  "grid grid-cols-1 gap-5 min-[768px]:grid-cols-2 min-[1360px]:grid-cols-3 min-[1760px]:grid-cols-4 min-[2560px]:grid-cols-5";
+  "grid grid-cols-1 gap-4 @[34rem]/market:grid-cols-2 @[44rem]/market:grid-cols-3 @[72rem]/market:grid-cols-4 @[100rem]/market:grid-cols-5";
 
 type SectorStyle = {
   icon: LucideIcon;
@@ -222,7 +228,7 @@ export function MarketCard({
     <article
       className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e4e8ef] bg-white shadow-[0_1px_2px_rgba(28,39,64,0.04)] transition-[box-shadow,border-color,opacity] duration-200 focus-within:border-[#c9d1e0] hover:border-[#c9d1e0] hover:shadow-[0_18px_40px_-24px_rgba(28,39,64,0.5)] motion-reduce:transition-none ${muted ? "opacity-60" : ""}`}
     >
-      <div className="relative">
+      <div className="@container/cover relative">
         <div className="relative aspect-[16/7] max-h-52 w-full overflow-hidden bg-[#1c2a52]">
           {hideCoverPhoto ? null : (
             <Image
@@ -257,13 +263,14 @@ export function MarketCard({
             ) : null}
           </div>
           {/* Location, size and age ride on the photo, so the body only carries the deal. */}
-          {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". */}
+          {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". S25: on narrow cards
+              (3 per row at ~1024 px) only the region shows, so it is never cut to one letter. */}
           {hidePhotoTags ? null : (
             <ul className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
               {photoTags.slice(0, 2).map((tag) => (
                 <li
                   key={tag.key}
-                  className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+                  className={`items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm ${tag.key === "headcount" ? "hidden shrink-0 @[17rem]/cover:inline-flex" : "inline-flex min-w-0"}`}
                   title={tag.text}
                 >
                   <tag.icon

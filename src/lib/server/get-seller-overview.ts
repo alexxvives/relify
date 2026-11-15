@@ -74,6 +74,8 @@ export async function getSellerOverview(ownerId: string): Promise<{
         select: {
           legalName: true,
           cif: true,
+          city: true,
+          region: true,
           description: true,
           saleReason: true,
           sellerFinancing: true,
@@ -149,6 +151,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     panels,
     saleReason: (project.saleReason ?? "").trim().length > 0,
     sellerFinancing: storedSellerFinancing(project) !== null,
+    location: `${project.city ?? ""}${project.region}`.trim().length > 0,
   });
   const admin = adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) });
   const series: SellerYearPoint[] = [];

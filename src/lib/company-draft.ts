@@ -112,10 +112,13 @@ export const companyDraftSchema = z
   .object({
     legalName: z.string().trim().max(160),
     address: z.string().trim().max(240),
-    postalCode: z.string().trim().max(12).refine((value) => value === "" || /^\d{5}$/.test(value), "postal-code"),
+    // Alex (S25): saving never blocks on a half-typed location. A postal code that is not 5 digits is
+    // dropped (the city stays); an empty project name is generated on save; an empty region is allowed and
+    // only blocks publishing (seller checklist "Ubicación").
+    postalCode: z.string().trim().max(12).transform((value) => (/^\d{5}$/.test(value) ? value : "")),
     city: z.string().trim().max(120),
-    codename: z.string().trim().min(1, "codename").max(80, "codename"),
-    region: z.string().trim().min(1, "region").max(80, "region"),
+    codename: z.string().trim().max(80, "codename"),
+    region: z.string().trim().max(80, "region"),
     foundedYear: z.string().trim().refine((value) => {
       if (value === "") {
         return true;

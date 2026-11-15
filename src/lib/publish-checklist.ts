@@ -7,7 +7,7 @@ import type { SellerFocusPanel, SellerPanelFlags } from "./company-profile";
  * - The admin checks (financials loaded, EBITDA > 0) are ours: we fill them within 24 h, admin sees
  *   them on the company page and the server enforces them before approval and before payment.
  */
-export type SellerCheckKey = "identity" | "saleReason" | "description" | "price" | "sellerFinancing";
+export type SellerCheckKey = "identity" | "location" | "saleReason" | "description" | "price" | "sellerFinancing";
 export type AdminCheckKey = "cnae" | "income" | "balance" | "structure" | "ebitda";
 
 export type CheckItem<K extends string> = {
@@ -32,6 +32,7 @@ const detailHref = (panel: SellerFocusPanel, anchor: string = `panel-${panel}`) 
 
 export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> = {
   identity: "Nombre y NIF",
+  location: "Ubicación",
   saleReason: "Motivo de venta",
   description: "Descripción",
   price: "Precio de venta",
@@ -51,11 +52,21 @@ function list<K extends SellerCheckKey | AdminCheckKey>(items: Omit<CheckItem<K>
   return { items: labelled, missing, ready: missing.length === 0 };
 }
 
-export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: boolean; sellerFinancing: boolean }): PublishChecklist {
+export function publishChecklist(input: {
+  panels: SellerPanelFlags;
+  saleReason: boolean;
+  sellerFinancing: boolean;
+  /** S25: city or region on file. Saving no longer requires it; publishing does. Omitted = known. */
+  location?: boolean;
+}): PublishChecklist {
   const items: Omit<CheckItem<SellerCheckKey>, "label">[] = [];
   // Name and NIF come from the NIF step; they only show while still missing.
   if (!input.panels.identity) {
     items.push({ key: "identity", done: false, href: detailHref("identity") });
+  }
+  // Usually filled from the registry; only shows while missing.
+  if (input.location === false) {
+    items.push({ key: "location", done: false, href: detailHref("identity", "panel-location") });
   }
   items.push(
     { key: "saleReason", done: input.saleReason, href: detailHref("identity", "panel-sale-reason") },

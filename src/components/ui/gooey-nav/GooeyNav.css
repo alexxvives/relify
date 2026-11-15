@@ -169,3 +169,23 @@
     display: none;
   }
 }
+
+/* The active-ink overlay repeats every label for the clip effect. Keep it out of text
+   selection and copy, so copying the bar gives one list, not two (Alex, S25). */
+.gooey-nav__list--active {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* One line, never wrap. The parent scroll frame (.releva-scroll-x) scrolls it sideways. */
+.gooey-nav--nowrap,
+.gooey-nav--nowrap .gooey-nav__stage {
+  width: max-content;
+  max-width: none;
+}
+
+.gooey-nav--nowrap .gooey-nav__list {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  width: max-content;
+}

@@ -30,7 +30,8 @@ export function activityKindsForCustomer(customerBase: CustomerBaseId | "" | nul
   return ["capital", "product", "client"];
 }
 
-export const maxSecondaryCnaes = 4;
+/** Alex (S25): no visible cap on secondary CNAEs. This is only an abuse guard on the request size. */
+export const maxSecondaryCnaes = 60;
 export const maxActivitySlices = 8;
 export const descriptionMaxLength = 4000;
 export const descriptionMinLength = 200;

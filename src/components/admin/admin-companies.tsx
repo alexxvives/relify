@@ -7,7 +7,7 @@ import { AdminPageHeader, AdminSearchField } from "@/components/admin/admin-tool
 import { FilterSelect } from "@/components/ui/filter-select";
 import { adminCopy } from "@/lib/admin-copy";
 import { companyCopy } from "@/lib/company-copy";
-import { MarketCard, marketGridClass } from "@/components/investor/market-card";
+import { MarketCard, marketGridClass, marketGridFrameClass } from "@/components/investor/market-card";
 import type { AdminCompanyRow } from "@/lib/server/list-admin-companies";
 import { adminNewRing } from "@/components/admin/admin-new";
 
@@ -99,13 +99,15 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
       {visible.length === 0 ? (
         <p className="text-sm text-[#667085]">{adminCopy.empty}</p>
       ) : (
-        <ul className={marketGridClass}>
+        <div className={marketGridFrameClass}>
+          <ul className={marketGridClass}>
             {sorted.map((project) => (
               <li key={project.id}>
                 <CompanyCard project={project} />
               </li>
             ))}
-        </ul>
+          </ul>
+        </div>
       )}
     </div>
   );

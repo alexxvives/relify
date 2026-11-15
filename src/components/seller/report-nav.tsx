@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
 import { useScrollSpy } from "@/components/shell/use-scroll-spy";
 import {
   Briefcase,
@@ -75,6 +75,63 @@ export function ReportNav({
   const [Gooey, setGooey] = useState<ComponentType<GooeyProps> | null>(null);
   const activeIndex = Math.max(0, items.findIndex((item) => item.id === active));
 
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // Fade only the edge that still hides items, so a bar that fits shows no fade at all.
+  const syncFades = useCallback(() => {
+    const el = scroller.current;
+    if (!el) {
+      return;
+    }
+    const max = el.scrollWidth - el.clientWidth;
+    el.toggleAttribute("data-fade-left", el.scrollLeft > 2);
+    el.toggleAttribute("data-fade-right", max - el.scrollLeft > 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) {
+      return;
+    }
+    syncFades();
+    const observer = new ResizeObserver(syncFades);
+    observer.observe(el);
+    if (el.firstElementChild) {
+      observer.observe(el.firstElementChild);
+    }
+    el.addEventListener("scroll", syncFades, { passive: true });
+    return () => {
+      observer.disconnect();
+      el.removeEventListener("scroll", syncFades);
+    };
+  }, [syncFades, Gooey]);
+
+  // Keep the section being read visible inside the bar. Scrolls the bar only, never the page.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el || el.scrollWidth <= el.clientWidth) {
+      return;
+    }
+    const target =
+      el.querySelector<HTMLElement>(`.gooey-nav__list:not(.gooey-nav__list--active) [data-gooey-index="${activeIndex}"]`) ??
+      el.querySelector<HTMLElement>(`[data-section="${items[activeIndex]?.id ?? ""}"]`);
+    if (!target) {
+      return;
+    }
+    const box = el.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
+    const pad = 32;
+    let next = el.scrollLeft;
+    if (rect.left < box.left + pad) {
+      next -= box.left + pad - rect.left;
+    } else if (rect.right > box.right - pad) {
+      next += rect.right - (box.right - pad);
+    }
+    if (next !== el.scrollLeft) {
+      el.scrollTo({ left: next, behavior: reducedMotion() ? "auto" : "smooth" });
+    }
+  }, [activeIndex, items, Gooey]);
+
   useEffect(() => {
     if (reducedMotion()) {
       return;
@@ -96,7 +153,7 @@ export function ReportNav({
     }
     if (scrollTo(id)) {
       event.preventDefault();
-      document.getElementById(id)?.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
+      document.getElementById(`${id}-title`)?.focus({ preventScroll: true });
     }
   }
 
@@ -127,7 +184,7 @@ export function ReportNav({
       return;
     }
     if (scrollTo(item.id)) {
-      document.getElementById(item.id)?.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
+      document.getElementById(`${item.id}-title`)?.focus({ preventScroll: true });
     }
   }
 
@@ -137,9 +194,10 @@ export function ReportNav({
   });
 
   return (
-    <nav aria-label={label} className={`sticky z-30 mx-auto w-fit max-w-4xl ${top}`}>
-      <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
-        <div className="flex w-fit min-w-0 justify-center">
+    <nav aria-label={label} className={`sticky z-30 mx-auto w-fit max-w-full ${top}`}>
+      <div className="flex w-fit max-w-full items-center rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
+        {/* Alex (S25): always one line; scrolls sideways when the sections do not fit. */}
+        <div ref={scroller} className="releva-scroll-x min-w-0 max-w-full rounded-xl">
           {Gooey ? (
             <Gooey
               items={gooeyItems}
@@ -152,9 +210,10 @@ export function ReportNav({
               activeTextColor="#ffffff"
               size="sm"
               frame={false}
+              className="gooey-nav--nowrap"
             />
           ) : (
-            <ul className="flex w-fit min-w-0 flex-wrap justify-center gap-1">
+            <ul className="flex w-max flex-nowrap gap-1">
               {items.map((item, index) => {
                 const Icon = icons[item.id] ?? Sparkles;
                 const current = item.id === active;

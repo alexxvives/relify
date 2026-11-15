@@ -9,6 +9,9 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
 import { publicCardFromDraft, type DemoInvestorProfile, type InvestorProfileDraft, type PublicInvestorCard } from "@/lib/demo-profile";
 import { cnaeSectionLabels } from "@/lib/cnae-section";
+import { formatLocation, parseLocation } from "@/lib/spain-places";
+import { PlaceAutocomplete } from "@/components/ui/place-autocomplete";
+import { SectorCombobox } from "@/components/investor/sector-combobox";
 import { investorDisplayPhoto, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import { investorCopy, investorTypes } from "@/lib/investor-copy";
 import {
@@ -84,6 +87,7 @@ export function InvestorProfile({
   const [postal, setPostal] = useState(initial?.postal ?? "");
   const [city, setCity] = useState(draft.city);
   const [province, setProvince] = useState(draft.province);
+  const [location, setLocation] = useState(() => formatLocation(draft.city, draft.province));
   const [investorType, setInvestorType] = useState(draft.investorType);
   const [ticket, setTicket] = useState(draft.ticket);
   const [sectors, setSectors] = useState(draft.sectors);
@@ -242,19 +246,27 @@ export function InvestorProfile({
         </div>
         <div className="mt-5 grid min-w-0 items-start gap-6 @[52rem]:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
         <div className="min-w-0">
-        <fieldset id="lugar" className="scroll-mt-8 border-0 p-0">
-          <legend className="text-sm">{investorCopy.locationLabel}</legend>
-          <div className="mt-2 grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm">
-              {investorCopy.cityLabel}
-              <Input value={city} onChange={(event) => setCity(event.target.value)} />
-            </label>
-            <label className="flex flex-col gap-2 text-sm">
-              {investorCopy.provinceLabel}
-              <Input value={province} onChange={(event) => setProvince(event.target.value)} />
-            </label>
-          </div>
-        </fieldset>
+        {/* Alex (S25): one Ubicación input, "Ciudad, Provincia", with OpenStreetMap suggestions. */}
+        <div id="lugar" className="flex scroll-mt-8 flex-col gap-2 text-sm">
+          <label htmlFor="investor-location">{investorCopy.locationLabel}</label>
+          <PlaceAutocomplete
+            id="investor-location"
+            label={investorCopy.locationLabel}
+            placeholder={investorCopy.locationPlaceholder}
+            value={location}
+            onChange={(text) => {
+              setLocation(text);
+              const parsed = parseLocation(text);
+              setCity(parsed.city);
+              setProvince(parsed.province);
+            }}
+            onPick={(place) => {
+              setLocation(place.label);
+              setCity(place.city);
+              setProvince(place.province);
+            }}
+          />
+        </div>
         <div id="tipo" className="mt-4 grid scroll-mt-8 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="flex flex-col gap-2 text-sm">
             {investorCopy.investorType}
@@ -289,7 +301,7 @@ export function InvestorProfile({
         </div>
         <div id="busqueda" className="mt-4 flex scroll-mt-8 flex-col gap-2 text-sm">
           {investorCopy.sectorsLabel}
-          <SectorField value={sectors} onChange={setSectors} />
+          <SectorCombobox value={sectors} onChange={setSectors} options={cnaeSectionLabels} />
         </div>
         <div className="mt-4 grid gap-4">
         <div id="aporte" className="flex scroll-mt-8 flex-col gap-2 text-sm">
@@ -532,133 +544,3 @@ function readInvestorPhoto(file: File, onReady: (value: string) => void, onHeavy
   reader.readAsDataURL(file);
 }
 
-function sectorChips(value: string): string[] {
-  return value
-    .split(" · ")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-}
-
-function SectorField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const chips = sectorChips(value);
-  const [query, setQuery] = useState("");
-  const [custom, setCustom] = useState("");
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const needle = query.trim().toLocaleLowerCase("es-ES");
-  const choices = cnaeSectionLabels.filter(
-    (label) => !chips.includes(label) && label.toLocaleLowerCase("es-ES").includes(needle),
-  );
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    function close(event: MouseEvent) {
-      if (!(event.target instanceof Node) || !rootRef.current?.contains(event.target)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", close);
-    return () => {
-      document.removeEventListener("mousedown", close);
-    };
-  }, [open]);
-
-  function write(next: string[]) {
-    const joined = next.join(" · ");
-
-    if (joined.length <= 160) {
-      onChange(joined);
-    }
-  }
-
-  function addCustom() {
-    const next = custom.trim();
-
-    if (next.length === 0 || chips.includes(next)) {
-      setCustom("");
-      return;
-    }
-
-    write([...chips, next]);
-    setCustom("");
-    setOpen(false);
-  }
-
-  return (
-    <div ref={rootRef} className="flex flex-col gap-2">
-      <div className="relative">
-      <Input
-        value={query}
-        placeholder={investorCopy.sectorsSearch}
-        onMouseDown={() => {
-          setOpen(true);
-        }}
-        onFocus={() => {
-          setOpen(true);
-        }}
-        onChange={(event) => {
-          setQuery(event.target.value);
-          setOpen(true);
-        }}
-      />
-      {open ? (
-        <ul className="absolute top-full z-30 mt-1 max-h-96 w-full overflow-auto rounded-xl border border-[#e7eaee] bg-white py-1 shadow-[0_16px_40px_-24px_rgba(28,39,64,0.45)]">
-          <li className="border-b border-[#e7eaee] px-2 py-2">
-            <Input
-              value={custom}
-              placeholder={investorCopy.sectorsCustom}
-              aria-label={investorCopy.sectorsCustom}
-              onChange={(event) => {
-                setCustom(event.target.value);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  addCustom();
-                }
-              }}
-              size="sm"
-            />
-          </li>
-          {choices.map((label) => (
-            <li key={label}>
-              <button
-                type="button"
-                onClick={() => {
-                  write([...chips, label]);
-                  setQuery("");
-                  setOpen(false);
-                }}
-                className="flex h-10 w-full items-center px-3 text-left text-sm hover:bg-[#f4f7ff]"
-              >
-                {label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      </div>
-      {chips.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {chips.map((chip) => (
-            <li key={chip}>
-              <button
-                type="button"
-                onClick={() => {
-                  write(chips.filter((item) => item !== chip));
-                }}
-                className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm text-[#1c2740]"
-              >
-                {chip} ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-}

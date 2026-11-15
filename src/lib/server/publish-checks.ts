@@ -12,6 +12,8 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
     select: {
       legalName: true,
       cif: true,
+      city: true,
+      region: true,
       description: true,
       saleReason: true,
       sellerFinancing: true,
@@ -46,7 +48,12 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
   });
 
   return {
-    seller: publishChecklist({ panels, saleReason: (project.saleReason ?? "").trim().length > 0, sellerFinancing: storedSellerFinancing(project) !== null }),
+    seller: publishChecklist({
+      panels,
+      saleReason: (project.saleReason ?? "").trim().length > 0,
+      sellerFinancing: storedSellerFinancing(project) !== null,
+      location: `${project.city ?? ""}${project.region}`.trim().length > 0,
+    }),
     admin: adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) }),
   };
 }

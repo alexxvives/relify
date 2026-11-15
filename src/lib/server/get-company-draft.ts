@@ -291,6 +291,21 @@ export async function getCompanyDraft(
     forecastYear: placed.forecastYear,
   };
 
+  // Alex (S25): a saved draft whose sector was never filled (no principal, no secondaries) still picks the CNAEs up
+  // from the registry/SABI record. Once the seller has a principal, an empty secondary list is their choice.
+  if (
+    draft.legalName.trim().length > 0 &&
+    prefill &&
+    prefill.cif === draft.cif &&
+    result.principalCnae.trim() === "" &&
+    result.secondaryCnaes.length === 0 &&
+    prefill.secondaryCnaes.length > 0
+  ) {
+    const principal = prefill.principalCnae ?? "";
+    result.principalCnae = principal;
+    result.secondaryCnaes = [...new Set(prefill.secondaryCnaes)].filter((code) => code !== principal);
+  }
+
   if (
     draft.legalName.trim().length === 0 &&
     prefill &&

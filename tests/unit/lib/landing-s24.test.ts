@@ -37,7 +37,8 @@ describe("Round S24 registro, profile, marketplace, and INT CIF", () => {
     const account = read("src/components/account/account-settings.tsx");
     expect(account).not.toMatch(/nationalIdMaskedHint/);
     expect(account).toMatch(/max-w-\[72rem\]/);
-    expect(account).toMatch(/xl:grid-cols-2/);
+    // S25: container queries put Nombre/DNI and Teléfono/Email side by side when they fit.
+    expect(account).toMatch(/@\[26rem\]\/fields:grid-cols-2/);
   });
 
   it("restores vendored Gaze blob avatars for unknown seeds", () => {

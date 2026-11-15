@@ -194,6 +194,24 @@
       font-size: 18.5px;
     }
   }
+  /* Alex (S25): the signed-in app read too big on normal laptops (2 market cards, plan
+     prices wrapping). One notch smaller rem base for the app only, from tablet up.
+     Phones keep 16px so inputs stay legible and iOS does not zoom on focus. */
+  @media (min-width: 768px) {
+    html:has(.shell) {
+      font-size: 15px;
+    }
+  }
+  @media (min-width: 1800px) {
+    html:has(.shell) {
+      font-size: 16px;
+    }
+  }
+  @media (min-width: 2300px) {
+    html:has(.shell) {
+      font-size: 17.5px;
+    }
+  }
   dialog:not([open]) {
     display: none;
   }
@@ -3661,7 +3679,7 @@ header:has([data-menu-open="true"]) {
 :root {
   --layout-pad: 1rem;
   /* Also on :root so viewport-portaled overlays can offset past the sidebar. */
-  --layout-sidebar: clamp(248px, 16vw, 320px);
+  --layout-sidebar: clamp(228px, 15vw, 296px);
 }
 
 @media (min-width: 640px) {
@@ -3685,7 +3703,7 @@ header:has([data-menu-open="true"]) {
 .shell {
   min-width: 0;
   /* Same share of the screen at every desktop size, never so narrow that labels wrap. */
-  --layout-sidebar: clamp(248px, 16vw, 320px);
+  --layout-sidebar: clamp(228px, 15vw, 296px);
   /* Extra bottom inset for the mobile tab bar. Desktop stays 0 so padding matches main. */
   --shell-tabbar: 0px;
   /* Compact app bar (logo + avisos). */
@@ -5433,4 +5451,30 @@ html.relify-consent-open body {
     width: auto;
     min-width: 8.5rem;
   }
+}
+
+/* S25: one-line horizontal scroller (ficha section bar). Hidden scrollbar; the edge that
+   still has content fades out so it reads as "more this way". */
+.releva-scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  --fade-l: 0px;
+  --fade-r: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+}
+
+.releva-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.releva-scroll-x[data-fade-left] {
+  --fade-l: 1.75rem;
+}
+
+.releva-scroll-x[data-fade-right] {
+  --fade-r: 1.75rem;
 }

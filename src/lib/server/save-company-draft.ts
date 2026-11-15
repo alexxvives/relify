@@ -1,6 +1,7 @@
 import { sellerFinancingWrite } from "@/lib/seller-financing";
 import { randomUUID } from "node:crypto";
 import { codenameIsFree, uniqueCodename } from "@/lib/server/unique-codename";
+import { matchProvince } from "@/lib/spain-places";
 import { isCuratedNickname } from "@/lib/nickname";
 import { companyCopy } from "@/lib/company-copy";
 import { canonicalCnaeCode } from "@/lib/cnae-2009";
@@ -221,7 +222,8 @@ export async function saveCompanyDraft(
     postalCode: input.postalCode === "" ? null : input.postalCode,
     city: input.city === "" ? null : input.city,
     codename,
-    region: input.region,
+    // S25: region is optional to save; a provincial capital typed as the city fills it.
+    region: input.region || matchProvince(input.city) || "",
     // t78: revenue, EBITDA, OPEX and yearly accounts are never taken from a seller submission.
     ...sellerMoneyFields(input, existing === null, askingPriceAllowed(basis)),
     ...adjustmentFields,

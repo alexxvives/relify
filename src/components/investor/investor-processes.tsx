@@ -42,10 +42,13 @@ function ProcessConversation({
   item,
   today,
   advisors,
+  actions = null,
 }: {
   item: InvestorProcessCard;
   today: string;
   advisors: AdvisorContactView[];
+  /** Alex (S25): "Cancelar proceso" and "Ver la ficha" at the far right of the toggles row. */
+  actions?: ReactNode;
 }) {
   const [tab, setTab] = useState<(typeof processTabs)[number]["id"] | null>(null);
   const chat = item.messages.filter((message) => message.kind === "question");
@@ -91,6 +94,7 @@ function ProcessConversation({
             {engagementCopy.contactAdvisor}
           </Link>
         ) : null}
+        {actions ? <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
       </div>
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (
@@ -204,11 +208,11 @@ export function InvestorProcesses({
                   }}
                 />
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {item.contract ? <ContractStage contract={item.contract} /> : null}
-                {item.contract?.stage === "signed" ? null : <CancelProcessButton accessId={item.accessId} />}
-                <ProcessFichaLink href={`/proyectos/${item.slug}`} />
-              </div>
+              {item.contract ? (
+                <div className="flex shrink-0 items-center gap-2">
+                  <ContractStage contract={item.contract} />
+                </div>
+              ) : null}
             </div>
             <DealPipeline
               steps={item.steps}
@@ -232,7 +236,17 @@ export function InvestorProcesses({
               }}
               diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
-            <ProcessConversation item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
+            <ProcessConversation
+              item={item}
+              today={today}
+              advisors={advisors.filter((advisor) => advisor.slug === item.slug)}
+              actions={
+                <>
+                  {item.contract?.stage === "signed" ? null : <CancelProcessButton accessId={item.accessId} />}
+                  <ProcessFichaLink href={`/proyectos/${item.slug}`} />
+                </>
+              }
+            />
           </Card>
         </li>
       ))}

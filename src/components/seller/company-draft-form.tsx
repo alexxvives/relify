@@ -76,7 +76,6 @@ import {
   pnlInputKeys,
   isEmphasisRow,
   maxActivitySlices,
-  maxSecondaryCnaes,
   slicePercentIssue,
   statementYearIsBeforeFounding,
   type BalanceAmounts,
@@ -127,11 +126,6 @@ const headcountOptions = [
   ...headcountRanges.map((band) => ({ value: band, label: headcountLabels[band] })),
 ];
 
-const percentSumMessages = new Set<string>([
-  companyCopy.capitalPercentSum,
-  companyCopy.productPercentSum,
-  companyCopy.clientPercentSum,
-]);
 
 const statementInputClassName =
   "relify-field h-9 w-full min-w-[7.5rem] px-2 text-sm tabular-nums";
@@ -253,20 +247,16 @@ function CompactStatus({
   );
 }
 
-/** t95: inline autosave status: Guardando… / Guardado / Error al guardar · Reintentar. */
-function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null>; onRetry?: () => void }) {
+/**
+ * t95/S25: inline autosave status per section: Guardando… / Guardado / Sin guardar. A failed save shows
+ * one calm chip here; the single toast at the bottom carries the message and the "Reintentar" button.
+ */
+function AutoSaveStatus({ state }: { state: Exclude<AutoSaveState, null> }) {
   if (state === "error") {
     return (
-      <span role="alert" className="inline-flex items-center gap-1 rounded-full bg-[#fdecea] px-2.5 py-1 text-xs font-medium text-[#a12f2f]">
-        {companyCopy.autosaveError}
-        {onRetry ? (
-          <>
-            <span aria-hidden>·</span>
-            <button type="button" onClick={onRetry} className="font-semibold underline underline-offset-2 hover:text-[#7a1f1f] focus-visible:outline-2 focus-visible:outline-[#a12f2f]">
-              {companyCopy.autosaveRetry}
-            </button>
-          </>
-        ) : null}
+      <span role="status" className="inline-flex items-center gap-1 rounded-full bg-[#fff6e6] px-2.5 py-1 text-xs font-medium text-[#8a5a00]">
+        <Clock className="size-3.5" aria-hidden />
+        {companyCopy.autosaveUnsaved}
       </span>
     );
   }
@@ -275,6 +265,39 @@ function AutoSaveStatus({ state, onRetry }: { state: Exclude<AutoSaveState, null
       {state === "saved" ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5 motion-safe:animate-pulse" aria-hidden />}
       {state === "saved" ? companyCopy.autosaveSaved : companyCopy.autosaveSaving}
     </span>
+  );
+}
+
+/**
+ * Alex (S25): calm list of what still blocks publishing. Saving never depends on it; each item jumps to its field.
+ */
+function PublishMissing({ fields, onGo }: { fields: { id: string; label: string }[]; onGo: (id: string) => void }) {
+  if (fields.length === 0) {
+    return null;
+  }
+  return (
+    <section aria-label={companyCopy.publishMissingTitle} data-publish-missing className="rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <p className="text-sm font-semibold text-[#1c2740]">{companyCopy.publishMissingTitle}</p>
+        <ul className="flex flex-wrap gap-1.5">
+          {fields.map((field) => (
+            <li key={field.id}>
+              <a
+                href={`#${field.id}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onGo(field.id);
+                }}
+                className="inline-flex h-8 items-center gap-1 rounded-full border border-[#d6dcf0] bg-white px-3 text-sm font-medium text-[#33429a] hover:border-[#465ab4] focus-visible:ring-2 focus-visible:ring-[#465ab4] focus-visible:outline-none"
+              >
+                {field.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="mt-1.5 text-xs text-[#5c6b78]">{companyCopy.publishMissingNote}</p>
+    </section>
   );
 }
 
@@ -323,7 +346,6 @@ function Panel({
   done,
   dirty,
   saveState = null,
-  onRetry,
   onEdit,
   onCollapse,
   onCancel,
@@ -346,7 +368,6 @@ function Panel({
   dirty: boolean;
   /** t95: autosave status shown next to the title instead of the old save bar. */
   saveState?: AutoSaveState;
-  onRetry?: () => void;
   onEdit: () => void;
   onCollapse: () => void;
   onCancel?: () => void;
@@ -363,7 +384,7 @@ function Panel({
         </h2>
         <div className="flex shrink-0 flex-nowrap items-center gap-1.5 whitespace-nowrap">
           {saveState || dirty ? (
-            <AutoSaveStatus state={saveState ?? "saving"} onRetry={onRetry} />
+            <AutoSaveStatus state={saveState ?? "saving"} />
           ) : !chip ? null : (
             <CompactStatus
               label={done ? companyCopy.doneChip : companyCopy.pendingChip}
@@ -1908,10 +1929,6 @@ export function CompanyDraftForm({
     () => Boolean(coverSrc) || projectImageSrc(projectSlug(initial.codename)) !== null,
   );
 
-  const [saveTarget, setSaveTarget] = useState("");
-  const [rejectedSave, setRejectedSave] = useState("");
-  const [attempt, setAttempt] = useState(0);
-  const [suppressStatus, setSuppressStatus] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
   // t78: /mi-empresa/detalles is only reachable with a verified NIF (stored CIF); the server enforces the lock too.
   const identityLocked = cif.trim().length > 0;
@@ -2078,17 +2095,11 @@ export function CompanyDraftForm({
     autoSaveRef.current();
   }
 
-  function panelRejected(id: string): boolean {
-    if (pending) {
-      return false;
-    }
-
-    if (rejectedSave === id) {
-      return true;
-    }
-
-    return state !== null && !state.saved && !suppressStatus && saveTarget === id;
-  }
+  // Alex (S25) root cause of the "Reintentar highlights Razón de venta" loop: a failed save used to mark the
+  // whole first dirty section as rejected, and "Razón de venta" was the only field wired to that flag (plus a
+  // `key` that re-mounted it on every attempt). Any server error during a Tu empresa save, such as the missing
+  // region the schema still required, highlighted it. Server errors no longer point at a field; the percent
+  // splits keep their own inline messages in Estructura.
 
   function updateClosed(index: 0 | 1 | 2 | 3, key: keyof ClosedYearInput, value: string) {
     setClosedYears((current) => {
@@ -2240,15 +2251,6 @@ export function CompanyDraftForm({
       balanceRows: balance.rows,
     };
   })();
-  const statusMessage =
-    tab === "company" &&
-    state &&
-    !state.saved &&
-    !suppressStatus &&
-    !percentSumMessages.has(state.message) &&
-    state.message !== companyCopy.descriptionTooShort
-      ? state.message
-      : null;
   const formDirty = basicDirty || structureDirty || incomeDirty || balanceDirty || dealDirty;
 
   // t77: section nav, required-items progress and the sticky save bar.
@@ -2262,6 +2264,7 @@ export function CompanyDraftForm({
     askingPrice,
     sellerFinancing,
     sellerStay,
+    location: `${city}${region}`,
   });
   // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
   const basicDone = sectionComplete(requiredFields, "basic");
@@ -2269,8 +2272,8 @@ export function CompanyDraftForm({
   const priceDone = sectionComplete(requiredFields, "deal");
   const companySections: DetailSectionItem[] = [
     { id: "panel-basic", label: companyCopy.basicTitle, status: basicDirty ? "dirty" : basicDone ? "done" : "pending" },
-    { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     { id: "panel-structure", label: companyCopy.structureHeading, status: structureDirty ? "dirty" : structureDone ? "done" : "pending" },
+    { id: "panel-price", label: companyCopy.fichaFieldsTitle, status: dealDirty ? "dirty" : priceDone ? "done" : "pending" },
     ...(financeExtra ? [{ id: "panel-sabi-registry", label: "Datos del registro", status: "info" as const }] : []),
   ];
   // t79/t80: the right-hand checklist groups each required field under its section. It covers this tab only: the asking
@@ -2332,10 +2335,6 @@ export function CompanyDraftForm({
     }
     const ids = dirtySections.map((section) => section.id);
     setSavingSections(ids);
-    setSaveTarget(ids[0] ?? "basic");
-    setAttempt((current) => current + 1);
-    setRejectedSave(blocked ? "structure" : "");
-    setSuppressStatus(Boolean(blocked));
     setClientError(blocked);
     setSubmittedDraft(
       blocked
@@ -2344,6 +2343,16 @@ export function CompanyDraftForm({
     );
     setLastSentKey(draftKey);
     sentForm.current = data;
+    void action(data);
+  }
+  // S25: "Reintentar" re-sends exactly the request that failed (same FormData), nothing else.
+  function retrySave() {
+    if (pending) return;
+    const data = sentForm.current;
+    if (!data) {
+      runAutoSave();
+      return;
+    }
     void action(data);
   }
   const autoSaveRef = useRef(runAutoSave);
@@ -2509,10 +2518,15 @@ export function CompanyDraftForm({
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
+      <PublishMissing
+        fields={requiredFields.filter((field) => field.required && !field.done)}
+        onGo={(id) => {
+          goToMissing(id);
+        }}
+      />
       <Panel
         id="panel-basic"
         saveState={sectionSaveState("basic")}
-        onRetry={() => autoSaveRef.current()}
         step={1}
         title={companyCopy.basicTitle}
         intro="Nombre, motivo de venta, descripción, sector y cómo sería el traspaso."
@@ -2601,7 +2615,7 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           )}
-          <Fact icon={MapPin} label={companyCopy.locationLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined}>
+          <Fact id="panel-location" icon={MapPin} label={companyCopy.locationLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined} required>
             <Input
               name="location"
               autoComplete="off"
@@ -2641,11 +2655,9 @@ export function CompanyDraftForm({
           </Fact>
           <Fact id="panel-sale-reason" icon={Handshake} label={companyCopy.saleReasonLabel} required>
             <OptionSelect
-              key={saleReason === "" && panelRejected("basic") ? `sale-reason-${attempt}` : "sale-reason"}
               name="saleReason"
               label={companyCopy.saleReasonLabel}
               value={saleReason}
-              invalid={saleReason === "" && panelRejected("basic")}
               options={[
                 { value: "", label: companyCopy.saleReasonEmpty },
                 ...saleReasons.map((reason) => ({ value: reason, label: saleReasonLabels[reason] })),
@@ -2714,41 +2726,45 @@ export function CompanyDraftForm({
         </div>
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
-          <div className="flex flex-col gap-3">
-            <div className="flex h-9 items-center justify-start gap-2">
-              <p className="text-sm font-medium">
-                {companyCopy.secondaryCnaeLabel} (máximo {maxSecondaryCnaes})
-              </p>
-              <span data-flash className="inline-flex rounded-full">
-              <AddIconButton
+          {/* Alex (S25): as many secondary CNAEs as the company has (no cap of 4). Chips plus one adder;
+              registry/SABI data pre-fills them. */}
+          <div className="flex flex-col gap-3 text-sm font-medium">
+            <p className="flex h-9 items-center">{companyCopy.secondaryCnaeLabel}</p>
+            <span data-flash className="block rounded-[var(--field-radius)]">
+              <OptionSelect
+                key={`secondary-add-${secondaryCnaes.join("|")}`}
                 label={companyCopy.addSecondaryCnae}
-                disabled={secondaryCnaes.length >= maxSecondaryCnaes}
-                onClick={() => {
-                  setSecondaryCnaes((current) => [...current, ""]);
+                value=""
+                options={[{ value: "", label: companyCopy.addSecondaryCnae }, ...cnaeOptions.filter((option) => option.value !== "" && option.value !== principalCnae && !secondaryCnaes.includes(option.value))]}
+                searchable
+                searchPlaceholder={companyCopy.cnaeSearch}
+                emptyLabel={companyCopy.cnaeNoMatch}
+                onValueChange={(value) => {
+                  if (value === "" || value === principalCnae) return;
+                  setSecondaryCnaes((current) => (current.includes(value) ? current : [...current, value]));
                 }}
               />
-              </span>
-            </div>
-            {secondaryCnaes.map((code, index) => (
-              <div key={`secondary-${index}`} className="flex items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <CnaeSelect
-                    name="secondaryCnae"
-                    label={`${companyCopy.secondaryCnaeItem} ${index + 1}`}
-                    visibleLabel={false}
-                    value={code}
-                    onChange={(value) => {
-                      setSecondaryCnaes((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
-                    }}
-                  />
-                </div>
-                <RemoveRowButton
-                  onClick={() => {
-                    setSecondaryCnaes((current) => current.filter((_, itemIndex) => itemIndex !== index));
-                  }}
-                />
-              </div>
-            ))}
+            </span>
+            {secondaryCnaes.length > 0 ? (
+              <ul className="flex flex-wrap gap-2" aria-label={companyCopy.secondaryCnaeLabel}>
+                {secondaryCnaes.map((code) => (
+                  <li key={code} className="inline-flex max-w-full items-center gap-1 rounded-full bg-[#e4e7ec] py-1 pr-1 pl-2.5 text-xs font-medium text-[#475467]">
+                    <input type="hidden" name="secondaryCnae" value={code} />
+                    <span className="truncate">{cnaeTitle(code) ? `${code} — ${cnaeTitle(code)}` : code}</span>
+                    <button
+                      type="button"
+                      aria-label={`${companyCopy.removeSecondaryCnae} ${code}`}
+                      onClick={() => {
+                        setSecondaryCnaes((current) => current.filter((item) => item !== code));
+                      }}
+                      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[#5c6b78] hover:bg-white hover:text-[#1c2740] focus-visible:ring-2 focus-visible:ring-[#465ab4] focus-visible:outline-none"
+                    >
+                      <X className="size-3.5" aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </div>
         <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -2757,88 +2773,11 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
-      {/* t87: Datos de la ficha (apodo, fotos, precio, EBITDA ajustado) is step 2, right under Tu empresa, so sellers find the price early. */}
-      <Panel
-        id="panel-price"
-        saveState={sectionSaveState("deal")}
-        onRetry={() => autoSaveRef.current()}
-        step={2}
-        title={companyCopy.fichaFieldsTitle}
-        intro={companyCopy.dealFold}
-        hint={dealNote}
-        open
-        fixed
-        dirty={dealDirty}
-        done={priceDone}
-        onEdit={() => setSaveClosed("")}
-        onCollapse={() => undefined}
-      >
-          <PublicFicha
-            codename={codename}
-            coverSrc={coverSrc}
-            photos={fichaExtras?.photos ?? []}
-            onListed={setListedPhoto}
-            onCodename={setCodename}
-          >
-            <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
-            <FichaMetrics
-              revenue={salesFromAccounts ?? revenue}
-              askingPrice={askingPrice}
-              onAskingPrice={setAskingPrice}
-              ebitda={ebitdaFromAccounts ?? ebitda}
-              adjustedEbitda={adjustedEbitda}
-              adjustmentCount={approvedAdjustmentsCount}
-              pendingCount={pendingAdjustments}
-              adjustments={(close) => (
-                <EbitdaAdjustmentsDialog
-                  rows={adjustmentRows}
-                  onSaved={(rows, json) => {
-                    setAdjustmentRows(rows);
-                    setHadAdjustmentList(json !== "");
-                    setBaseline((current) => ({ ...current, ebitdaAdjustments: json }));
-                  }}
-                  onClose={close}
-                  baseCents={adjustmentBaseCents}
-                  year={accountYear?.year ?? null}
-                  legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
-                  revenueCents={
-                    salesFromAccounts
-                      ? eurosToCents(salesFromAccounts)
-                      : unsignedEuroPattern.test(revenue.trim())
-                        ? eurosToCents(revenue.trim())
-                        : null
-                  }
-                  ebitdaCents={adjustmentBaseCents}
-                  uploadsDisabled={uploadsDisabled}
-                />
-              )}
-              margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
-              adjustedMargin={marginText(salesFromAccounts ?? revenue, adjustedEbitda)}
-              priceBlocked={priceBlocked}
-              recommended={
-                priceEstimate
-                  ? {
-                      amount: wholeEur(recommendedPriceCents(priceEstimate)),
-                      low: wholeEur(priceEstimate.lowCents),
-                      high: wholeEur(priceEstimate.highCents),
-                      input: recommendedPriceInput(priceEstimate),
-                      onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
-                      applied: euroCentsOrNull(askingPrice) === recommendedPriceCents(priceEstimate),
-                    }
-                  : null
-              }
-              askingPriceIncludes={askingPriceIncludes}
-              onAskingPriceIncludes={setAskingPriceIncludes}
-              estimate={priceEstimate}
-            />
-          </PublicFicha>
-      </Panel>
 
       <Panel
         id="panel-structure"
         saveState={sectionSaveState("structure")}
-        onRetry={() => autoSaveRef.current()}
-        step={3}
+        step={2}
         title={companyCopy.structureHeading}
         intro={companyCopy.structureFold}
         hint={companyCopy.slicePrivate}
@@ -3015,12 +2954,87 @@ export function CompanyDraftForm({
         </div>
       </Panel>
 
+      {/* Alex (S25): Datos de la ficha is step 3, after Tu empresa and Estructura. */}
+      <Panel
+        id="panel-price"
+        saveState={sectionSaveState("deal")}
+        step={3}
+        title={companyCopy.fichaFieldsTitle}
+        intro={companyCopy.dealFold}
+        hint={dealNote}
+        open
+        fixed
+        dirty={dealDirty}
+        done={priceDone}
+        onEdit={() => setSaveClosed("")}
+        onCollapse={() => undefined}
+      >
+          <PublicFicha
+            codename={codename}
+            coverSrc={coverSrc}
+            photos={fichaExtras?.photos ?? []}
+            onListed={setListedPhoto}
+            onCodename={setCodename}
+          >
+            <input type="hidden" name="ebitdaAdjustments" value={adjustmentsJson} />
+            <FichaMetrics
+              revenue={salesFromAccounts ?? revenue}
+              askingPrice={askingPrice}
+              onAskingPrice={setAskingPrice}
+              ebitda={ebitdaFromAccounts ?? ebitda}
+              adjustedEbitda={adjustedEbitda}
+              adjustmentCount={approvedAdjustmentsCount}
+              pendingCount={pendingAdjustments}
+              adjustments={(close) => (
+                <EbitdaAdjustmentsDialog
+                  rows={adjustmentRows}
+                  onSaved={(rows, json) => {
+                    setAdjustmentRows(rows);
+                    setHadAdjustmentList(json !== "");
+                    setBaseline((current) => ({ ...current, ebitdaAdjustments: json }));
+                  }}
+                  onClose={close}
+                  baseCents={adjustmentBaseCents}
+                  year={accountYear?.year ?? null}
+                  legacyCents={legacyAdjustedCents !== 0 ? legacyAdjustedCents : null}
+                  revenueCents={
+                    salesFromAccounts
+                      ? eurosToCents(salesFromAccounts)
+                      : unsignedEuroPattern.test(revenue.trim())
+                        ? eurosToCents(revenue.trim())
+                        : null
+                  }
+                  ebitdaCents={adjustmentBaseCents}
+                  uploadsDisabled={uploadsDisabled}
+                />
+              )}
+              margin={marginText(salesFromAccounts ?? revenue, ebitdaFromAccounts ?? ebitda)}
+              adjustedMargin={marginText(salesFromAccounts ?? revenue, adjustedEbitda)}
+              priceBlocked={priceBlocked}
+              recommended={
+                priceEstimate
+                  ? {
+                      amount: wholeEur(recommendedPriceCents(priceEstimate)),
+                      low: wholeEur(priceEstimate.lowCents),
+                      high: wholeEur(priceEstimate.highCents),
+                      input: recommendedPriceInput(priceEstimate),
+                      onUse: () => setAskingPrice(recommendedPriceInput(priceEstimate)),
+                      applied: euroCentsOrNull(askingPrice) === recommendedPriceCents(priceEstimate),
+                    }
+                  : null
+              }
+              askingPriceIncludes={askingPriceIncludes}
+              onAskingPriceIncludes={setAskingPriceIncludes}
+              estimate={priceEstimate}
+            />
+          </PublicFicha>
+      </Panel>
+
       {/* t76: accounting inputs stay mounted (hidden) so save keeps loaded values. Tus cifras was a read-only Ficha duplicate. */}
       <div hidden>
       <Panel
         id="panel-income"
         saveState={sectionSaveState("income")}
-        onRetry={() => autoSaveRef.current()}
         title={companyCopy.incomeHeading}
         intro={companyCopy.incomeFold}
         hint={`${companyCopy.incomeIntro} ${companyCopy.signedEuroHint}\n\n${companyCopy.incomeWindowNote}`}
@@ -3123,7 +3137,6 @@ export function CompanyDraftForm({
       <Panel
         id="panel-balance"
         saveState={sectionSaveState("income")}
-        onRetry={() => autoSaveRef.current()}
         title={companyCopy.balanceHeading}
         intro={companyCopy.balanceFold}
         hint={companyCopy.balanceIntro}
@@ -3321,16 +3334,11 @@ export function CompanyDraftForm({
       </div>
       </div>
 
-      {tab === "company" && statusMessage ? (
-        <p role={state?.saved ? "status" : "alert"} className={state?.saved ? "text-sm" : "text-sm text-destructive"}>
-          {statusMessage}
-        </p>
-      ) : null}
       <AppToast
         message={state && !pending ? (state.saved ? companyCopy.autosaveSaved : state.message) : null}
         tone={state?.saved ? "ok" : "error"}
         pulse={savePulse}
-        onRetry={state && !state.saved ? () => autoSaveRef.current() : undefined}
+        onRetry={state && !state.saved ? retrySave : undefined}
         retryLabel={companyCopy.autosaveRetry}
       />
     </form>

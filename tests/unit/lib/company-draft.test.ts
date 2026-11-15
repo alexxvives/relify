@@ -52,7 +52,10 @@ describe("company draft money and slug", () => {
       ebitda: "100",
       adjustedEbitda: "120",
       askingPrice: "800",
-    })).success).toBe(false);
+    })).success).toBe(true);
+    // Alex (S25): an incomplete postal code no longer blocks the save; it is just not stored.
+    const partial = companyDraftSchema.safeParse(draft({ codename: "Proyecto Norte", region: "Cataluña", postalCode: "8022", city: "Barcelona" }));
+    expect(partial.success && partial.data.postalCode).toBe("");
   });
 
   it("saves a partial draft without a sale reason (t78)", () => {

@@ -14,7 +14,8 @@ export const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com",
+  // S25: Ubicación autocomplete (OpenStreetMap: Photon first, Nominatim fallback). Keyless, free, read-only.
+  "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://photon.komoot.io https://nominatim.openstreetmap.org",
   "frame-src 'self' https://www.googletagmanager.com",
   "upgrade-insecure-requests",
 ].join("; ");
