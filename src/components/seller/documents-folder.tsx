@@ -23,7 +23,7 @@ export function DocumentsFolder({
       paperColor="#ffffff"
       size={0.62}
       theme="light"
-      openOn="click"
+      openOn="hover"
       bounce={0.78}
       draggable={false}
       zoomOnClick={false}

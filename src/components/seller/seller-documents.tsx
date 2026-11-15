@@ -430,30 +430,47 @@ function FolderCard({
       ) : (
         <>
           <div
+            role="button"
+            tabIndex={0}
+            onClick={onOpen}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            }}
             className={
               featured
-                ? "flex min-h-44 w-full flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
-                : "flex min-h-44 w-full flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
+                ? "flex min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
+                : "flex min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
             }
           >
             <DocumentsFolder label={name} items={papers} accent={featured} />
-            <button type="button" onClick={onOpen} className="mt-2">
-              <span className="block text-sm font-semibold text-[#1c2740]">{name}</span>
-              <span className="mt-1 block text-xs text-[#667085]">
-                {documentCountLabel(count)}
-                {updatedAt ? ` · ${folderDate(updatedAt)}` : ""}
+            <span className="mt-2 block text-sm font-semibold text-[#1c2740]">{name}</span>
+            <span className="mt-1 block text-xs text-[#667085]">
+              {documentCountLabel(count)}
+              {updatedAt ? ` · ${folderDate(updatedAt)}` : ""}
+            </span>
+            {viewers > 0 ? (
+              <span className="mt-2 inline-block rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#157a45]">
+                {viewers === 1 ? "Visible para 1 comprador" : `Visible para ${viewers} compradores`}
               </span>
-              {viewers > 0 ? (
-                <span className="mt-2 inline-block rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#157a45]">
-                  {viewers === 1 ? "Visible para 1 comprador" : `Visible para ${viewers} compradores`}
-                </span>
-              ) : null}
-            </button>
+            ) : null}
           </div>
           {locked ? null : (
             <>
-          <div className="absolute top-3 left-3 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">{share}</div>
-          <div className="absolute top-3 right-3 flex items-center transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100">
+          <div
+            className="absolute top-3 left-3 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            {share}
+          </div>
+          <div
+            className="absolute top-3 right-3 flex items-center transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/folder:opacity-100 [@media(hover:hover)]:group-focus-within/folder:opacity-100"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <button
               type="button"
               aria-label={sellerCopy.folderRename}
@@ -532,45 +549,46 @@ function FileCard({
         </form>
       ) : (
         <>
-          <button
-            type="button"
-            onClick={onOpen}
-            className="flex h-44 w-full flex-col overflow-hidden rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] text-left hover:border-[#c5d0f5]"
-          >
-            <DocumentThumb src={fileHref(file)} fileName={file.fileName} />
-          </button>
-          {file.platform ? null : <div className="absolute top-2 left-2 z-10">{share}</div>}
-          <div className="absolute bottom-2 right-2 z-10">
-            <CopyFileLink href={fileHref(file)} />
-          </div>
-          {file.viewers.length > 0 ? (
-            <span className="absolute bottom-2 left-2 z-10 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
-              {file.viewers.map((viewer) => (
-                <span
-                  key={viewer.accessId}
-                  title={viewer.label}
-                  className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-xs font-semibold text-white"
-                >
-                  {viewerInitials(viewer.label)}
+          <div className="flex w-full flex-col items-center gap-2">
+            <span className="relative block w-full max-w-[11.5rem]">
+              <button type="button" onClick={onOpen} className="releva-doc-sheet w-full">
+                <DocumentThumb src={fileHref(file)} fileName={file.fileName} />
+              </button>
+              {file.platform ? null : <div className="absolute top-2 left-2 z-10">{share}</div>}
+              <div className="absolute right-2 bottom-2 z-10">
+                <CopyFileLink href={fileHref(file)} />
+              </div>
+              {file.viewers.length > 0 ? (
+                <span className="absolute bottom-2 left-2 z-10 inline-flex -space-x-1" aria-label={sellerCopy.viewersLabel}>
+                  {file.viewers.map((viewer) => (
+                    <span
+                      key={viewer.accessId}
+                      title={viewer.label}
+                      className="inline-flex size-6 items-center justify-center rounded-full border border-white bg-[#465ab4] text-xs font-semibold text-white"
+                    >
+                      {viewerInitials(viewer.label)}
+                    </span>
+                  ))}
                 </span>
-              ))}
+              ) : null}
+              {file.platform ? null : (
+              <div className="absolute top-2 right-2 z-10 flex items-center">
+                <button
+                  type="button"
+                  aria-label={sellerCopy.documentEdit}
+                  onClick={() => {
+                    setEditing(true);
+                  }}
+                  className="inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
+                >
+                  <SquarePenIcon size={16} aria-hidden />
+                </button>
+                <FileDelete id={file.id} />
+              </div>
+              )}
             </span>
-          ) : null}
-          {file.platform ? null : (
-          <div className="absolute top-2 right-2 z-10 flex items-center">
-            <button
-              type="button"
-              aria-label={sellerCopy.documentEdit}
-              onClick={() => {
-                setEditing(true);
-              }}
-              className="inline-flex size-8 items-center justify-center rounded-full text-[#8b95a7] hover:bg-[#eef2ff] hover:text-[#465ab4]"
-            >
-              <SquarePenIcon size={16} aria-hidden />
-            </button>
-            <FileDelete id={file.id} />
+            <span className="line-clamp-2 w-full px-1 text-center text-xs font-medium text-[#1c2740]">{file.fileName}</span>
           </div>
-          )}
         </>
       )}
     </li>
@@ -587,24 +605,29 @@ function TeaserFileCard({
   const fileName = `${companyPdfCopy.teaserFile}.pdf`;
   return (
     <li className="relative" data-teaser-card>
-      <button
-        type="button"
-        data-teaser-preview
-        onClick={onOpen}
-        aria-label={fileName}
-        className="flex h-44 w-full flex-col overflow-hidden rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] text-left hover:border-[#c5d0f5]"
-      >
-        <DocumentThumb src="/mi-empresa/pdf/teaser?preview=1" fileName={fileName} />
-      </button>
-      <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1" data-teaser-actions>
-        <a
-          href="/mi-empresa/pdf/teaser?download=1"
-          aria-label={companyPdfCopy.teaserDownload}
-          className="inline-flex size-8 items-center justify-center rounded-full border border-[#e7eaee] bg-white text-[#465ab4] hover:bg-[#eef1fb]"
-        >
-          <Download className="size-3.5" aria-hidden />
-        </a>
-        <CopyFileLink href="/mi-empresa/pdf/teaser?preview=1" shareUrl={desk.shareUrl} />
+      <div className="flex w-full flex-col items-center gap-2">
+        <span className="relative block w-full max-w-[11.5rem]">
+          <button
+            type="button"
+            data-teaser-preview
+            onClick={onOpen}
+            aria-label={fileName}
+            className="releva-doc-sheet w-full"
+          >
+            <DocumentThumb src="/mi-empresa/pdf/teaser?preview=1" fileName={fileName} />
+          </button>
+          <div className="absolute right-2 bottom-2 z-10 flex items-center gap-1" data-teaser-actions>
+            <a
+              href="/mi-empresa/pdf/teaser?download=1"
+              aria-label={companyPdfCopy.teaserDownload}
+              className="inline-flex size-8 items-center justify-center rounded-full border border-[#e7eaee] bg-white text-[#465ab4] hover:bg-[#eef1fb]"
+            >
+              <Download className="size-3.5" aria-hidden />
+            </a>
+            <CopyFileLink href="/mi-empresa/pdf/teaser?preview=1" shareUrl={desk.shareUrl} />
+          </div>
+        </span>
+        <span className="line-clamp-2 w-full px-1 text-center text-xs font-medium text-[#1c2740]">{fileName}</span>
       </div>
     </li>
   );
@@ -777,11 +800,13 @@ export function SellerDocuments({
               className="inline-flex items-center gap-1 text-sm font-medium text-[#3d34b8]"
             >
               <ChevronLeft className="size-4" aria-hidden />
-              {folder}
+              {sellerCopy.foldersBack}
             </button>
-            <p className="text-sm text-[#667085]">{documentCountLabel(inFolder.length + (folder === relevaDraftFolder && teaser ? 1 : 0))}</p>
+            <p className="text-sm text-[#667085]">
+              {folder} · {documentCountLabel(inFolder.length + (folder === relevaDraftFolder && teaser ? 1 : 0))}
+            </p>
           </div>
-          <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {folder === relevaDraftFolder ? null : (
             <li className="col-span-2 md:col-span-1">
               <DocumentDrop folder={folder} disabled={uploadsDisabled} />
@@ -849,27 +874,30 @@ function isImageName(name: string) {
 function DocumentThumb({ src, fileName }: { src: string | null; fileName: string }) {
   const image = isImageName(fileName);
   const pdf = fileName.toLowerCase().endsWith(".pdf") || (src?.includes("/pdf/") ?? false);
+  const extension = fileName.split(".").pop()?.toUpperCase() ?? "DOC";
 
   return (
-    <span className="relative block h-full w-full overflow-hidden bg-[#eef1f5]">
+    <span className="relative block h-full w-full overflow-hidden bg-[#f7f8fb]">
       {src && pdf ? (
         <PdfThumb
           src={src}
           title={fileName}
-          fallback={<FileTextIcon size={40} className="m-auto text-[#9aa6c2]" aria-hidden />}
+          fallback={<FileTextIcon size={28} className="m-auto text-[#9aa6c2]" aria-hidden />}
         />
       ) : src && image ? (
         <img src={src} alt="" className="h-full w-full object-cover object-top" />
       ) : (
-        <span className="absolute inset-3 rounded-md bg-white shadow-[0_8px_18px_-14px_rgba(28,39,64,0.45)]" aria-hidden>
-          <span className="mt-3 ml-3 block h-2 w-1/3 rounded bg-[#e8ecf2]" />
-          <span className="mt-2 ml-3 block h-1.5 w-4/5 rounded bg-[#f1f3f6]" />
-          <span className="mt-1.5 ml-3 block h-1.5 w-2/3 rounded bg-[#f1f3f6]" />
+        <span className="absolute inset-0 flex flex-col bg-white px-3 pt-4 pb-3" aria-hidden>
+          <span className="mb-3 h-1.5 w-1/3 rounded bg-[#e8ecf2]" />
+          <span className="h-1 w-full rounded bg-[#f1f3f6]" />
+          <span className="mt-1.5 h-1 w-11/12 rounded bg-[#f1f3f6]" />
+          <span className="mt-1.5 h-1 w-4/5 rounded bg-[#f1f3f6]" />
+          <span className="mt-1.5 h-1 w-full rounded bg-[#f1f3f6]" />
+          <span className="mt-auto inline-flex size-9 items-center justify-center rounded-md bg-[#eef2ff] text-[10px] font-bold tracking-wide text-[#465ab4]">
+            {extension.slice(0, 4)}
+          </span>
         </span>
       )}
-      <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-gradient-to-t from-[#1c2740]/80 to-transparent px-2.5 pt-6 pb-2 text-[11px] font-medium text-white">
-        {fileName}
-      </span>
     </span>
   );
 }

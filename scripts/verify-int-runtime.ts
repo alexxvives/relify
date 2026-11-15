@@ -34,17 +34,13 @@ try {
   }
 }
 
-// Test 3: Upload blocking
-console.log("3. Upload Blocking");
+// Test 3: Uploads allowed in INT (isolated INT_UPLOADS / data/data-room/int)
+console.log("3. Upload policy");
 try {
   assertUploadsEnabled();
-  console.log(`   ✗ Uploads NOT blocked (FAIL - expected blocked)\n`);
+  console.log(`   ✓ Uploads enabled in INT (isolated storage)\n`);
 } catch (error) {
-  if (error instanceof Error && error.message.includes("disabled in INT")) {
-    console.log(`   ✓ Uploads blocked in INT\n`);
-  } else {
-    console.log(`   ? Unexpected error: ${error}\n`);
-  }
+  console.log(`   ✗ Uploads unexpectedly blocked: ${error}\n`);
 }
 
 // Test 4: Email policy (INT catch-all — see docs/INT.md)

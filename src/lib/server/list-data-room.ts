@@ -13,7 +13,7 @@ import {
 import { labelAccesses, personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
-import { dataRoomFileIsStored } from "@/lib/server/data-room-disk";
+import { dataRoomStoredIds } from "@/lib/server/data-room-disk";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 import { relevaDraftFolder, relevaDrafts } from "@/lib/releva-drafts";
 
@@ -117,10 +117,11 @@ export async function listDataRoom(
         usedByFiles: files.map((file) => file.folder),
       }).filter((folder) => folder !== relevaDraftFolder),
     ];
+    const storedIds = await dataRoomStoredIds(files.map((file) => file.id));
     const stored = files.map((file) => ({
         ...toDataRoomFileView(file),
         id: file.id,
-        stored: dataRoomFileIsStored(file.id),
+        stored: storedIds.has(file.id),
         viewers: fileViewerLabels({
           fileId: file.id,
           files,
@@ -215,11 +216,12 @@ export async function listDataRoom(
       granted: true,
       shares: shareRows,
     });
+    const storedIds = await dataRoomStoredIds(grant.project.dataRoomFiles.map((file) => file.id));
     rooms.push({
       slug: grant.project.slug,
       codename: grant.project.codename,
       files: grant.project.dataRoomFiles
-        .filter((file) => visible.has(file.id) && dataRoomFileIsStored(file.id))
+        .filter((file) => visible.has(file.id) && storedIds.has(file.id))
         .map((file) => toDataRoomFileView(file)),
     });
   }

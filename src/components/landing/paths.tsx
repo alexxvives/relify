@@ -71,7 +71,7 @@ export function Paths({
   const [hint, setHint] = useState(true);
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-8 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="text-center">
           <div className="mx-auto max-w-3xl text-center">

@@ -19,7 +19,7 @@ import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { contractStageOpen, contractViews } from "@/lib/server/sale-contract";
 import { prisma } from "@/lib/db";
-import { dataRoomFileIsStored } from "@/lib/server/data-room-disk";
+import { dataRoomStoredIds } from "@/lib/server/data-room-disk";
 import { publicCardsByInvestor } from "@/lib/server/investor-profile";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 
@@ -145,6 +145,7 @@ export async function listProjectMessages(
           select: { projectId: true },
         }),
       ]);
+    const storedIds = await dataRoomStoredIds(files.map((file) => file.id));
     const labeled = labelAccesses(accesses);
     const open = labeled.filter(
       (access) =>
@@ -248,7 +249,7 @@ export async function listProjectMessages(
                     id: file.id,
                     folder: file.folder,
                     fileName: file.fileName,
-                    stored: dataRoomFileIsStored(file.id),
+                    stored: storedIds.has(file.id),
                     visible: sharedFileIds({
                       files: files.filter(
                         (item) => item.projectId === access.projectId,
@@ -385,13 +386,14 @@ export async function listProjectMessages(
     granted: grant !== null,
     shares: shareRows,
   });
+  const storedIds = await dataRoomStoredIds(files.map((file) => file.id));
   const documents = investorProcessFiles({
     ndaAcceptedAt: access?.ndaAcceptedAt ?? null,
     granted: grant !== null,
     files: filesWithBytes(
       files
         .filter((file) => visible.has(file.id))
-        .map((file) => ({ ...file, stored: dataRoomFileIsStored(file.id) })),
+        .map((file) => ({ ...file, stored: storedIds.has(file.id) })),
     ),
   });
 

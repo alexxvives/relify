@@ -15,7 +15,7 @@ import { personName } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
-import { dataRoomFileIsStored } from "@/lib/server/data-room-disk";
+import { dataRoomStoredIds } from "@/lib/server/data-room-disk";
 import { investorVisibleFiles } from "@/lib/server/investor-visible-files";
 import { recordNotification } from "@/lib/server/record-notification";
 
@@ -69,8 +69,9 @@ async function sharedFiles(engagement: {
       engagement.requesterId,
       engagement.projectId,
     );
+    const storedIds = await dataRoomStoredIds(files.map((file) => file.id));
     return files
-      .filter((file) => dataRoomFileIsStored(file.id))
+      .filter((file) => storedIds.has(file.id))
       .map((file) => ({ ...file, stored: true, visible: true }));
   }
 
@@ -105,8 +106,10 @@ async function sharedFiles(engagement: {
     byId.set(share.file.id, share.file);
   }
 
-  return [...byId.values()]
-    .filter((file) => dataRoomFileIsStored(file.id))
+  const listed = [...byId.values()];
+  const storedIds = await dataRoomStoredIds(listed.map((file) => file.id));
+  return listed
+    .filter((file) => storedIds.has(file.id))
     .map((file) => ({ ...file, stored: true, visible: true }));
 }
 

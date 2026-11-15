@@ -15,12 +15,12 @@ describe("Round S22 landing and product bits", () => {
     expect(read("src/components/seller/upload-dropzone.tsx")).toMatch(/from "motion\/react"/);
     expect(read("src/components/seller/upload-dropzone.css")).toMatch(/--fill-on: #1c2740/);
     expect(read("src/components/seller/seller-documents.tsx")).toMatch(/UploadDropzone/);
-    expect(read("src/app/(app)/mi-empresa/documentos/page.tsx")).toMatch(/uploadsDisabled=\{isIntEnvironment\(\)\}/);
+    expect(read("src/app/(app)/mi-empresa/documentos/page.tsx")).toMatch(/SellerDocuments/);
   });
 
   it("opens every documents folder on click with bounce, Relify last and accented", () => {
     const folder = read("src/components/seller/documents-folder.tsx");
-    expect(folder).toMatch(/openOn="click"/);
+    expect(folder).toMatch(/openOn="hover"/);
     expect(folder).toMatch(/bounce=\{0\.78\}/);
     expect(folder).toMatch(/#9aa3b2/);
     expect(folder).toMatch(/#465ab4/);

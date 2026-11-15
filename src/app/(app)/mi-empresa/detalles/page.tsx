@@ -16,7 +16,6 @@ import { getSellerListing } from "@/lib/server/publish-seller-project";
 import { requireRole } from "@/lib/server/require-role";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 import { companyNifIsVerified, getSellerCif } from "@/lib/server/verify-company-nif";
-import { isIntEnvironment } from "@/lib/int-env";
 
 export const metadata: Metadata = {
   title: sellerCopy.detailsTitle,
@@ -66,7 +65,6 @@ async function CompanyDetailsPageContent({
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
         fichaExtras={fichaExtras}
-        uploadsDisabled={isIntEnvironment()}
       />
     </>
   );

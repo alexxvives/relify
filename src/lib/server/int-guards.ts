@@ -7,17 +7,11 @@ import { intPaymentsConfigured, isIntEnvironment } from "../int-env";
 import { intMailConfigured } from "../int-mail";
 
 /**
- * Block all file uploads in INT until dedicated persistent storage is wired.
- * Throws error in INT mode, no-op in production.
+ * Uploads are allowed in INT with isolated storage (`INT_UPLOADS` R2 / `data/data-room/int`).
+ * Size and type checks stay in the write path. Never points INT at prod storage.
  */
 export function assertUploadsEnabled(): void {
-  if (isIntEnvironment()) {
-    throw new Error(
-      "File uploads disabled in INT environment. " +
-      "INT requires dedicated isolated persistent storage binding. " +
-      "Configure INT_UPLOADS_ENABLED=true only after storage isolation verified."
-    );
-  }
+  return;
 }
 
 /**

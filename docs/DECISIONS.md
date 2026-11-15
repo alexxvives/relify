@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-15 — Round S23 landing polish, folder view, INT uploads
+
+Landing pipeline callout puts **Paso N** inline left of the title (same chip as NDA/Solicitud), icon centred, card `max-width: 42rem`. CIF line chart is a Catmull-Rom curve with gradient fill, draw animation, axes and a pulsing marker. How-it-works uses one spine; only the selected step lights. Publish/buyers step cards were restyled. **Vista previa del mercado** is gone. **rentables** is a more golden diagonal shine (`#c48914`, exception to DESIGN “do not invent hex”). ReportNav bar is `w-fit` / `inline-flex`. INT uploads are on: isolated `data/data-room/int` locally and R2 binding `INT_UPLOADS` → bucket `releva-int-uploads` (create before INT deploy; never prod storage). GlareHover `playOnce` (no leave sweep, no replay). Landing sections share `py-10 sm:py-16`. Pipeline fill/pulse matches Mis procesos. Hero **Prueba gratis** sits at the bottom of the overlay. Documents folders peek on hover and open a folder view on click; files are A4 portrait sheets. Detalle description unmounts when collapsed so expand shows the full text. Información / Ficha pública uses lazy GooeyNav. No Prisma schema migration.
+
 ## 2026-11-14 — Round S22b INT QA: skeleton height, wrapping GooeyNav, dropzone line
 
 `ProjectSkeleton` banner is a locked `h-[415px] sm:h-[438px]` with an 8-step pipeline placeholder so `/proyectos/[slug]` does not jump (CLS 0 under 3G). Ficha GooeyNav wraps and centres instead of clipping **Detalle de cuentas**; sm padding is tighter (`--gn-x: 10px`), icons hide below `sm`. Disabled dropzone copy is **Subida desactivada en pruebas**, with extra padding, and the tile spans two columns below `md`. No Prisma schema migration.

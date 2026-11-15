@@ -8,7 +8,7 @@ INT implements **fail-closed** safety guards:
 
 1. **Exact Resource Validation**: Database endpoints must be explicitly approved (localhost or `INT_APPROVED_DB_HOST`)
 2. **No Credential Logging**: Connection strings never logged, only status markers (`[configured]`)
-3. **Uploads Disabled**: All file uploads blocked until isolated storage wired
+3. **Uploads isolated**: INT writes go to R2 `INT_UPLOADS` (`releva-int-uploads`, keys `int/`) or local `data/data-room/int`. Never a production bucket. Size/type checks stay on.
 4. **Email**: Outbound mail is blocked unless `INT_MAILEROO_API_KEY` and `INT_EMAIL_CATCHALL` are set as Worker secrets on releva-int (`wrangler secret put … --name releva-int`). Never the prod key. Never package the catch-all as a `[vars]` value. Every send goes only to the catch-all. See `docs/INT.md`.
 5. **Payments Blocked**: Stripe charges/webhooks disabled (`INT_PAYMENTS_ENABLED` required)
 6. **External APIs Blocked**: Billable APIs (EInforma, ApiEmpresas, Context7, Maileroo) blocked by default
@@ -55,7 +55,7 @@ INT_BETTER_AUTH_URL=https://releva-int.<account>.workers.dev
 # npx wrangler secret put INT_EMAIL_CATCHALL --name releva-int
 # INT_PAYMENTS_ENABLED=true
 # INT_EXTERNAL_APIS_ENABLED=true
-# INT_UPLOADS_ENABLED=true
+# Uploads: bind INT_UPLOADS to bucket releva-int-uploads (never prod). No INT_UPLOADS_ENABLED flag.
 ```
 
 ### 3. Cloudflare Account
@@ -75,7 +75,7 @@ npm run verify:int
 Expected output:
 - ✓ INT mode detected
 - ✓ Database URL validated
-- ✓ Uploads blocked
+- ✓ Uploads enabled in INT (isolated storage)
 - ✓ Email blocked unless INT_MAILEROO_API_KEY + INT_EMAIL_CATCHALL secrets are set (see docs/INT.md)
 - ✓ Payments blocked
 - ✓ External APIs blocked
@@ -190,7 +190,13 @@ INT_APPROVED_DB_HOST=ep-xxx.us-east-2.aws.neon.tech:5432
 ```
 
 ### "Uploads disabled"
-Expected behavior. Do NOT set `INT_UPLOADS_ENABLED` until dedicated storage wired.
+Round S23 turned INT uploads on. Create the isolated bucket first:
+
+```bash
+npx wrangler r2 bucket create releva-int-uploads
+```
+
+Bind it as `INT_UPLOADS` on `releva-int` only. Never bind a production bucket. Object keys use the `int/` prefix. Local disk fallback is `data/data-room/int`. Size (20 MB) and type allowlists stay. `INT_UPLOADS_ENABLED` is unused.
 
 ### "Email disabled"
 Expected behavior. Check logs for `[mail] INT BLOCKED` confirmation.
@@ -212,6 +218,7 @@ Before every deploy:
 - [ ] Migrations reviewed and applied manually
 - [ ] `npm test` passes
 - [ ] Deploy script confirms worker name `releva-int`
+- [ ] Isolated R2 bucket `releva-int-uploads` exists and is bound as `INT_UPLOADS` (never prod)
 
 ## Blockers for Initial Deployment
 

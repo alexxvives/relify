@@ -47,6 +47,18 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 
 See `src/lib/int-mail.ts` and `src/lib/server/mailer.ts`.
 
+## Data-room uploads (isolated)
+
+INT uploads are on. They never use production R2.
+
+Create this bucket **before** the first INT deploy that should store files (do not bind a prod bucket):
+
+```bash
+npx wrangler r2 bucket create releva-int-uploads
+```
+
+The INT pack binds `INT_UPLOADS` → `releva-int-uploads`. Object keys are `int/<file-id>`. Local fallback is `data/data-room/int`. Size cap 20 MB and the existing type allowlist stay. There is no `INT_UPLOADS_ENABLED` flag.
+
 ## Stripe TEST (optional)
 
 INT payments stay off unless Alex sets TEST keys on `releva-int` (never production `STRIPE_*`, never live prefixes). Secret vs var:

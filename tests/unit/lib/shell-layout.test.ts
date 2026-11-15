@@ -184,7 +184,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
     expect(companyReport).toMatch(/report-section-aside[\s\S]*whitespace-nowrap/);
     expect(companyReport).toMatch(/report-section-aside[\s\S]*truncate/);
     expect(companyReport).toMatch(/report-section-title min-w-0 shrink-0/);
-    expect(reportNav).toMatch(/sticky z-30 mx-auto w-full max-w-4xl/);
+    expect(reportNav).toMatch(/sticky z-30 mx-auto w-fit max-w-4xl/);
     expect(reportNav).not.toMatch(/ViewportPortal/);
     expect(companyReport).not.toMatch(/inlineUntilSticky/);
   });
@@ -212,11 +212,10 @@ describe("S17 landing hero title and header", () => {
     expect(landingNav).toMatch(/ghostLink/);
   });
 
-  it("animates rentables with a solid high-contrast gold and a static gold when motion is reduced", () => {
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*-webkit-text-fill-color: #7a4a00/);
-    expect(css).toMatch(/@keyframes releva-gold-glow/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#7a4a00/);
-    expect(css).not.toMatch(/-webkit-text-fill-color: transparent/);
+  it("animates rentables with a golden diagonal shine and a static gold when motion is reduced", () => {
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#c48914/);
+    expect(css).toMatch(/@keyframes releva-gold-sweep/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*\.releva-gold-shine \{[\s\S]*color:\s*#c48914/);
     expect(css).toMatch(/@media \(max-width: 1023px\) \{[\s\S]*text-align:\s*center/);
   });
 

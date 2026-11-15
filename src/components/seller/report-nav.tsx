@@ -137,9 +137,9 @@ export function ReportNav({
   });
 
   return (
-    <nav aria-label={label} className={`sticky z-30 mx-auto w-full max-w-4xl ${top}`}>
-      <div className="flex items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
-        <div className="flex min-w-0 flex-1 justify-center">
+    <nav aria-label={label} className={`sticky z-30 mx-auto w-fit max-w-4xl ${top}`}>
+      <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
+        <div className="flex w-fit min-w-0 justify-center">
           {Gooey ? (
             <Gooey
               items={gooeyItems}
@@ -154,7 +154,7 @@ export function ReportNav({
               frame={false}
             />
           ) : (
-            <ul className="flex min-w-0 flex-1 flex-wrap justify-center gap-1">
+            <ul className="flex w-fit min-w-0 flex-wrap justify-center gap-1">
               {items.map((item, index) => {
                 const Icon = icons[item.id] ?? Sparkles;
                 const current = item.id === active;

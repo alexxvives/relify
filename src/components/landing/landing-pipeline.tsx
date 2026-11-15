@@ -45,11 +45,17 @@ export function LandingPipeline() {
   }, []);
 
   return (
-    <div className="releva-land-pipe mt-10 sm:mt-14">
+    <div className="releva-land-pipe mt-12 sm:mt-16">
       <p className="text-center text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
       <h3 className="releva-section-title mt-2 text-center sm:mt-3">{copy.heading}</h3>
       <p className="mt-3 text-center text-[16px] leading-7 text-public-muted sm:mt-4">{copy.intro}</p>
-      <ol className="releva-land-pipe-track" aria-label={copy.heading}>
+      <ol
+        className="releva-land-pipe-track"
+        aria-label={copy.heading}
+        style={{ ["--pipe-n" as string]: steps.length, ["--pipe-fill" as string]: active }}
+      >
+        <span className="releva-land-pipe-base" aria-hidden="true" />
+        <span className="releva-land-pipe-fill" aria-hidden="true" />
         {steps.map((step, index) => {
           const state = index === active ? "current" : index < active ? "done" : "upcoming";
           return (
@@ -73,8 +79,10 @@ export function LandingPipeline() {
             <Icon className="size-5" />
           </span>
           <div>
-            <p className="releva-land-pipe-kicker">Paso {active + 1}</p>
-            <h4>{current.label}</h4>
+            <div className="releva-land-pipe-title">
+              <p className="releva-land-pipe-kicker">Paso {active + 1}</p>
+              <h4>{current.label}</h4>
+            </div>
             <p>{current.detail}</p>
           </div>
         </article>

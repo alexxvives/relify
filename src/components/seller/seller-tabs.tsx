@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState, type ComponentType, type KeyboardEvent } from "react";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
 import { useCompactViewport } from "@/components/ui/use-compact";
+import type { GooeyNavItem } from "@/components/ui/gooey-nav/GooeyNav";
 
 export function SellerTabs<T extends string>({
   label,
@@ -50,6 +52,21 @@ export function SellerTabs<T extends string>({
   );
 }
 
+type GooeyProps = {
+  items?: GooeyNavItem[];
+  activeIndex?: number;
+  onChange?: (index: number, item: GooeyNavItem) => void;
+  theme?: "dark" | "light";
+  color?: string;
+  activeTextColor?: string;
+  size?: "sm" | "md" | "lg";
+  frame?: boolean;
+};
+
+function reducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function SegmentedTablist<T extends string>({
   label,
   tabs,
@@ -61,7 +78,25 @@ function SegmentedTablist<T extends string>({
   value: T;
   onChange: (id: T) => void;
 }) {
-  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  const [Gooey, setGooey] = useState<ComponentType<GooeyProps> | null>(null);
+  const activeIndex = Math.max(0, tabs.findIndex((item) => item.id === value));
+
+  useEffect(() => {
+    if (reducedMotion()) {
+      return;
+    }
+    let alive = true;
+    void import("@/components/ui/gooey-nav/GooeyNav").then((mod) => {
+      if (alive) {
+        setGooey(() => mod.default);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
       return;
     }
@@ -72,12 +107,36 @@ function SegmentedTablist<T extends string>({
     event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${next.id}"]`)?.focus();
   }
 
+  const gooeyItems: GooeyNavItem[] = tabs.map((item) => ({ label: item.label }));
+
+  if (Gooey) {
+    return (
+      <div className="pointer-events-auto inline-flex w-fit max-w-full" role="tablist" aria-label={label}>
+        <Gooey
+          items={gooeyItems}
+          activeIndex={activeIndex}
+          onChange={(index) => {
+            const next = tabs[index];
+            if (next) {
+              onChange(next.id);
+            }
+          }}
+          theme="light"
+          color="#1c2740"
+          activeTextColor="#ffffff"
+          size="sm"
+          frame={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="pointer-events-auto inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-[#e6e9f0] bg-white/90 p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] backdrop-blur"
+      className="pointer-events-auto inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-[#e6e9f0] bg-white/90 p-1 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.35)] backdrop-blur"
     >
       {tabs.map((item) => {
         const selected = item.id === value;

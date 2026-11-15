@@ -594,31 +594,42 @@
 
 .releva-gold-shine {
   display: inline;
-  color: #7a4a00;
-  -webkit-text-fill-color: #7a4a00;
-  -webkit-text-stroke: 0.45px #4a2c00;
-  background: none;
-  filter: none;
-  text-shadow: 0 1px 0 rgb(255 236 179 / 0.55);
-  animation: releva-gold-glow 4s ease-in-out infinite;
+  color: #c48914;
+  -webkit-text-stroke: 0.4px #5a3600;
+  background-image: linear-gradient(
+    110deg,
+    #8a5608 0%,
+    #c48914 36%,
+    #ffe9a8 50%,
+    #c48914 64%,
+    #8a5608 100%
+  );
+  background-size: 220% 100%;
+  background-position: 120% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  animation: releva-gold-sweep 3.2s ease-in-out infinite;
 }
 
-@keyframes releva-gold-glow {
+@keyframes releva-gold-sweep {
   0%,
-  22%,
-  100% {
-    text-shadow: 0 1px 0 rgb(255 236 179 / 0.45);
+  12% {
+    background-position: 120% 50%;
   }
-  48% {
-    text-shadow: 0 1px 0 rgb(255 248 220 / 0.7), 0 0 10px rgb(201 140 20 / 0.28);
+  48%,
+  100% {
+    background-position: -20% 50%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .releva-gold-shine {
     animation: none;
-    color: #7a4a00;
-    -webkit-text-fill-color: #7a4a00;
+    color: #c48914;
+    -webkit-text-fill-color: #c48914;
+    background: none;
     text-shadow: 0 1px 0 rgb(255 236 179 / 0.45);
   }
 }
@@ -643,7 +654,7 @@
   justify-content: flex-start;
   width: auto;
   margin: 0;
-  padding: 0.85rem 1rem 0;
+  padding: 0.85rem 1rem 1.15rem;
   text-align: center;
   text-shadow: 0 0 16px #fff, 0 0 28px #fff;
 }
@@ -1209,7 +1220,8 @@
 }
 
 .releva-hero-actions {
-  margin-top: 0.85rem;
+  margin-top: auto;
+  padding-bottom: 0.15rem;
 }
 
 .releva-path-bridge {
@@ -1718,9 +1730,21 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-how-steps {
+  position: relative;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.releva-how-spine {
+  position: absolute;
+  top: 1.15rem;
+  bottom: 1.15rem;
+  left: 12px;
+  width: 2px;
+  border-radius: 99px;
+  background: rgb(18 52 58 / 0.14);
+  pointer-events: none;
 }
 
 .releva-how-step {
@@ -1739,32 +1763,28 @@ header:has([data-menu-open="true"]) {
   bottom: 0;
   left: 13px;
   display: block;
-  width: 1px;
+  width: 2px;
   overflow: hidden;
-  background: rgb(18 52 58 / 0.14);
+  background: transparent;
 }
 
 .releva-how-rail-light {
   position: absolute;
-  left: -1px;
-  top: 0;
-  width: 3px;
+  left: 0;
+  top: 12%;
+  width: 2px;
   height: 0;
   border-radius: 99px;
-  background: linear-gradient(180deg, rgb(15 110 115 / 0), var(--public-clay) 40%, #2fc4b2);
-  box-shadow: 0 0 12px rgb(47 196 178 / 0.45);
-  transition: height 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.releva-how-done .releva-how-rail-light {
-  height: 100%;
+  background: var(--public-clay);
+  box-shadow: 0 0 10px rgb(15 110 115 / 0.35);
+  transition: height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .releva-how-on .releva-how-rail-light {
-  height: 52%;
+  height: 76%;
 }
 
-.releva-how-travel .releva-how-rail-light {
+.releva-how-travel .releva-how-on .releva-how-rail-light {
   animation: releva-how-travel 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1773,16 +1793,8 @@ header:has([data-menu-open="true"]) {
     height: 0;
   }
   to {
-    height: 100%;
+    height: 76%;
   }
-}
-
-.releva-how-step:first-child .releva-how-rail {
-  background: linear-gradient(rgb(18 52 58 / 0), rgb(18 52 58 / 0.14) 40%);
-}
-
-.releva-how-step:last-child .releva-how-rail {
-  background: linear-gradient(rgb(18 52 58 / 0.14), rgb(18 52 58 / 0.14) 48%, rgb(18 52 58 / 0) 76%);
 }
 
 .releva-how-dot {
@@ -1851,6 +1863,7 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-land-pipe-track {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1859,6 +1872,26 @@ header:has([data-menu-open="true"]) {
   padding: 0.35rem 0 0;
   list-style: none;
   overflow: visible;
+}
+
+.releva-land-pipe-base,
+.releva-land-pipe-fill {
+  position: absolute;
+  top: 0.425rem;
+  left: calc(100% / (var(--pipe-n, 8) * 2));
+  height: 2px;
+  border-radius: 99px;
+  pointer-events: none;
+}
+
+.releva-land-pipe-base {
+  right: calc(100% / (var(--pipe-n, 8) * 2));
+  background: #e6eaf2;
+}
+
+.releva-land-pipe-fill {
+  width: calc(100% * var(--pipe-fill, 0) / var(--pipe-n, 8));
+  background: #178a45;
 }
 
 .releva-land-pipe-step {
@@ -1874,13 +1907,24 @@ header:has([data-menu-open="true"]) {
   left: calc(50% + 0.55rem);
   right: calc(-50% + 0.55rem);
   height: 2px;
-  background: #d7e4e6;
+  background: transparent;
   pointer-events: none;
 }
 
-.releva-land-pipe-done:not(:last-child)::after,
 .releva-land-pipe-current:not(:last-child)::after {
-  background: var(--public-clay);
+  background: linear-gradient(90deg, #178a45, #2fc4b2 70%, rgb(47 196 178 / 0.15));
+  transform-origin: left center;
+  animation: releva-land-pipe-advance 1.6s ease-in-out infinite;
+}
+
+@keyframes releva-land-pipe-advance {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 639px) {
@@ -1924,10 +1968,21 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-land-pipe-current .releva-land-pipe-dot {
-  border-color: var(--public-clay);
-  background: #2fc4b2;
-  box-shadow: 0 0 0 6px rgb(47 196 178 / 0.18);
-  transform: scale(1.35);
+  position: relative;
+  z-index: 1;
+  border-color: #fff;
+  background: #178a45;
+  box-shadow: 0 0 0 4px rgb(23 138 69 / 0.18);
+}
+
+.releva-land-pipe-current .releva-land-pipe-dot::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  background: #178a45;
+  animation: deal-pulse 1.6s ease-out infinite;
+  z-index: -1;
 }
 
 .releva-land-pipe-label {
@@ -1952,17 +2007,25 @@ header:has([data-menu-open="true"]) {
 
 .releva-land-pipe-callout {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   margin: 1.35rem auto 0;
-  max-width: 32rem;
-  padding: 1.15rem 1.2rem 1.2rem;
+  width: min(100%, 42rem);
+  max-width: 42rem;
+  padding: 1.15rem 1.35rem 1.2rem;
   border: 1px solid #dde7ea;
   border-radius: 1.35rem;
   background: linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
   box-shadow: 0 18px 40px -28px rgb(28 39 64 / 0.45);
   text-align: left;
   animation: releva-land-pipe-zoom 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.releva-land-pipe-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.7rem;
 }
 
 .releva-land-pipe-icon {
@@ -1992,7 +2055,7 @@ header:has([data-menu-open="true"]) {
 }
 
 .releva-land-pipe-callout h4 {
-  margin-top: 0.4rem;
+  margin: 0;
   font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -2191,6 +2254,112 @@ header:has([data-menu-open="true"]) {
 .releva-hv-stamp-on {
   display: flex;
   animation: releva-hv-stamp-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.releva-hv-publish,
+.releva-hv-buyers {
+  position: relative;
+  gap: 0.65rem;
+}
+
+.releva-hv-publish-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgb(18 52 58 / 0.08);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #ffffff, #f7fbfb);
+}
+
+.releva-hv-publish-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.15rem;
+  border-bottom: 1px solid #eef2f4;
+}
+
+.releva-hv-publish-row:last-child {
+  border-bottom: 0;
+}
+
+.releva-hv-seal {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 3.4rem;
+  display: grid;
+  width: 4.4rem;
+  height: 4.4rem;
+  place-items: center;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #5a6fd4, #1c2740 68%);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 24px -14px rgb(28 39 64 / 0.8);
+  transform: rotate(-8deg) scale(0.4);
+  opacity: 0;
+}
+
+.releva-hv-seal-on {
+  animation: releva-hv-stamp-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.releva-hv-buyer-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgb(18 52 58 / 0.08);
+  border-radius: 1.1rem;
+  background: #fff;
+}
+
+.releva-hv-chat {
+  align-self: flex-start;
+  max-width: 90%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  background: #eef2ff;
+  color: #1c2740;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.releva-hv-week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.releva-hv-week-strip .releva-hv-day {
+  height: 2.1rem;
+  border-radius: 0.7rem;
+}
+
+.releva-doc-sheet {
+  display: block;
+  aspect-ratio: 1 / 1.414;
+  width: 100%;
+  max-width: 11.5rem;
+  margin-inline: auto;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #e3e8ef;
+  border-radius: 0.2rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  appearance: none;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.9) inset,
+    0 10px 22px -16px rgb(28 39 64 / 0.45);
 }
 
 @keyframes releva-hv-stamp-in {
@@ -2405,25 +2574,50 @@ header:has([data-menu-open="true"]) {
 
 .releva-cif-line {
   width: 100%;
-  height: 4.4rem;
+  height: 5.4rem;
 }
 
-.releva-cif-line path {
+.releva-cif-line .grid {
+  stroke: #e8eef0;
+  stroke-width: 1;
+}
+
+.releva-cif-line .axis {
+  fill: #8b95a7;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.releva-cif-line .stroke {
   fill: none;
-  stroke: #2fc4b2;
-  stroke-width: 2.4;
+  stroke: #0f6e73;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 180;
-  stroke-dashoffset: 180;
-  animation: releva-cif-draw 0.9s ease forwards 0.12s;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: releva-cif-draw 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.08s;
 }
 
 .releva-cif-line .fill {
   stroke: none;
-  fill: url(#releva-cif-fill);
   opacity: 0;
-  animation: releva-cif-fade 0.6s ease forwards 0.35s;
+  animation: releva-cif-fade 0.7s ease forwards 0.28s;
+}
+
+.releva-cif-line .mark {
+  fill: #fff;
+  stroke: #0f6e73;
+  stroke-width: 2;
+  opacity: 0;
+  animation: releva-cif-fade 0.35s ease forwards 1.05s;
+}
+
+.releva-cif-line .mark-glow {
+  fill: rgb(47 196 178 / 0.28);
+  opacity: 0;
+  animation: releva-cif-fade 0.35s ease forwards 1.05s, releva-cif-mark 1.8s ease-out 1.1s infinite;
 }
 
 @keyframes releva-cif-pop {
@@ -2451,7 +2645,18 @@ header:has([data-menu-open="true"]) {
 
 @keyframes releva-cif-fade {
   to {
-    opacity: 0.35;
+    opacity: 1;
+  }
+}
+
+@keyframes releva-cif-mark {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
   }
 }
 
@@ -3062,6 +3267,7 @@ header:has([data-menu-open="true"]) {
     inset: 0;
     justify-content: flex-start;
     padding-top: clamp(0.75rem, 2.2cqi, 1.75rem);
+    padding-bottom: clamp(0.85rem, 2cqi, 1.6rem);
   }
 
   .releva-hero-glass .releva-hero-title {
@@ -3069,7 +3275,7 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-hero-actions {
-    margin-top: clamp(0.5rem, 1.4cqi, 1.25rem);
+    margin-top: auto;
   }
 }
 
@@ -3091,7 +3297,7 @@ header:has([data-menu-open="true"]) {
     justify-content: flex-start;
     align-items: center;
     width: 100%;
-    padding: 1.2rem 1.15rem 1.25rem;
+    padding: 1.2rem 1.15rem 1.35rem;
     text-align: center;
     text-shadow: none;
     background: linear-gradient(180deg, rgb(8 16 24 / 0.72) 0%, rgb(8 16 24 / 0.28) 42%, transparent 68%);
@@ -3103,23 +3309,37 @@ header:has([data-menu-open="true"]) {
   }
 
   .releva-hero-glass .releva-gold-shine {
-    color: #ffd54a;
-    -webkit-text-fill-color: #ffd54a;
+    color: #f0c14a;
     -webkit-text-stroke: 0.7px rgb(12 8 0 / 0.78);
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.82), 0 0 14px rgb(0 0 0 / 0.4);
+    background-image: linear-gradient(
+      110deg,
+      #c48914 0%,
+      #f0c14a 36%,
+      #fff4c4 50%,
+      #f0c14a 64%,
+      #c48914 100%
+    );
+    background-size: 220% 100%;
+    background-position: 120% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .releva-hero-glass .releva-gold-shine {
-      color: #ffd54a;
-      -webkit-text-fill-color: #ffd54a;
+      animation: none;
+      color: #f0c14a;
+      -webkit-text-fill-color: #f0c14a;
+      background: none;
       text-shadow: 0 1px 2px rgb(0 0 0 / 0.82);
     }
   }
 
   .releva-hero-actions {
     align-items: center;
-    margin-top: 0.85rem;
+    margin-top: auto;
     width: 100%;
     max-width: none;
   }
@@ -4179,6 +4399,11 @@ header:has([data-menu-open="true"]) {
 }
 
 @layer components {
+  #panel-description textarea {
+    min-height: 9rem;
+    height: auto;
+  }
+
   .relify-field,
   .releva-wait-field {
     width: 100%;

@@ -33,15 +33,14 @@ describe("Round S21 landing and product bits", () => {
     expect(read("src/app/globals.css")).toMatch(/--relify-btn-hover: #334761/);
   });
 
-  it("keeps rentables as solid high-contrast gold", () => {
+  it("keeps rentables gold with a diagonal shine", () => {
     const css = read("src/app/globals.css");
-    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*-webkit-text-fill-color: #7a4a00/);
-    expect(css).not.toMatch(/-webkit-text-fill-color: transparent/);
+    expect(css).toMatch(/\.releva-gold-shine \{[\s\S]*#c48914/);
+    expect(css).toMatch(/@keyframes releva-gold-sweep/);
   });
 
-  it("puts the market preview tag at the top-right and hides the mobile carousel", () => {
+  it("hides the mobile carousel on Empresas en venta", () => {
     const offer = read("src/components/landing/offer.tsx");
-    expect(offer).toMatch(/absolute top-4 right-4/);
     expect(offer).not.toMatch(/OfferCarousel/);
     expect(offer).toMatch(/OfferGlare/);
     expect(read("src/components/landing/offer-glare.tsx")).toMatch(/overflow-hidden/);

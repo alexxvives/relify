@@ -19,13 +19,9 @@ test.describe("seller workspace", () => {
     await expectNoIdentityLeak(page);
     await page.goto("/mi-empresa/documentos");
     await expect(page.locator("body")).toBeVisible();
-    const intNotice = page.getByText(/desactivada en el entorno de pruebas/i);
     if (process.env.INT_ENVIRONMENT === "true" || process.env.E2E_INT === "1") {
-      // Uploads are blocked on INT; the notice may only appear after a click.
       await expect(page.locator("body")).toBeVisible();
-      if (await intNotice.count()) {
-        await expect(intNotice.first()).toBeVisible();
-      }
+      await expect(page.getByText(/desactivada en el entorno de pruebas/i)).toHaveCount(0);
     }
   });
 });

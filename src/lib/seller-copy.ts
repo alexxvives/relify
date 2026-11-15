@@ -148,6 +148,7 @@ export const sellerCopy = {
   documentsPrivate: "Sin acceso para el comprador",
   documentsSent: "Enviados en el chat",
   documentOpenBody: "Este archivo se guardó solo con el nombre. Vuelve a subirlo para poder abrirlo.",
+  foldersBack: "Carpetas",
   folderCreate: "Crear carpeta",
   folderName: "Nombre de la carpeta",
   folderRename: "Cambiar nombre",

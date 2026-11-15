@@ -4,7 +4,6 @@ import { submitForReviewIfReady } from "@/lib/server/submit-for-review";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
-import { isIntEnvironment } from "@/lib/int-env";
 import { normalizeCif } from "@/lib/spanish-cif";
 import {
   closedFieldName,
@@ -193,9 +192,6 @@ function uploadedFile(value: FormDataEntryValue | null): { name: string; size: n
 }
 
 export async function storeAdjustmentDocumentAction(formData: FormData): Promise<StoreAdjustmentDocumentResult> {
-  if (isIntEnvironment()) {
-    return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
-  }
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -206,10 +202,7 @@ export async function storeAdjustmentDocumentAction(formData: FormData): Promise
       return { ok: false, message: companyCopy.adjustmentDocumentType };
     }
     return await storeAdjustmentDocument(user, file.name, await file.read());
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("File uploads disabled in INT")) {
-      return { ok: false, message: companyCopy.adjustmentDocumentIntDisabled };
-    }
+  } catch {
     return { ok: false, message: companyCopy.adjustmentDocumentSaveFailed };
   }
 }

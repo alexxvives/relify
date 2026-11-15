@@ -20,16 +20,9 @@ export function Offer() {
   const locked = previewCards.slice(firstRow.length);
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 pt-8 pb-6 sm:px-8 sm:pt-20 sm:pb-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
       <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[1.5rem] border border-[#dde7ea] bg-[linear-gradient(180deg,#ffffff_0%,#f3f7f8_100%)] p-4 text-[#1c2740] shadow-[0_30px_80px_-50px_rgba(28,39,64,0.45)] sm:rounded-[2rem] sm:p-8 lg:p-12">
         <div aria-hidden className="pointer-events-none absolute -top-40 -right-32 size-[28rem] rounded-full bg-[radial-gradient(circle,rgba(47,196,178,0.16),transparent_65%)]" />
-        <p className="absolute top-4 right-4 hidden items-center gap-2 rounded-full border border-[#cfe6e3] bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[#3d4a63] shadow-sm sm:top-8 sm:right-8 sm:inline-flex lg:top-12 lg:right-12">
-          <span className="relative flex size-2">
-            <span className="absolute hidden size-full animate-ping rounded-full bg-[#2fc4b2] opacity-60 motion-reduce:animate-none sm:inline-flex" />
-            <span className="relative inline-flex size-2 rounded-full bg-[#0f766e]" />
-          </span>
-          {copy.preview}
-        </p>
         <div className="relative text-center">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-semibold tracking-[0.16em] text-[#0f766e] uppercase">{copy.kicker}</p>

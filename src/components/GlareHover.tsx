@@ -126,6 +126,7 @@ const GlareHover = ({
       presence: 0,
       presenceTarget: 0,
       sweep: null as Sweep | null,
+      played: false,
       visible: true
     };
     let raf = 0;
@@ -223,7 +224,11 @@ const GlareHover = ({
     };
 
     const onEnter = (event: PointerEvent) => {
-      if (mode === 'hover') sweep(along(event) > 0 ? -1 : 1);
+      if (mode === 'hover') {
+        if (settingsRef.current.playOnce && state.played) return;
+        sweep(along(event) > 0 ? -1 : 1);
+        state.played = true;
+      }
       if (mode === 'follow') {
         if (state.presence < 0.02) {
           state.pos = Math.max(-geometry.reach, Math.min(geometry.reach, along(event)));

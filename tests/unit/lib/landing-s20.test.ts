@@ -73,10 +73,10 @@ describe("Round S20 landing and React Bits", () => {
     expect(process).not.toMatch(/Financiación vendedor/);
   });
 
-  it("keeps pipeline dots on the line when the current step scales", () => {
+  it("keeps pipeline dots on the line and pulses the current step", () => {
     const css = read("src/app/globals.css");
     expect(css).toMatch(/\.releva-land-pipe-dot \{[\s\S]*transform-origin:\s*center center/);
-    expect(css).toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot \{[\s\S]*transform:\s*scale\(1\.35\)/);
+    expect(css).toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot::before/);
     expect(css).not.toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot \{[\s\S]*width:\s*1\.35rem/);
     expect(read("src/components/landing/landing-pipeline.tsx")).toMatch(/releva-land-pipe-callout/);
   });

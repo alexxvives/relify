@@ -387,19 +387,21 @@ function Panel({
       </div>
       {open ? null : summary ? null : intro ? <SectionIntro>{intro}</SectionIntro> : null}
       {open || !summary ? null : <div className="mt-4">{summary}</div>}
-      <div className={open ? "mt-4" : "hidden"}>
-        {children}
-        {fixed || !open ? null : (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <KitButton type="button" tone="outline" size="sm" onClick={onCancel ?? onCollapse}>
-              {companyCopy.cancelPanel}
-            </KitButton>
-            <KitButton type="button" tone="navy" size="sm" onClick={onCollapse}>
-              {companyCopy.savePanel}
-            </KitButton>
-          </div>
-        )}
-      </div>
+      {open ? (
+        <div className="mt-4">
+          {children}
+          {fixed ? null : (
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <KitButton type="button" tone="outline" size="sm" onClick={onCancel ?? onCollapse}>
+                {companyCopy.cancelPanel}
+              </KitButton>
+              <KitButton type="button" tone="navy" size="sm" onClick={onCollapse}>
+                {companyCopy.savePanel}
+              </KitButton>
+            </div>
+          )}
+        </div>
+      ) : null}
     </Card>
   );
 }
@@ -2560,7 +2562,7 @@ export function CompanyDraftForm({
                 icon: FileSpreadsheet,
                 label: companyCopy.descriptionLabel,
                 className: "sm:col-span-2",
-                value: description.trim().length > 0 ? (description.trim().length > 220 ? `${description.trim().slice(0, 220).trim()}…` : description.trim()) : "—",
+                value: description.trim().length > 0 ? description.trim() : "—",
               },
               {
                 icon: Tags,
@@ -2707,9 +2709,11 @@ export function CompanyDraftForm({
           <Textarea
             name="description"
             data-flash
-            rows={4}
+            rows={6}
             maxLength={descriptionMaxLength}
             placeholder={companyCopy.descriptionPlaceholder}
+            className="h-auto min-h-[9rem] resize-y leading-6"
+            style={{ minHeight: "9rem" }}
             value={description}
             onChange={(event) => {
               const next = event.target.value;

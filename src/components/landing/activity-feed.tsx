@@ -71,7 +71,7 @@ export function ActivityFeed() {
   const copy = landingCopy.activity;
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-6 sm:px-8 sm:py-12">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
       <div className="relative mx-auto w-full max-w-[1440px] overflow-hidden rounded-[24px] bg-public-moss px-5 py-8 text-white sm:rounded-[32px] sm:px-10 sm:py-16">
         <div className="pointer-events-none absolute inset-0 hidden sm:block" aria-hidden="true">
           <div className="absolute -top-20 -left-16 h-72 w-80 rotate-12 rounded-[48px] bg-public-clay" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 type Track = (typeof landingCopy.home.flow.tracks)[FlowRole];
@@ -12,6 +12,28 @@ type LivePanel = Extract<FlowStep["panel"], { kind: "live" }>;
 
 function prefersStill() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function smoothLine(points: Array<{ x: number; y: number }>): string {
+  if (points.length === 0) {
+    return "";
+  }
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y}`;
+  }
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const previous = points[index - 1] ?? points[index];
+    const current = points[index];
+    const next = points[index + 1];
+    const after = points[index + 2] ?? next;
+    const c1x = current.x + (next.x - previous.x) / 6;
+    const c1y = current.y + (next.y - previous.y) / 6;
+    const c2x = next.x - (after.x - current.x) / 6;
+    const c2y = next.y - (after.y - current.y) / 6;
+    path += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${next.x} ${next.y}`;
+  }
+  return path;
 }
 
 function useDelays(delays: readonly number[], play: boolean) {
@@ -154,10 +176,11 @@ export function HowItWorks({ role, travel = 0 }: { role: FlowRole; travel?: numb
 
       <div className="releva-how-grid mt-8 hidden lg:grid">
         <ol className={`releva-how-steps${travel > 0 ? " releva-how-travel" : ""}`}>
+          <span className="releva-how-spine" aria-hidden="true" />
           {track.steps.map((step, index) => (
             <li
               key={step.n}
-              className={`releva-how-step${index === active ? " releva-how-on" : ""}${index < active ? " releva-how-done" : ""}`}
+              className={`releva-how-step${index === active ? " releva-how-on" : ""}`}
             >
               <button type="button" className="contents" onClick={() => setActive(index)}>
                 <span className="releva-how-rail" aria-hidden="true">
@@ -312,13 +335,14 @@ function CifBody({ panel, play }: { panel: CifPanel; play: boolean }) {
   ).stops;
   const barPeak = Math.max(...panel.bars.values, 1);
   const linePeak = Math.max(...panel.line.values, 1);
-  const linePoints = panel.line.values.map((value, index) => {
-    const x = 8 + (index / Math.max(panel.line.values.length - 1, 1)) * 112;
-    const y = 52 - (value / linePeak) * 40;
-    return `${x},${y}`;
-  });
-  const linePath = `M ${linePoints.join(" L ")}`;
-  const areaPath = `${linePath} L 120,56 L 8,56 Z`;
+  const linePoints = panel.line.values.map((value, index) => ({
+    x: 18 + (index / Math.max(panel.line.values.length - 1, 1)) * 128,
+    y: 48 - (value / linePeak) * 34,
+  }));
+  const lastPoint = linePoints[linePoints.length - 1] ?? { x: 146, y: 14 };
+  const linePath = smoothLine(linePoints);
+  const areaPath = `${linePath} L ${lastPoint.x},56 L ${linePoints[0]?.x ?? 18},56 Z`;
+  const fillId = useId().replace(/:/g, "");
 
   if (phase !== "charts") {
     return (
@@ -396,15 +420,26 @@ function CifBody({ panel, play }: { panel: CifPanel; play: boolean }) {
           <p>
             {panel.line.label} · {panel.line.unit}
           </p>
-          <svg className="releva-cif-line" viewBox="0 0 128 56" aria-hidden>
+          <svg className="releva-cif-line" viewBox="0 0 160 64" aria-hidden>
             <defs>
-              <linearGradient id="releva-cif-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2fc4b2" />
+              <linearGradient id={`releva-cif-fill-${fillId}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2fc4b2" stopOpacity="0.45" />
                 <stop offset="100%" stopColor="#2fc4b2" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path className="fill" d={areaPath} />
-            <path d={linePath} />
+            <line className="grid" x1="18" y1="14" x2="148" y2="14" />
+            <line className="grid" x1="18" y1="30" x2="148" y2="30" />
+            <line className="grid" x1="18" y1="46" x2="148" y2="46" />
+            <text className="axis" x="2" y="17">
+              {linePeak}
+            </text>
+            <text className="axis" x="2" y="50">
+              0
+            </text>
+            <path className="fill" d={areaPath} style={{ fill: `url(#releva-cif-fill-${fillId})` }} />
+            <path className="stroke" d={linePath} pathLength={1} />
+            <circle className="mark-glow" cx={lastPoint.x} cy={lastPoint.y} r="6" />
+            <circle className="mark" cx={lastPoint.x} cy={lastPoint.y} r="3.2" />
           </svg>
         </div>
       </div>
@@ -482,27 +517,29 @@ function TaskBody({ panel, play }: { panel: TaskPanel; play: boolean }) {
   const stamp = "stamp" in panel ? panel.stamp : undefined;
 
   return (
-    <div className="releva-hv-body">
-      {panel.rows.map((row, index) => {
-        const done = flags[index] === true;
-        return (
-          <div key={row.name} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.06 + index * 0.07}s` }}>
-            <span className="releva-hv-task-name">{row.name}</span>
-            {done ? (
-              <span className="releva-hv-state">
-                <Tick />
-                {row.done}
-              </span>
-            ) : (
-              <span className="releva-hv-state releva-hv-state-pending">
-                <span className="releva-hv-spinner" aria-hidden="true" />
-                {row.pending}
-              </span>
-            )}
-          </div>
-        );
-      })}
-      {stamp ? <span className={stamped ? "releva-hv-stamp releva-hv-stamp-on" : "releva-hv-stamp"}>{stamp}</span> : null}
+    <div className="releva-hv-body releva-hv-publish">
+      <div className="releva-hv-publish-card">
+        {panel.rows.map((row, index) => {
+          const done = flags[index] === true;
+          return (
+            <div key={row.name} className="releva-hv-publish-row releva-hv-row" style={{ animationDelay: `${0.06 + index * 0.07}s` }}>
+              <span className="releva-hv-task-name">{row.name}</span>
+              {done ? (
+                <span className="releva-hv-state">
+                  <Tick />
+                  {row.done}
+                </span>
+              ) : (
+                <span className="releva-hv-state releva-hv-state-pending">
+                  <span className="releva-hv-spinner" aria-hidden="true" />
+                  {row.pending}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {stamp ? <span className={stamped ? "releva-hv-seal releva-hv-seal-on" : "releva-hv-seal"}>{stamp}</span> : null}
       <div className={foot ? "releva-hv-foot releva-hv-foot-in" : "releva-hv-foot"}>
         <span className="releva-hv-strong">{panel.strong}</span>
         <span className="releva-hv-note">{panel.note}</span>
@@ -523,8 +560,8 @@ function LiveBody({ panel, play }: { panel: LivePanel; play: boolean }) {
   const countLabel = `${Math.round(count)}${panel.count.suffix}`;
 
   return (
-    <div className="releva-hv-body">
-      <div className="releva-hv-row releva-hv-person" style={{ animationDelay: "0.06s" }}>
+    <div className="releva-hv-body releva-hv-buyers">
+      <div className="releva-hv-buyer-card releva-hv-row" style={{ animationDelay: "0.06s" }}>
         <span className="releva-hv-avatar" aria-hidden="true">
           {panel.who.slice(0, 1)}
         </span>
@@ -534,7 +571,10 @@ function LiveBody({ panel, play }: { panel: LivePanel; play: boolean }) {
         </span>
         <span className="releva-hv-state releva-hv-state-live">{panel.status}</span>
       </div>
-      <div className="releva-hv-row releva-hv-week" style={{ animationDelay: "0.13s" }}>
+      <p className="releva-hv-chat releva-hv-row" style={{ animationDelay: "0.12s" }}>
+        {panel.detail}
+      </p>
+      <div className="releva-hv-week-strip releva-hv-row" style={{ animationDelay: "0.18s" }}>
         {week.map((day, index) => {
           const on = panel.daysOn.some((day) => day === index) && dayFlags[index] === true;
           return (
@@ -545,12 +585,12 @@ function LiveBody({ panel, play }: { panel: LivePanel; play: boolean }) {
         })}
       </div>
       {panel.rows.map((row, index) => (
-        <div key={row.name} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.2 + index * 0.07}s` }}>
+        <div key={row.name} className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.24 + index * 0.07}s` }}>
           <span className="releva-hv-task-name">{row.name}</span>
           <span className="releva-hv-task-value">{row.value}</span>
         </div>
       ))}
-      <div className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.2 + panel.rows.length * 0.07}s` }}>
+      <div className="releva-hv-row releva-hv-task" style={{ animationDelay: `${0.24 + panel.rows.length * 0.07}s` }}>
         <span className="releva-hv-task-name">{panel.count.name}</span>
         <span className="releva-hv-task-value releva-hv-num">{countLabel}</span>
       </div>

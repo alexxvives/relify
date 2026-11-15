@@ -44,6 +44,13 @@ INT_APPROVED_DB_HOST = "${approvedHost}"
 [assets]
 directory = "assets"
 binding = "ASSETS"
+
+# Isolated INT data-room storage. Create this bucket before first INT deploy
+# with uploads: wrangler r2 bucket create releva-int-uploads
+# Never bind a production bucket here.
+[[r2_buckets]]
+binding = "INT_UPLOADS"
+bucket_name = "releva-int-uploads"
 `,
 );
 
@@ -61,7 +68,10 @@ writeFileSync(
         INT_APPROVED_DB_HOST: approvedHost,
       },
       secrets: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],
-      bindings: [{ name: "ASSETS", type: "assets", directory: "assets" }],
+      bindings: [
+        { name: "ASSETS", type: "assets", directory: "assets" },
+        { name: "INT_UPLOADS", type: "r2_bucket", bucket_name: "releva-int-uploads" },
+      ],
     },
     null,
     2,
@@ -86,6 +96,14 @@ writeFileSync(
         INT_APPROVED_DB_HOST: approvedHost,
       },
       secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],
+      r2_required: [
+        {
+          binding: "INT_UPLOADS",
+          bucket_name: "releva-int-uploads",
+          create: "wrangler r2 bucket create releva-int-uploads",
+          note: "INT-only. Do not bind production R2. Object keys use the int/ prefix.",
+        },
+      ],
       absent: [
         "MAILEROO_API_KEY",
         "EMAIL",

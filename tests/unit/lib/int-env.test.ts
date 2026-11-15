@@ -120,7 +120,7 @@ describe("INT environment isolation", () => {
   });
 
   describe("fail-closed guards", () => {
-    it("blocks payments, mail, uploads, and paid APIs when INT_ENVIRONMENT=true", () => {
+    it("blocks payments, mail, and paid APIs when INT_ENVIRONMENT=true, and allows isolated uploads", () => {
       process.env.INT_ENVIRONMENT = "true";
       process.env.INT_PAYMENTS_ENABLED = "true";
       process.env.INT_EMAIL_ENABLED = "true";
@@ -131,7 +131,7 @@ describe("INT environment isolation", () => {
       expect(shouldBlockEmail()).toBe(true);
       expect(shouldBlockExternalApi("APIEMPRESAS")).toBe(true);
       expect(() => assertPaymentsEnabled()).toThrow(/disabled in INT/);
-      expect(() => assertUploadsEnabled()).toThrow(/disabled in INT/);
+      expect(() => assertUploadsEnabled()).not.toThrow();
     });
 
     it("does not block those operations when INT_ENVIRONMENT is unset", () => {

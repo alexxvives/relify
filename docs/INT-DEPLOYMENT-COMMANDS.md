@@ -284,7 +284,7 @@ git checkout <previous-commit>
 
 1. **Share INT URL** with user for review
 2. **Verify all role flows** (buyer, seller, advisor, admin)
-3. **Test edge cases** (NDA workflows, document uploads blocked, etc.)
+3. **Test edge cases** (NDA workflows, document uploads on isolated `releva-int-uploads`, etc.)
 4. **Monitor logs** for unexpected errors
 5. **Iterate** based on feedback
 

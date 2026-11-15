@@ -27,7 +27,7 @@ Do **not** set `E2E_ALLOW_MUTATION=1` unless you intend to write a waitlist or v
 
 ## INT
 
-Point at the INT Worker. INT still blocks Stripe and uploads. Email sends only when `INT_MAILEROO_API_KEY` and `INT_EMAIL_CATCHALL` are set as Worker secrets (`docs/INT.md`); otherwise `sendMail` logs `INT BLOCKED`. Use INT test accounts from the operator store, never commit them.
+Point at the INT Worker. INT still blocks Stripe. Uploads are allowed on isolated INT storage (`INT_UPLOADS` / `releva-int-uploads`, never prod). Email sends only when `INT_MAILEROO_API_KEY` and `INT_EMAIL_CATCHALL` are set as Worker secrets (`docs/INT.md`); otherwise `sendMail` logs `INT BLOCKED`. Use INT test accounts from the operator store, never commit them.
 
 ```
 E2E_BASE_URL=https://<releva-int-host>
