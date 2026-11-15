@@ -742,7 +742,7 @@ function AskingPriceField({
                     inputMode="decimal"
                     aria-label={label}
                     value={draft}
-                    placeholder="0"
+                    placeholder={companyCopy.amountPlaceholder}
                     className="relify-field h-10 w-full min-w-0 px-3 pr-8 text-sm"
                     onChange={(event) => {
                       const next = keepUnsignedEuro(event.target.value);
@@ -1314,7 +1314,7 @@ function EbitdaAdjustmentsDialog({
                               id={`${id}-amount`}
                               inputMode="decimal"
                               value={splitAdjustmentAmount(row.amount, row.type).amount}
-                              placeholder="0"
+                              placeholder={companyCopy.amountPlaceholder}
                               aria-invalid={rowErrors.amount ? true : undefined}
                               aria-describedby={rowErrors.amount ? `${id}-amount-error` : undefined}
                               onChange={(event) =>
@@ -2407,8 +2407,9 @@ export function CompanyDraftForm({
   // holds the anchor, wait for the element, expand any <details> around it, centre it and highlight it.
   const deepLinkDone = useRef(false);
   useEffect(() => {
+    // S25c: marked done only once the field is highlighted. React's dev double-run cancels the first pass; marking it
+    // up front made the second pass return early, so Inicio's checklist links never focused the field.
     if (deepLinkDone.current) return;
-    deepLinkDone.current = true;
     const hash = decodeURIComponent(window.location.hash.slice(1));
     const ancla = new URLSearchParams(window.location.search).get("ancla") ?? "";
     const id = hash || (/^panel-[\w-]+$/.test(ancla) ? ancla : "") || (focus ? `panel-${focus}` : "");
@@ -2429,7 +2430,13 @@ export function CompanyDraftForm({
         if (node instanceof HTMLDetailsElement && !node.open) node.open = true;
       }
       // Two frames so the opened panels have laid out before measuring.
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => !cancelled && highlightTarget(target, true)));
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => {
+          if (cancelled) return;
+          deepLinkDone.current = true;
+          highlightTarget(target, true);
+        }),
+      );
     }
     window.setTimeout(attempt, 50);
     return () => {
@@ -2617,10 +2624,13 @@ export function CompanyDraftForm({
           )}
           <Fact id="panel-location" icon={MapPin} label={companyCopy.locationLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined} required>
             <Input
+              id="company-location"
               name="location"
+              data-flash
+              aria-label={companyCopy.locationLabel}
               autoComplete="off"
               readOnly={locationLocked}
-              placeholder="08022, Barcelona"
+              placeholder={companyCopy.locationPlaceholder}
               value={locationLocked ? formatCompanyLocation(postalCode, city) : locationDraft}
               onChange={(event) => {
                 const next = event.target.value;

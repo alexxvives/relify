@@ -338,7 +338,7 @@ export function CompanyNifDialog({ active = true }: { active?: boolean }) {
                   spellCheck={false}
                   required
                   maxLength={12}
-                  placeholder="B12345678"
+                  placeholder={companyCopy.nifPlaceholder}
                   aria-invalid={invalid}
                   onChange={(event) => {
                     setNif(event.target.value.toUpperCase());

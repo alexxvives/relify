@@ -92,7 +92,7 @@ export const authCopy = {
   nameRequired: "Escribe tu nombre.",
   lastNameRequired: "Escribe tus apellidos.",
   nationalIdLabel: "DNI/NIE",
-  nationalIdPlaceholder: "12345678Z",
+  nationalIdPlaceholder: "Ej.: 12345678Z",
   nationalIdRequired: "El DNI o NIE es obligatorio.",
   nationalIdInvalid: "La letra final del DNI o NIE no es correcta. Revísalo.",
   identityDeclaration: "Declaro que los datos son míos y correctos",

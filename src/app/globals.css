@@ -103,6 +103,8 @@
   --public-paper: #e5eef0;
   --public-ink: #12343a;
   --public-muted: #3d646c;
+  /* S25c: placeholder ink, lighter than values (about 3:1 on white). */
+  --field-placeholder: #8b95a7;
   --public-clay: #0f6e73;
   --public-clay-deep: #0b5559;
   --public-moss: #1c5f58;
@@ -4438,6 +4440,13 @@ header:has([data-menu-open="true"]) {
 
   .releva-wait-field {
     height: 3rem;
+  }
+
+  /* S25c: one lighter placeholder colour, so examples never read as a value already filled in. */
+  .relify-field::placeholder {
+    color: var(--field-placeholder);
+    font-weight: 400;
+    opacity: 1;
   }
 
   .relify-field:focus-visible,

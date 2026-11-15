@@ -12,19 +12,19 @@ import { companyDraftSchema, emptyCompanyDraft } from "@/lib/company-draft";
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
-/** INT seed rows keep the place only in the composed `address`; postal_code/city are null, region may be "". */
-const prado = { address: "08022, Barcelona", street: null, postalCode: null, city: null, region: "" };
+/** Legacy rows keep the place only in the composed `address`; postal_code/city are null, region may be "". */
+const addressOnly = { address: "08022, Barcelona", street: null, postalCode: null, city: null, region: "" };
 
 describe("S25b Ubicación complete agrees with what the wizard shows", () => {
-  it("shows the Prado seed row as 08022, Barcelona", () => {
-    const location = resolveProjectLocation(prado);
+  it("shows an address-only row as 08022, Barcelona", () => {
+    const location = resolveProjectLocation(addressOnly);
     expect(formatCompanyLocation(location.postalCode, location.city)).toBe("08022, Barcelona");
   });
 
   it("counts that row as complete for the checklist and the publish gate", () => {
-    expect(projectLocationComplete(prado)).toBe(true);
+    expect(projectLocationComplete(addressOnly)).toBe(true);
     // The pre-S25b check only read city + region columns and said "missing".
-    expect(`${prado.city ?? ""}${prado.region}`.trim().length > 0).toBe(false);
+    expect(`${addressOnly.city ?? ""}${addressOnly.region}`.trim().length > 0).toBe(false);
   });
 
   it("reads other legacy address shapes the same way as the field", () => {

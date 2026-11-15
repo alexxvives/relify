@@ -190,6 +190,10 @@ export const companyCopy = {
     "La facturación sale de las ventas de {year}. El EBITDA, el precio, el EBITDA ajustado y el OPEX se escriben aquí.",
   descriptionGuide:
     "Proporciona datos clave sobre la actividad de la empresa, la variedad de productos y servicios, la experiencia en el sector y los principales canales de venta. Recuerda no revelar el nombre real ni la página web para preservar la confidencialidad.",
+  // S25c: placeholders read as examples ("Ej.: …") or neutral prompts, never as a value already filled in.
+  locationPlaceholder: "Ej.: Sabadell, Barcelona",
+  amountPlaceholder: "Importe en €",
+  nifPlaceholder: "Ej.: B12345678",
   descriptionPlaceholder: "Qué hace tu empresa, sus clientes y qué la diferencia",
   generalHeading: "Descripción general",
   sectorsHeading: "Sectores representativos",
