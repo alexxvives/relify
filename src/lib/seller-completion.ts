@@ -29,8 +29,8 @@ export type CompletionInput = {
   sellerFinancing?: string;
   /** t93: "" until the seller answers ¿Te quedarías como asesor? (recommended). */
   sellerStay?: string;
-  /** S25: city or region typed; required to publish, never to save. Omitted = not checked. */
-  location?: string;
+  /** S25b: companyLocationComplete() of the Ubicación field; required to publish, never to save. Omitted = not checked. */
+  location?: boolean;
 };
 
 function splitDone(values: string[]): boolean {
@@ -46,7 +46,7 @@ export function sellerRequiredFields(input: CompletionInput): RequiredField[] {
   return [
     ...(input.location === undefined
       ? []
-      : [{ id: "panel-location", label: "Ubicación", section: "basic" as const, done: input.location.trim() !== "", required: true }]),
+      : [{ id: "panel-location", label: "Ubicación", section: "basic" as const, done: input.location, required: true }]),
     { id: "panel-sale-reason", label: "Motivo de venta", section: "basic", done: input.saleReason !== "", required: true },
     { id: "panel-description", label: "Descripción", section: "basic", done: input.description.trim().length >= descriptionMinLength, required: true },
     { id: "panel-cnae", label: "Sector", section: "basic", done: input.principalCnae.trim() !== "", required: false },

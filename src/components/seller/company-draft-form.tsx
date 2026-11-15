@@ -29,7 +29,7 @@ import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@
 import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { cnaeClasses, cnaeTitle } from "@/lib/cnae-2009";
 import { groupedCnaeOptions } from "@/lib/cnae-section";
-import { formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
+import { companyLocationComplete, formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
 import { ebitdaTrend, estimatePriceRange, priceBarEnds, priceBarPosition, priceBarZone, priceFromBarPosition, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -2264,7 +2264,7 @@ export function CompanyDraftForm({
     askingPrice,
     sellerFinancing,
     sellerStay,
-    location: `${city}${region}`,
+    location: companyLocationComplete({ postalCode, city, region }),
   });
   // t78: a section is "done" only when all its required fields are (was: structure done as soon as headcount was set).
   const basicDone = sectionComplete(requiredFields, "basic");

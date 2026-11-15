@@ -3,6 +3,7 @@ import { centsToEuroInput } from "@/lib/company-draft";
 import { sellerPanelFlags } from "@/lib/company-profile";
 import { adminPublishChecks, publishChecklist, type AdminPublishChecks, type PublishChecklist } from "@/lib/publish-checklist";
 import { storedSellerFinancing } from "@/lib/seller-financing";
+import { projectLocationComplete } from "@/lib/company-location";
 import { prisma } from "@/lib/db";
 
 /** t75: one loader for the seller checklist and the admin checks, so every gate agrees. */
@@ -12,6 +13,9 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
     select: {
       legalName: true,
       cif: true,
+      address: true,
+      street: true,
+      postalCode: true,
       city: true,
       region: true,
       description: true,
@@ -52,7 +56,7 @@ export async function loadPublishChecks(projectId: string): Promise<{ seller: Pu
       panels,
       saleReason: (project.saleReason ?? "").trim().length > 0,
       sellerFinancing: storedSellerFinancing(project) !== null,
-      location: `${project.city ?? ""}${project.region}`.trim().length > 0,
+      location: projectLocationComplete(project),
     }),
     admin: adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) }),
   };

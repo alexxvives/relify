@@ -6,7 +6,7 @@ import {
   type RegistryCompany,
 } from "@/lib/company-registry";
 import { uniqueCodename } from "@/lib/server/unique-codename";
-import { resolveCompanyLocation } from "@/lib/company-location";
+import { resolveProjectLocation } from "@/lib/company-location";
 import { basisPointsToPercentInput } from "@/lib/company-profile";
 import {
   centsToEuroInput,
@@ -239,12 +239,7 @@ export async function getCompanyDraft(
     closed,
     forecast ? toForecast(forecast) : null,
   );
-  const location = resolveCompanyLocation({
-    address: draft.address || [draft.street, draft.postalCode, draft.city].filter(Boolean).join(", "),
-    postalCode: draft.postalCode,
-    city: draft.city,
-    region: draft.region,
-  });
+  const location = resolveProjectLocation(draft);
   const result: CompanyDraftInput = {
     legalName: draft.legalName,
     address: draft.address,

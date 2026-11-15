@@ -110,9 +110,9 @@ describe("S25 seller wizard saves partial data and only publishing checks", () =
       clientPercents: [],
       askingPrice: "",
     };
-    const missing = completionProgress(sellerRequiredFields({ ...base, location: "" })).missing.map((item) => item.label);
+    const missing = completionProgress(sellerRequiredFields({ ...base, location: false })).missing.map((item) => item.label);
     expect(missing).toContain("Ubicación");
-    const filled = completionProgress(sellerRequiredFields({ ...base, location: "Sabadell" })).missing.map((item) => item.label);
+    const filled = completionProgress(sellerRequiredFields({ ...base, location: true })).missing.map((item) => item.label);
     expect(filled).not.toContain("Ubicación");
     expect(sellerRequiredFields(base).some((field) => field.id === "panel-location")).toBe(false);
   });

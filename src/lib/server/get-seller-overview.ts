@@ -14,6 +14,7 @@ import {
 } from "@/lib/company-profile";
 import { adminChecksMessage, adminPublishChecks, publishChecklist, recommendedChecklist, type CheckItem, type PublishChecklist, type RecommendedCheckKey } from "@/lib/publish-checklist";
 import { storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
+import { projectLocationComplete } from "@/lib/company-location";
 import { prisma } from "@/lib/db";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 
@@ -74,6 +75,9 @@ export async function getSellerOverview(ownerId: string): Promise<{
         select: {
           legalName: true,
           cif: true,
+          address: true,
+          street: true,
+          postalCode: true,
           city: true,
           region: true,
           description: true,
@@ -151,7 +155,7 @@ export async function getSellerOverview(ownerId: string): Promise<{
     panels,
     saleReason: (project.saleReason ?? "").trim().length > 0,
     sellerFinancing: storedSellerFinancing(project) !== null,
-    location: `${project.city ?? ""}${project.region}`.trim().length > 0,
+    location: projectLocationComplete(project),
   });
   const admin = adminPublishChecks({ panels, ebitdaPositive: ebitdaPublishable(project) });
   const series: SellerYearPoint[] = [];

@@ -125,3 +125,36 @@ export function resolveCompanyLocation(input: {
   const parsedCity = columnCity.length > 0 ? titleCasePlace(columnCity) : cityFromAddress(address, parsedCode, region);
   return { postalCode: parsedCode, city: parsedCity, fromRegistry: false };
 }
+
+export type StoredProjectLocation = {
+  address?: string | null;
+  street?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  region?: string | null;
+};
+
+/**
+ * S25b: the wizard's Ubicación reads a project row like this (columns first, then the composed `address`).
+ * Every loader uses it so the field, the checklist and the publish checks see the same place.
+ */
+export function resolveProjectLocation(row: StoredProjectLocation): CompanyLocation {
+  return resolveCompanyLocation({
+    address: row.address || [row.street, row.postalCode, row.city].filter(Boolean).join(", "),
+    postalCode: row.postalCode,
+    city: row.city,
+    region: row.region,
+  });
+}
+
+/**
+ * S25b: one rule for "Ubicación is filled", shared by the wizard, the Inicio checklist and the publish gate.
+ * A city, a full Spanish postal code, or a region counts. A partial code does not (saving drops it).
+ */
+export function companyLocationComplete(location: { postalCode: string; city: string; region?: string | null }): boolean {
+  return location.city.trim().length > 0 || isSpanishPostalCode(location.postalCode) || (location.region ?? "").trim().length > 0;
+}
+
+export function projectLocationComplete(row: StoredProjectLocation): boolean {
+  return companyLocationComplete({ ...resolveProjectLocation(row), region: row.region });
+}
