@@ -1,0 +1,21 @@
+{
+  "round": "s23",
+  "commit": "4eac3dc11e9cbda8d42c828347fba0852a88a5bf",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "4935550b1534c9b960f97eeb046550721567211d3382f926333bb35790b27d67",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql"
+  ],
+  "r2_required": [
+    {
+      "binding": "INT_UPLOADS",
+      "bucket_name": "releva-int-uploads",
+      "create": "wrangler r2 bucket create releva-int-uploads",
+      "note": "INT-only. Do not bind a production bucket. Object keys use the int/ prefix."
+    }
+  ],
+  "note": "No Prisma migration. Create releva-int-uploads before first INT deploy with uploads. Apply existing INT SQL if not already on the branch. Not deployed.",
+  "deployed": false
+}
