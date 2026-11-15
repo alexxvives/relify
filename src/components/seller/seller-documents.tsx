@@ -432,6 +432,8 @@ function FolderCard({
           <div
             role="button"
             tabIndex={0}
+            data-folder-tile
+            aria-label={`${name}, ${documentCountLabel(count)}`}
             onClick={onOpen}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -445,7 +447,7 @@ function FolderCard({
                 : "flex min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
             }
           >
-            <DocumentsFolder label={name} items={papers} accent={featured} />
+            <DocumentsFolder label={name} items={papers} accent={featured} onActivate={onOpen} />
             <span className="mt-2 block text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 block text-xs text-[#667085]">
               {documentCountLabel(count)}

@@ -2,6 +2,10 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-15 — Round S23b folder graphic clicks
+
+A click on the 3D Folder graphic or peeking papers on `/mi-empresa/documentos` opens the folder view. Hover peek stays (`openOn="hover"` + `pointer-events-auto`). Folder `onActivate` forwards those clicks (papers had `stopPropagation`). The tile keeps Enter/Space. No Prisma schema migration.
+
 ## 2026-11-15 — Round S23 landing polish, folder view, INT uploads
 
 Landing pipeline callout puts **Paso N** inline left of the title (same chip as NDA/Solicitud), icon centred, card `max-width: 42rem`. CIF line chart is a Catmull-Rom curve with gradient fill, draw animation, axes and a pulsing marker. How-it-works uses one spine; only the selected step lights. Publish/buyers step cards were restyled. **Vista previa del mercado** is gone. **rentables** is a more golden diagonal shine (`#c48914`, exception to DESIGN “do not invent hex”). ReportNav bar is `w-fit` / `inline-flex`. INT uploads are on: isolated `data/data-room/int` locally and R2 binding `INT_UPLOADS` → bucket `releva-int-uploads` (create before INT deploy; never prod storage). GlareHover `playOnce` (no leave sweep, no replay). Landing sections share `py-10 sm:py-16`. Pipeline fill/pulse matches Mis procesos. Hero **Prueba gratis** sits at the bottom of the overlay. Documents folders peek on hover and open a folder view on click; files are A4 portrait sheets. Detalle description unmounts when collapsed so expand shows the full text. Información / Ficha pública uses lazy GooeyNav. No Prisma schema migration.

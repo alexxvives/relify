@@ -98,8 +98,10 @@ describe("Round S23 landing, documents, and INT uploads", () => {
 
   it("opens a documents folder on click and peeks papers on hover", () => {
     expect(read("src/components/seller/documents-folder.tsx")).toMatch(/openOn="hover"/);
+    expect(read("src/components/seller/documents-folder.tsx")).toMatch(/onActivate=\{onActivate\}/);
     expect(read("src/components/seller/seller-documents.tsx")).toMatch(/sellerCopy\.foldersBack/);
     expect(read("src/components/seller/seller-documents.tsx")).toMatch(/onClick=\{onOpen\}/);
+    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/onActivate=\{onOpen\}/);
   });
 
   it("renders data-room files as A4 portrait sheets", () => {

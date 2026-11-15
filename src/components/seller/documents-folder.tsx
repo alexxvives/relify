@@ -8,10 +8,12 @@ export function DocumentsFolder({
   label,
   items,
   accent = false,
+  onActivate,
 }: {
   label: string;
   items: string[];
   accent?: boolean;
+  onActivate?: () => void;
 }) {
   const papers = items.length > 0 ? items.slice(0, 3) : [label];
 
@@ -28,6 +30,7 @@ export function DocumentsFolder({
       draggable={false}
       zoomOnClick={false}
       intro={false}
+      onActivate={onActivate}
       className="pointer-events-auto"
     />
   );

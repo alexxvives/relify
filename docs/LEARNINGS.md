@@ -6,6 +6,7 @@ Append-only. One line per project-specific pitfall:
 
 ## Entries
 
+- 2026-11-15: Mis documentos 3D Folder graphic swallowed tile clicks — `pointer-events-auto` + peeking papers `stopPropagation` (needed for hover peek); pass `onActivate` so graphic/paper clicks open the folder view.
 - 2026-11-15: Descripción de la empresa showing one line after collapse/expand — Panel kept the textarea in `hidden` (`display:none`) so `.relify-field { min-height: 2.75rem }` won when shown again; unmount children when collapsed. Do not use `field-sizing: content` on that textarea — it shrinks to one line of text.
 - 2026-11-15: INT uploads were blocked by `assertUploadsEnabled()` always throwing on INT (the `INT_UPLOADS_ENABLED` message was never read) — allow INT writes to `INT_UPLOADS` R2 / `data/data-room/int`, never a prod bucket.
 - 2026-11-14: `/proyectos/[slug]` skeleton must lock the banner at 415px/438px (390/1440) including the 8-step pipeline — matching inner bones without a fixed height still jumped ~16–50px.

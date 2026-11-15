@@ -39,6 +39,7 @@ export interface FolderProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onActivate?: () => void;
   onItemClick?: (item: FolderEntry, index: number) => void;
   onItemDrop?: (item: FolderEntry, index: number, inside: boolean) => void;
   draggable?: boolean;
@@ -1184,6 +1185,7 @@ const Folder = ({
   open,
   defaultOpen = false,
   onOpenChange,
+  onActivate,
   onItemClick,
   onItemDrop,
   draggable = true,
@@ -2199,6 +2201,7 @@ const Folder = ({
 
   const toggle = () => {
     if (engineRef.current?.blur()) return;
+    onActivate?.();
     if (openOn === 'hover') return;
     setOpen(!isOpen);
   };
@@ -2208,6 +2211,11 @@ const Folder = ({
     if (!engine) return;
     if (engine.consumeClick()) {
       event.stopPropagation();
+      return;
+    }
+    if (onActivate) {
+      event.stopPropagation();
+      onActivate();
       return;
     }
     if (!engine.interactive(index)) return;
@@ -2266,12 +2274,17 @@ const Folder = ({
           perspective: 'var(--folder-depth)',
           perspectiveOrigin: 'calc(var(--folder-w) / 2) calc(var(--folder-tab-h) + var(--folder-h) / 2)'
         }}
-        role="button"
-        tabIndex={0}
-        aria-expanded={isOpen}
-        aria-label={label ? `${label} folder` : 'Folder'}
-        onClick={toggle}
+        role={onActivate ? undefined : 'button'}
+        tabIndex={onActivate ? -1 : 0}
+        aria-hidden={onActivate ? true : undefined}
+        aria-expanded={onActivate ? undefined : isOpen}
+        aria-label={onActivate ? undefined : label ? `${label} folder` : 'Folder'}
+        onClick={event => {
+          if (onActivate) event.stopPropagation();
+          toggle();
+        }}
         onKeyDown={event => {
+          if (onActivate) return;
           if (event.target !== event.currentTarget) return;
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -2375,10 +2388,17 @@ const Folder = ({
                 touchAction: draggable ? 'none' : undefined
               }}
               data-folder-item={index}
-              role={interactive ? 'button' : undefined}
-              tabIndex={interactive ? 0 : -1}
+              role={onActivate || !interactive ? undefined : 'button'}
+              tabIndex={onActivate || !interactive ? -1 : 0}
               onClick={event => onItemActivate(event, index)}
               onKeyDown={event => {
+                if (onActivate) {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onActivate();
+                  return;
+                }
                 if (!interactive || (event.key !== 'Enter' && event.key !== ' ')) return;
                 event.preventDefault();
                 event.stopPropagation();
