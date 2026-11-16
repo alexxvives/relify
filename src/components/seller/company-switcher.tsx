@@ -92,6 +92,7 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
             name="cif"
             required
             autoComplete="off"
+            placeholder={sellerCopy.addCompanyCifPlaceholder}
           />
         </label>
         {state ? (

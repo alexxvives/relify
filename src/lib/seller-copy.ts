@@ -192,6 +192,7 @@ export const sellerCopy = {
   addCompanyTitle: "Nueva empresa",
   addCompanyBody: "Cada empresa adicional cuesta 149 € + IVA (180,29 € con IVA).",
   addCompanyCif: "CIF",
+  addCompanyCifPlaceholder: "Ej.: B12345678",
   addCompanySubmit: "Continuar",
   addCompanyPending: "Creando…",
   deleteCompany: "Eliminar empresa",
