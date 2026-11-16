@@ -154,6 +154,7 @@ export function AccountSettings({
                   <Input
                     name="nationalId"
                     autoComplete="off"
+                    placeholder={authCopy.nationalIdPlaceholder}
                     required
                     maxLength={12}
                     value={nationalId}
@@ -244,22 +245,30 @@ export function AccountSettings({
       <Card tone="danger">
         <h2 className="text-xl font-semibold text-[#c0362c]">{authCopy.deleteTitle}</h2>
         <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{authCopy.deleteBody}</p>
-        <form action={deleteAccount} className="mt-4 grid min-w-0 items-start gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            {authCopy.deleteConfirmLabel}
-            <Input name="confirm" autoComplete="off" required />
-          </label>
-          <Button
-            type="submit"
-            disabled={deletePending}
-            tone="danger"
-            className="h-12 w-full rounded-full lg:col-span-2 xl:mt-7 xl:col-span-1 xl:h-11 xl:w-auto xl:rounded-xl"
->
-            {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
-          </Button>
+        {/* Alex (S26): like the password row, the two fields shrink as the screen narrows and the delete
+            button stays on the right; it drops to its own row only when it truly does not fit. */}
+        <form action={deleteAccount} className="mt-4 min-w-0">
+          <div className="flex min-w-0 flex-wrap items-end gap-4">
+            <div className="@container/delete grid min-w-[min(100%,20rem)] flex-[1_1_20rem] items-start gap-4">
+              <div className="grid min-w-0 items-start gap-4 @[22rem]/delete:grid-cols-2">
+                <SecretField name="password" label={authCopy.deletePassword} autoComplete="current-password" />
+                <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  {authCopy.deleteConfirmLabel}
+                  <Input name="confirm" autoComplete="off" required />
+                </label>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={deletePending}
+              tone="danger"
+              className="ml-auto shrink-0 max-sm:h-12 max-sm:w-full max-sm:rounded-full"
+            >
+              {deletePending ? authCopy.deletePending : authCopy.deleteSubmit}
+            </Button>
+          </div>
           {deleteState ? (
-            <p role="alert" className="text-sm text-[#c0362c] lg:col-span-2 xl:col-span-3">
+            <p role="alert" className="mt-3 text-sm text-[#c0362c]">
               {deleteState.message}
             </p>
           ) : null}
