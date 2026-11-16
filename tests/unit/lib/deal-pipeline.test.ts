@@ -89,7 +89,8 @@ describe("dealPipeline", () => {
       action: "El vendedor todavía no ha aceptado la carta de intenciones",
     });
     expect(stepCue("qa", "seller", true).yours).toBe(true);
-    expect(stepCue("qa", "seller").action).toContain("firmará la carta de intenciones");
+    // S31 (Alex): the seller cue ends at "convencido"; the LOI is its own step.
+    expect(stepCue("qa", "seller").action).toBe("El comprador preguntará y podrá reunirse contigo hasta estar convencido.");
     expect(stepCue("qa", "investor").action).not.toBe(stepCue("qa", "seller").action);
     expect(stepCue("loi", "investor").yours).toBe(true);
     expect(stepCue("loi", "seller").yours).toBe(false);

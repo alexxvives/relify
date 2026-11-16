@@ -282,3 +282,27 @@
   padding-inline: 8px;
   line-height: 1.35;
 }
+
+/* S31 (Alex): the drop target is the first tile of the documents grid, with the exact size and shape of a document
+   sheet (.releva-doc-sheet: up to 11.5rem wide, A4 ratio). The upload row stacks so it fits inside it. */
+.upl-zone-wrap {
+  width: 100%;
+  max-width: 11.5rem;
+  height: auto;
+  margin-inline: auto;}
+
+/* The ratio sits on the box (a row-flex child sized by its width), not on the column-flex wrapper. */
+.upl-zone {
+  height: auto;
+  aspect-ratio: 1 / 1.414;
+  padding: 0 12px;}
+
+.upl-now {
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: center;}
+
+.upl-text { width: 100%; }
+
+.upl-meta { justify-content: center; }

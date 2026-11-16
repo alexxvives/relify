@@ -86,7 +86,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, StepNumber } from "@/components/seller/seller-figures-card";
 import { scrollToCenter } from "@/components/shell/use-scroll-spy";
-import { CompactProgressBar, DetailSectionNav, detailsColumnClass, type DetailSectionItem } from "@/components/seller/detail-section-nav";
+import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/seller/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -683,6 +683,7 @@ function AskingPriceField({
       <MetricTile
         label={label}
         hint={estimate ? <AskingPriceRangeHint estimate={estimate} /> : null}
+        corner={estimate && !disabledReason ? <PriceStandingTag estimate={estimate} askingCents={euroCentsOrNull(value)} /> : null}
         action={
           editable ? (
             <button
@@ -716,7 +717,6 @@ function AskingPriceField({
               </span>
             )}
           </button>
-          {estimate && !disabledReason ? <PriceStandingTag estimate={estimate} askingCents={euroCentsOrNull(value)} /> : null}
         </div>
       </MetricTile>
       {open ? (
@@ -829,11 +829,6 @@ function AskingPriceField({
                 </p>
               )}
             </div>
-            <footer className="flex justify-end border-t border-[#eef0f4] px-4 py-3 sm:px-6">
-              <KitButton type="button" tone="outline" size="sm" onClick={() => setOpen(false)}>
-                {companyCopy.collapsePanel}
-              </KitButton>
-            </footer>
           </div>
         </div>
       ) : null}
@@ -856,13 +851,14 @@ function MetricTile({
 }) {
   return (
     <div className="@container relative flex h-full min-h-[6.5rem] min-w-0 flex-col gap-2 overflow-visible rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
-      <div className="flex min-h-7 min-w-0 flex-nowrap items-center justify-between gap-x-2">
+      {/* S31: the corner (Dentro del rango, De tus cuentas…) wraps under the label on a narrow tile instead of covering the pencil. */}
+      <div className="flex min-h-7 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex min-w-0 items-center gap-1">
           <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {hint}
           {action}
         </div>
-        {corner ? <div className="min-w-0 shrink-0">{corner}</div> : null}
+        {corner ? <div className="ml-auto min-w-0 shrink-0">{corner}</div> : null}
       </div>
       <div className="min-w-0">{children}</div>
     </div>
@@ -904,6 +900,7 @@ function FichaMetrics({
   adjustedMargin,
   priceBlocked = false,
   adjustmentCount,
+  hasAdjustments = adjustmentCount > 0,
   pendingCount = 0,
   adjustments,
   recommended = null,
@@ -920,6 +917,8 @@ function FichaMetrics({
   adjustedMargin: string;
   priceBlocked?: boolean;
   adjustmentCount: number;
+  /** Approved adjustment rows or a legacy adjusted figure: the same rule the price range uses (priceBasisCents). */
+  hasAdjustments?: boolean;
   pendingCount?: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
@@ -929,10 +928,16 @@ function FichaMetrics({
   estimate?: PriceEstimate | null;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
-  const adjustedCents = adjustmentCount > 0 && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
+  const adjustedCents = hasAdjustments && signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null;
+  const ebitdaCents = signedEuroPattern.test(ebitda.trim()) ? eurosToCents(ebitda.trim()) : null;
+  // S31 (Alex): with no adjustments the adjusted EBITDA is the EBITDA itself (and its margin the EBITDA margin).
+  const shownAdjustedCents = hasAdjustments ? adjustedCents : ebitdaCents !== null && ebitdaCents !== 0 ? ebitdaCents : null;
+  const shownAdjustedMargin = hasAdjustments ? adjustedMargin : margin;
   return (
     <div className="@container mt-4">
-    <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {/* S31 (Alex): 3 columns × 2 rows from xl, filled by column: Precio / Facturación, EBITDA / Margen EBITDA,
+          EBITDA ajustado / Margen EBITDA ajustado. Two columns keep those pairs on one row; phones stack them. */}
+      <div data-ficha-metrics className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-flow-col xl:grid-cols-3 xl:grid-rows-2">
       <div id="panel-asking-price" className="h-full min-w-0 scroll-mt-24">
         <AskingPriceField
           label={companyCopy.askingPriceLabel}
@@ -949,6 +954,9 @@ function FichaMetrics({
       </div>
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
+      <MetricTile label={companyCopy.ebitdaMarginLabel}>
+        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+      </MetricTile>
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
       <div id="ebitda-ajustado" className="h-full min-w-0 scroll-mt-24">
         <MetricTile
@@ -980,9 +988,9 @@ function FichaMetrics({
             ) : null
           }
         >
-          {adjustedCents !== null ? (
-            <span className={`flex items-center gap-1.5 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight tabular-nums ${adjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap text-[#1c2740]"}`}>
-              {wholeEur(adjustedCents).replace(" €", "\u00a0€")}
+          {shownAdjustedCents !== null ? (
+            <span className={`flex items-center gap-1.5 text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight tabular-nums ${shownAdjustedCents < 0 ? "whitespace-nowrap text-[#b42318]" : "whitespace-nowrap text-[#1c2740]"}`}>
+              {wholeEur(shownAdjustedCents).replace(" €", "\u00a0€")}
             </span>
           ) : (
             <button type="button" onClick={() => setAdjustOpen(true)} className="text-left">
@@ -991,14 +999,11 @@ function FichaMetrics({
           )}
         </MetricTile>
       </div>
-      <MetricTile label={companyCopy.ebitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
-      </MetricTile>
       <MetricTile label={companyCopy.adjustedEbitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{adjustedMargin}</span>
+        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{shownAdjustedMargin}</span>
       </MetricTile>
+      </div>
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
-    </div>
     </div>
   );
 }
@@ -2202,8 +2207,9 @@ export function CompanyDraftForm({
           ? ""
           : initial.adjustedEbitda;
   // Published figure: only rows an admin has accepted. Pending rows stay on the tile as "por aprobar".
+  const hasAdjustments = approvedAdjustmentsCount > 0 || (adjustmentRows.length === 0 && legacyAdjustedCents !== 0);
   const priceBasis = priceBasisCents({
-    hasAdjustments: approvedAdjustmentsCount > 0 || (adjustmentRows.length === 0 && legacyAdjustedCents !== 0),
+    hasAdjustments,
     adjustedEbitdaCents: signedEuroPattern.test(adjustedEbitda.trim()) ? eurosToCents(adjustedEbitda.trim()) : null,
     ebitdaCents: storedEbitdaCents !== null && storedEbitdaCents !== 0 ? storedEbitdaCents : ebitdaCentsFromAccounts,
   });
@@ -2546,8 +2552,6 @@ export function CompanyDraftForm({
     runSave();
   }
 
-  // S30: a fixed column width from 2xl (never tied to the card state), so the floating Tu progreso card sits beside it.
-  const detailsColumn = tab === "company" ? detailsColumnClass : "";
 
   return (
     <>
@@ -2602,11 +2606,12 @@ export function CompanyDraftForm({
           window.scrollTo({ top: 0 });
         }}
       />
-      {/* S30 (Alex): Tu progreso floats over the page; the content never moves when it opens or closes. */}
-      <div className={`relative flex flex-col gap-4 ${detailsColumn}`}>
+      {/* S31 (Alex): full page width like /procesos; Tu progreso is a popover over it and never moves the content. */}
+      <div className="relative flex flex-col gap-4">
       <div className="flex min-w-0 flex-col gap-4">
-      {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
-      <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
+      {/* S31 (Alex): no empty block under the last panel (was a 35vh pad plus a 40vh spacer). "Ir" scrolls as far as it
+          can and the scroll spy marks the last section at the page bottom. pb-24 keeps room above the phone tab bar. */}
+      <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-8" : "hidden"}>
       <Panel
         id="panel-basic"
         saveState={sectionSaveState("basic")}
@@ -3063,6 +3068,7 @@ export function CompanyDraftForm({
               ebitda={ebitdaFromAccounts ?? ebitda}
               adjustedEbitda={adjustedEbitda}
               adjustmentCount={approvedAdjustmentsCount}
+              hasAdjustments={hasAdjustments}
               pendingCount={pendingAdjustments}
               adjustments={(close) => (
                 <EbitdaAdjustmentsDialog
@@ -3307,8 +3313,6 @@ export function CompanyDraftForm({
       </Panel>
       </div>
       {financeExtra}
-      {/* t80: room so the last sections can scroll up to the top from the progress panel. */}
-      <div aria-hidden className="hidden h-[40vh] lg:block" />
       </div>
 
       <div className={tab === "deal" ? "flex flex-col gap-4 pb-[var(--shell-tabbar)] lg:pb-0" : "hidden"}>

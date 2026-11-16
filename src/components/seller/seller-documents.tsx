@@ -59,6 +59,7 @@ function DocumentDrop({ folder, disabled = false }: { folder: string; disabled?:
   return (
     <div>
       <UploadDropzone
+        corner={4}
         disabled={disabled}
         onUpload={async (file) => {
           const name = file.name.split(/[/\\]/).pop()?.trim() ?? "";
@@ -810,7 +811,7 @@ export function SellerDocuments({
           </div>
           <ul className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {folder === relevaDraftFolder ? null : (
-            <li className="col-span-2 md:col-span-1">
+            <li data-upload-tile>
               <DocumentDrop folder={folder} disabled={uploadsDisabled} />
             </li>
             )}
