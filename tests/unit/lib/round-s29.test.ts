@@ -47,7 +47,7 @@ describe("S29 6-7: DNI/NIE and the identity checkbox", () => {
     expect(identityOnSign({ nationalIdMissing: true, collectIdentity: false })).toBe("ask");
     expect(identityOnSign({ nationalIdMissing: false, collectIdentity: false })).toBe("skip");
     const pad = read("src/components/investor/signature-pad.tsx");
-    expect(pad).toMatch(/showStored = !askId && nationalIdMasked !== null/);
+    expect(pad).toMatch(/showStored = showStoredNationalId && !askId && nationalIdMasked !== null/);
     expect(pad).toMatch(/data-stored-national-id/);
   });
   it("the standalone /acuerdo page passes the signer, so the stored DNI/NIE shows masked there too", () => {

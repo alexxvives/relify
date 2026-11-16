@@ -13,8 +13,8 @@ export const companyCopy = {
   descriptionLabel: "Descripción de la empresa",
   descriptionHint:
     "Escríbela para compradores. No incluyas la razón social, el CIF ni la dirección.",
-  principalCnaeLabel: "Principal",
-  secondaryCnaeLabel: "Secundarios",
+  principalCnaeLabel: "CNAE principal",
+  secondaryCnaeLabel: "CNAEs secundarios",
   secondaryCnaeCount: "{count} sectores secundarios",
   secondaryCnaeItem: "Secundario",
   cnaeEmpty: "Sin indicar",
@@ -142,8 +142,6 @@ export const companyCopy = {
   autosaveError: "No se han podido guardar los cambios.",
   autosaveRetry: "Reintentar",
   autosaveUnsaved: "Sin guardar",
-  publishMissingTitle: "Falta para publicar:",
-  publishMissingNote: "Todo se guarda igual. Esto solo hace falta para publicar.",
   pendingChip: "Pendiente",
   doneChip: "Completado",
   editPanel: "Editar",
@@ -370,7 +368,6 @@ export const companyCopy = {
   postalCodeLabel: "Código postal",
   cityLabel: "Ciudad",
   postalCodeInvalid: "Escribe un código postal de 5 dígitos.",
-  locationFromRegistry: "Dato del registro mercantil",
   confidentialHint: "La razón social, el NIF y la ubicación se guardan en tu borrador y no salen en la ficha pública.",
   askingPriceHelp:
     "El rango orientativo es el EBITDA ajustado multiplicado por el múltiplo sectorial mínimo y máximo.",

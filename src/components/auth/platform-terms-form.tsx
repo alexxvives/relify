@@ -44,6 +44,7 @@ export function PlatformTermsForm({ onSigned }: { onSigned?: () => void } = {}) 
       <input type="hidden" name="signature" value={signature} />
       <SignaturePad
         askNationalId={false}
+        showStoredNationalId={false}
         invalid={needsSignature}
         onChange={(value) => {
           setSignature(value);

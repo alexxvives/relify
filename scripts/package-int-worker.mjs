@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, ".cloudflare/output/v0/workers/default");
 const staging = "/tmp/releva-int-pack";
+// S30: INT-only KV namespace "releva-int-vinext-cache" (vinext data cache). Keep in sync with cloudflare.int.config.ts.
+const intKvCacheId = "5657d0bd1ac44f9a8b344f93cbc43d17";
 const approvedHost = "ep-steep-boat-b954u39t.c-7.eu-central-1.aws.neon.tech:5432";
 const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 const lockHash = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).digest("hex");
@@ -51,6 +53,11 @@ binding = "ASSETS"
 [[r2_buckets]]
 binding = "INT_UPLOADS"
 bucket_name = "releva-int-uploads"
+
+# vinext data cache (kvDataAdapter). INT-only namespace releva-int-vinext-cache; never the production one.
+[[kv_namespaces]]
+binding = "VINEXT_KV_CACHE"
+id = "${intKvCacheId}"
 `,
 );
 
@@ -71,6 +78,7 @@ writeFileSync(
       bindings: [
         { name: "ASSETS", type: "assets", directory: "assets" },
         { name: "INT_UPLOADS", type: "r2_bucket", bucket_name: "releva-int-uploads" },
+        { name: "VINEXT_KV_CACHE", type: "kv_namespace", namespace_id: intKvCacheId },
       ],
     },
     null,
@@ -98,6 +106,14 @@ writeFileSync(
       secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],
       // S26: optional. When set, INT verifies CIFs (other than the B12345674 mock) with the paid API Empresas.
       secrets_optional: ["INT_APIEMPRESAS_API_KEY"],
+      kv_required: [
+        {
+          binding: "VINEXT_KV_CACHE",
+          title: "releva-int-vinext-cache",
+          id: intKvCacheId,
+          note: "INT-only vinext data cache. Already created (S30). Never bind the production namespace.",
+        },
+      ],
       r2_required: [
         {
           binding: "INT_UPLOADS",

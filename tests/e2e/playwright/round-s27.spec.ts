@@ -103,7 +103,7 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await expect(panel.locator('input[name="foundedYear"]')).toHaveValue(original);
   });
 
-  test("a short description saves; the read-only view shows what the server stored and Falta para publicar keeps it", async ({ page }) => {
+  test("a short description saves; the read-only view shows what the server stored and Tu progreso keeps it", async ({ page }) => {
     test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
     expect(await signInAs(page, "seller")).toBe(true);
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -125,7 +125,9 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await expect(panel.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
     await expect(panel).toContainText(short);
     await expect(page.locator("form [role=alert]")).toHaveCount(0);
-    await expect(page.locator("[data-publish-missing]")).toContainText("Descripción");
+    // S30: the inline Falta para publicar block is gone; the Tu progreso card lists the field instead.
+    await expect(page.locator("[data-publish-missing]")).toHaveCount(0);
+    await expect(page.locator("[data-section-tracker]")).toContainText("Descripción");
     await page.reload();
     await page.waitForLoadState("networkidle");
     const again = page.locator("#panel-basic");
@@ -139,10 +141,10 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await expect(again.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
   });
 
-  test("the Tu progreso card never covers a control at 1024, 1280 and 1440", async ({ page }) => {
+  test("the Tu progreso card never covers a control at 1024, 1280, 1440, 1536 and 1600", async ({ page }) => {
     test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
     expect(await signInAs(page, "seller")).toBe(true);
-    for (const width of [1024, 1280, 1440]) {
+    for (const width of [1024, 1280, 1440, 1536, 1600]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/mi-empresa/detalles");
       const panel = page.locator("#panel-basic");
@@ -150,8 +152,8 @@ test.describe("S27 Detalles de empresa manual save", () => {
       if (await cancel.isVisible()) await cancel.click();
       const edit = panel.getByRole("button", { name: "Editar" });
       await expect(edit).toBeVisible();
-      if (width < 1280) {
-        // Below 1280 the card is a popover the seller opens; Escape closes it.
+      if (width < 1536) {
+        // S30: below 1536 the card is a popover the seller opens; Escape closes it.
         await page.getByRole("button", { name: "Mostrar tu progreso" }).click();
         await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
         await page.keyboard.press("Escape");

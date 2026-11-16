@@ -1,5 +1,13 @@
 import { bindings, defineConfig, defineWorker } from "cf/config";
 
+/**
+ * S30: production KV namespace for the vinext data cache (title `releva-vinext-cache`). Not created yet. Create it
+ * once and paste its id here before the next production deploy (see docs/DEPLOY-S30.md):
+ *   npx wrangler kv namespace create releva-vinext-cache
+ * The placeholder is deliberate: a missing id would let the deploy auto-provision a namespace nobody tracks.
+ */
+const RELEVA_VINEXT_KV_CACHE_ID = "REPLACE_WITH_RELEVA_VINEXT_CACHE_NAMESPACE_ID";
+
 export default defineConfig({
   worker: defineWorker({
     name: "releva",
@@ -25,6 +33,8 @@ export default defineConfig({
       BETTER_AUTH_URL: bindings.secret(),
       // Maileroo sending key for itsrelify.com (wrangler secret put MAILEROO_API_KEY).
       MAILEROO_API_KEY: bindings.secret(),
+      // vinext data cache (kvDataAdapter in vite.config.ts reads this binding name).
+      VINEXT_KV_CACHE: bindings.kv({ id: RELEVA_VINEXT_KV_CACHE_ID }),
     },
   }),
 });

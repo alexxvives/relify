@@ -1,5 +1,8 @@
 import { bindings, defineConfig, defineWorker } from "cf/config";
 
+/** S30: INT-only KV namespace `releva-int-vinext-cache` for the vinext data cache. Never the production one. */
+export const RELEVA_INT_VINEXT_KV_CACHE_ID = "5657d0bd1ac44f9a8b344f93cbc43d17";
+
 /**
  * INT/Staging environment configuration for Relify.
  * 
@@ -30,6 +33,8 @@ export default defineConfig({
       // INT-only Maileroo key and catch-all. Worker secrets, never [vars]. See docs/INT.md.
       INT_MAILEROO_API_KEY: bindings.secret(),
       INT_EMAIL_CATCHALL: bindings.secret(),
+      // vinext data cache (kvDataAdapter in vite.config.ts reads this binding name).
+      VINEXT_KV_CACHE: bindings.kv({ id: RELEVA_INT_VINEXT_KV_CACHE_ID }),
     },
   }),
 });

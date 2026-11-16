@@ -27,6 +27,7 @@ export function SignaturePad({
   onChange,
   collectIdentity = false,
   askNationalId = true,
+  showStoredNationalId = true,
 }: {
   invalid: boolean;
   onChange: (dataUrl: string) => void;
@@ -34,6 +35,8 @@ export function SignaturePad({
   collectIdentity?: boolean;
   /** S29b: false for the Acuerdo con Relify, which never asks for a DNI/NIE (onboarding is the only place). */
   askNationalId?: boolean;
+  /** S30 (Alex): false for the Acuerdo con Relify, which does not name the account DNI/NIE. NDA and LOI keep it. */
+  showStoredNationalId?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -44,7 +47,7 @@ export function SignaturePad({
   const identity = identityOnSign({ nationalIdMissing, collectIdentity });
   const askId = askNationalId && identity === "ask";
   // S29: when the account already has a valid DNI/NIE it is never asked again; the dialog names it, masked.
-  const showStored = !askId && nationalIdMasked !== null;
+  const showStored = showStoredNationalId && !askId && nationalIdMasked !== null;
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;

@@ -70,8 +70,9 @@ test.describe("S29b", () => {
       const dialog = page.locator("dialog[open]");
       await expect(dialog.getByRole("heading", { name: "Acuerdo con Relify" })).toBeVisible();
       await expect(dialog.locator('input[name="nationalId"]')).toHaveCount(0);
-      await expect(dialog.locator("[data-stored-national-id]")).toHaveCount(1);
-      await expect(dialog.locator("[data-stored-national-id]")).not.toContainText("90000001N");
+      // S30 (Alex): the Relify agreement does not name the account DNI/NIE either (NDA and LOI still do).
+      await expect(dialog.locator("[data-stored-national-id]")).toHaveCount(0);
+      await expect(dialog).not.toContainText("90000001N");
     } finally {
       if (original) {
         await client.query(
