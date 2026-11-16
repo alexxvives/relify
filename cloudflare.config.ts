@@ -1,12 +1,10 @@
 import { bindings, defineConfig, defineWorker } from "cf/config";
 
 /**
- * S30: production KV namespace for the vinext data cache (title `releva-vinext-cache`). Not created yet. Create it
- * once and paste its id here before the next production deploy (see docs/DEPLOY-S30.md):
- *   npx wrangler kv namespace create releva-vinext-cache
- * The placeholder is deliberate: a missing id would let the deploy auto-provision a namespace nobody tracks.
+ * S30: production KV namespace for the vinext data cache (title `releva-vinext-cache`,
+ * id 1f9e6c9a4d8944d6b3bf28af2faf164f). Created 2026-11-16 in account 53808754f4bd94365d6e31351aa426c0.
  */
-const RELEVA_VINEXT_KV_CACHE_ID = "REPLACE_WITH_RELEVA_VINEXT_CACHE_NAMESPACE_ID";
+const RELEVA_VINEXT_KV_CACHE_ID = "1f9e6c9a4d8944d6b3bf28af2faf164f";
 
 export default defineConfig({
   worker: defineWorker({
