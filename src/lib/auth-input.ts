@@ -71,6 +71,21 @@ export const nationalIdSchema = z.string().trim().superRefine((value, context) =
   }
 });
 
+/** S27: /cuenta saves partial profiles, so an empty DNI/NIE is allowed there; a typed one must be valid. */
+const optionalNationalIdSchema = z.string().trim().superRefine((value, context) => {
+  if (value.length > 0 && !isValidSpanishPersonId(value)) {
+    context.addIssue({ code: "custom", message: "invalid" });
+  }
+});
+
+/** S27: same as refinePhone, but an empty phone is a valid partial profile. */
+function refineOptionalPhone(value: { phoneCountry: string; phone: string }, context: z.RefinementCtx): void {
+  if (value.phone.trim().length === 0 && phoneCountryByIso(value.phoneCountry)) {
+    return;
+  }
+  refinePhone(value, context);
+}
+
 function refinePhone(value: { phoneCountry: string; phone: string }, context: z.RefinementCtx): void {
   if (!phoneCountryByIso(value.phoneCountry)) {
     context.addIssue({ code: "custom", path: ["phoneCountry"], message: "invalid" });
@@ -104,11 +119,11 @@ export const accountProfileSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
     lastName: z.string().trim().min(1).max(80),
-    nationalId: nationalIdSchema,
+    nationalId: optionalNationalIdSchema,
     phoneCountry: z.string(),
     phone: z.string(),
   })
-  .superRefine(refinePhone);
+  .superRefine(refineOptionalPhone);
 
 export type AccountProfileInput = z.infer<typeof accountProfileSchema>;
 
@@ -124,7 +139,7 @@ export const accountProfileKeepIdSchema = z
     phoneCountry: z.string(),
     phone: z.string(),
   })
-  .superRefine(refinePhone);
+  .superRefine(refineOptionalPhone);
 
 export const signInSchema = z.object({
   email: emailSchema,

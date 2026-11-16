@@ -13,8 +13,9 @@ export async function updateAccountProfile(
       data: {
         name: input.name,
         lastName: input.lastName,
-        nationalId: normalizeCif(input.nationalId),
-        phone: storedPhone(input.phoneCountry, input.phone),
+        // S27: partial profiles: an empty DNI/NIE or phone clears the field instead of failing.
+        nationalId: input.nationalId.trim() ? normalizeCif(input.nationalId) : null,
+        phone: input.phone.trim() ? storedPhone(input.phoneCountry, input.phone) : null,
       },
     });
   } catch {
