@@ -55,7 +55,7 @@ export function SellerOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="order-2 flex w-full min-w-0 flex-col gap-6 self-start xl:order-1">
           <SellerActivitySummary funnel={funnel} />
           <section className="w-full rounded-2xl border border-[#e7eaee] bg-white p-5">
@@ -92,8 +92,9 @@ export function SellerOverview({
             )}
           </section>
         </div>
-        <div className="order-1 flex w-full min-w-0 flex-col gap-6 self-start xl:order-2">
-          <Card>
+        {/* Alex (S26): a narrower side column; when it stacks (below xl) the two cards sit side by side. */}
+        <div className="order-1 grid w-full min-w-0 items-start gap-6 self-start md:grid-cols-2 xl:order-2 xl:flex xl:flex-col xl:items-stretch">
+          <Card className="p-4">
             <h2
               className={
                 sold
@@ -142,9 +143,9 @@ export function SellerOverview({
                 return (
                   <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
                     {item.done ? (
-                      <div className="flex items-center justify-between gap-3 px-3 py-3 text-sm">{row}</div>
+                      <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">{row}</div>
                     ) : (
-                      <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-3 text-sm hover:bg-[#f7f8fb]">
+                      <Link href={item.href} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-[#f7f8fb]">
                         {row}
                       </Link>
                     )}

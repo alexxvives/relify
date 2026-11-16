@@ -41,7 +41,7 @@ export function InvestorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_316px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
         <BuyerActivitySummary funnel={funnel} processes={processes} />
         <Card>
@@ -71,10 +71,11 @@ export function InvestorHome({
           </ul>
         </Card>
       </div>
+      {/* Alex (S26): a narrower side column; when it stacks (below xl) the two cards sit side by side. */}
       <div className="relative w-full xl:min-h-full">
-        <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
-        <Card>
-          <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
+        <div className="grid items-start gap-6 md:grid-cols-2 xl:absolute xl:inset-0 xl:flex xl:flex-col xl:items-stretch">
+        <Card className="p-4">
+          <h2 className={profileComplete ? "text-xl font-semibold text-[#17663a]" : "text-xl font-semibold text-[#2b3b4a]"}>
             {investorCopy.completeProfile}
           </h2>
           <p className="mt-1 text-sm text-[#64748b]">{investorCopy.completeProfileBody}</p>
@@ -88,8 +89,8 @@ export function InvestorHome({
                     href={item.href}
                     className={
                       done
-                        ? "flex items-center justify-between gap-3 py-3 text-sm text-[#17663a]"
-                        : "flex items-center justify-between gap-3 py-3 text-sm text-[#2b3b4a]"
+                        ? "flex items-center justify-between gap-3 py-2.5 text-sm text-[#17663a]"
+                        : "flex items-center justify-between gap-3 py-2.5 text-sm text-[#2b3b4a]"
                     }
                   >
                     {item.label}

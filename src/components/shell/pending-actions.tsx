@@ -17,8 +17,8 @@ export function PendingActions({
   if (side) {
     // Right column of Inicio, under the profile progress: fills the remaining height and scrolls.
     return (
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">Acciones pendientes</h2>
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#e7eaee] bg-white p-4">
+        <h2 className="text-xl font-semibold text-[#2b3b4a]">Acciones pendientes</h2>
         {items.length === 0 ? (
           <p className="mt-2 text-sm text-[#64748b]">{empty}</p>
         ) : (
