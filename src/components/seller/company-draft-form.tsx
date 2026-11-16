@@ -397,11 +397,11 @@ function Panel({
             <button
               type="button"
               aria-expanded="false"
-              aria-label={companyCopy.editPanel}
               onClick={onEdit}
-              className="inline-flex size-9 items-center justify-center rounded-full text-[#465ab4] hover:bg-[#eef2ff] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#d9def0] bg-white px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#eef2ff] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
             >
               <Pencil className="size-3.5" aria-hidden />
+              {companyCopy.editPanel}
             </button>
           )}
         </div>
