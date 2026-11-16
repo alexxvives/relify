@@ -448,7 +448,8 @@ export function sellerPanelFlags(input: {
   return {
     identity:
       input.legalName.trim().length > 0 && input.cif.trim().length > 0 && (input.saleReason === undefined || input.saleReason.trim().length > 0),
-    description: input.description.trim().length > 0,
+    // S27 (Alex): the 200-character minimum is a publish requirement; saving accepts any length.
+    description: input.description.trim().length >= descriptionMinLength,
     cnae: input.principalCnae.trim().length > 0,
     income: input.closedYears.some((year) => year.sales.trim().length > 0),
     balance: input.closedYears.some((year) => year.currentAssets.trim().length > 0 || year.equity.trim().length > 0),

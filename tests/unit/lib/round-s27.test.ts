@@ -5,6 +5,8 @@ import { accountProfileKeepIdSchema, accountProfileSchema } from "@/lib/auth-inp
 import { blogHeadingId, blogPosts, relatedBlogPosts } from "@/lib/blog";
 import { formatRoiPercent, roiPercent, roiTone } from "@/lib/money";
 import { destinationsForRole } from "@/lib/shell";
+import { sellerPanelFlags } from "@/lib/company-profile";
+import { progressCardGutter } from "@/components/seller/detail-section-nav";
 import {
   apiEmpresasCacheMs,
   checkApiEmpresas,
@@ -330,3 +332,49 @@ describe("S27 follow-up: the active seller company is deterministic", () => {
     expect((source.match(/orderBy: \[\{ createdAt: "asc" \}, \{ id: "asc" \}\]/g) ?? []).length).toBeGreaterThanOrEqual(4);
   });
 });
+
+describe("S27 follow-up: short descriptions save; the read-only view shows the server", () => {
+  const form = read("src/components/seller/company-draft-form.tsx");
+  const actions = read("src/app/(app)/mi-empresa/actions.ts");
+
+  it("never blocks or flags a short description on save; 200 characters is only a publish requirement", () => {
+    expect(form).not.toMatch(/descriptionMinLength/);
+    expect(form).not.toMatch(/showDescriptionMin/);
+    expect(read("src/lib/company-copy.ts")).not.toMatch(/descriptionTooShort/);
+    expect(read("src/lib/seller-completion.ts")).toMatch(/description\.trim\(\)\.length >= descriptionMinLength/);
+  });
+
+  it("counts the description panel as filled only from 200 characters, like Falta para publicar", () => {
+    const base = { legalName: "Horno", cif: "B00000000", principalCnae: "", closedYears: [], headcount: "", capitalPercents: [], askingPrice: "" };
+    expect(sellerPanelFlags({ ...base, description: "Obrador de barrio." }).description).toBe(false);
+    expect(sellerPanelFlags({ ...base, description: "x".repeat(200) }).description).toBe(true);
+  });
+
+  it("returns the stored draft after a save and rebuilds the baseline from it", () => {
+    expect(actions).toMatch(/draft = await getCompanyDraft\(user\)/);
+    expect(actions).toMatch(/saved: true, draft/);
+    expect(form).toMatch(/baselineFromDraft\(state\.draft, cif\)/);
+  });
+
+  it("stops the save with a real error instead of swapping a browser-rejected value", () => {
+    expect(form).toMatch(/invalid\.reportValidity\(\)/);
+    expect(form).toMatch(/companyCopy\.invalidFieldNotSaved/);
+    expect(form).not.toMatch(/const kept = savedForm\.current\?\.getAll\(element\.name\)/);
+  });
+});
+
+describe("S27 follow-up: the Tu progreso card never covers the form", () => {
+  it("reserves a right gutter from 1280 px while the card is pinned and drops it when minimised", () => {
+    expect(progressCardGutter(null)).toBe("xl:pr-[18rem]");
+    expect(progressCardGutter("1")).toBe("xl:pr-[18rem]");
+    expect(progressCardGutter("0")).toBe("");
+    expect(read("src/components/seller/company-draft-form.tsx")).toMatch(/relative flex flex-col gap-4 \$\{progressGutter\}/);
+  });
+
+  it("is never pinned below 1280 px: the pill opens it as a popover", () => {
+    const nav = read("src/components/seller/detail-section-nav.tsx");
+    expect(nav).toMatch(/const cardClass = `\$\{peek \? "flex" : "hidden"\}/);
+    expect(nav).toMatch(/event\.key === "Escape"/);
+  });
+});
+

@@ -129,7 +129,7 @@ describe("company profile statements", () => {
         sellerPanelFlags({
           legalName: "Horno",
           cif: "B00000000",
-          description: "Obrador",
+          description: "Obrador de barrio con tienda propia. ".repeat(6),
           principalCnae: "10.71",
           closedYears: [{ sales: "1", currentAssets: "1", equity: "" }],
           headcount: "6-10",

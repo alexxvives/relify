@@ -91,8 +91,8 @@ export const companyCopy = {
   euroInvalid: "Escribe un importe en euros.",
   foundedYearInvalid: "Escribe un año de fundación válido.",
   descriptionInvalid: "La descripción es demasiado larga.",
-  descriptionTooShort: "La descripción debe tener al menos 200 caracteres.",
-  descriptionCounter: "{count} / {max} · mínimo {min}",
+  descriptionCounter: "{count} / {max} caracteres",
+  invalidFieldNotSaved: "No se ha guardado: corrige el campo marcado y vuelve a pulsar Guardar.",
   ownerDependenceLabel: "Dependencia del dueño",
   ownerDependenceHelp:
     "Cuánto depende el negocio de ti para clientes, operativa y relaciones clave. Menos dependencia facilita la transmisión y suele subir el valor.",

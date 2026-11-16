@@ -24,6 +24,7 @@ import { publishSellerProject } from "@/lib/server/publish-seller-project";
 import { requestFigureCorrection } from "@/lib/server/request-figure-correction";
 import { requestIdentityChange } from "@/lib/server/request-identity-change";
 import { saveCompanyDraft } from "@/lib/server/save-company-draft";
+import { getCompanyDraft } from "@/lib/server/get-company-draft";
 import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/lib/server/save-ebitda-adjustments";
 import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/lib/server/store-adjustment-document";
 import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/lib/server/seller-company";
@@ -32,7 +33,11 @@ import { uniqueCodename } from "@/lib/server/unique-codename";
 import { rotateTeaserToken } from "@/lib/server/company-pdfs";
 import { sellerDraftAutosaveRevalidatePaths } from "@/lib/seller-draft-cache";
 
-export type CompanyDraftState = { message: string; saved: boolean } | null;
+/**
+ * S27: on success `draft` is the company as stored after the save (what a reload would show), so the form's read-only
+ * view reflects the server, never what was typed.
+ */
+export type CompanyDraftState = { message: string; saved: boolean; draft?: CompanyDraftInput | null } | null;
 
 function readText(formData: FormData, name: string): string {
   const value = formData.get(name);
@@ -161,7 +166,14 @@ export async function saveCompanyDraftAction(
   for (const path of sellerDraftAutosaveRevalidatePaths) {
     revalidatePath(path);
   }
-  return { message: companyCopy.saved, saved: true };
+  let draft: CompanyDraftInput | null = null;
+  try {
+    draft = await getCompanyDraft(user);
+  } catch (error) {
+    // The write already landed; the form falls back to what it sent (which the server accepted as is).
+    console.error("[saveCompanyDraft:reload]", error instanceof Error ? error.name : "unknown");
+  }
+  return { message: companyCopy.saved, saved: true, draft };
 }
 
 /** t89: the EBITDA adjustments modal saves on its own, so the seller never leaves it with unsaved rows. */

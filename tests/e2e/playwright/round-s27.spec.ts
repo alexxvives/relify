@@ -53,8 +53,7 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await page.goto("/mi-empresa/detalles");
     const panel = page.locator("#panel-basic");
     const edit = panel.getByRole("button", { name: "Editar" });
-    // The floating progress card can sit over the panel header, so open it with the keyboard.
-    if (await edit.isVisible()) await edit.press("Enter");
+    if (await edit.isVisible()) await edit.click();
     const year = panel.locator('input[name="foundedYear"]');
     await expect(year).toBeVisible();
     const original = await year.inputValue();
@@ -75,7 +74,7 @@ test.describe("S27 Detalles de empresa manual save", () => {
     const again = page.locator("#panel-basic");
     await expect(again).toContainText(changed);
     const reopen = again.getByRole("button", { name: "Editar" });
-    if (await reopen.isVisible()) await reopen.press("Enter");
+    if (await reopen.isVisible()) await reopen.click();
     await again.locator('input[name="foundedYear"]').fill(original);
     await again.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(again.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
@@ -89,7 +88,7 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await page.goto("/mi-empresa/detalles");
     const panel = page.locator("#panel-basic");
     const edit = panel.getByRole("button", { name: "Editar" });
-    if (await edit.isVisible()) await edit.press("Enter");
+    if (await edit.isVisible()) await edit.click();
     const year = panel.locator('input[name="foundedYear"]');
     const original = await year.inputValue();
     await year.fill(original === "1990" ? "1991" : "1990");
@@ -100,7 +99,81 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await page.getByRole("tab", { name: "Información empresa" }).or(page.getByRole("button", { name: "Información empresa" })).first().click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const reopen = panel.getByRole("button", { name: "Editar" });
-    if (await reopen.isVisible()) await reopen.press("Enter");
+    if (await reopen.isVisible()) await reopen.click();
     await expect(panel.locator('input[name="foundedYear"]')).toHaveValue(original);
+  });
+
+  test("a short description saves; the read-only view shows what the server stored and Falta para publicar keeps it", async ({ page }) => {
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
+    expect(await signInAs(page, "seller")).toBe(true);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/mi-empresa/detalles");
+    await page.waitForLoadState("networkidle");
+    const panel = page.locator("#panel-basic");
+    const edit = panel.getByRole("button", { name: "Editar" });
+    if (await edit.isVisible()) await edit.click();
+    const field = panel.locator('textarea[name="description"]');
+    const original = await field.inputValue();
+    const short = `Obrador de barrio, prueba ${Date.now() % 100000}.`;
+    // Trailing spaces show the stored (trimmed) text is what comes back, not what was typed.
+    // Clear first and confirm the form is hydrated (an early fill is reset by hydration).
+    await field.fill("");
+    await expect(field).toHaveValue("");
+    await field.fill(`${short}   `);
+    await expect(field).toHaveValue(`${short}   `);
+    await panel.getByRole("button", { name: "Guardar", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
+    await expect(panel).toContainText(short);
+    await expect(page.locator("form [role=alert]")).toHaveCount(0);
+    await expect(page.locator("[data-publish-missing]")).toContainText("Descripción");
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    const again = page.locator("#panel-basic");
+    await expect(again).toContainText(short);
+    const reopen = again.getByRole("button", { name: "Editar" });
+    if (await reopen.isVisible()) await reopen.click();
+    await expect(again.locator('textarea[name="description"]')).toHaveValue(short);
+    await again.locator('textarea[name="description"]').fill(original);
+    await expect(again.locator('textarea[name="description"]')).toHaveValue(original);
+    await again.getByRole("button", { name: "Guardar", exact: true }).click();
+    await expect(again.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("the Tu progreso card never covers a control at 1024, 1280 and 1440", async ({ page }) => {
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
+    expect(await signInAs(page, "seller")).toBe(true);
+    for (const width of [1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/mi-empresa/detalles");
+      const panel = page.locator("#panel-basic");
+      const cancel = panel.getByRole("button", { name: "Cancelar" });
+      if (await cancel.isVisible()) await cancel.click();
+      const edit = panel.getByRole("button", { name: "Editar" });
+      await expect(edit).toBeVisible();
+      if (width < 1280) {
+        // Below 1280 the card is a popover the seller opens; Escape closes it.
+        await page.getByRole("button", { name: "Mostrar tu progreso" }).click();
+        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
+        await edit.click();
+        await expect(panel.locator('input[name="foundedYear"]')).toBeVisible();
+        continue;
+      }
+      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
+      const covered = await page.evaluate(() => {
+        const card = [...document.querySelectorAll('[data-section-tracker] [role="navigation"]')].find((node) => node.getBoundingClientRect().width > 0);
+        if (!card) return ["no card"];
+        const box = card.getBoundingClientRect();
+        return [...document.querySelectorAll("form button, form a, form input, form textarea, form select")]
+          .filter((node) => !card.contains(node))
+          .map((node) => ({ node, rect: node.getBoundingClientRect() }))
+          .filter(({ rect }) => rect.width > 0 && rect.left < box.right && rect.right > box.left && rect.top < box.bottom && rect.bottom > box.top)
+          .map(({ node }) => (node.getAttribute("aria-label") ?? node.textContent ?? node.tagName).trim());
+      });
+      expect(covered, `covered at ${width}`).toEqual([]);
+      await edit.click();
+      await expect(panel.locator('input[name="foundedYear"]')).toBeVisible();
+    }
   });
 });

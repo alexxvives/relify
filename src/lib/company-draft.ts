@@ -196,7 +196,6 @@ const draftMessages = {
   euro: companyCopy.euroInvalid,
   "founded-year": companyCopy.foundedYearInvalid,
   description: companyCopy.descriptionInvalid,
-  "description-short": companyCopy.descriptionTooShort,
   "lease-years": companyCopy.leaseYearsLabel,
   cnae: companyCopy.cnaeInvalid,
   "cnae-principal": companyCopy.cnaePrincipalRequired,

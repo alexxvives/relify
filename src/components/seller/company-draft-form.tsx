@@ -62,7 +62,6 @@ import {
   balanceValue,
   askingPriceIncludesKinds,
   descriptionMaxLength,
-  descriptionMinLength,
   ownerDependenceLevels,
   premisesKinds,
   storedAskingPriceIncludes,
@@ -87,7 +86,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, StepNumber } from "@/components/seller/seller-figures-card";
 import { scrollToCenter } from "@/components/shell/use-scroll-spy";
-import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/seller/detail-section-nav";
+import { CompactProgressBar, DetailSectionNav, progressCardGutter, useProgressTrackerExpanded, type DetailSectionItem } from "@/components/seller/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -1925,24 +1924,23 @@ export function CompanyDraftForm({
   const [locationDraft, setLocationDraft] = useState(() => formatCompanyLocation(startingLocation.postalCode, startingLocation.city));
   const address = formatCompanyLocation(postalCode, city) || addressWithRegion(initial.address, initial.region);
   const [codename, setCodename] = useState(initial.codename);
-  const [showDescriptionMin, setShowDescriptionMin] = useState(false);
-  const region = initial.region;
+  const [region, setRegion] = useState(initial.region);
   const [foundedYear, setFoundedYear] = useState(initial.foundedYear);
   const [description, setDescription] = useState(initial.description);
   const [saleReason, setSaleReason] = useState(initial.saleReason);
   const [principalCnae, setPrincipalCnae] = useState(initial.principalCnae);
   const [secondaryCnaes, setSecondaryCnaes] = useState(initial.secondaryCnaes);
-  const [revenue] = useState(initial.revenue);
-  const [ebitda] = useState(initial.ebitda);
+  const [revenue, setRevenue] = useState(initial.revenue);
+  const [ebitda, setEbitda] = useState(initial.ebitda);
   // t82: itemised adjustments replace the typed adjusted EBITDA. "" in the draft means legacy (never itemised).
   const [adjustmentRows, setAdjustmentRows] = useState<EbitdaAdjustmentFormRow[]>(() => formRowsFromJson(initial.ebitdaAdjustments));
   const adjustmentsJson = formRowsToJson(adjustmentRows);
   const [hadAdjustmentList, setHadAdjustmentList] = useState(() => initial.ebitdaAdjustments.trim() !== "");
-  const [opex] = useState(initial.opex);
+  const [opex, setOpex] = useState(initial.opex);
   const [askingPrice, setAskingPrice] = useState(initial.askingPrice);
   const [sellerFinancing, setSellerFinancing] = useState<string>(initial.sellerFinancing);
-  const [sellerFinancingPct] = useState(initial.sellerFinancingPct);
-  const [sellerFinancingYears] = useState(initial.sellerFinancingYears);
+  const [sellerFinancingPct, setSellerFinancingPct] = useState(initial.sellerFinancingPct);
+  const [sellerFinancingYears, setSellerFinancingYears] = useState(initial.sellerFinancingYears);
   const [sellerStay, setSellerStay] = useState<string>(initial.sellerStay);
   const [ownerDependence, setOwnerDependence] = useState(initial.ownerDependence);
   const [premisesKind, setPremisesKind] = useState(initial.premisesKind);
@@ -1950,7 +1948,7 @@ export function CompanyDraftForm({
   const [leaseYearsRemaining, setLeaseYearsRemaining] = useState(initial.leaseYearsRemaining);
   const [recurringRevenuePct, setRecurringRevenuePct] = useState(initial.recurringRevenuePct);
   const [askingPriceIncludes, setAskingPriceIncludes] = useState(() => storedAskingPriceIncludes(initial.askingPriceIncludes));
-  const [capitalPercents] = useState(initial.capitalPercents);
+  const [capitalPercents, setCapitalPercents] = useState(initial.capitalPercents);
   const [productPercents, setProductPercents] = useState(initial.productPercents);
   const [clientPercents, setClientPercents] = useState(initial.clientPercents);
   const startingCustomer: CompanyDraftInput["customerBase"] =
@@ -1993,43 +1991,7 @@ export function CompanyDraftForm({
 
     rememberSessionFlag(key, false);
   }, [saveClosed]);
-  const [baseline, setBaseline] = useState(() => ({
-    legalName: initial.legalName,
-    address: formatCompanyLocation(startingLocation.postalCode, startingLocation.city) || addressWithRegion(initial.address, initial.region),
-    postalCode: startingLocation.postalCode,
-    city: startingLocation.city,
-    codename: initial.codename,
-    region: initial.region,
-    foundedYear: initial.foundedYear,
-    description: initial.description,
-    saleReason: initial.saleReason,
-    principalCnae: initial.principalCnae,
-    secondaryCnaes: initial.secondaryCnaes,
-    nif: cif,
-    headcount: initial.headcount,
-    capitalPercents: initial.capitalPercents,
-    productPercents: initial.productPercents,
-    clientPercents: initial.clientPercents,
-    customerBase: startingCustomer,
-    revenue: initial.revenue,
-    ebitda: initial.ebitda,
-    adjustedEbitda: initial.adjustedEbitda,
-    ebitdaAdjustments: formRowsToJson(formRowsFromJson(initial.ebitdaAdjustments)),
-    opex: initial.opex,
-    askingPrice: initial.askingPrice,
-    sellerFinancing: initial.sellerFinancing as string,
-    sellerFinancingPct: initial.sellerFinancingPct,
-    sellerFinancingYears: initial.sellerFinancingYears,
-    sellerStay: initial.sellerStay as string,
-    ownerDependence: initial.ownerDependence,
-    premisesKind: initial.premisesKind,
-    rentMonthly: initial.rentMonthly,
-    leaseYearsRemaining: initial.leaseYearsRemaining,
-    recurringRevenuePct: initial.recurringRevenuePct,
-    askingPriceIncludes: storedAskingPriceIncludes(initial.askingPriceIncludes),
-    closedYears: initial.closedYears,
-    forecastYear: initial.forecastYear,
-  }));
+  const [baseline, setBaseline] = useState(() => baselineFromDraft(initial, cif));
   const [seenSave, setSeenSave] = useState<CompanyDraftState>(null);
   const [submittedDraft, setSubmittedDraft] = useState<typeof baseline | null>(null);
   const currentDraft = {
@@ -2072,8 +2034,57 @@ export function CompanyDraftForm({
 
   if (state?.saved && state !== seenSave) {
     setSeenSave(state);
-    // t95: autosave can run while the seller keeps typing; only what was sent counts as saved.
-    setBaseline(submittedDraft ?? currentDraft);
+    const sent = submittedDraft ?? currentDraft;
+    if (state.draft) {
+      // S27: the read-only view shows what the server stored. A field still holding what was sent takes the stored
+      // value (normalised, or the old one if the server kept it); a field edited again since then keeps the edit.
+      const saved = baselineFromDraft(state.draft, cif);
+      setBaseline(saved);
+      const take = <T,>(current: T, sentValue: T, savedValue: T, set: (value: T) => void) => {
+        if (JSON.stringify(current) === JSON.stringify(sentValue) && JSON.stringify(current) !== JSON.stringify(savedValue)) set(savedValue);
+      };
+      take(legalName, sent.legalName, saved.legalName, setLegalName);
+      if (postalCode === sent.postalCode && city === sent.city && (postalCode !== saved.postalCode || city !== saved.city)) {
+        setPostalCode(saved.postalCode);
+        setCity(saved.city);
+        setLocationDraft(formatCompanyLocation(saved.postalCode, saved.city));
+      }
+      take(codename, sent.codename, saved.codename, setCodename);
+      take(foundedYear, sent.foundedYear, saved.foundedYear, setFoundedYear);
+      take(description, sent.description, saved.description, setDescription);
+      take(saleReason, sent.saleReason, saved.saleReason, setSaleReason);
+      take(principalCnae, sent.principalCnae, saved.principalCnae, setPrincipalCnae);
+      take(secondaryCnaes, sent.secondaryCnaes, saved.secondaryCnaes, setSecondaryCnaes);
+      take(headcount, sent.headcount, saved.headcount, setHeadcount);
+      take(productPercents, sent.productPercents, saved.productPercents, setProductPercents);
+      take(clientPercents, sent.clientPercents, saved.clientPercents, setClientPercents);
+      take(customerBase, sent.customerBase, saved.customerBase, setCustomerBase);
+      take(ownerDependence, sent.ownerDependence, saved.ownerDependence, setOwnerDependence);
+      take(premisesKind, sent.premisesKind, saved.premisesKind, setPremisesKind);
+      take(rentMonthly, sent.rentMonthly, saved.rentMonthly, setRentMonthly);
+      take(leaseYearsRemaining, sent.leaseYearsRemaining, saved.leaseYearsRemaining, setLeaseYearsRemaining);
+      take(recurringRevenuePct, sent.recurringRevenuePct, saved.recurringRevenuePct, setRecurringRevenuePct);
+      take<string>(sellerFinancing, sent.sellerFinancing, saved.sellerFinancing, setSellerFinancing);
+      take<string>(sellerStay, sent.sellerStay, saved.sellerStay, setSellerStay);
+      take(askingPrice, sent.askingPrice, saved.askingPrice, setAskingPrice);
+      take(askingPriceIncludes, sent.askingPriceIncludes, saved.askingPriceIncludes, setAskingPriceIncludes);
+      take(closedYears, sent.closedYears, saved.closedYears, setClosedYears);
+      take(forecastYear, sent.forecastYear, saved.forecastYear, setForecastYear);
+      if (adjustmentsJson === sent.ebitdaAdjustments && adjustmentsJson !== saved.ebitdaAdjustments) {
+        setAdjustmentRows(formRowsFromJson(saved.ebitdaAdjustments));
+      }
+      // Not typed on this form: always the stored value.
+      take(region, region, saved.region, setRegion);
+      take(revenue, revenue, saved.revenue, setRevenue);
+      take(ebitda, ebitda, saved.ebitda, setEbitda);
+      take(opex, opex, saved.opex, setOpex);
+      take(capitalPercents, capitalPercents, saved.capitalPercents, setCapitalPercents);
+      take(sellerFinancingPct, sellerFinancingPct, saved.sellerFinancingPct, setSellerFinancingPct);
+      take(sellerFinancingYears, sellerFinancingYears, saved.sellerFinancingYears, setSellerFinancingYears);
+    } else {
+      // t95: only what was sent counts as saved.
+      setBaseline(sent);
+    }
   }
 
   const basicDirty =
@@ -2345,8 +2356,7 @@ export function CompanyDraftForm({
     { id: "deal", label: companyCopy.fichaFieldsTitle, dirty: dealDirty },
   ].filter((section) => section.dirty);
 
-  // S27: Guardar sends the whole form. A field that fails the browser's own validation keeps its last saved value in the
-  // request, so one bad field never blocks the others; the field itself stays marked until fixed.
+  // S27: Guardar sends the whole form; incomplete fields save as they are (they only block publishing).
   const [savingSections, setSavingSections] = useState<string[]>([]);
   const savedForm = useRef<FormData | null>(null);
   const sentForm = useRef<FormData | null>(null);
@@ -2363,14 +2373,24 @@ export function CompanyDraftForm({
         for (const value of savedForm.current?.getAll(name) ?? []) data.append(name, value);
       }
     }
-    for (const element of Array.from(form.elements)) {
-      if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) continue;
-      if (!element.name || element.validity.valid) continue;
-      const kept = savedForm.current?.getAll(element.name);
-      if (kept) {
-        data.delete(element.name);
-        for (const value of kept) data.append(element.name, value);
-      }
+    // S27: a value the browser rejects is never sent or swapped silently (the read-only view would show something that
+    // was not stored). The save stops, the field is pointed out and the seller gets a real error.
+    const invalid = Array.from(form.elements).find(
+      (element): element is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement =>
+        (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) &&
+        Boolean(element.name) &&
+        !element.validity.valid,
+    );
+    if (invalid) {
+      closeAfterSaveRef.current = null;
+      invalid.reportValidity();
+      const landed = { message: companyCopy.invalidFieldNotSaved, saved: false };
+      stateRef.current = landed;
+      setState(landed);
+      setSavingSections(dirtySections.map((section) => section.id));
+      setSavePulse((current) => current + 1);
+      sentForm.current = null;
+      return;
     }
     const ids = dirtySections.map((section) => section.id);
     setSavingSections(ids);
@@ -2417,9 +2437,6 @@ export function CompanyDraftForm({
   });
 
   function saveSection(id: "basic" | "structure" | "income" | "balance" | "deal") {
-    if (id === "basic" && description.trim().length > 0 && description.trim().length < descriptionMinLength) {
-      setShowDescriptionMin(true);
-    }
     if (!formDirty) {
       closePanel(id);
       return;
@@ -2446,7 +2463,6 @@ export function CompanyDraftForm({
       setHeadcount(b.headcount);
       setSellerFinancing(b.sellerFinancing);
       setSellerStay(b.sellerStay);
-      setShowDescriptionMin(false);
     }
     if (id === "structure") {
       setProductPercents(b.productPercents);
@@ -2560,6 +2576,9 @@ export function CompanyDraftForm({
     runSave();
   }
 
+  const { preference: progressPreference } = useProgressTrackerExpanded();
+  const progressGutter = tab === "company" ? progressCardGutter(progressPreference) : "";
+
   return (
     <>
     <form
@@ -2613,7 +2632,8 @@ export function CompanyDraftForm({
           window.scrollTo({ top: 0 });
         }}
       />
-      <div className="relative flex flex-col gap-4">
+      {/* S27: from 1280 px the pinned Tu progreso card owns a right gutter, so it never covers a control. */}
+      <div className={`relative flex flex-col gap-4 ${progressGutter}`}>
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
@@ -2798,31 +2818,15 @@ export function CompanyDraftForm({
             className="h-auto min-h-[9rem] resize-y leading-6"
             style={{ minHeight: "9rem" }}
             value={description}
-            onChange={(event) => {
-              const next = event.target.value;
-              setDescription(next);
-              if (next.trim().length >= descriptionMinLength) {
-                setShowDescriptionMin(false);
-              }
-            }}
+            onChange={(event) => setDescription(event.target.value)}
             aria-label={companyCopy.descriptionLabel}
-            aria-required="true"
-            aria-invalid={showDescriptionMin && description.trim().length < descriptionMinLength ? true : undefined}
+            aria-describedby="description-counter"
           />
-          <span className="flex flex-wrap items-start justify-between gap-2 text-sm text-[#667085]">
-            {showDescriptionMin && description.trim().length < descriptionMinLength ? (
-              <span role="status" className="text-[#c0362c]">
-                {companyCopy.descriptionTooShort}
-              </span>
-            ) : (
-              <span />
-            )}
-            <span className="hidden items-center gap-1 lg:inline-flex">
-              {companyCopy.descriptionCounter
-                .replace("{count}", String(description.trim().length))
-                .replace("{max}", String(descriptionMaxLength))
-                .replace("{min}", String(descriptionMinLength))}
-            </span>
+          {/* S27 (Alex): the 200-character minimum only blocks publishing (Falta para publicar); any length saves. */}
+          <span id="description-counter" className="hidden justify-end text-sm text-[#667085] lg:flex">
+            {companyCopy.descriptionCounter
+              .replace("{count}", String(description.trim().length))
+              .replace("{max}", String(descriptionMaxLength))}
           </span>
         </div>
         <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
@@ -3462,6 +3466,50 @@ export function CompanyDraftForm({
     </form>
     </>
   );
+}
+
+/** S27: the saved state every dirty check compares against, built from a stored draft (first paint or a save's reply). */
+function baselineFromDraft(draft: CompanyDraftInput, cif: string) {
+  const location = resolveCompanyLocation({ address: draft.address, postalCode: draft.postalCode, city: draft.city, region: draft.region });
+  const customerBase: CompanyDraftInput["customerBase"] =
+    draft.customerBase !== "" ? draft.customerBase : draft.clientPercents.length > 0 ? "business" : "";
+  return {
+    legalName: draft.legalName,
+    address: formatCompanyLocation(location.postalCode, location.city) || addressWithRegion(draft.address, draft.region),
+    postalCode: location.postalCode,
+    city: location.city,
+    codename: draft.codename,
+    region: draft.region,
+    foundedYear: draft.foundedYear,
+    description: draft.description,
+    saleReason: draft.saleReason,
+    principalCnae: draft.principalCnae,
+    secondaryCnaes: draft.secondaryCnaes,
+    nif: cif,
+    headcount: draft.headcount,
+    capitalPercents: draft.capitalPercents,
+    productPercents: draft.productPercents,
+    clientPercents: draft.clientPercents,
+    customerBase,
+    revenue: draft.revenue,
+    ebitda: draft.ebitda,
+    adjustedEbitda: draft.adjustedEbitda,
+    ebitdaAdjustments: formRowsToJson(formRowsFromJson(draft.ebitdaAdjustments)),
+    opex: draft.opex,
+    askingPrice: draft.askingPrice,
+    sellerFinancing: draft.sellerFinancing as string,
+    sellerFinancingPct: draft.sellerFinancingPct,
+    sellerFinancingYears: draft.sellerFinancingYears,
+    sellerStay: draft.sellerStay as string,
+    ownerDependence: draft.ownerDependence,
+    premisesKind: draft.premisesKind,
+    rentMonthly: draft.rentMonthly,
+    leaseYearsRemaining: draft.leaseYearsRemaining,
+    recurringRevenuePct: draft.recurringRevenuePct,
+    askingPriceIncludes: storedAskingPriceIncludes(draft.askingPriceIncludes),
+    closedYears: draft.closedYears,
+    forecastYear: draft.forecastYear,
+  };
 }
 
 function addressWithRegion(address: string, region: string): string {

@@ -105,7 +105,17 @@ function subscribeProgressTracker(onChange: () => void): () => void {
   };
 }
 
-/** `null` = no choice yet (CSS default: expanded ≥1280, collapsed 1024–1279). */
+/**
+ * S27: the card is pinned only from 1280 px, where the content column keeps this gutter free for it, so nothing sits
+ * under it. 1024–1279 always shows the round pill; tapping it opens the card as a transient popover over the page.
+ */
+export const progressCardGutterClass = "xl:pr-[18rem]";
+
+export function progressCardGutter(preference: string | null): string {
+  return preference === "0" ? "" : progressCardGutterClass;
+}
+
+/** `null` = no choice yet (expanded ≥1280; the 1024–1279 pill opens it on demand). */
 export function useProgressTrackerExpanded() {
   const preference = useSyncExternalStore(subscribeProgressTracker, readProgressTrackerPreference, () => null);
   const setExpanded = useCallback((next: boolean) => {
@@ -129,6 +139,8 @@ function ProgressTrackerOverlay({
   children: ReactNode;
 }) {
   const { preference, setExpanded } = useProgressTrackerExpanded();
+  // Below 1280 px the card is a popover the seller opened; it closes on Minimizar, Escape or a click outside it.
+  const [peek, setPeek] = useState(false);
   useEffect(() => {
     function onDocClick(event: MouseEvent) {
       const node = event.target;
@@ -137,17 +149,26 @@ function ProgressTrackerOverlay({
       }
       if (node.closest('[data-progress-toggle="collapse"]')) {
         setExpanded(false);
+        setPeek(false);
       } else if (node.closest('[data-progress-toggle="expand"]')) {
         setExpanded(true);
+        setPeek(true);
+      } else if (!node.closest("[data-section-tracker]")) {
+        setPeek(false);
       }
     }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setPeek(false);
+    }
     document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [setExpanded]);
-  const cardClass =
-    preference === "1" ? "flex" : preference === "0" ? "hidden" : "hidden xl:flex";
-  const pillClass =
-    preference === "1" ? "hidden" : preference === "0" ? "flex" : "flex xl:hidden";
+  const cardClass = `${peek ? "flex" : "hidden"} ${preference === "0" ? "xl:hidden" : "xl:flex"}`;
+  const pillClass = `${peek ? "hidden" : "flex"} ${preference === "0" ? "xl:flex" : "xl:hidden"}`;
 
   return (
     <ViewportPortal>
