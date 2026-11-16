@@ -132,7 +132,8 @@ describe("S25 seller wizard saves partial data and only publishing checks", () =
     expect(form).not.toMatch(/key=\{`sale-reason-\$\{attempt/);
     expect(form).toMatch(/function retrySave\(\)/);
     expect(form).toMatch(/onRetry=\{state && !state\.saved \? retrySave : undefined\}/);
-    expect(form).toMatch(/data-publish-missing/);
+    // S30: the inline Falta para publicar block is gone; Tu progreso lists what is missing.
+    expect(form).not.toMatch(/data-publish-missing/);
   });
 
   it("moves Datos de la ficha after Estructura", () => {

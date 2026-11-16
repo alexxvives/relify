@@ -29,16 +29,21 @@ function StatusIcon({ status, className = "size-4" }: { status: DetailSectionSta
   return <Info className={`${className} text-[#8b95a7]`} aria-hidden />;
 }
 
-/** Compact sticky percent + bar under the app header (phones). Desktop keeps CompletionRing. */
+/**
+ * Compact sticky percent + bar under the app header (phones). Desktop keeps CompletionRing.
+ * S30: it is also the phone button for Tu progreso; a tap opens the card as a popover over the page.
+ */
 export function CompactProgressBar({ done, total }: { done: number; total: number }) {
   const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;
   return (
-    <div
-      className="sticky top-14 z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] py-1.5 backdrop-blur sm:top-16 lg:hidden"
-      role="status"
-      aria-label={`${percent} por ciento completado`}
-    >
-      <div className="flex items-center gap-3">
+    <div className="sticky top-14 z-30 -mx-[var(--layout-pad)] border-b border-[#eef0f4] bg-white/95 px-[var(--layout-pad)] backdrop-blur sm:top-16 lg:hidden">
+      <button
+        type="button"
+        data-progress-toggle="peek"
+        aria-haspopup="true"
+        aria-label={`Mostrar tu progreso: ${percent} por ciento completado`}
+        className="flex min-h-11 w-full cursor-pointer items-center gap-3 py-1.5 focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+      >
         <span className="shrink-0 text-xs font-semibold tabular-nums text-[#1c2740]">{percent}%</span>
         <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e6e9f0]">
           <div className="h-full rounded-full bg-[#2fc4b2] transition-[width] duration-300" style={{ width: `${percent}%` }} />
@@ -46,7 +51,7 @@ export function CompactProgressBar({ done, total }: { done: number; total: numbe
         <span className="shrink-0 text-[11px] tabular-nums text-[#64748b]">
           {done}/{total}
         </span>
-      </div>
+      </button>
     </div>
   );
 }
@@ -106,16 +111,18 @@ function subscribeProgressTracker(onChange: () => void): () => void {
 }
 
 /**
- * S27: the card is pinned only from 1280 px, where the content column keeps this gutter free for it, so nothing sits
- * under it. 1024–1279 always shows the round pill; tapping it opens the card as a transient popover over the page.
+ * S30 (Alex): the card floats over the page and never reserves space or moves the content. It is pinned open only
+ * from 1536 px (2xl), where the Información empresa column has a fixed max width and the card sits in the free right
+ * margin. Below that it is a round pill (the slim progress bar on phones) that opens it as a popover.
  */
-export const progressCardGutterClass = "xl:pr-[18rem]";
+export const progressPinnedFrom = 1536;
 
-export function progressCardGutter(preference: string | null): string {
-  return preference === "0" ? "" : progressCardGutterClass;
-}
+/** Static width of the form column from 2xl, so the pinned card never covers it. Independent of the card state. */
+export const detailsColumnClass = "2xl:max-w-[60rem]";
 
-/** `null` = no choice yet (expanded ≥1280; the 1024–1279 pill opens it on demand). */
+const progressPeekEvent = "releva:progress-peek";
+
+/** `null` = no choice yet (pinned ≥1536; below that the pill opens it on demand). */
 export function useProgressTrackerExpanded() {
   const preference = useSyncExternalStore(subscribeProgressTracker, readProgressTrackerPreference, () => null);
   const setExpanded = useCallback((next: boolean) => {
@@ -142,12 +149,17 @@ function ProgressTrackerOverlay({
   // Below 1280 px the card is a popover the seller opened; it closes on Minimizar, Escape or a click outside it.
   const [peek, setPeek] = useState(false);
   useEffect(() => {
+    function onPeek(event: Event) {
+      setPeek(event instanceof CustomEvent && event.detail === true);
+    }
     function onDocClick(event: MouseEvent) {
       const node = event.target;
       if (!(node instanceof Element)) {
         return;
       }
-      if (node.closest('[data-progress-toggle="collapse"]')) {
+      if (node.closest('[data-progress-toggle="peek"]')) {
+        setPeek((open) => !open);
+      } else if (node.closest('[data-progress-toggle="collapse"]')) {
         setExpanded(false);
         setPeek(false);
       } else if (node.closest('[data-progress-toggle="expand"]')) {
@@ -162,25 +174,27 @@ function ProgressTrackerOverlay({
     }
     document.addEventListener("click", onDocClick);
     document.addEventListener("keydown", onKey);
+    window.addEventListener(progressPeekEvent, onPeek);
     return () => {
       document.removeEventListener("click", onDocClick);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener(progressPeekEvent, onPeek);
     };
   }, [setExpanded]);
-  const cardClass = `${peek ? "flex" : "hidden"} ${preference === "0" ? "xl:hidden" : "xl:flex"}`;
-  const pillClass = `${peek ? "hidden" : "flex"} ${preference === "0" ? "xl:flex" : "xl:hidden"}`;
+  const cardClass = `${peek ? "flex" : "hidden"} ${preference === "0" ? "2xl:hidden" : "2xl:flex"}`;
+  const pillClass = `${peek ? "hidden" : "flex"} ${preference === "0" ? "2xl:flex" : "2xl:hidden"}`;
 
   return (
     <ViewportPortal>
     <div
-      className="pointer-events-none fixed right-3 bottom-[calc(var(--shell-tabbar,3.5rem)+0.75rem)] z-40 hidden lg:top-3 lg:right-4 lg:bottom-auto lg:block"
+      className={`pointer-events-none fixed top-[6.25rem] right-3 z-40 sm:top-[6.75rem] lg:top-3 lg:right-4 lg:block ${peek ? "block" : "hidden"}`}
       data-section-tracker="true"
     >
       <div className="pointer-events-auto flex flex-col items-end">
         <div
           role="navigation"
           aria-label={label}
-          className={`${cardClass} max-h-[min(32rem,calc(100vh-var(--shell-tabbar,3.5rem)-6rem))] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]`}
+          className={`${cardClass} max-h-[min(32rem,calc(100dvh-var(--shell-tabbar,3.5rem)-8rem))] flex-col overflow-hidden rounded-2xl border border-[#e6e9f0] bg-white shadow-[0_12px_32px_-12px_rgba(28,39,64,0.28)]`}
           style={{ width: "min(17.25rem, calc(100vw - 1.5rem))" }}
         >
           <div className="flex items-center justify-between gap-2 border-b border-[#eef0f4] px-3 py-2.5">
@@ -216,8 +230,8 @@ function ProgressTrackerOverlay({
 
 /**
  * Section navigation + progress for /mi-empresa/detalles (Información empresa only).
- * Compact: slim percent bar under the header (CompactProgressBar).
- * lg–xl: collapsed pill at top-right; xl: expanded sticky card at top-right.
+ * Compact: slim percent bar under the header (CompactProgressBar), which opens the card as a popover.
+ * lg–2xl: collapsed pill at top-right (popover); 2xl: card pinned in the right margin. It always floats over the page.
  */
 export function DetailSectionNav({
   items,
@@ -247,9 +261,9 @@ export function DetailSectionNav({
   }));
 
   function collapseTrackerIfCompact() {
-    if (window.matchMedia("(max-width: 1279px)").matches) {
-      window.localStorage.setItem(progressTrackerKey, "0");
-      window.dispatchEvent(new Event(progressTrackerEvent));
+    // Below the pinned width the card is a popover: close it after a jump so the field it points at is visible.
+    if (window.innerWidth < progressPinnedFrom) {
+      window.dispatchEvent(new CustomEvent(progressPeekEvent, { detail: false }));
     }
   }
 

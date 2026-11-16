@@ -7,7 +7,7 @@ import { formatRoiPercent, roiPercent, roiTone } from "@/lib/money";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 import { destinationsForRole } from "@/lib/shell";
 import { sellerPanelFlags } from "@/lib/company-profile";
-import { progressCardGutter } from "@/components/seller/detail-section-nav";
+import { detailsColumnClass, progressPinnedFrom } from "@/components/seller/detail-section-nav";
 import {
   apiEmpresasCacheMs,
   checkApiEmpresas,
@@ -373,14 +373,15 @@ describe("S27 follow-up: short descriptions save; the read-only view shows the s
 });
 
 describe("S27 follow-up: the Tu progreso card never covers the form", () => {
-  it("reserves a right gutter from 1280 px while the card is pinned and drops it when minimised", () => {
-    expect(progressCardGutter(null)).toBe("xl:pr-[18rem]");
-    expect(progressCardGutter("1")).toBe("xl:pr-[18rem]");
-    expect(progressCardGutter("0")).toBe("");
-    expect(read("src/components/seller/company-draft-form.tsx")).toMatch(/relative flex flex-col gap-4 \$\{progressGutter\}/);
+  it("S30: floats beside a fixed-width column from 2xl instead of reserving a gutter that moves the content", () => {
+    expect(progressPinnedFrom).toBe(1536);
+    expect(detailsColumnClass).toBe("2xl:max-w-[60rem]");
+    const form = read("src/components/seller/company-draft-form.tsx");
+    expect(form).toMatch(/relative flex flex-col gap-4 \$\{detailsColumn\}/);
+    expect(form).not.toMatch(/progressGutter|progressCardGutter/);
   });
 
-  it("is never pinned below 1280 px: the pill opens it as a popover", () => {
+  it("is never pinned below 1536 px: the pill opens it as a popover", () => {
     const nav = read("src/components/seller/detail-section-nav.tsx");
     expect(nav).toMatch(/const cardClass = `\$\{peek \? "flex" : "hidden"\}/);
     expect(nav).toMatch(/event\.key === "Escape"/);

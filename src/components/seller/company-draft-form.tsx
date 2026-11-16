@@ -86,7 +86,7 @@ import {
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, StepNumber } from "@/components/seller/seller-figures-card";
 import { scrollToCenter } from "@/components/shell/use-scroll-spy";
-import { CompactProgressBar, DetailSectionNav, progressCardGutter, useProgressTrackerExpanded, type DetailSectionItem } from "@/components/seller/detail-section-nav";
+import { CompactProgressBar, DetailSectionNav, detailsColumnClass, type DetailSectionItem } from "@/components/seller/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
   adjustmentRowErrors,
@@ -265,39 +265,6 @@ function AutoSaveStatus({ state }: { state: Exclude<AutoSaveState, null> }) {
       {state === "saved" ? <CircleCheck className="size-3.5" aria-hidden /> : <Clock className="size-3.5 motion-safe:animate-pulse" aria-hidden />}
       {state === "saved" ? companyCopy.autosaveSaved : companyCopy.autosaveSaving}
     </span>
-  );
-}
-
-/**
- * Alex (S25): calm list of what still blocks publishing. Saving never depends on it; each item jumps to its field.
- */
-function PublishMissing({ fields, onGo }: { fields: { id: string; label: string }[]; onGo: (id: string) => void }) {
-  if (fields.length === 0) {
-    return null;
-  }
-  return (
-    <section aria-label={companyCopy.publishMissingTitle} data-publish-missing className="rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-        <p className="text-sm font-semibold text-[#1c2740]">{companyCopy.publishMissingTitle}</p>
-        <ul className="flex flex-wrap gap-1.5">
-          {fields.map((field) => (
-            <li key={field.id}>
-              <a
-                href={`#${field.id}`}
-                onClick={(event) => {
-                  event.preventDefault();
-                  onGo(field.id);
-                }}
-                className="inline-flex h-8 items-center gap-1 rounded-full border border-[#d6dcf0] bg-white px-3 text-sm font-medium text-[#33429a] hover:border-[#465ab4] focus-visible:ring-2 focus-visible:ring-[#465ab4] focus-visible:outline-none"
-              >
-                {field.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <p className="mt-1.5 text-xs text-[#5c6b78]">{companyCopy.publishMissingNote}</p>
-    </section>
   );
 }
 
@@ -1595,11 +1562,11 @@ function CnaeSelect({
     return select;
   }
 
-  // t84: a plain wrapper (not <label>) so clicks beside the field don't open the dropdown;
-  // the label row is h-8 to line up with the "Secundarios" row and its + button.
+  // t84: a plain wrapper (not <label>) so clicks beside the field don't open the dropdown.
+  // S30 (Alex): same label style and gap as the other fields (was a tall h-9 row with a 12 px gap).
   return (
-    <div className="flex flex-col gap-3 text-sm font-medium">
-      <p className="flex h-9 items-center">{label}</p>
+    <div className="flex flex-col">
+      <p className={fieldLabelClass}>{label}</p>
       {select}
     </div>
   );
@@ -1758,6 +1725,9 @@ function AddIconButton({ label, disabled, onClick }: { label: string; disabled: 
   );
 }
 
+/** S30: the one field-label style on Detalles (Nombre, Ubicación, Descripción, CNAE…). */
+const fieldLabelClass = "mb-1 flex items-center gap-1 text-sm text-[#64748b]";
+
 function Fact({
   id,
   icon: Icon,
@@ -1783,7 +1753,7 @@ function Fact({
         <Icon className="size-5" aria-hidden />
       </span>
       <span className="min-w-0">
-        <span className="mb-1 flex items-center gap-1 text-sm text-[#64748b]">
+        <span className={fieldLabelClass}>
           {label}
           {required ? (
             <span className="ml-0.5 text-[#c0362c]" aria-hidden>
@@ -2576,8 +2546,8 @@ export function CompanyDraftForm({
     runSave();
   }
 
-  const { preference: progressPreference } = useProgressTrackerExpanded();
-  const progressGutter = tab === "company" ? progressCardGutter(progressPreference) : "";
+  // S30: a fixed column width from 2xl (never tied to the card state), so the floating Tu progreso card sits beside it.
+  const detailsColumn = tab === "company" ? detailsColumnClass : "";
 
   return (
     <>
@@ -2632,17 +2602,11 @@ export function CompanyDraftForm({
           window.scrollTo({ top: 0 });
         }}
       />
-      {/* S27: from 1280 px the pinned Tu progreso card owns a right gutter, so it never covers a control. */}
-      <div className={`relative flex flex-col gap-4 ${progressGutter}`}>
+      {/* S30 (Alex): Tu progreso floats over the page; the content never moves when it opens or closes. */}
+      <div className={`relative flex flex-col gap-4 ${detailsColumn}`}>
       <div className="flex min-w-0 flex-col gap-4">
       {/* t84: bottom spacer so "Ir" can centre fields in the last panels too. */}
       <div className={tab === "company" ? "flex flex-col gap-4 pb-24 lg:pb-[35vh]" : "hidden"}>
-      <PublishMissing
-        fields={requiredFields.filter((field) => field.required && !field.done)}
-        onGo={(id) => {
-          goToMissing(id);
-        }}
-      />
       <Panel
         id="panel-basic"
         saveState={sectionSaveState("basic")}
@@ -2733,7 +2697,7 @@ export function CompanyDraftForm({
               </Fact>
             </div>
           )}
-          <Fact id="panel-location" icon={MapPin} label={companyCopy.locationLabel} hint={locationLocked ? companyCopy.locationFromRegistry : undefined} required>
+          <Fact id="panel-location" icon={MapPin} label={companyCopy.locationLabel} required>
             <Input
               id="company-location"
               name="location"
@@ -2800,10 +2764,11 @@ export function CompanyDraftForm({
             />
           </Fact>
         </div>
-        <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col gap-2">
-          <span className="flex items-center gap-2 text-base font-semibold text-[#1c2740]">
+        {/* S30 (Alex): same label style and spacing as Nombre, Ubicación and the other fields. */}
+        <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col">
+          <span className={fieldLabelClass}>
             {companyCopy.descriptionLabel}
-            <span className="text-[#c0362c]" aria-hidden>
+            <span className="ml-0.5 text-[#c0362c]" aria-hidden>
               *
             </span>
             <span className="sr-only">(obligatorio)</span>
@@ -2822,34 +2787,36 @@ export function CompanyDraftForm({
             aria-label={companyCopy.descriptionLabel}
             aria-describedby="description-counter"
           />
-          {/* S27 (Alex): the 200-character minimum only blocks publishing (Falta para publicar); any length saves. */}
-          <span id="description-counter" className="hidden justify-end text-sm text-[#667085] lg:flex">
+          {/* S27 (Alex): the 200-character minimum only blocks publishing (listed in Tu progreso); any length saves. */}
+          <span id="description-counter" className="mt-2 hidden justify-end text-sm text-[#667085] lg:flex">
             {companyCopy.descriptionCounter
               .replace("{count}", String(description.trim().length))
               .replace("{max}", String(descriptionMaxLength))}
           </span>
         </div>
-        <div id="panel-cnae" className="grid scroll-mt-6 gap-4 md:grid-cols-2">
+        <div id="panel-cnae" className="mt-4 grid scroll-mt-6 gap-4 md:grid-cols-2 lg:mt-1">
           <CnaeSelect name="principalCnae" label={companyCopy.principalCnaeLabel} value={principalCnae} onChange={setPrincipalCnae} />
           {/* Alex (S25): as many secondary CNAEs as the company has (no cap of 4). Chips plus one adder;
               registry/SABI data pre-fills them. */}
-          <div className="flex flex-col gap-3 text-sm font-medium">
-            <p className="flex h-9 items-center">{companyCopy.secondaryCnaeLabel}</p>
-            <span data-flash className="block rounded-[var(--field-radius)]">
-              <OptionSelect
-                key={`secondary-add-${secondaryCnaes.join("|")}`}
-                label={companyCopy.addSecondaryCnae}
-                value=""
-                options={[{ value: "", label: companyCopy.addSecondaryCnae }, ...cnaeOptions.filter((option) => option.value !== "" && option.value !== principalCnae && !secondaryCnaes.includes(option.value))]}
-                searchable
-                searchPlaceholder={companyCopy.cnaeSearch}
-                emptyLabel={companyCopy.cnaeNoMatch}
-                onValueChange={(value) => {
-                  if (value === "" || value === principalCnae) return;
-                  setSecondaryCnaes((current) => (current.includes(value) ? current : [...current, value]));
-                }}
-              />
-            </span>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col">
+              <p className={fieldLabelClass}>{companyCopy.secondaryCnaeLabel}</p>
+              <span data-flash className="block rounded-[var(--field-radius)]">
+                <OptionSelect
+                  key={`secondary-add-${secondaryCnaes.join("|")}`}
+                  label={companyCopy.addSecondaryCnae}
+                  value=""
+                  options={[{ value: "", label: companyCopy.addSecondaryCnae }, ...cnaeOptions.filter((option) => option.value !== "" && option.value !== principalCnae && !secondaryCnaes.includes(option.value))]}
+                  searchable
+                  searchPlaceholder={companyCopy.cnaeSearch}
+                  emptyLabel={companyCopy.cnaeNoMatch}
+                  onValueChange={(value) => {
+                    if (value === "" || value === principalCnae) return;
+                    setSecondaryCnaes((current) => (current.includes(value) ? current : [...current, value]));
+                  }}
+                />
+              </span>
+            </div>
             {secondaryCnaes.length > 0 ? (
               <ul className="flex flex-wrap gap-2" aria-label={companyCopy.secondaryCnaeLabel}>
                 {secondaryCnaes.map((code) => (
