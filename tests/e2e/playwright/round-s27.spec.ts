@@ -44,3 +44,63 @@ test.describe("S27", () => {
     await expect(page.getByText("Guardado", { exact: false })).toHaveCount(0);
   });
 });
+
+test.describe("S27 Detalles de empresa manual save", () => {
+  test("edits stay local until Guardar, leaving warns, Guardar shows the read-only view", async ({ page }) => {
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
+    expect(await signInAs(page, "seller")).toBe(true);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/mi-empresa/detalles");
+    const panel = page.locator("#panel-basic");
+    const edit = panel.getByRole("button", { name: "Editar" });
+    // The floating progress card can sit over the panel header, so open it with the keyboard.
+    if (await edit.isVisible()) await edit.press("Enter");
+    const year = panel.locator('input[name="foundedYear"]');
+    await expect(year).toBeVisible();
+    const original = await year.inputValue();
+    const changed = original === "1999" ? "1998" : "1999";
+    await year.fill(changed);
+    await expect(panel.getByText("Cambios sin guardar")).toBeVisible();
+    // No background save: leaving still warns after a pause.
+    await page.waitForTimeout(1500);
+    await page.getByRole("link", { name: /mis documentos/i }).first().click();
+    await expect(page.getByRole("dialog")).toContainText("Tienes cambios sin guardar");
+    await page.getByRole("button", { name: "Seguir editando" }).first().click();
+    await expect(page).toHaveURL(/\/mi-empresa\/detalles/);
+    await panel.getByRole("button", { name: "Guardar", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
+    await expect(panel.locator('input[name="foundedYear"]')).toHaveCount(0);
+    await expect(panel).toContainText(changed);
+    await page.reload();
+    const again = page.locator("#panel-basic");
+    await expect(again).toContainText(changed);
+    const reopen = again.getByRole("button", { name: "Editar" });
+    if (await reopen.isVisible()) await reopen.press("Enter");
+    await again.locator('input[name="foundedYear"]').fill(original);
+    await again.getByRole("button", { name: "Guardar", exact: true }).click();
+    await expect(again.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
+    await expect(again).toContainText(original || "—");
+  });
+
+  test("switching to Ficha pública with unsaved edits asks, and Descartar restores the saved value", async ({ page }) => {
+    test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
+    expect(await signInAs(page, "seller")).toBe(true);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/mi-empresa/detalles");
+    const panel = page.locator("#panel-basic");
+    const edit = panel.getByRole("button", { name: "Editar" });
+    if (await edit.isVisible()) await edit.press("Enter");
+    const year = panel.locator('input[name="foundedYear"]');
+    const original = await year.inputValue();
+    await year.fill(original === "1990" ? "1991" : "1990");
+    await page.getByRole("tab", { name: "Ficha pública" }).or(page.getByRole("button", { name: "Ficha pública" })).first().click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("Tienes cambios sin guardar");
+    await dialog.getByRole("button", { name: "Descartar" }).click();
+    await page.getByRole("tab", { name: "Información empresa" }).or(page.getByRole("button", { name: "Información empresa" })).first().click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    const reopen = panel.getByRole("button", { name: "Editar" });
+    if (await reopen.isVisible()) await reopen.press("Enter");
+    await expect(panel.locator('input[name="foundedYear"]')).toHaveValue(original);
+  });
+});

@@ -350,6 +350,7 @@ function Panel({
   onEdit,
   onCollapse,
   onCancel,
+  onSave,
   fixed = false,
   chip = true,
   summary = null,
@@ -372,6 +373,8 @@ function Panel({
   onEdit: () => void;
   onCollapse: () => void;
   onCancel?: () => void;
+  /** S27: manual save. Guardar sends the form; the panel closes to its read-only view once the save lands. */
+  onSave?: () => void;
   summary?: ReactNode;
   children: ReactNode;
 }) {
@@ -384,8 +387,8 @@ function Panel({
           {hint ? <span className="shrink-0"><FieldHint text={hint} /></span> : null}
         </h2>
         <div className="flex shrink-0 flex-nowrap items-center gap-1.5 whitespace-nowrap">
-          {saveState || dirty ? (
-            <AutoSaveStatus state={saveState ?? "saving"} />
+          {saveState ? (
+            <AutoSaveStatus state={saveState} />
           ) : !chip ? null : (
             <CompactStatus
               label={done ? companyCopy.doneChip : companyCopy.pendingChip}
@@ -412,12 +415,18 @@ function Panel({
       {open ? (
         <div className="mt-4">
           {children}
-          {fixed ? null : (
+          {fixed && !(onSave && dirty) ? null : (
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {dirty ? (
+                <span role="status" className="inline-flex w-full items-center justify-center gap-1 text-xs text-[#8a5a00] sm:mr-1 sm:w-auto" data-unsaved-hint>
+                  <span className="size-1.5 rounded-full bg-[#d79b2b]" aria-hidden />
+                  {companyCopy.unsavedHint}
+                </span>
+              ) : null}
               <KitButton type="button" tone="outline" size="sm" onClick={onCancel ?? onCollapse}>
                 {companyCopy.cancelPanel}
               </KitButton>
-              <KitButton type="button" tone="navy" size="sm" onClick={onCollapse}>
+              <KitButton type="button" tone="navy" size="sm" onClick={onSave ?? onCollapse}>
                 {companyCopy.savePanel}
               </KitButton>
             </div>
@@ -425,6 +434,40 @@ function Panel({
         </div>
       ) : null}
     </Card>
+  );
+}
+
+/** S27: asked before switching Información empresa / Ficha pública with unsaved edits. */
+function UnsavedTabDialog({ onStay, onDiscard, onSave }: { onStay: () => void; onDiscard: () => void; onSave: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c2740]/40 px-4" onClick={onStay}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unsaved-tab-title"
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onStay();
+        }}
+        className="w-[min(25rem,100%)] rounded-2xl bg-white p-5 shadow-xl"
+      >
+        <h2 id="unsaved-tab-title" className="text-base font-semibold text-[#1c2740]">
+          {companyCopy.unsavedTitle}
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{companyCopy.unsavedBody}</p>
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <KitButton type="button" tone="outline" size="sm" onClick={onStay} autoFocus>
+            {companyCopy.unsavedStay}
+          </KitButton>
+          <KitButton type="button" tone="outline" size="sm" onClick={onDiscard}>
+            {companyCopy.unsavedDiscard}
+          </KitButton>
+          <KitButton type="button" tone="navy" size="sm" onClick={onSave}>
+            {companyCopy.unsavedSave}
+          </KitButton>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1832,6 +1875,8 @@ export function CompanyDraftForm({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const leaveHrefRef = useRef<string | null>(null);
+  const closeAfterSaveRef = useRef<string | null>(null);
+  const closePanelRef = useRef<(id: string) => void>(() => undefined);
   const [leaveFailedHref, setLeaveFailedHref] = useState<string | null>(null);
   const initial = draft ?? emptyCompanyDraft();
   // t95: the save runs outside a React transition. Inside one, the router refresh that follows revalidatePath kept the
@@ -1853,6 +1898,9 @@ export function CompanyDraftForm({
     setState(landed);
     setPending(false);
     setSavePulse((current) => current + 1);
+    const closing = closeAfterSaveRef.current;
+    closeAfterSaveRef.current = null;
+    if (closing && landed.saved) closePanelRef.current(closing);
     const href = leaveHrefRef.current;
     if (href) {
       leaveHrefRef.current = null;
@@ -2090,10 +2138,9 @@ export function CompanyDraftForm({
 
 
 
-  // t95: Enter in a field saves now instead of a native submit; the autosave path handles every save.
+  // S27: Enter in a field does not save; only Guardar does.
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    autoSaveRef.current();
   }
 
   // Alex (S25) root cause of the "Reintentar highlights Razón de venta" loop: a failed save used to mark the
@@ -2298,22 +2345,13 @@ export function CompanyDraftForm({
     { id: "deal", label: companyCopy.fichaFieldsTitle, dirty: dealDirty },
   ].filter((section) => section.dirty);
 
-  // t95: autosave replaces the "Cambios sin guardar" bar. Text saves ~800 ms after typing stops (or on blur); selects,
-  // toggles and option menus save at once. A field that fails the browser's own validation keeps its last saved value in
-  // the request, so one bad field never blocks the others; the field itself stays marked until fixed.
-  const draftKey = JSON.stringify(currentDraft);
+  // S27: Guardar sends the whole form. A field that fails the browser's own validation keeps its last saved value in the
+  // request, so one bad field never blocks the others; the field itself stays marked until fixed.
   const [savingSections, setSavingSections] = useState<string[]>([]);
-  const [lastSentKey, setLastSentKey] = useState("");
-  const typedAt = useRef(0);
-  const saveTimer = useRef<number | null>(null);
   const savedForm = useRef<FormData | null>(null);
   const sentForm = useRef<FormData | null>(null);
 
-  function runAutoSave() {
-    if (saveTimer.current !== null) {
-      window.clearTimeout(saveTimer.current);
-      saveTimer.current = null;
-    }
+  function runSave() {
     const form = formRef.current;
     if (!form || pending || !formDirty) return;
     const blocked = saveBlockReason([capitalPercents, productPercents, clientPercents]);
@@ -2342,7 +2380,6 @@ export function CompanyDraftForm({
         ? { ...currentDraft, capitalPercents: baseline.capitalPercents, productPercents: baseline.productPercents, clientPercents: baseline.clientPercents }
         : currentDraft,
     );
-    setLastSentKey(draftKey);
     sentForm.current = data;
     void action(data);
   }
@@ -2351,15 +2388,11 @@ export function CompanyDraftForm({
     if (pending) return;
     const data = sentForm.current;
     if (!data) {
-      runAutoSave();
+      runSave();
       return;
     }
     void action(data);
   }
-  const autoSaveRef = useRef(runAutoSave);
-  useEffect(() => {
-    autoSaveRef.current = runAutoSave;
-  });
 
   useEffect(() => {
     const form = formRef.current;
@@ -2370,31 +2403,80 @@ export function CompanyDraftForm({
     if (state?.saved && sentForm.current) savedForm.current = sentForm.current;
   }, [state]);
 
+  // S27 (Alex): Detalles de empresa saves only on Guardar. No debounce, no blur or unload flush; the guard below warns
+  // before leaving with unsaved edits. Partial saves stay allowed (the server accepts an incomplete draft).
+  // Set by Guardar; action() closes that panel to its read-only view once the save lands (it stays open on failure).
+  function closePanel(id: string) {
+    if (id === "basic") setOpenBasic(false);
+    if (id === "structure") setOpenStructure(false);
+    if (id === "income") setOpenIncome(false);
+    if (id === "balance") setOpenBalance(false);
+  }
   useEffect(() => {
-    if (!formDirty || pending) return;
-    // Each edit is sent once: a failed save waits for a new edit or "Reintentar", and a draft that stays dirty after
-    // saving (a percent split that does not add up) is not re-sent in a loop.
-    if (draftKey === lastSentKey) return;
-    const typing = Date.now() - typedAt.current < 150;
-    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => autoSaveRef.current(), typing ? 800 : 0);
-    return () => {
-      if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
-    };
-  }, [draftKey, formDirty, pending, lastSentKey]);
+    closePanelRef.current = closePanel;
+  });
 
-  // t95: closing or reloading the tab flushes a pending save (the browser still asks while it is in flight).
-  useEffect(() => {
-    function flush() {
-      if (saveTimer.current !== null) autoSaveRef.current();
+  function saveSection(id: "basic" | "structure" | "income" | "balance" | "deal") {
+    if (id === "basic" && description.trim().length > 0 && description.trim().length < descriptionMinLength) {
+      setShowDescriptionMin(true);
     }
-    window.addEventListener("beforeunload", flush);
-    window.addEventListener("pagehide", flush);
-    return () => {
-      window.removeEventListener("beforeunload", flush);
-      window.removeEventListener("pagehide", flush);
-    };
-  }, []);
+    if (!formDirty) {
+      closePanel(id);
+      return;
+    }
+    if (pending) return;
+    closeAfterSaveRef.current = id === "deal" ? null : id;
+    runSave();
+  }
+
+  /** Cancelar puts a section back to what was last saved. */
+  function revertSection(id: "basic" | "structure" | "income" | "balance" | "deal") {
+    const b = baseline;
+    if (id === "basic") {
+      setLegalName(b.legalName);
+      setPostalCode(b.postalCode);
+      setCity(b.city);
+      setLocationDraft(formatCompanyLocation(b.postalCode, b.city));
+      setFoundedYear(b.foundedYear);
+      setDescription(b.description);
+      setSaleReason(b.saleReason);
+      setPrincipalCnae(b.principalCnae);
+      setSecondaryCnaes(b.secondaryCnaes);
+      setNif(b.nif);
+      setHeadcount(b.headcount);
+      setSellerFinancing(b.sellerFinancing);
+      setSellerStay(b.sellerStay);
+      setShowDescriptionMin(false);
+    }
+    if (id === "structure") {
+      setProductPercents(b.productPercents);
+      setClientPercents(b.clientPercents);
+      setCustomerBase(b.customerBase);
+      setOwnerDependence(b.ownerDependence);
+      setPremisesKind(b.premisesKind);
+      setRentMonthly(b.rentMonthly);
+      setLeaseYearsRemaining(b.leaseYearsRemaining);
+      setRecurringRevenuePct(b.recurringRevenuePct);
+      setClientError(null);
+    }
+    if (id === "income" || id === "balance") {
+      setClosedYears(b.closedYears);
+      setForecastYear(b.forecastYear);
+    }
+    if (id === "deal") {
+      setCodename(b.codename);
+      setAskingPrice(b.askingPrice);
+      setAskingPriceIncludes(b.askingPriceIncludes);
+      setAdjustmentRows(formRowsFromJson(b.ebitdaAdjustments));
+    }
+  }
+
+  function discardAll() {
+    for (const id of ["basic", "structure", "income", "deal"] as const) revertSection(id);
+  }
+
+  // S27: switching between Información empresa and Ficha pública with unsaved edits asks first.
+  const [tabAsk, setTabAsk] = useState<"company" | "deal" | null>(null);
 
   function sectionSaveState(...ids: string[]): AutoSaveState {
     if (!ids.some((id) => savingSections.includes(id))) return null;
@@ -2475,7 +2557,7 @@ export function CompanyDraftForm({
       router.push(href);
       return;
     }
-    runAutoSave();
+    runSave();
   }
 
   return (
@@ -2483,24 +2565,31 @@ export function CompanyDraftForm({
     <form
       ref={formRef}
       onSubmit={onSubmit}
-      onInput={(event) => {
-        const target = event.target;
-        if (target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && target.type !== "checkbox" && target.type !== "radio")) {
-          typedAt.current = Date.now();
-        }
-      }}
-      onBlur={() => {
-        if (saveTimer.current !== null) autoSaveRef.current();
-      }}
       className="flex flex-col gap-4"
     >
       <UnsavedChangesGuard
         dirty={formDirty || pending}
         onSave={saveAndLeave}
-        autoSave
         failedHref={leaveFailedHref}
         onDismissFailed={() => setLeaveFailedHref(null)}
       />
+      {tabAsk ? (
+        <UnsavedTabDialog
+          onStay={() => setTabAsk(null)}
+          onDiscard={() => {
+            discardAll();
+            setTab(tabAsk);
+            setTabAsk(null);
+            window.scrollTo({ top: 0 });
+          }}
+          onSave={() => {
+            runSave();
+            setTab(tabAsk);
+            setTabAsk(null);
+            window.scrollTo({ top: 0 });
+          }}
+        />
+      ) : null}
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
       <div className={pageHeaderRowClass}>
         <h1 className={pageTitleClass}>{sellerCopy.detailsTitle}</h1>
@@ -2516,6 +2605,10 @@ export function CompanyDraftForm({
         value={tab}
         stuckBelowProgress={tab === "company"}
         onChange={(id) => {
+          if (formDirty && id !== tab) {
+            setTabAsk(id);
+            return;
+          }
           setTab(id);
           window.scrollTo({ top: 0 });
         }}
@@ -2587,13 +2680,12 @@ export function CompanyDraftForm({
           setSaveClosed("");
           setOpenBasic(true);
         }}
-        onCollapse={() => {
-          if (description.trim().length > 0 && description.trim().length < descriptionMinLength) {
-            setShowDescriptionMin(true);
-          }
+        onCollapse={() => setOpenBasic(false)}
+        onSave={() => saveSection("basic")}
+        onCancel={() => {
+          revertSection("basic");
           setOpenBasic(false);
         }}
-        onCancel={() => setOpenBasic(false)}
       >
         <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
           {identityLocked ? (
@@ -2849,6 +2941,11 @@ export function CompanyDraftForm({
           setOpenStructure(true);
         }}
         onCollapse={() => setOpenStructure(false)}
+        onSave={() => saveSection("structure")}
+        onCancel={() => {
+          revertSection("structure");
+          setOpenStructure(false);
+        }}
       >
         {clientError ? (
           <p role="alert" className="mb-3 rounded-xl bg-[#fdecea] px-3 py-2 text-sm text-[#a12f2f]">
@@ -2977,6 +3074,8 @@ export function CompanyDraftForm({
         done={priceDone}
         onEdit={() => setSaveClosed("")}
         onCollapse={() => undefined}
+        onSave={() => saveSection("deal")}
+        onCancel={() => revertSection("deal")}
       >
           <PublicFicha
             codename={codename}
@@ -3055,6 +3154,11 @@ export function CompanyDraftForm({
           setOpenIncome(true);
         }}
         onCollapse={() => setOpenIncome(false)}
+        onSave={() => saveSection("income")}
+        onCancel={() => {
+          revertSection("income");
+          setOpenIncome(false);
+        }}
       >
         <div className="mb-3 flex flex-wrap gap-4 text-xs text-[#667085]">
           <span className="inline-flex items-center gap-2">
@@ -3157,6 +3261,11 @@ export function CompanyDraftForm({
           setOpenBalance(true);
         }}
         onCollapse={() => setOpenBalance(false)}
+        onSave={() => saveSection("balance")}
+        onCancel={() => {
+          revertSection("balance");
+          setOpenBalance(false);
+        }}
       >
         <div className="mb-3 flex flex-wrap gap-4 text-xs text-[#667085]">
           <span className="inline-flex items-center gap-2">

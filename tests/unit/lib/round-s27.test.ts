@@ -283,3 +283,42 @@ describe("S27 point 4: INT seed", () => {
     expect(read("docs/INT.md")).toMatch(/int-s27-pipeline-advisors\.sql/);
   });
 });
+
+describe("S27 follow-up: Detalles de empresa saves only on Guardar", () => {
+  const form = read("src/components/seller/company-draft-form.tsx");
+
+  it("has no background autosave: no debounce timer, no blur or unload flush, Enter does not save", () => {
+    expect(form).not.toMatch(/saveTimer/);
+    expect(form).not.toMatch(/typing \? 800 : 0/);
+    expect(form).not.toMatch(/addEventListener\("pagehide"/);
+    expect(form).toMatch(/function onSubmit\(event: FormEvent<HTMLFormElement>\) \{\s*event\.preventDefault\(\);\s*\}/);
+  });
+
+  it("Guardar saves the form and closes the panel only once the save lands; Cancelar reverts the section", () => {
+    expect(form).toMatch(/onSave=\{\(\) => saveSection\("basic"\)\}/);
+    expect(form).toMatch(/onSave=\{\(\) => saveSection\("structure"\)\}/);
+    expect(form).toMatch(/onSave=\{\(\) => saveSection\("deal"\)\}/);
+    expect(form).toMatch(/if \(closing && landed\.saved\) closePanelRef\.current\(closing\)/);
+    expect(form).toMatch(/revertSection\("basic"\);\s*setOpenBasic\(false\);/);
+    expect(form).toMatch(/onClick=\{onSave \?\? onCollapse\}/);
+  });
+
+  it("warns before leaving and before switching tabs, and shows Cambios sin guardar near Guardar", () => {
+    expect(form).toMatch(/<UnsavedChangesGuard\s+dirty=\{formDirty \|\| pending\}\s+onSave=\{saveAndLeave\}\s+failedHref/);
+    expect(form).not.toMatch(/\bautoSave\n/);
+    expect(form).toMatch(/if \(formDirty && id !== tab\) \{\s*setTabAsk\(id\);/);
+    expect(form).toMatch(/<UnsavedTabDialog/);
+    expect(form).toMatch(/data-unsaved-hint/);
+    expect(read("src/lib/company-copy.ts")).toMatch(/unsavedHint: "Cambios sin guardar"/);
+  });
+});
+
+describe("S27 follow-up: blog grid has no lone last card", () => {
+  it("spans a lone last card (or the second of two) across the free columns", async () => {
+    const { blogGridClass } = await import("@/components/public/blog-index");
+    expect(blogGridClass).toContain("sm:[&>li:nth-child(2n+1):last-child]:col-span-2");
+    expect(blogGridClass).toContain("lg:[&>li:nth-child(3n+1):last-child]:col-span-3");
+    expect(blogGridClass).toContain("lg:[&>li:nth-child(3n+2):last-child]:col-span-2");
+    expect(read("src/components/public/blog-card.tsx")).toMatch(/@\[40rem\]:flex-row/);
+  });
+});

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoIdentityLeak, roleCreds, signInAs } from "./helpers";
 
 test.describe("seller workspace", () => {
-  test("onboarding home, detalles autosave, SABI/INT upload, EBITDA, publish", async ({ page }) => {
+  test("onboarding home, detalles, SABI/INT upload, EBITDA, publish", async ({ page }) => {
     test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
     const signedIn = await signInAs(page, "seller");
     expect(signedIn).toBe(true);

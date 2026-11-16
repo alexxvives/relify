@@ -4,6 +4,9 @@ import { useState } from "react";
 import { BlogCard, BlogFeatured } from "@/components/public/blog-card";
 import { blogCategories, blogCopy, type BlogPost } from "@/lib/blog";
 
+export const blogGridClass =
+  "grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 sm:[&>li:nth-child(2n+1):last-child]:col-span-2 lg:[&>li:nth-child(2n+1):last-child]:col-span-1 lg:[&>li:nth-child(3n+1):last-child]:col-span-3 lg:[&>li:nth-child(3n+2):last-child]:col-span-2";
+
 /** S27: featured post, topic filter and a dense card grid. Posts arrive newest first. */
 export function BlogIndex({ posts }: { posts: BlogPost[] }) {
   const [category, setCategory] = useState<string>("");
@@ -41,9 +44,11 @@ export function BlogIndex({ posts }: { posts: BlogPost[] }) {
         {shown.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-public-line bg-white/60 p-6 text-sm text-public-muted">{blogCopy.empty}</p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+          // S27: the last row always fills. A card left alone (or two in a row of three) spans the free columns and
+          // switches to a horizontal layout, so 7 posts read 3 + 3 + 1 wide card at 1024-1440 and 2 + 2 + 2 + 1 wide below.
+          <ul className={blogGridClass}>
             {shown.map((post) => (
-              <li key={post.slug}>
+              <li key={post.slug} className="@container">
                 <BlogCard post={post} />
               </li>
             ))}

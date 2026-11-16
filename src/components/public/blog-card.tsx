@@ -19,8 +19,8 @@ function Meta({ post }: { post: BlogPost }) {
 /** S27: blog card. The whole card is one link; the title carries the accessible name. */
 export function BlogCard({ post }: { post: BlogPost }) {
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-public-line bg-white transition-shadow hover:shadow-[0_12px_32px_-18px_rgba(18,52,58,0.35)]">
-      <div className="relative aspect-[16/10] overflow-hidden bg-public-card">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-public-line bg-white transition-shadow hover:shadow-[0_12px_32px_-18px_rgba(18,52,58,0.35)] @[40rem]:flex-row">
+      <div className="relative aspect-[16/10] overflow-hidden bg-public-card @[40rem]:aspect-auto @[40rem]:min-h-[14rem] @[40rem]:w-1/2 @[40rem]:shrink-0">
         <Image
           src={post.cover.src}
           alt=""
@@ -29,7 +29,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
           sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
         />
       </div>
-      <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5">
+      <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5 @[40rem]:justify-center @[40rem]:p-7">
         <Meta post={post} />
         <h3 className="text-lg leading-snug font-semibold tracking-tight text-public-ink">
           <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0 focus-visible:outline-none after:rounded-2xl focus-visible:after:ring-2 focus-visible:after:ring-[#2fc4b2]">
