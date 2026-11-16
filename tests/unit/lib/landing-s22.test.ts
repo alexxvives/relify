@@ -52,7 +52,8 @@ describe("Round S22 landing and product bits", () => {
 
   it("requires terms on sign-up and drops the plan checkout line", () => {
     expect(read("src/components/auth/sign-up-form.tsx")).toMatch(/acceptTerms/);
-    expect(read("src/lib/server/sign-up.ts")).toMatch(/termsAcceptedAt/);
+    // S26: the checkbox is required, but it must not stamp the signed-agreement column (see platform-agreement.ts).
+    expect(read("src/lib/server/sign-up.ts")).not.toMatch(/termsAcceptedAt/);
     expect(read("src/components/investor/premium-plans.tsx")).not.toMatch(/CheckoutLegalNote/);
     expect(read("src/components/auth/onboarding-form.tsx")).not.toMatch(/CheckoutLegalNote/);
     expect(read("src/components/auth/onboarding-plan-resume.tsx")).not.toMatch(/CheckoutLegalNote/);

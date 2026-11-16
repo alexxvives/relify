@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth-input";
 import { auth } from "@/lib/server/auth";
 import { prisma } from "@/lib/db";
+import { platformAgreementSigned } from "@/lib/platform-agreement";
 import { maskNationalId } from "@/lib/spanish-cif";
 
 export type CurrentUser = {
@@ -59,6 +60,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       role: true,
       onboardedAt: true,
       termsAcceptedAt: true,
+      signaturePng: true,
+      createdAt: true,
       suspendedAt: true,
       nationalId: true,
     },
@@ -67,6 +70,12 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!stored || stored.suspendedAt !== null) {
     return null;
   }
+
+  const agreementSigned = platformAgreementSigned({
+    termsAcceptedAt: stored.termsAcceptedAt,
+    hasSignature: stored.signaturePng !== null && stored.signaturePng.length > 0,
+    createdAt: stored.createdAt,
+  });
 
   return {
     id: session.user.id,
@@ -77,8 +86,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     email: stored.email,
     role: readUserRole(stored.role),
     onboarded: stored.onboardedAt !== null,
-    termsAccepted: stored.termsAcceptedAt !== null,
-    termsAcceptedAt: stored.termsAcceptedAt,
+    termsAccepted: agreementSigned,
+    termsAcceptedAt: agreementSigned ? stored.termsAcceptedAt : null,
     nationalIdMissing: !stored.nationalId,
     nationalIdMasked: stored.nationalId ? maskNationalId(stored.nationalId) : null,
   };

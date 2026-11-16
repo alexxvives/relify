@@ -5,7 +5,6 @@ import {
   type AuthResult,
   type SignUpInput,
 } from "@/lib/auth-input";
-import { prisma } from "@/lib/db";
 import { auth } from "@/lib/server/auth";
 import { authFailureMessage } from "@/lib/server/auth-failure";
 
@@ -20,10 +19,8 @@ export async function signUp(input: SignUpInput): Promise<AuthResult> {
       },
       headers: await headers(),
     });
-    await prisma.user.update({
-      where: { email: input.email },
-      data: { termsAcceptedAt: new Date() },
-    });
+    // S26: the Términos checkbox is enforced by readSignUpForm. It must not stamp terms_accepted_at: that column
+    // means "signed the Acuerdo con Relify" (PlatformTermsDialog), and stamping it here skipped the agreement.
     return { ok: true };
   } catch (error) {
     return {
