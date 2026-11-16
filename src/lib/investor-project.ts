@@ -1,21 +1,29 @@
 import { storedSellerFinancing, type SellerFinancing } from "./seller-financing";
 import { storedSellerStay, type SellerStay } from "./seller-stay";
-import { storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { publishedEbitdaFromAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 import type { Prisma } from "@/generated/prisma/client";
-import { cnaeTitle } from "./cnae-2009";
+import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { toSabiYear, type SabiYear } from "./sabi/insights";
 import { balanceLabels, incomeLabels } from "./company-copy";
+import { latestClosedYears } from "./financial-metrics";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
   balanceValue,
   ebitdaMarginBasisPoints,
+  grossLineLabel,
   incomeDisplayKeys,
   incomeValue,
   isEmphasisRow,
   isHeadcountRange,
+  isOwnerDependence,
+  isPremisesKind,
+  storedAskingPriceIncludes,
+  type AskingPriceIncludes,
   type BalanceAmounts,
   type BalanceDisplayKey,
+  type OwnerDependence,
+  type PremisesKind,
   type HeadcountRangeId,
   type IncomeDisplayKey,
   type PnlAmounts,
@@ -40,6 +48,12 @@ export const investorProjectSelect = {
   sellerFinancingMaxPct: true,
   sellerFinancingYears: true,
   sellerStay: true,
+  ownerDependence: true,
+  premisesKind: true,
+  rentMonthlyCents: true,
+  leaseYearsRemaining: true,
+  recurringRevenuePct: true,
+  askingPriceIncludes: true,
   opexCents: true,
   headcountRange: true,
   customerBase: true,
@@ -158,6 +172,12 @@ export type InvestorProjectProfile = {
   sellerFinancing: SellerFinancing | null;
   /** t93: would the seller stay on as an adviser; deal term, visible before the NDA. null = not answered. */
   sellerStay: SellerStay | null;
+  ownerDependence: OwnerDependence | null;
+  premisesKind: PremisesKind | null;
+  rentMonthlyCents: number | null;
+  leaseYearsRemaining: number | null;
+  recurringRevenuePct: number | null;
+  askingPriceIncludes: AskingPriceIncludes;
   askingPriceCents: number;
   opexCents: number | null;
   ebitdaMarginBp: number | null;
@@ -186,6 +206,11 @@ export type InvestorProjectProfile = {
   photos?: { id: string; hidden: boolean }[];
   /** t69: closed years as plain numbers for the visual report (same data as the tables above, oldest first). */
   reportYears?: SabiYear[];
+  /**
+   * Pre-NDA payload: year rows are invented placeholders. Header cards must still read the published
+   * `revenueCents` / `ebitdaCents` / `adjustedEbitdaCents` columns, not those years.
+   */
+  figuresVeiled?: boolean;
 };
 
 type InvestorProjectRecord = {
@@ -205,6 +230,12 @@ type InvestorProjectRecord = {
   sellerFinancingMaxPct?: number | null;
   sellerFinancingYears?: number | null;
   sellerStay?: string | null;
+  ownerDependence?: string | null;
+  premisesKind?: string | null;
+  rentMonthlyCents?: number | null;
+  leaseYearsRemaining?: number | null;
+  recurringRevenuePct?: number | null;
+  askingPriceIncludes?: string | null;
   opexCents: number | null;
   headcountRange: string | null;
   customerBase: "business" | "consumer" | "mixed" | null;
@@ -304,9 +335,7 @@ const detailLines: Array<{ key: keyof RecordYear; label: string; emphasis: boole
 ];
 
 const indicatorLines: Array<{ key: string; label: string; unit: IndicatorUnit }> = [
-  { key: "profitMargin", label: "Margen de beneficio", unit: "percent" },
   { key: "economicReturn", label: "Rentabilidad económica (ROA)", unit: "percent" },
-  { key: "financialReturn", label: "Rentabilidad financiera (ROE)", unit: "percent" },
   { key: "returnOnCapitalEmployed", label: "Rentabilidad del capital empleado", unit: "percent" },
   { key: "generalLiquidity", label: "Liquidez general", unit: "multiple" },
   { key: "solvencyRatio", label: "Ratio de solvencia", unit: "multiple" },
@@ -314,11 +343,9 @@ const indicatorLines: Array<{ key: string; label: string; unit: IndicatorUnit }>
   { key: "solvencyCoefficient", label: "Coeficiente de solvencia", unit: "percent" },
   { key: "gearing", label: "Apalancamiento", unit: "percent" },
   { key: "interestCoverage", label: "Cobertura de intereses", unit: "multiple" },
-  { key: "collectionDays", label: "Periodo de cobro", unit: "days" },
-  { key: "creditDays", label: "Periodo de pago", unit: "days" },
-  { key: "staffCostToRevenue", label: "Coste de personal / ingresos", unit: "percent" },
-  { key: "averageStaffCost", label: "Coste medio por empleado", unit: "thousands" },
-  { key: "revenuePerEmployee", label: "Ingresos por empleado", unit: "thousands" },
+  { key: "collectionDays", label: "Periodo medio de cobro", unit: "days" },
+  { key: "creditDays", label: "Periodo medio de pago", unit: "days" },
+  { key: "staffCostToRevenue", label: "Coste de personal / ventas", unit: "percent" },
   { key: "profitPerEmployee", label: "Beneficio por empleado", unit: "thousands" },
 ];
 
@@ -338,13 +365,13 @@ function withData<T extends { values: Array<number | null> }>(rows: T[]): T[] {
 }
 
 function cnaeChip(code: string): InvestorCnae | null {
-  const title = cnaeTitle(code);
+  const trimmed = code.trim();
 
-  if (!title) {
+  if (trimmed.length === 0) {
     return null;
   }
 
-  return { code, title };
+  return { code: formatCnaeCode(trimmed), title: cnaeDisplayTitle(trimmed) };
 }
 
 function slicesFor(record: InvestorProjectRecord, kind: SliceKind): InvestorSlice[] {
@@ -399,14 +426,17 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
   const principal = record.cnaes
     .filter((cnae) => cnae.role === "principal")
     .sort((left, right) => left.position - right.position)[0];
-  const years = [...record.years].sort((left, right) => left.year - right.year);
+  const sorted = [...record.years].sort((left, right) => left.year - right.year);
+  const closed = latestClosedYears(sorted.filter((year) => year.kind === "closed"));
+  const years = [...closed, ...sorted.filter((year) => year.kind === "forecast")];
   const incomeYears = years.map((year) => ({ year: year.year, forecast: year.kind === "forecast" }));
-  const balanceSource = years.filter((year) => year.kind === "closed");
+  const balanceSource = closed;
+  const pnlYears = years.map((year) => toPnl(year));
   const incomeRows = incomeDisplayKeys.map((key) => ({
     key,
-    label: incomeLabels[key],
+    label: key === "grossMargin" ? grossLineLabel(pnlYears) : incomeLabels[key],
     emphasis: isEmphasisRow(key),
-    values: years.map((year) => incomeValue(key, toPnl(year))),
+    values: pnlYears.map((amounts) => incomeValue(key, amounts)),
   }));
   const balanceRows = balanceDisplayKeys.map((key) => ({
     key,
@@ -432,6 +462,12 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
   ]);
 
   const reportYears = balanceSource.map((year) => reportYear(year));
+  const clients = slicesFor(record, "client");
+  const lastYear = reportYears.at(-1);
+  const adjustments = storedEbitdaAdjustments(record.ebitdaAdjustments);
+  const revenueCents = lastYear?.revenueCents ?? record.revenueCents;
+  const ebitdaCents = lastYear?.ebitdaCents ?? record.ebitdaCents;
+  const published = publishedEbitdaFromAdjustments(ebitdaCents, adjustments, record.adjustedEbitdaCents, revenueCents);
 
   return {
     reportYears,
@@ -447,15 +483,21 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
     foundedYear: record.foundedYear,
     description: record.description,
     saleReason: record.saleReason,
-    revenueCents: record.revenueCents,
-    ebitdaCents: record.ebitdaCents,
-    adjustedEbitdaCents: record.adjustedEbitdaCents,
-    ebitdaAdjustments: storedEbitdaAdjustments(record.ebitdaAdjustments),
+    revenueCents,
+    ebitdaCents,
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments: adjustments,
     askingPriceCents: record.askingPriceCents,
     sellerFinancing: storedSellerFinancing(record),
     sellerStay: storedSellerStay(record.sellerStay),
+    ownerDependence: record.ownerDependence && isOwnerDependence(record.ownerDependence) ? record.ownerDependence : null,
+    premisesKind: record.premisesKind && isPremisesKind(record.premisesKind) ? record.premisesKind : null,
+    rentMonthlyCents: record.premisesKind === "rent" ? (record.rentMonthlyCents ?? null) : null,
+    leaseYearsRemaining: record.premisesKind === "rent" ? (record.leaseYearsRemaining ?? null) : null,
+    recurringRevenuePct: record.recurringRevenuePct ?? null,
+    askingPriceIncludes: storedAskingPriceIncludes(record.askingPriceIncludes),
     opexCents: record.opexCents,
-    ebitdaMarginBp: ebitdaMarginBasisPoints(record.ebitdaCents, record.revenueCents),
+    ebitdaMarginBp: ebitdaMarginBasisPoints(published.ebitdaCents, revenueCents),
     principalCnae: principal ? cnaeChip(principal.code) : null,
     secondaryCnaes: record.cnaes
       .filter((cnae) => cnae.role === "secondary")
@@ -464,7 +506,7 @@ export function toInvestorProject(record: InvestorProjectRecord): InvestorProjec
       .filter((cnae): cnae is InvestorCnae => cnae !== null),
     capital: slicesFor(record, "capital"),
     products: slicesFor(record, "product"),
-    clients: slicesFor(record, "client"),
+    clients,
     customerBase: record.customerBase,
     headcountRange: record.headcountRange && isHeadcountRange(record.headcountRange) ? record.headcountRange : null,
     incomeYears,

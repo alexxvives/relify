@@ -21,7 +21,7 @@ Today `DataRoomFile` stores `id`, `projectId`, and `fileName` only. Seeded names
 
 ## When this surface is in scope
 
-1. Add one service in `src/server` per action (`listDataRoom`, `storeDataRoomFile`). Actions parse Zod input and call the service.
+1. Add one service in `src/lib/server` per action (`listDataRoom`, `storeDataRoomFile`). Actions parse Zod input and call the service.
 2. Authorize before any file read: the seller owns the draft or published project, or a future gate that is stricter than `ndaAccessGate` allows the investor. The NDA record alone is not enough.
 3. Return a display name to an authorized caller only. Keep the storage key out of the client payload and out of HTML.
 4. Test that public and investor serializers still omit `dataRoomFiles`, and that a signed-out fetch of `/proyectos/proyecto-duna` does not contain `impuestos-duna.pdf`.

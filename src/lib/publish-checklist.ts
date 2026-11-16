@@ -7,7 +7,7 @@ import type { SellerFocusPanel, SellerPanelFlags } from "./company-profile";
  * - The admin checks (financials loaded, EBITDA > 0) are ours: we fill them within 24 h, admin sees
  *   them on the company page and the server enforces them before approval and before payment.
  */
-export type SellerCheckKey = "identity" | "saleReason" | "description" | "price" | "sellerFinancing";
+export type SellerCheckKey = "identity" | "location" | "saleReason" | "description" | "price" | "sellerFinancing";
 export type AdminCheckKey = "cnae" | "income" | "balance" | "structure" | "ebitda";
 
 export type CheckItem<K extends string> = {
@@ -28,10 +28,11 @@ export type PublishChecklist = CheckList<SellerCheckKey>;
 export type AdminPublishChecks = CheckList<AdminCheckKey>;
 
 const detailHref = (panel: SellerFocusPanel, anchor: string = `panel-${panel}`) =>
-  `/mi-empresa/detalles?seccion=${panel}#${anchor}`;
+  `/mi-empresa/detalles?seccion=${panel}&ancla=${encodeURIComponent(anchor)}#${anchor}`;
 
 export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> = {
   identity: "Nombre y NIF",
+  location: "Ubicación",
   saleReason: "Motivo de venta",
   description: "Descripción",
   price: "Precio de venta",
@@ -51,17 +52,27 @@ function list<K extends SellerCheckKey | AdminCheckKey>(items: Omit<CheckItem<K>
   return { items: labelled, missing, ready: missing.length === 0 };
 }
 
-export function publishChecklist(input: { panels: SellerPanelFlags; saleReason: boolean; sellerFinancing: boolean }): PublishChecklist {
+export function publishChecklist(input: {
+  panels: SellerPanelFlags;
+  saleReason: boolean;
+  sellerFinancing: boolean;
+  /** S25: city or region on file. Saving no longer requires it; publishing does. Omitted = known. */
+  location?: boolean;
+}): PublishChecklist {
   const items: Omit<CheckItem<SellerCheckKey>, "label">[] = [];
   // Name and NIF come from the NIF step; they only show while still missing.
   if (!input.panels.identity) {
     items.push({ key: "identity", done: false, href: detailHref("identity") });
   }
+  // Usually filled from the registry; only shows while missing.
+  if (input.location === false) {
+    items.push({ key: "location", done: false, href: detailHref("identity", "panel-location") });
+  }
   items.push(
-    { key: "saleReason", done: input.saleReason, href: detailHref("identity") },
+    { key: "saleReason", done: input.saleReason, href: detailHref("identity", "panel-sale-reason") },
     { key: "description", done: input.panels.description, href: detailHref("description") },
     { key: "price", done: input.panels.price, href: detailHref("price") },
-    // t92: required; any answer (Sí, No or Negociable) completes it.
+    // t92: required; Sí or No completes it. Leftover Negociable is stored as Sí.
     { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("cnae", "panel-seller-financing") },
   );
   return list(items);

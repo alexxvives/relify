@@ -1,0 +1,13 @@
+{
+  "round": "s17b",
+  "commit": "9198cce130b97b74b83842f10c3d7eb4223624b4",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "818e850e535e8f7765292b82f489d424b324ebc7bf94cf59304b0923a0645470",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql"
+  ],
+  "note": "No Prisma migration. Additive INT SQL for Consultoría Servicios years, buyer DNI, and data-room shares. Help copy + LOI DNI skip. Not deployed.",
+  "deployed": false
+}

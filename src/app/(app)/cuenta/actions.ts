@@ -5,22 +5,24 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import {
+  accountProfileKeepIdSchema,
   accountProfileSchema,
   onboardingFieldMessage,
   parseAccountEmail,
   splitAccountName,
 } from "@/lib/auth-input";
-import { auth } from "@/server/auth";
-import { authFailureMessage } from "@/server/auth-failure";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { auth } from "@/lib/server/auth";
+import { authFailureMessage } from "@/lib/server/auth-failure";
+import { getAccountNationalId } from "@/lib/server/get-account-national-id";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   markNotificationRead,
   markNotificationsRead,
-} from "@/server/markNotificationsRead";
-import { takeThrottle } from "@/server/emailThrottle";
-import { mailConfigured } from "@/server/mailer";
-import { signOut } from "@/server/signOut";
-import { updateAccountProfile } from "@/server/updateAccountProfile";
+} from "@/lib/server/mark-notifications-read";
+import { takeThrottle } from "@/lib/server/email-throttle";
+import { mailConfigured } from "@/lib/server/mailer";
+import { signOut } from "@/lib/server/sign-out";
+import { updateAccountProfile } from "@/lib/server/update-account-profile";
 
 export type AccountFormState = {
   message: string;
@@ -54,10 +56,13 @@ export async function updateAccountAction(
     return { message: authCopy.fullNameRequired, saved: false };
   }
 
-  const parsed = accountProfileSchema.safeParse({
+  const storedId = await getAccountNationalId(user.id);
+  const submittedId = readText(formData, "nationalId").trim();
+  const keepStored = formData.get("nationalIdKeep") === "1" && submittedId.length === 0 && Boolean(storedId);
+  const parsed = (keepStored ? accountProfileKeepIdSchema : accountProfileSchema).safeParse({
     name: split.name,
     lastName: split.lastName,
-    nationalId: readText(formData, "nationalId"),
+    nationalId: keepStored ? (storedId ?? "") : submittedId,
     phoneCountry: readText(formData, "phoneCountry"),
     phone: readText(formData, "phone"),
   });

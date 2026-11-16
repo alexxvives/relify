@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { AdvisorServicesSkeleton } from "@/components/page-skeletons";
+import { AdvisorServicesSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { AdvisorServices } from "@/components/advisor-services";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisorServices } from "@/components/advisor/advisor-services";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { listAdvisorPlatformCloses } from "@/server/advisoryEngagement";
-import { getAdvisorProfile } from "@/server/getAdvisorProfile";
-import { requireRole } from "@/server/requireRole";
+import { listAdvisorPlatformCloses } from "@/lib/server/advisory-engagement";
+import { getAdvisorProfile } from "@/lib/server/get-advisor-profile";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: advisorCopy.servicesTitle,

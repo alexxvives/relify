@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AuthScreen } from "@/components/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { destinationForUser } from "@/lib/auth-input";
 import { authCopy } from "@/lib/auth-copy";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 
 export const metadata: Metadata = {
   title: authCopy.signUpTitle,

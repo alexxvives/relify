@@ -1,11 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState, useEffect, useState } from "react";
 import { ArrowRight, Briefcase, Building2, Landmark } from "lucide-react";
+import Counter from "@/components/Counter";
 import { joinWaitlistAction, type WaitlistState } from "@/app/lista-de-espera/actions";
 import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 import { waitlistCopy, waitlistOpensAt, type waitlistRoles } from "@/lib/waitlist";
+import { ConversionPing } from "@/components/auth/cookie-consent";
 
 type Role = (typeof waitlistRoles)[number];
 
@@ -32,17 +33,22 @@ function partsLeft(now: number) {
   ];
 }
 
-function FlipUnit({ value, previous, label }: { value: string; previous: string; label: string }) {
-  const play = value !== previous;
+function FlipUnit({ value, label }: { value: number; label: string }) {
   return (
     <li>
-      <div className="releva-flip">
-        <b>{value}</b>
-        {play ? (
-          <span className="releva-flip-leaf" key={value}>
-            <span>{previous}</span>
-          </span>
-        ) : null}
+      <div className="releva-flip releva-flip-counter">
+        <Counter
+          value={value}
+          minDigits={2}
+          direction="down"
+          bounce={0.3}
+          stagger={0.06}
+          duration={1.1}
+          fontSize="clamp(3.4rem, 7vw, 7.2rem)"
+          fontWeight={600}
+          textColor="#ffffff"
+          intro={false}
+        />
       </div>
       <span>{label}</span>
     </li>
@@ -50,29 +56,22 @@ function FlipUnit({ value, previous, label }: { value: string; previous: string;
 }
 
 function WaitlistClock() {
-  const [clock, setClock] = useState<{ now: number | null; previous: number | null }>({ now: null, previous: null });
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setClock((current) => ({ now: Date.now(), previous: current.now }));
+      setNow(Date.now());
     }, 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  const now = clock.now;
   const parts = partsLeft(now ?? opensAt);
-  const before = partsLeft(clock.previous ?? now ?? opensAt);
 
   return (
-    <div className="releva-wait-clock" aria-label="Queda un mes para abrir">
+    <div className="releva-wait-clock" aria-label="Cuenta atrás hasta la apertura del marketplace">
       <ol>
-        {parts.map((part, index) => (
-          <FlipUnit
-            key={part.label}
-            value={now === null ? "00" : String(part.value).padStart(2, "0")}
-            previous={now === null ? "00" : String(before[index]?.value ?? part.value).padStart(2, "0")}
-            label={part.label}
-          />
+        {parts.map((part) => (
+          <FlipUnit key={part.label} value={part.value} label={part.label} />
         ))}
       </ol>
     </div>
@@ -93,15 +92,20 @@ export function WaitlistBoard() {
       <div className="releva-wait-layout">
         <div>
           <h1 className="releva-wait-title">
-            Apúntate para entrar
-            <span>en el marketplace</span>
+            Apúntate para entrar <span>en el marketplace</span>
           </h1>
-          <p className="releva-wait-body">{waitlistCopy.body}</p>
-          <div className="releva-wait-orbit" aria-hidden="true">
+          <p className="releva-wait-body sm:hidden">{waitlistCopy.bodyShort}</p>
+          <p className="releva-wait-body hidden sm:block">{waitlistCopy.body}</p>
+          <div className="releva-wait-orbit hidden sm:flex" aria-hidden="true">
             {seats.map((seed, index) => (
-              <span key={seed} className="releva-wait-face" style={{ animationDelay: `${index * -1.4}s` }}>
-                <Image src={gazeAvatarUrl(seed)} alt="" width={64} height={64} unoptimized />
-              </span>
+              <span
+                key={seed}
+                className="releva-wait-face"
+                style={{
+                  animationDelay: `${index * -1.4}s`,
+                  backgroundImage: `url("${gazeAvatarUrl(seed)}")`,
+                }}
+              />
             ))}
           </div>
         </div>
@@ -125,6 +129,7 @@ export function WaitlistForm({ role, onRole }: { role: Role; onRole: (role: Role
   if (state.status === "ok") {
     return (
       <div className="releva-wait-card">
+        <ConversionPing event="waitlist_submit" />
         <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{waitlistCopy.kicker}</p>
         <h2>{waitlistCopy.doneTitle}</h2>
         <p className="mt-3 text-base leading-7 text-public-muted">{waitlistCopy.doneBody}</p>

@@ -2,6 +2,194 @@
 
 Change a row only by adding a new dated entry. Do not silently swap libraries.
 
+## 2026-11-15 — Round S24 registro, profile, marketplace price filter, INT CIF
+
+GooeyNav Información/Ficha pública uses a solid white framed pill. `/registro` drops the intro and role helpers, fits Empresa/Comprador/Asesor in a 3-col grid, compact terms, password chips. Buyer plans drop the commission intro. `/cuenta` drops the masked DNI hint and stacks before 1024–1280 cramp. Default avatars cycle vendored Gaze blobs (`/waitlist/*.svg`). Marketplace **Facturación** filter is **Precio de venta** on `askingPriceCents`. INT CIF lookup never hits billable APIs; **B12345674** mocks Obrador Ficticio; misses stay honest (no “hemos rellenado”). Seller home links to Detalles when empty. Seller financing is Sí/No (Sí = Recomendado); year/% columns stay nullable unused. No Prisma schema migration.
+
+## 2026-11-15 — Round S23b folder graphic clicks
+
+A click on the 3D Folder graphic or peeking papers on `/mi-empresa/documentos` opens the folder view. Hover peek stays (`openOn="hover"` + `pointer-events-auto`). Folder `onActivate` forwards those clicks (papers had `stopPropagation`). The tile keeps Enter/Space. No Prisma schema migration.
+
+## 2026-11-15 — Round S23 landing polish, folder view, INT uploads
+
+Landing pipeline callout puts **Paso N** inline left of the title (same chip as NDA/Solicitud), icon centred, card `max-width: 42rem`. CIF line chart is a Catmull-Rom curve with gradient fill, draw animation, axes and a pulsing marker. How-it-works uses one spine; only the selected step lights. Publish/buyers step cards were restyled. **Vista previa del mercado** is gone. **rentables** is a more golden diagonal shine (`#c48914`, exception to DESIGN “do not invent hex”). ReportNav bar is `w-fit` / `inline-flex`. INT uploads are on: isolated `data/data-room/int` locally and R2 binding `INT_UPLOADS` → bucket `releva-int-uploads` (create before INT deploy; never prod storage). GlareHover `playOnce` (no leave sweep, no replay). Landing sections share `py-10 sm:py-16`. Pipeline fill/pulse matches Mis procesos. Hero **Prueba gratis** sits at the bottom of the overlay. Documents folders peek on hover and open a folder view on click; files are A4 portrait sheets. Detalle description unmounts when collapsed so expand shows the full text. Información / Ficha pública uses lazy GooeyNav. No Prisma schema migration.
+
+## 2026-11-14 — Round S22b INT QA: skeleton height, wrapping GooeyNav, dropzone line
+
+`ProjectSkeleton` banner is a locked `h-[415px] sm:h-[438px]` with an 8-step pipeline placeholder so `/proyectos/[slug]` does not jump (CLS 0 under 3G). Ficha GooeyNav wraps and centres instead of clipping **Detalle de cuentas**; sm padding is tighter (`--gn-x: 10px`), icons hide below `sm`. Disabled dropzone copy is **Subida desactivada en pruebas**, with extra padding, and the tile spans two columns below `md`. No Prisma schema migration.
+
+## 2026-11-14 — Round S22 INT feedback: dropzone, GooeyNav, signup terms
+
+Path-switch FadeContent blur is 1.6s and clipped to the steps (`isolate overflow-hidden`). Mis documentos uses Bencho’s MIT **Upload dropzone** (`src/components/seller/upload-dropzone.tsx`) with Bencho comments kept, tokens mapped on `.upl` (`--card/--fill-on/--fill-slab/--font-ui/--ink/--ok/--pane-edge/--signal` → Relify navy/sand/ok), `motion/react` + `lucide-react` already in the tree (no `framer-motion`). Real desktop drop/click uploads, 20 MB, inhale/suck/gulp, progress roll + tick, Spanish too-big shake; INT disabled looks muted. React Bits **Folder** is every folder (grey `#9aa3b2`, Relify accent `#465ab4` last, `openOn="click"`, bounce 0.78). **Así se ve una operación** is title-left / reel-right again (`lg:grid-cols-[1.1fr_0.9fr]`). React Bits **TextMorph** needs the Pro registry (`@reactbits-starter` + licence) — SwapVerb stays; hero type is larger. **GooeyNav** (TS+CSS, WebGL + CSS fallback) is the ficha section bar, lazy, navy pill, skipped under reduced motion. `/registro` requires Términos + Privacidad and writes existing `User.termsAcceptedAt` (no Prisma migration); plan cards drop `Al pagar aceptas…`. How-it-works flow intro is gone. Buyer ficha drops the company-tab ProcessRoom, Chat is **Chat / Documentos**, banner download is icon + **Teaser**. Landing nav hover fills `h-11`. Landing intros no longer use pretty/balance/max-w wraps. No Prisma schema migration. Data-room R2 and hero compression stay pending Alex.
+
+## 2026-11-14 — Round S21 INT feedback: navy primary, readable gold, CIF popup
+
+App primary buttons use the waitlist hover colour `#1c2740` (`--relify-btn`) with hover `#334761` (`--relify-btn-hover`, AA on white). Public clay `#0f6e73` stays for eyebrows and progress, not primary CTAs. Landing **rentables** is solid `#7a4a00` (hero overlay `#ffd54a` plus a dark stroke) so the word stays readable at every shine frame — exception to DESIGN “do not invent hex”. Paid plan cards show net plus “IVA incluido” underneath; “IVA 21% no incluido.” is gone. The checkout legal line stays because `/registro` does not require terms/privacy (the blocking `PlatformTermsDialog` runs after sign-in). PixelCard, ElectricLogo, and `ogl` are removed. Relify’s data-room folder is last; in-folder files are PDF/image thumbs. Profile identity declaration is NDA-only. Empresa how-it-works step 1 is a CIF specimen popup, then loader, check, colourful charts (not a live registry lookup). Pipeline CSS `::after` sits at `top: 0.425rem` through the 0.85rem dots; the active step is a card. No Prisma schema migration. Data-room R2 and hero compression stay pending Alex.
+
+## 2026-11-14 — Round S20 React Bits landing, waitlist Gaze, toast stack
+
+Default `/` landing titles are centered. Path switch uses FadeContent blur (lazy, after the first click). **ElectricLogo** is a `/?v=2` desktop trial (`/logo.svg`, color `#10b949`, glow `#00f2ac`, scale 0.7, strands 4, bend 0.6, crackle 1.5, arcs 1, speed 2.5, interactive, paused when the tab is hidden). It is overkill for the header (desktop ~27 fps vs ~33 fps without it) and stays off default `/`. **GlareHover** and **StarBorder** are desktop-only and lazy so mobile Lighthouse stays even with S19. **Folder** is only the Relify folder on Mis documentos. **PixelCard** is the featured investor plan. Waitlist faces are vendored Gaze SVGs (`public/waitlist/`) because CSP `img-src 'self' data: blob:` blocked `api.dicebear.com`; `2a5c6f7` (S5) had swapped those URLs for smiley data-URIs. Waitlist clock uses React Bits Counter. App toasts follow the bencho toast-stack pattern with Costa tokens. **rentables** gold is `#f5b700` / `#ffc400` (exception to DESIGN “do not invent hex”). Process specimen has no Verificado / Financiación tags. Pipeline dots keep `transform-origin: center` so scale does not leave the line. `ogl` is only for ElectricLogo. No Prisma schema migration. Data-room R2 and hero compression stay pending Alex.
+
+## 2026-11-14 — Round S19 landing ficha, Relify folder, sticky nav
+
+Default `/` landing (and shared `/?v=2` sections): larger mobile hero title; **rentables** gold is darker (`#6b4200` / `#7a4e00`) with a diagonal light streak every 4s (reduced-motion static `#7a4e00`; overlay keeps a brighter streak). Exception to DESIGN “do not invent hex”. Paths and how-it-works are one section under **Tres formas de entrar**; clicking a path runs a traveling rail through that track’s steps. CIF / publish / NDA pipeline cards are example animations. Buyer `/proyectos/[slug]` and seller ficha preview share `CompanyFichaView`. Section nav is CSS `position: sticky` and always `max-w-4xl` centered. Mis documentos lists a highlighted Relify folder (teaser + NDA/LOI/terms drafts). Header ink stays dark over the hero. Data-room R2 and hero image compression stay pending Alex — write path and `unoptimized` images are the change points. No Prisma schema migration.
+
+## 2026-11-14 — Round S18 banner, hero overlay, gold, React Bits landing v2
+
+Buyer `/proyectos/[slug]` puts **Descargar cuaderno de venta** at the top-left of the hero banner (`absolute top-5 left-5`). Landing **Prueba gratis** stays inside `.releva-hero-copy` (absolute overlay); mobile `.releva-city-static` is in-flow so the card height follows the image, not the CTA. **rentables** gold is `#a47208` / `#b8860b` with a `#e8c547` shine (WCAG AA for large text on white; overlay reduced-motion uses `#e8c547`). Exception to DESIGN “do not invent hex”.
+
+Landing v2 is `/?v=2` (noindex), default `/` unchanged. `components.json` registers `@react-bits` → `https://reactbits.dev/r/{name}.json`. Installed with `npx shadcn@latest add @react-bits/FadeContent-TS-TW @react-bits/CountUp-TS-TW @react-bits/Aurora-TS-TW` (moved to `src/components/landing/`). **gsap** `^3.15.1` is only for FadeContent. Skipped ShinyText/GradientText so **rentables** stays the custom gold. v2 CountUp uses Proyecto Alba 240/48/190 as labelled example cifras, never `landingCopy.stats`. Aurora is desktop-only and paused off when `prefers-reduced-motion`. No Prisma schema migration.
+
+## 2026-11-14 — Round S17b help copy, LOI DNI reuse, INT buyer fixtures
+
+Seller `/mi-empresa` help stays titled **¿Necesitas ayuda?**, body exactly **Llámanos o escríbenos.**, and the phone number only (`+34 689 99 43 85`). No “Llamar”, no email row, no “Te acompañamos a rellenar la ficha.” Contact-page email is unchanged. NDA signing writes `user.national_id` via `ensureNationalId`; LOI `collectIdentity` is false so a stored id skips the DNI field (`identityOnSign` → `skip`). Additive INT-only SQL `prisma/int-consultoria-buyer-fixtures.sql` sets `int-comprador@test.local`’s DNI (signed NDA before this write existed) and seeds Consultoría Servicios data-room folders/files (two shared, pacto-socios not). No Prisma schema migration.
+
+## 2026-11-14 — Round S17 buyer ficha, DNI reuse, teaser and price bar
+
+Asking-price bar commits on pointerup / debounce, not on every move, so autosave cannot flash the page. The orientative-range sentence is an InfoHint formula, not body copy. Ficha KPI tiles drop Resultado neto. Teaser is a centered card under the document grid with copy-link only. Buyer report nav uses the same `inlineUntilSticky` as the seller ficha. After NDA (`access === "accepted"` / `ndaAcceptedAt`) the buyer sees unveiled figures, charts, detalle and the process document list; company legal identity stays off public/investor reads; data-room files stay share-gated. DNI/NIE stays on existing `user.national_id` (Neon at-rest encryption only — no app-level ciphertext column). UI never receives the full id (`nationalIdMasked`). LOI does not ask again when the profile already has one. Declaration checkbox is required when collecting or confirming identity. Logged-out landing uses one primary **Prueba gratis** (`/registro`) in the hero and header, with a ghost **Iniciar sesión** (`/entrar`) beside it. Hero title is “El mercado inteligente para comprar y vender empresas rentables”: SwapVerb still rotates comprar/vender; **rentables** uses a gold `background-clip: text` sweep (static `#a87f2c` / overlay `#f3e2b3` under `prefers-reduced-motion`). Mobile hero copy is centered. No Prisma schema migration.
+
+## 2026-11-12 — Round S15 overlay hero, draggable price, teaser on documentos
+
+Mobile hero is one image card: title and the two CTAs overlay a dark gradient (no slicing white band). The asking-price bar is a slider (pointer, touch, arrows) synced both ways with the input, with a blue recommended tick and **Usar precio recomendado**. Seller draft autosave revalidates `/mi-empresa` only — vinext treats `revalidatePath` of the open `/mi-empresa/detalles` URL as a hard navigation and blocks the loop as Error al guardar. Perfil ciego leaves `/cuenta` and sits on Mis documentos with an always-on PDF thumb. Duplicate unused brand/hero files at the repo root are deleted; `neon.ts` stays because it is Neon CLI config.
+
+## 2026-11-12 — Repo layout: src/app, feature components, lib/server + lib/db, tests/unit
+
+Routes stay in `src/app` (Next.js forbids a root `app/` next to `src/`). Domain services moved from `src/server` to kebab-case files in `src/lib/server`; Prisma lives in `src/lib/db`. Feature UI sits in `src/components/<feature>`. Unit tests sit in `tests/unit` (e2e in `tests/e2e`). Pure moves/renames and dead-file removal; no behavior change.
+
+## 2026-11-12 — Round S14 asking-price card and Perfil ciego on /cuenta
+
+Precio de venta on Ficha is the amount, the pencil, and a three-state range tag (`Por debajo del rango` / `Dentro del rango` / `Por encima del rango`). The sheet holds the input, the t93 red→green bar with a live black dot, a compact equity vs debt-free control, and the recommended price as a chip plus Usar. Perfil ciego leaves Ficha and sits on `/cuenta` until a later home for it is chosen. Admin company pages keep the teaser card.
+
+## 2026-11-12 — Round S13 seller location is CP + city
+
+The seller form no longer asks for a street. Location is Código postal + Ciudad, shown as `08022, Barcelona`. SABI already stores `postal_code` and `city`; when both are set the fields are locked as registry data. API Empresas and BORME only give a composed street/municipality/province, so those still parse into the same two fields and stay editable. The `address` column stays (nullable writes only compose CP+city). No migration. Tus cifras on Información empresa is a read-only duplicate of Ficha pública (the unique extra was Proponer corrección) and is removed.
+
+## 2026-11-12 — Round S12c hide sticky CTA while the inline twin is on screen
+
+A compact `.shell-sticky-cta` is a duplicate of an in-page action. While `[data-sticky-twin]` intersects the viewport, the bar is `invisible` / `pointer-events-none` / `inert` and `--shell-sticky` is 0. Teaser Copiar / Regenerar / Descargar stay tappable; Descargar returns as a sticky when the card leaves the screen. The same twin is on `/cuenta` Guardar, `/premium` plan cards, and the marketplace ficha Connect row. Shell padding still clears the tab bar at max scroll.
+
+## 2026-11-12 — Round S12b shell padding, Dirección, home [INT], compact cookies
+
+Compact signed-in padding is `--layout-pad + --shell-tabbar + --shell-sticky`. `--shell-tabbar` already includes `env(safe-area-inset-bottom)`. A mounted `.shell-sticky-cta` sets `--shell-sticky` (measured, 4.75rem fallback). Dirección is a 2-line textarea. The home `/` title uses `intAbsoluteTitle` so `[INT]` cannot be dropped by an absolute child title. The mobile cookie sheet is ≤35vh with Rechazar/Aceptar side by side; `body` padding and public sticky CTAs use `--relify-consent-h`.
+
+## 2026-11-11 — Round S12 mobile QA at 390
+
+INT 390 findings on the S11 shell: Información empresa / Ficha pública tabs stay in document flow under the title (sticky below the app bar) instead of a `fixed top-14` overlay that covered “Detalles de empresa”. Tu progreso on compact is a header ring that opens a sheet, not a floating 5/9 chip over the form. Info hints use a bottom sheet on compact viewports as well as coarse pointers, so a desktop tooltip cannot jump to `top: 8px` and cover the tabs. Tu empresa is one column below `sm`; Dirección spans the row. Sugerido wraps the full amount. `/cuenta` on mobile is a summary card with Ver PDF / Descargar, not an unreadably small PDF embed. Teaser Descargar sits at the top of the card and in a sticky bar above the tab bar. INT document titles use `title.template` `[INT] %s`. Shell content padding-bottom stays `--layout-pad + --shell-tabbar + --shell-sticky` (tab bar height already includes the safe area).
+
+## 2026-11-11 — Round S11 mobile-native pattern swaps
+
+Compact viewports swap desktop chrome instead of shrinking it: a bottom tab bar (three short-label destinations + Más), bottom sheets for the landing menu, marketplace filters, and coarse-pointer info hints, sticky CTA bars for primary conversion, horizontal chip rows, and admin waitlist/cuentas as stacked cards below `md`. `lg:` keeps the current rail, dropdowns, and tables. Hit areas are 44px, inputs stay ≥16px, shell height is `100svh`, and `touch-action: manipulation` is on controls. No new type or color system.
+
+## 2026-11-11 — Round S10 cookie bar
+
+The consent UI is a full-width bar fixed at the bottom (`aria-modal="false"`), not a corner card. Desktop: short copy and a `/cookies` link on the left; Rechazar and Aceptar as equal 44px pills on the right; Configurar as a quieter text control. Mobile: bottom-sheet panel with both pills full width. The wrapper uses `pointer-events: none` so the page stays clickable; `body` padding matches the bar height so last controls can scroll clear. Privacy and terms stay in the footer and checkout notes, not in the bar.
+
+## 2026-11-11 — Round S10 GTM Consent Mode v2 Advanced
+
+Prod GTM (`GTM_CONTAINER_ID` / `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GTM-KMZ4Z9PZ`) uses Consent Mode v2 **Advanced**: `gtm.js` is in the initial `<head>` on every page when the id is set (not INT). Preceded by `gtag('consent','default',{ad_storage,ad_user_data,ad_personalization,analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500})`, `ads_data_redaction: true`, `url_passthrough: false`. A stored choice (cookie / localStorage) is restored with `consent update` in that same inline script before GTM fires. Aceptar updates `analytics_storage` to granted and persists; Rechazar keeps denied. The GTM `<noscript>` iframe sits right after `<body>`. G- fallback still loads only after Aceptar. INT leaves both ids unset.
+
+## 2026-11-11 — Round S10 privacy, terms, www→apex
+
+Public `/privacidad` (RGPD/LOPDGDD: roles, processors Cloudflare/Neon/Maileroo/Stripe/GA via consent, rights via info@itsrelify.com, AEPD) and `/terminos` (marketplace roles, NDA, Relify is not a party to the sale, funds via notary/escrow, success fee in the LOI, Stripe + IVA, portal cancel, Spanish courts) reuse the `/cookies` Costa layout. Razón social, NIF and domicilio stay `TODO: … (Alex)` until filled — never invented. Linked from the footer, cookie banner and checkout notes; sitemap yearly 0.3. Prod `src/middleware.ts` 301s `www.itsrelify.com` → `https://itsrelify.com` preserving path and query; skipped when `INT_ENVIRONMENT=true`.
+
+## 2026-11-11 — Round S9 GTM, seller teaser card, Stripe Tax/Portal
+
+Analytics prefers Google Tag Manager container `GTM_CONTAINER_ID` / `NEXT_PUBLIC_GTM_CONTAINER_ID` (`GTM-…`, prod `GTM-KMZ4Z9PZ`). Consent Mode v2 default denied is inlined in `<head>` when GTM or a G- fallback is set; `gtm.js` (or `gtag.js` if only G- is set) loads after Aceptar. No GTM `<noscript>` iframe (cannot gate it on consent). INT leaves both ids unset. Conversion events on dataLayer: `waitlist_submit`, `valuation_request`, `sign_up` (no PII).
+
+The seller already had a thin PDF card on `/mi-empresa`; S9 turns it into **Perfil ciego (teaser)** with page-1 preview (`?preview=1` does not increment `pdf_download`), Descargar PDF, Copiar enlace `/t/[token]`, Regenerar enlace, and a teaser download count. Admin sees the same card on the company ficha. The seller is told what the buyer gets after NDA and cannot download the buyer-watermarked dossier.
+
+Checkout uses Stripe Price `lookup_keys` when present (`relify_buyer_limited_monthly`, `relify_buyer_unlimited_monthly`, `relify_seller_listing_once`, `relify_advisor_inbox_monthly`), exclusive net amounts, `automatic_tax` + `tax_id_collection` + required billing address for B2B ES/EU VAT (needs an ES Tax registration in the Dashboard or Tax collects 0). Listing Checkout also sets `invoice_creation`. Advisor deposits stay ad-hoc `price_data` with no Tax (not a fee). Customer Portal session from `/premium/suscripcion`. Webhooks verify the signature, persist `stripe_event` (`evt_…`) for idempotency, and handle `checkout.session.completed` / `async_payment_succeeded` plus subscription updated/deleted; `invoice.paid` / `invoice.payment_failed` are accepted no-ops. INT publishable is a Worker **var** `INT_STRIPE_PUBLISHABLE_KEY`. Connect payouts/escrow stay out of Stripe (M&A escrow is off-Stripe). TEST bootstrap: `scripts/stripe-bootstrap-test.mjs` (refuses live keys). Additive migration `20261111120000_stripe_event`.
+
+## 2026-11-11 — Round S8 SEO, GA4, CIM polish, LOI template, INT Stripe TEST
+
+Favicon, apple-touch, canonical, Open Graph (1200×630 `/og.jpg`) and Twitter `summary_large_image` sit in the initial `<head>` (explicit links, not vinext-streamed into `<body>`). Analytics is Google Analytics 4 with Consent Mode v2: default denied for `analytics_storage` / `ad_storage` / `ad_user_data` / `ad_personalization`; gtag.js loads only after Aceptar and only if `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` is a `G-…` id (unset on INT). Conversion events `waitlist_submit`, `valorar_submit`, `signup` carry no PII. `/api/health` is `SELECT 1` with a 1.5s timeout. Workers Observability is on (`enabled` in `cloudflare.config.ts`; INT pack `wrangler.toml` `head_sampling_rate` 1). INT Stripe uses `INT_STRIPE_*` TEST keys only; live prefixes log and disable; checkout shows Modo prueba. Post-NDA LOI template PDF includes the Relify 5% success fee. Teaser/dossier PDFs use lucide stroke icons and the ficha red→amber→green price bar. No new migration.
+
+## 2026-11-11 — Round S7 CIM PDFs, /valorar explainer, INT From info@
+
+Teaser/dossier PDFs use a Relify CIM palette (clay, navy, teal, gold/amber, rose): gradient bars, KPI tiles with icons, donut mix of the cifra, coloured section bands. Donut slices are center-relative `drawSvgPath` fans (`pdf-lib` flips SVG Y). Landing “Publica cifras” reuses `MarketCard` for the white body; the name-redact animation is a photo overlay. `/valorar` FAQ is a single-column thin accordion (FAQPage JSON-LD kept). “Qué te enviaremos” explains EV = EBITDA aj. × sector multiple and equity = EV − DFN, with Ejemplo-labelled scenarios. INT `senderFor` always uses `info@itsrelify.com`; catch-all To is unchanged. Prod still uses `info@` for team alerts and `notificaciones@` for people. No new migration.
+
+## 2026-11-11 — Round S6 INT: register the fontkit default object
+
+Workers minify of `import * as fontkit` turned `registerFontkit({ create: fontkit.create })` into `{ create: void 0 }` (`TypeError: e200.create is not a function` on `/t/<token>`). Register `pdfFontkit()` which reads the ESM default. A vitest smoke minifies the PDF worker with Vite and runs teaser + dossier in Miniflare/`workerd`. No new migration.
+
+## 2026-11-11 — Round S6 boutique PDFs, site fonts, real logo
+
+Teaser (2 pages, anonymous) and dossier (post-NDA, watermarked) PDFs use the Relify JPEG from `public/brand/full-logo.svg` (`brandLogoJpegBase64`) and embed DM Sans + Geist via `@pdf-lib/fontkit` + subset TTF bytes. Custom fonts need fontkit; Helvetica is not the site family. Price bar uses `priceBarPosition` so the asking price is a marked point on a labelled scale (sector multiple × EBITDA aj., growth and headcount). Teaser may show motivo / financiación / permanencia (deal terms, not identity). `/valorar` “Relify” mark uses `--font-heading`, not Instrument. No new migration.
+
+## 2026-11-11 — Round S5 tokens, /valorar, visual PDFs
+
+Type families and field radius are global tokens (`docs/DESIGN-TOKENS.md`): DM Sans body, Geist headings, Instrument accents, `--field-radius: 0.9rem` for every form. `/valorar` keeps FAQPage JSON-LD with a compact accordion. Teaser/dossier PDFs are multi-page Relify M&A docs (cover, year bars, KPI tiles); teaser stays on `reportHeadline` with no identity; dossier is post-NDA and watermarked. Samples use INT Proyecto Quercus / `int-tecnologia-years.sql`. No new migration.
+
+## 2026-11-11 — Round S4 company PDFs, /valorar SEO, landing
+
+Company teaser and post-NDA dossier PDFs are drawn with the existing `pdf-lib` dependency (Workers-safe, no paid API). The teaser is the pre-NDA card (`reportHeadline` only, no legal name/CIF). The dossier is the investor ficha after `ndaAccessGate`, watermarked with buyer name/email/date, still without identity. Downloads are logged in additive `pdf_download`. `/valorar` is a distinct Costa editorial page with Service + FAQPage JSON-LD. Landing specimens mix sectors; process and step-1 animations respect `prefers-reduced-motion`.
+
+## 2026-11-10 — Round S3 INT catch-all as secret; valuation save notice stays
+
+`INT_EMAIL_CATCHALL` is a Worker secret (`wrangler secret put … --name releva-int`), not a packaged `[vars]` value. An empty pack var overwrote the dashboard even with `--keep-vars`. Same put command for `INT_MAILEROO_API_KEY`. `/admin/valoraciones` row forms keep a stable `key={id}` so `Solicitud actualizada.` stays visible about 3 seconds after revalidate.
+
+## 2026-11-10 — Round S2 INT email catch-all
+
+INT mail no longer uses `INT_EMAIL_ALLOWLIST`. On INT, `sendMail` sends only when `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and `INT_EMAIL_CATCHALL` (one address) are set. Every message, including team alerts, is rewritten to that catch-all: original recipient never in To/CC/BCC, subject `[INT → <original>] `, body banner `Email de INT. Destinatario original: <email> (<role>, <tag>)`, Reply-To the catch-all. Missing either var logs `INT BLOCKED`. Prod path unchanged. Documented in `docs/INT.md`.
+
+## 2026-11-10 — Round S `/valorar` request + INT email allowlist
+
+`/valorar` step 1 (VALORAR.md): persist `ValuationRequest` (CIF + contact, optional phone, optional linked `userId`) via additive migration `20261110220000_valuation_request`. Team alert tag `valuation-request`, confirmation tag `valuation-request-confirmation`. Admin list at `/admin/valoraciones`. Valuations stay off Checkout.
+
+INT mail: `sendMail` no longer hard-blocks. On INT it sends only with `INT_MAILEROO_API_KEY` (never `MAILEROO_API_KEY`) and every recipient on `INT_EMAIL_ALLOWLIST`. Subjects get `[INT] `. info@ alerts redirect to the first exact allowlisted address. Documented in `docs/INT.md`.
+
+## 2026-11-10 — Round R3 preview, one EBITDA figure, 50 % warning
+
+Seller “Cómo se verá mi empresa” uses `marketCardFigures` / `reportHeadline` — the same path as `/mercado`. Pending rows never change that card. Pre-NDA Resumen shows one figure: `EBITDA` when nothing is approved, `EBITDA ajustado` when approved, with the accounts figure only in the tooltip. An adjustment larger than sales is still rejected; larger than half of EBITDA is a soft warning only (1 M € on 5 M sales is allowed).
+
+## 2026-11-10 — Round R2 pre-NDA cards stay published
+
+Visible pre-NDA Resumen cards (facturación, EBITDA / EBITDA aj. when approved, precio, ROI) read `reportHeadline` from the published columns, identical to the seller preview and `/mercado` card. Veil placeholders stay only in content rendered behind the blur (`aria-hidden` / `inert`). DFN/EBITDA and conversión a caja are not public: they sit in that locked block until the NDA. `figuresVeiled` tells `reportHeadline` not to take revenue/EBITDA from the invented years.
+
+## 2026-11-10 — Round R Resumen source, pending EBITDA, sign-in
+
+Resumen cards, narrative and ratios all read `reportHeadline`: last closed `reportYears` row plus approved EBITDA adjustments. Pending or oversized (amount > that year's sales) rows never change the published figure; the stored `adjustedEbitdaCents` column is ignored whenever a list exists. The seller form JSON keeps each row's `status` so a pending owner_salary cannot be previewed as approved. Sign-in still uses the server action; the submit button only shows “Entrando…” after client hydration.
+
+## 2026-11-10 — Round Q Playwright E2E and pre-launch hardening
+
+Vitest stays the unit runner. End-to-end specs use Playwright (`@playwright/test`, `npm run e2e`) against local or INT, never production. Credentials come from `E2E_*` environment variables, not the repo. INT still blocks email, Stripe and uploads. New projects default to `draft` (was `published` on raw inserts). Security headers live in `src/lib/security-headers.ts` and `next.config.ts`.
+
+## 2026-11-10 — Round P metrics, 404, drop stale project snapshots
+
+Headline leverage is DFN / EBITDA aj. when adjustments are approved; the accounts multiple stays in the tooltip. Facturación is always ventas (importe neto de la cifra de negocios); `toSabiYear` prefers `salesCents`. Deuda neta and fondo de maniobra are computed from the same year's balance, never from `project.net_debt_cents` / `project.working_capital_cents` (those columns are dropped). Rentabilidad financiera and margen de beneficio are the net-based formulas only. `/archivo` is a normal 404 (the Round O 301 is removed). `/valorar` stays a CIF form that does not save or compute.
+
+## 2026-11-10 — Round O landing, EBITDA primary, waitlist date
+
+Approved EBITDA adjustments are the primary figure on the marketplace card, ficha Resumen, ROI chip and recommended sort. Pending-only rows keep the accounts EBITDA and show “Ajuste en revisión”. Reported stays in the tooltip. `/archivo` is gone; old URLs 301 to `/`. Waitlist countdown target is 10 January 2027 10:00 Europe/Madrid (was 21 November 2026 10:00). Landing process is a centered desktop two-column (anonymised ficha reveal + steps); horizontal how-it-works cards stay below `lg`. No “Foto de referencia” overlay.
+
+## 2026-11-10 — Round N formulas, financing, commissions
+
+Seller financing no longer has Negociable: the stored values are `yes` / `no` (leftover `negotiable` is read and written as `yes`). The column is a string, so INT only runs `UPDATE … SET seller_financing = 'yes' WHERE seller_financing = 'negotiable'`. Production can keep leftover rows until Alex applies that UPDATE; the reader stays tolerant.
+
+Ficha / Tus cifras / marketplace share one compact euro formatter (`formatCardEur`: 2 decimals below 10 of the unit, 1 from 10–100, 0 above, space before K/M). Cash runway is tesorería change / 12, not caja / |EBITDA|. ROE and margen de beneficio use resultado neto so they match Margen neto. ROA stays SABI pre-tax and is labelled “antes de impuestos”. When an adjusted EBITDA exists, the headline margin is adjusted / ventas.
+
+Platform agreement point 03 is the new commission text (5% seller, 2,5% buyer, 2% Empresa-at-match, 15% advisor). The agreement is not versioned (`user.terms_accepted_at` + frozen PDF of current copy). Buyer/advisor monthly fees stay on Checkout, not in this agreement. `project.buyer_plan_at_match` already records the buyer plan when the seller accepts, so the 2% rule is enforceable.
+
+## 2026-11-10 — Drop unused seasonality / top-5 columns (Round M)
+
+Alex asked to remove `seasonality`, `seasonality_note`, and `top5_clients_pct` from Prisma, code, and a DROP migration. The ficha no longer shows that business-profile block. Cómo es tu negocio keeps owner dependence, premises, rent, lease years, and recurring revenue. Prisma no longer maps the dropped fields, so leftover production columns are ignored until Alex applies `20261110180000_drop_unused_project_profile_columns`. Listed in `DROPS.md`.
+
+## 2026-11-10 — Top-5 client weight and seasonality note stay in Postgres
+
+Cómo es tu negocio no longer has “Peso de los 5 principales clientes” or “Nota de estacionalidad”. `seasonality_note` and `top5_clients_pct` stay in the table (no destructive migration). The seller form does not read or write them. If the ficha shows a concentration figure, it sums the largest five Principales clientes slices.
+
+## 2026-11-09 — Only Alex deploys production, after INT
+
+Worker `releva` is production. `npm run deploy` and `npm run deploy:vinext` must refuse unless `RELIFY_DEPLOY_PROD=yes`, the git branch is `main`, stdin is a TTY, and the operator types `releva`. Agents never deploy, never run wrangler/vinext-cloudflare against `releva`, and never patch `node_modules/cf` to force a publish. INT stays on `scripts/deploy-int.sh` / Worker `releva-int`.
+
+## 2026-11-09 — Company fichas require a session
+
+`/proyectos/<slug>` is not a public page. A logged-out request redirects to `/entrar?siguiente=…` without loading the project, so the HTML, RSC payload, and metadata do not include codename, region, or figures. `/proyectos` is the same. Signed-in `(app)` routes already go through AppShell.
+
+## 2026-11-08 — Logout must revoke the session row, not only the browser cookie
+
+Better Auth `session.cookieCache` (default 5 minutes, signed `session_data`) answers `/get-session` without reading the session table. Logout deletes the row and clears cookies, but a replayed cookie still authenticates until that cache expires. Relify stores sessions in Postgres, so cookieCache stays off and `getCurrentUser` / onboarding pass `disableCookieCache`. One extra unique lookup on `session.token` per request. Do not turn the cache back on for INT only.
+
 ## 2026-10-11 — Encargos are the request, and Mis procesos start after the deposit
 
 An encargo is a hire the advisor has not accepted yet. It stays on `/mandatos/encargos` until the deposit is paid. Mis procesos, at `/mandatos/venta`, lists a company only after that deposit, or when the job is already closed. Opening the encargo shows the same company banner the investor sees. The investor card stays on the side. The deposit floats there, and the advisor can reject the request from that card. A rejection stores `declinedAt`, tells the person who asked, and takes the row off both lists. It does not refund anything, because nothing has been paid.
@@ -16,25 +204,25 @@ Encargos no longer shows the shared inbox or the 39 € plan. A request names an
 
 A named request stays a record until the advisor pays. Before that payment the advisor sees the codename, the region, the sector, the headcount band, the year, and the public description, plus the investor type, city, ticket, stake, and sectors. The name, email, NIF, phone, and the euro figures stay off that page. The chat, the NDA, and the company file stay closed.
 
-The deposit is 50 € plus half the asking price, stored in euro cents, with no IVA on top, because it is a hold and not a fee. Stripe Checkout takes it in test mode and Releva is the merchant. Paying it notifies the person who asked that the advisor accepted, and then the NDA and the figures open. The money is returned later; this pass does not call a refund. A general request with no company still does not charge.
+The deposit is 50 € plus half the asking price, stored in euro cents, with no IVA on top, because it is a hold and not a fee. Stripe Checkout takes it in test mode and Relify is the merchant. Paying it notifies the person who asked that the advisor accepted, and then the NDA and the figures open. The money is returned later; this pass does not call a refund. A general request with no company still does not charge.
 
 ## 2026-10-10 — Advisor marketplace order
 
-The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Releva (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.
+The directory opens on Marketplace. Recomendados sorts advisors by a quality score times a reliability score. Quality adds closed cases, a short focused sector list, a real description, and the services on offer. Reliability starts at 100 and drops when that advisor's own chat messages contain an email, a phone number, or a cue to continue off Relify (WhatsApp, “llámame”, “por privado”). A new advisor with no messages stays at 100. The score is not printed on the card. Precio más bajo and Precio más alto reorder the same list and do not filter anyone out. The company is chosen in the marketplace filter, including when Mis procesos opens that company, and the advisor dialog does not ask for it again.
 
 ## 2026-10-08 — The advisor's name stays off the marketplace
 
-A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Releva. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.
+A buyer or a seller can choose an advisor from sectors, services, price, and closed cases. The card says Asesor. It does not show the person's name or the commercial name, so the introduction stays on Relify. The commercial name stays on the advisor's own profile form. Participación adds Completa, for buying the whole company.
 
 ## 2026-10-08 — Advisor thread, and the investor stake
 
-Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Releva and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.
+Contacting a named advisor opens a thread on Mi asesor: chat, the documents already shared on that engagement, and meetings. A general request without an advisor stays with Relify and does not open that thread. The marketplace card shows the commercial name, not the person's name, and a count of closed cases. The case names stay off that card. The investor profile adds participación (mayoría, minoría, or flexible) so the seller card still has four facts after qué aporta moves next to qué busca.
 
 ## 2026-10-07 — The seller sees a public investor profile, and the seller uploads the sale contract
 
 The investor profile that a seller opens is stored. It can include a photo, a city and province, the investor type, a ticket band, sectors, what they are looking for, and what they bring. It does not include the legal name, NIF, email, phone, or postal code. The five phases on the investor home are those public fields. The private professional panel stays on the investor's own page.
 
-Releva does not draft the sale contract. At due diligence either party can ask an advisor or continue. Documentation is where the seller uploads the contract.
+Relify does not draft the sale contract. Once the seller accepts the LOI either party can ask an advisor to review the documentation, and the seller can upload the contract straight away (S29b: no separate review step).
 
 ## 2026-10-07 — The advisor is a profile and a hired service
 
@@ -46,11 +234,11 @@ Hired by an investor, the advisor sees the public ficha and signs their own NDA.
 
 A quote request still does not charge. Closing an engagement stores 15% of what the advisor charges for that work, plus 21% IVA on that 15%. That row is not a Stripe charge and it is not 15% of the company price. The 39 € plan opens Checkout in test mode when the keys are present.
 
-## 2026-10-07 — Decoy figures, Releva drafts, and the waiting step
+## 2026-10-07 — Decoy figures, Relify drafts, and the waiting step
 
 A locked section renders a full statement and charts filled with 999.999,00 €. The real rows stay off the page, so removing the blur in the browser does not reveal the company. The same sentence and the connect or sign action sit on every locked section. The figures open after the company accepts the connection and the buyer signs the NDA.
 
-Mis documentos keeps Corporativo, Financiero, Comercial, Fiscal, Legal, and RRHH/Laboral, plus Releva. Releva holds the NDA and letter-of-intent drafts as PDFs. Those drafts use “El comprador” and “el proyecto”. They do not include a legal name, CIF, or address.
+Mis documentos keeps Corporativo, Financiero, Comercial, Fiscal, Legal, and RRHH/Laboral, plus Relify. Relify holds the NDA and letter-of-intent drafts as PDFs. Those drafts use “El comprador” and “el proyecto”. They do not include a legal name, CIF, or address.
 
 The current sale step says who has to act. “(TÚ)” appears only for the person viewing the step. A past meeting stays fixed and is marked Hecha. A future proposal is Propuesta, and an accepted future meeting is Próxima.
 
@@ -62,7 +250,7 @@ A limited plan asks for confirmation and shows how many matches remain this mont
 
 The investor home sizes sectors with the Arc treemap by published revenue. The Arc tokens stay on that chart so they do not restyle the rest of the app.
 
-The sale steps are Solicitud, Conexión, NDA, Q&A, LOI, Due diligence, Documentación, and Compraventa. Due diligence is where an advisor reviews the shared room. The contract step stays current until the payment is recorded.
+The sale steps are Solicitud, Conexión, NDA, Preguntas, LOI, Contrato, and Venta (seven since S29b, when the old Revisión/due diligence step merged into LOI). An accepted LOI opens the contract upload; an advisor can review the documentation during LOI or Contrato. `project_access.diligence_passed_at` stays in the schema, unused, with no migration. The contract step stays current until the payment is recorded.
 
 ## 2026-10-07 — Figures before a connection, and the trash icon
 
@@ -136,11 +324,11 @@ The public homepage is server-rendered and indexable. Copy, titles, and internal
 
 ## 2026-10-03 — Mercantile registry stays behind a server fixture
 
-Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Releva prefills from a server-side fixture adapter in `src/server/lookupCompanyRegistry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
+Deale's seller NIF step calls Deale's own API Gateway (`POST /prod/company-service/company/preview`, then `GET /prod/company-service/company/:id`). The browser does not call Informa, eInforma, Axesor, Camerdata, LibreBOR, or VIES, so the upstream registry and any key stay unwired. Relify prefills from a server-side fixture adapter in `src/lib/server/lookup-company-registry.ts`. A live client can replace that adapter later without a browser secret. Identity from a hit is stored on the draft and is not selected for public project pages.
 
 ## 2026-10-03 — Advisor workspace follows Deale, without a website field
 
-Onboarding is role, then name and NIF/CIF, then Spanish mobile, then how they heard about Releva. The ID check is the existing Spanish CIF checksum. It does not call a registry and does not claim the person exists. The advisor home, trends, and services panels match the Deale screens that were clicked. Mandates, messages, billing, and a data room stay empty. Ser premium stays off the advisor header.
+Onboarding is role, then name and NIF/CIF, then Spanish mobile, then how they heard about Relify. The ID check is the existing Spanish CIF checksum. It does not call a registry and does not claim the person exists. The advisor home, trends, and services panels match the Deale screens that were clicked. Mandates, messages, billing, and a data room stay empty. Ser premium stays off the advisor header.
 
 ## 2026-10-03 — Public face is a paper ledger
 
@@ -154,17 +342,17 @@ This replaces the paper ledger on the public surface. Home, marketing, auth, and
 
 An advisor adds a mandate by choosing a published project. The board shows the codename and the four public euro figures. The mandate does not reveal the legal name, CIF, address, shareholders, or file names, and it does not open the data room or a message thread. Advisory quotes stay records. No Stripe customer, Checkout Session, or charge is created until a later billing decision.
 
-## 2026-10-05 — Releva charges buyers and advisors, and records a success fee
+## 2026-10-05 — Relify charges buyers and advisors, and records a success fee
 
-This replaces the “no charge” line above. Listing and browsing stay free. A buyer match is the company accepting the investor. The free plan can browse and cannot connect. 20 €/month plus 21% IVA allows 3 matches in the billing period. 99 €/month plus 21% IVA allows unlimited matches. The first company an advisor publishes is free. Each later company is 149 € plus 21% IVA, paid once by the advisor before it goes live. A seller publishes a saved draft for free. The buyer’s 1% and the seller’s 2.5% are calculated on the closed price, plus 21% IVA, and stored when the owner records the sale. Those fees are not sent to Stripe. Quotes on Solicitar presupuesto stay records. Releva is the merchant: Stripe Checkout takes the subscription and the listing fee. There is no payout to an advisor. Amounts in Postgres stay integer euro cents. The Checkout line is the gross amount because Stripe Tax stays off until Releva has an IVA registration. Test keys live in `.env`. A live key is ignored. A company with no owner, such as a seeded project, counts the match when the buyer connects, because there is no seller to accept.
+This replaces the “no charge” line above. Listing and browsing stay free. A buyer match is the company accepting the investor. The free plan can browse and cannot connect. 20 €/month plus 21% IVA allows 3 matches in the billing period. 99 €/month plus 21% IVA allows unlimited matches. The first company an advisor publishes is free. Each later company is 149 € plus 21% IVA, paid once by the advisor before it goes live. A seller publishes a saved draft for free. The buyer’s 1% and the seller’s 2.5% are calculated on the closed price, plus 21% IVA, and stored when the owner records the sale. Those fees are not sent to Stripe. Quotes on Solicitar presupuesto stay records. Relify is the merchant: Stripe Checkout takes the subscription and the listing fee. There is no payout to an advisor. Amounts in Postgres stay integer euro cents. The Checkout line is the gross amount because Stripe Tax stays off until Relify has an IVA registration. Test keys live in `.env`. A live key is ignored. A company with no owner, such as a seeded project, counts the match when the buyer connects, because there is no seller to accept.
 
 ## 2026-10-05 — Signed-in shell uses Costa
 
-This replaces the sentence in “Public face is Costa” that the signed-in workspace keeps its own chrome. Seller, investor, and advisor share the fog, ink, secondary text, accent, DM Sans, and the Instrument Serif word Releva. The sidebar lists a stored action the user repeats. Tendencias, Mis búsquedas, Empresas ocultas, the investor Dataroom, and Perfil de Inversor leave the menu. Those routes stay. Seller documents, processes, and quote requests stay. Ser premium stays investor-only. Public marketing, auth, and the catalog header are unchanged. The mercantile lookup stays the server fixture until there is an Informa or Orbis contract.
+This replaces the sentence in “Public face is Costa” that the signed-in workspace keeps its own chrome. Seller, investor, and advisor share the fog, ink, secondary text, accent, DM Sans, and the Instrument Serif word Relify. The sidebar lists a stored action the user repeats. Tendencias, Mis búsquedas, Empresas ocultas, the investor Dataroom, and Perfil de Inversor leave the menu. Those routes stay. Seller documents, processes, and quote requests stay. Ser premium stays investor-only. Public marketing, auth, and the catalog header are unchanged. The mercantile lookup stays the server fixture until there is an Informa or Orbis contract.
 
 ## 2026-10-06 — Seller identity comes from the public BORME index
 
-This replaces the fixture sentence above. Deale preloads financials from eInforma. Releva does not. `lookupCompanyRegistry` calls OpenMercantil, which indexes the official BORME, and stores only the legal name plus domicile, province, CNAE, constitution year, and worker count when that bulletin publishes them. Revenue, EBITDA, and adjusted EBITDA stay empty. A CIF the index does not list stays a manual draft. Administrator names from the bulletin are not stored. Identity still stays off public project pages. Annual accounts wait for a later upload of the standardized cuentas anuales file.
+This replaces the fixture sentence above. Deale preloads financials from eInforma. Relify does not. `lookupCompanyRegistry` calls OpenMercantil, which indexes the official BORME, and stores only the legal name plus domicile, province, CNAE, constitution year, and worker count when that bulletin publishes them. Revenue, EBITDA, and adjusted EBITDA stay empty. A CIF the index does not list stays a manual draft. Administrator names from the bulletin are not stored. Identity still stays off public project pages. Annual accounts wait for a later upload of the standardized cuentas anuales file.
 
 ## 2026-10-06 — eInforma stays unwired until its REST path is published
 
@@ -194,9 +382,9 @@ The production database is the Neon project `RELEVA` (`delicate-cloud-90142183`)
 
 Hyperdrive is still not created. `pg` connection pools on the Worker hang: a request that opens several sockets, or the next request on that isolate, is canceled and the sign-in page shows the error screen. On the Worker, Prisma uses `@prisma/adapter-neon` with `poolQueryViaFetch`, so each query is an HTTP fetch. Local development stays on `@prisma/adapter-pg` and Docker. Transactions on the Worker still use a WebSocket when Prisma asks for one.
 
-## 2026-10-10 — Subscription management stays on Releva
+## 2026-10-10 — Subscription management stays on Relify
 
-Gestionar suscripción opens `/premium/suscripcion`. That page shows the plan, the renewal date, cancel at period end, the billing email, and the invoices. Stripe Customer Portal stays unused, because its address is always `billing.stripe.com`. Changing the card opens Stripe Checkout in setup mode and returns to the same Releva page. Card numbers are not typed into Releva. Quotes stay records.
+Gestionar suscripción opens `/premium/suscripcion`. That page shows the plan, the renewal date, cancel at period end, the billing email, and the invoices. Stripe Customer Portal stays unused, because its address is always `billing.stripe.com`. Changing the card opens Stripe Checkout in setup mode and returns to the same Relify page. Card numbers are not typed into Relify. Quotes stay records.
 
 ## 2026-10-07 — Stripe stays on test until the server says live
 

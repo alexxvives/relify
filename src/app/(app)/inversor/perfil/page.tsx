@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { InvestorProfile } from "@/components/investor-profile";
-import { SignedInPage } from "@/components/signed-in-page";
+import { InvestorProfile } from "@/components/investor/investor-profile";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { demoInvestorProfile } from "@/lib/demo-profile";
 import { investorCopy } from "@/lib/investor-copy";
-import { investorGazeAvatar, loadInvestorDraft } from "@/server/investorProfile";
-import { requireRole } from "@/server/requireRole";
+import { investorGazeAvatar, loadInvestorDraft } from "@/lib/server/investor-profile";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: investorCopy.profileTitle,

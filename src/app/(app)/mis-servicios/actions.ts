@@ -8,13 +8,13 @@ import {
   firstIssue,
   servicesInputSchema,
 } from "@/lib/advisor-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   saveAdvisorCorporate,
   saveAdvisorDeals,
   saveAdvisorServices,
   type AdvisorSaveResult,
-} from "@/server/saveAdvisorProfile";
+} from "@/lib/server/save-advisor-profile";
 
 async function advisorUserId(): Promise<string | AdvisorSaveResult> {
   const user = await getCurrentUser();

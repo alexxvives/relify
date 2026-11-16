@@ -15,6 +15,24 @@ const eslintConfig = defineConfig([
     "src/generated/**",
     ".cloudflare/**",
   ]),
+  {
+    files: [
+      "src/components/landing/**/*.{ts,tsx}",
+      "src/app/page.tsx",
+      "src/app/valorar/**/*.{ts,tsx}",
+      "src/app/lista-de-espera/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement[name.name='br']",
+          message:
+            "Do not force line breaks in titles or subtitles. Let text wrap with text-wrap: pretty/balance. See docs/DESIGN-TOKENS.md.",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

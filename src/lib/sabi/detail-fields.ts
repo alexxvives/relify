@@ -119,6 +119,6 @@ export const notInSabiIncomeKeys = [
 
 export const notInSabiCopy = {
   badge: "No viene en SABI",
-  hint: "SABI no publica esta línea: hay que introducirla a mano.",
+  hint: "Esta línea no viene en el Excel: hay que introducirla a mano.",
   dealHint: "SABI no da precio, EBITDA ajustado, motivo de venta, tipo de cliente ni previsiones.",
 };

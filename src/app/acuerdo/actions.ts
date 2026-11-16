@@ -4,12 +4,17 @@ import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { prisma } from "@/server/db";
-import { ensureNationalId } from "@/server/ensureNationalId";
-import { storeSignedDocumentQuietly } from "@/server/signedDocuments";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { prisma } from "@/lib/db";
+import { onboardingNationalIdPath } from "@/lib/identity-declaration";
+import { storeSignedDocumentQuietly } from "@/lib/server/signed-documents";
 
-export type TermsState = { ok: false; message: string } | null;
+/**
+ * S26b: success returns `{ ok: true }` instead of redirecting. The old `redirect(home)` from the dialog
+ * usually targeted the page the user was already on (e.g. /mi-empresa), and that same-route redirect did
+ * not re-render the (app) shell, so the open PlatformTermsDialog stayed on screen and asked to sign again.
+ */
+export type TermsState = { ok: false; message: string } | { ok: true; home: string } | null;
 
 export async function acceptPlatformTermsAction(_state: TermsState, formData: FormData): Promise<TermsState> {
   const user = await getCurrentUser();
@@ -23,9 +28,9 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
     return { ok: false, message: platformTermsCopy.signRequired };
   }
 
-  const idError = await ensureNationalId(user.id, formData.get("nationalId"));
-  if (idError) {
-    return { ok: false, message: idError };
+  // S29b: the agreement signs with the DNI/NIE stored in onboarding and never reads one from the form.
+  if (user.nationalIdMissing) {
+    redirect(onboardingNationalIdPath);
   }
 
   await prisma.user.update({
@@ -34,5 +39,6 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
   });
   await storeSignedDocumentQuietly("terms", user.id);
 
-  redirect(homeForRole(user.role));
+  // No revalidatePath here: the dialog shows "Acuerdo firmado" first, then refreshes the shell itself.
+  return { ok: true, home: homeForRole(user.role) };
 }

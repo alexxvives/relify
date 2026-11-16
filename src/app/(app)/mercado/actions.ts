@@ -1,7 +1,7 @@
 "use server";
 
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { setProjectHidden, type HiddenResult } from "@/server/toggleProjectHidden";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { setProjectHidden, type HiddenResult } from "@/lib/server/toggle-project-hidden";
 
 export async function setHiddenAction(slug: string, hidden: boolean): Promise<HiddenResult> {
   const user = await getCurrentUser();

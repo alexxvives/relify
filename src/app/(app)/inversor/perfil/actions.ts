@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { investorProfileSchema, type InvestorProfileInput } from "@/lib/investor-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { saveInvestorPhoto, saveInvestorProfile } from "@/server/investorProfile";
+import { investorProfileDraftSchema, investorProfileSchema, type InvestorProfileDraftInput } from "@/lib/investor-profile";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { saveInvestorPhoto, saveInvestorProfile } from "@/lib/server/investor-profile";
 
 export type InvestorProfileState = { ok: true } | { ok: false; message: string } | null;
 
@@ -32,14 +32,15 @@ export async function saveInvestorPhotoAction(photo: string): Promise<{ ok: bool
   return saved;
 }
 
-export async function saveInvestorProfileLiveAction(input: InvestorProfileInput): Promise<InvestorProfileState> {
+export async function saveInvestorProfileLiveAction(input: InvestorProfileDraftInput): Promise<InvestorProfileState> {
   const user = await getCurrentUser();
 
   if (!user || !user.onboarded || user.role !== "investor") {
     return { ok: false, message: "No se ha podido guardar el perfil." };
   }
 
-  const parsed = investorProfileSchema.safeParse(input);
+  // S26: partial drafts save too (a sector added with Enter is kept before the profile is complete).
+  const parsed = investorProfileDraftSchema.safeParse(input);
 
   if (!parsed.success) {
     return { ok: false, message: "Revisa la foto, dónde estás, el tipo, el ticket y qué buscas." };

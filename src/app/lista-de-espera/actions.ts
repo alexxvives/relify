@@ -1,7 +1,8 @@
 "use server";
 
 import { waitlistCopy, waitlistSchema } from "@/lib/waitlist";
-import { joinWaitlist } from "@/server/joinWaitlist";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
+import { joinWaitlist } from "@/lib/server/join-waitlist";
 
 export type WaitlistState = { status: "idle" } | { status: "ok" } | { status: "error"; message: string };
 
@@ -15,6 +16,10 @@ export async function joinWaitlistAction(_state: WaitlistState, formData: FormDa
 
   if (!parsed.success) {
     return { status: "error", message: waitlistCopy.invalid };
+  }
+
+  if (!(await takeThrottle(`waitlist:ip:${await clientIp()}`, 8, 60 * 60, false))) {
+    return { status: "error", message: waitlistCopy.throttled };
   }
 
   const result = await joinWaitlist(parsed.data);

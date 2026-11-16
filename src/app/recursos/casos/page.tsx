@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MarketingPlaceholder } from "@/components/marketing-placeholder";
+import { MarketingPlaceholder } from "@/components/shell/marketing-placeholder";
 
 export const metadata: Metadata = {
   title: "Casos",

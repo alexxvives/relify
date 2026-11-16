@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { authCopy } from "@/lib/auth-copy";
 import { destinationForUser, signInFieldMessage, signInSchema, type SignInInput } from "@/lib/auth-input";
-import { signIn } from "@/server/signIn";
+import { clientIp, takeThrottle, throttleHash } from "@/lib/server/email-throttle";
+import { signIn } from "@/lib/server/sign-in";
 
 export type SignInState = { message: string } | null;
 
@@ -26,11 +28,25 @@ export async function signInAction(_state: SignInState, formData: FormData): Pro
     return input;
   }
 
+  const ip = await clientIp();
+  const ipOk = await takeThrottle(`signin:ip:${ip}`, 60, 15 * 60, false);
+  const addressOk = await takeThrottle(
+    `signin:email:${throttleHash(input.email)}`,
+    10,
+    15 * 60,
+    false,
+  );
+  if (!ipOk || !addressOk) {
+    return { message: authCopy.forgotThrottled };
+  }
+
   const result = await signIn(input);
 
   if (!result.ok) {
     return { message: result.message };
   }
 
-  redirect(destinationForUser(result));
+  const rawNext = formData.get("siguiente");
+  const next = typeof rawNext === "string" ? rawNext : null;
+  redirect(destinationForUser(result, next));
 }

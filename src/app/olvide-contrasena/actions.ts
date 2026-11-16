@@ -2,8 +2,8 @@
 
 import { z } from "zod";
 import { authCopy } from "@/lib/auth-copy";
-import { auth } from "@/server/auth";
-import { clientIp, takeThrottle, throttleHash } from "@/server/emailThrottle";
+import { auth } from "@/lib/server/auth";
+import { clientIp, takeThrottle, throttleHash } from "@/lib/server/email-throttle";
 
 export type ForgotState = { sent: boolean; message: string } | null;
 export type ResetState = { message: string; invalid?: boolean } | null;
@@ -25,7 +25,7 @@ export async function requestPasswordResetAction(
   }
 
   const ip = await clientIp();
-  const ipOk = await takeThrottle(`reset:ip:${ip}`, 5, 15 * 60);
+  const ipOk = await takeThrottle(`reset:ip:${ip}`, 5, 15 * 60, false);
   if (!ipOk) {
     return { sent: false, message: authCopy.forgotThrottled };
   }
@@ -65,7 +65,7 @@ export async function resetPasswordAction(
   }
 
   const ip = await clientIp();
-  if (!(await takeThrottle(`reset-confirm:ip:${ip}`, 10, 15 * 60))) {
+  if (!(await takeThrottle(`reset-confirm:ip:${ip}`, 10, 15 * 60, false))) {
     return { message: authCopy.forgotThrottled };
   }
 

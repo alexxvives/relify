@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { SignedInPage } from "@/components/signed-in-page";
-import { WorkspaceNote } from "@/components/workspace-note";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { WorkspaceNote } from "@/components/shell/workspace-note";
 import { investorCopy } from "@/lib/investor-copy";
-import { requireRole } from "@/server/requireRole";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: investorCopy.searchesTitle,

@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SaleSkeleton } from "@/components/page-skeletons";
-import { SellerSaleCompleted } from "@/components/sale-completed";
-import { SignedInPage } from "@/components/signed-in-page";
-import { requireRole } from "@/server/requireRole";
-import { sellerSaleSummary } from "@/server/saleOutcome";
-import { activeSellerProjectId } from "@/server/sellerCompany";
+import { SaleSkeleton } from "@/components/shell/page-skeletons";
+import { SellerSaleCompleted } from "@/components/seller/sale-completed";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { requireRole } from "@/lib/server/require-role";
+import { sellerSaleSummary } from "@/lib/server/sale-outcome";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
 
 export const metadata: Metadata = {
   title: "Venta cerrada",

@@ -1,32 +1,33 @@
 import type { Metadata } from "next";
-import { BlogIndex } from "@/components/blog-index";
-import { NewsletterSignup } from "@/components/newsletter-signup";
-import { PublicSite } from "@/components/public-site";
+import { BlogIndex } from "@/components/public/blog-index";
+import { NewsletterSignup } from "@/components/public/newsletter-signup";
+import { PublicSite } from "@/components/landing/public-site";
 import { blogCopy, blogPosts } from "@/lib/blog";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: blogCopy.title,
-  description: blogCopy.description,
-  alternates: { canonical: "/blog" },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  return {
     title: blogCopy.title,
     description: blogCopy.description,
-    url: "/blog",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+    ...pageSocialMetadata({
+      title: blogCopy.title,
+      description: blogCopy.description,
+      path: "/blog",
+      origin: readSiteUrl(),
+    }),
+  };
+}
 
 export default function BlogPage() {
   const posts = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date));
 
   return (
     <PublicSite>
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 py-12 sm:px-8">
-        <header>
-          <p className="text-xs tracking-[0.2em] text-public-clay uppercase">{blogCopy.kicker}</p>
-          <h1 className="releva-page-title mt-3 max-w-3xl text-5xl leading-[0.96] sm:text-6xl">{blogCopy.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-public-muted">{blogCopy.description}</p>
+      <main className="mx-auto flex w-full max-w-[80rem] flex-col gap-8 px-5 py-8 sm:gap-10 sm:px-8 sm:py-12">
+        <header className="max-w-3xl">
+          <h1 className="releva-page-title">{blogCopy.title}</h1>
+          <p className="mt-3 text-base leading-7 text-public-muted">{blogCopy.description}</p>
         </header>
         <BlogIndex posts={posts} />
         <NewsletterSignup />

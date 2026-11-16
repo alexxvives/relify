@@ -7,8 +7,7 @@ export const shellCopy = {
   accountLabel: "Cuenta",
   viewProfile: "Ver perfil",
   helpTitle: "¿Necesitas ayuda?",
-  helpBody: "Llámanos o escríbenos. Te acompañamos a rellenar la ficha.",
-  helpCall: "Llamar",
+  helpCall: "",
   helpPhone: "+34 689 99 43 85",
   helpPhoneHref: "tel:+34689994385",
   helpWrite: "Escribir",
@@ -22,6 +21,26 @@ export type ShellDestination = {
   section?: string;
 };
 
+/** Short labels for the compact tab bar (3 destinations + Más). */
+export const tabLabelForHref: Record<string, string> = {
+  "/mi-empresa": "Inicio",
+  "/mi-empresa/detalles": "Empresa",
+  "/mi-empresa/procesos": "Procesos",
+  "/inversor": "Inicio",
+  "/mercado": "Empresas",
+  "/procesos": "Procesos",
+  "/mandatos": "Inicio",
+  "/mandatos/encargos": "Encargos",
+  "/mandatos/venta": "Procesos",
+  "/admin": "Inicio",
+  "/admin/empresas": "Empresas",
+  "/admin/cuentas": "Cuentas",
+};
+
+export function tabDestinations(destinations: readonly ShellDestination[]): ShellDestination[] {
+  return destinations.filter((item) => item.href in tabLabelForHref).slice(0, 3);
+}
+
 /** Seller-only entry shown while the selected company has a closed sale. */
 export const saleClosedDestination: ShellDestination = { href: "/mi-empresa/venta", label: "Venta cerrada", section: "Gestión de procesos" };
 export const purchaseDoneDestination: ShellDestination = { href: "/inversor/compra", label: "Empresa comprada", section: "Gestión de procesos" };
@@ -32,6 +51,7 @@ const destinations = {
   investor: [
     { href: "/inversor", label: "Inicio" },
     { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
+    { href: "/tendencias", label: "Tendencias", section: "Explorar" },
     { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
     { href: "/asesoramiento", label: "Mi asesor", section: "Gestión de procesos" },
   ],
@@ -57,6 +77,7 @@ const destinations = {
     { href: "/admin/facturacion", label: "Facturación", section: "Gestión" },
     { href: "/admin/mensajes", label: "Mensajes", section: "Gestión" },
     { href: "/admin/lista-de-espera", label: "Lista de espera", section: "Gestión" },
+    { href: "/admin/valoraciones", label: "Valoraciones", section: "Gestión" },
   ],
 } as const satisfies Record<UserRoleName, readonly ShellDestination[]>;
 

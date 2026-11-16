@@ -13,5 +13,6 @@ When a task is finished and the validation gate has passed, commit that task and
 - Stage only the files that belong to that task. Leave unrelated working-tree changes unstaged.
 - Never commit `.env` or any secret. Never print a connection string, key, or password.
 - Never force-push. Never skip hooks.
+- Never deploy to production. Only Alex deploys to prod after validating in INT. Pushing is not a deploy.
 - The shell is Windows PowerShell. Commit with `git commit -m "message"`. Do not use a bash heredoc.
 - The message is one or two sentences on why the change exists, matching `git log`.

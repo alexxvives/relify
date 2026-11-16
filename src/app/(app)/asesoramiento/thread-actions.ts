@@ -5,13 +5,13 @@ import { redirect } from "next/navigation";
 import { engagementIdSchema, engagementMeetingSchema, engagementMessageSchema } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { deleteClientEngagement } from "@/server/advisoryEngagement";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { deleteClientEngagement } from "@/lib/server/advisory-engagement";
 import {
   approveEngagementMeeting,
   postEngagementMessage,
   rescheduleEngagementMeeting,
-} from "@/server/engagementThread";
+} from "@/lib/server/engagement-thread";
 
 export type EngagementMessageState = { ok: true } | { ok: false; message: string } | null;
 

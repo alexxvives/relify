@@ -17,7 +17,7 @@ Roles are `seller`, `investor`, `advisor`, and `admin`. Homes live in `homeForRo
 | advisor | `/mandatos` | Inicio, Encargos (`/mandatos/encargos`), Mis procesos (`/mandatos/venta`), Mis servicios. No Ser premium. Encargos lists named hires. It does not show the shared inbox |
 | admin | `/admin` | Inicio, Empresas, Cuentas, Conexiones, Asesores, Facturación. Legal name, CIF, address, and shareholders stay on the Empresas cards. Ver la ficha on Conexiones opens that company the way an advisor sees it: banner, ficha, chat, and reuniones, read-only, with the investor card on the right and any hired advisor under it. Those identity strings and file names stay off that page. Suspend, role, and plan grants stay on `/admin/cuentas`. |
 
-`destinationForUser` sends an unfinished account to `/onboarding`. `requireRole` in `src/server/requireRole.ts` sends a signed-out user to `/entrar`, an unfinished user to `/onboarding`, and the wrong role to `homeForRole`.
+`destinationForUser` sends an unfinished account to `/onboarding`. `requireRole` in `src/lib/server/require-role.ts` sends a signed-out user to `/entrar`, an unfinished user to `/onboarding`, and the wrong role to `homeForRole`.
 
 ## Rules that already failed once
 
@@ -28,6 +28,6 @@ A seller opening `/mercado` returns to `/mi-empresa`. An investor opening `/mand
 ## When adding a page
 
 1. Guard it with `requireRole` for the one role that owns it.
-2. Reuse the signed-in shell in `src/components/app-frame.tsx` (Costa tokens, DM Sans, the Instrument Serif word Releva). Public marketing, `/`, and auth stay on the catalog header.
+2. Reuse the signed-in shell in `src/components/shell/app-frame.tsx` (Costa tokens, DM Sans, the Instrument Serif word Releva). Public marketing, `/`, and auth stay on the catalog header.
 3. Investor profile panels on `/inversor/perfil` stay in the browser session. Do not write them to Postgres unless the task says to.
 4. Click through as that role, then as a different role, and confirm the wrong role lands on its own home.

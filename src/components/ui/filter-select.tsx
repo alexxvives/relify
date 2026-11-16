@@ -58,7 +58,7 @@ export function FilterSelect({
         }}
         className={
           compact
-            ? "flex h-9 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-full border border-[#e7eaee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20"
+            ? "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-full border border-[#e7eaee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20 lg:h-9"
             : "flex h-11 w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e1e6ee] bg-white px-3 text-left text-sm text-[#1c2740] outline-none focus-visible:border-[#5c4de0] focus-visible:ring-3 focus-visible:ring-[#5c4de0]/25"
         }
       >
@@ -86,8 +86,8 @@ export function FilterSelect({
                   }}
                   className={
                     current
-                      ? "flex w-full px-3 py-2 text-left text-sm font-medium text-[#3d34b8]"
-                      : "flex w-full px-3 py-2 text-left text-sm text-[#1c2740] hover:bg-[#f5f6fa]"
+                      ? "flex min-h-11 w-full items-center px-3 text-left text-sm font-medium text-[#3d34b8]"
+                      : "flex min-h-11 w-full items-center px-3 text-left text-sm text-[#1c2740] hover:bg-[#f5f6fa]"
                   }
                 >
                   {option.label}

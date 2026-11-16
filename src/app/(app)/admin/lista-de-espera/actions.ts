@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/server/requireRole";
-import { deleteWaitlistEntry } from "@/server/deleteWaitlistEntry";
+import { requireRole } from "@/lib/server/require-role";
+import { deleteWaitlistEntry } from "@/lib/server/delete-waitlist-entry";
 import type { AdminActionState } from "@/app/(app)/admin/actions";
 
 function readText(formData: FormData, name: string): string {

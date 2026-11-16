@@ -329,3 +329,17 @@ export function readStoredPhone(stored: string | null): { iso: string; national:
 
   return { iso: match.iso, national: digits.slice(match.dial.length) };
 }
+
+/** S26: regional-indicator flag for an ISO 3166-1 alpha-2 code ("ES" -> 🇪🇸). */
+export function flagEmoji(iso: string): string {
+  if (!/^[A-Z]{2}$/.test(iso)) {
+    return "";
+  }
+  return String.fromCodePoint(...[...iso].map((letter) => 0x1f1e6 + letter.charCodeAt(0) - 65));
+}
+
+/** S26: the closed phone-prefix trigger shows only the flag and the prefix ("🇪🇸 +34"); the list keeps the name. */
+export function phonePrefixTriggerLabel(iso: string, dial: string): string {
+  const flag = flagEmoji(iso);
+  return flag ? `${flag} +${dial}` : `+${dial}`;
+}

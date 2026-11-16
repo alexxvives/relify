@@ -1,6 +1,6 @@
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { prisma } from "@/server/db";
-import { readProjectCover } from "@/server/projectCover";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { prisma } from "@/lib/db";
+import { readProjectCover } from "@/lib/server/project-cover";
 
 export async function GET(
   _request: Request,

@@ -80,7 +80,7 @@ export function filterMarketProjects(
       return false;
     }
 
-    if (filters.revenueBand !== "any" && !inBand(project.revenueCents, revenueBounds[filters.revenueBand])) {
+    if (filters.revenueBand !== "any" && !inBand(project.askingPriceCents, revenueBounds[filters.revenueBand])) {
       return false;
     }
 
@@ -121,9 +121,13 @@ function headcountRank(project: PublicProjectCard): number {
   return project.headcount ? headcountRanges.findIndex((range) => range === project.headcount) : -1;
 }
 
+function profitCents(project: PublicProjectCard): number {
+  return project.hasAdjustments === true ? project.adjustedEbitdaCents : project.ebitdaCents;
+}
+
 function comparePayback(left: PublicProjectCard, right: PublicProjectCard): number {
-  const leftYears = recoveryYears(left.askingPriceCents, left.ebitdaCents);
-  const rightYears = recoveryYears(right.askingPriceCents, right.ebitdaCents);
+  const leftYears = recoveryYears(left.askingPriceCents, profitCents(left));
+  const rightYears = recoveryYears(right.askingPriceCents, profitCents(right));
 
   if (leftYears === null && rightYears === null) {
     return left.codename.localeCompare(right.codename, "es");

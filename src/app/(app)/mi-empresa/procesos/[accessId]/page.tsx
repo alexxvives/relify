@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { CompanyBanner } from "@/components/company-banner";
-import { CompanyReport } from "@/components/company-report";
-import { FloatingInvestorCard } from "@/components/floating-investor-card";
-import { SignedInPage } from "@/components/signed-in-page";
-import { requireRole } from "@/server/requireRole";
-import { getSellerBuyerFicha } from "@/server/sellerBuyerFicha";
+import { CompanyBanner } from "@/components/seller/company-banner";
+import { CompanyReport } from "@/components/seller/company-report";
+import { FloatingInvestorCard } from "@/components/investor/floating-investor-card";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { requireRole } from "@/lib/server/require-role";
+import { getSellerBuyerFicha } from "@/lib/server/seller-buyer-ficha";
 
 export const metadata: Metadata = {
   title: "Ficha del proceso",

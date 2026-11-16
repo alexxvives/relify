@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: "Asesores",
-  description: "Publica servicios y acompaña encargos sin mostrar la sociedad del cliente en la ficha.",
-};
+const title = "Asesores";
+const description = "Publica servicios y acompaña encargos sin mostrar la sociedad del cliente en la ficha.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title,
+    description,
+    ...pageSocialMetadata({ title, description, path: "/asesores", origin: readSiteUrl() }),
+  };
+}
 
 export default function AsesoresPage() {
   return (
@@ -54,7 +62,7 @@ export default function AsesoresPage() {
         { q: "\u00bfCu\u00e1nto cuesta estar en Relify?", a: "La ficha en el directorio es gratis. Para aceptar encargos y hablar con clientes est\u00e1 la suscripci\u00f3n de asesor de 49 \u20ac. Relify cobra un 15% de tus honorarios por encargo." },
         { q: "\u00bfVeo los datos del cliente?", a: "Ves el nombre de proyecto hasta que el encargo est\u00e1 aceptado. Despu\u00e9s se abre la ficha y los documentos que te comparten." },
       ]}
-      closingTitle="Llega a las operaciones cuando necesitan un asesor."
+      closingTitle="Publica tu ficha de asesor en Relify."
     />
   );
 }

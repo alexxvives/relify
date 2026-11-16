@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: "Compradores",
-  description: "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.",
-};
+const title = "Compradores";
+const description = "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title,
+    description,
+    ...pageSocialMetadata({ title, description, path: "/inversores", origin: readSiteUrl() }),
+  };
+}
 
 export default function InversoresPage() {
   return (
     <RolePage
       kicker="Compradores"
-      title="Encuentra empresas rentables antes de saber el nombre"
+      title="Lee fichas por cifras, no por el nombre"
       lead="El catálogo enseña nickname, región, facturación, EBITDA y precio. Pides conexión cuando una operación encaja. La sociedad llega después del acuerdo."
       image="/product/inversor.jpg"
       imageAlt="Empresas en venta en Relify, con filtros y fichas de proyecto"
@@ -50,13 +58,13 @@ export default function InversoresPage() {
       faq={[
         { q: "\u00bfQu\u00e9 tengo que hacer para conectar con una empresa?", a: "Elegir un plan y completar tu perfil de comprador: tipo, ticket, sectores y qu\u00e9 buscas. Es lo que la empresa ve antes de aceptarte." },
         { q: "\u00bfCu\u00e1nto cuesta?", a: "Ver el cat\u00e1logo es gratis. Para conectar hay dos planes: Individual (20 \u20ac/mes + IVA, 3 conexiones al mes) y Empresa (99 \u20ac/mes + IVA, ilimitadas)." },
-        { q: "\u00bfCu\u00e1ndo veo el nombre de la empresa?", a: "Cuando la empresa acepta tu solicitud y firmas el NDA. Antes ves el nombre de proyecto y las cifras abiertas." },
+        { q: "\u00bfCu\u00e1ndo veo el nombre de la empresa?", a: "No ves la raz\u00f3n social, el CIF ni el domicilio. El NDA abre el detalle de cifras de la ficha; el nombre de proyecto es lo que ves antes y despu\u00e9s." },
         { q: "\u00bfLas empresas est\u00e1n verificadas?", a: "S\u00ed. Comprobamos el NIF de cada empresa en el registro mercantil y revisamos la ficha antes de publicarla." },
         { q: "\u00bfLa empresa ve mi correo?", a: "No. Ve tu perfil p\u00fablico: nombre, ciudad, tipo de comprador y qu\u00e9 buscas." },
         { q: "\u00bfHay comisi\u00f3n si compro?", a: "Solo si la operaci\u00f3n se cierra: 2,5% del precio final m\u00e1s IVA con el plan Individual, 2% con el plan Empresa." },
         { q: "\u00bfPuedo trabajar con un asesor?", a: "S\u00ed. Puedes contratar a un asesor verificado desde Relify para que te acompa\u00f1e en la compra." },
       ]}
-      closingTitle="Entra en el catálogo antes de que se llene."
+      closingTitle="Apúntate para ver las fichas cuando Relify abra."
     />
   );
 }

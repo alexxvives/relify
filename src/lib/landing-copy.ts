@@ -1,11 +1,12 @@
 export const landingCopy = {
   title: "Plataforma digital para comprar empresas",
   description:
-    "Relify es la plataforma para comprar y vender pymes con fichas claras, un proceso confidencial y acceso a perfiles que encajan. La ficha pública no muestra la razón social.",
+    "Relify es la plataforma para comprar y vender pymes con fichas claras y un proceso confidencial. La ficha pública no muestra la razón social.",
   intro:
     "Facilitamos la compraventa con cifras a la vista, nombres de proyecto y un recorrido que mantiene la sociedad fuera de la ficha pública.",
   registerCta: "Regístrate gratis ahora",
-  signInCta: "Acceder",
+  signInCta: "Iniciar sesión",
+  tryFreeCta: "Prueba gratis",
   accountCta: "Cuenta",
   catalogCta: "Empresas en venta",
   words: ["comprar", "vender", "asesorar"],
@@ -42,17 +43,17 @@ export const landingCopy = {
       id: "vendedores",
       eyebrow: "Empresas",
       heading: "Vende tu empresa",
-      accent: "en menos de 120 días",
-      body: "Recibe interés sobre la compañía con un nombre de proyecto. Llegas a compradores que ya buscan una operación, y la ficha no publica la sociedad ni a los socios.",
+      accent: "sin mostrar la sociedad",
+      body: "Publica con un nombre de proyecto. La ficha no enseña la sociedad ni a los socios. Tú eliges a qué comprador aceptar.",
       more: "Más información",
       register: "Regístrate ahora",
     },
     investors: {
       id: "compradores",
       eyebrow: "Compradores",
-      heading: "Invierte en",
-      accent: "empresas rentables",
-      body: "Encuentra empresas en venta que encajan con tus criterios y revisa facturación, EBITDA y precio antes de pedir el detalle confidencial.",
+      heading: "Lee fichas por",
+      accent: "cifras, no por el nombre",
+      body: "Revisa facturación, EBITDA y precio en cada ficha. La sociedad llega después del NDA, si el vendedor te acepta.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -61,7 +62,7 @@ export const landingCopy = {
       eyebrow: "Asesores",
       heading: "Publica tus mandatos",
       accent: "en Relify",
-      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato y habla con empresas e compradores que ya están en el proceso.",
+      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato. El directorio de asesores es gratuito; para aceptar un encargo activas la suscripción.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -87,9 +88,11 @@ export const landingCopy = {
   },
   activity: {
     id: "actividad",
-    kicker: "El mercado en marcha",
-    heading:
-      "Mira cómo se conectan compradores y empresas: interés, reuniones y operaciones que avanzan cada día",
+    kicker: "Dentro de Relify",
+    heading: "Así se ve una operación",
+    intro: "Avisos de ejemplo: interés, reunión y NDA, con el nombre de proyecto.",
+    cta: "Crear cuenta",
+    ctaHref: "/registro",
   },
   cases: {
     id: "casos",
@@ -136,20 +139,32 @@ export const landingCopy = {
       {
         title: "Relify",
         links: [
-          { label: "Archivo", href: "/archivo" },
           { label: "Contacto", href: "/contacto" },
+          { label: "Privacidad", href: "/privacidad" },
+          { label: "Términos", href: "/terminos" },
+          { label: "Cookies", href: "/cookies" },
           { label: "info@itsrelify.com", href: "mailto:info@itsrelify.com" },
         ],
       },
     ],
   },
   home: {
-    title: "Un mercado para comprar y vender empresas",
+    title: "El mercado inteligente para comprar y vender empresas rentables",
     description:
-      "Unas pymes están en venta y se leen por facturación, EBITDA y precio. Otras pueden publicarse igual, sin la razón social en la ficha.",
+      "En Relify las fichas se leen por facturación, EBITDA y precio, sin la razón social. Publicas la tuya o pides conexión a las que encajan.",
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
-    cta: "Comprar una empresa",
+    cta: "Prueba gratis",
+    v2: {
+      cifrasId: "cifras",
+      cifrasKicker: "Ejemplo de ficha",
+      cifrasHeading: "Así se leen las cifras",
+      cifrasIntro:
+        "Números de Proyecto Alba, la ficha de ejemplo. No son un recuento del mercado.",
+      revenue: "Facturación",
+      ebitda: "EBITDA",
+      price: "Precio de venta",
+    },
     sellCta: "Vender tu empresa",
     step: "Ficha pública",
     buyersKicker: "Empresarios que buscan",
@@ -174,6 +189,7 @@ export const landingCopy = {
         {
           id: "vender",
           role: "Vender",
+          line: "Publica con cifras, sin el nombre",
           body: "Escribes el CIF y Relify rellena los datos de la empresa y prepara sus gráficos. Completas el perfil, lo publicas y eliges a qué compradores aceptar.",
           points: ["Datos y gráficos automáticos", "Publicas con nombre de proyecto", "Aceptas compradores, NDA y chat"],
           href: "/empresas",
@@ -182,6 +198,7 @@ export const landingCopy = {
         {
           id: "comprar",
           role: "Comprar",
+          line: "Lee fichas anónimas y pide conexión",
           body: "Completas tu perfil de comprador, lees fichas anónimas y pides conexión a las que encajan. Si el vendedor acepta, firmas el NDA y se abren el chat y los documentos.",
           points: ["Perfil de comprador completo", "Pides conexión a la ficha", "NDA, chat y documentos"],
           href: "/proyectos",
@@ -190,6 +207,7 @@ export const landingCopy = {
         {
           id: "asesorar",
           role: "Asesorar",
+          line: "Ofrece servicios y acepta encargos",
           body: "Creas gratis tu ficha de asesor con tus servicios. Vendedores y compradores te piden presupuesto, aceptas el encargo y acompañas la operación desde dentro.",
           points: ["Ficha de asesor gratuita", "Solicitudes de vendedores y compradores", "Encargo, NDA y seguimiento"],
           href: "/asesores",
@@ -212,36 +230,51 @@ export const landingCopy = {
     process: {
       id: "vender",
       kicker: "Empresas",
-      heading: "Vende tu negocio",
-      accent: "en 120 días",
+      heading: "Publica cifras. El nombre, no.",
+      accent: "",
       intro:
-        "Así llega el interés: empresarios de toda España, conectados con tu empresa, que ya buscan un negocio al que darle continuidad.",
-      bodyParagraphs: [
-        [
-          { text: "Publicas la ficha", emphasis: true },
-          { text: " y el mapa se llena de compradores que ya buscan por ciudad y sector. Tú marcas qué encaja y " },
-          { text: "tú eliges con quién hablar", emphasis: true },
-          { text: ", sin que la operación se convierta en un anuncio público." },
-        ],
-        [
-          { text: "En la ficha solo salen " },
-          { text: "región, cifras y precio", emphasis: true },
-          { text: ". La razón social, el CIF y los socios " },
-          { text: "siguen fuera", emphasis: true },
-          { text: " hasta que aceptas una conexión y firmas el acuerdo de confidencialidad." },
-        ],
-        [
-          { text: "Relify te avisa cuando llega interés, cuando hay reunión o cuando toca tu turno", emphasis: true },
-          { text: ". Así avanzas el proceso sin perder el control ni la confidencialidad del negocio." },
-        ],
-      ],
+        "La ficha sale con región, sector y números, bajo un nombre de proyecto. Tú aceptas a cada comprador. El NDA abre el resto.",
       cta: "Publicar mi empresa",
+      ctaHref: "/registro?rol=empresa",
+      stepLabel: "Paso",
+      timeline: [
+        {
+          n: 1,
+          title: "Publicas la ficha",
+          body: "Sale con región, cifras y precio. La razón social se queda fuera.",
+        },
+        {
+          n: 2,
+          title: "Llega el interés",
+          body: "Los compradores piden conexión con su perfil público.",
+        },
+        {
+          n: 3,
+          title: "Tú eliges con quién hablar",
+          body: "Aceptas o dejas en espera. La operación no se convierte en un anuncio.",
+        },
+        {
+          n: 4,
+          title: "NDA y conversación",
+          body: "Tras el acuerdo se abren el chat, las cifras cerradas y los documentos.",
+        },
+      ],
     },
     flow: {
       id: "como-funciona",
       kicker: "Cómo funciona",
       heading: "Simple desde el primer paso",
-      intro: "Baja por los pasos y verás qué datos dejas, qué prepara Relify y en qué momento entra un comprador, con el nombre de la sociedad todavía fuera.",
+      intro: "",
+      pipeline: {
+        kicker: "El proceso",
+        heading: "Así avanza una operación",
+        intro: "Los mismos pasos que dentro de Relify: de la solicitud a la venta. El paso activo se acerca.",
+      },
+      cta: {
+        vender: { href: "/registro?rol=empresa", label: "Crear cuenta de empresa" },
+        comprar: { href: "/registro?rol=inversor", label: "Crear cuenta de comprador" },
+        asesorar: { href: "/registro?rol=asesor", label: "Crear cuenta de asesor" },
+      },
       week: ["L", "M", "X", "J", "V", "S", "D"],
       tracks: {
         vender: {
@@ -251,16 +284,23 @@ export const landingCopy = {
               title: "Escribe tu CIF y los datos se rellenan solos",
               body: "Con el CIF, Relify trae los datos registrales de tu empresa y prepara gráficos de su evolución. Tú solo revisas.",
               cardTitle: "Tu empresa",
-              chip: "Unos minutos",
+              chip: "CIF",
               panel: {
-                kind: "form",
-                foot: "Con el CIF, el resto se rellena solo",
-                fields: [
-                  { kind: "type", label: "CIF de la empresa", text: "B12345678", startAt: 400 },
-                  { kind: "choice", label: "Datos registrales", options: ["Buscando", "Encontrados"], pickAt: 1900 },
-                  { kind: "choice", label: "Gráficos de la empresa", options: ["Preparando", "Listos"], pickAt: 2700 },
-                  { kind: "choice", label: "¿Qué vas a vender?", options: ["La empresa", "Una parte", "Aún no lo sé"], pickAt: 3500 },
+                kind: "cif",
+                label: "CIF de la empresa",
+                text: "B12345678",
+                submit: "Consultar",
+                loading: "Leyendo el registro",
+                ready: "Datos cargados",
+                company: "Proyecto Alba",
+                meta: "Industria · estructuras metálicas · Valencia",
+                pie: [
+                  { label: "A", value: 42, color: "#2fc4b2" },
+                  { label: "B", value: 33, color: "#465ab4" },
+                  { label: "C", value: 25, color: "#ffb703" },
                 ],
+                bars: { label: "Facturación", unit: "K €", values: [820, 960, 1100, 1250], colors: ["#7dd3c7", "#2fc4b2", "#0f6e73", "#1c2740"] },
+                line: { label: "EBITDA", unit: "K €", values: [140, 190, 250, 310] },
               },
             },
             {
@@ -271,6 +311,7 @@ export const landingCopy = {
               chip: "Sin el nombre",
               panel: {
                 kind: "tasks",
+                stamp: "Publicado",
                 strong: "Ficha publicada, sin la sociedad.",
                 note: "Los compradores ven cifras y región, no el nombre.",
                 rows: [
@@ -297,7 +338,7 @@ export const landingCopy = {
                 rows: [
                   { name: "Solicitud", value: "Aceptada" },
                   { name: "NDA", value: "Firmado" },
-                  { name: "Chat/Documentos", value: "Abierto" },
+                  { name: "Chat / Documentos", value: "Abierto" },
                 ],
                 count: { name: "Solicitudes", target: 3, suffix: " esta semana" },
                 strong: "El nombre sigue fuera.",
@@ -313,7 +354,7 @@ export const landingCopy = {
               title: "Completa tu perfil de comprador",
               body: "Qué buscas y qué aportas: sector, región y tamaño. Con el perfil completo ya puedes pedir conexión.",
               cardTitle: "Nos lo cuentas",
-              chip: "Unos minutos",
+              chip: "Perfil",
               panel: {
                 kind: "form",
                 foot: "Perfil completo: ya puedes pedir conexión",
@@ -359,7 +400,7 @@ export const landingCopy = {
                 rows: [
                   { name: "Conexión", value: "Aceptada" },
                   { name: "NDA", value: "Firmado" },
-                  { name: "Chat/Documentos", value: "Abierto" },
+                  { name: "Chat / Documentos", value: "Abierto" },
                 ],
                 count: { name: "Fichas leídas", target: 6, suffix: " esta semana" },
                 strong: "Todo queda dentro de la operación.",
@@ -375,7 +416,7 @@ export const landingCopy = {
               title: "Crea tu ficha de asesor",
               body: "Tus servicios, sectores y zona. Crear la ficha y recibir solicitudes es gratis.",
               cardTitle: "Tu ficha",
-              chip: "Unos minutos",
+              chip: "Ficha",
               panel: {
                 kind: "form",
                 foot: "Ficha lista para recibir solicitudes",
@@ -454,8 +495,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "48K €",
     adjusted: "52K €",
     price: "190K €",
-    sector: "comercio",
-    image: "/pymes/pyme-cafe.jpg",
+    sector: "industria",
+    image: "/sectors/industria.jpg",
   },
   {
     codename: "Proyecto Norte",
@@ -464,8 +505,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "36K €",
     adjusted: "41K €",
     price: "145K €",
-    sector: "servicios",
-    image: "/pymes/pyme-peluqueria.jpg",
+    sector: "transporte",
+    image: "/sectors/transporte.jpg",
   },
   {
     codename: "Proyecto Mar",
@@ -474,8 +515,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "62K €",
     adjusted: "70K €",
     price: "240K €",
-    sector: "servicios",
-    image: "/pymes/pyme-taller.jpg",
+    sector: "alimentacion",
+    image: "/sectors/alimentacion.jpg",
   },
   {
     codename: "Proyecto Sur",
@@ -484,8 +525,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "29K €",
     adjusted: "34K €",
     price: "110K €",
-    sector: "comercio",
-    image: "/pymes/pyme-flor.jpg",
+    sector: "hosteleria",
+    image: "/sectors/hosteleria.jpg",
   },
   {
     codename: "Proyecto Cobre",
@@ -494,8 +535,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "78K €",
     adjusted: "86K €",
     price: "310K €",
-    sector: "comercio",
-    image: "/pymes/pyme-mesa.jpg",
+    sector: "construccion",
+    image: "/sectors/construccion.jpg",
   },
   {
     codename: "Proyecto Lumen",
@@ -505,7 +546,7 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     adjusted: "61K €",
     price: "220K €",
     sector: "servicios",
-    image: "/pymes/pyme-ceramica.jpg",
+    image: "/sectors/servicios.jpg",
   },
   {
     codename: "Proyecto Olivo",
@@ -515,7 +556,7 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     adjusted: "91K €",
     price: "290K €",
     sector: "comercio",
-    image: "/pymes/pyme-obrador.jpg",
+    image: "/sectors/comercio.jpg",
   },
   {
     codename: "Proyecto Delta",
@@ -524,8 +565,8 @@ export const offerDeals: readonly ShowcaseDeal[] = [
     ebitda: "96K €",
     adjusted: "110K €",
     price: "390K €",
-    sector: "comercio",
-    image: "/pymes/pyme-tienda.jpg",
+    sector: "turismo",
+    image: "/sectors/turismo.jpg",
   },
 ];
 
@@ -538,7 +579,26 @@ export const specimenMetrics = [
 
 export type FlowRole = (typeof landingCopy.home.paths.columns)[number]["id"];
 
-export type ShowcaseSector = "industria" | "comercio" | "servicios" | "transporte";
+export type ShowcaseSector =
+  | "industria"
+  | "comercio"
+  | "servicios"
+  | "transporte"
+  | "alimentacion"
+  | "hosteleria"
+  | "construccion"
+  | "turismo";
+
+export const showcaseSectorLabels: Record<ShowcaseSector, string> = {
+  industria: "Industria",
+  comercio: "Comercio",
+  servicios: "Servicios",
+  transporte: "Transporte",
+  alimentacion: "Alimentación",
+  hosteleria: "Hostelería",
+  construccion: "Construcción",
+  turismo: "Turismo",
+};
 
 export type ShowcaseDeal = {
   codename: string;
@@ -687,12 +747,66 @@ export const mapRegions = [
 ] as const;
 
 export const activityItems = [
-  { time: "Hoy · 21:41", title: "Conexión aceptada", body: "La empresa ha aceptado la solicitud del comprador", from: "IN 1842", to: "Proyecto Alba" },
-  { time: "Hoy · 21:12", title: "Nuevo interés", body: "El comprador ha enviado una solicitud de conexión", from: "IN 2204", to: "Proyecto Norte" },
-  { time: "Hoy · 20:48", title: "Reunión aceptada", body: "La empresa ha aceptado la reunión", from: "IN 0901", to: "Proyecto Mar" },
-  { time: "Hoy · 20:05", title: "Reunión solicitada", body: "El comprador pide una reunión con la empresa", from: "IN 3310", to: "Proyecto Lumen" },
-  { time: "Hoy · 19:22", title: "Conexión aceptada", body: "La solicitud de conexión ya está aceptada", from: "IN 1188", to: "Proyecto Cobre" },
-  { time: "Hoy · 18:40", title: "Nuevo interés", body: "Un asesor ha presentado un mandato", from: "AS 044", to: "Proyecto Delta" },
+  {
+    kind: "accepted",
+    title: "Conexión aceptada",
+    body: "El vendedor ha aceptado a este comprador. El NDA abre el detalle de Proyecto Alba.",
+    project: "Proyecto Alba",
+    sector: "industria",
+    revenue: "1,25 M €",
+    ebitda: "310 K €",
+    marginPct: 25,
+  },
+  {
+    kind: "interest",
+    title: "Nuevo interés",
+    body: "Un comprador pide conexión con Proyecto Norte tras leer la ficha pública.",
+    project: "Proyecto Norte",
+    sector: "transporte",
+    revenue: "820 K €",
+    ebitda: "140 K €",
+    marginPct: 17,
+  },
+  {
+    kind: "meeting",
+    title: "Reunión aceptada",
+    body: "La empresa de Proyecto Mar ha aceptado una reunión con el comprador.",
+    project: "Proyecto Mar",
+    sector: "alimentacion",
+    revenue: "2,1 M €",
+    ebitda: "410 K €",
+    marginPct: 20,
+  },
+  {
+    kind: "meeting",
+    title: "Reunión solicitada",
+    body: "El comprador pide una reunión para revisar las cifras de Proyecto Lumen.",
+    project: "Proyecto Lumen",
+    sector: "servicios",
+    revenue: "960 K €",
+    ebitda: "180 K €",
+    marginPct: 19,
+  },
+  {
+    kind: "accepted",
+    title: "Conexión aceptada",
+    body: "Proyecto Cobre ha aceptado la solicitud. El cuaderno de venta queda trazado.",
+    project: "Proyecto Cobre",
+    sector: "construccion",
+    revenue: "3,4 M €",
+    ebitda: "620 K €",
+    marginPct: 18,
+  },
+  {
+    kind: "mandate",
+    title: "Mandato presentado",
+    body: "Un asesor publica un mandato de venta sobre Proyecto Delta, sin el nombre de la sociedad.",
+    project: "Proyecto Delta",
+    sector: "turismo",
+    revenue: "1,8 M €",
+    ebitda: "290 K €",
+    marginPct: 16,
+  },
 ] as const;
 
 export const caseStudies = [

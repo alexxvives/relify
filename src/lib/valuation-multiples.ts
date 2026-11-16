@@ -49,6 +49,25 @@ const trendShiftCap = 0.75;
 
 export type YearAmount = { year: number; cents: number };
 
+/** Newest-to-oldest weights for the orientative price range. */
+export const ebitdaRangeWeights = [0.5, 0.3, 0.2] as const;
+
+/**
+ * Weighted average of the last 1–3 available years of EBITDA (50/30/20 newest to oldest).
+ * Years with missing or non-positive EBITDA are skipped; remaining weights are renormalized.
+ */
+export function weightedEbitdaCents(rows: readonly YearAmount[]): { cents: number; years: number[] } | null {
+  const take = rows
+    .filter((row) => Number.isInteger(row.year) && Number.isFinite(row.cents) && row.cents > 0)
+    .sort((a, b) => b.year - a.year)
+    .slice(0, ebitdaRangeWeights.length);
+  if (take.length === 0) return null;
+  const weights = ebitdaRangeWeights.slice(0, take.length);
+  const sumW = weights.reduce((total, weight) => total + weight, 0);
+  const cents = Math.round(take.reduce((sum, row, index) => sum + row.cents * weights[index], 0) / sumW);
+  return { cents, years: take.map((row) => row.year) };
+}
+
 /** Relative EBITDA trendline (slope ÷ |mean|) of the last 3 consecutive years (2 minimum); null when not computable. */
 export function ebitdaTrend(rows: readonly YearAmount[]): number | null {
   const sorted = rows.filter((row) => Number.isInteger(row.year) && Number.isFinite(row.cents)).sort((a, b) => b.year - a.year);
@@ -203,4 +222,22 @@ export function priceBarPosition(cents: number, estimate: Pick<PriceEstimate, "l
   if (cents <= lowCents) return priceBarZone.low * share(cents, minCents, lowCents);
   if (cents <= highCents) return priceBarZone.low + (priceBarZone.high - priceBarZone.low) * share(cents, lowCents, highCents);
   return priceBarZone.high + (1 - priceBarZone.high) * share(cents, highCents, maxCents);
+}
+
+/** Inverse of `priceBarPosition`: a 0..1 bar share (clamped) back to cents. */
+export function priceFromBarPosition(t: number, estimate: Pick<PriceEstimate, "lowCents" | "highCents">): number {
+  const clamped = Math.min(1, Math.max(0, t));
+  const { minCents, maxCents } = priceBarEnds(estimate);
+  const { lowCents, highCents } = estimate;
+  const lerp = (from: number, to: number, share: number) => Math.round(from + (to - from) * share);
+  if (clamped <= priceBarZone.low) {
+    const span = priceBarZone.low;
+    return lerp(minCents, lowCents, span > 0 ? clamped / span : 0);
+  }
+  if (clamped <= priceBarZone.high) {
+    const span = priceBarZone.high - priceBarZone.low;
+    return lerp(lowCents, highCents, span > 0 ? (clamped - priceBarZone.low) / span : 0.5);
+  }
+  const span = 1 - priceBarZone.high;
+  return lerp(highCents, maxCents, span > 0 ? (clamped - priceBarZone.high) / span : 1);
 }

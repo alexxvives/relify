@@ -1,5 +1,6 @@
 import { inflateRawSync } from "node:zlib";
 import {
+  fichaClosedYearSlots,
   isStatementYear,
   pnlInputKeys,
   statementEbitda,
@@ -157,7 +158,7 @@ function parseXmlAccounts(xml: string): AnnualAccountsParse {
   const selected = [...buckets.entries()]
     .filter(([, bucket]) => bucket.pnl.has("sales"))
     .sort((left, right) => left[0] - right[0])
-    .slice(-3);
+    .slice(-fichaClosedYearSlots);
 
   if (selected.length === 0) {
     const hasSales = facts.some((fact) => fact.concept === "sales");

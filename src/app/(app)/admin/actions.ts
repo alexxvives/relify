@@ -1,14 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { approveProject } from "@/server/approveProject";
-import { changeAccountRole } from "@/server/changeAccountRole";
-import { grantInvestorPlan } from "@/server/grantInvestorPlan";
-import { requireRole } from "@/server/requireRole";
-import { setAccountSuspension } from "@/server/setAccountSuspension";
-import { setVerified } from "@/server/setVerified";
-import { unpublishProject } from "@/server/unpublishProject";
-import { approveEbitdaAdjustment } from "@/server/approveEbitdaAdjustment";
+import { approveProject } from "@/lib/server/approve-project";
+import { changeAccountRole } from "@/lib/server/change-account-role";
+import { grantInvestorPlan } from "@/lib/server/grant-investor-plan";
+import { requireRole } from "@/lib/server/require-role";
+import { setAccountSuspension } from "@/lib/server/set-account-suspension";
+import { setVerified } from "@/lib/server/set-verified";
+import { unpublishProject } from "@/lib/server/unpublish-project";
+import { approveEbitdaAdjustment } from "@/lib/server/approve-ebitda-adjustment";
+import { rotateAdminTeaserToken } from "@/lib/server/company-pdfs";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -123,5 +124,17 @@ export async function grantPlanAction(_state: AdminActionState, formData: FormDa
     revalidatePath("/premium");
   }
 
+  return result;
+}
+
+export async function regenerateAdminTeaserLinkAction(
+  slug: string,
+): Promise<{ ok: true; shareUrl: string } | { ok: false; message: string }> {
+  const user = await requireRole("admin");
+  const result = await rotateAdminTeaserToken(user, slug);
+  if (result.ok) {
+    revalidatePath(`/admin/empresas/${slug}`);
+    revalidatePath("/mi-empresa");
+  }
   return result;
 }

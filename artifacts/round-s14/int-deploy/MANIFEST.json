@@ -1,0 +1,9 @@
+{
+  "round": "s14",
+  "commit": "334ca7d9473e858528f11fab16a8def4e84cd2b6",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "78d9f56732c0093119baa79b0b6c656d9eeeb01a74b0ab4560482ae4700a262a",
+  "migrations": [],
+  "note": "No migration. Asking-price card tag + sheet live bar + teaser on /cuenta. Not deployed.",
+  "deployed": false
+}

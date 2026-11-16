@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, MousePointer2 } from "lucide-react";
+import { ArrowRight, Briefcase, MousePointer2, Search, Store } from "lucide-react";
 import { landingCopy, type FlowRole } from "@/lib/landing-copy";
 
 const pointerStops = [16, 50, 84];
+
+const pathIcons = {
+  vender: Store,
+  comprar: Search,
+  asesorar: Briefcase,
+} as const;
 
 function PathPointer() {
   const ref = useRef<HTMLSpanElement>(null);
@@ -52,21 +58,66 @@ function PathPointer() {
   );
 }
 
-export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: FlowRole) => void }) {
+export function Paths({
+  role,
+  onSelect,
+  children = null,
+}: {
+  role: FlowRole;
+  onSelect: (role: FlowRole) => void;
+  children?: ReactNode;
+}) {
   const copy = landingCopy.home.paths;
   const [hint, setHint] = useState(true);
 
   return (
-    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16">
+    <section id={copy.id} aria-labelledby={`${copy.id}-titulo`} className="scroll-mt-24 px-5 py-10 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[1440px]">
-        <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
-        <h2 id={`${copy.id}-titulo`} className="mt-3 max-w-3xl text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">
-          {copy.heading}
-        </h2>
-        <p className="mt-4 text-[16px] leading-7 text-public-muted">{copy.intro}</p>
-        <div className="releva-path-grid relative mt-10">
+        <div className="text-center">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm tracking-[0.16em] text-public-clay uppercase">{copy.kicker}</p>
+            <h2 id={`${copy.id}-titulo`} className="releva-section-title mt-2 sm:mt-3">
+              {copy.heading}
+            </h2>
+          </div>
+          <p className="mt-3 hidden text-[16px] leading-7 text-public-muted sm:mt-4 sm:block">{copy.intro}</p>
+        </div>
+
+        <ul className="mt-5 grid grid-cols-3 gap-2 lg:hidden">
+          {copy.columns.map((column) => {
+            const selected = column.id === role;
+            const Icon = pathIcons[column.id];
+            return (
+              <li key={column.id}>
+                <button
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={column.role}
+                  onClick={() => {
+                    setHint(false);
+                    onSelect(column.id);
+                  }}
+                  className={`flex min-h-[5.5rem] w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-1.5 py-3 text-center ${
+                    selected ? "bg-public-ink text-white" : "bg-public-card text-public-ink shadow-public"
+                  }`}
+                >
+                  <span
+                    className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                      selected ? "bg-white/15 text-white" : "bg-public-sand text-public-clay"
+                    }`}
+                  >
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <span className="text-[13px] font-medium tracking-tight sm:text-sm">{column.role}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="releva-path-grid relative mt-6 hidden sm:mt-10 lg:block">
           {hint ? <PathPointer /> : null}
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-3 gap-4">
           {copy.columns.map((column) => {
             const selected = column.id === role;
             return (
@@ -88,21 +139,10 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
                   </span>
                   <h3 className="text-4xl font-medium tracking-tight">{column.role}</h3>
                   <p className={`mt-3 text-[16px] leading-7 ${selected ? "text-white/80" : "text-public-muted"}`}>{column.body}</p>
-                  <ul className="mt-6 flex flex-wrap gap-2">
-                    {column.points.slice(0, 2).map((point) => (
-                      <li
-                        key={point}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${selected ? "bg-white/15 text-white" : "bg-public-sand text-public-ink"}`}
-                      >
-                        <Check className="size-3.5 shrink-0" aria-hidden="true" />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
                 </button>
                 <Link
                   href={column.href}
-                  className={`mx-auto mb-6 inline-flex h-12 w-fit items-center gap-2 self-center rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-public-clay text-white hover:bg-public-clay-deep"}`}
+                  className={`mx-auto mb-6 inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full px-5 text-sm ${selected ? "bg-white text-public-ink hover:bg-public-sand" : "bg-relify-btn text-white hover:bg-relify-btn-hover"}`}
                 >
                   {column.cta}
                   <ArrowRight className="size-4" aria-hidden="true" />
@@ -112,6 +152,7 @@ export function Paths({ role, onSelect }: { role: FlowRole; onSelect: (role: Flo
           })}
           </div>
         </div>
+        {children}
       </div>
     </section>
   );

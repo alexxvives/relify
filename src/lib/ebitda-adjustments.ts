@@ -128,11 +128,17 @@ function cleanDocumentName(value: string | undefined): string | null {
 
 export type ParsedAdjustments = { ok: true; rows: PostedAdjustment[] } | { ok: false; code: string };
 
+export type ParseEbitdaAdjustmentsOptions = {
+  /** Latest closed-year sales; an adjustment larger than this is rejected. */
+  revenueCents?: number | null;
+};
+
 /**
  * Parses the posted JSON list. Unknown keys (a client status, a forged total) are dropped; zero amounts are rejected
- * because they explain nothing.
+ * because they explain nothing. An amount larger than the year's sales is also rejected (typos of ~1 M € on a 5 M
+ * company still pass; a 6 M € "sueldo" does not).
  */
-export function parseEbitdaAdjustments(raw: string): ParsedAdjustments {
+export function parseEbitdaAdjustments(raw: string, options?: ParseEbitdaAdjustmentsOptions): ParsedAdjustments {
   if (raw.trim() === "") {
     return { ok: true, rows: [] };
   }
@@ -160,12 +166,20 @@ export function parseEbitdaAdjustments(raw: string): ParsedAdjustments {
   if (rows.some((row) => row.amountCents === 0)) {
     return { ok: false, code: "adjustment-amount" };
   }
+  if (rows.some((row) => adjustmentExceedsRevenue(row.amountCents, options?.revenueCents))) {
+    return { ok: false, code: "adjustment-too-large" };
+  }
   return { ok: true, rows };
 }
 
 /** Rows an admin has accepted. A stored row with no status was published before review and stays approved. */
 export function approvedAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
   return rows.filter((row) => row.status === "approved");
+}
+
+/** Rows still waiting for Relify. They never change the published EBITDA. */
+export function pendingAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
+  return rows.filter((row) => row.status === "pending");
 }
 
 /**
@@ -206,6 +220,52 @@ export function sumEbitdaAdjustments(rows: readonly Pick<EbitdaAdjustment, "amou
 /** The only place the adjusted figure is derived: accounts EBITDA plus the listed adjustments. */
 export function adjustedEbitdaCents(accountsEbitdaCents: number, rows: readonly Pick<EbitdaAdjustment, "amountCents">[]): number {
   return accountsEbitdaCents + sumEbitdaAdjustments(rows);
+}
+
+/** True when |amount| is larger than that year's sales (a 1 € company cannot have a 2 € "sueldo" adjustment). */
+export function adjustmentExceedsRevenue(amountCents: number, revenueCents: number | null | undefined): boolean {
+  return revenueCents !== null && revenueCents !== undefined && revenueCents > 0 && Math.abs(amountCents) > revenueCents;
+}
+
+/** Soft flag: |amount| > 50 % of EBITDA. Allowed (1 M on 5 M sales still saves); Relify will ask for more justification. */
+export function adjustmentExceedsHalfEbitda(amountCents: number, ebitdaCents: number | null | undefined): boolean {
+  return ebitdaCents !== null && ebitdaCents !== undefined && ebitdaCents > 0 && Math.abs(amountCents) > ebitdaCents / 2;
+}
+
+export type PublishedEbitda = {
+  ebitdaCents: number;
+  adjustedEbitdaCents: number;
+  hasApproved: boolean;
+  hasPending: boolean;
+};
+
+/**
+ * Headline EBITDA: accounts figure plus approved rows only. Pending / oversized rows never change it.
+ * When a list exists, the stored `adjustedEbitdaCents` column is ignored (it can be 0 after a pending-only save
+ * against a 0 project.ebitdaCents). Legacy "declared number, no list" still uses that column.
+ */
+export function publishedEbitdaFromAdjustments(
+  accountsEbitdaCents: number,
+  rows: EbitdaAdjustment[] | null,
+  legacyAdjustedCents: number,
+  revenueCents?: number | null,
+): PublishedEbitda {
+  if (rows === null) {
+    const hasLegacy = legacyAdjustedCents !== 0 && legacyAdjustedCents !== accountsEbitdaCents;
+    return {
+      ebitdaCents: accountsEbitdaCents,
+      adjustedEbitdaCents: hasLegacy ? legacyAdjustedCents : accountsEbitdaCents,
+      hasApproved: hasLegacy,
+      hasPending: false,
+    };
+  }
+  const approved = approvedAdjustments(rows).filter((row) => !adjustmentExceedsRevenue(row.amountCents, revenueCents));
+  return {
+    ebitdaCents: accountsEbitdaCents,
+    adjustedEbitdaCents: approved.length > 0 ? adjustedEbitdaCents(accountsEbitdaCents, approved) : accountsEbitdaCents,
+    hasApproved: approved.length > 0,
+    hasPending: pendingAdjustments(rows).length > 0,
+  };
 }
 
 /** Reads the stored JSON column defensively (null = the seller never used the list: legacy declared number). */
@@ -253,7 +313,8 @@ export function adjustmentsForBuyer(rows: EbitdaAdjustment[] | null, ndaSigned: 
     return rows;
   }
   if (visible.length === 0) {
-    return null;
+    // Empty list, not null: pending-only was stripped. Null would fall back to a legacy adjusted column.
+    return [];
   }
   return visible.map((row) => ({
     ...row,
@@ -300,6 +361,21 @@ export function adjustmentsToFormJson(rows: EbitdaAdjustment[] | null): string {
   );
 }
 
+/** Editable rows → the hidden JSON the form posts and the seller preview reads. Status must stay on the wire or a pending row is treated as approved. */
+export function formRowsToJson(rows: readonly EbitdaAdjustmentFormRow[]): string {
+  return JSON.stringify(
+    rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      amount: row.amount.trim().replace(/[.\s]/g, ""),
+      reason: row.reason.trim(),
+      status: row.status,
+      documentId: row.documentId,
+      documentName: row.documentName,
+    })),
+  );
+}
+
 /** The form's JSON → editable rows (lenient: the server re-validates on save). */
 export function formRowsFromJson(raw: string): EbitdaAdjustmentFormRow[] {
   if (raw.trim() === "") {
@@ -323,7 +399,7 @@ export function formRowsFromJson(raw: string): EbitdaAdjustmentFormRow[] {
           type,
           amount: typeof row.amount === "string" ? row.amount : "",
           reason: typeof row.reason === "string" ? row.reason : "",
-          status: row.status === "approved" ? "approved" : "pending",
+          status: row.status === "pending" ? "pending" : "approved",
           documentId,
           documentName: typeof row.documentName === "string" ? row.documentName : "",
         },
@@ -349,13 +425,20 @@ export function formRowAmountCents(amount: string): number | null {
 /** t89: per-field problems of one editable row, shown inline in the adjustments modal. */
 export type AdjustmentRowErrors = { type?: string; amount?: string; reason?: string };
 
-export function adjustmentRowErrors(row: { type?: string; amount: string; reason: string }): AdjustmentRowErrors {
+export type AdjustmentRowErrorOptions = { revenueCents?: number | null; ebitdaCents?: number | null };
+
+export function adjustmentRowErrors(
+  row: { type?: string; amount: string; reason: string },
+  options?: AdjustmentRowErrorOptions,
+): AdjustmentRowErrors {
   const errors: AdjustmentRowErrors = {};
   const cents = formRowAmountCents(row.amount);
   if (row.amount.trim() === "" || cents === null) {
     errors.amount = "Indica un importe, p. ej. 12000.";
   } else if (cents === 0) {
     errors.amount = "El importe no puede ser 0.";
+  } else if (adjustmentExceedsRevenue(cents, options?.revenueCents)) {
+    errors.amount = "El importe no puede superar la facturación del ejercicio.";
   }
   const reason = row.reason.trim().length;
   if (reason < 3) {
@@ -366,6 +449,9 @@ export function adjustmentRowErrors(row: { type?: string; amount: string; reason
   return errors;
 }
 
-export function adjustmentRowsValid(rows: readonly { type?: string; amount: string; reason: string }[]): boolean {
-  return rows.every((row) => Object.keys(adjustmentRowErrors(row)).length === 0);
+export function adjustmentRowsValid(
+  rows: readonly { type?: string; amount: string; reason: string }[],
+  options?: AdjustmentRowErrorOptions,
+): boolean {
+  return rows.every((row) => Object.keys(adjustmentRowErrors(row, options)).length === 0);
 }

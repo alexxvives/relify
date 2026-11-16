@@ -1,0 +1,29 @@
+{
+  "round": "s26",
+  "commit": "0b7eca3c49dad7aa5fa63c51a443c65962d0c478",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "061a7192b9e3a13c54d7d6a26101d0c2b16894e527cc9d0279f3cb0e98a77d67",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql"
+  ],
+  "r2_required": [
+    {
+      "binding": "INT_UPLOADS",
+      "bucket_name": "releva-int-uploads",
+      "create": "wrangler r2 bucket create releva-int-uploads",
+      "note": "INT-only. Do not bind a production bucket. Object keys use the int/ prefix."
+    }
+  ],
+  "secrets_optional": ["INT_APIEMPRESAS_API_KEY"],
+  "int_cif_lookup": {
+    "provider": "API Empresas (apiempresas.es), header X-API-KEY",
+    "secret": "INT_APIEMPRESAS_API_KEY on Worker releva-int (npx wrangler secret put INT_APIEMPRESAS_API_KEY --name releva-int)",
+    "mock_cif": "B12345674 (Obrador Ficticio Norte S.L.) is always mocked",
+    "without_key": "INT behaves as before (mock only, other CIFs miss without calling billable APIs)",
+    "openmercantil": "stays off in INT"
+  },
+  "note": "No Prisma migration. Same R2 and SQL prerequisites as S24/S25. S26: agreement regression fix, INT API Empresas, auth card, pipeline, /cuenta and marketplace polish. Not deployed.",
+  "deployed": false
+}

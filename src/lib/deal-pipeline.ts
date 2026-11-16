@@ -1,6 +1,10 @@
 import { dataRoomReadGate } from "./data-room";
 
-export const dealStepIds = ["solicitud", "conexion", "nda", "qa", "loi", "diligence", "documents", "close"] as const;
+/**
+ * S29b (Alex): seven steps. The old "Revisión" step (between LOI and Contrato) merged into LOI: once the seller accepts
+ * the carta de intenciones the contract upload opens. `project_access.diligence_passed_at` stays in the schema, unused.
+ */
+export const dealStepIds = ["solicitud", "conexion", "nda", "qa", "loi", "documents", "close"] as const;
 
 export type DealStepId = (typeof dealStepIds)[number];
 
@@ -19,7 +23,6 @@ export type DealFlags = {
   nda: boolean;
   qa: boolean;
   loi: boolean;
-  diligence: boolean;
   documents: boolean;
   closed: boolean;
   loiPending?: boolean;
@@ -32,8 +35,6 @@ export function processFlags(input: {
   meeting: boolean;
   offer: boolean;
   loiAccepted: boolean;
-  roomShared: boolean;
-  passedDiligence: boolean;
   closed: boolean;
 }): DealFlags {
   const loi = input.offer && input.loiAccepted;
@@ -43,7 +44,6 @@ export function processFlags(input: {
     nda: input.nda,
     qa: loi,
     loi,
-    diligence: input.roomShared || input.passedDiligence,
     documents: input.closed,
     closed: input.closed,
     loiPending: input.offer && !input.loiAccepted,
@@ -80,7 +80,7 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
     seller: "Aceptas al comprador si encaja. Después le toca firmar el acuerdo de confidencialidad.",
   },
   nda: {
-    label: "Confidencialidad",
+    label: "NDA",
     investor: "Firmas el acuerdo de confidencialidad. Sin esa firma no se abre el detalle ni el chat.",
     seller: "El comprador debe firmar el acuerdo de confidencialidad para seguir. Tú no firmas este paso.",
   },
@@ -91,14 +91,11 @@ const stepCopy: Record<DealStepId, { label: string; investor: string; seller: st
       "El comprador preguntará y podrá reunirse contigo hasta estar convencido. En ese momento firmará la carta de intenciones.",
   },
   loi: {
-    label: "Carta de intenciones",
-    investor: "Firmas la carta de intenciones. No obliga a cerrar la compra.",
-    seller: "El comprador firma la carta de intenciones y te llega como oferta indicativa.",
-  },
-  diligence: {
-    label: "Revisión",
-    investor: "Puedes pedir un asesor de Relify o seguir a la documentación. El contrato lo sube el vendedor.",
-    seller: "El comprador revisa con un asesor o sigue adelante. El contrato de compraventa lo subes tú.",
+    label: "LOI",
+    investor:
+      "Firmas la carta de intenciones. No obliga a cerrar la compra. Cuando el vendedor la acepta, revisas la documentación (con un asesor si quieres) y se abre el contrato.",
+    seller:
+      "El comprador firma la carta de intenciones y te llega como oferta indicativa. Si la aceptas, ya puedes subir el contrato de compraventa.",
   },
   documents: {
     label: "Contrato",
@@ -120,7 +117,6 @@ const advisorWatch: Record<DealStepId, string> = {
   nda: "El comprador todavía no ha firmado el acuerdo de confidencialidad.",
   qa: "Preguntas y reuniones, hasta la carta de intenciones.",
   loi: "Falta la carta de intenciones.",
-  diligence: "Revisión (due diligence) en curso.",
   documents: "Falta el contrato de compraventa.",
   close: "La compraventa está cerrada.",
 };
@@ -132,7 +128,6 @@ export function dealPipeline(role: DealViewer, flags: DealFlags): DealStep[] {
     nda: flags.nda,
     qa: flags.qa,
     loi: flags.loi,
-    diligence: flags.diligence,
     documents: flags.documents,
     close: flags.closed,
   };
@@ -159,6 +154,20 @@ export function dealPipeline(role: DealViewer, flags: DealFlags): DealStep[] {
 
 export function pipelineStatus(steps: readonly DealStep[]): string {
   return steps.find((step) => step.state === "current")?.label ?? steps[steps.length - 1]?.label ?? "";
+}
+
+/** Public landing specimen: one step is current, earlier steps are done. */
+export function landingDealSteps(currentIndex: number): DealStep[] {
+  const clamped = Math.min(dealStepIds.length - 1, Math.max(0, currentIndex));
+  return dealStepIds.map((id, index) => {
+    const copy = stepCopy[id];
+    return {
+      id,
+      label: copy.label,
+      detail: copy.investor,
+      state: index < clamped ? "done" : index === clamped ? "current" : "upcoming",
+    };
+  });
 }
 
 export type StepCue = {
@@ -203,10 +212,6 @@ export function stepCue(id: DealStepId, role: DealViewer, pendingLoi = false): S
     return role === "investor"
       ? { yours: true, action: "Firma la carta de intenciones" }
       : { yours: false, action: "El comprador todavía no ha firmado la carta de intenciones" };
-  }
-
-  if (id === "diligence") {
-    return { yours: false, action: "Revisa con un asesor de Relify, o sigue a la documentación." };
   }
 
   if (id === "documents") {
@@ -255,7 +260,7 @@ export function homePendingActions(
   for (const item of items) {
     const current = item.steps.find((step) => step.state === "current");
 
-    if (!current || current.id === "diligence") {
+    if (!current) {
       continue;
     }
 

@@ -2,7 +2,7 @@ import type { SabiRegistry } from "@/lib/sabi/registry";
 import type { SabiYear } from "@/lib/sabi/insights";
 import { optionalEurosToCents } from "@/lib/company-draft";
 import type { SabiCompanyDetailColumn, SabiYearDetailColumn } from "@/lib/sabi/detail-fields";
-import type { SabiDetailForm } from "@/server/sabiDetail";
+import type { SabiDetailForm } from "@/lib/server/sabi-detail";
 
 const norm = (value: string) => value.trim().toLocaleLowerCase("es-ES").replace(/\s+/g, " ");
 

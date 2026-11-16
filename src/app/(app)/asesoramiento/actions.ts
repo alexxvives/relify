@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { advisoryCopy, advisoryQuoteSchema, uniqueAdvisoryServices } from "@/lib/advisory";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { submitAdvisoryQuote } from "@/server/submitAdvisoryQuote";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { submitAdvisoryQuote } from "@/lib/server/submit-advisory-quote";
 
 export type AdvisoryQuoteState = { ok: boolean; message: string } | null;
 

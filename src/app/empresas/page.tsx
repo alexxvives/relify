@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { RolePage } from "@/components/landing/role-page";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 
-export const metadata: Metadata = {
-  title: "Empresas",
-  description: "Prepara la ficha, publica con un nombre de proyecto y gestiona el interés sin mostrar la sociedad.",
-};
+const title = "Empresas";
+const description = "Prepara la ficha, publica con un nombre de proyecto y gestiona el interés sin mostrar la sociedad.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title,
+    description,
+    ...pageSocialMetadata({ title, description, path: "/empresas", origin: readSiteUrl() }),
+  };
+}
 
 export default function EmpresasPage() {
   return (

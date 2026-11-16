@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/server/requireRole";
-import { saveSabiDetail } from "@/server/sabiDetail";
-import { activeSellerProjectId } from "@/server/sellerCompany";
+import { requireRole } from "@/lib/server/require-role";
+import { saveSabiDetail } from "@/lib/server/sabi-detail";
+import { activeSellerProjectId } from "@/lib/server/seller-company";
 
 export type SabiDetailState = { saved: boolean; message: string } | null;
 
@@ -15,7 +15,7 @@ export async function saveSabiDetailAction(_state: SabiDetailState, formData: Fo
     return { saved: false, message: "Primero da de alta la empresa." };
   }
 
-  const result = await saveSabiDetail(projectId, formData);
+  const result = await saveSabiDetail(projectId, user.id, formData);
 
   if (!result.ok) {
     return { saved: false, message: `Revisa «${result.field}»: el formato no es válido.` };

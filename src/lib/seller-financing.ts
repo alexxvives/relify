@@ -5,17 +5,24 @@ import * as z from "zod";
  * the price later, up to which share and over how many years. Deal terms, not financials: never identifying, so a
  * buyer sees them before the NDA.
  */
-export const sellerFinancingModes = ["yes", "no", "negotiable"] as const;
+export const sellerFinancingModes = ["yes", "no"] as const;
 export type SellerFinancingMode = (typeof sellerFinancingModes)[number];
 
 export const sellerFinancingLabels: Record<SellerFinancingMode, string> = {
   yes: "Sí",
   no: "No",
-  negotiable: "Negociable",
 };
 
 /** Plazo options in years; 5 means "5 años o más". */
 export const sellerFinancingYearOptions = [1, 2, 3, 4, 5] as const;
+
+export const sellerFinancingYearLabels: Record<(typeof sellerFinancingYearOptions)[number], string> = {
+  1: "1 año",
+  2: "2 años",
+  3: "3 años",
+  4: "4 años",
+  5: "5 años o más",
+};
 
 export type SellerFinancing = { mode: SellerFinancingMode; maxPct: number | null; years: number | null };
 
@@ -23,32 +30,42 @@ export type SellerFinancing = { mode: SellerFinancingMode; maxPct: number | null
 export type SellerFinancingInput = { sellerFinancing: string; sellerFinancingPct: string; sellerFinancingYears: string };
 
 export const sellerFinancingInputSchema = {
-  sellerFinancing: z.union([z.literal(""), z.enum(sellerFinancingModes)]),
+  sellerFinancing: z.union([z.literal(""), z.enum(sellerFinancingModes), z.literal("negotiable")]),
   sellerFinancingPct: z.string().trim().max(3),
   sellerFinancingYears: z.string().trim().max(2),
 };
 
-/** What gets stored: null columns when unanswered; terms are dropped for "No". Invalid input returns ok: false. */
+function postedFinancingMode(value: string): SellerFinancingMode | null {
+  if (value === "") {
+    return null;
+  }
+  if (value === "negotiable" || value === "yes") {
+    return "yes";
+  }
+  if (value === "no") {
+    return "no";
+  }
+  return null;
+}
+
+/** What gets stored: Sí/No only. Year and percentage columns stay nullable and unused. */
 export function sellerFinancingWrite(
   input: SellerFinancingInput,
 ): { ok: true; data: { sellerFinancing: SellerFinancingMode | null; sellerFinancingMaxPct: number | null; sellerFinancingYears: number | null } } | { ok: false } {
-  const mode = input.sellerFinancing === "" ? null : (input.sellerFinancing as SellerFinancingMode);
-  const terms = mode === "yes" || mode === "negotiable";
-  const pct = input.sellerFinancingPct.trim();
-  const years = input.sellerFinancingYears.trim();
+  const mode = postedFinancingMode(input.sellerFinancing);
   return {
     ok: true,
     data: {
       sellerFinancing: mode,
-      sellerFinancingMaxPct: terms && pct !== "" ? Number(pct) : null,
-      sellerFinancingYears: terms && years !== "" ? Number(years) : null,
+      sellerFinancingMaxPct: null,
+      sellerFinancingYears: null,
     },
   };
 }
 
-/** Reads the stored columns defensively. */
+/** Reads the stored columns defensively. Leftover "negotiable" (prod until the INT data migration) is Sí. */
 export function storedSellerFinancing(record: { sellerFinancing?: string | null; sellerFinancingMaxPct?: number | null; sellerFinancingYears?: number | null }): SellerFinancing | null {
-  const mode = sellerFinancingModes.find((known) => known === record.sellerFinancing);
+  const mode = postedFinancingMode(record.sellerFinancing ?? "");
   if (!mode) {
     return null;
   }
@@ -69,12 +86,29 @@ export function sellerFinancingToInput(value: SellerFinancing | null): SellerFin
   };
 }
 
-/** t92/t93: marketplace card chip. Only for Sí or Negociable; nothing for No or unanswered. */
+/** t92/t93: marketplace card chip. Only for Sí; nothing for No or unanswered. */
 export function sellerFinancingChip(value: SellerFinancing | null): string | null {
   return !value || value.mode === "no" ? null : "Financiación vendedor";
 }
 
+function sellerFinancingYearText(years: number): string {
+  if (years === 1) return sellerFinancingYearLabels[1];
+  if (years === 2) return sellerFinancingYearLabels[2];
+  if (years === 3) return sellerFinancingYearLabels[3];
+  if (years === 4) return sellerFinancingYearLabels[4];
+  if (years >= 5) return sellerFinancingYearLabels[5];
+  return `${years} años`;
+}
+
+function sellerFinancingTerms(value: SellerFinancing): string {
+  const parts: string[] = [];
+  if (value.maxPct != null) parts.push(`hasta el ${value.maxPct} %`);
+  if (value.years != null) parts.push(sellerFinancingYearText(value.years));
+  return parts.length > 0 ? ` (${parts.join(", ")})` : "";
+}
+
 /** t93: buyer-facing sentence in Operación de venta. */
 export function sellerFinancingText(value: SellerFinancing): string {
-  return value.mode === "no" ? "No" : value.mode === "yes" ? "Acepta financiar parte del precio" : "Financiación negociable";
+  if (value.mode === "no") return "No";
+  return `Acepta financiar parte del precio${sellerFinancingTerms(value)}`;
 }

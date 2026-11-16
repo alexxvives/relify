@@ -1,4 +1,4 @@
-import { ProfileSkeleton } from "@/components/shell-skeleton";
+import { ProfileSkeleton } from "@/components/shell/shell-skeleton";
 import { investorCopy } from "@/lib/investor-copy";
 
 export default function Loading() {

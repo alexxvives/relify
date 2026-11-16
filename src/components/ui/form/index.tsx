@@ -5,12 +5,12 @@ import { ChevronDown, Eye, EyeOff, type LucideIcon } from "lucide-react";
 import { cn } from "cn";
 
 /**
- * Relify form kit. One look for every app form: white field, soft border,
- * navy text and an indigo focus ring. Inputs forward every native prop, so
+ * Relify form kit. One look for every app form: white field, square radius
+ * (`--field-radius`), ink text. Inputs forward every native prop, so
  * server actions and FormData keep working unchanged.
  */
 export const fieldBase =
-  "w-full rounded-xl border border-[#e7eaee] bg-white text-base text-[#2b3b4a] outline-none transition-colors placeholder:text-[#8a97a8] focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20 disabled:cursor-not-allowed disabled:bg-[#f4f6f9] disabled:opacity-70 aria-invalid:border-[#c0362c] aria-invalid:bg-[#fff6f6]";
+  "relify-field w-full min-w-0 rounded-[var(--field-radius)] border border-public-line bg-white text-base text-public-ink outline-none transition-colors placeholder:font-normal placeholder:text-[var(--field-placeholder)] focus-visible:border-public-ink disabled:cursor-not-allowed disabled:opacity-70 aria-invalid:border-[#c0362c]";
 
 const fieldSize = { sm: "h-9 px-2 text-sm", md: "h-11 px-3" } as const;
 
@@ -87,7 +87,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, Omit<InputProps, "type
         aria-label={visible ? hideLabel : showLabel}
         aria-pressed={visible}
         onClick={() => setVisible((current) => !current)}
-        className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-[#667085] hover:bg-[#f4f6f9] hover:text-[#2b3b4a]"
+        className="absolute top-1/2 right-1 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-[#667085] hover:bg-[#f4f6f9] hover:text-[#2b3b4a]"
       >
         {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
       </button>
@@ -117,12 +117,12 @@ export const Select = forwardRef<HTMLSelectElement, Omit<SelectHTMLAttributes<HT
 });
 
 const buttonTone = {
-  primary: "bg-[#465ab4] text-white hover:bg-[#3a4c9c]",
-  navy: "bg-[#1c2740] text-white hover:bg-[#2a3a5c]",
+  primary: "bg-relify-btn text-white hover:bg-relify-btn-hover",
+  navy: "bg-relify-btn text-white hover:bg-relify-btn-hover",
   teal: "bg-[#14998a] text-white hover:bg-[#0f8578]",
   outline: "border border-[#d5dbe4] bg-white text-[#1c2740] hover:bg-[#f4f6fb]",
   danger: "bg-[#c0362c] text-white hover:bg-[#a52d24]",
-  ghost: "text-[#465ab4] hover:bg-[#f4f6fb]",
+  ghost: "text-[#1c2740] hover:bg-[#f4f6fb]",
 } as const;
 
 const buttonSize = {
@@ -135,7 +135,7 @@ export type ButtonTone = keyof typeof buttonTone;
 
 export function buttonClass({ tone = "primary", size = "md", block = false }: { tone?: ButtonTone; size?: keyof typeof buttonSize; block?: boolean } = {}): string {
   return cn(
-    "inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#465ab4] disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2740] disabled:cursor-not-allowed disabled:opacity-60",
     buttonTone[tone],
     buttonSize[size],
     block ? "w-full" : "",

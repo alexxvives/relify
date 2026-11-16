@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SubscriptionDeskView } from "@/components/subscription-desk";
-import { SignedInPage } from "@/components/signed-in-page";
+import { SubscriptionDeskView } from "@/components/investor/subscription-desk";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { billingCopy } from "@/lib/billing-copy";
-import { requireRole } from "@/server/requireRole";
-import { applyCardSetup, loadSubscriptionDesk } from "@/server/subscriptionDesk";
+import { requireRole } from "@/lib/server/require-role";
+import { applyCardSetup, loadSubscriptionDesk } from "@/lib/server/subscription-desk";
 
 export const metadata: Metadata = {
   title: billingCopy.manageTitle,

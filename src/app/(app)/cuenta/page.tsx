@@ -1,19 +1,20 @@
 import { Suspense } from "react";
-import { AccountSkeleton } from "@/components/page-skeletons";
+import { AccountSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AccountSettings } from "@/components/account-settings";
-import { SignedPlatformTerms } from "@/components/signed-platform-terms";
-import { SignedInPage } from "@/components/signed-in-page";
-import { InvestorAccount } from "@/components/investor-account";
+import { AccountSettings } from "@/components/account/account-settings";
+import { SignedPlatformTerms } from "@/components/auth/signed-platform-terms";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { InvestorAccount } from "@/components/account/investor-account";
 import { authCopy } from "@/lib/auth-copy";
+import { maskNationalId } from "@/lib/spanish-cif";
 import { demoInvestorProfile } from "@/lib/demo-profile";
-import { getAccountNationalId } from "@/server/getAccountNationalId";
-import { getCurrentUser } from "@/server/getCurrentUser";
+import { getAccountNationalId } from "@/lib/server/get-account-national-id";
+import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   investorGazeAvatar,
   loadInvestorDraft,
-} from "@/server/investorProfile";
+} from "@/lib/server/investor-profile";
 
 export const metadata: Metadata = {
   title: authCopy.accountTitle,
@@ -31,12 +32,12 @@ async function AccountPageContent() {
     redirect("/onboarding");
   }
 
-  const nationalId = await getAccountNationalId(user.id);
+  const storedNationalId = await getAccountNationalId(user.id);
+  const nationalIdMasked = storedNationalId ? maskNationalId(storedNationalId) : null;
   const investorDraft =
     user.role === "investor"
       ? await loadInvestorDraft(user.id, user.email)
       : null;
-
   const agreement = user.termsAcceptedAt ? (
     <SignedPlatformTerms userId={user.id} acceptedAt={user.termsAcceptedAt} />
   ) : null;
@@ -49,7 +50,7 @@ async function AccountPageContent() {
           lastName={user.lastName}
           email={user.email}
           phone={user.phone}
-          nationalId={nationalId}
+          nationalIdMasked={nationalIdMasked}
           displayName={user.displayName}
           initial={demoInvestorProfile(user.email)}
           draft={investorDraft}
@@ -62,7 +63,7 @@ async function AccountPageContent() {
           lastName={user.lastName}
           email={user.email}
           phone={user.phone}
-          nationalId={nationalId}
+          nationalIdMasked={nationalIdMasked}
           agreement={agreement}
         />
       )}

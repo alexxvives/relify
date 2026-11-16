@@ -1,3 +1,4 @@
+import { termsDocumentPdf } from "./agreement-pdf";
 import { loiAgreement, ndaAgreement } from "./deal-documents";
 import { letterPdf, type LetterPdfInput } from "./plain-pdf";
 
@@ -6,6 +7,7 @@ export const relevaDraftFolder = "Relify";
 export const relevaDrafts = [
   { id: "releva-nda", fileName: "Acuerdo-de-confidencialidad.pdf" },
   { id: "releva-loi", fileName: "Carta-de-intenciones.pdf" },
+  { id: "releva-terms", fileName: "Acuerdo-de-uso-de-Relify.pdf" },
 ] as const;
 
 const intro =
@@ -29,6 +31,10 @@ export function relevaDraftText(id: string): string | null {
       askingPrice: "el precio de la ficha",
       dateLabel: "la fecha de la firma",
     })}`;
+  }
+
+  if (id === "releva-terms") {
+    return "Borrador del acuerdo de uso de Relify. Al firmar se rellenan el nombre y el DNI/NIE.";
   }
 
   return null;
@@ -78,9 +84,23 @@ function letterFor(id: string): LetterPdfInput | null {
 
 export function relevaDraftPdf(id: string): { fileName: string; bytes: Uint8Array<ArrayBuffer> } | null {
   const draft = relevaDrafts.find((item) => item.id === id);
-  const letter = letterFor(id);
+  if (!draft) {
+    return null;
+  }
 
-  if (!draft || letter === null) {
+  if (id === "releva-terms") {
+    return {
+      fileName: draft.fileName,
+      bytes: termsDocumentPdf({
+        signer: { fullName: "El vendedor", nationalId: null, role: "Vendedor" },
+        dateLabel: "la fecha de la firma",
+        reference: "Borrador",
+      }),
+    };
+  }
+
+  const letter = letterFor(id);
+  if (letter === null) {
     return null;
   }
 

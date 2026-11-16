@@ -2,52 +2,52 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { IntBadge } from "@/components/shell/int-badge";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { Logo } from "@/components/logo";
-import { landingCopy } from "@/lib/landing-copy";
+import { LandingMark } from "@/components/landing/landing-mark";
 
-const solidLink =
-  "inline-flex h-11 items-center rounded-full bg-public-clay px-4 text-sm text-white transition hover:bg-public-clay-deep";
-
-export function PublicMenu({ signedIn }: { signedIn: boolean }) {
-  const [onDark, setOnDark] = useState(false);
+export function PublicMenu({
+  signedIn,
+  showInt = false,
+}: {
+  signedIn: boolean;
+  showInt?: boolean;
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const menu = document.querySelector("[data-releva-menu]");
-    if (!(menu instanceof HTMLElement)) {
+    if (!mobileOpen) {
       return;
     }
-
-    const read = () => {
-      const rect = menu.getBoundingClientRect();
-      const hits = document.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      const behind = hits.find((node) => !node.closest("header"));
-      setOnDark(Boolean(behind?.closest(".releva-hero-glass, .bg-public-ink")));
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+      }
     };
-
-    read();
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
-    return () => {
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
-    };
-  }, []);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   return (
     <div
       data-releva-menu
-      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 rounded-full px-2 py-2 sm:px-4"
+      data-menu-open={mobileOpen ? "true" : undefined}
+      className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-1.5 sm:px-4 sm:py-2"
     >
-      <Link href="/" className="pl-2" aria-label="Relify">
-        <Logo />
+      {showInt ? (
+        <span className="absolute -top-2 right-6 z-30 sm:right-8">
+          <IntBadge />
+        </span>
+      ) : null}
+      <Link href="/" className="relative z-20 flex min-h-11 min-w-0 shrink-0 items-center gap-2 pl-2" aria-label="Relify">
+        <LandingMark />
       </Link>
-      <LandingNav onDark={onDark} />
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Link href={signedIn ? "/cuenta" : landingCopy.waitlistNav.href} className={solidLink}>
-          {signedIn ? landingCopy.accountCta : landingCopy.signInCta}
-        </Link>
-      </div>
+      <LandingNav
+        menuOpen={mobileOpen}
+        onMenuOpenChange={setMobileOpen}
+        signedIn={signedIn}
+        accountHref={signedIn ? "/cuenta" : "/entrar"}
+      />
     </div>
   );
 }

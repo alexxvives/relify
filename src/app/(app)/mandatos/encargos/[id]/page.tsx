@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AdvisorEngagementView } from "@/components/advisor-engagement-view";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisorEngagementView } from "@/components/advisor/advisor-engagement-view";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { madridToday } from "@/lib/meeting";
-import { getAdvisorEngagement } from "@/server/advisoryEngagement";
-import { getEngagementThread } from "@/server/engagementThread";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { requireRole } from "@/server/requireRole";
+import { getAdvisorEngagement } from "@/lib/server/advisory-engagement";
+import { getEngagementThread } from "@/lib/server/engagement-thread";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: "Encargos",

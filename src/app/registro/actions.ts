@@ -8,8 +8,8 @@ import {
   signUpSchema,
   type SignUpInput,
 } from "@/lib/auth-input";
-import { clientIp, takeThrottle } from "@/server/emailThrottle";
-import { signUp } from "@/server/signUp";
+import { clientIp, takeThrottle } from "@/lib/server/email-throttle";
+import { signUp } from "@/lib/server/sign-up";
 
 export type SignUpState = { message: string } | null;
 
@@ -17,6 +17,7 @@ function readSignUpForm(formData: FormData): SignUpInput | { message: string } {
   const parsed = signUpSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
+    acceptTerms: formData.get("acceptTerms"),
   });
 
   if (!parsed.success) {
@@ -42,7 +43,7 @@ export async function signUpAction(
   }
 
   // Each signup sends a confirmation email: cap per IP so the form cannot be used to spam.
-  if (!(await takeThrottle(`signup:ip:${await clientIp()}`, 10, 60 * 60))) {
+  if (!(await takeThrottle(`signup:ip:${await clientIp()}`, 10, 60 * 60, false))) {
     return { message: authCopy.forgotThrottled };
   }
 

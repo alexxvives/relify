@@ -34,3 +34,22 @@ export const investorProfileSchema = z.object({
 });
 
 export type InvestorProfileInput = z.infer<typeof investorProfileSchema>;
+
+/**
+ * S26: the /cuenta autosave stores what is filled so far (every column defaults to ""), so a sector added
+ * with Enter is kept even before the rest of the profile is complete. Completeness is still judged by
+ * `investorProfileIsComplete`, and the explicit form submit keeps the strict schema above.
+ */
+export const investorProfileDraftSchema = z.object({
+  photo: investorPhotoSchema,
+  city: z.string().trim().max(80),
+  province: z.string().trim().max(80),
+  investorType: z.union([z.enum(investorTypes), z.literal("")]),
+  ticket: z.union([z.enum(investorTicketBands), z.literal("")]),
+  sectors: z.string().trim().max(160),
+  thesis: z.string().trim().max(600),
+  contribution: z.string().trim().max(400),
+  stake: z.union([z.enum(investorStakes), z.literal("")]),
+});
+
+export type InvestorProfileDraftInput = z.infer<typeof investorProfileDraftSchema>;

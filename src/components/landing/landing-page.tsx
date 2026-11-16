@@ -1,0 +1,38 @@
+import { ActivityFeed } from "@/components/landing/activity-feed";
+import { Confidentiality } from "@/components/landing/confidentiality";
+import { Hero } from "@/components/landing/hero";
+import { Offer } from "@/components/landing/offer";
+import { PathAndFlow } from "@/components/landing/path-and-flow";
+import { Process } from "@/components/landing/process";
+import { PublicSite } from "@/components/landing/public-site";
+import { readSiteUrl } from "@/lib/env";
+import { landingCopy } from "@/lib/landing-copy";
+
+export function landingJsonLd(siteUrl: URL) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Relify",
+    url: new URL("/", siteUrl).href,
+    description: landingCopy.home.description,
+    inLanguage: "es",
+  };
+}
+
+export async function LandingPage() {
+  const jsonLd = landingJsonLd(readSiteUrl());
+
+  return (
+    <PublicSite dockedCta>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <main>
+        <Hero />
+        <Offer />
+        <Process />
+        <PathAndFlow />
+        <Confidentiality />
+        <ActivityFeed />
+      </main>
+    </PublicSite>
+  );
+}

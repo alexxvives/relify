@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Mail, MessageSquare } from "lucide-react";
-import { AdminListSkeleton } from "@/components/page-skeletons";
+import { AdminListSkeleton } from "@/components/shell/page-skeletons";
 import { EmptySkeleton } from "@/components/ui/empty-skeleton";
-import { SignedInPage } from "@/components/signed-in-page";
-import { markAdminSeen } from "@/server/adminSeen";
-import { listPublicInbox } from "@/server/publicInbox";
-import { requireRole } from "@/server/requireRole";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { markAdminSeen } from "@/lib/server/admin-seen";
+import { listPublicInbox } from "@/lib/server/public-inbox";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = { title: "Mensajes", robots: { index: false, follow: false } };
 
@@ -15,7 +15,7 @@ const when = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: 
 async function Inbox() {
   const user = await requireRole("admin");
   await markAdminSeen(user.id, "mensajes");
-  const { messages, subscribers } = await listPublicInbox();
+  const { messages, subscribers } = await listPublicInbox(user);
 
   return (
     <div className="flex flex-col gap-10">

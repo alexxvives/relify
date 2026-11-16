@@ -8,7 +8,43 @@ export const projectAccessInputSchema = z.object({
 
 export type ProjectAccessInput = z.infer<typeof projectAccessInputSchema>;
 
+/** After a cancel, reconnect must drop match-fee, NDA and LOI leftovers or the 2% stamp can leak. */
+export const reconnectAccessReset = {
+  cancelledAt: null,
+  cancelledBy: null,
+  sellerAcceptedAt: null,
+  ndaAcceptedAt: null,
+  loiAcceptedAt: null,
+  diligencePassedAt: null,
+  ndaSignature: null,
+  ndaText: null,
+  loiSignature: null,
+  loiSignedAt: null,
+  buyerPlanAtMatch: null,
+};
+
 export type ProjectAccessView = "none" | "awaiting-seller" | "requested" | "accepted";
+
+/** Maps a stored connection to the buyer ficha stage. `accepted` is the post-NDA full ficha. */
+export function accessFromConnection(
+  row:
+    | {
+        ndaAcceptedAt: Date | null;
+        sellerAcceptedAt: Date | null;
+        cancelledAt: Date | null;
+      }
+    | null,
+): ProjectAccessView {
+  if (!row || row.cancelledAt !== null) {
+    return "none";
+  }
+
+  if (row.sellerAcceptedAt === null) {
+    return "awaiting-seller";
+  }
+
+  return row.ndaAcceptedAt === null ? "requested" : "accepted";
+}
 
 export type AccessDenial = "forbidden" | "missing" | "nda-required" | "waiting" | "plan" | "limit";
 

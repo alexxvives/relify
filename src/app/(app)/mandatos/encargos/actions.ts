@@ -11,10 +11,10 @@ import {
   declineEngagement,
   setAdvisorFolder,
   setAdvisorProcess,
-} from "@/server/advisoryEngagement";
-import { ensureNationalId } from "@/server/ensureNationalId";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/server/startCheckout";
+} from "@/lib/server/advisory-engagement";
+import { ensureNationalId } from "@/lib/server/ensure-national-id";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/lib/server/start-checkout";
 
 export type EngagementActionState = { ok: boolean; message: string } | null;
 

@@ -13,7 +13,7 @@ Anonymized project cards keep a short metric row (facturación, EBITDA, EBITDA a
 - Server Components by default. Add `"use client"` only for state, events, or browser APIs.
 - Fields, buttons, cards, and tags come from `src/components/ui/form`. Custom dropdowns are `OptionSelect`. Do not use `src/components/ui/button.tsx` on a product screen, and do not add a second menu.
 - Style with Tailwind utilities. No CSS-in-JS and no new component library.
-- Primitives stay in `src/components/ui`. Feature components stay in `src/components`.
+- Primitives stay in `src/components/ui`. Feature components stay in `src/components/<feature>` (seller, investor, admin, auth, shell, …).
 - Named exports only.
 - Every input has a visible label. Interactive controls are buttons or links, not clickable divs.
 - Format money in euros from integer cents. Never show a legal company name, CIF, or data-room file on a public page.

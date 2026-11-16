@@ -1,4 +1,4 @@
-import { adjustedEbitdaCents, approvedAdjustments, mergePostedAdjustments, parseEbitdaAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { adjustedEbitdaCents, adjustmentExceedsRevenue, approvedAdjustments, mergePostedAdjustments, parseEbitdaAdjustments, pendingAdjustments, storedEbitdaAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
 
 /**
  * t78: what a seller submission may change. Once the company's NIF is verified (stored CIF), the legal name and CIF
@@ -53,16 +53,17 @@ export type AdjustmentWrite =
 /**
  * t82: what the posted adjustment list writes. `raw` is the hidden JSON field; an absent field ("") keeps whatever is
  * stored (a legacy declared figure stays as is). "[]" removes a list the seller had and clears the adjusted figure.
- * The adjusted EBITDA is always the stored accounts EBITDA plus the rows; any total the client sends is ignored.
+ * The adjusted EBITDA is always the stored accounts EBITDA plus the approved rows; pending rows and any total the
+ * client sends are ignored. `ebitdaCents` should already be the accounts figure (year when the project column is 0).
  */
 export function sellerAdjustmentWrite(
   raw: string,
-  stored: { ebitdaCents: number; rows: EbitdaAdjustment[] | null } | null,
+  stored: { ebitdaCents: number; revenueCents?: number | null; rows: EbitdaAdjustment[] | null } | null,
 ): { ok: true; write: AdjustmentWrite } | { ok: false; code: string } {
   if (raw.trim() === "") {
     return { ok: true, write: { kind: "keep" } };
   }
-  const parsed = parseEbitdaAdjustments(raw);
+  const parsed = parseEbitdaAdjustments(raw, { revenueCents: stored?.revenueCents });
   if (!parsed.ok) {
     return parsed;
   }
@@ -70,7 +71,7 @@ export function sellerAdjustmentWrite(
     return { ok: true, write: stored?.rows !== null && stored?.rows !== undefined ? { kind: "clear" } : { kind: "keep" } };
   }
   const rows = mergePostedAdjustments(parsed.rows, stored?.rows ?? []);
-  const published = approvedAdjustments(rows);
+  const published = approvedAdjustments(rows).filter((row) => !adjustmentExceedsRevenue(row.amountCents, stored?.revenueCents));
   return {
     ok: true,
     write: {
@@ -87,6 +88,14 @@ export function storedAdjustmentList(value: unknown): EbitdaAdjustment[] | null 
     return null;
   }
   return storedEbitdaAdjustments(value) ?? [];
+}
+
+/**
+ * Accounts figure for headlines and saves: the project column, or the latest closed year when that column is 0
+ * (INT seeds and new drafts often leave project.ebitdaCents / revenueCents at 0 while project_year is filled).
+ */
+export function declaredAccountsCents(storedCents: number, yearCents: number | null | undefined): number {
+  return storedCents !== 0 || yearCents === null || yearCents === undefined ? storedCents : yearCents;
 }
 
 /**
@@ -118,6 +127,14 @@ export function projectHasAdjustments(project: { adjustedEbitdaCents: number | b
   }
 
   return false;
+}
+
+/** True when at least one stored row is still waiting for an admin. Does not change the published figure. */
+export function projectHasPendingAdjustments(project: { ebitdaAdjustments: unknown }): boolean {
+  if (!Array.isArray(project.ebitdaAdjustments)) {
+    return false;
+  }
+  return pendingAdjustments(storedEbitdaAdjustments(project.ebitdaAdjustments) ?? []).length > 0;
 }
 
 export function storedPriceBasisCents(project: { ebitdaCents: number | bigint | null; adjustedEbitdaCents: number | bigint | null; ebitdaAdjustments: unknown }): number | null {

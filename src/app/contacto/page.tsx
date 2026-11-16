@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Building2, HelpCircle, Mail, Users } from "lucide-react";
-import { ContactForm } from "@/components/contact-form";
-import { PublicSite } from "@/components/public-site";
+import { ContactForm } from "@/components/public/contact-form";
+import { PublicSite } from "@/components/landing/public-site";
+import { readSiteUrl } from "@/lib/env";
+import { pageSocialMetadata } from "@/lib/seo-head";
 import { shellCopy } from "@/lib/shell";
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description: "Escribe al equipo de Relify sobre la venta, la compra o el asesoramiento de una empresa.",
-  alternates: { canonical: "/contacto" },
-};
+const contactTitle = "Contacto";
+const contactDescription = "Escribe al equipo de Relify sobre la venta, la compra o el asesoramiento de una empresa.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title: contactTitle,
+    description: contactDescription,
+    ...pageSocialMetadata({
+      title: contactTitle,
+      description: contactDescription,
+      path: "/contacto",
+      origin: readSiteUrl(),
+    }),
+  };
+}
 
 const audiences = [
   {
@@ -40,17 +52,18 @@ export default function ContactPage() {
     <PublicSite>
       <main>
         <section className="bg-gradient-to-b from-[#dceff0] to-transparent text-[#12343a]">
-          <div className="mx-auto w-full max-w-[1440px] px-5 pb-14 pt-32 sm:px-8 sm:pb-16 sm:pt-40">
+          <div className="mx-auto w-full max-w-[1440px] px-5 pt-8 pb-10 sm:px-8 sm:pt-16 sm:pb-16 lg:pt-20">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#2f939b]">Contacto</p>
-            <h1 className="mt-3 max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-5xl">¿En qué podemos ayudarte?</h1>
-            <p className="mt-4 max-w-2xl text-pretty text-lg text-[#12343a]/75">
-              Vendas, compres o asesores una empresa, escríbenos. Una persona del equipo de Relify lee cada mensaje y te responde por email.
+            <h1 className="releva-page-title mt-3 max-w-3xl text-balance">¿En qué podemos ayudarte?</h1>
+            <p className="mt-4 max-w-2xl text-pretty text-[16px] leading-7 text-[#12343a]/75 sm:text-lg">
+              Vendas, compres o asesores una empresa, escríbenos.
+              <span className="hidden sm:inline"> Una persona del equipo de Relify lee cada mensaje y te responde por email.</span>
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="#formulario" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#12343a] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1c4a52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f939b]">
+            <div className="mt-6 flex w-full flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+              <a href="#formulario" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#12343a] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1c4a52] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f939b] sm:w-auto">
                 Escribir un mensaje <ArrowRight className="size-4" aria-hidden="true" />
               </a>
-              <a href={shellCopy.helpEmailHref} className="inline-flex h-11 items-center gap-2 rounded-full border border-[#12343a]/25 bg-white/60 px-5 text-sm font-semibold text-[#12343a] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f939b]">
+              <a href={shellCopy.helpEmailHref} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#12343a]/25 bg-white/60 px-5 text-sm font-semibold text-[#12343a] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f939b] sm:w-auto">
                 <Mail className="size-4" aria-hidden="true" /> {shellCopy.helpEmail}
               </a>
             </div>
@@ -66,9 +79,9 @@ export default function ContactPage() {
                 <span className="grid size-11 place-items-center rounded-xl bg-[#e6f4f5] text-[#12343a]"><Icon className="size-5" aria-hidden="true" /></span>
                 <h3 className="mt-4 text-lg font-semibold text-[#12343a]">{title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
-                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-                  <Link href={faq} className="inline-flex items-center gap-1.5 text-[#2f939b] hover:underline"><HelpCircle className="size-4" aria-hidden="true" />Preguntas frecuentes</Link>
-                  <Link href={href} className="inline-flex items-center gap-1.5 text-[#12343a] hover:underline">Cómo funciona<ArrowRight className="size-4" aria-hidden="true" /></Link>
+                <div className="mt-5 flex flex-col gap-1 text-sm font-semibold sm:flex-row sm:flex-wrap sm:gap-x-5 sm:gap-y-2">
+                  <Link href={faq} className="inline-flex min-h-11 items-center gap-1.5 text-[#2f939b] hover:underline"><HelpCircle className="size-4" aria-hidden="true" />Preguntas frecuentes</Link>
+                  <Link href={href} className="inline-flex min-h-11 items-center gap-1.5 text-[#12343a] hover:underline">Cómo funciona<ArrowRight className="size-4" aria-hidden="true" /></Link>
                 </div>
               </li>
             ))}

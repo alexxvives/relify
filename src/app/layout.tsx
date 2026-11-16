@@ -1,9 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
-import { HashCleaner } from "@/components/hash-cleaner";
+import { CookieConsent } from "@/components/auth/cookie-consent";
+import { HashCleaner } from "@/components/shell/hash-cleaner";
+import {
+  gaConsentBootstrapScript,
+  gtmInstallScript,
+  gtmNoscriptSrc,
+  readGaMeasurementId,
+  readGtmContainerId,
+} from "@/lib/cookie-consent";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
+import { OG_IMAGE_ALT, intPrefixedTitle, ogImageUrl, pageSocialMetadata, rootIcons } from "@/lib/seo-head";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,36 +36,74 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export function generateMetadata(): Metadata {
   const siteUrl = readSiteUrl();
+  const isInt = process.env.INT_ENVIRONMENT === "true";
 
   return {
     metadataBase: siteUrl,
-    title: landingCopy.title,
+    title: intPrefixedTitle(isInt, landingCopy.title),
     description: landingCopy.description,
-    alternates: {
-      canonical: "/",
-    },
-    openGraph: {
+    icons: rootIcons(),
+    ...(isInt && {
+      robots: {
+        index: false,
+        follow: false,
+      },
+    }),
+    ...pageSocialMetadata({
       title: landingCopy.title,
       description: landingCopy.description,
-      url: "/",
-      locale: "es_ES",
-      type: "website",
-    },
-    twitter: {
-      card: "summary",
-      title: landingCopy.title,
-      description: landingCopy.description,
-    },
+      path: "/",
+      origin: siteUrl,
+    }),
   };
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const siteUrl = readSiteUrl();
+  const int = process.env.INT_ENVIRONMENT === "true";
+  const gtmId = int ? null : readGtmContainerId();
+  const gaId = int ? null : readGaMeasurementId();
+  const analyticsReady = Boolean(gtmId || gaId);
+  const og = ogImageUrl(siteUrl);
+
   return (
-    <html lang="es" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
+    <html lang="es" data-scroll-behavior="smooth" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <meta property="og:image" content={og} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={OG_IMAGE_ALT} />
+        <meta name="twitter:image" content={og} />
+        {analyticsReady ? (
+          <script dangerouslySetInnerHTML={{ __html: gaConsentBootstrapScript() }} />
+        ) : null}
+        {gtmId ? <script dangerouslySetInnerHTML={{ __html: gtmInstallScript(gtmId) }} /> : null}
+      </head>
       <body className="min-h-full bg-background text-foreground">
+        {gtmId ? (
+          <noscript>
+            <iframe
+              src={gtmNoscriptSrc(gtmId)}
+              height={0}
+              width={0}
+              style={{ display: "none", visibility: "hidden" }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        ) : null}
         {children}
+        <CookieConsent gtmId={gtmId} gaId={gaId} />
         <Suspense fallback={null}>
           <HashCleaner />
         </Suspense>

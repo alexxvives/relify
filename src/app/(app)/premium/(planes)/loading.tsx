@@ -1,4 +1,4 @@
-import { PlansSkeleton } from "@/components/shell-skeleton";
+import { PlansSkeleton } from "@/components/shell/shell-skeleton";
 import { billingCopy } from "@/lib/billing-copy";
 
 export default function Loading() {

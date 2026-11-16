@@ -1,0 +1,31 @@
+{
+  "round": "s28",
+  "commit": "3424d61d0d80e36a921d026e2b0fd383c1acce5c",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "fde523008d44e3756086b3ce20559e11d960c839c9d931e5844b6acbdac936a0",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql",
+    "int-s27-pipeline-advisors.sql"
+  ],
+  "r2_required": [
+    {
+      "binding": "INT_UPLOADS",
+      "bucket_name": "releva-int-uploads",
+      "create": "wrangler r2 bucket create releva-int-uploads",
+      "note": "INT-only. Do not bind a production bucket. Data-room keys use int/; the S27 deep health check writes and deletes one tiny object under health-check/."
+    }
+  ],
+  "secrets_optional": [
+    "INT_APIEMPRESAS_API_KEY",
+    "HEALTHCHECK_TOKEN"
+  ],
+  "health": {
+    "basic": "GET /api/health (public, DB ping)",
+    "deep": "GET /api/health/deep with header x-health-token: <HEALTHCHECK_TOKEN>; 404 while the secret is unset, 401 on a wrong token",
+    "checks": "database, apiEmpresas (probe CIF A28015865, cached 1 h per isolate, not_configured without INT_APIEMPRESAS_API_KEY), uploads (INT_UPLOADS put/get/delete under health-check/)"
+  },
+  "note": "No Prisma migration and no new SQL. Same R2, SQL and optional secrets as S27 (the three SQL files are copied unchanged; int-s27-pipeline-advisors.sql already carries the valid asesor CIFs from 20736f8). Not deployed.",
+  "deployed": false
+}

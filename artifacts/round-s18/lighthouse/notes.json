@@ -1,0 +1,20 @@
+{
+  "environment": "next dev (unminified), simulated mobile 390, cookie relify_consent=essential",
+  "default": {
+    "url": "http://localhost:3000/",
+    "performance": 63,
+    "fcp": "1.4 s",
+    "lcp": "7.9 s",
+    "cls": "0",
+    "tbt": "450 ms"
+  },
+  "v2": {
+    "url": "http://localhost:3000/?v=2",
+    "performance": 59,
+    "fcp": "1.5 s",
+    "lcp": "19.5 s",
+    "cls": "0",
+    "tbt": "510 ms"
+  },
+  "note": "LCP remains the hero city-portrait.png. v2 loads gsap for FadeContent; CLS stayed 0. Scores are next dev, not a production Worker build."
+}

@@ -1,4 +1,4 @@
-import { AdminCompanySkeleton } from "@/components/page-skeletons";
+import { AdminCompanySkeleton } from "@/components/shell/page-skeletons";
 
 export default function Loading() {
   return <AdminCompanySkeleton />;

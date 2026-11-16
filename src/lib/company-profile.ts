@@ -30,13 +30,40 @@ export function activityKindsForCustomer(customerBase: CustomerBaseId | "" | nul
   return ["capital", "product", "client"];
 }
 
-export const maxSecondaryCnaes = 4;
+/** Alex (S25): no visible cap on secondary CNAEs. This is only an abuse guard on the request size. */
+export const maxSecondaryCnaes = 60;
 export const maxActivitySlices = 8;
 export const descriptionMaxLength = 4000;
+export const descriptionMinLength = 200;
+
+export const ownerDependenceLevels = ["low", "medium", "high"] as const;
+export type OwnerDependence = (typeof ownerDependenceLevels)[number];
+export function isOwnerDependence(value: string): value is OwnerDependence {
+  return ownerDependenceLevels.some((item) => item === value);
+}
+
+export const premisesKinds = ["owned", "rent"] as const;
+export type PremisesKind = (typeof premisesKinds)[number];
+export function isPremisesKind(value: string): value is PremisesKind {
+  return premisesKinds.some((item) => item === value);
+}
+
+/**
+ * Qué incluye el precio. José María will confirm the default; keep this as the single source of truth.
+ */
+export const askingPriceIncludesKinds = ["debt_free_cash_free", "shares"] as const;
+export type AskingPriceIncludes = (typeof askingPriceIncludesKinds)[number];
+export const defaultAskingPriceIncludes: AskingPriceIncludes = "debt_free_cash_free";
+export function isAskingPriceIncludes(value: string): value is AskingPriceIncludes {
+  return askingPriceIncludesKinds.some((item) => item === value);
+}
+export function storedAskingPriceIncludes(value: string | null | undefined): AskingPriceIncludes {
+  return value && isAskingPriceIncludes(value) ? value : defaultAskingPriceIncludes;
+}
 export const foundedYearMin = 1800;
 export const statementYearMin = 1990;
 export const statementYearMax = 2100;
-export const statementHistoryCount = 3;
+export const statementHistoryCount = 4;
 /** Most Spanish SMEs close the exercise on 31 December. */
 export const defaultFiscalCloseMonth = 12;
 
@@ -161,13 +188,15 @@ export function lastCompletedStatementYear(today: Date, closeMonth = defaultFisc
   return year - 1;
 }
 
+export const fichaClosedYearSlots = 4;
+
 export function statementWindow(
   today: Date,
   closeMonth = defaultFiscalCloseMonth,
-): { closed: [number, number, number]; forecast: number } {
+): { closed: [number, number, number, number]; forecast: number } {
   const last = lastCompletedStatementYear(today, closeMonth);
   return {
-    closed: [last - 2, last - 1, last],
+    closed: [last - 3, last - 2, last - 1, last],
     forecast: last + 1,
   };
 }
@@ -235,9 +264,35 @@ export function totalLiabilities(amounts: BalanceAmounts): number | null {
   return sumNullable([amounts.currentLiabilities, amounts.nonCurrentLiabilities, amounts.equity]);
 }
 
+/**
+ * Display line for "Margen bruto": (ventas − aprovisionamientos) when supplies exist.
+ * Without supplies the row is "Ingresos de explotación" (ventas + otros ingresos).
+ * The P&L waterfall still uses `grossMargin` (all operating lines through that subtotal).
+ */
+export function displayedGrossLine(amounts: PnlAmounts): number | null {
+  if (amounts.supplies !== null && amounts.sales !== null) {
+    return amounts.sales + amounts.supplies;
+  }
+  if (amounts.sales === null && amounts.otherOperatingIncome === null) {
+    return null;
+  }
+  return (amounts.sales ?? 0) + (amounts.otherOperatingIncome ?? 0);
+}
+
+export function tradingGrossMarginPercent(amounts: PnlAmounts): number | null {
+  if (amounts.sales === null || amounts.sales === 0 || amounts.supplies === null) {
+    return null;
+  }
+  return ((amounts.sales + amounts.supplies) / amounts.sales) * 100;
+}
+
+export function grossLineLabel(years: PnlAmounts[]): string {
+  return years.some((year) => year.supplies !== null) ? "Margen bruto" : "Ingresos de explotación";
+}
+
 export function incomeValue(key: IncomeDisplayKey, amounts: PnlAmounts): number | null {
   if (key === "grossMargin") {
-    return grossMargin(amounts);
+    return displayedGrossLine(amounts);
   }
 
   if (key === "ebitda") {
@@ -393,7 +448,8 @@ export function sellerPanelFlags(input: {
   return {
     identity:
       input.legalName.trim().length > 0 && input.cif.trim().length > 0 && (input.saleReason === undefined || input.saleReason.trim().length > 0),
-    description: input.description.trim().length > 0,
+    // S27 (Alex): the 200-character minimum is a publish requirement; saving accepts any length.
+    description: input.description.trim().length >= descriptionMinLength,
     cnae: input.principalCnae.trim().length > 0,
     income: input.closedYears.some((year) => year.sales.trim().length > 0),
     balance: input.closedYears.some((year) => year.currentAssets.trim().length > 0 || year.equity.trim().length > 0),
@@ -420,4 +476,16 @@ export function descriptionContainsSecret(description: string, secrets: string[]
 export function askingPriceSet(value: string): boolean {
   const amount = Number(value.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
   return Number.isFinite(amount) && amount > 0;
+}
+
+/** Sum of the largest 5 client slices, as a whole percent of sales. Null when the list is empty. */
+export function topClientsWeightPct(slices: readonly { basisPoints: number }[]): number | null {
+  if (slices.length === 0) {
+    return null;
+  }
+  const weight = [...slices]
+    .sort((left, right) => right.basisPoints - left.basisPoints)
+    .slice(0, 5)
+    .reduce((sum, slice) => sum + slice.basisPoints, 0);
+  return Math.round(weight / 100);
 }

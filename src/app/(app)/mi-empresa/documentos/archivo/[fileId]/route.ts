@@ -1,6 +1,6 @@
 import { relevaDraftPdf } from "@/lib/releva-drafts";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { readDataRoomFileDownload } from "@/server/readDataRoomFile";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { readDataRoomFileDownload } from "@/lib/server/read-data-room-file";
 
 const types: Record<string, string> = {
   pdf: "application/pdf",

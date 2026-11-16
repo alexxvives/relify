@@ -2,29 +2,50 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
+import { TryFreeButton } from "@/components/landing/try-free-button";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { landingCopy } from "@/lib/landing-copy";
 
-export function LandingNav({ onDark = false }: { onDark?: boolean }) {
+const solidLink =
+  "inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-relify-btn px-5 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgb(28_39_64_/_0.55)] transition hover:bg-relify-btn-hover";
+
+const ghostLink =
+  "inline-flex h-11 min-h-11 items-center justify-center rounded-full border border-public-ink/18 px-4 text-sm font-medium text-public-ink transition hover:bg-public-sand";
+
+export function LandingNav({
+  menuOpen,
+  onMenuOpenChange,
+  signedIn,
+  accountHref,
+}: {
+  menuOpen: boolean;
+  onMenuOpenChange: (open: boolean) => void;
+  signedIn: boolean;
+  accountHref: string;
+}) {
   const [open, setOpen] = useState<string | null>(null);
-  const [mobile, setMobile] = useState(false);
 
   return (
     <>
-      <nav className="hidden items-center gap-1 lg:flex" aria-label="Secciones" onMouseLeave={() => setOpen(null)}>
+      <nav
+        className="pointer-events-auto absolute top-1/2 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 lg:flex xl:gap-1"
+        aria-label="Secciones"
+        onMouseLeave={() => setOpen(null)}
+      >
         {landingCopy.nav.map((group) => (
           <div key={group.label} className="relative" onMouseEnter={() => setOpen(group.links.length > 1 ? group.label : null)}>
             {group.links.length === 1 && group.links[0] ? (
               <Link
                 href={group.links[0].href}
-                className={`flex items-center rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+                className="flex h-11 min-h-11 items-center rounded-full px-3 text-[15px] text-public-muted hover:bg-public-sand hover:text-public-ink xl:px-4"
               >
                 {group.label}
               </Link>
             ) : (
             <button
               type="button"
-              className={`flex items-center gap-1 rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:text-white" : "text-public-muted hover:text-public-ink"}`}
+              className="flex h-11 min-h-11 items-center gap-1 rounded-full px-3 text-[15px] text-public-muted hover:bg-public-sand hover:text-public-ink xl:px-4"
               aria-expanded={open === group.label}
             >
               {group.label}
@@ -33,11 +54,11 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
             )}
             {group.links.length > 1 ? (
             <div
-              className={`absolute top-full left-0 z-50 min-w-56 pt-3 transition ${open === group.label ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
+              className={`absolute top-full left-1/2 z-50 min-w-56 -translate-x-1/2 pt-3 transition ${open === group.label ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
             >
               <div className="rounded-3xl bg-public-card p-2 text-public-ink shadow-public">
                 {group.links.map((link) => (
-                  <Link key={link.href} href={link.href} className="block rounded-2xl px-4 py-2.5 text-sm hover:bg-public-sand">
+                  <Link key={link.href} href={link.href} className="flex min-h-11 items-center rounded-2xl px-4 text-sm hover:bg-public-sand">
                     {link.label}
                   </Link>
                 ))}
@@ -48,41 +69,81 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
         ))}
         <Link
           href={landingCopy.waitlistNav.href}
-          className={`rounded-full px-3 py-2 text-[15px] ${onDark ? "text-white hover:bg-white/15" : "text-public-ink hover:bg-public-sand"}`}
+          className="flex h-11 min-h-11 items-center rounded-full px-3 text-[15px] text-public-ink hover:bg-public-sand xl:px-4"
         >
           {landingCopy.waitlistNav.label}
         </Link>
       </nav>
+      <div className="relative z-20 ml-auto flex items-center gap-2">
+      {signedIn ? (
+        <Link href={accountHref} className={`${solidLink} max-lg:hidden`}>
+          {landingCopy.accountCta}
+        </Link>
+      ) : (
+        <div className="max-lg:hidden flex items-center gap-2">
+          <Link href="/entrar" className={ghostLink}>
+            {landingCopy.signInCta}
+          </Link>
+          <TryFreeButton href="/registro" />
+        </div>
+      )}
       <button
         type="button"
-        className={`inline-flex size-11 items-center justify-center rounded-full lg:hidden ${onDark ? "text-white" : "text-public-ink"}`}
-        aria-expanded={mobile}
-        aria-label={mobile ? "Cerrar menú" : "Abrir menú"}
-        onClick={() => setMobile((current) => !current)}
+        className="inline-flex size-11 items-center justify-center text-public-ink lg:hidden"
+        aria-expanded={menuOpen}
+        aria-controls="landing-mobile-menu"
+        aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+        onClick={() => onMenuOpenChange(!menuOpen)}
       >
-        {mobile ? <X className="size-5" /> : <Menu className="size-5" />}
+        <Menu className="size-5" aria-hidden />
       </button>
-      {mobile ? (
-        <div className="absolute inset-x-0 top-full z-50 mt-3 rounded-[1.5rem] bg-public-card p-3 text-public-ink shadow-public lg:hidden">
+      <BottomSheet
+        open={menuOpen}
+        title="Menú"
+        onClose={() => onMenuOpenChange(false)}
+        footer={
+          signedIn ? (
+            <Link
+              href={accountHref}
+              className={`${solidLink} w-full`}
+              onClick={() => onMenuOpenChange(false)}
+            >
+              {landingCopy.accountCta}
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/entrar"
+                className={`${ghostLink} w-full`}
+                onClick={() => onMenuOpenChange(false)}
+              >
+                {landingCopy.signInCta}
+              </Link>
+              <TryFreeButton href="/registro" className="w-full" onClick={() => onMenuOpenChange(false)} />
+            </div>
+          )
+        }
+      >
+        <div id="landing-mobile-menu" className="flex flex-col gap-1 pb-2">
           {landingCopy.nav.map((group) => (
-            <div key={group.label} className="px-2 py-2">
+            <div key={group.label}>
               {group.links.length === 1 && group.links[0] ? (
                 <Link
                   href={group.links[0].href}
-                  className="block rounded-2xl py-2 text-sm font-medium hover:bg-public-sand"
-                  onClick={() => setMobile(false)}
+                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium"
+                  onClick={() => onMenuOpenChange(false)}
                 >
                   {group.label}
                 </Link>
               ) : (
                 <>
-              <p className="text-xs tracking-[0.16em] text-public-muted uppercase">{group.label}</p>
+              <p className="px-2 pt-3 text-xs tracking-[0.16em] text-public-muted uppercase">{group.label}</p>
               {group.links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block rounded-2xl py-2 text-sm hover:bg-public-sand"
-                  onClick={() => setMobile(false)}
+                  className="flex min-h-11 items-center rounded-2xl px-2 text-sm"
+                  onClick={() => onMenuOpenChange(false)}
                 >
                   {link.label}
                 </Link>
@@ -93,13 +154,14 @@ export function LandingNav({ onDark = false }: { onDark?: boolean }) {
           ))}
           <Link
             href={landingCopy.waitlistNav.href}
-            className="block rounded-2xl px-2 py-3 text-sm font-medium hover:bg-public-sand"
-            onClick={() => setMobile(false)}
+            className="flex min-h-11 items-center rounded-2xl px-2 text-sm font-medium"
+            onClick={() => onMenuOpenChange(false)}
           >
             {landingCopy.waitlistNav.label}
           </Link>
         </div>
-      ) : null}
+      </BottomSheet>
+      </div>
     </>
   );
 }

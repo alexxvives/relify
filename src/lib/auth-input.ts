@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { authCopy } from "./auth-copy";
 import { isValidPhoneNational, phoneCountryByIso } from "./phone-countries";
+import { safeReturnPath } from "./sign-in-return";
 
 export { storedPhone } from "./phone-countries";
 import { isValidSpanishPersonId } from "./spanish-cif";
@@ -36,6 +37,7 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 export const signUpSchema = z.object({
   email: emailSchema,
   password: z.string().min(8).max(128),
+  acceptTerms: z.literal("on"),
 });
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
@@ -68,6 +70,21 @@ export const nationalIdSchema = z.string().trim().superRefine((value, context) =
     context.addIssue({ code: "custom", message: "invalid" });
   }
 });
+
+/** S27: /cuenta saves partial profiles, so an empty DNI/NIE is allowed there; a typed one must be valid. */
+const optionalNationalIdSchema = z.string().trim().superRefine((value, context) => {
+  if (value.length > 0 && !isValidSpanishPersonId(value)) {
+    context.addIssue({ code: "custom", message: "invalid" });
+  }
+});
+
+/** S27: same as refinePhone, but an empty phone is a valid partial profile. */
+function refineOptionalPhone(value: { phoneCountry: string; phone: string }, context: z.RefinementCtx): void {
+  if (value.phone.trim().length === 0 && phoneCountryByIso(value.phoneCountry)) {
+    return;
+  }
+  refinePhone(value, context);
+}
 
 function refinePhone(value: { phoneCountry: string; phone: string }, context: z.RefinementCtx): void {
   if (!phoneCountryByIso(value.phoneCountry)) {
@@ -102,13 +119,27 @@ export const accountProfileSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
     lastName: z.string().trim().min(1).max(80),
-    nationalId: nationalIdSchema,
+    nationalId: optionalNationalIdSchema,
     phoneCountry: z.string(),
     phone: z.string(),
   })
-  .superRefine(refinePhone);
+  .superRefine(refineOptionalPhone);
 
 export type AccountProfileInput = z.infer<typeof accountProfileSchema>;
+
+/**
+ * S27: /cuenta autosave keeping the DNI/NIE already on the account. The stored value is not re-validated
+ * (older or seeded ids would otherwise block every name or phone change); a new id still uses nationalIdSchema.
+ */
+export const accountProfileKeepIdSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    lastName: z.string().trim().min(1).max(80),
+    nationalId: z.string().trim().min(1),
+    phoneCountry: z.string(),
+    phone: z.string(),
+  })
+  .superRefine(refineOptionalPhone);
 
 export const signInSchema = z.object({
   email: emailSchema,
@@ -137,12 +168,15 @@ export function homeForRole(role: UserRoleName | null): string {
   return "/cuenta";
 }
 
-export function destinationForUser(user: { role: UserRoleName | null; onboarded: boolean }): string {
+export function destinationForUser(
+  user: { role: UserRoleName | null; onboarded: boolean },
+  next?: string | null,
+): string {
   if (!user.onboarded) {
     return "/onboarding";
   }
 
-  return homeForRole(user.role);
+  return safeReturnPath(next) ?? homeForRole(user.role);
 }
 
 export function accountDisplayName(name: string, lastName: string | null): string {
@@ -203,6 +237,10 @@ export function signUpFieldMessage(error: z.ZodError): string {
 
   if (field === "password") {
     return authCopy.passwordLength;
+  }
+
+  if (field === "acceptTerms") {
+    return authCopy.termsRequired;
   }
 
   return authCopy.invalidForm;

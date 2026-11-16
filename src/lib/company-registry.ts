@@ -1,4 +1,5 @@
 import { centsToEuroInput, emptyCompanyDraft, type CompanyDraftInput } from "./company-draft";
+import { resolveCompanyLocation } from "./company-location";
 import type { HeadcountRangeId } from "./company-profile";
 import { normalizeCif } from "./spanish-cif";
 
@@ -41,8 +42,11 @@ export function anonymousCodename(cif: string): string {
 
 export function draftFromRegistry(record: RegistryCompany): CompanyDraftInput {
   const draft = emptyCompanyDraft();
+  const location = resolveCompanyLocation({ address: record.address, region: record.region });
   draft.legalName = record.legalName;
   draft.address = record.address;
+  draft.postalCode = location.postalCode;
+  draft.city = location.city;
   draft.codename = record.codename;
   draft.region = record.region;
   draft.foundedYear = record.foundedYear === null ? "" : String(record.foundedYear);
@@ -58,7 +62,7 @@ export function draftFromRegistry(record: RegistryCompany): CompanyDraftInput {
     const yearText = String(record.statementYear);
     const sales = centsToEuroInput(record.revenueCents);
     const match = draft.closedYears.find((year) => year.year === yearText);
-    const slot = match ?? draft.closedYears[2];
+    const slot = match ?? draft.closedYears[draft.closedYears.length - 1];
 
     if (slot) {
       slot.year = yearText;

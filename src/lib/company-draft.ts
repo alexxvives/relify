@@ -3,6 +3,7 @@ import { sellerStayInputSchema } from "./seller-stay";
 import * as z from "zod";
 import { companyCopy } from "./company-copy";
 import {
+  askingPriceIncludesKinds,
   balanceInputKeys,
   descriptionMaxLength,
   headcountRanges,
@@ -11,9 +12,12 @@ import {
   customerBases,
   maxActivitySlices,
   maxSecondaryCnaes,
+  ownerDependenceLevels,
   parsePercentToBasisPoints,
   percentsSumToHundred,
   pnlInputKeys,
+  premisesKinds,
+  fichaClosedYearSlots,
   statementWindow,
   type BalanceInputKey,
   type PnlInputKey,
@@ -50,6 +54,14 @@ const unsignedEuroPattern = /^\d{1,12}(,\d{1,2})?$/;
 const signedEuroPattern = /^-?\d{1,12}(,\d{1,2})?$/;
 
 const optionalEuroText = z.string().trim().refine((value) => value === "" || unsignedEuroPattern.test(value), "euro");
+const optionalPctText = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || (/^\d{1,3}$/.test(value) && Number(value) >= 0 && Number(value) <= 100), "percent");
+const optionalYearsText = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || (/^\d{1,2}$/.test(value) && Number(value) >= 0 && Number(value) <= 99), "lease-years");
 const moneyText = z.string().trim();
 
 const closedYearSchema = z.object({
@@ -100,8 +112,13 @@ export const companyDraftSchema = z
   .object({
     legalName: z.string().trim().max(160),
     address: z.string().trim().max(240),
-    codename: z.string().trim().min(1, "codename").max(80, "codename"),
-    region: z.string().trim().min(1, "region").max(80, "region"),
+    // Alex (S25): saving never blocks on a half-typed location. A postal code that is not 5 digits is
+    // dropped (the city stays); an empty project name is generated on save; an empty region is allowed and
+    // only blocks publishing (seller checklist "Ubicación").
+    postalCode: z.string().trim().max(12).transform((value) => (/^\d{5}$/.test(value) ? value : "")),
+    city: z.string().trim().max(120),
+    codename: z.string().trim().max(80, "codename"),
+    region: z.string().trim().max(80, "region"),
     foundedYear: z.string().trim().refine((value) => {
       if (value === "") {
         return true;
@@ -120,13 +137,19 @@ export const companyDraftSchema = z
     askingPrice: optionalEuroText,
     ...sellerFinancingInputSchema,
     ...sellerStayInputSchema,
+    ownerDependence: z.union([z.literal(""), z.enum(ownerDependenceLevels)]),
+    premisesKind: z.union([z.literal(""), z.enum(premisesKinds)]),
+    rentMonthly: optionalEuroText,
+    leaseYearsRemaining: optionalYearsText,
+    recurringRevenuePct: optionalPctText,
+    askingPriceIncludes: z.union([z.literal(""), z.enum(askingPriceIncludesKinds)]),
     opex: optionalEuroText,
     capitalPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     productPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     clientPercents: z.array(z.string().trim()).max(maxActivitySlices, "percent-count").transform(dropEmptyRows),
     customerBase: z.union([z.literal(""), z.enum(customerBases)]),
     headcount: z.union([z.literal(""), z.enum(headcountRanges)]),
-    closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema]),
+    closedYears: z.tuple([closedYearSchema, closedYearSchema, closedYearSchema, closedYearSchema]),
     forecastYear: forecastYearSchema,
   })
   .superRefine((input, ctx) => {
@@ -147,6 +170,7 @@ export const companyDraftSchema = z
       inspectYear(input.closedYears[0], true, ["closedYears", 0], ctx),
       inspectYear(input.closedYears[1], true, ["closedYears", 1], ctx),
       inspectYear(input.closedYears[2], true, ["closedYears", 2], ctx),
+      inspectYear(input.closedYears[3], true, ["closedYears", 3], ctx),
       inspectYear(input.forecastYear, false, ["forecastYear"], ctx),
     ].filter((year): year is number => year !== null);
 
@@ -168,9 +192,11 @@ const draftMessages = {
   codename: companyCopy.codenameRequired,
   "sale-reason": companyCopy.saleReasonRequired,
   region: companyCopy.regionRequired,
+  "postal-code": companyCopy.postalCodeInvalid,
   euro: companyCopy.euroInvalid,
   "founded-year": companyCopy.foundedYearInvalid,
   description: companyCopy.descriptionInvalid,
+  "lease-years": companyCopy.leaseYearsLabel,
   cnae: companyCopy.cnaeInvalid,
   "cnae-principal": companyCopy.cnaePrincipalRequired,
   "cnae-duplicate": companyCopy.cnaeDuplicate,
@@ -186,6 +212,7 @@ const draftMessages = {
   "adjustment-format": companyCopy.adjustmentsInvalid,
   "adjustment-amount": companyCopy.adjustmentsInvalid,
   "adjustment-reason": companyCopy.adjustmentsInvalid,
+  "adjustment-too-large": companyCopy.adjustmentsTooLarge,
   "adjustment-count": companyCopy.adjustmentsCount,
   "seller-financing-pct": "Financiación del vendedor: indica un porcentaje entero entre 1 y 100.",
   "seller-financing-years": "Financiación del vendedor: elige el plazo.",
@@ -216,6 +243,15 @@ export function optionalEurosToCents(value: string): number | null {
   }
 
   return eurosToCents(value);
+}
+
+export function optionalWholeNumber(value: string, min: number, max: number): number | null {
+  const trimmed = value.trim();
+  if (trimmed === "" || !/^\d+$/.test(trimmed)) {
+    return null;
+  }
+  const amount = Number(trimmed);
+  return amount >= min && amount <= max ? amount : null;
 }
 
 export function centsToEuroInput(cents: number): string {
@@ -287,13 +323,30 @@ export function emptyForecastYear(year: string): ForecastYearInput {
   };
 }
 
+function closedYearQuad(years: ClosedYearInput[]): CompanyDraftInput["closedYears"] {
+  const first = years[0];
+  const second = years[1];
+  const third = years[2];
+  const fourth = years[3];
+  if (!first || !second || !third || !fourth || years.length !== fichaClosedYearSlots) {
+    throw new Error("closed year window must be 4");
+  }
+  return [first, second, third, fourth];
+}
+
+function closedYearHasFigures(year: ClosedYearInput): boolean {
+  return (Object.keys(year) as Array<keyof ClosedYearInput>).some((key) => key !== "year" && year[key].trim().length > 0);
+}
+
 export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
   const window = statementWindow(today);
-  const [first, second, third] = window.closed;
+  const [first, second, third, fourth] = window.closed;
 
   return {
     legalName: "",
     address: "",
+    postalCode: "",
+    city: "",
     codename: "",
     region: "",
     foundedYear: "",
@@ -310,13 +363,24 @@ export function emptyCompanyDraft(today = new Date()): CompanyDraftInput {
     sellerFinancingPct: "",
     sellerFinancingYears: "",
     sellerStay: "",
+    ownerDependence: "",
+    premisesKind: "",
+    rentMonthly: "",
+    leaseYearsRemaining: "",
+    recurringRevenuePct: "",
+    askingPriceIncludes: "",
     opex: "",
     capitalPercents: [],
     productPercents: [],
     clientPercents: [],
     customerBase: "",
     headcount: "",
-    closedYears: [emptyClosedYear(String(first)), emptyClosedYear(String(second)), emptyClosedYear(String(third))],
+    closedYears: [
+      emptyClosedYear(String(first)),
+      emptyClosedYear(String(second)),
+      emptyClosedYear(String(third)),
+      emptyClosedYear(String(fourth)),
+    ],
     forecastYear: emptyForecastYear(String(window.forecast)),
   };
 }
@@ -339,14 +403,28 @@ export function placeStatementsOnWindow(
     byYear.set(forecast.year, forecast);
   }
 
-  const [first, second, third] = window.closed;
+  const stored = closed
+    .filter((year) => /^\d{4}$/.test(year.year))
+    .sort((left, right) => Number(left.year) - Number(right.year));
+  const withData = stored.filter(closedYearHasFigures);
+  const picked = (withData.length > 0 ? withData : stored).slice(-fichaClosedYearSlots);
+  const calendar = window.closed.map((year) => String(year));
+  const pickedYears = picked.map((year) => year.year);
+  const pad = calendar.filter((year) => !pickedYears.includes(year));
+  const slotYears = [...pad.slice(0, Math.max(0, fichaClosedYearSlots - pickedYears.length)), ...pickedYears]
+    .sort((left, right) => Number(left) - Number(right))
+    .slice(-fichaClosedYearSlots);
+  while (slotYears.length < fichaClosedYearSlots) {
+    const extra = calendar.find((year) => !slotYears.includes(year));
+    if (!extra) {
+      break;
+    }
+    slotYears.push(extra);
+    slotYears.sort((left, right) => Number(left) - Number(right));
+  }
 
   return {
-    closedYears: [
-      copyOntoClosed(byYear.get(String(first)), String(first)),
-      copyOntoClosed(byYear.get(String(second)), String(second)),
-      copyOntoClosed(byYear.get(String(third)), String(third)),
-    ],
+    closedYears: closedYearQuad(slotYears.map((year) => copyOntoClosed(byYear.get(year), year))),
     forecastYear: copyOntoForecast(byYear.get(String(window.forecast)), String(window.forecast)),
   };
 }

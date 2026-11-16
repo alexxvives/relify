@@ -75,7 +75,7 @@ export const advisorCopy = {
   postalCode: "Código Postal",
   description: "Descripción de la asesoría",
   descriptionPlaceholder:
-    "Describe a qué se dedica tu empresa. Da información Relifynte sobre el tipo de servicios qué ofrecéis, los años de experiencia en el sector, número de operaciones cerradas anualmente, etc. Por ejemplo: Con más de 20 años de experiencia, ofrecemos servicios de consultoría, auditoría, fiscalidad y transacciones en todos los sectores de actividad.",
+    "Describe a qué se dedica tu empresa. Da información relevante sobre el tipo de servicios qué ofrecéis, los años de experiencia en el sector, número de operaciones cerradas anualmente, etc. Por ejemplo: Con más de 20 años de experiencia, ofrecemos servicios de consultoría, auditoría, fiscalidad y transacciones en todos los sectores de actividad.",
   sectors: "Sectores de especialización",
   sectorSearch: "Seleccionar",
   servicesPanelTitle: "¿Qué servicios puedes ofrecer?",

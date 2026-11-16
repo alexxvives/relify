@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const waitlistOpensAt = "2026-11-21T10:00:00+01:00";
+export const waitlistOpensAt = "2027-01-10T10:00:00+01:00";
 
 export const waitlistRoles = ["company", "investor", "advisor"] as const;
 
@@ -16,10 +16,11 @@ export type WaitlistInput = z.infer<typeof waitlistSchema>;
 export const waitlistCopy = {
   title: "Apúntate para entrar en el marketplace",
   description:
-    "Apúntate a la lista de espera de Relify. Empresas, compradores y asesores entran juntos para que el primer día ya haya con quién hablar.",
+    "Apúntate a la lista de espera de Relify. Te avisamos cuando abramos el marketplace a empresas, compradores y asesores.",
   kicker: "Lista de espera",
   heading: "Apúntate para entrar en el marketplace",
-  body: "Deja tu correo y te avisamos en cuanto abramos. Si vendes, publica tu negocio gratis y con total discreción. Si compras, explora todos los negocios sin coste. Si eres asesor, consigue nuevas operaciones que acompañar.",
+  body: "Deja tu correo y te avisamos en cuanto abramos. La primera ficha de empresa es gratuita. El catálogo se mira sin pagar. La ficha de asesor en el directorio también es gratis.",
+  bodyShort: "Deja tu correo y te avisamos en cuanto abramos.",
   roles: [
     {
       id: "company" as const,
@@ -40,9 +41,9 @@ export const waitlistCopy = {
       note: "El mismo anonimato para la operación.",
     },
   ],
-  seatsTitle: "Así se llena la sala",
-  seatsBody: "Cada cara es un sitio. Cuantos más entran de los tres lados, más fácil es el primer encuentro.",
-  formTitle: "Reserva tu sitio",
+  seatsTitle: "Tres perfiles, un marketplace",
+  seatsBody: "Empresa, comprador y asesor. Elige el tuyo y te avisamos al abrir.",
+  formTitle: "Deja tus datos",
   name: "Nombre",
   email: "Correo",
   city: "Ciudad",
@@ -55,4 +56,5 @@ export const waitlistCopy = {
   invalid: "Revisa el nombre, el correo y el perfil.",
   taken: "Ese correo ya está en la lista con ese perfil.",
   failed: "No hemos podido guardar la inscripción. Inténtalo de nuevo.",
+  throttled: "Has hecho demasiadas solicitudes. Espera unos minutos y vuelve a intentarlo.",
 };

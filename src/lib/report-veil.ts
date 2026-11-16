@@ -2,6 +2,7 @@ import { figureVeilCapital, figureVeilCents, figureVeilClient, figureVeilProduct
 import type { InvestorProjectProfile } from "./investor-project";
 import type { SabiYear } from "./sabi/insights";
 import { adjustmentsForBuyer } from "./ebitda-adjustments";
+import { reportHeadline } from "./company-report";
 
 /**
  * t91: the locked (pre-NDA) ficha renders the SAME sections, blocks and order as after the NDA, so it is
@@ -55,15 +56,87 @@ function veilSlices<T extends { label: string; basisPoints: number }>(real: T[],
   return real.length === 0 ? [] : fake;
 }
 
-/** Same shape as the profile, invented locked figures. Public facts (KPIs, deal, business) stay as they are. */
+const incomeFromYear: Record<string, (year: SabiYear) => number | null> = {
+  sales: (year) => year.revenueCents,
+  ebitda: (year) => year.ebitdaCents,
+  supplies: (year) => year.suppliesCents,
+  staffCosts: (year) => year.staffCostsCents,
+};
+
+const balanceFromYear: Record<string, (year: SabiYear) => number | null> = {
+  currentAssets: (year) => year.currentAssetsCents,
+  cash: (year) => year.cashCents,
+  nonCurrentAssets: (year) => year.nonCurrentAssetsCents,
+  totalAssets: (year) => year.totalAssetsCents,
+  currentLiabilities: (year) => year.currentLiabilitiesCents,
+  longTermDebt: (year) => year.longTermDebtCents,
+  nonCurrentLiabilities: (year) => year.nonCurrentLiabilitiesCents,
+  shortTermDebt: (year) => year.shortTermDebtCents,
+  equity: (year) => year.equityCents,
+};
+
+function overlayFromYears(
+  values: Array<number | null>,
+  columns: Array<{ year: number; forecast?: boolean }> | undefined,
+  years: SabiYear[],
+  pick: ((year: SabiYear) => number | null) | undefined,
+  fallbackRow: number,
+  small = false,
+): Array<number | null> {
+  const veiled = veilValues(values, fallbackRow, small);
+  if (!pick || !columns || columns.length === 0) {
+    return veiled;
+  }
+  return veiled.map((value, index) => {
+    if (value === null) {
+      return null;
+    }
+    const column = columns[index];
+    if (!column || column.forecast) {
+      return value;
+    }
+    const year = years.find((item) => item.year === column.year);
+    const next = year ? pick(year) : null;
+    return next === null || next === undefined ? value : next;
+  });
+}
+
+/**
+ * Invented year rows and slices for the blurred body. Published header cards (facturación, EBITDA,
+ * precio) keep `reportHeadline` so a buyer never sees 1 M / 180 k unblurred while /mercado shows 5 M / 750 k.
+ */
 export function veilReportFigures(project: InvestorProjectProfile): InvestorProjectProfile {
+  const published = reportHeadline(project);
+  const reportYears = project.reportYears ? veilYears(project.reportYears) : project.reportYears;
+  const years = reportYears ?? [];
   return {
     ...project,
-    reportYears: project.reportYears ? veilYears(project.reportYears) : project.reportYears,
-    incomeRows: project.incomeRows.map((row, index) => ({ ...row, values: veilValues(row.values, index) })),
-    balanceRows: project.balanceRows.map((row, index) => ({ ...row, values: veilValues(row.values, index + 3) })),
+    reportYears,
+    revenueCents: published.revenueCents,
+    ebitdaCents: published.ebitdaCents,
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments: project.ebitdaAdjustments,
+    figuresVeiled: true,
+    incomeRows: project.incomeRows.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(row.values, project.incomeYears, years, incomeFromYear[row.key], index),
+    })),
+    balanceRows: project.balanceRows.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(row.values, project.balanceYears, years, balanceFromYear[row.key], index + 3),
+    })),
     detailRows: project.detailRows?.map((row, index) => ({ ...row, values: veilValues(row.values, index + 5) })),
-    indicatorRows: project.indicatorRows?.map((row, index) => ({ ...row, values: veilValues(row.values, index, true) })),
+    indicatorRows: project.indicatorRows?.map((row, index) => ({
+      ...row,
+      values: overlayFromYears(
+        row.values,
+        project.balanceYears,
+        years,
+        row.key === "employees" ? (year) => year.employees : row.key === "collectionDays" ? (year) => year.ratios.collectionDays ?? null : undefined,
+        index,
+        true,
+      ),
+    })),
     capital: veilSlices(project.capital, figureVeilCapital),
     products: veilSlices(project.products, figureVeilProduct),
     clients: veilSlices(project.clients, figureVeilClient),
@@ -77,5 +150,21 @@ export function veilReportFigures(project: InvestorProjectProfile): InvestorProj
  */
 export function buyerProjectView(project: InvestorProjectProfile, ndaAccepted: boolean): InvestorProjectProfile {
   const ebitdaAdjustments = adjustmentsForBuyer(project.ebitdaAdjustments, ndaAccepted);
-  return ndaAccepted ? { ...project, ebitdaAdjustments } : { ...veilReportFigures(project), ebitdaAdjustments };
+  const viewed = { ...project, ebitdaAdjustments };
+  return ndaAccepted ? viewed : veilReportFigures(viewed);
+}
+
+/** Investor-hired advisor: same server veil as the buyer until figuresOpen (advisor NDA + investor NDA). */
+export function advisorProjectView(
+  project: InvestorProjectProfile | null,
+  hiredByInvestor: boolean,
+  figuresOpen: boolean,
+): InvestorProjectProfile | null {
+  if (!project) {
+    return null;
+  }
+  if (!hiredByInvestor) {
+    return project;
+  }
+  return buyerProjectView(project, figuresOpen);
 }

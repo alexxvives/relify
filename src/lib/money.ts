@@ -35,6 +35,47 @@ export function formatWholeEur(cents: number): string {
   return `${negative ? "-" : ""}${grouped} €`;
 }
 
+function compactUnitDigits(scaled: number): number {
+  if (scaled < 10) {
+    return 2;
+  }
+  if (scaled < 100) {
+    return 1;
+  }
+  return 0;
+}
+
+function formatScaled(scaled: number, digits: number): string {
+  const factor = 10 ** digits;
+  const rounded = Math.round(scaled * factor) / factor;
+  if (Number.isInteger(rounded)) {
+    return String(rounded);
+  }
+  return rounded.toFixed(digits).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+}
+
+/**
+ * Shared compact money for cards, Resumen, ficha and marketplace:
+ * 2 decimals below 10 of the unit (1,65 M), 1 decimal from 10–100, 0 above; space before K/M.
+ */
+export function formatCardEur(cents: number): string {
+  const negative = cents < 0;
+  const euros = Math.abs(cents) / 100;
+  const sign = negative ? "-" : "";
+
+  if (euros >= 999_950) {
+    const millions = euros / 1_000_000;
+    return `${sign}${formatScaled(millions, compactUnitDigits(millions))} M €`;
+  }
+
+  if (euros >= 1_000) {
+    const thousands = euros / 1_000;
+    return `${sign}${formatScaled(thousands, compactUnitDigits(thousands))} K €`;
+  }
+
+  return `${sign}${groupThousands(Math.round(euros))} €`;
+}
+
 export function formatCompactEur(cents: number): string {
   const negative = cents < 0;
   const euros = Math.abs(cents) / 100;
@@ -55,25 +96,6 @@ export function formatCompactEur(cents: number): string {
   return `${sign}${grouped} €`;
 }
 
-/** Short card figure in es-ES: 1,25 M €, 850 K €, 9.500 €. */
-export function formatCardEur(cents: number): string {
-  const negative = cents < 0;
-  const euros = Math.abs(cents) / 100;
-  const sign = negative ? "-" : "";
-
-  if (euros >= 1_000_000) {
-    const rounded = Math.round((euros / 1_000_000) * 100) / 100;
-    return `${sign}${String(rounded).replace(".", ",")} M €`;
-  }
-
-  if (euros >= 10_000) {
-    return `${sign}${Math.round(euros / 1000)} K €`;
-  }
-
-  const grouped = groupThousands(Math.round(euros));
-  return `${sign}${grouped} €`;
-}
-
 export type RecoveryTone = "good" | "average" | "high";
 
 export function recoveryYears(askingPriceCents: number, ebitdaCents: number): number | null {
@@ -82,6 +104,29 @@ export function recoveryYears(askingPriceCents: number, ebitdaCents: number): nu
   }
 
   return askingPriceCents / ebitdaCents;
+}
+
+/**
+ * S27: ROI as a yearly return on the asking price: EBITDA / precio de venta × 100 (equivalently 100 / payback
+ * years). Uses the same primary EBITDA as the card (adjusted when approved). Null without a price or a positive EBITDA.
+ */
+export function roiPercent(askingPriceCents: number, ebitdaCents: number): number | null {
+  if (askingPriceCents <= 0 || ebitdaCents <= 0) {
+    return null;
+  }
+
+  return (ebitdaCents / askingPriceCents) * 100;
+}
+
+/** "33 %"-style label without the space: whole numbers from 10 %, one decimal below. */
+export function formatRoiPercent(percent: number): string {
+  const digits = percent >= 10 ? 0 : 1;
+  return `${percent.toLocaleString("es-ES", { maximumFractionDigits: digits, minimumFractionDigits: 0 })}%`;
+}
+
+/** Same thresholds as the payback tone (≤4 years good, ≤7 average): ≥25 % good, ≥14,3 % average. */
+export function roiTone(percent: number): RecoveryTone {
+  return recoveryTone(100 / percent);
 }
 
 export function recoveryTone(years: number): RecoveryTone {

@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import { AdminListSkeleton } from "@/components/page-skeletons";
+import { AdminListSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AdminConnections } from "@/components/admin-connections";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdminConnections } from "@/components/admin/admin-connections";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
-import { listAdminConnections } from "@/server/listAdminConnections";
-import { markAdminSeen } from "@/server/adminSeen";
-import { requireRole } from "@/server/requireRole";
+import { listAdminConnections } from "@/lib/server/list-admin-connections";
+import { markAdminSeen } from "@/lib/server/admin-seen";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: adminCopy.connectionsTitle,

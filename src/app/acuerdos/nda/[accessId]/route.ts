@@ -1,6 +1,6 @@
-import { prisma } from "@/server/db";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { pdfResponse, readSignedDocument } from "@/server/signedDocuments";
+import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { pdfResponse, readSignedDocument } from "@/lib/server/signed-documents";
 
 export async function GET(request: Request, context: { params: Promise<{ accessId: string }> }): Promise<Response> {
   const user = await getCurrentUser();

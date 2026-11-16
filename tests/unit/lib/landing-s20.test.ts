@@ -1,0 +1,83 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+const root = process.cwd();
+const read = (file: string) => readFileSync(path.join(root, file), "utf8");
+
+describe("Round S20 landing and React Bits", () => {
+  it("centers landing section titles on desktop and mobile", () => {
+    expect(read("src/components/landing/paths.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
+    expect(read("src/components/landing/offer.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
+    expect(read("src/components/landing/confidentiality.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
+    expect(read("src/components/landing/activity-feed.tsx")).toMatch(/lg:grid-cols-\[1\.1fr_0\.9fr\]/);
+    expect(read("src/components/landing/process.tsx")).toMatch(/mx-auto max-w-3xl text-center/);
+  });
+
+  it("re-renders path steps with FadeContent blur on switch", () => {
+    const flow = read("src/components/landing/path-and-flow.tsx");
+    expect(flow).toMatch(/fade-content/);
+    expect(flow).toMatch(/blur/);
+    expect(flow).toMatch(/trigger="mount"/);
+    expect(flow).toMatch(/duration=\{1\.6\}/);
+  });
+
+  it("drops ElectricLogo from the public header", () => {
+    expect(read("src/components/landing/landing-mark.tsx")).not.toMatch(/ElectricLogo/);
+    expect(read("src/components/landing/landing-page-v2.tsx")).not.toMatch(/electricLogo/);
+    expect(read("src/components/landing/public-site.tsx")).not.toMatch(/electricLogo/);
+  });
+
+  it("adds GlareHover to Empresas en venta cards and StarBorder to Prueba gratis", () => {
+    expect(read("src/components/landing/offer.tsx")).toMatch(/OfferGlare/);
+    expect(read("src/components/landing/offer-carousel.tsx")).toMatch(/OfferGlare/);
+    expect(read("src/components/landing/try-free-button.tsx")).toMatch(/StarBorder/);
+    expect(read("src/components/landing/try-free-button.tsx")).toMatch(/#ffffff/);
+  });
+
+  it("uses the Folder component on every documents folder", () => {
+    const docs = read("src/components/seller/seller-documents.tsx");
+    expect(docs).toMatch(/DocumentsFolder/);
+    expect(docs).toMatch(/FolderOpenIcon/);
+    expect(read("src/components/seller/documents-folder.tsx")).toMatch(/import\("@\/components\/Folder"\)/);
+  });
+
+  it("does not wrap investor plans in PixelCard", () => {
+    const plans = read("src/components/investor/premium-plans.tsx");
+    expect(plans).not.toMatch(/PixelCard/);
+    expect(plans).toMatch(/item\.recommended/);
+  });
+
+  it("restores waitlist Gaze portraits from vendored SVGs", () => {
+    expect(read("src/lib/gaze-avatar.ts")).toMatch(/\/waitlist\/\$\{safe\}\.svg/);
+    expect(read("public/waitlist/alba.svg")).toMatch(/DiceBear/);
+  });
+
+  it("uses React Bits Counter on the waitlist clock", () => {
+    const waitlist = read("src/components/landing/waitlist-form.tsx");
+    expect(waitlist).toMatch(/from "@\/components\/Counter"/);
+    expect(waitlist).toMatch(/stagger=\{0\.06\}/);
+    expect(waitlist).toMatch(/direction="down"/);
+    expect(waitlist).toMatch(/bounce=\{0\.3\}/);
+  });
+
+  it("styles app toasts as a card (S28: one toast, no ghost stack)", () => {
+    expect(read("src/components/shell/app-toast.tsx")).toMatch(/releva-toast-stack/);
+    expect(read("src/app/globals.css")).not.toMatch(/\.releva-toast-stack-ghost/);
+  });
+
+  it("drops Verificado and seller financing tags from the process specimen", () => {
+    const process = read("src/components/landing/process.tsx");
+    expect(process).toMatch(/financingChip: null/);
+    expect(process).toMatch(/verified: false/);
+    expect(process).not.toMatch(/Financiación vendedor/);
+  });
+
+  it("keeps pipeline dots on the line and pulses the current step", () => {
+    const css = read("src/app/globals.css");
+    expect(css).toMatch(/\.releva-land-pipe-dot \{[\s\S]*transform-origin:\s*center center/);
+    expect(css).toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot::before/);
+    expect(css).not.toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot \{[\s\S]*width:\s*1\.35rem/);
+    expect(read("src/components/landing/landing-pipeline.tsx")).toMatch(/releva-land-pipe-callout/);
+  });
+});

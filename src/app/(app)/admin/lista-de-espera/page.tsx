@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { AdminWaitlist } from "@/components/admin-waitlist";
-import { AdminListSkeleton } from "@/components/page-skeletons";
-import { SignedInPage } from "@/components/signed-in-page";
-import { markAdminSeen } from "@/server/adminSeen";
-import { listWaitlist } from "@/server/listWaitlist";
-import { requireRole } from "@/server/requireRole";
+import { AdminWaitlist } from "@/components/admin/admin-waitlist";
+import { AdminListSkeleton } from "@/components/shell/page-skeletons";
+import { SignedInPage } from "@/components/shell/signed-in-page";
+import { markAdminSeen } from "@/lib/server/admin-seen";
+import { listWaitlist } from "@/lib/server/list-waitlist";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = { title: "Lista de espera", robots: { index: false, follow: false } };
 

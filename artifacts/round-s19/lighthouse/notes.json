@@ -1,0 +1,19 @@
+{
+  "environment": "next dev (unminified), simulated mobile 390, cookie relify_consent=essential",
+  "default": {
+    "url": "http://localhost:3000/",
+    "performance": 64,
+    "fcp": "1.1 s",
+    "lcp": "17.4 s",
+    "cls": "0",
+    "tbt": "390 ms"
+  },
+  "baseline_s18": {
+    "performance": 63,
+    "fcp": "1.4 s",
+    "lcp": "7.9 s",
+    "cls": "0",
+    "tbt": "450 ms"
+  },
+  "note": "Score 64 is not worse than S18 63. LCP remains the hero city image; next-dev variance. CLS stayed 0. Scores are next dev, not a production Worker build."
+}

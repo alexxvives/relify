@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import { AdvisorBoardsSkeleton } from "@/components/page-skeletons";
+import { AdvisorBoardsSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
-import { AdvisorProcesses } from "@/components/advisor-processes";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdvisorProcesses } from "@/components/advisor/advisor-processes";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { listAdvisorProjectBoards } from "@/server/advisoryEngagement";
-import { fulfillCheckout } from "@/server/fulfillCheckout";
-import { requireRole } from "@/server/requireRole";
+import { listAdvisorProjectBoards } from "@/lib/server/advisory-engagement";
+import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: advisorCopy.encargosTitle,

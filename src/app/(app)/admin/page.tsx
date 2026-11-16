@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import { AdminHomeSkeleton } from "@/components/page-skeletons";
+import { AdminHomeSkeleton } from "@/components/shell/page-skeletons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AdminHome } from "@/components/admin-home";
-import { SignedInPage } from "@/components/signed-in-page";
+import { AdminHome } from "@/components/admin/admin-home";
+import { SignedInPage } from "@/components/shell/signed-in-page";
 import { adminCopy } from "@/lib/admin-copy";
-import { getAdminDashboard } from "@/server/getAdminDashboard";
-import { markAdminSeen } from "@/server/adminSeen";
-import { requireRole } from "@/server/requireRole";
+import { getAdminDashboard } from "@/lib/server/get-admin-dashboard";
+import { markAdminSeen } from "@/lib/server/admin-seen";
+import { requireRole } from "@/lib/server/require-role";
 
 export const metadata: Metadata = {
   title: adminCopy.homeTitle,

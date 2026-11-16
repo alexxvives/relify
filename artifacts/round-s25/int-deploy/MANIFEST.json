@@ -1,0 +1,27 @@
+{
+  "round": "s25",
+  "commit": "d744897ded7e0e1bd38a4cb7237791b84be4c27e",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "256301a7877894495f01a7f2eda772d7618b8452c41ded89b3f16ebae1f96c70",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql"
+  ],
+  "r2_required": [
+    {
+      "binding": "INT_UPLOADS",
+      "bucket_name": "releva-int-uploads",
+      "create": "wrangler r2 bucket create releva-int-uploads",
+      "note": "INT-only. Do not bind a production bucket. Object keys use the int/ prefix."
+    }
+  ],
+  "csp_connect_src_added": ["https://photon.komoot.io", "https://nominatim.openstreetmap.org"],
+  "int_cif_mock": {
+    "cif": "B12345674",
+    "legalName": "Obrador Ficticio Norte S.L.",
+    "note": "INT-only. Other CIFs miss without calling billable APIs."
+  },
+  "note": "No Prisma migration. Same R2 and SQL prerequisites as S24. Not deployed.",
+  "deployed": false
+}

@@ -1,10 +1,10 @@
 "use server";
 
-import { submitForReviewIfReady } from "@/server/submitForReview";
+import { submitForReviewIfReady } from "@/lib/server/submit-for-review";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { companyCopy } from "@/lib/company-copy";
-import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
+import { normalizeCif } from "@/lib/spanish-cif";
 import {
   closedFieldName,
   companyDraftFieldMessage,
@@ -17,20 +17,27 @@ import {
   type ForecastYearInput,
 } from "@/lib/company-draft";
 import { balanceInputKeys, pnlInputKeys } from "@/lib/company-profile";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { deleteProjectCover, writeProjectCover } from "@/server/projectCover";
-import { addProjectPhotos, deleteProjectPhoto } from "@/server/projectPhotos";
-import { publishSellerProject } from "@/server/publishSellerProject";
-import { requestFigureCorrection } from "@/server/requestFigureCorrection";
-import { requestIdentityChange } from "@/server/requestIdentityChange";
-import { saveCompanyDraft } from "@/server/saveCompanyDraft";
-import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/server/saveEbitdaAdjustments";
-import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/server/storeAdjustmentDocument";
-import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/server/sellerCompany";
-import { startListingCheckout } from "@/server/startCheckout";
-import { uniqueCodename } from "@/server/uniqueCodename";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { deleteProjectCover, writeProjectCover } from "@/lib/server/project-cover";
+import { addProjectPhotos, deleteProjectPhoto } from "@/lib/server/project-photos";
+import { publishSellerProject } from "@/lib/server/publish-seller-project";
+import { requestFigureCorrection } from "@/lib/server/request-figure-correction";
+import { requestIdentityChange } from "@/lib/server/request-identity-change";
+import { saveCompanyDraft } from "@/lib/server/save-company-draft";
+import { getCompanyDraft } from "@/lib/server/get-company-draft";
+import { saveEbitdaAdjustments, type SaveEbitdaAdjustmentsResult } from "@/lib/server/save-ebitda-adjustments";
+import { storeAdjustmentDocument, type StoreAdjustmentDocumentResult } from "@/lib/server/store-adjustment-document";
+import { activeSellerProjectId, addSellerCompany, deleteSellerCompany, selectSellerCompany } from "@/lib/server/seller-company";
+import { startListingCheckout } from "@/lib/server/start-checkout";
+import { uniqueCodename } from "@/lib/server/unique-codename";
+import { rotateTeaserToken } from "@/lib/server/company-pdfs";
+import { sellerDraftAutosaveRevalidatePaths } from "@/lib/seller-draft-cache";
 
-export type CompanyDraftState = { message: string; saved: boolean } | null;
+/**
+ * S27: on success `draft` is the company as stored after the save (what a reload would show), so the form's read-only
+ * view reflects the server, never what was typed.
+ */
+export type CompanyDraftState = { message: string; saved: boolean; draft?: CompanyDraftInput | null } | null;
 
 function readText(formData: FormData, name: string): string {
   const value = formData.get(name);
@@ -72,6 +79,8 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
   const parsed = companyDraftSchema.safeParse({
     legalName: readText(formData, "legalName"),
     address: readText(formData, "address"),
+    postalCode: readText(formData, "postalCode"),
+    city: readText(formData, "city"),
     codename: readText(formData, "codename"),
     region: readText(formData, "region"),
     foundedYear: readText(formData, "foundedYear"),
@@ -88,13 +97,19 @@ function readCompanyDraft(formData: FormData): CompanyDraftInput | { message: st
     sellerFinancingPct: readText(formData, "sellerFinancingPct"),
     sellerFinancingYears: readText(formData, "sellerFinancingYears"),
     sellerStay: readText(formData, "sellerStay"),
+    ownerDependence: readText(formData, "ownerDependence"),
+    premisesKind: readText(formData, "premisesKind"),
+    rentMonthly: readText(formData, "rentMonthly"),
+    leaseYearsRemaining: readText(formData, "leaseYearsRemaining"),
+    recurringRevenuePct: readText(formData, "recurringRevenuePct"),
+    askingPriceIncludes: readText(formData, "askingPriceIncludes"),
     opex: readText(formData, "opex"),
     capitalPercents: readList(formData, "capitalPercent"),
     productPercents: readList(formData, "productPercent"),
     clientPercents: readList(formData, "clientPercent"),
     customerBase: readText(formData, "customerBase"),
     headcount: headcount === "" ? "" : headcount,
-    closedYears: [readClosedYear(formData, 0), readClosedYear(formData, 1), readClosedYear(formData, 2)],
+    closedYears: [readClosedYear(formData, 0), readClosedYear(formData, 1), readClosedYear(formData, 2), readClosedYear(formData, 3)],
     forecastYear: readForecastYear(formData),
   });
 
@@ -125,13 +140,18 @@ export async function saveCompanyDraftAction(
     return { message: input.message, saved: false };
   }
 
+  // CIF checksum lives on identity-change / add-company. The locked NIF on this form is posted
+  // on every autosave; a stored test or legacy value must not block the rest of the draft.
   const cif = normalizeCif(readText(formData, "cif"));
 
-  if (cif.length > 0 && !isValidSpanishCif(cif)) {
-    return { message: companyCopy.nifInvalid, saved: false };
+  let result;
+  try {
+    result = await saveCompanyDraft(user, input, cif);
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    console.error("[saveCompanyDraft]", code || (error instanceof Error ? error.name : "unknown"));
+    return { message: companyCopy.saveFailed, saved: false };
   }
-
-  const result = await saveCompanyDraft(user, input, cif);
 
   if (!result.ok) {
     return { message: result.message, saved: false };
@@ -143,9 +163,17 @@ export async function saveCompanyDraftAction(
     await submitForReviewIfReady(user.id, activeId);
   }
 
-  revalidatePath("/mi-empresa");
-  revalidatePath("/mi-empresa/detalles");
-  return { message: companyCopy.saved, saved: true };
+  for (const path of sellerDraftAutosaveRevalidatePaths) {
+    revalidatePath(path);
+  }
+  let draft: CompanyDraftInput | null = null;
+  try {
+    draft = await getCompanyDraft(user);
+  } catch (error) {
+    // The write already landed; the form falls back to what it sent (which the server accepted as is).
+    console.error("[saveCompanyDraft:reload]", error instanceof Error ? error.name : "unknown");
+  }
+  return { message: companyCopy.saved, saved: true, draft };
 }
 
 /** t89: the EBITDA adjustments modal saves on its own, so the seller never leaves it with unsaved rows. */
@@ -156,8 +184,9 @@ export async function saveEbitdaAdjustmentsAction(raw: string): Promise<SaveEbit
   }
   const result = await saveEbitdaAdjustments(user, typeof raw === "string" ? raw.slice(0, 20000) : "");
   if (result.ok) {
-    revalidatePath("/mi-empresa");
-    revalidatePath("/mi-empresa/detalles");
+    for (const path of sellerDraftAutosaveRevalidatePaths) {
+      revalidatePath(path);
+    }
   }
   return result;
 }
@@ -419,4 +448,22 @@ export async function requestIdentityChangeAction(_state: IdentityChangeState, f
     reason: readText(formData, "reason"),
   });
   return result.ok ? { ok: true, message: "Solicitud enviada. Te escribiremos cuando lo revisemos." } : { ok: false, message: result.message };
+}
+
+export async function regenerateTeaserLinkAction(): Promise<
+  { ok: true; shareUrl: string } | { ok: false; message: string }
+> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/entrar");
+  }
+  if (!user.onboarded || user.role !== "seller") {
+    return { ok: false, message: "No hay ficha." };
+  }
+  const result = await rotateTeaserToken(user);
+  if (result.ok) {
+    revalidatePath("/mi-empresa");
+    revalidatePath("/mi-empresa/documentos");
+  }
+  return result;
 }

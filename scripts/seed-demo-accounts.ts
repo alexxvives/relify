@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/db";
 
 const password = "@Releva1z2x";
 const projectId = "demo-project-cala";
@@ -269,8 +269,6 @@ async function ensureAdvisorDesk(advisorId: string): Promise<void> {
     ebitdaCents: 9_000_000,
     adjustedEbitdaCents: 8_000_000,
     askingPriceCents: 48_000_000,
-    netDebtCents: 0,
-    workingCapitalCents: 0,
     netIncomeCents: 0,
     legalName: "Taller Nube Demo S.L.",
     cif: "B77777779",
@@ -327,8 +325,6 @@ async function main(): Promise<void> {
       ebitdaCents: 18_000_000,
       adjustedEbitdaCents: 16_000_000,
       askingPriceCents: 120_000_000,
-      netDebtCents: 4_500_000,
-      workingCapitalCents: 6_200_000,
       netIncomeCents: 9_800_000,
       legalName: "Horno de la Cala S.L.",
       cif: "B00000000",
@@ -348,8 +344,6 @@ async function main(): Promise<void> {
       ebitdaCents: 18_000_000,
       adjustedEbitdaCents: 16_000_000,
       askingPriceCents: 120_000_000,
-      netDebtCents: 4_500_000,
-      workingCapitalCents: 6_200_000,
       netIncomeCents: 9_800_000,
       legalName: "Horno de la Cala S.L.",
       cif: "B00000000",

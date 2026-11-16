@@ -5,11 +5,11 @@ import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
 import { clientCompanySchema } from "@/lib/client-company";
 import { eurosToCents } from "@/lib/company-draft";
-import { createClientCompany } from "@/server/createClientCompany";
-import { getCurrentUser } from "@/server/getCurrentUser";
-import { publishClientCompany } from "@/server/publishClientCompany";
-import { acceptBuyer } from "@/server/acceptBuyer";
-import { recordSuccessFee } from "@/server/recordSuccessFee";
+import { createClientCompany } from "@/lib/server/create-client-company";
+import { getCurrentUser } from "@/lib/server/get-current-user";
+import { publishClientCompany } from "@/lib/server/publish-client-company";
+import { acceptBuyer } from "@/lib/server/accept-buyer";
+import { recordSuccessFee } from "@/lib/server/record-success-fee";
 
 export type MandateActionState = { ok: true; message?: string } | { ok: false; message: string } | null;
 

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { AiImageTag } from "@/components/project-photo";
+import { TryFreeButton } from "@/components/landing/try-free-button";
 import { landingCopy, offerDeals } from "@/lib/landing-copy";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
 
@@ -249,17 +248,18 @@ function SwapVerb() {
   );
 }
 
-export function Hero() {
+export function Hero({ wash = false }: { wash?: boolean }) {
   const copy = landingCopy.home;
   const [openId, setOpenId] = useState<string | null>(null);
   const open = spots.find((spot) => spot.id === openId) ?? null;
 
   return (
-    <section aria-labelledby="inicio" className="releva-hero releva-hero-sky">
+    <section aria-labelledby="inicio" className={wash ? "releva-hero releva-hero-sky releva-hero-sky-wash" : "releva-hero releva-hero-sky"}>
       <div className="releva-hero-glass">
         {/* Alex (t32): city + spots share one 3:2 box so the price pins stay on their buildings at every width. */}
-        <div className="releva-city-box">
+        <div className="releva-city-box hidden lg:block">
         <div className="releva-city-frame" aria-hidden="true">
+          {/* Hero bitmap: keep `unoptimized` until Alex signs off image compression. */}
           <Image src="/hero/city.png" alt="" width={1536} height={1024} priority unoptimized className="h-full w-full object-cover" />
           {spots.map((spot) => (
             <Image
@@ -300,33 +300,33 @@ export function Hero() {
           </button>
         ))}
         </div>
+        <div className="releva-city-static lg:hidden" aria-hidden="true">
+          <Image
+            src="/hero/city-portrait.png"
+            alt=""
+            width={768}
+            height={1024}
+            priority
+            unoptimized
+            className="h-full w-full object-cover object-[50%_62%]"
+          />
+        </div>
         <div className="releva-hero-copy pointer-events-none">
-          <h1 id="inicio" className="releva-hero-rise releva-hero-title text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.96] text-public-ink">
-            <span className="block">Un mercado para</span>
+          <h1 id="inicio" className="releva-hero-rise releva-hero-title w-full text-center text-[clamp(2.35rem,10.5vw,3.35rem)] leading-[1.05] text-public-ink lg:text-[clamp(2.4rem,5.8cqi,4.65rem)]">
+            <span className="block">El mercado inteligente para</span>
             <span className="block">
-              <SwapVerb /> empresas
+              <SwapVerb /> empresas{" "}
+              <span className="releva-gold-shine">rentables</span>
             </span>
           </h1>
-          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/registro?rol=inversor"
-              className="inline-flex h-12 items-center rounded-full bg-public-clay px-6 font-medium text-white transition hover:bg-public-clay-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-public-clay"
-            >
-              {copy.cta}
-            </Link>
-            <Link
-              href="/registro?rol=empresa"
-              className="inline-flex h-12 items-center rounded-full bg-[#0c7c78] px-6 font-medium text-white transition hover:bg-[#0a5f5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c7c78]"
-            >
-              {copy.sellCta}
-            </Link>
+          <div className="releva-hero-actions releva-hero-rise releva-hero-rise-later pointer-events-auto flex w-full max-w-sm flex-col items-center justify-center gap-2.5 sm:max-w-none">
+            <TryFreeButton href="/registro" size="hero" className="w-full max-w-xs sm:w-auto" label={copy.cta} />
           </div>
         </div>
         {open ? (
           <article className={`releva-market-float${open.id === "norte" ? " releva-market-float-left" : ""}`} aria-live="polite">
             <div className="relative aspect-[3/1] overflow-hidden rounded-xl bg-[#1c2740]">
               <Image src={sectorImageSrc(open.sectorKey)} alt="" fill sizes="320px" className="object-cover" unoptimized />
-              <AiImageTag />
               <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#0c1224]/70 via-[#0c1224]/20 to-transparent px-3 pt-3 pb-10 text-center">
                 <p className="text-sm font-semibold text-white">{open.deal.codename}</p>
                 <p className="text-xs text-white/85">{open.deal.region}</p>

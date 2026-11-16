@@ -1,21 +1,25 @@
 import { storedSellerStay } from "./seller-stay";
 import { sellerFinancingWrite, storedSellerFinancing } from "./seller-financing";
-import { formRowAmountCents, formRowsFromJson, type EbitdaAdjustment } from "./ebitda-adjustments";
-import { cnaeTitle } from "./cnae-2009";
+import { formRowAmountCents, formRowsFromJson, publishedEbitdaFromAdjustments, type EbitdaAdjustment } from "./ebitda-adjustments";
+import { cnaeDisplayTitle, formatCnaeCode } from "./cnae-2009";
 import { balanceLabels, incomeLabels } from "./company-copy";
-import { eurosToCents, optionalEurosToCents, projectSlug, type CompanyDraftInput } from "./company-draft";
+import { eurosToCents, optionalEurosToCents, optionalWholeNumber, projectSlug, type CompanyDraftInput } from "./company-draft";
 import {
   anonymousSliceLabel,
   balanceDisplayKeys,
   balanceValue,
   ebitdaMarginBasisPoints,
+  grossLineLabel,
   incomeDisplayKeys,
   incomeValue,
   isEmphasisRow,
   isFoundedYear,
   isHeadcountRange,
+  isOwnerDependence,
+  isPremisesKind,
   isStatementYear,
   parsePercentToBasisPoints,
+  storedAskingPriceIncludes,
   type BalanceAmounts,
   type PnlAmounts,
   type SliceKind,
@@ -121,9 +125,11 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
   });
   const incomeYears: InvestorYearColumn[] = incomeSource.map((column) => ({ year: column.year, forecast: column.forecast }));
   const principal = input.principalCnae.trim();
-  const principalTitle = cnaeTitle(principal);
   const description = input.description.trim();
   const founded = /^\d{4}$/.test(input.foundedYear) ? Number(input.foundedYear) : null;
+  const clients = slicesFor("client", input.clientPercents);
+  const ebitdaAdjustments = previewAdjustments(input.ebitdaAdjustments);
+  const published = publishedEbitdaFromAdjustments(ebitdaCents, ebitdaAdjustments, signedCents(input.adjustedEbitda) ?? 0, revenueCents);
 
   return {
     slug: projectSlug(input.codename),
@@ -134,31 +140,36 @@ export function draftInvestorPreview(input: CompanyDraftInput): InvestorProjectP
     saleReason: input.saleReason === "" ? null : input.saleReason,
     revenueCents,
     ebitdaCents,
-    adjustedEbitdaCents: signedCents(input.adjustedEbitda) ?? 0,
-    ebitdaAdjustments: previewAdjustments(input.ebitdaAdjustments),
+    adjustedEbitdaCents: published.adjustedEbitdaCents,
+    ebitdaAdjustments,
     askingPriceCents: unsignedCents(input.askingPrice),
     sellerFinancing: (() => {
       const financing = sellerFinancingWrite(input);
       return financing.ok ? storedSellerFinancing(financing.data) : null;
     })(),
     sellerStay: storedSellerStay(input.sellerStay),
+    ownerDependence: input.ownerDependence !== "" && isOwnerDependence(input.ownerDependence) ? input.ownerDependence : null,
+    premisesKind: input.premisesKind !== "" && isPremisesKind(input.premisesKind) ? input.premisesKind : null,
+    rentMonthlyCents: input.premisesKind === "rent" ? optionalUnsignedCents(input.rentMonthly) : null,
+    leaseYearsRemaining: input.premisesKind === "rent" ? optionalWholeNumber(input.leaseYearsRemaining, 0, 99) : null,
+    recurringRevenuePct: optionalWholeNumber(input.recurringRevenuePct, 0, 100),
+    askingPriceIncludes: storedAskingPriceIncludes(input.askingPriceIncludes),
     opexCents: optionalUnsignedCents(input.opex),
     ebitdaMarginBp: ebitdaMarginBasisPoints(ebitdaCents, revenueCents),
-    principalCnae: principalTitle ? { code: principal, title: principalTitle } : null,
+    principalCnae: principal.length > 0 ? { code: formatCnaeCode(principal), title: cnaeDisplayTitle(principal) } : null,
     secondaryCnaes: input.secondaryCnaes.flatMap((code) => {
       const trimmed = code.trim();
-      const title = cnaeTitle(trimmed);
-      return title ? [{ code: trimmed, title }] : [];
+      return trimmed.length > 0 ? [{ code: formatCnaeCode(trimmed), title: cnaeDisplayTitle(trimmed) }] : [];
     }),
     capital: slicesFor("capital", input.capitalPercents),
     products: slicesFor("product", input.productPercents),
-    clients: slicesFor("client", input.clientPercents),
+    clients,
     customerBase: input.customerBase === "" ? null : input.customerBase,
     headcountRange: input.headcount !== "" && isHeadcountRange(input.headcount) ? input.headcount : null,
     incomeYears,
     incomeRows: incomeDisplayKeys.map((key) => ({
       key,
-      label: incomeLabels[key],
+      label: key === "grossMargin" ? grossLineLabel(incomeSource.map((column) => column.amounts)) : incomeLabels[key],
       emphasis: isEmphasisRow(key),
       values: incomeSource.map((column) => incomeValue(key, column.amounts)),
     })),

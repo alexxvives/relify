@@ -1,0 +1,43 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState, useSyncExternalStore } from "react";
+import { signInAction, type SignInState } from "@/app/entrar/actions";
+import { ArrowRight } from "lucide-react";
+import { authSubmitClassName, EmailField, PasswordField } from "@/components/auth/auth-field";
+import { authCopy } from "@/lib/auth-copy";
+
+const emptySubscribe = () => () => undefined;
+const useHydrated = () => useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+export function SignInForm({ nextPath = null }: { nextPath?: string | null }) {
+  const hydrated = useHydrated();
+  const [state, action, pending] = useActionState<SignInState, FormData>(signInAction, null);
+  const busy = hydrated && pending;
+
+  return (
+    <form action={action} className="flex flex-col gap-4 short:gap-3">
+      {nextPath ? <input type="hidden" name="siguiente" value={nextPath} /> : null}
+      <EmailField />
+      <PasswordField
+        autoComplete="current-password"
+        maxLength={128}
+        placeholder={authCopy.passwordLabel}
+        labelAside={
+          <Link href="/olvide-contrasena" className="ml-auto text-sm font-medium text-[#14998a] hover:text-[#0f8578]">
+            {authCopy.forgotLink}
+          </Link>
+        }
+      />
+      {state?.message ? (
+        <p role="alert" className="text-sm text-destructive">
+          {state.message}
+        </p>
+      ) : null}
+      <button type="submit" disabled={busy} className={authSubmitClassName}>
+        {busy ? authCopy.signInPending : authCopy.signInSubmit}
+        {busy ? null : <ArrowRight className="size-4" aria-hidden />}
+      </button>
+    </form>
+  );
+}

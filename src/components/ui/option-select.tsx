@@ -27,7 +27,8 @@ export function OptionSelect({
   name?: string;
   label: string;
   value: string;
-  options: readonly { value: string; label: string }[];
+  /** `triggerLabel` (S26): a shorter text for the closed trigger, e.g. "🇪🇸 +34"; the list keeps `label`. */
+  options: readonly { value: string; label: string; group?: string; triggerLabel?: string }[];
   onValueChange: (value: string) => void;
   searchable?: boolean;
   searchPlaceholder?: string;
@@ -187,6 +188,7 @@ export function OptionSelect({
         ref={triggerRef}
         id={id}
         type="button"
+        data-flash
         aria-describedby={describedBy}
         onKeyDown={(event) => {
           if (!open && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
@@ -205,11 +207,13 @@ export function OptionSelect({
         style={invalid ? { boxShadow: "0 0 0 2px #c0362c" } : undefined}
         className={
           invalid
-            ? `releva-shake flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#c0362c] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none`
-            : `flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl border border-[#e7eaee] bg-white px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"} text-[#2b3b4a] outline-none focus-visible:border-[#465ab4] focus-visible:ring-3 focus-visible:ring-[#465ab4]/20`
+            ? `releva-shake relify-field flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"}`
+            : `relify-field flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"}`
         }
       >
-        <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"}>{selected?.label ?? placeholder ?? label}</span>
+        <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"} title={selected?.triggerLabel ? selected.label : undefined}>
+          {selected?.triggerLabel ?? selected?.label ?? placeholder ?? label}
+        </span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />
       </button>
       {open && typeof document !== "undefined"
@@ -239,10 +243,17 @@ export function OptionSelect({
             {visible.length === 0 ? (
               <li className="px-3 py-2 text-sm text-[#64748b]">{emptyLabel}</li>
             ) : (
-              visible.map((option) => {
+              visible.map((option, index) => {
                 const current = option.value === value;
+                const group = option.group;
+                const showGroup = Boolean(group) && visible[index - 1]?.group !== group;
                 return (
-                  <li key={option.value} role="presentation">
+                  <li key={option.value || `empty-${index}`} role="presentation">
+                    {showGroup && group ? (
+                      <p className="sticky top-0 z-[1] bg-[#f7f8fb] px-3 py-1.5 text-[11px] font-semibold tracking-wide text-[#64748b] uppercase">
+                        {group}
+                      </p>
+                    ) : null}
                     <button
                       type="button"
                       role="option"
