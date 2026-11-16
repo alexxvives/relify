@@ -287,9 +287,8 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
 
   return (
     <section aria-labelledby="recomendadas" className="mt-4 border-t border-[#d5dbe8] pt-8">
-      <div className="rounded-2xl bg-[#eef1f8] px-5 py-6 sm:px-6">
-      <p className="text-xs font-medium text-[#5c6b78]">{companyCopy.recommendationsKicker}</p>
-      <h2 id="recomendadas" className="mt-2 text-2xl font-semibold text-[#1c2740]">
+      {/* Alex (S27): no "Otras empresas" kicker and no tinted wrapper; the cards sit on the page. */}
+      <h2 id="recomendadas" className="text-2xl font-semibold text-[#1c2740]">
         {companyCopy.recommendationsHeading}
       </h2>
       <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -299,7 +298,6 @@ function RelatedCompanies({ items }: { items: PublicProjectCard[] }) {
           </li>
         ))}
       </ul>
-      </div>
     </section>
   );
 }

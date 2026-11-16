@@ -287,7 +287,6 @@ export const companyCopy = {
   questionPrompt: "Escribe un mensaje",
   attachFile: "Adjuntar archivo",
   attachImage: "Adjuntar imagen",
-  recommendationsKicker: "Otras empresas",
   meetingPrompt: "Propón un día y una hora.",
   offerPrompt: "Describe la oferta indicativa.",
   messagePrompt: "Escribe a la empresa.",
