@@ -78,7 +78,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       navCounts={adminCounts}
     >
       {children}
-      {user.termsAccepted || user.role === "admin" ? null : <PlatformTermsDialog />}
+      <PlatformTermsDialog required={!user.termsAccepted && user.role !== "admin"} />
     </AppFrame>
     </SignerProvider>
   );

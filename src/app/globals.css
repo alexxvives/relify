@@ -5480,3 +5480,58 @@ html.relify-consent-open body {
 .releva-scroll-x[data-fade-right] {
   --fade-r: 1.75rem;
 }
+
+/* S26b: "Acuerdo firmado" success state: the card fades in and the check pops. */
+.relify-signed-state {
+  animation: relify-signed-in 260ms ease-out both;
+}
+
+.relify-signed-check {
+  animation: relify-signed-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms both;
+}
+
+.relify-signed-check svg {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: relify-signed-draw 420ms ease-out 260ms forwards;
+}
+
+@keyframes relify-signed-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes relify-signed-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes relify-signed-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relify-signed-state,
+  .relify-signed-check {
+    animation: none;
+  }
+
+  .relify-signed-check svg {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -1,41 +1,105 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { FileText } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Check, FileText } from "lucide-react";
+import { AppToast } from "@/components/shell/app-toast";
+import { fireSideCannons } from "@/lib/client/side-cannons";
 import { FilePreviewDialog, downloadHref } from "@/components/investor/file-preview-dialog";
 import { PdfThumb } from "@/components/seller/pdf-pages";
 import { PlatformTermsForm } from "@/components/auth/platform-terms-form";
 import { PlatformTermsText } from "@/components/auth/platform-terms-text";
 import { platformTermsCopy } from "@/lib/platform-terms";
 
-export function PlatformTermsDialog() {
+/** S26b: how long the "Acuerdo firmado" state stays before the dialog closes and the welcome starts. */
+export const signedStateMs = 1600;
+
+/**
+ * Always mounted in the shell so the welcome survives the refresh that drops `required`.
+ * `required`: the user still has to sign (not an admin, agreement not signed).
+ */
+export function PlatformTermsDialog({ required }: { required: boolean }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
+  const [stored, setPhase] = useState<"sign" | "signed" | "closed">("sign");
+  // Shown at mount: if the shell refreshes to `required=false` mid-flow, finish with the success state.
+  const [shownAtMount] = useState(required);
+  const phase = stored === "sign" && shownAtMount && !required ? "signed" : stored;
+  const fired = useRef(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog || dialog.open) {
+    if (!required || !dialog || dialog.open || phase !== "sign") {
       return;
     }
 
     dialog.showModal();
+  }, [phase, required]);
+
+  useEffect(() => {
+    if (phase !== "signed") {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      dialogRef.current?.close();
+      setPhase("closed");
+      // Once per signature: the welcome confetti and the shell refresh (which drops this dialog).
+      if (!fired.current) {
+        fired.current = true;
+        void fireSideCannons();
+        router.refresh();
+      }
+    }, signedStateMs);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [phase, router]);
+
+  const onSigned = useCallback(() => {
+    setPhase((current) => (current === "sign" ? "signed" : current));
   }, []);
+
+  if (phase === "sign" && !required && !shownAtMount) {
+    return null;
+  }
+
+  if (phase === "closed") {
+    return <AppToast message={`${platformTermsCopy.welcome} ${platformTermsCopy.welcomeBody}`} />;
+  }
 
   return (
     <dialog
       ref={dialogRef}
+      aria-labelledby="platform-terms-title"
       className="fixed top-1/2 left-1/2 z-50 m-0 hidden w-[min(40rem,calc(100%-1rem))] max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl sm:rounded-2xl border-0 bg-white p-4 sm:p-6 text-[#1c2740] open:flex open:flex-col backdrop:bg-[#1c2740]/40"
       onCancel={(event) => {
         event.preventDefault();
       }}
     >
-      <h2 className="text-xl sm:text-2xl font-semibold tracking-tight shrink-0">{platformTermsCopy.title}</h2>
-      <p className="mt-2 text-sm leading-6 text-[#5c6b78] shrink-0">{platformTermsCopy.intro}</p>
-      <div className="mt-4 sm:mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-4 py-4 sm:px-5 sm:py-5 -webkit-overflow-scrolling-touch">
-        <PlatformTermsText />
-      </div>
-      <div className="shrink-0">
-        <PlatformTermsForm />
-      </div>
+      {phase === "signed" ? (
+        <div role="status" aria-live="polite" className="relify-signed-state flex flex-col items-center gap-3 px-2 py-10 text-center sm:py-14">
+          <span className="relify-signed-check inline-flex size-16 items-center justify-center rounded-full bg-[#e8f6ee] text-[#17663a]">
+            <Check className="size-8" strokeWidth={2.5} aria-hidden />
+          </span>
+          <h2 id="platform-terms-title" className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {platformTermsCopy.signedDone}
+          </h2>
+          <p className="text-sm leading-6 text-[#5c6b78]">
+            {platformTermsCopy.welcome} {platformTermsCopy.welcomeBody}
+          </p>
+        </div>
+      ) : (
+        <>
+          <h2 id="platform-terms-title" className="text-xl sm:text-2xl font-semibold tracking-tight shrink-0">{platformTermsCopy.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-[#5c6b78] shrink-0">{platformTermsCopy.intro}</p>
+          <div className="mt-4 sm:mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-4 py-4 sm:px-5 sm:py-5 -webkit-overflow-scrolling-touch">
+            <PlatformTermsText />
+          </div>
+          <div className="shrink-0">
+            <PlatformTermsForm onSigned={onSigned} />
+          </div>
+        </>
+      )}
     </dialog>
   );
 }

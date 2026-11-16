@@ -43,5 +43,9 @@ export const platformTermsCopy = {
   downloadPdf: "Descargar",
   signedMissing: "La firma todavía no está en tu cuenta.",
   pending: "Guardando…",
+  /** S26b: success state after the signature is saved. */
+  signedDone: "Acuerdo firmado",
+  welcome: "¡Bienvenido a Relify!",
+  welcomeBody: "Tu cuenta ya está lista.",
   required: "Marca la casilla para continuar.",
 } as const;

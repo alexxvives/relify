@@ -1,12 +1,31 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { acceptPlatformTermsAction, type TermsState } from "@/app/acuerdo/actions";
 import { SignaturePad } from "@/components/investor/signature-pad";
 import { platformTermsCopy } from "@/lib/platform-terms";
 
-export function PlatformTermsForm() {
+/**
+ * `onSigned` (the shell dialog) shows the success state; without it (the standalone /acuerdo page) a
+ * saved signature goes to the role home. Either way it fires once per signature.
+ */
+export function PlatformTermsForm({ onSigned }: { onSigned?: () => void } = {}) {
   const [state, action, pending] = useActionState<TermsState, FormData>(acceptPlatformTermsAction, null);
+  const router = useRouter();
+  const handled = useRef<TermsState>(null);
+
+  useEffect(() => {
+    if (!state?.ok || handled.current === state) {
+      return;
+    }
+    handled.current = state;
+    if (onSigned) {
+      onSigned();
+    } else {
+      router.replace(state.home);
+    }
+  }, [onSigned, router, state]);
   const [signature, setSignature] = useState("");
   const [needsSignature, setNeedsSignature] = useState(false);
 

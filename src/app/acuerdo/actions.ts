@@ -9,7 +9,12 @@ import { prisma } from "@/lib/db";
 import { ensureNationalId } from "@/lib/server/ensure-national-id";
 import { storeSignedDocumentQuietly } from "@/lib/server/signed-documents";
 
-export type TermsState = { ok: false; message: string } | null;
+/**
+ * S26b: success returns `{ ok: true }` instead of redirecting. The old `redirect(home)` from the dialog
+ * usually targeted the page the user was already on (e.g. /mi-empresa), and that same-route redirect did
+ * not re-render the (app) shell, so the open PlatformTermsDialog stayed on screen and asked to sign again.
+ */
+export type TermsState = { ok: false; message: string } | { ok: true; home: string } | null;
 
 export async function acceptPlatformTermsAction(_state: TermsState, formData: FormData): Promise<TermsState> {
   const user = await getCurrentUser();
@@ -34,5 +39,6 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
   });
   await storeSignedDocumentQuietly("terms", user.id);
 
-  redirect(homeForRole(user.role));
+  // No revalidatePath here: the dialog shows "Acuerdo firmado" first, then refreshes the shell itself.
+  return { ok: true, home: homeForRole(user.role) };
 }
