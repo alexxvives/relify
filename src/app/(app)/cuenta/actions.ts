@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import {
+  accountProfileKeepIdSchema,
   accountProfileSchema,
   onboardingFieldMessage,
   parseAccountEmail,
@@ -58,7 +59,7 @@ export async function updateAccountAction(
   const storedId = await getAccountNationalId(user.id);
   const submittedId = readText(formData, "nationalId").trim();
   const keepStored = formData.get("nationalIdKeep") === "1" && submittedId.length === 0 && Boolean(storedId);
-  const parsed = accountProfileSchema.safeParse({
+  const parsed = (keepStored ? accountProfileKeepIdSchema : accountProfileSchema).safeParse({
     name: split.name,
     lastName: split.lastName,
     nationalId: keepStored ? (storedId ?? "") : submittedId,

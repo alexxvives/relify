@@ -8,10 +8,12 @@ import { AppToast } from "@/components/shell/app-toast";
 import { PhoneField } from "@/components/auth/phone-field";
 import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
-import { accountDisplayName } from "@/lib/auth-input";
-import { readStoredPhone } from "@/lib/phone-countries";
+import { accountDisplayName, nationalIdSchema, splitAccountName } from "@/lib/auth-input";
+import { isValidPhoneNational, readStoredPhone } from "@/lib/phone-countries";
 import { Button, Card, Field, Input, PasswordInput } from "@/components/ui/form";
-import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
+
+/** S27: /cuenta saves itself this long after the last keystroke (email: on blur, so one change sends one link). */
+export const accountAutosaveMs = 800;
 
 export function AccountSettings({
   name: initialName,
@@ -47,6 +49,8 @@ export function AccountSettings({
   const storedMasked = initialNationalIdMasked ?? "";
   const [fullName, setFullName] = useState(starting.fullName);
   const [email, setEmail] = useState(starting.email);
+  // The email only goes to the server once committed (blur / Enter): an email change sends a confirmation link.
+  const [committedEmail, setCommittedEmail] = useState(starting.email);
   const [phoneCountry, setPhoneCountry] = useState(starting.phoneCountry);
   const [phone, setPhone] = useState(starting.phone);
   const [nationalId, setNationalId] = useState("");
@@ -59,18 +63,50 @@ export function AccountSettings({
   const keepStoredId = storedMasked.length > 0 && !editingId;
   const dirty =
     fullName !== baseline.fullName ||
-    email !== baseline.email ||
+    committedEmail !== baseline.email ||
     phone !== baseline.phone ||
     phoneCountry !== baseline.phoneCountry ||
     nationalId !== baseline.nationalId;
 
   if (profileState?.saved && profileState !== seenSave) {
     setSeenSave(profileState);
-    const nextEmail = profileState.emailHeld ? baseline.email : email;
-    if (profileState.emailHeld && email !== baseline.email) {
+    const nextEmail = profileState.emailHeld ? baseline.email : committedEmail;
+    if (profileState.emailHeld && committedEmail !== baseline.email) {
       setEmail(baseline.email);
+      setCommittedEmail(baseline.email);
     }
     setBaseline({ fullName, email: nextEmail, phone, phoneCountry, nationalId });
+  }
+
+  // Alex (S27): no Guardar button on /cuenta. Valid changes save on their own after a short pause; a
+  // half-typed DNI/NIE or phone waits until it is complete, so typing never flashes an error.
+  const readyToSave =
+    dirty &&
+    !profilePending &&
+    splitAccountName(fullName) !== null &&
+    (phone.length === 0 || isValidPhoneNational(phoneCountry, phone)) &&
+    (keepStoredId ? true : nationalId.trim().length === 0 ? storedMasked.length === 0 : nationalIdSchema.safeParse(nationalId).success);
+
+  useEffect(() => {
+    if (!readyToSave) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const form = formRef.current;
+      if (form?.checkValidity()) {
+        form.requestSubmit();
+      }
+    }, accountAutosaveMs);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [readyToSave, fullName, committedEmail, phone, phoneCountry, nationalId]);
+
+  function commitEmail() {
+    const field = document.getElementById("account-email");
+    if (field instanceof HTMLInputElement && field.checkValidity() && email.trim().length > 0) {
+      setCommittedEmail(email.trim());
+    }
   }
 
   useEffect(() => {
@@ -166,14 +202,22 @@ export function AccountSettings({
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.emailFieldLabel}
               <Input
-                name="email"
+                id="account-email"
                 type="email"
                 autoComplete="email"
                 required
                 maxLength={160}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                onBlur={commitEmail}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    commitEmail();
+                  }
+                }}
               />
+              <input type="hidden" name="email" value={committedEmail} />
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.phoneLabel}
@@ -188,26 +232,9 @@ export function AccountSettings({
           </div>
           </div>
           </div>
-          <AppToast message={profileState?.saved ? profileState.message : null} />
-          {profileState && !profileState.saved ? (
-            <p role="alert" className="text-sm text-[#c0362c]">
-              {profileState.message}
-            </p>
-          ) : null}
-          {dirty ? (
-            <>
-              <div className="flex justify-end" data-sticky-twin>
-                <Button type="submit" disabled={profilePending} className="max-lg:h-12 max-lg:w-full max-lg:rounded-full">
-                  {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
-                </Button>
-              </div>
-              <ShellStickyCtaBar>
-                <Button type="submit" disabled={profilePending} block className="h-12 w-full rounded-full">
-                  {profilePending ? authCopy.onboardingPending : authCopy.accountSave}
-                </Button>
-              </ShellStickyCtaBar>
-            </>
-          ) : null}
+          {/* Silent autosave: only the email-change notice and a failed save are shown. */}
+          <AppToast message={profileState?.saved && profileState.emailHeld ? profileState.message : null} />
+          <AppToast message={profileState && !profileState.saved ? profileState.message : null} tone="error" />
         </form>
       </Card>
       {agreement ? <div className="min-w-0 w-full">{agreement}</div> : null}

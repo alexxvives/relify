@@ -112,6 +112,20 @@ export const accountProfileSchema = z
 
 export type AccountProfileInput = z.infer<typeof accountProfileSchema>;
 
+/**
+ * S27: /cuenta autosave keeping the DNI/NIE already on the account. The stored value is not re-validated
+ * (older or seeded ids would otherwise block every name or phone change); a new id still uses nationalIdSchema.
+ */
+export const accountProfileKeepIdSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    lastName: z.string().trim().min(1).max(80),
+    nationalId: z.string().trim().min(1),
+    phoneCountry: z.string(),
+    phone: z.string(),
+  })
+  .superRefine(refinePhone);
+
 export const signInSchema = z.object({
   email: emailSchema,
   password: z.string().min(1).max(128),

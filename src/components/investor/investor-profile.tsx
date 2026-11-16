@@ -99,7 +99,6 @@ export function InvestorProfile({
   const [contribution, setContribution] = useState(draft.contribution);
   const [stake, setStake] = useState(draft.stake);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedNote, setSavedNote] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
@@ -161,11 +160,9 @@ export function InvestorProfile({
         if (result?.ok) {
           lastSaved.current = draftKey;
           setSaveError(null);
-          setSavedNote(investorCopy.profileSaved);
           return;
         }
 
-        setSavedNote(null);
         setSaveError(result && !result.ok ? result.message : "No se ha podido guardar el perfil.");
       });
     }, 700);
@@ -228,9 +225,7 @@ export function InvestorProfile({
 
   return (
     <div className="relative flex flex-col gap-4">
-      <p aria-live="polite" className="pointer-events-none absolute -top-6 right-1 text-xs text-[#667085]">
-        {savedNote ?? ""}
-      </p>
+      {/* Alex (S27): autosave is silent; only a failed save shows (error toast below). */}
       {professional}
       <AppToast message={saveError} tone="error" />
       <div className="@container rounded-2xl border border-[#e7eaee] bg-white p-5">
