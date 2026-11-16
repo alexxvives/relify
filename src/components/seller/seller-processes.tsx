@@ -119,8 +119,8 @@ function ThreadList({
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  // At diligence the header cue already carries "Contactar con un asesor".
-  return current?.id === "qa";
+  // S28 (Alex): from Q&A through Revisión the asesor link lives in the bottom-right action row, never beside "Qué sigue".
+  return current?.id === "qa" || current?.id === "diligence";
 }
 
 function InvestorProfileDialog({
@@ -285,20 +285,20 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             value={desk}
             onChange={changeDesk}
           />
-          {/* Alex (t51): hiring an asesor opens at Q&A, so the button lives next to the panel toggles then. */}
-          {!thread.advisorHired && wantsAdvisor(thread.steps) ? (
-            <Link
-              href={`/mi-empresa/servicios?empresa=${thread.slug}`}
-              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-            >
-              {engagementCopy.contactAdvisor}
-            </Link>
-          ) : null}
-          {/* Alex (t50): "Ver ficha" and "Cancelar proceso" sit at the far right of the panel toggles
-              (with the signed-contract record, when there is one); they wrap under the toggles on narrow cards. */}
+          {/* Alex (t50/S28): "Ver ficha", "Cancelar proceso" and, from Q&A through Revisión, "Contacta con un asesor" sit at
+              the far right of the panel toggles (with the signed-contract record, when there is one). */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             {thread.contract?.stage === "signed" ? <ContractStage contract={thread.contract} /> : null}
             {processActions}
+            {!thread.advisorHired && wantsAdvisor(thread.steps) ? (
+              <Link
+                href={`/mi-empresa/servicios?empresa=${thread.slug}`}
+                data-advisor-link
+                className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+              >
+                {engagementCopy.contactAdvisor}
+              </Link>
+            ) : null}
           </div>
           </div>
           <div id={deskId} hidden={desk === null}>

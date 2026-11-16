@@ -42,11 +42,14 @@ const layout = readFileSync(path.join(process.cwd(), "src/app/layout.tsx"), "utf
 const badge = readFileSync(path.join(process.cwd(), "src/components/shell/int-badge.tsx"), "utf8");
 
 describe("INT environment badge", () => {
-  it("is an inline pill, not a fixed top-right overlay over Abrir avisos", () => {
+  it("sits top right (S28): inline after Abrir avisos on phones, a corner tab above the content padding from 1024 px", () => {
     expect(layout).not.toMatch(/fixed top-2 right-2/);
     expect(badge).toMatch(/data-int-badge/);
-    expect(badge).toMatch(/inline-flex/);
-    expect(badge).not.toMatch(/fixed /);
+    expect(badge).toMatch(/pointer-events-none fixed top-0 right-4 [^"]*h-5[^"]*lg:inline-flex/);
+    const frame = readFileSync(path.join(process.cwd(), "src/components/shell/app-frame.tsx"), "utf8");
+    expect(frame).toMatch(/<NotificationBell items=\{notifications\} pendingGroups=\{pendingGroups\} \/>\s*\{showInt \? <IntBadge \/> : null\}/);
+    expect(frame).toMatch(/<IntBadge placement="corner" \/>/);
+    expect(readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8")).toMatch(/:root:has\(\[data-int-corner\]\) \[data-section-tracker\]/);
   });
 });
 

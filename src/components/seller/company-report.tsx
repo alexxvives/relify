@@ -64,7 +64,7 @@ import { PhotoGallery } from "@/components/investor/project-gallery";
 import { ProfileBalanceChart, ProfileIncomeChart } from "@/components/seller/profile-statement-charts";
 import { companyCopy } from "@/lib/company-copy";
 import { ebitdaPublishable } from "@/lib/seller-draft-guard";
-import { ebitdaToCashConversion, headlineEbitda, headlineEbitdaMargin, headlineLeverage } from "@/lib/financial-metrics";
+import { ebitdaToCashConversion, headlineEbitda, headlineEbitdaMargin, headlineLeverage, marginExplain, marginShortLabel } from "@/lib/financial-metrics";
 import { sellerOperatingFigures } from "@/lib/seller-key-figures";
 import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { AdjustmentReview } from "@/components/seller/adjustment-review";
@@ -176,7 +176,8 @@ function LockedFigures({ open, kind, note, action = null, children }: { open: bo
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="pointer-events-auto z-10 flex max-w-full flex-col items-center gap-3 px-4 text-center">
           <EyeOff className="size-5 text-[#0f766e]" aria-hidden />
-          <p className="max-w-full rounded-2xl bg-white/85 px-4 py-3 text-sm font-medium text-balance text-[#1c2740] sm:max-w-none sm:whitespace-nowrap">{note}</p>
+          {/* S28 (Alex): tinted glass, not a white slab, like the ficha's teal accents. */}
+          <p className="max-w-full rounded-2xl border border-[#bfe3dc]/80 bg-[#e6f4f2]/70 px-4 py-3 text-sm font-medium text-balance text-[#0f3f3b] shadow-[0_10px_28px_-18px_rgba(15,118,110,0.55)] backdrop-blur-md sm:max-w-none sm:whitespace-nowrap">{note}</p>
           {isValidElement(action) ? cloneElement(action) : action}
         </div>
       </div>
@@ -867,8 +868,9 @@ export function CompanyReport({
               ) : null
             }
             sub={
-              <span title={shownEbitda.secondaryCents !== null ? `${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.${reportedMarginHint ? ` ${reportedMarginHint}` : ""}` : (reportedMarginHint ?? undefined)}>
-                {headlineMargin.primaryLabel.replace("Margen ", "")} {margin}
+              <span title={[marginExplain(headlineMargin.primaryLabel, margin), shownEbitda.secondaryCents !== null ? `${shownEbitda.secondaryLabel}: ${formatEur(shownEbitda.secondaryCents)}.` : null, reportedMarginHint].filter(Boolean).join(" ")}>
+                {/* S28 (Alex): the % is the EBITDA margin (EBITDA / facturación); say so. */}
+                {marginShortLabel(headlineMargin.primaryLabel)} {margin}
               </span>
             }
           />

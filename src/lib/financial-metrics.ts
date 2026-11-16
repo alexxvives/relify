@@ -98,6 +98,17 @@ export function headlineEbitdaMargin(input: {
   };
 }
 
+/** S28: the short label beside the EBITDA figure ("Margen 12 %", "Margen aj. 12 %"), so the % never reads as EBITDA growth. */
+export function marginShortLabel(primaryLabel: HeadlineEbitdaMargin["primaryLabel"]): string {
+  return primaryLabel === "Margen EBITDA ajustado" ? "Margen aj." : "Margen";
+}
+
+/** S28: tooltip text spelling out the formula. */
+export function marginExplain(primaryLabel: HeadlineEbitdaMargin["primaryLabel"], formatted: string): string {
+  const base = primaryLabel === "Margen EBITDA ajustado" ? "EBITDA ajustado" : "EBITDA";
+  return `${primaryLabel}: ${formatted} (${base} / facturación).`;
+}
+
 export type HeadlineEbitda = {
   primaryCents: number;
   primaryLabel: "EBITDA" | "EBITDA aj.";

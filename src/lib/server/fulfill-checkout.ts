@@ -267,7 +267,8 @@ async function applyAdvisorDeposit(
     userId: row.requesterId,
     title: "Solicitud aceptada",
     body: `Un asesor ha aceptado tu solicitud para ${row.project.codename}.`,
-    href: row.client === "seller" ? "/mi-empresa/servicios" : "/asesoramiento",
+    // S28: the asesor chat opens as the "Asesor" tab of the process card, so the notice lands there.
+    href: row.client === "seller" ? "/mi-empresa/procesos" : "/procesos",
   });
 
   return true;

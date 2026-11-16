@@ -51,8 +51,12 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         aria-hidden
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(22,50,79,0.28),rgba(20,153,138,0.22)_42%,rgba(22,50,79,0.55))]"
       />
+      {isIntEnvironment() ? (
+        <div className="absolute top-6 right-6 z-20">
+          <IntBadge />
+        </div>
+      ) : null}
       <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
-        {isIntEnvironment() ? <IntBadge /> : null}
         <form action={signOutAction}>
           <button
             type="submit"

@@ -353,7 +353,6 @@ export function AppFrame({
           {/* Row 1: brand on the left, quick tools on the right. Never wraps. */}
           <div className="flex min-w-0 items-center justify-between gap-2">
             <Link href={home} onClick={closeMenu} className="flex min-w-0 items-center gap-2 shrink-0" aria-label="Relify">
-              {showInt ? <IntBadge /> : null}
               <Logo tone="light" />
             </Link>
             <div className="shell-tools flex shrink-0 items-center gap-1">
@@ -522,16 +521,17 @@ export function AppFrame({
           </form>
         </div>
       </aside>
+      {showInt ? <IntBadge placement="corner" /> : null}
       <main className="shell-main">
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-public-line bg-white px-3 pt-[env(safe-area-inset-top,0px)] sm:h-16 sm:px-4 lg:hidden">
           <Link href={home} aria-label="Relify" className="flex min-w-0 items-center gap-2 shrink">
-            {showInt ? <IntBadge /> : null}
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
             {canManageCompanies && companies.length === 0 ? <AddCompanyIconButton /> : null}
             {showPremium ? <PremiumLink /> : null}
             <NotificationBell items={notifications} pendingGroups={pendingGroups} />
+            {showInt ? <IntBadge /> : null}
           </div>
         </header>
         <div className="shell-content">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { SegmentedTablist } from "@/components/seller/seller-tabs";
 import Link from "next/link";
 import { EyeIcon } from "@/components/ui/eye";
 import { HeartHandshakeIcon } from "@/components/ui/heart-handshake";
@@ -106,24 +107,16 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
         <AppToast message={notice} tone={notice === billingCopy.paid || notice === billingCopy.planChanged ? "ok" : "error"} />
       </section>
       <div className="flex justify-center">
-        <div className="grid w-full max-w-sm grid-cols-2 rounded-full bg-[#1c2740] p-1 lg:inline-flex lg:w-auto lg:max-w-none" role="group" aria-label={billingCopy.periodLabel}>
-          <button
-            type="button"
-            aria-pressed={!yearly}
-            onClick={() => setYearly(false)}
-            className={!yearly ? "h-11 rounded-full bg-white px-4 text-sm font-semibold text-[#1c2740]" : "h-11 rounded-full px-4 text-sm text-white/70"}
-          >
-            {billingCopy.periodMonthly}
-          </button>
-          <button
-            type="button"
-            aria-pressed={yearly}
-            onClick={() => setYearly(true)}
-            className={yearly ? "h-11 rounded-full bg-[#ffb703] px-4 text-sm font-semibold text-[#1c2740]" : "h-11 rounded-full px-4 text-sm text-white/70"}
-          >
-            {billingCopy.periodYearly}
-          </button>
-        </div>
+        {/* S28 (Alex): same GooeyNav switch as Información empresa / Ficha pública. */}
+        <SegmentedTablist
+          label={billingCopy.periodLabel}
+          tabs={[
+            { id: "monthly", label: billingCopy.periodMonthly },
+            { id: "yearly", label: billingCopy.periodYearly },
+          ]}
+          value={yearly ? "yearly" : "monthly"}
+          onChange={(id) => setYearly(id === "yearly")}
+        />
       </div>
       <div className="mx-auto grid w-full max-w-[58rem] items-stretch justify-center gap-5 sm:grid-cols-2 lg:grid-cols-3" data-sticky-twin>
         {plans.map((item) => {

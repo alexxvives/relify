@@ -59,7 +59,7 @@ export const billingCopy = {
   noSubscription: "No tienes una suscripción activa.",
   backToPlans: "Volver a planes",
   advisorAlready: "Tu plan ya incluye la bandeja.",
-  stripeMissing: "Falta la clave de Stripe de Relify para este modo. Añádela en el servidor y vuelve a intentarlo.",
+  stripeMissing: "Los pagos no están disponibles en este entorno. Inténtalo más tarde.",
   intTestMode: "Modo prueba",
   intTestModeBody: "INT usa Stripe TEST. No se cobra de verdad.",
   stripeFailed: "No se ha podido abrir el pago.",

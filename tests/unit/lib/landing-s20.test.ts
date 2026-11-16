@@ -61,9 +61,9 @@ describe("Round S20 landing and React Bits", () => {
     expect(waitlist).toMatch(/bounce=\{0\.3\}/);
   });
 
-  it("styles app toasts as a bencho-like stack", () => {
+  it("styles app toasts as a card (S28: one toast, no ghost stack)", () => {
     expect(read("src/components/shell/app-toast.tsx")).toMatch(/releva-toast-stack/);
-    expect(read("src/app/globals.css")).toMatch(/\.releva-toast-stack-ghost/);
+    expect(read("src/app/globals.css")).not.toMatch(/\.releva-toast-stack-ghost/);
   });
 
   it("drops Verificado and seller financing tags from the process specimen", () => {

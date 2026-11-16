@@ -34,8 +34,8 @@ const processTabs = [
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  // At diligence the header cue already carries "Contactar con un asesor".
-  return current?.id === "qa";
+  // S28 (Alex): from Q&A through Revisión the asesor link lives in the bottom-right action row, never beside "Qué sigue".
+  return current?.id === "qa" || current?.id === "diligence";
 }
 
 function ProcessConversation({
@@ -85,16 +85,20 @@ function ProcessConversation({
                 }),
           }}
         />
-        {/* Alex (t51): hiring an asesor opens at Q&A, so the button lives next to the panel toggles then. */}
-        {!item.advisorHired && wantsAdvisor(item.steps) ? (
-          <Link
-            href={`/asesoramiento?empresa=${item.slug}`}
-            className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-          >
-            {engagementCopy.contactAdvisor}
-          </Link>
-        ) : null}
-        {actions ? <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
+        {/* Mis procesos layout rule: one action row, toggles on the left; Cancelar proceso, Ver la ficha and (from Q&A
+            through Revisión) Contacta con un asesor on the right. */}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {actions}
+          {!item.advisorHired && wantsAdvisor(item.steps) ? (
+            <Link
+              href={`/asesoramiento?empresa=${item.slug}`}
+              data-advisor-link
+              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+            >
+              {engagementCopy.contactAdvisor}
+            </Link>
+          ) : null}
+        </div>
       </div>
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
       {tab === "chat" && item.nda ? (

@@ -218,11 +218,9 @@ export const sellerCopy = {
     `En ${codename} sí hay un proceso. Cámbialo en el selector de empresa, arriba.`,
   inactiveEmpty: "No tienes procesos inactivos en este momento.",
   inactiveEmptyBody: "Cuando tengas procesos caducados o desestimados, podrás verlos aquí.",
-  trendsIntro: "Guías de compraventa y operaciones cerradas, escritas en el diario.",
-  trendsAll: "Todo",
+  trendsIntro: "Guías de compraventa y operaciones cerradas entre pymes.",
   trendsGuides: "Guías",
   trendsDeals: "Operaciones",
-  trendsDiary: "Abrir el diario",
 } as const;
 
 export const dataRoomFolderNames = [

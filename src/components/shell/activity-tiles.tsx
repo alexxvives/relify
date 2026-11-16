@@ -23,55 +23,62 @@ const tones = {
   orange: { chip: "bg-[#fdf1e8] text-[#c25e22]", bar: "bg-[#e07a3e]" },
 } as const;
 
-const cardClass = "flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4";
+const cardClass =
+  "flex w-full min-w-0 flex-col rounded-2xl border border-[#e7eaee] bg-white p-4 @max-[9.5rem]/tile:p-3";
 
 function TileBody({ tile, tone, pct }: { tile: ActivityTile; tone: (typeof tones)[keyof typeof tones]; pct: number }) {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>
-          <tile.icon className="size-[18px]" aria-hidden />
+        <span
+          className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl @max-[9.5rem]/tile:size-7 @max-[9.5rem]/tile:rounded-lg ${tone.chip}`}
+        >
+          <tile.icon className="size-[18px] @max-[9.5rem]/tile:size-3.5" aria-hidden />
         </span>
-        <p className="shrink-0 text-2xl font-semibold tabular-nums leading-none text-[#1f2a37]">{tile.value}</p>
+        <p className="shrink-0 text-2xl leading-none font-semibold text-[#1f2a37] tabular-nums @max-[9.5rem]/tile:text-xl">
+          {tile.value}
+        </p>
       </div>
-      <p className="mt-2 text-xs font-medium leading-4 text-[#64748b]">{tile.label}</p>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6]" role="presentation">
+      <p className="mt-2 text-xs leading-4 font-medium text-[#64748b] @max-[9.5rem]/tile:text-[11px]">{tile.label}</p>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1f3f6] @max-[9.5rem]/tile:mt-2" role="presentation">
         <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-2 text-[11px] leading-4 text-[#8a94a6]">{tile.caption}</p>
+      <p className="mt-2 text-[11px] leading-4 text-[#8a94a6] @max-[9.5rem]/tile:mt-1.5 @max-[9.5rem]/tile:text-[10px]">
+        {tile.caption}
+      </p>
     </>
   );
 }
 
 /**
- * Responsive: as many ~10.5rem columns as the container fits, so labels never get squeezed.
- * Flex-wrap (not grid) so the tiles that wrap to a second row sit centred under the first.
+ * S28 (Alex): "Resumen de tu actividad" is always one row. Every tile shares the width (1fr) and shrinks into a compact
+ * card below ~9.5rem; only when the row cannot fit even compact tiles (narrow phones) does it scroll sideways.
  */
-const tileWidth =
-  "w-full @[22.5rem]:w-[calc((100%-0.75rem)/2)] @[33.75rem]:w-[calc((100%-1.5rem)/3)] @[45rem]:w-[calc((100%-2.25rem)/4)] @[56.25rem]:w-[calc((100%-3rem)/5)]";
+export const activityRowClass =
+  "grid grid-flow-col auto-cols-[minmax(8rem,1fr)] gap-2 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:thin] @[36rem]:auto-cols-[minmax(6.25rem,1fr)] @[36rem]:gap-3";
 
 export function ActivityTiles({ tiles }: { tiles: ActivityTile[] }) {
   return (
-    <div className="@container mt-4">
-    <ul className="flex flex-wrap justify-center gap-3">
-      {tiles.map((tile) => {
-        const tone = tones[tile.tone];
-        const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);
-        return (
-          <li key={tile.label} className={`flex ${tileWidth}`}>
-            {tile.href ? (
-              <Link href={tile.href} className={`${cardClass} transition duration-300 hover:-translate-y-0.5 hover:border-[#c9d2f5]`}>
-                <TileBody tile={tile} tone={tone} pct={pct} />
-              </Link>
-            ) : (
-              <div className={cardClass}>
-                <TileBody tile={tile} tone={tone} pct={pct} />
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <div className="@container mt-3">
+      <ul className={activityRowClass} data-activity-row>
+        {tiles.map((tile) => {
+          const tone = tones[tile.tone];
+          const pct = Math.round(Math.max(0, Math.min(1, tile.ratio)) * 100);
+          return (
+            <li key={tile.label} className="@container/tile flex min-w-0">
+              {tile.href ? (
+                <Link href={tile.href} className={`${cardClass} transition duration-300 hover:-translate-y-0.5 hover:border-[#c9d2f5]`}>
+                  <TileBody tile={tile} tone={tone} pct={pct} />
+                </Link>
+              ) : (
+                <div className={cardClass}>
+                  <TileBody tile={tile} tone={tone} pct={pct} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

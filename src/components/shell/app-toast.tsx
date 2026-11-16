@@ -4,6 +4,30 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { CircleAlert, X } from "lucide-react";
 
+/**
+ * S28 (Alex): one toast at a time. Every AppToast that shows a message takes a ticket; only the newest ticket renders, so
+ * a second message replaces the first instead of stacking.
+ */
+let latestTicket = 0;
+const ticketListeners = new Set<() => void>();
+function takeTicket(): number {
+  latestTicket += 1;
+  for (const listener of ticketListeners) {
+    listener();
+  }
+  return latestTicket;
+}
+function useLatestTicket() {
+  return useSyncExternalStore(
+    (listener) => {
+      ticketListeners.add(listener);
+      return () => ticketListeners.delete(listener);
+    },
+    () => latestTicket,
+    () => 0,
+  );
+}
+
 function useIsClient() {
   return useSyncExternalStore(
     () => () => {},
@@ -28,6 +52,8 @@ export function AppToast({
   const token = `${message ?? ""}\0${pulse}`;
   const [seen, setSeen] = useState(token);
   const [hidden, setHidden] = useState(false);
+  const [ticket, setTicket] = useState(0);
+  const latest = useLatestTicket();
   const mounted = useIsClient();
 
   if (token !== seen) {
@@ -40,16 +66,21 @@ export function AppToast({
       return;
     }
 
+    const mine = takeTicket();
+    const frame = window.requestAnimationFrame(() => {
+      setTicket(mine);
+    });
     const timer = window.setTimeout(() => {
       setHidden(true);
     }, 4200);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };
   }, [message, pulse]);
 
-  if (!message || hidden || !mounted) {
+  if (!message || hidden || !mounted || ticket !== latest) {
     return null;
   }
 
@@ -57,8 +88,6 @@ export function AppToast({
 
   return createPortal(
     <div className="releva-toast-stack" data-tone={ok ? "ok" : "error"}>
-      <span className="releva-toast-stack-ghost" data-layer="2" aria-hidden />
-      <span className="releva-toast-stack-ghost" data-layer="1" aria-hidden />
       <div
         role={ok ? "status" : "alert"}
         className={ok ? "releva-toast-stack-card releva-toast-stack-ok" : "releva-toast-stack-card releva-toast-stack-error"}
@@ -69,7 +98,8 @@ export function AppToast({
               <CircleAlert className="size-3.5" aria-hidden />
             </span>
           )}
-          <span className="min-w-0 flex-1 pt-0.5 text-sm leading-6 font-medium">{message}</span>
+          {/* S28 (Alex): one line on desktop (copies are kept short); phones may wrap but never truncate. */}
+          <span className="min-w-0 flex-1 pt-0.5 text-sm leading-6 font-medium lg:whitespace-nowrap">{message}</span>
           {!ok && onRetry ? (
             <button
               type="button"

@@ -91,12 +91,16 @@ export function AdvisorListingCard({
   connect = false,
   projectSlug,
   natural = false,
+  onNeedCompany,
 }: {
   advisor: PublicAdvisorCard;
   connect?: boolean;
   projectSlug?: string;
   natural?: boolean;
+  /** S28: called instead of submitting when no company is chosen yet. */
+  onNeedCompany?: () => void;
 }) {
+  const [serviceHint, setServiceHint] = useState(false);
   const [state, action, pending] = useActionState<AdvisoryQuoteState, FormData>(requestAdvisoryQuoteAction, null);
   const [picked, setPicked] = useState<AdvisoryServiceId[]>([]);
   const offered = advisor.services.flatMap((service) => {
@@ -165,16 +169,31 @@ export function AdvisorListingCard({
               );
             })}
           </div>
+          {serviceHint && picked.length === 0 ? (
+            <p role="status" className="text-center text-xs font-medium text-[#33429a]">
+              {advisoryCopy.empty}
+            </p>
+          ) : null}
           <div className="mt-auto flex justify-center pt-2">
-            <span title={projectSlug ? undefined : engagementCopy.connectNeedsCompany} className="inline-flex">
-              <button
-                type="submit"
-                disabled={pending || picked.length === 0 || !projectSlug}
-                className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white disabled:pointer-events-none disabled:bg-[#e7eaee] disabled:text-[#8b95a7]"
-              >
-                {pending ? advisoryCopy.pending : engagementCopy.requestService}
-              </button>
-            </span>
+            <button
+              type="submit"
+              disabled={pending}
+              onClick={(event) => {
+                // S28 (Alex): never a dead button. Point at what is missing instead of greying it out.
+                if (!projectSlug) {
+                  event.preventDefault();
+                  onNeedCompany?.();
+                  return;
+                }
+                if (picked.length === 0) {
+                  event.preventDefault();
+                  setServiceHint(true);
+                }
+              }}
+              className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white hover:bg-[#3a4c9c] focus-visible:ring-2 focus-visible:ring-[#465ab4] focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-60"
+            >
+              {pending ? advisoryCopy.pending : engagementCopy.requestService}
+            </button>
           </div>
           <AppToast message={state?.message ?? null} tone={state?.ok ? "ok" : "error"} />
         </form>

@@ -3195,43 +3195,11 @@ header:has([data-menu-open="true"]) {
   right: 1.25rem;
   bottom: calc(1.25rem + var(--shell-tabbar, 0px));
   z-index: 80;
-  width: min(24rem, calc(100vw - 2.5rem));
+  /* S28 (Alex): one toast at a time, sized to its text so a message stays on one line on desktop. */
+  width: max-content;
+  min-width: min(18rem, calc(100vw - 2.5rem));
+  max-width: min(46rem, calc(100vw - 2.5rem));
   animation: releva-app-toast-in 0.28s ease-out;
-}
-
-.releva-toast-stack-ghost {
-  position: absolute;
-  right: 0.7rem;
-  left: 0.7rem;
-  bottom: 0.45rem;
-  height: 100%;
-  border-radius: 1.15rem;
-  background: #fff;
-  border: 1px solid #e7eaee;
-  transform-origin: center bottom;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
-}
-
-.releva-toast-stack-ghost[data-layer="1"] {
-  transform: translateY(-0.45rem) scale(0.97);
-  opacity: 0.72;
-}
-
-.releva-toast-stack-ghost[data-layer="2"] {
-  transform: translateY(-0.9rem) scale(0.94);
-  opacity: 0.42;
-}
-
-.releva-toast-stack:hover .releva-toast-stack-ghost[data-layer="1"],
-.releva-toast-stack:focus-within .releva-toast-stack-ghost[data-layer="1"] {
-  transform: translateY(-3.4rem) scale(0.98);
-  opacity: 0.9;
-}
-
-.releva-toast-stack:hover .releva-toast-stack-ghost[data-layer="2"],
-.releva-toast-stack:focus-within .releva-toast-stack-ghost[data-layer="2"] {
-  transform: translateY(-6.5rem) scale(0.96);
-  opacity: 0.7;
 }
 
 .releva-toast-stack-card {
@@ -3489,7 +3457,6 @@ header:has([data-menu-open="true"]) {
   .releva-toast,
   .releva-app-toast,
   .releva-toast-stack,
-  .releva-toast-stack-ghost,
   .releva-app-toast-bar,
   .releva-bar,
   .landing-metric,
@@ -5534,5 +5501,12 @@ html.relify-consent-open body {
   .relify-signed-check svg {
     animation: none;
     stroke-dashoffset: 0;
+  }
+}
+
+/* S28: on INT the corner tag hangs from the top-right edge; the floating "Tu progreso" card drops below it. */
+@media (min-width: 64rem) {
+  :root:has([data-int-corner]) [data-section-tracker] {
+    top: 1.75rem;
   }
 }

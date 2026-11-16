@@ -34,8 +34,12 @@ export function PublicMenu({
       data-menu-open={mobileOpen ? "true" : undefined}
       className="releva-menu relative mx-auto flex w-full max-w-[1440px] items-center rounded-full px-2 py-1.5 sm:px-4 sm:py-2"
     >
+      {showInt ? (
+        <span className="absolute -top-2 right-6 z-30 sm:right-8">
+          <IntBadge />
+        </span>
+      ) : null}
       <Link href="/" className="relative z-20 flex min-h-11 min-w-0 shrink-0 items-center gap-2 pl-2" aria-label="Relify">
-        {showInt ? <IntBadge /> : null}
         <LandingMark />
       </Link>
       <LandingNav

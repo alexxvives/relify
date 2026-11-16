@@ -52,9 +52,8 @@ export const authCopy = {
   accountTitle: "Tu cuenta",
   accountSave: "Guardar",
   accountSaved: "Datos actualizados.",
-  emailChangeHeld:
-    "Datos actualizados. El correo de acceso no cambia hasta que apruebes el enlace, y ese envío todavía no está conectado.",
-  emailChangeSent: "Te hemos enviado un correo para confirmar la nueva dirección. Hasta que lo apruebes, entras con el correo actual.",
+  emailChangeHeld: "Datos actualizados. El cambio de correo aún no se puede confirmar en este entorno.",
+  emailChangeSent: "Confirma la nueva dirección desde el enlace que te hemos enviado.",
   emailChangeFailed: "No se ha podido pedir el cambio de correo.",
   nameLabel: "Nombre",
   fullNameLabel: "Nombre y apellidos",

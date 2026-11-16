@@ -69,7 +69,8 @@ function reducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function SegmentedTablist<T extends string>({
+/** The GooeyNav segmented switch (Información empresa / Ficha pública, Mensual / Anual). */
+export function SegmentedTablist<T extends string>({
   label,
   tabs,
   value,

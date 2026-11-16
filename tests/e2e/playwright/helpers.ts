@@ -462,8 +462,9 @@ export async function expectFichaCompactS13b(page: Page): Promise<void> {
         return { ok: false, message: `INT badge overlaps Abrir avisos by ${overlapX.toFixed(1)}×${overlapY.toFixed(1)}` };
       }
       const style = getComputedStyle(badge);
-      if (style.position === "fixed" && a.right > window.innerWidth - 72 && a.top < 64) {
-        return { ok: false, message: "INT badge is still a top-right overlay" };
+      // S28: the desktop corner tab stays inside the 24 px content padding.
+      if (style.position === "fixed" && a.bottom > 24) {
+        return { ok: false, message: "INT corner tab reaches into the content" };
       }
     }
     const overlay = [...document.querySelectorAll("body *")].find((el) => {

@@ -4,6 +4,7 @@ import { PdfPages } from "@/components/seller/pdf-pages";
 
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { engagementCopy } from "@/lib/engagement-copy";
 import { createPortal } from "react-dom";
 import { Check, CircleHelp, ShieldCheck, X } from "lucide-react";
 import { AgreementDocument } from "@/components/investor/agreement-document";
@@ -392,7 +393,7 @@ export function ProcessHeaderCue({
           </button>
         ) : null}
         {current?.id === "diligence" && diligence ? (
-          <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={false} hideWaitingCue inline />
+          <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={false} hideWaitingCue inline showAdvisor={false} />
         ) : null}
         {canSign && signKindFor ? (
           <SignNow
@@ -442,12 +443,15 @@ function DiligenceChoice({
   onDark,
   hideWaitingCue,
   inline = false,
+  showAdvisor = true,
 }: {
   accessId: string;
   advisorHref: string;
   onDark: boolean;
   hideWaitingCue: boolean;
   inline?: boolean;
+  /** S28: false in the process header; "Contacta con un asesor" sits in the card's bottom-right action row there. */
+  showAdvisor?: boolean;
 }) {
   const [state, action, pending] = useActionState(passDiligenceAction, null);
 
@@ -466,12 +470,14 @@ function DiligenceChoice({
         )}
       </div>
       <div className={inline ? "flex flex-wrap items-center gap-2" : "mt-3 flex flex-wrap items-center gap-2"}>
-        <Link
-          href={advisorHref}
-          className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-        >
-          Contactar con un asesor
-        </Link>
+        {showAdvisor ? (
+          <Link
+            href={advisorHref}
+            className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
+          >
+            {engagementCopy.contactAdvisor}
+          </Link>
+        ) : null}
         <form action={action}>
           <input type="hidden" name="accessId" value={accessId} />
           <button
@@ -670,7 +676,8 @@ function SignError({ state }: { state: ProjectAccessActionState }) {
 
 function StepHint({ label, text, className }: { label: string; text: string; className: string }) {
   const [box, setBox] = useState<{ x: number; y: number } | null>(null);
-  const [pinned, setPinned] = useState(false);
+  // S28 (Alex): a mouse click never keeps the bubble open. Only a tap (touch or pen) opens it until the next tap elsewhere.
+  const [tapped, setTapped] = useState(false);
   const tipId = useId();
   const ref = useRef<HTMLButtonElement>(null);
 
@@ -682,11 +689,11 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
   }
 
   useEffect(() => {
-    if (!pinned) return;
+    if (!tapped) return;
     function close(event: Event) {
       if (event instanceof KeyboardEvent && event.key !== "Escape") return;
       if (event.type === "pointerdown" && ref.current?.contains(event.target as Node)) return;
-      setPinned(false);
+      setTapped(false);
       setBox(null);
     }
     document.addEventListener("pointerdown", close);
@@ -697,31 +704,32 @@ function StepHint({ label, text, className }: { label: string; text: string; cla
       document.removeEventListener("keydown", close);
       window.removeEventListener("scroll", close);
     };
-  }, [pinned]);
+  }, [tapped]);
 
   return (
     <>
       <button
         ref={ref}
         type="button"
-        aria-expanded={pinned}
         aria-describedby={box ? tipId : undefined}
         className={`group/hint inline-flex w-fit max-w-full cursor-pointer items-start justify-center gap-1 border-0 bg-transparent p-0 break-words whitespace-normal ${className}`}
         onMouseEnter={(event) => {
           place(event.currentTarget);
         }}
         onMouseLeave={() => {
-          if (!pinned) setBox(null);
+          if (!tapped) setBox(null);
         }}
         onFocus={(event) => {
           place(event.currentTarget);
         }}
         onBlur={() => {
-          if (!pinned) setBox(null);
+          setTapped(false);
+          setBox(null);
         }}
-        onClick={(event) => {
-          const next = !pinned;
-          setPinned(next);
+        onPointerUp={(event) => {
+          if (event.pointerType === "mouse") return;
+          const next = !tapped;
+          setTapped(next);
           if (next) place(event.currentTarget);
           else setBox(null);
         }}

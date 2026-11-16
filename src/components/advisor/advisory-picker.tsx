@@ -84,7 +84,9 @@ function isAdvisorSort(value: string): value is AdvisorMarketplaceSort {
   return advisorMarketplaceSorts.some((sort) => sort === value);
 }
 
-const ADVISOR_PAGE_SIZE = 8;
+const ADVISOR_PAGE_SIZE = 9;
+
+// S28 (Alex): at least three asesores per row at 1280 (18rem columns), like the companies marketplace.
 
 function AdvisorMarket({
   advisors,
@@ -102,6 +104,27 @@ function AdvisorMarket({
   const [sector, setSector] = useState("");
   const [service, setService] = useState("");
   const [sort, setSort] = useState<AdvisorMarketplaceSort>("recommended");
+  // S28 (Alex): Solicitar servicio is always clickable. Without a company it points at the Empresa field instead.
+  const companyField = useRef<HTMLDivElement>(null);
+  const [nudge, setNudge] = useState(0);
+  function needCompany() {
+    setNudge((current) => current + 1);
+    const field = companyField.current;
+    if (!field) return;
+    field.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    field.querySelector<HTMLElement>("button, select, [role='combobox']")?.focus({ preventScroll: true });
+  }
+  useEffect(() => {
+    if (nudge === 0) return;
+    const ring = companyField.current?.querySelector<HTMLElement>("[data-company-ring]");
+    if (ring && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      ring.classList.remove("releva-shake");
+      void ring.offsetWidth;
+      ring.classList.add("releva-shake");
+    }
+    const timer = window.setTimeout(() => setNudge(0), 4000);
+    return () => window.clearTimeout(timer);
+  }, [nudge]);
   const sectors = useMemo(
     () => [...new Set(advisors.flatMap((advisor) => advisor.sectors))].sort((left, right) => left.localeCompare(right, "es")),
     [advisors],
@@ -120,8 +143,10 @@ function AdvisorMarket({
     <section className="flex flex-col gap-4">
       <div className="rounded-2xl border border-[#e7eaee] bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-4 lg:items-end">
+          <div ref={companyField} className="flex flex-col gap-1.5">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {engagementCopy.pickCompany}
+            <span data-company-ring className={nudge > 0 ? "rounded-xl ring-2 ring-[#465ab4] ring-offset-2" : "rounded-xl"}>
             {companies.length > 0 ? (
               <FilterSelect
                 label={engagementCopy.pickCompany}
@@ -137,7 +162,14 @@ function AdvisorMarket({
                 {engagementCopy.marketplaceCompanyEmpty}
               </span>
             )}
+            </span>
           </label>
+          {nudge > 0 ? (
+            <p role="status" className="text-xs font-medium text-[#33429a]">
+              {companies.length > 0 ? engagementCopy.pickCompanyFirst : engagementCopy.connectNeedsCompany}
+            </p>
+          ) : null}
+          </div>
           <label className="flex flex-col gap-1.5 text-xs font-medium text-[#5c6b78]">
             {engagementCopy.marketplaceSector}
             <FilterSelect
@@ -188,10 +220,10 @@ function AdvisorMarket({
           <MutedAdvisorCards />
         </FilterEmptyState>
       ) : (
-      <ul className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,26rem),1fr))]">
+      <ul className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,18rem),1fr))]">
         {visible.map((advisor) => (
           <li key={advisor.id}>
-            <AdvisorListingCard advisor={advisor} connect projectSlug={company.length > 0 ? company : undefined} />
+            <AdvisorListingCard advisor={advisor} connect projectSlug={company.length > 0 ? company : undefined} onNeedCompany={needCompany} />
           </li>
         ))}
       </ul>
@@ -269,7 +301,7 @@ function ServiceAskDialog({
         onMouseDown={(event) => {
           event.stopPropagation();
         }}
-        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl"
+        className={`relative max-h-[90vh] w-full overflow-y-auto rounded-3xl bg-white p-6 text-[#1c2740] shadow-xl ${cards ? "max-w-3xl lg:max-w-5xl" : "max-w-3xl"}`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 pr-2">
@@ -289,7 +321,7 @@ function ServiceAskDialog({
         {selected.map((id) => (
           <input key={id} type="hidden" name="services" value={id} />
         ))}
-        <ul className={cards ? "mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2" : "mt-5 grid min-w-0 gap-3"}>
+        <ul className={cards ? "mt-5 grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3" : "mt-5 grid min-w-0 gap-3"}>
           {advisoryServices.map((service) => {
             const style = serviceStyle[service.id];
             const Icon = style.icon;

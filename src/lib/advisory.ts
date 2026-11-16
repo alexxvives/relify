@@ -49,7 +49,7 @@ export const advisoryCopy = {
   clear: "Borrar selección",
   submit: "Solicitar presupuesto",
   pending: "Enviando…",
-  saved: "Hemos recibido tu solicitud. Uno de nuestros Deal Managers se pondrá en contacto contigo en breve.",
+  saved: "Solicitud recibida. El equipo de Relify se pondrá en contacto contigo.",
   empty: "Selecciona al menos un servicio.",
   failed: "No se ha podido registrar la solicitud.",
   forbidden: "Solo un vendedor o un comprador puede solicitar presupuesto.",

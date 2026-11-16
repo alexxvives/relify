@@ -66,7 +66,6 @@ export function InfoHint({
   const coarse = useCoarsePointer();
   const compact = useCompactViewport();
   const [open, setOpen] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const useSheet = !hoverOnly && (coarse || compact);
@@ -93,7 +92,6 @@ export function InfoHint({
         return;
       }
       setOpen(false);
-      setPinned(false);
     };
     window.addEventListener("scroll", place, true);
     window.addEventListener("resize", place);
@@ -113,11 +111,10 @@ export function InfoHint({
       setOpen(true);
     }
   };
+  // S28 (Alex): hover and keyboard focus open the bubble and leaving closes it. A click never keeps it open.
   const hide = () => {
-    if (!pinned) {
-      setOpen(false);
-      setPos(null);
-    }
+    setOpen(false);
+    setPos(null);
   };
 
   return (
@@ -132,11 +129,7 @@ export function InfoHint({
         onMouseLeave={hide}
         onFocus={hoverOnly ? undefined : show}
         onFocusCapture={hoverOnly ? show : undefined}
-        onBlur={() => {
-          setPinned(false);
-          setOpen(false);
-          setPos(null);
-        }}
+        onBlur={hide}
         onClick={
           hoverOnly
             ? undefined
@@ -145,10 +138,7 @@ export function InfoHint({
                 event.stopPropagation();
                 if (useSheet) {
                   setSheetOpen(true);
-                  return;
                 }
-                setPinned(!pinned);
-                setOpen(!pinned);
               }
         }
         className={`inline-flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 ${hoverOnly ? "" : "cursor-help rounded-full"} ${children ? "" : `${size === "sm" ? "size-11 [@media(any-pointer:fine)]:size-4" : "size-11 [@media(any-pointer:fine)]:size-5"} ${iconTone[tone]}`}`}

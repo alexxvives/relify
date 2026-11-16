@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { activityRowClass } from "@/components/shell/activity-tiles";
 
 /*
  * Content-only loading states. Each one mirrors the grid, cards and heights of
@@ -119,24 +120,21 @@ function SideColumn({
   );
 }
 
-const tileWidth =
-  "w-full @[22.5rem]:w-[calc((100%-0.75rem)/2)] @[33.75rem]:w-[calc((100%-1.5rem)/3)] @[45rem]:w-[calc((100%-2.25rem)/4)] @[56.25rem]:w-[calc((100%-3rem)/5)]";
-
-/** Same flex-wrap tiles as ActivityTiles: icon chip + number, label, bar, caption. */
-function Tiles({ count, center = true }: { count: number; center?: boolean }) {
+/** Same single row as ActivityTiles (S28): shared width, compact under ~9.5rem, sideways scroll only on narrow phones. */
+function Tiles({ count }: { count: number; center?: boolean }) {
   return (
-    <div className="@container mt-4">
-      <div className={`flex flex-wrap gap-3 ${center ? "justify-center" : ""}`}>
+    <div className="@container mt-3">
+      <div className={activityRowClass}>
         {Array.from({ length: count }, (_, index) => (
-          <div key={index} className={`flex ${tileWidth}`}>
-            <div className="flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4">
+          <div key={index} className="@container/tile flex min-w-0">
+            <div className="flex w-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-4 @max-[9.5rem]/tile:p-3">
               <div className="flex items-center justify-between">
-                <B className="size-9 rounded-xl" />
+                <B className="size-9 rounded-xl @max-[9.5rem]/tile:size-7" />
                 <B className="h-6 w-6" />
               </div>
-              <B className="mt-2 h-3 w-20" />
+              <B className="mt-2 h-3 w-full max-w-20" />
               <B className="mt-3 h-1.5 w-full rounded-full" />
-              <B className="mt-2 h-2.5 w-24" />
+              <B className="mt-2 h-2.5 w-full max-w-24" />
             </div>
           </div>
         ))}
