@@ -106,6 +106,29 @@ export function recoveryYears(askingPriceCents: number, ebitdaCents: number): nu
   return askingPriceCents / ebitdaCents;
 }
 
+/**
+ * S27: ROI as a yearly return on the asking price: EBITDA / precio de venta × 100 (equivalently 100 / payback
+ * years). Uses the same primary EBITDA as the card (adjusted when approved). Null without a price or a positive EBITDA.
+ */
+export function roiPercent(askingPriceCents: number, ebitdaCents: number): number | null {
+  if (askingPriceCents <= 0 || ebitdaCents <= 0) {
+    return null;
+  }
+
+  return (ebitdaCents / askingPriceCents) * 100;
+}
+
+/** "33 %"-style label without the space: whole numbers from 10 %, one decimal below. */
+export function formatRoiPercent(percent: number): string {
+  const digits = percent >= 10 ? 0 : 1;
+  return `${percent.toLocaleString("es-ES", { maximumFractionDigits: digits, minimumFractionDigits: 0 })}%`;
+}
+
+/** Same thresholds as the payback tone (≤4 years good, ≤7 average): ≥25 % good, ≥14,3 % average. */
+export function roiTone(percent: number): RecoveryTone {
+  return recoveryTone(100 / percent);
+}
+
 export function recoveryTone(years: number): RecoveryTone {
   if (years <= 4) {
     return "good";

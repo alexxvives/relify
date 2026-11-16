@@ -20,12 +20,7 @@ import {
 } from "lucide-react";
 import { formatBasisPoints } from "@/lib/company-profile";
 import { headlineEbitda, headlineEbitdaMargin } from "@/lib/financial-metrics";
-import {
-  formatCardEur,
-  formatDecimal,
-  recoveryTone,
-  recoveryYears,
-} from "@/lib/money";
+import { formatCardEur, formatRoiPercent, roiPercent, roiTone } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { companyCopy } from "@/lib/company-copy";
 import { sectorImageSrc, type SectorImageKey } from "@/lib/sector-image";
@@ -136,23 +131,23 @@ const recoveryClass = {
   high: "bg-[#fdecec] text-[#b42318]",
 } as const;
 
-/** "ROI 3,2 años": years for the EBITDA to pay back the asking price, as a chip beside the price. */
+/** S27: "ROI 25%": yearly EBITDA over the asking price (EBITDA / precio × 100), as a chip beside the price. */
 export function RoiChip({
-  years,
+  roi,
   fit = false,
 }: {
-  years: number;
+  roi: number;
   fit?: boolean;
 }) {
-  const value = formatDecimal(years);
-  const title = `ROI: ${value} años para recuperar el precio de venta con el EBITDA`;
-  const tone = recoveryClass[recoveryTone(years)];
+  const value = formatRoiPercent(roi);
+  const title = `ROI: ${value} anual (EBITDA / precio de venta)`;
+  const tone = recoveryClass[roiTone(roi)];
   return (
     <span
       className={`inline-flex shrink-0 items-center rounded-full font-semibold whitespace-nowrap tabular-nums ${tone} ${fit ? "px-1.5 py-0.5 text-[11px] @[9.5rem]:px-2 @[9.5rem]:text-xs" : "px-2 py-0.5 text-xs"}`}
       title={title}
     >
-      ROI {value} años
+      ROI {value}
     </span>
   );
 }
@@ -210,7 +205,7 @@ export function MarketCard({
     hasPendingAdjustments: project.hasPendingAdjustments === true,
   });
   const profitCents = ebitda.primaryCents;
-  const years = blocked ? null : recoveryYears(project.askingPriceCents, profitCents);
+  const roi = blocked ? null : roiPercent(project.askingPriceCents, profitCents);
   const sectorName = project.sectorLabel ? sentence(project.sectorLabel) : null;
   const href = hrefOverride ?? `/proyectos/${project.slug}`;
 
@@ -339,7 +334,7 @@ export function MarketCard({
               <span className={`text-lg leading-6 font-bold whitespace-nowrap tabular-nums ${!blocked && known(project.askingPriceCents) ? "text-[#1c2740]" : "text-[#8a96a3]"}`}>
                 {blocked ? companyCopy.priceNotPublishable : (card(project.askingPriceCents) ?? priceUnset)}
               </span>
-              {years === null ? null : <RoiChip years={years} fit />}
+              {roi === null ? null : <RoiChip roi={roi} fit />}
             </dd>
           </div>
         </dl>

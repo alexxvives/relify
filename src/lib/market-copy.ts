@@ -9,7 +9,7 @@ export const marketCopy = {
   regionLabel: "Región",
   regionAll: "Todas",
   details: "Ver detalles",
-  recoveryHint: "Años para recuperar el precio de venta con el EBITDA. Verde si el plazo es corto, naranja si es habitual y rojo si es largo.",
+  recoveryHint: "ROI anual: EBITDA dividido por el precio de venta. Verde si es alto, naranja si es habitual y rojo si es bajo.",
   empty: "Ningún proyecto coincide con esos filtros.",
   emptyUnfiltered: "Todavía no hay empresas publicadas.",
   clearFilters: "Limpiar filtros",

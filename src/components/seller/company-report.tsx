@@ -75,7 +75,7 @@ import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlag
 import { veilReportFigures } from "@/lib/report-veil";
 import { figureVeilYears } from "@/lib/figure-veil";
 import type { InvestorProjectProfile } from "@/lib/investor-project";
-import { formatEur, recoveryYears } from "@/lib/money";
+import { formatEur, recoveryYears, roiPercent } from "@/lib/money";
 import { netDebtCents, pnlWaterfall, sabiOwnershipSlices, type SabiYear } from "@/lib/sabi/insights";
 import { formatHolderName } from "@/lib/sabi/holders";
 import type { SabiHolding } from "@/lib/sabi/parse";
@@ -727,7 +727,7 @@ export function CompanyReport({
     hasApprovedAdjustments: approvedAdjustmentsExist,
     hasPendingAdjustments: pendingAdjustmentsExist,
   });
-  const multiple = priceBlocked ? null : recoveryYears(project.askingPriceCents, shownEbitda.primaryCents);
+  const roi = priceBlocked ? null : roiPercent(project.askingPriceCents, shownEbitda.primaryCents);
   // t83: never "0 €"; the seller sees it as missing, buyers as "A consultar".
   const priceUnset = sellerPreview || role === "admin" ? companyCopy.priceUnset : companyCopy.priceOnRequest;
   const priceUnsetNote = sellerPreview ? "Defínelo en «Datos de la ficha»." : role === "admin" ? "El vendedor aún no lo ha indicado." : "El vendedor no lo ha publicado todavía.";
@@ -884,9 +884,9 @@ export function CompanyReport({
                   : `El vendedor aún no ha indicado precio. ${askingPriceIncludesHint}`
             }
             sub={
-              multiple !== null ? (
+              roi !== null ? (
                 <span title={deal.multipleNote ?? (shownEbitda.primaryLabel === "EBITDA aj." ? "Sobre el EBITDA ajustado" : undefined)}>
-                  <RoiChip years={multiple} />
+                  <RoiChip roi={roi} />
                 </span>
               ) : priceBlocked || project.askingPriceCents > 0 ? null : (
                 <span>{priceUnsetNote}</span>
