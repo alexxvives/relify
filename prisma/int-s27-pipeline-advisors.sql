@@ -50,17 +50,17 @@ SELECT u.id, v.business_name, v.nif, v.postal_code, v.description, NOW(), v.sect
 FROM "user" u
 JOIN (
   VALUES
-    ('int-asesor-valoracion@test.local', 'Valls Valoraciones S.L.', 'B90000011', '46004',
+    ('int-asesor-valoracion@test.local', 'Valls Valoraciones S.L.', 'B90000019', '46004',
      'Valoro pymes industriales y de servicios por múltiplos y flujos descontados. Preparo el informe para negociar el precio con el comprador.',
      ARRAY['C', 'G']::text[],
      '[{"serviceType":"COMPANY_VALUATION","priceFromCents":250000,"priceToCents":600000},{"serviceType":"BUSINESS_PLAN","priceFromCents":150000,"priceToCents":400000}]',
      '[{"name":"Fabricante de muebles","closingDate":"2025-04-10","sectorId":"C","revenueCents":320000000,"ebitdaCents":41000000,"enterpriseValueCents":250000000}]'),
-    ('int-asesor-legal@test.local', 'Herrero Quintana Abogados S.L.', 'B90000029', '28010',
+    ('int-asesor-legal@test.local', 'Herrero Quintana Abogados S.L.', 'B90000027', '28010',
      'Abogado mercantilista. Redacto la carta de intenciones y el contrato de compraventa y reviso contingencias laborales y fiscales.',
      ARRAY['I', 'N']::text[],
      '[{"serviceType":"LEGAL_CONSULTING","priceFromCents":300000,"priceToCents":700000},{"serviceType":"DUE_DILIGENCE","priceFromCents":500000,"priceToCents":1200000}]',
      '[{"name":"Cadena de cafeterías","closingDate":"2025-10-02","sectorId":"I","revenueCents":150000000,"ebitdaCents":19000000,"enterpriseValueCents":120000000}]'),
-    ('int-asesor-fiscal@test.local', 'Ramos Ibáñez Asesores S.L.', 'B90000037', '08013',
+    ('int-asesor-fiscal@test.local', 'Ramos Ibáñez Asesores S.L.', 'B90000035', '08013',
      'Asesora fiscal. Comparo venta de participaciones y de activos y preparo la due diligence fiscal antes de firmar.',
      ARRAY['G', 'M']::text[],
      '[{"serviceType":"TAX_CONSULTING","priceFromCents":180000,"priceToCents":450000},{"serviceType":"DUE_DILIGENCE","priceFromCents":400000,"priceToCents":900000}]',

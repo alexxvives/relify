@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { accountProfileKeepIdSchema, accountProfileSchema } from "@/lib/auth-input";
 import { blogHeadingId, blogPosts, relatedBlogPosts } from "@/lib/blog";
 import { formatRoiPercent, roiPercent, roiTone } from "@/lib/money";
+import { isValidSpanishCif } from "@/lib/spanish-cif";
 import { destinationsForRole } from "@/lib/shell";
 import { sellerPanelFlags } from "@/lib/company-profile";
 import { progressCardGutter } from "@/components/seller/detail-section-nav";
@@ -283,6 +284,14 @@ describe("S27 point 4: INT seed", () => {
     expect(steps.map((row) => row.match(/, ([1-6]),/)?.[1])).toEqual(["1", "2", "3", "4", "5", "6"]);
     expect(sql).toMatch(/WHERE u\.email = 'int-comprador@test\.local'/);
     expect(read("docs/INT.md")).toMatch(/int-s27-pipeline-advisors\.sql/);
+  });
+
+  it("gives the three asesores NIFs that pass isValidSpanishCif so they are listed", () => {
+    const nifs = [...sql.matchAll(/'int-asesor-[a-z]+@test\.local', '[^']+', '([A-Z0-9]+)'/g)].map((row) => row[1]);
+    expect(nifs).toHaveLength(3);
+    for (const nif of nifs) {
+      expect(isValidSpanishCif(nif), nif).toBe(true);
+    }
   });
 });
 
