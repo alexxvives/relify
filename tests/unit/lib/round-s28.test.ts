@@ -98,12 +98,13 @@ describe("S28 7-8: one short toast at a time", () => {
 describe("S28 9: Contacta con un asesor sits in the bottom-right actions", () => {
   it("the header cue no longer carries the asesor link", () => {
     const pipeline = read("src/components/investor/deal-pipeline.tsx");
-    expect(pipeline).toMatch(/hideWaitingCue inline showAdvisor=\{false\}/);
+    // S29b: the Revisión choice (the last header cue with an asesor link) is gone with its step.
+    expect(pipeline).not.toMatch(/DiligenceChoice|advisorHref/);
   });
   for (const file of ["src/components/investor/investor-processes.tsx", "src/components/seller/seller-processes.tsx"]) {
-    it(`${file} shows it from Q&A through Revisión, after the right-hand actions`, () => {
+    it(`${file} shows it from Preguntas through Contrato, after the right-hand actions`, () => {
       const source = read(file);
-      expect(source).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "diligence"/);
+      expect(source).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "loi" \|\| current\?\.id === "documents"/);
       expect(source).toMatch(/ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,260}?(actions|processActions)\}[\s\S]{0,200}?wantsAdvisor/);
     });
   }

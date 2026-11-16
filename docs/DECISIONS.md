@@ -222,7 +222,7 @@ Contacting a named advisor opens a thread on Mi asesor: chat, the documents alre
 
 The investor profile that a seller opens is stored. It can include a photo, a city and province, the investor type, a ticket band, sectors, what they are looking for, and what they bring. It does not include the legal name, NIF, email, phone, or postal code. The five phases on the investor home are those public fields. The private professional panel stays on the investor's own page.
 
-Relify does not draft the sale contract. At due diligence either party can ask an advisor or continue. Documentation is where the seller uploads the contract.
+Relify does not draft the sale contract. Once the seller accepts the LOI either party can ask an advisor to review the documentation, and the seller can upload the contract straight away (S29b: no separate review step).
 
 ## 2026-10-07 — The advisor is a profile and a hired service
 
@@ -250,7 +250,7 @@ A limited plan asks for confirmation and shows how many matches remain this mont
 
 The investor home sizes sectors with the Arc treemap by published revenue. The Arc tokens stay on that chart so they do not restyle the rest of the app.
 
-The sale steps are Solicitud, Conexión, NDA, Q&A, LOI, Due diligence, Documentación, and Compraventa. Due diligence is where an advisor reviews the shared room. The contract step stays current until the payment is recorded.
+The sale steps are Solicitud, Conexión, NDA, Preguntas, LOI, Contrato, and Venta (seven since S29b, when the old Revisión/due diligence step merged into LOI). An accepted LOI opens the contract upload; an advisor can review the documentation during LOI or Contrato. `project_access.diligence_passed_at` stays in the schema, unused, with no migration. The contract step stays current until the payment is recorded.
 
 ## 2026-10-07 — Figures before a connection, and the trash icon
 

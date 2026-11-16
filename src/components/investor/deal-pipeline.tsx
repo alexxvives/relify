@@ -4,8 +4,6 @@ import { stepCtaClass } from "@/components/investor/step-cta";
 import { PdfPages } from "@/components/seller/pdf-pages";
 
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { engagementCopy } from "@/lib/engagement-copy";
 import { createPortal } from "react-dom";
 import { Check, CircleHelp, ShieldCheck, X } from "lucide-react";
 import { AgreementDocument } from "@/components/investor/agreement-document";
@@ -16,7 +14,6 @@ import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionSta
 import { SignaturePad } from "@/components/investor/signature-pad";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { acceptSellerLoiAction } from "@/app/(app)/mi-empresa/procesos/actions";
-import { passDiligenceAction } from "@/app/(app)/procesos/pass-action";
 import { attachmentNames } from "@/lib/meeting";
 import { accessCopy } from "@/lib/access-copy";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -67,7 +64,6 @@ export function DealPipeline({
   role,
   onDark = false,
   sign,
-  diligence,
   acceptLoi,
   hideAsideCue = false,
   hideQaNote = false,
@@ -77,7 +73,6 @@ export function DealPipeline({
   role: DealViewer;
   onDark?: boolean;
   sign?: { slug: string; nda: string; loi: string };
-  diligence?: { accessId: string; advisorHref: string };
   acceptLoi?: { accessId: string; body: string };
   hideAsideCue?: boolean;
   hideQaNote?: boolean;
@@ -101,8 +96,7 @@ export function DealPipeline({
   const count = Math.max(shownSteps.length, 1);
   const edge = `calc(100% / ${count * 2})`;
   const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
-  const showDiligence = current?.id === "diligence" && diligence !== undefined && !hideAsideCue;
-  const parkCue = hideAsideCue && !showDiligence && !cue.yours && !canAccept;
+  const parkCue = hideAsideCue && !cue.yours && !canAccept;
   const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
@@ -151,7 +145,7 @@ export function DealPipeline({
           })}
         </ol>
         {(() => {
-          // On phones the eight labels cannot fit side by side, so only the current step is named.
+          // On phones the seven labels cannot fit side by side, so only the current step is named.
           const focus = current ?? shownSteps[shownSteps.length - 1];
           if (!focus) return null;
           const position = shownSteps.indexOf(focus) + 1;
@@ -170,9 +164,7 @@ export function DealPipeline({
           );
         })()}
       </div>
-      {showDiligence && diligence ? (
-        <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={onDark} hideWaitingCue={hideWaitingCue} />
-      ) : parkCue || parkYourTurn || hideQa ? null : (
+      {parkCue || parkYourTurn || hideQa ? null : (
         <TurnCue
           cue={cue}
           onDark={onDark}
@@ -332,13 +324,11 @@ export function ProcessHeaderCue({
   steps,
   role,
   sign,
-  diligence,
   contractNext,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   sign?: { slug: string; nda: string; loi: string };
-  diligence?: { accessId: string; advisorHref: string };
   contractNext?: { who: "you" | "other" | "none"; text: string } | null;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
@@ -367,7 +357,7 @@ export function ProcessHeaderCue({
     return <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />;
   }
 
-  if (!cue || (cue.yours && role === "seller" && current?.id !== "diligence")) {
+  if (!cue || (cue.yours && role === "seller")) {
     return null;
   }
 
@@ -392,9 +382,6 @@ export function ProcessHeaderCue({
           >
             Proceder al LOI
           </button>
-        ) : null}
-        {current?.id === "diligence" && diligence ? (
-          <DiligenceChoice accessId={diligence.accessId} advisorHref={diligence.advisorHref} onDark={false} hideWaitingCue inline showAdvisor={false} />
         ) : null}
         {canSign && signKindFor ? (
           <SignNow
@@ -434,63 +421,6 @@ export function DealWaitingCue({
         Qué sigue
       </span>
       <p className={onDark ? "pt-1 text-sm leading-5 text-white" : "pt-1 text-sm leading-5 text-[#3d4a63]"}>{cue.action}</p>
-    </div>
-  );
-}
-
-function DiligenceChoice({
-  accessId,
-  advisorHref,
-  onDark,
-  hideWaitingCue,
-  inline = false,
-  showAdvisor = true,
-}: {
-  accessId: string;
-  advisorHref: string;
-  onDark: boolean;
-  hideWaitingCue: boolean;
-  inline?: boolean;
-  /** S28: false in the process header; "Contacta con un asesor" sits in the card's bottom-right action row there. */
-  showAdvisor?: boolean;
-}) {
-  const [state, action, pending] = useActionState(passDiligenceAction, null);
-
-  return (
-    <div className={inline ? "flex min-w-0 flex-wrap items-center gap-3" : onDark ? "mt-4 rounded-2xl bg-white/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#e6e9f0] bg-[#f7f8fb] px-4 py-3"}>
-      <div className="flex min-w-0 items-start gap-3">
-        {hideWaitingCue || inline ? null : (
-          <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
-            Qué sigue
-          </span>
-        )}
-        {inline ? null : (
-          <p className={onDark ? "pt-1 text-sm leading-5 text-white/85" : "pt-1 text-sm leading-5 text-[#3d4a63]"}>
-            Revisa con un asesor de Relify, o sigue a la documentación. El contrato lo sube el vendedor.
-          </p>
-        )}
-      </div>
-      <div className={inline ? "flex flex-wrap items-center gap-2" : "mt-3 flex flex-wrap items-center gap-2"}>
-        {showAdvisor ? (
-          <Link
-            href={advisorHref}
-            className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium text-[#465ab4]"
-          >
-            {engagementCopy.contactAdvisor}
-          </Link>
-        ) : null}
-        <form action={action}>
-          <input type="hidden" name="accessId" value={accessId} />
-          <button
-            type="submit"
-            disabled={pending}
-            className={stepCtaClass}
-          >
-            {pending ? "Guardando…" : "Seguir a documentación"}
-          </button>
-        </form>
-      </div>
-      {state && !state.ok ? <p className="mt-2 text-sm text-red-700">{state.message}</p> : null}
     </div>
   );
 }

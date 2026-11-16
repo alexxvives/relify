@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { OnboardingForm } from "@/components/auth/onboarding-form";
 import { OnboardingPlanResume } from "@/components/auth/onboarding-plan-resume";
+import { OnboardingNationalIdForm } from "@/components/auth/onboarding-national-id-form";
 import { loadBuyerPlan } from "@/lib/server/buyer-plan";
 import { IntBadge } from "@/components/shell/int-badge";
 import { Logo } from "@/components/shell/logo";
@@ -35,7 +36,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     user.role === "investor" &&
     (await loadBuyerPlan(user.id)).plan === "none";
 
-  if (user.onboarded && !resumePlan) {
+  // S29b: an onboarded account without a DNI/NIE completes just that field (the agreement no longer asks for it).
+  const completeNationalId = user.onboarded && !resumePlan && user.nationalIdMissing;
+
+  if (user.onboarded && !resumePlan && !completeNationalId) {
     redirect(homeForRole(user.role));
   }
 
@@ -75,9 +79,15 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           </div>
           <Logo size="lg" />
         </div>
-        <ConversionPing event="sign_up" />
+        {completeNationalId ? null : <ConversionPing event="sign_up" />}
         <div className="mt-8">
-          {resumePlan ? <OnboardingPlanResume home={homeForRole(user.role)} /> : <OnboardingForm initialRole={initialRole} />}
+          {resumePlan ? (
+            <OnboardingPlanResume home={homeForRole(user.role)} />
+          ) : completeNationalId ? (
+            <OnboardingNationalIdForm />
+          ) : (
+            <OnboardingForm initialRole={initialRole} />
+          )}
         </div>
       </section>
     </main>

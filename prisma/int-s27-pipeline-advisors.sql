@@ -6,7 +6,7 @@
 -- 2) One seller with six published synthetic companies: int-vendedor-cartera@test.local
 -- 3) int-comprador@test.local gets one active process per pipeline step on those companies:
 --      Conexión (waiting for the seller), NDA, Preguntas, LOI (offer waiting for the seller),
---      Revisión (LOI accepted) and Contrato (LOI accepted + data room shared).
+--      Revisión (LOI accepted; shown at Contrato since S29b) and Contrato (LOI accepted + data room shared).
 --
 -- Passwords: no password is written here. Each new account copies the scrypt hash of an existing INT test
 -- account (asesores <- int-asesor@test.local, seller <- int-vendedor-manual@test.local), so they sign in with
@@ -125,7 +125,7 @@ SELECT 'int-s27-access-' || v.slug, p.id, u.id,
 FROM "user" u
 CROSS JOIN (
   VALUES
-    -- step: 1 Conexión, 2 NDA, 3 Preguntas, 4 LOI pendiente, 5 Revisión, 6 Contrato
+    -- step: 1 Conexión, 2 NDA, 3 Preguntas, 4 LOI pendiente, 5 Revisión (Contrato since S29b), 6 Contrato
     ('int-s27-taller-levante', 1, 4),
     ('int-s27-clinica-norte', 2, 8),
     ('int-s27-distribuidora-ebro', 3, 12),

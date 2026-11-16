@@ -533,7 +533,6 @@ async function bannerStepsFor(row: {
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
           loiAcceptedAt: true,
-          diligencePassedAt: true,
         },
       },
     },
@@ -543,17 +542,10 @@ async function bannerStepsFor(row: {
     return [];
   }
 
-  const [messages, grants] = await Promise.all([
-    prisma.projectMessage.findMany({
-      where: { projectId: row.project.id },
-      select: { investorId: true, kind: true },
-    }),
-    prisma.dataRoomGrant.findMany({
-      where: { projectId: row.project.id },
-      select: { investorId: true },
-    }),
-  ]);
-  const grantKeys = new Set(grants.map((grant) => grant.investorId));
+  const messages = await prisma.projectMessage.findMany({
+    where: { projectId: row.project.id },
+    select: { investorId: true, kind: true },
+  });
   const [board] = advisorProjectBoards([
     {
       id: row.id,
@@ -583,8 +575,6 @@ async function bannerStepsFor(row: {
           meeting: thread.some((message) => message.kind === "meeting"),
           offer: thread.some((message) => message.kind === "offer"),
           loiAccepted: access.loiAcceptedAt !== null,
-          roomShared: grantKeys.has(access.investorId),
-          passedDiligence: access.diligencePassedAt !== null,
         };
       }),
     },
@@ -796,25 +786,16 @@ async function advisorContract(
 ): Promise<ContractView | null> {
   const access = await prisma.projectAccess.findFirst({
     where: { projectId, cancelledAt: null, loiAcceptedAt: { not: null } },
-    orderBy: [
-      { diligencePassedAt: { sort: "desc", nulls: "last" } },
-      { loiAcceptedAt: "desc" },
-    ],
-    select: { id: true, investorId: true, diligencePassedAt: true },
-  });
-  if (!access) return null;
-  const grant = await prisma.dataRoomGrant.findFirst({
-    where: { projectId, investorId: access.investorId },
+    orderBy: [{ loiAcceptedAt: "desc" }],
     select: { id: true },
   });
+  if (!access) return null;
   const views = await contractViews([
     {
       accessId: access.id,
       party: "advisor",
       open: contractStageOpen({
         loiAccepted: true,
-        passedDiligence: access.diligencePassedAt !== null,
-        roomShared: grant !== null,
       }),
     },
   ]);
@@ -1408,7 +1389,6 @@ export async function listAdvisorProjectBoards(
               sellerAcceptedAt: true,
               ndaAcceptedAt: true,
               loiAcceptedAt: true,
-              diligencePassedAt: true,
               investor: { select: { name: true, lastName: true } },
             },
           },
@@ -1422,19 +1402,10 @@ export async function listAdvisorProjectBoards(
   }
 
   const projectIds = [...new Set(rows.map((row) => row.project.id))];
-  const [messages, grants] = await Promise.all([
-    prisma.projectMessage.findMany({
-      where: { projectId: { in: projectIds } },
-      select: { projectId: true, investorId: true, kind: true },
-    }),
-    prisma.dataRoomGrant.findMany({
-      where: { projectId: { in: projectIds } },
-      select: { projectId: true, investorId: true },
-    }),
-  ]);
-  const grantKeys = new Set(
-    grants.map((grant) => `${grant.projectId}:${grant.investorId}`),
-  );
+  const messages = await prisma.projectMessage.findMany({
+    where: { projectId: { in: projectIds } },
+    select: { projectId: true, investorId: true, kind: true },
+  });
   const snapshots: AdvisorEngagementSnapshot[] = rows.map((row) => ({
     id: row.id,
     client: row.client,
@@ -1465,8 +1436,6 @@ export async function listAdvisorProjectBoards(
         meeting: thread.some((message) => message.kind === "meeting"),
         offer: thread.some((message) => message.kind === "offer"),
         loiAccepted: access.loiAcceptedAt !== null,
-        roomShared: grantKeys.has(`${row.project.id}:${access.investorId}`),
-        passedDiligence: access.diligencePassedAt !== null,
         connectedName: access.sellerAcceptedAt
           ? personName(access.investor.name, access.investor.lastName)
           : null,

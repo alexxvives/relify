@@ -40,7 +40,6 @@ const accessSelect = {
   projectId: true,
   cancelledAt: true,
   loiAcceptedAt: true,
-  diligencePassedAt: true,
   buyerPlanAtMatch: true,
   project: {
     select: {
@@ -82,14 +81,9 @@ async function partyFor(
   return engagement ? "advisor" : null;
 }
 
-async function contractOpen(access: AccessRow): Promise<boolean> {
-  if (!access.loiAcceptedAt || access.cancelledAt) return false;
-  if (access.diligencePassedAt) return true;
-  const grant = await prisma.dataRoomGrant.findFirst({
-    where: { projectId: access.projectId, investorId: access.investorId },
-    select: { id: true },
-  });
-  return grant !== null;
+function contractOpen(access: AccessRow): boolean {
+  // S29b: no separate Revisión step any more; an accepted LOI opens the contract.
+  return access.loiAcceptedAt !== null && access.cancelledAt === null;
 }
 
 function dateLabel(date: Date): string {
@@ -188,10 +182,9 @@ export async function contractViews(
 /** Whether an access is in (or past) the documents stage, for loaders that already hold the flags. */
 export function contractStageOpen(input: {
   loiAccepted: boolean;
-  passedDiligence: boolean;
-  roomShared: boolean;
 }): boolean {
-  return input.loiAccepted && (input.passedDiligence || input.roomShared);
+  // S29b: the Revisión step merged into LOI, so the contract opens as soon as the LOI is accepted.
+  return input.loiAccepted;
 }
 
 export async function uploadSaleContract(
@@ -206,8 +199,8 @@ export async function uploadSaleContract(
 
   if (!access || (party !== "seller" && party !== "advisor"))
     return fail("No puedes subir el contrato de este proceso.");
-  if (!(await contractOpen(access)))
-    return fail("El contrato se sube después de la due diligence.");
+  if (!contractOpen(access))
+    return fail("El contrato se sube cuando el vendedor acepta la carta de intenciones.");
   if (bytes.byteLength === 0 || bytes.byteLength > CONTRACT_MAX_BYTES)
     return fail("El PDF debe pesar menos de 7 MB.");
   if (!isPdfBytes(bytes)) return fail("El archivo tiene que ser un PDF.");

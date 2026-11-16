@@ -48,7 +48,7 @@ test.describe("S28", () => {
     expect(await signInAs(page, "investor")).toBe(true);
     await page.goto("/procesos");
     const link = page.locator("[data-advisor-link]").first();
-    test.skip(!(await link.count()), "no process at Q&A or Revisión for this account");
+    test.skip(!(await link.count()), "no process from Preguntas through Contrato for this account");
     const cancel = page.getByRole("button", { name: "Cancelar proceso" }).first();
     const [a, b] = await Promise.all([link.boundingBox(), cancel.boundingBox()]);
     expect(a && b).toBeTruthy();

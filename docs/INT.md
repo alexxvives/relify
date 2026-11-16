@@ -120,7 +120,7 @@ What it adds:
 | Clínica Norte | NDA (seller accepted, NDA to sign) |
 | Distribuidora Ebro | Preguntas (NDA signed, one question) |
 | Obrador Sur | Preguntas with LOI sent, waiting for the seller |
-| Agencia Tajo | Revisión (LOI accepted) |
+| Agencia Tajo | Contrato (LOI accepted; since S29b the contract upload is open) |
 | Logística Cantábrico | Contrato (LOI accepted, data room shared) |
 
 "Venta" needs a sale contract PDF in signing and is not seeded.

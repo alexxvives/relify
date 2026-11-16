@@ -62,6 +62,17 @@ function caseDate(value: string): string {
   }).format(parsed);
 }
 
+/**
+ * S29b (Alex): the profile keeps a from/to range, but cards show where the price starts ("Desde 1.500 €"),
+ * or the single price when both ends match.
+ */
+export function advisorPriceLabel(fromCents: number, toCents: number): string {
+  if (fromCents === toCents) {
+    return formatAdvisorEuros(fromCents);
+  }
+  return `Desde ${formatAdvisorEuros(Math.min(fromCents, toCents))}`;
+}
+
 export function toPublicAdvisorCard(profile: {
   userId: string;
   businessName: string;
@@ -79,7 +90,7 @@ export function toPublicAdvisorCard(profile: {
 
   const services = readStoredServices(profile.services).map((service) => ({
     title: advisorCopy.serviceTypes[service.serviceType],
-    range: `${formatAdvisorEuros(service.priceFromCents)} – ${formatAdvisorEuros(service.priceToCents)}`,
+    range: advisorPriceLabel(service.priceFromCents, service.priceToCents),
     fromCents: service.priceFromCents,
   }));
   const cases = readStoredOperations(profile.closedOperations).map((operation) => ({

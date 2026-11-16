@@ -18,8 +18,6 @@ function access(investorId: string, requestedAt: string, accepted = true, nda = 
     meeting: false,
     offer: false,
     loiAccepted: false,
-    roomShared: false,
-    passedDiligence: false,
   };
 }
 

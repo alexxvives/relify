@@ -6,7 +6,6 @@ const openFlags = {
   nda: false,
   qa: false,
   loi: false,
-  diligence: false,
   documents: false,
   closed: false,
 };
@@ -21,7 +20,6 @@ describe("dealPipeline", () => {
       "NDA",
       "Preguntas",
       "LOI",
-      "Revisión",
       "Contrato",
       "Venta",
     ]);
@@ -37,7 +35,6 @@ describe("dealPipeline", () => {
       nda: true,
       qa: true,
       loi: true,
-      diligence: true,
       documents: false,
       closed: false,
     });
@@ -53,11 +50,11 @@ describe("dealPipeline", () => {
       accepted: true,
       nda: true,
       qa: true,
-      diligence: true,
+      documents: true,
     });
 
     expect(steps.find((step) => step.id === "loi")?.state).toBe("current");
-    expect(steps.find((step) => step.id === "diligence")?.state).toBe("upcoming");
+    expect(steps.find((step) => step.id === "documents")?.state).toBe("upcoming");
     expect(steps.find((step) => step.id === "close")?.state).toBe("upcoming");
   });
 
@@ -67,7 +64,6 @@ describe("dealPipeline", () => {
       nda: true,
       qa: true,
       loi: true,
-      diligence: true,
       documents: true,
       closed: true,
     });
@@ -101,7 +97,7 @@ describe("dealPipeline", () => {
 });
 
 describe("processFlags", () => {
-  it("opens due diligence when the room is shared and closes the contract with the payment", () => {
+  it("opens the contract once the LOI is accepted and closes it with the payment", () => {
     expect(
       processFlags({
         accepted: true,
@@ -110,8 +106,6 @@ describe("processFlags", () => {
         meeting: false,
         offer: false,
         loiAccepted: false,
-        roomShared: true,
-        passedDiligence: false,
         closed: false,
       }),
     ).toEqual({
@@ -120,7 +114,6 @@ describe("processFlags", () => {
       qa: false,
       loi: false,
       loiPending: false,
-      diligence: true,
       documents: false,
       closed: false,
     });
@@ -132,8 +125,6 @@ describe("processFlags", () => {
         meeting: false,
         offer: true,
         loiAccepted: true,
-        roomShared: false,
-        passedDiligence: false,
         closed: true,
       }).documents,
     ).toBe(true);
@@ -145,10 +136,8 @@ describe("processFlags", () => {
         meeting: false,
         offer: true,
         loiAccepted: true,
-        roomShared: false,
-        passedDiligence: true,
         closed: false,
-      }).diligence,
+      }).loi,
     ).toBe(true);
   });
 
@@ -160,8 +149,6 @@ describe("processFlags", () => {
       meeting: true,
       offer: false,
       loiAccepted: false,
-      roomShared: false,
-      passedDiligence: false,
       closed: false,
     });
     const signed = processFlags({
@@ -171,8 +158,6 @@ describe("processFlags", () => {
       meeting: false,
       offer: true,
       loiAccepted: false,
-      roomShared: true,
-      passedDiligence: false,
       closed: false,
     });
 
@@ -180,10 +165,10 @@ describe("processFlags", () => {
     expect(dealPipeline("investor", signed).find((step) => step.state === "current")?.id).toBe("qa");
     expect(dealPipeline("seller", signed).find((step) => step.id === "qa")?.pendingLoi).toBe(true);
     expect(
-      dealPipeline("investor", { ...signed, loi: true, qa: true, loiPending: false, diligence: false }).find(
+      dealPipeline("investor", { ...signed, loi: true, qa: true, loiPending: false }).find(
         (step) => step.state === "current",
       )?.id,
-    ).toBe("diligence");
+    ).toBe("documents");
   });
 });
 

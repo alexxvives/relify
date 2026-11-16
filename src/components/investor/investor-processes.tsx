@@ -34,8 +34,8 @@ const processTabs = [
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  // S28 (Alex): from Q&A through Revisión the asesor link lives in the bottom-right action row, never beside "Qué sigue".
-  return current?.id === "qa" || current?.id === "diligence";
+  // S28/S29b (Alex): from Preguntas through Contrato the asesor link lives in the bottom-right action row.
+  return current?.id === "qa" || current?.id === "loi" || current?.id === "documents";
 }
 
 function ProcessConversation({
@@ -86,7 +86,7 @@ function ProcessConversation({
           }}
         />
         {/* Mis procesos layout rule: one action row, toggles on the left; Cancelar proceso, Ver la ficha and (from Q&A
-            through Revisión) Contacta con un asesor on the right. */}
+            through Contrato) Contacta con un asesor on the right. */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {actions}
           {!item.advisorHired && wantsAdvisor(item.steps) ? (
@@ -192,7 +192,6 @@ export function InvestorProcesses({
                 <ProcessHeaderCue
                   steps={item.steps}
                   role="investor"
-                  diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
                   contractNext={item.contract?.next ?? null}
                   sign={{
                     slug: item.slug,
@@ -238,7 +237,6 @@ export function InvestorProcesses({
                   dateLabel,
                 }),
               }}
-              diligence={{ accessId: item.accessId, advisorHref: `/asesoramiento?empresa=${item.slug}` }}
             />
             <ProcessConversation
               item={item}

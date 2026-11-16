@@ -129,7 +129,6 @@ export function InvestorProject({
               }}
               hideQaNote
               hideWaitingCue
-              diligence={accessId.length > 0 ? { accessId, advisorHref: `/asesoramiento?empresa=${project.slug}` } : undefined}
             />
           ) : null
         }

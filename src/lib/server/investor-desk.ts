@@ -95,7 +95,6 @@ export async function loadInvestorDesk(
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
           loiAcceptedAt: true,
-          diligencePassedAt: true,
           investorReadAt: true,
           project: {
             select: {
@@ -181,8 +180,6 @@ export async function loadInvestorDesk(
         party: "buyer" as const,
         open: contractStageOpen({
           loiAccepted: access.loiAcceptedAt !== null,
-          passedDiligence: access.diligencePassedAt !== null,
-          roomShared: access.project.dataRoomGrants.length > 0,
         }),
       })),
     ),
@@ -236,8 +233,6 @@ export async function loadInvestorDesk(
             (message) => message.kind === "offer",
           ),
           loiAccepted: access.loiAcceptedAt !== null,
-          roomShared: granted,
-          passedDiligence: access.diligencePassedAt !== null,
           closed: access.project.successFee !== null,
         }),
       ),

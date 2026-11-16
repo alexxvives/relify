@@ -6,7 +6,7 @@ import { platformTermsCopy } from "@/lib/platform-terms";
 import { signatureBytes, signatureJpeg } from "@/lib/signature-image";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
-import { ensureNationalId } from "@/lib/server/ensure-national-id";
+import { onboardingNationalIdPath } from "@/lib/identity-declaration";
 import { storeSignedDocumentQuietly } from "@/lib/server/signed-documents";
 
 /**
@@ -28,9 +28,9 @@ export async function acceptPlatformTermsAction(_state: TermsState, formData: Fo
     return { ok: false, message: platformTermsCopy.signRequired };
   }
 
-  const idError = await ensureNationalId(user.id, formData.get("nationalId"));
-  if (idError) {
-    return { ok: false, message: idError };
+  // S29b: the agreement signs with the DNI/NIE stored in onboarding and never reads one from the form.
+  if (user.nationalIdMissing) {
+    redirect(onboardingNationalIdPath);
   }
 
   await prisma.user.update({

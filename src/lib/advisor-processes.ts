@@ -11,8 +11,6 @@ export type AdvisorAccessSnapshot = {
   meeting: boolean;
   offer: boolean;
   loiAccepted: boolean;
-  roomShared: boolean;
-  passedDiligence: boolean;
   /** Buyer's real name once the seller has accepted them. */
   connectedName?: string | null;
 };
@@ -81,8 +79,6 @@ function laneSteps(access: AdvisorAccessSnapshot, saleClosed: boolean): DealStep
       meeting: access.meeting,
       offer: access.offer,
       loiAccepted: access.loiAccepted,
-      roomShared: access.roomShared,
-      passedDiligence: access.passedDiligence,
       closed: saleClosed,
     }),
   );
@@ -153,8 +149,6 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
         meeting: false,
         offer: false,
         loiAccepted: false,
-        roomShared: false,
-        passedDiligence: false,
       };
 
       if (!access.nda) {

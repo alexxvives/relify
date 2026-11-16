@@ -50,7 +50,7 @@ export async function listSellerAdvisoryCompanies(
 export async function sellerPendingByProject(
   ownerId: string,
 ): Promise<Map<string, number>> {
-  const [accesses, messages, grants, fees] = await Promise.all([
+  const [accesses, messages, fees] = await Promise.all([
     prisma.projectAccess.findMany({
       where: { project: { ownerId, NOT: { cif: "" } }, cancelledAt: null },
       select: {
@@ -60,7 +60,6 @@ export async function sellerPendingByProject(
         sellerAcceptedAt: true,
         ndaAcceptedAt: true,
         loiAcceptedAt: true,
-        diligencePassedAt: true,
       },
     }),
     prisma.projectMessage.findMany({
@@ -69,10 +68,6 @@ export async function sellerPendingByProject(
         kind: { in: ["question", "meeting", "offer"] },
       },
       select: { projectId: true, investorId: true, kind: true },
-    }),
-    prisma.dataRoomGrant.findMany({
-      where: { project: { ownerId } },
-      select: { projectId: true, investorId: true },
     }),
     prisma.successFee.findMany({
       where: { project: { ownerId } },
@@ -84,9 +79,6 @@ export async function sellerPendingByProject(
     const key = `${message.projectId}:${message.investorId}`;
     kinds.set(key, (kinds.get(key) ?? new Set()).add(message.kind));
   }
-  const granted = new Set(
-    grants.map((grant) => `${grant.projectId}:${grant.investorId}`),
-  );
   const closed = new Set(fees.map((fee) => fee.projectId));
   const actions = homePendingActions(
     "seller",
@@ -106,8 +98,6 @@ export async function sellerPendingByProject(
             meeting: thread.has("meeting"),
             offer: thread.has("offer"),
             loiAccepted: access.loiAcceptedAt !== null,
-            roomShared: granted.has(key),
-            passedDiligence: access.diligencePassedAt !== null,
             closed: closed.has(access.projectId),
           }),
         ),

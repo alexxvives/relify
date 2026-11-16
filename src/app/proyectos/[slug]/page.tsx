@@ -48,8 +48,6 @@ function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
       meeting: false,
       offer: false,
       loiAccepted: false,
-      roomShared: false,
-      passedDiligence: false,
       closed: false,
     }),
   );

@@ -202,7 +202,6 @@ export async function getAdminCompany(
       sabiExtra: true,
       ...investorProjectSelect,
       successFee: { select: { id: true } },
-      dataRoomGrants: { select: { investorId: true } },
       accesses: {
         orderBy: { requestedAt: "desc" },
         select: {
@@ -211,7 +210,6 @@ export async function getAdminCompany(
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
           loiAcceptedAt: true,
-          diligencePassedAt: true,
           investor: { select: { name: true, lastName: true, email: true } },
         },
       },
@@ -305,10 +303,6 @@ export async function getAdminCompany(
               meeting: messages.some((message) => message.kind === "meeting"),
               offer: messages.some((message) => message.kind === "offer"),
               loiAccepted: access.loiAcceptedAt !== null,
-              roomShared: project.dataRoomGrants.some(
-                (grant) => grant.investorId === access.investorId,
-              ),
-              passedDiligence: access.diligencePassedAt !== null,
               closed,
             }),
           )

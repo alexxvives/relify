@@ -5,6 +5,7 @@ import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, onboardingFieldMessage, onboardingSchema, splitAccountName, type OnboardingInput } from "@/lib/auth-input";
 import { completeOnboarding } from "@/lib/server/complete-onboarding";
 import { getCurrentUser } from "@/lib/server/get-current-user";
+import { ensureNationalId } from "@/lib/server/ensure-national-id";
 import { startBuyerCheckout } from "@/lib/server/start-checkout";
 
 export type OnboardingState = { message: string } | null;
@@ -86,4 +87,29 @@ export async function resumePlanAction(_state: OnboardingState, formData: FormDa
   }
 
   redirect(checkout.url);
+}
+
+export type NationalIdState = { message: string } | null;
+
+/**
+ * S29b: an onboarded account without a DNI/NIE (older or seeded rows) completes only that field here, then goes
+ * home, where the Acuerdo con Relify signs with it. The agreement itself never asks for it.
+ */
+export async function completeNationalIdAction(_state: NationalIdState, formData: FormData): Promise<NationalIdState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/entrar");
+  }
+
+  if (!user.onboarded) {
+    redirect("/onboarding");
+  }
+
+  const message = await ensureNationalId(user.id, formData.get("nationalId"));
+  if (message) {
+    return { message };
+  }
+
+  redirect(homeForRole(user.role));
 }

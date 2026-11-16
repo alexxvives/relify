@@ -13,6 +13,7 @@ import { menuEncargoCount, menuProcessCount } from "@/lib/server/menu-process-co
 import { activeSellerProjectId, listSellerCompanies } from "@/lib/server/seller-company";
 import { loadInvestorDesk } from "@/lib/server/investor-desk";
 import { homePendingActions } from "@/lib/deal-pipeline";
+import { agreementNeedsNationalId, onboardingNationalIdPath } from "@/lib/identity-declaration";
 
 /**
  * Signed-in frame (sidebar, mobile header, bottom tabs). Rendered once by the (app) route-group
@@ -27,6 +28,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   if (!user.onboarded) {
     redirect("/onboarding");
+  }
+
+  if (agreementNeedsNationalId(user)) {
+    redirect(onboardingNationalIdPath);
   }
 
   const [notifications, companies, activeCompanyId, processCount, purchased, sold, encargoCount, adminCounts, buyerPending] = await Promise.all([

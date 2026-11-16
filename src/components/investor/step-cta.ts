@@ -1,6 +1,6 @@
 /**
  * S29 (Alex): one look for the action that moves a process forward (Firmar NDA, Proceder al LOI, Firmar LOI,
- * Seguir a documentación, Contrato…): a compact green pill. The secondary variant is for the same slot once there is
+ * Contrato…): a compact green pill. The secondary variant is for the same slot once there is
  * nothing left to do (e.g. a signed contract).
  */
 export const stepCtaClass =

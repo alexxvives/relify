@@ -19,12 +19,13 @@ describe("S29 1: short activity labels", () => {
 });
 
 describe("S29 2: one green step CTA", () => {
-  it("is a compact green pill shared by NDA, LOI, Seguir a documentación and Contrato", () => {
+  it("is a compact green pill shared by NDA, LOI and Contrato", () => {
     expect(stepCtaClass).toMatch(/h-9/);
     expect(stepCtaClass).toMatch(/bg-\[#17663a\]/);
     expect(stepSecondaryClass).toMatch(/h-9/);
     const pipeline = read("src/components/investor/deal-pipeline.tsx");
-    expect(pipeline.match(/className=\{stepCtaClass\}/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    // S29b: Seguir a documentación left with the Revisión step; Firmar NDA / Proceder al LOI / Firmar LOI remain.
+    expect(pipeline.match(/className=\{stepCtaClass\}/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
     expect(pipeline).not.toMatch(/h-9 shrink-0 items-center rounded-full bg-\[#17663a\]/);
     const contract = read("src/components/investor/contract-stage.tsx");
     expect(contract).toMatch(/className=\{signed \? stepSecondaryClass : stepCtaClass\}/);
@@ -46,10 +47,10 @@ describe("S29 6-7: DNI/NIE and the identity checkbox", () => {
     expect(identityOnSign({ nationalIdMissing: true, collectIdentity: false })).toBe("ask");
     expect(identityOnSign({ nationalIdMissing: false, collectIdentity: false })).toBe("skip");
     const pad = read("src/components/investor/signature-pad.tsx");
-    expect(pad).toMatch(/showStored = identity !== "ask" && nationalIdMasked !== null/);
+    expect(pad).toMatch(/showStored = !askId && nationalIdMasked !== null/);
     expect(pad).toMatch(/data-stored-national-id/);
   });
-  it("the standalone /acuerdo page passes the signer, so a missing DNI/NIE is asked there too", () => {
+  it("the standalone /acuerdo page passes the signer, so the stored DNI/NIE shows masked there too", () => {
     expect(read("src/app/acuerdo/page.tsx")).toMatch(/<SignerProvider nationalIdMissing=\{user\.nationalIdMissing\}/);
   });
   it("has no Declaro que los datos son míos y correctos checkbox or server gate", () => {

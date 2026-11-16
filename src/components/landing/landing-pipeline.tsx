@@ -7,7 +7,6 @@ import {
   Handshake,
   MessageCircle,
   ScrollText,
-  Search,
   Send,
   ShieldCheck,
 } from "lucide-react";
@@ -22,7 +21,6 @@ const stepIcon: Record<DealStepId, ComponentType<{ className?: string }>> = {
   nda: ShieldCheck,
   qa: MessageCircle,
   loi: FileSignature,
-  diligence: Search,
   documents: ScrollText,
   close: CircleCheck,
 };

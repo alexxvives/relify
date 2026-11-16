@@ -43,6 +43,7 @@ export function PlatformTermsForm({ onSigned }: { onSigned?: () => void } = {}) 
     <form action={action} onSubmit={submit} className="mt-6 flex flex-col gap-4">
       <input type="hidden" name="signature" value={signature} />
       <SignaturePad
+        askNationalId={false}
         invalid={needsSignature}
         onChange={(value) => {
           setSignature(value);

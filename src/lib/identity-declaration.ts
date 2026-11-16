@@ -18,3 +18,19 @@ export function identityOnSign(input: {
   }
   return "skip";
 }
+
+/** S29b: onboarding is the only place a DNI/NIE is typed for the Acuerdo con Relify. */
+export const onboardingNationalIdPath = "/onboarding?paso=dni";
+
+/**
+ * S29b (Alex): the Acuerdo con Relify always signs with the DNI/NIE stored in onboarding. An onboarded account
+ * that somehow has none (older or seeded rows) is sent back to onboarding to add it before the agreement.
+ */
+export function agreementNeedsNationalId(user: {
+  onboarded: boolean;
+  nationalIdMissing: boolean;
+  termsAccepted: boolean;
+  role: string | null;
+}): boolean {
+  return user.onboarded && user.nationalIdMissing && !user.termsAccepted && user.role !== "admin";
+}

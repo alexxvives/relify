@@ -100,7 +100,6 @@ export async function listProjectMessages(
             sellerAcceptedAt: true,
             ndaAcceptedAt: true,
             loiAcceptedAt: true,
-            diligencePassedAt: true,
             sellerReadAt: true,
           },
           orderBy: { requestedAt: "asc" },
@@ -231,12 +230,6 @@ export async function listProjectMessages(
             ),
             offer: threadMessages.some((message) => message.kind === "offer"),
             loiAccepted: access.loiAcceptedAt !== null,
-            roomShared: grants.some(
-              (grant) =>
-                grant.projectId === access.projectId &&
-                grant.investorId === access.investorId,
-            ),
-            passedDiligence: access.diligencePassedAt !== null,
             closed: closedProjects.has(access.projectId),
           }),
         ),
@@ -276,12 +269,6 @@ export async function listProjectMessages(
         party: "seller" as const,
         open: contractStageOpen({
           loiAccepted: access.loiAcceptedAt !== null,
-          passedDiligence: access.diligencePassedAt !== null,
-          roomShared: grants.some(
-            (grant) =>
-              grant.projectId === access.projectId &&
-              grant.investorId === access.investorId,
-          ),
         }),
       })),
     );
@@ -320,7 +307,6 @@ export async function listProjectMessages(
           sellerAcceptedAt: true,
           ndaAcceptedAt: true,
           loiAcceptedAt: true,
-          diligencePassedAt: true,
           cancelledAt: true,
           id: true,
         },
@@ -435,10 +421,6 @@ export async function listProjectMessages(
             loiAccepted:
               access?.loiAcceptedAt !== null &&
               access?.loiAcceptedAt !== undefined,
-            roomShared: grant !== null,
-            passedDiligence:
-              access?.diligencePassedAt !== null &&
-              access?.diligencePassedAt !== undefined,
             closed: fee !== null,
           }),
         ),

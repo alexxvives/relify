@@ -119,8 +119,8 @@ function ThreadList({
 
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  // S28 (Alex): from Q&A through Revisión the asesor link lives in the bottom-right action row, never beside "Qué sigue".
-  return current?.id === "qa" || current?.id === "diligence";
+  // S28/S29b (Alex): from Preguntas through Contrato the asesor link lives in the bottom-right action row.
+  return current?.id === "qa" || current?.id === "loi" || current?.id === "documents";
 }
 
 function InvestorProfileDialog({
@@ -243,7 +243,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           <ProcessHeaderCue
             steps={thread.steps}
             role="seller"
-            diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
             contractNext={thread.contract?.next ?? null}
           />
         </div>
@@ -260,7 +259,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             steps={thread.steps}
             role="seller"
             hideAsideCue
-            diligence={{ accessId: thread.accessId, advisorHref: `/mi-empresa/servicios?empresa=${thread.slug}` }}
             acceptLoi={
               thread.messages.some((message) => message.kind === "offer")
                 ? {
@@ -285,7 +283,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             value={desk}
             onChange={changeDesk}
           />
-          {/* Alex (t50/S28): "Ver ficha", "Cancelar proceso" and, from Q&A through Revisión, "Contacta con un asesor" sit at
+          {/* Alex (t50/S28): "Ver ficha", "Cancelar proceso" and, from Preguntas through Contrato, "Contacta con un asesor" sit at
               the far right of the panel toggles (with the signed-contract record, when there is one). */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             {thread.contract?.stage === "signed" ? <ContractStage contract={thread.contract} /> : null}
