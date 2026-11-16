@@ -343,7 +343,11 @@ export function InvestorProfile({
             />
           )}
           <div className={hidePhotoControl ? "hidden @[52rem]:block" : "mt-4 hidden @[52rem]:block"}>
-            <InvestorPublicCard label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName} profile={preview} />
+            <InvestorPublicCard
+              label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName}
+              profile={preview}
+              fallbackPhoto={shownPhoto}
+            />
           </div>
         </div>
         </div>
@@ -351,6 +355,7 @@ export function InvestorProfile({
           open={previewOpen}
           label={displayName.trim().length > 0 ? displayName : investorCopy.cardPreviewName}
           profile={preview}
+          fallbackPhoto={shownPhoto}
           onClose={() => setPreviewOpen(false)}
         />
       </div>
@@ -362,11 +367,13 @@ function SellerCardDialog({
   open,
   label,
   profile,
+  fallbackPhoto,
   onClose,
 }: {
   open: boolean;
   label: string;
   profile: PublicInvestorCard | null;
+  fallbackPhoto: string;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -404,7 +411,7 @@ function SellerCardDialog({
             <X className="size-4" aria-hidden />
           </button>
         </form>
-        <InvestorPublicCard label={label} profile={profile} />
+        <InvestorPublicCard label={label} profile={profile} fallbackPhoto={fallbackPhoto} />
       </div>
     </dialog>
   );

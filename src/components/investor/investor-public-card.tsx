@@ -3,15 +3,19 @@ import type { ReactNode } from "react";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
 import { sellerCopy } from "@/lib/seller-copy";
 import { SectorMarquee } from "@/components/public/sector-marquee";
+import { gazeAvatarUrl } from "@/lib/gaze-avatar";
 
 export function InvestorPublicCard({
   label,
   profile,
   footer = null,
   interest = null,
+  fallbackPhoto,
 }: {
   label: string;
   profile: PublicInvestorCard | null;
+  /** S26: portrait used while the profile has no photo or is not complete yet (default: a blob avatar, never an initial). */
+  fallbackPhoto?: string;
   footer?: ReactNode;
   interest?: string | null;
 }) {
@@ -32,7 +36,7 @@ export function InvestorPublicCard({
         ) : null}
       </div>
       <div className="relative -mt-10 px-6 pb-6">
-        <ProfilePhoto photo={profile?.photo ?? ""} />
+        <ProfilePhoto photo={profile?.photo || fallbackPhoto || gazeAvatarUrl(label)} />
         {profile ? (
           <>
             <dl className="mt-5 grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
