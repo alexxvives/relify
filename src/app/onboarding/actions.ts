@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { authCopy } from "@/lib/auth-copy";
 import { homeForRole, onboardingFieldMessage, onboardingSchema, splitAccountName, type OnboardingInput } from "@/lib/auth-input";
-import { identityDeclared } from "@/lib/identity-declaration";
 import { completeOnboarding } from "@/lib/server/complete-onboarding";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import { startBuyerCheckout } from "@/lib/server/start-checkout";
@@ -33,10 +32,6 @@ function readOnboardingForm(formData: FormData): OnboardingInput | { message: st
 
   if (!parsed.success) {
     return { message: onboardingFieldMessage(parsed.error) };
-  }
-
-  if (!identityDeclared(formData.get("identityDeclared"))) {
-    return { message: authCopy.identityDeclarationRequired };
   }
 
   return parsed.data;

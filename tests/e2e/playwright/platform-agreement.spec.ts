@@ -19,8 +19,13 @@ test.describe("platform agreement", () => {
 
     const client = new pg.Client({ connectionString: databaseUrl });
     await client.connect();
-    const before = await client.query<{ created_at: Date }>(`select created_at from "user" where email = $1`, [creds?.email]);
-    const createdAt = before.rows[0]?.created_at ?? null;
+    // S29: snapshot the whole agreement state, so a failed run (e.g. a throttled sign-in) never leaves the account
+    // unsigned and the dialog open for the specs that run after this one.
+    const before = await client.query<{ created_at: Date; terms_accepted_at: Date | null; signature_png: Buffer | null }>(
+      `select created_at, terms_accepted_at, signature_png from "user" where email = $1`,
+      [creds?.email],
+    );
+    const original = before.rows[0] ?? null;
     try {
       // A fresh, unsigned account: created now, no acceptance, no signature.
       await client.query(
@@ -61,8 +66,14 @@ test.describe("platform agreement", () => {
       await page.waitForTimeout(1_000);
       await expect(page.locator("dialog[open]")).toHaveCount(0);
     } finally {
-      if (createdAt) {
-        await client.query(`update "user" set created_at = $2 where email = $1`, [creds?.email, createdAt]);
+      if (original) {
+        await client.query(
+          `update "user" set created_at = $2,
+             terms_accepted_at = coalesce(terms_accepted_at, $3),
+             signature_png = coalesce(signature_png, $4)
+           where email = $1`,
+          [creds?.email, original.created_at, original.terms_accepted_at, original.signature_png],
+        );
       }
       await client.end();
     }

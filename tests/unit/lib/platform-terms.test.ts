@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { platformTermsCopy } from "@/lib/platform-terms";
 
 describe("platform terms 03 Comisiones", () => {
-  it("keeps six clauses and the exact new commission body, without a 49 € advisor subscription", () => {
+  it("keeps seven clauses (S29: Tus datos replaces the identity checkbox) and the exact new commission body, without a 49 € advisor subscription", () => {
     expect(platformTermsCopy.clauses.map((clause) => clause.title)).toEqual([
       "Qué es este acuerdo",
       "Operaciones cerradas fuera de Relify",
       "Comisiones",
       "Confidencialidad",
+      "Tus datos",
       "Uso del chat",
       "Validez",
     ]);

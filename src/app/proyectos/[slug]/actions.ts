@@ -6,8 +6,6 @@ import { accessCopy } from "@/lib/access-copy";
 import { projectAccessInputSchema, type ProjectAccessInput } from "@/lib/project-access";
 import { acceptNda } from "@/lib/server/accept-nda";
 import { cancelProjectAccess } from "@/lib/server/cancel-project-access";
-import { authCopy } from "@/lib/auth-copy";
-import { identityDeclared } from "@/lib/identity-declaration";
 import { ensureNationalId } from "@/lib/server/ensure-national-id";
 import { getCurrentUser, type CurrentUser } from "@/lib/server/get-current-user";
 import { requestProjectAccess } from "@/lib/server/request-project-access";
@@ -80,10 +78,6 @@ export async function acceptNdaAction(
     return { ok: false, message: input.message };
   }
 
-  if (!identityDeclared(formData.get("identityDeclared"))) {
-    return { ok: false, message: authCopy.identityDeclarationRequired };
-  }
-
   const idError = await ensureNationalId(user.id, formData.get("nationalId"));
   if (idError) {
     return { ok: false, message: idError };
@@ -139,9 +133,6 @@ export async function postInvestorMessageAction(
 
   if (parsed.data.kind === "offer") {
     const submittedId = formData.get("nationalId");
-    if (typeof submittedId === "string" && submittedId.trim().length > 0 && !identityDeclared(formData.get("identityDeclared"))) {
-      return { ok: false, message: authCopy.identityDeclarationRequired };
-    }
     const idError = await ensureNationalId(user.id, submittedId);
     if (idError) {
       return { ok: false, message: idError };

@@ -4,7 +4,6 @@ import { useRef, useState, type PointerEvent } from "react";
 import { Eraser } from "lucide-react";
 import { platformTermsCopy } from "@/lib/platform-terms";
 import { useSigner } from "@/components/investor/signer-context";
-import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
 import { authCopy } from "@/lib/auth-copy";
 import { identityOnSign } from "@/lib/identity-declaration";
 import { Input } from "@/components/ui/form";
@@ -41,8 +40,8 @@ export function SignaturePad({
   const { nationalIdMissing, nationalIdMasked } = useSigner();
   const identity = identityOnSign({ nationalIdMissing, collectIdentity });
   const askId = identity === "ask";
-  const confirmStored = identity === "confirm";
-  const declareIdentity = identity !== "skip";
+  // S29: when the account already has a valid DNI/NIE it is never asked again; the dialog names it, masked.
+  const showStored = identity !== "ask" && nationalIdMasked !== null;
 
   function point(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
@@ -84,13 +83,11 @@ export function SignaturePad({
           />
         </label>
       ) : null}
-      {confirmStored ? (
-        <p className="mb-2 text-xs leading-5 text-[#5c6b78]">
-          {authCopy.nationalIdKeep}
-          {nationalIdMasked ? ` ${nationalIdMasked}` : ""}
+      {showStored ? (
+        <p className="mb-2 text-xs leading-5 text-[#5c6b78]" data-stored-national-id>
+          {authCopy.nationalIdKeep} {nationalIdMasked}
         </p>
       ) : null}
-      {declareIdentity ? <IdentityDeclarationCheckbox /> : null}
       <p className="text-sm font-medium text-[#1c2740]">{platformTermsCopy.signLabel}</p>
       <div className="relative mt-2">
         <canvas

@@ -1,8 +1,7 @@
-export const identityDeclarationField = "identityDeclared";
-
-export function identityDeclared(value: FormDataEntryValue | null): boolean {
-  return value === "on" || value === "true" || value === "1" || value === "yes";
-}
+/*
+ * S29 (Alex): no "Declaro que los datos son míos y correctos" checkbox. Nothing stored or checked it beyond the form
+ * gate; the signed Acuerdo con Relify carries that commitment ("Tus datos" clause) together with the signature.
+ */
 
 /** NDA collects or confirms DNI/NIE. LOI asks only when the profile has none. */
 export type IdentityOnSign = "ask" | "confirm" | "skip";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PlatformTermsForm } from "@/components/auth/platform-terms-form";
+import { SignerProvider } from "@/components/investor/signer-context";
 import { PlatformTermsText } from "@/components/auth/platform-terms-text";
 import { homeForRole } from "@/lib/auth-input";
 import { platformTermsCopy } from "@/lib/platform-terms";
@@ -31,7 +32,10 @@ export default async function PlatformTermsPage() {
       <h1 className="text-3xl font-semibold tracking-tight text-[#1c2740]">{platformTermsCopy.title}</h1>
       <p className="mt-3 text-sm leading-6 text-[#5c6b78]">{platformTermsCopy.intro}</p>
       <PlatformTermsText className="mt-8" />
-      <PlatformTermsForm />
+      {/* S29: outside the (app) shell, so pass the signer here; otherwise the pad never asked for a missing DNI/NIE. */}
+      <SignerProvider nationalIdMissing={user.nationalIdMissing} nationalIdMasked={user.nationalIdMasked}>
+        <PlatformTermsForm />
+      </SignerProvider>
     </main>
   );
 }

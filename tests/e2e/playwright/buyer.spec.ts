@@ -43,6 +43,7 @@ test.describe("buyer marketplace", () => {
     const dialog = page.getByRole("dialog").filter({ hasText: /carta de intenciones/i });
     await expect(dialog).toBeVisible();
     await expect(dialog.locator('input[name="nationalId"]')).toHaveCount(0);
-    await expect(dialog.getByText(/dni\/nie/i)).toHaveCount(0);
+    // S29: the stored DNI/NIE is named, masked, instead of being asked again.
+    await expect(dialog.locator("[data-stored-national-id]")).toHaveCount(1);
   });
 });

@@ -13,6 +13,7 @@ import {
 } from "@/app/(app)/procesos/contract-actions";
 import { contractStatusLabel, type ContractStage as Stage, type ContractView } from "@/lib/sale-contract";
 import { Button, Input, Textarea } from "@/components/ui/form";
+import { stepCtaClass, stepSecondaryClass } from "@/components/investor/step-cta";
 
 const stageOrder: { id: Stage; label: string }[] = [
   { id: "upload", label: "Subir contrato" },
@@ -50,17 +51,12 @@ export function ContractStage({ contract }: { contract: ContractView }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={`relative inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
-          yours ? "bg-[#465ab4] text-white hover:bg-[#3d4fa3]" : "border border-[#c9d2f5] bg-white text-[#465ab4] hover:bg-[#f4f6fb]"
-        }`}
-      >
-        <FileSignature aria-hidden className="size-4" />
+      <button type="button" onClick={() => setOpen(true)} data-step-cta className={signed ? stepSecondaryClass : stepCtaClass}>
         Contrato
         {current ? (
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${yours ? "bg-white/20 text-white" : signed ? "bg-[#e7f4ec] text-[#17663a]" : "bg-[#eef1f8] text-[#465ab4]"}`}>
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[11px] leading-4 font-medium tabular-nums ${signed ? "bg-[#e7f4ec] text-[#17663a]" : "bg-white/20 text-white"}`}
+          >
             {signed ? "Firmado" : `v${current.version}`}
           </span>
         ) : null}

@@ -101,25 +101,23 @@ export function ActivityFeed() {
                 const SectorIcon = sectorIcon[item.sector];
                 return (
                   <article key={`${item.project}-${index}`} className="relative rounded-2xl bg-white p-4 text-public-ink shadow-sm">
-                    <div className="mb-3 flex flex-wrap justify-end gap-1.5 text-[11px] font-medium">
-                      <span className="inline-flex items-center gap-1 rounded-[var(--field-radius)] bg-public-sand px-2 py-1">
-                        <SectorIcon className="size-3" aria-hidden />
-                        {showcaseSectorLabels[item.sector]}
-                      </span>
-                      <span className="rounded-[var(--field-radius)] bg-[#eef6f4] px-2 py-1 tabular-nums text-[#0f6b62]">
-                        {item.revenue}
-                      </span>
-                      <span className="rounded-[var(--field-radius)] bg-[#eef6f4] px-2 py-1 tabular-nums text-[#0f6b62]">
-                        EBITDA {item.ebitda}
-                      </span>
-                    </div>
                     <div className="flex items-center gap-3">
                       <MarginDonut pct={item.marginPct} />
                       <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 text-xs text-public-muted">
-                          <KindIcon className="size-3.5 shrink-0 text-public-clay" aria-hidden />
-                          {kindLabel[item.kind]} · {item.project}
-                        </p>
+                        {/* S29 (Alex): only the industry tag, on the same line as the Interés / Conexión label. */}
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="flex min-w-0 items-center gap-2 pt-0.5 text-xs leading-4 text-public-muted">
+                            <KindIcon className="size-3.5 shrink-0 text-public-clay" aria-hidden />
+                            {kindLabel[item.kind]} · {item.project}
+                          </p>
+                          <span
+                            data-sector-tag
+                            className="inline-flex shrink-0 items-center gap-1 rounded-[var(--field-radius)] bg-public-sand px-2 py-0.5 text-[11px] leading-4 font-medium"
+                          >
+                            <SectorIcon className="size-3" aria-hidden />
+                            {showcaseSectorLabels[item.sector]}
+                          </span>
+                        </div>
                         <h3 className="mt-1 font-medium">{item.title}</h3>
                         <p className="text-sm text-public-muted">{item.body}</p>
                       </div>

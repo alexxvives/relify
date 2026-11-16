@@ -34,6 +34,9 @@ function pendingText(count: number) {
   return count === 1 ? "1 acción pendiente" : `${count} acciones pendientes`;
 }
 
+/** Desktop width of the Avisos panel (S29). On phones the panel spans the viewport minus 12 px a side. */
+export const notificationPanelMaxPx = 360;
+
 export function NotificationBell({ items, pendingGroups = [] }: { items: NotificationView[]; pendingGroups?: PendingGroup[] }) {
   const pendingActions = pendingGroups.reduce((sum, group) => sum + group.count, 0);
   const [open, setOpen] = useState(false);
@@ -115,7 +118,9 @@ export function NotificationBell({ items, pendingGroups = [] }: { items: Notific
 
       const rect = currentButton.getBoundingClientRect();
       const margin = 12;
-      const width = Math.min(36 * 16, window.innerWidth - margin * 2);
+      // S29 (Alex): a narrow ~360 px panel from 640 px up; phones keep the full width minus the margins.
+      const full = window.innerWidth - margin * 2;
+      const width = window.innerWidth < 640 ? full : Math.min(notificationPanelMaxPx, full);
       let left = rect.right - width;
 
       if (left < margin) {
@@ -167,8 +172,8 @@ export function NotificationBell({ items, pendingGroups = [] }: { items: Notific
         ? createPortal(
         <div
           ref={panelRef}
-          className="fixed z-[60] flex w-[min(36rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public"
-          style={{ top: 0, left: 12, width: "min(36rem, calc(100vw - 1.5rem))", maxHeight: "50vh" }}
+          className="fixed z-[60] flex w-[calc(100vw-1.5rem)] sm:w-[min(360px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-public-line bg-public-card shadow-public"
+          style={{ top: 0, left: 12, maxHeight: "50vh" }}
         >
           <div className="flex items-center justify-between gap-3 border-b border-public-line px-4 py-3">
             <p className="text-base font-semibold text-public-ink">{notificationCopy.title}</p>

@@ -15,8 +15,6 @@ import { authCopy } from "@/lib/auth-copy";
 import { referralSources, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
 import { isValidPhoneNational } from "@/lib/phone-countries";
 import { isValidSpanishPersonId } from "@/lib/spanish-cif";
-import { IdentityDeclarationCheckbox } from "@/components/auth/identity-declaration";
-import { identityDeclarationField } from "@/lib/identity-declaration";
 
 type OnboardingStep = "identity" | "phone" | "referral" | "plan";
 type IdentityField = "name" | "nationalId" | "phone";
@@ -35,7 +33,6 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
   const [step, setStep] = useState<OnboardingStep>("identity");
   const [fullName, setFullName] = useState("");
   const [nationalId, setNationalId] = useState("");
-  const [identityOk, setIdentityOk] = useState(false);
   const [phoneCountry, setPhoneCountry] = useState("ES");
   const [phone, setPhone] = useState("");
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
@@ -77,11 +74,6 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
 
       if (!isValidSpanishPersonId(nationalId)) {
         reject("nationalId", authCopy.nationalIdInvalid);
-        return;
-      }
-
-      if (!identityOk) {
-        setLocalMessage(authCopy.identityDeclarationRequired);
         return;
       }
 
@@ -142,7 +134,6 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
     >
       <input type="hidden" name="fullName" value={fullName} />
       <input type="hidden" name="nationalId" value={nationalId} />
-      <input type="hidden" name={identityDeclarationField} value={identityOk ? "on" : ""} />
       <input type="hidden" name="phone" value={phone} />
       <input type="hidden" name="phoneCountry" value={phoneCountry} />
       <input type="hidden" name="role" value={initialRole} />
@@ -213,7 +204,6 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
               </span>
             ) : null}
           </label>
-          <IdentityDeclarationCheckbox named={false} checked={identityOk} onCheckedChange={setIdentityOk} invalid={Boolean(localMessage) && !identityOk} />
         </div>
       ) : null}
       {step === "phone" ? (

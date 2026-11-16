@@ -12,8 +12,6 @@ import {
   setAdvisorFolder,
   setAdvisorProcess,
 } from "@/lib/server/advisory-engagement";
-import { authCopy } from "@/lib/auth-copy";
-import { identityDeclared } from "@/lib/identity-declaration";
 import { ensureNationalId } from "@/lib/server/ensure-national-id";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/lib/server/start-checkout";
@@ -111,9 +109,6 @@ export async function acceptAdvisorNdaAction(
 ): Promise<EngagementActionState> {
   const user = await signedIn();
   const id = readText(formData, "engagementId");
-  if (!identityDeclared(formData.get("identityDeclared"))) {
-    return { ok: false, message: authCopy.identityDeclarationRequired };
-  }
   const idError = await ensureNationalId(user.id, formData.get("nationalId"));
   if (idError) {
     return { ok: false, message: idError };

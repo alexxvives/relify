@@ -1,5 +1,6 @@
 "use client";
 
+import { stepCtaClass } from "@/components/investor/step-cta";
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -178,7 +179,7 @@ export function AdvisorNdaTurn({ engagementId, text }: { engagementId: string; t
           onClick={() => {
             setOpen(true);
           }}
-          className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
+          className={stepCtaClass}
         >
           Firmar NDA
         </button>

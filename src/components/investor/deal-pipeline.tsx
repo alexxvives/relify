@@ -1,5 +1,6 @@
 "use client";
 
+import { stepCtaClass } from "@/components/investor/step-cta";
 import { PdfPages } from "@/components/seller/pdf-pages";
 
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
@@ -320,7 +321,7 @@ function SignNow({ onSign, kind }: { onSign: () => void; kind: "nda" | "loi" | n
     <button
       type="button"
       onClick={onSign}
-      className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
+      className={stepCtaClass}
     >
       {kind === "loi" ? "Firmar LOI" : "Firmar NDA"}
     </button>
@@ -387,7 +388,7 @@ export function ProcessHeaderCue({
           <button
             type="button"
             onClick={() => proceedToLoi(sign.slug)}
-            className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white"
+            className={stepCtaClass}
           >
             Proceder al LOI
           </button>
@@ -483,7 +484,7 @@ function DiligenceChoice({
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex h-9 items-center rounded-full bg-[#17663a] px-3 text-sm font-semibold text-white disabled:opacity-60"
+            className={stepCtaClass}
           >
             {pending ? "Guardando…" : "Seguir a documentación"}
           </button>

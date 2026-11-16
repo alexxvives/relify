@@ -1,22 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { identityDeclared, identityOnSign } from "@/lib/identity-declaration";
-
-describe("identityDeclared", () => {
-  it("accepts the checkbox on values", () => {
-    expect(identityDeclared("on")).toBe(true);
-    expect(identityDeclared("true")).toBe(true);
-    expect(identityDeclared("1")).toBe(true);
-    expect(identityDeclared("yes")).toBe(true);
-  });
-
-  it("rejects missing or empty confirmation", () => {
-    expect(identityDeclared(null)).toBe(false);
-    expect(identityDeclared("")).toBe(false);
-    expect(identityDeclared("off")).toBe(false);
-  });
-});
+import { identityOnSign } from "@/lib/identity-declaration";
 
 describe("NDA then LOI identity reuse", () => {
   it("asks for DNI on NDA when missing, then skips it on LOI once stored", () => {

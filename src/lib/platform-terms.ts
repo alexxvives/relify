@@ -17,6 +17,10 @@ const clauses = [
     text: "Lo que ves de una empresa antes del acuerdo de confidencialidad es el **nombre de proyecto, la región y las cifras públicas**. La razón social, el CIF, la dirección y los nombres de los socios no se publican.",
   },
   {
+    title: "Tus datos",
+    text: "Los datos de tu cuenta (nombre, DNI/NIE y contacto) son tuyos y **son correctos**. Relify puede suspender la cuenta si hay una identidad falsa.",
+  },
+  {
     title: "Uso del chat",
     text: "**No uses el chat para pasar un teléfono, un correo o una vía para cerrar fuera de Relify.** Relify puede suspender la cuenta si lo hace.",
   },

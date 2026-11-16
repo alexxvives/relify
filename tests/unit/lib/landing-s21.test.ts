@@ -13,9 +13,9 @@ describe("Round S21 landing and product bits", () => {
     expect(docs).toMatch(/PdfThumb/);
   });
 
-  it("drops the profile identity declaration and keeps it on NDA signing", () => {
+  it("has no identity declaration checkbox anywhere (S29: the signed agreement covers it)", () => {
     expect(read("src/components/account/account-settings.tsx")).not.toMatch(/IdentityDeclarationCheckbox/);
-    expect(read("src/components/investor/signature-pad.tsx")).toMatch(/IdentityDeclarationCheckbox/);
+    expect(read("src/components/investor/signature-pad.tsx")).not.toMatch(/IdentityDeclarationCheckbox/);
   });
 
   it("keeps plan cards without the old IVA 21% line", () => {
