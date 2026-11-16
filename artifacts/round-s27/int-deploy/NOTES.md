@@ -28,6 +28,6 @@ psql "$INT_DATABASE_URL" -v ON_ERROR_STOP=1 -f int-s27-pipeline-advisors.sql
 
 ## Pack
 
-- commit: `fbef129a3b8e0a9287519a090175fe862da1ef9d`
-- `releva-int-deploy.tar.gz` SHA256 `7a2fbbe4fa48ad556a186763cdfcf9030857a588d72718fc3d751fcb2e870dab`
+- commit: `c20ad795b05e7ef51b1672f71df44133f178a27a`
+- `releva-int-deploy.tar.gz` SHA256 `7940b8ff0af32cb325a5db322a76e6645b132e435ada45e16f5b60622a42dbe6`
 - split parts `releva-int-deploy.tar.gz.part-aa`, `-ab` (cat them back together and check SHA256SUMS)
