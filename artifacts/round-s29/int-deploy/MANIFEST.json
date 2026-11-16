@@ -1,0 +1,32 @@
+{
+  "round": "s29",
+  "commit": "439c96c1adcd30cf95b6aedf6c440b08335e359a",
+  "tar_gz": "releva-int-deploy.tar.gz",
+  "tar_gz_sha256": "d63d9f9873a1dad3579a75e6b919863c5f29bc4288db6f4b28ab673efbe5ce8a",
+  "migrations": [],
+  "sql": [
+    "int-consultoria-years.sql",
+    "int-consultoria-buyer-fixtures.sql",
+    "int-s27-pipeline-advisors.sql",
+    "int-s29-national-ids.sql"
+  ],
+  "r2_required": [
+    {
+      "binding": "INT_UPLOADS",
+      "bucket_name": "releva-int-uploads",
+      "create": "wrangler r2 bucket create releva-int-uploads",
+      "note": "INT-only. Do not bind a production bucket. Data-room keys use int/; the S27 deep health check writes and deletes one tiny object under health-check/."
+    }
+  ],
+  "secrets_optional": [
+    "INT_APIEMPRESAS_API_KEY",
+    "HEALTHCHECK_TOKEN"
+  ],
+  "health": {
+    "basic": "GET /api/health (public, DB ping)",
+    "deep": "GET /api/health/deep with header x-health-token: <HEALTHCHECK_TOKEN>; 404 while the secret is unset, 401 on a wrong token",
+    "checks": "database, apiEmpresas (probe CIF A28015865, cached 1 h per isolate, not_configured without INT_APIEMPRESAS_API_KEY), uploads (INT_UPLOADS put/get/delete under health-check/)"
+  },
+  "note": "No Prisma migration. Same R2 and optional secrets as S27/S28. New optional seed int-s29-national-ids.sql (INT Neon only, idempotent): synthetic DNI/NIE for @test.local accounts without one, so signature pads stop asking. Not deployed.",
+  "deployed": false
+}
