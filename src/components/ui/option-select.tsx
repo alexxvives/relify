@@ -27,7 +27,8 @@ export function OptionSelect({
   name?: string;
   label: string;
   value: string;
-  options: readonly { value: string; label: string; group?: string }[];
+  /** `triggerLabel` (S26): a shorter text for the closed trigger, e.g. "🇪🇸 +34"; the list keeps `label`. */
+  options: readonly { value: string; label: string; group?: string; triggerLabel?: string }[];
   onValueChange: (value: string) => void;
   searchable?: boolean;
   searchPlaceholder?: string;
@@ -210,7 +211,9 @@ export function OptionSelect({
             : `relify-field flex ${textSize === "sm" ? "h-10" : "h-11"} w-full min-w-0 items-center justify-between gap-2 overflow-hidden px-3 text-left ${textSize === "sm" ? "text-sm" : "text-base"}`
         }
       >
-        <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"}>{selected?.label ?? placeholder ?? label}</span>
+        <span className={selected || !placeholder ? "truncate" : "truncate text-[#98a2b3]"} title={selected?.triggerLabel ? selected.label : undefined}>
+          {selected?.triggerLabel ?? selected?.label ?? placeholder ?? label}
+        </span>
         <ChevronDown className="size-4 shrink-0 text-[#5c6b78]" aria-hidden />
       </button>
       {open && typeof document !== "undefined"

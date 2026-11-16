@@ -2,7 +2,13 @@
 
 import { useRef } from "react";
 import { authCopy } from "@/lib/auth-copy";
-import { formatNationalPhone, phoneCountries, phoneNationalLimit } from "@/lib/phone-countries";
+import {
+  flagEmoji,
+  formatNationalPhone,
+  phoneCountries,
+  phoneNationalLimit,
+  phonePrefixTriggerLabel,
+} from "@/lib/phone-countries";
 import { OptionSelect } from "@/components/ui/option-select";
 
 const phoneCountryOptions = [
@@ -12,7 +18,8 @@ const phoneCountryOptions = [
     .sort((left, right) => left.name.localeCompare(right.name, "es")),
 ].map((country) => ({
   value: country.iso,
-  label: `${country.name} +${country.dial}`,
+  label: `${flagEmoji(country.iso)} ${country.name} +${country.dial}`.trim(),
+  triggerLabel: phonePrefixTriggerLabel(country.iso, country.dial),
 }));
 
 export function PhoneField({
@@ -33,7 +40,7 @@ export function PhoneField({
   const formatted = formatNationalPhone(country, national);
 
   return (
-    <div className="grid grid-cols-[minmax(7.5rem,10.5rem)_minmax(0,1fr)] gap-2">
+    <div className="grid grid-cols-[minmax(6.25rem,7.5rem)_minmax(0,1fr)] gap-2">
       <OptionSelect
         name="phoneCountry"
         label={authCopy.phoneCountryLabel}
