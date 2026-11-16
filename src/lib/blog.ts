@@ -2,11 +2,21 @@ export const blogCopy = {
   title: "Diario",
   description:
     "Guías para comprar y vender una pyme en España: qué se ve antes del NDA, cómo leer el EBITDA y cómo avanza la compraventa sin publicar el nombre.",
-  kicker: "Relify",
   all: "Todo",
   back: "Volver al diario",
   minutes: "min de lectura",
-  related: "Sigue en Relify",
+  latest: "Últimos artículos",
+  featured: "Destacado",
+  readMore: "Leer artículo",
+  filterLabel: "Filtrar por tema",
+  empty: "Todavía no hay artículos de este tema.",
+  author: "Equipo Relify",
+  toc: "En este artículo",
+  morePosts: "Sigue leyendo",
+  ctaTitle: "¿Vendes o buscas una pyme?",
+  ctaBody: "Publica la ficha sin mostrar el nombre o revisa las empresas que ya están en venta.",
+  ctaSell: "Vender mi empresa",
+  ctaBuy: "Ver empresas en venta",
   newsletterTitle: "Una nota al mes",
   newsletterBody: "Déjanos tu email y te avisaremos cuando salga una nota nueva en el diario.",
   newsletterPlaceholder: "tu@empresa.com",
@@ -481,4 +491,26 @@ export function formatBlogDate(date: string): string {
   const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const label = months[Number(month) - 1] ?? month;
   return `${Number(day)} ${label} ${year}`;
+}
+
+/** S27: stable anchor for a section heading (table of contents). */
+export function blogHeadingId(heading: string): string {
+  return heading
+    .toLocaleLowerCase("es")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** S27: up to `count` other posts, same lane first, newest first inside each group. */
+export function relatedBlogPosts(slug: string, count = 3): BlogPost[] {
+  const current = blogPost(slug);
+  const others = blogPosts.filter((post) => post.slug !== slug).sort((left, right) => right.date.localeCompare(left.date));
+  if (!current) {
+    return others.slice(0, count);
+  }
+  const same = others.filter((post) => post.lane === current.lane);
+  const rest = others.filter((post) => post.lane !== current.lane);
+  return [...same, ...rest].slice(0, count);
 }
