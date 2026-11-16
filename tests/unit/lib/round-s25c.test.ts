@@ -10,7 +10,7 @@ const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 describe("S25c placeholders never look like a value already filled in", () => {
   it("uses example-style or neutral copy", () => {
     expect(companyCopy.locationPlaceholder).toBe("Ej.: Sabadell, Barcelona");
-    expect(investorCopy.locationPlaceholder).toBe("Ej.: Sabadell, Barcelona");
+    expect(investorCopy.locationPlaceholder).toBe("Ej.: Sabadell, Cataluña, España"); // S26: Ciudad, Comunidad, España
     expect(companyCopy.nifPlaceholder).toMatch(/^Ej\.: /);
     expect(authCopy.nationalIdPlaceholder).toMatch(/^Ej\.: /);
     expect(companyCopy.amountPlaceholder).toBe("Importe en €");

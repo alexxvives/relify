@@ -55,7 +55,8 @@ describe("Round S21 landing and product bits", () => {
 
   it("centres the pipeline line through the dots and uses a step card", () => {
     const css = read("src/app/globals.css");
-    expect(css).toMatch(/top: 0\.425rem/);
+    // S26: the connector top is derived from the dot size, so it stays centred on the dot.
+    expect(css).toMatch(/top: calc\(\(var\(--pipe-dot\) - var\(--pipe-line\)\) \/ 2\)/);
     expect(css).not.toMatch(/top: 1\.575rem/);
     expect(read("src/components/landing/landing-pipeline.tsx")).toMatch(/releva-land-pipe-icon/);
     expect(read("src/components/landing/landing-pipeline.tsx")).toMatch(/Paso \{active \+ 1\}/);
