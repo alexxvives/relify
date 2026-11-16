@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
+import { Camera, Check, HandHeart, MapPin, Search, UserRound } from "lucide-react";
 import { BuyerActivitySummary } from "@/components/shell/activity-summary";
 import type { InvestorFunnel } from "@/lib/server/activity-funnel";
 import type { DealStep } from "@/lib/deal-pipeline";
@@ -11,7 +11,6 @@ import type { IndustrySector } from "@/lib/cnae-section";
 import type { HomePendingAction } from "@/lib/deal-pipeline";
 import type { NotificationView } from "@/lib/notifications";
 import type { InvestorProfileChecks } from "@/lib/server/investor-desk";
-import { blogPosts, formatBlogDate } from "@/lib/blog";
 import { Card } from "@/components/ui/form";
 
 const checklist = [
@@ -36,7 +35,6 @@ export function InvestorHome({
   sectors: IndustrySector[];
   pending: HomePendingAction[];
 }) {
-  const news = [...blogPosts].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 2);
   const filled = checklist.filter((item) => profileChecks[item.key]).length;
   const profileComplete = filled === checklist.length;
 
@@ -47,28 +45,6 @@ export function InvestorHome({
         <Card>
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.sectorsTitle}</h2>
           <SectorTreemap sectors={sectors} empty={investorCopy.sectorsEmpty} />
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{investorCopy.trendsTitle}</h2>
-            <Link href="/tendencias" className="inline-flex items-center gap-1 text-sm text-[#64748b]">
-              {investorCopy.seeAll}
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {news.map((item) => (
-              <li key={item.slug} className="overflow-hidden rounded-2xl border border-[#e7eaee]">
-                <Link href={`/blog/${item.slug}`} className="block p-3 hover:bg-[#f7f8fb]">
-                  <p className="text-xs text-[#64748b]">
-                    {item.category} · {formatBlogDate(item.date)}
-                  </p>
-                  <p className="mt-2 text-sm font-medium leading-5 text-[#2b3b4a]">{item.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-[#64748b]">{item.excerpt}</p>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </Card>
       </div>
       {/* Alex (S26): a narrower side column; when it stacks (below xl) the two cards sit side by side. */}

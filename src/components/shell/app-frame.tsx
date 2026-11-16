@@ -20,6 +20,7 @@ import { PhoneIcon } from "@animateicons/react/lucide/phone-icon";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
 import { ReceiptIcon } from "@animateicons/react/lucide/receipt-icon";
 import { TableIcon } from "@animateicons/react/lucide/table-icon";
+import { TrendingUpIcon } from "@animateicons/react/lucide/trending-up-icon";
 import { TrophyIcon } from "@animateicons/react/lucide/trophy-icon";
 import { UsersIcon } from "@animateicons/react/lucide/users-icon";
 import { XIcon } from "@animateicons/react/lucide/x-icon";
@@ -46,6 +47,7 @@ const iconForHref = {
   "/mi-empresa/documentos": FilesIcon,
   "/mi-empresa/procesos": TableIcon,
   "/procesos": TableIcon,
+  "/tendencias": TrendingUpIcon,
   "/mi-empresa/servicios": MessageCircleMoreIcon,
   "/mi-empresa/venta": TrophyIcon,
   "/favoritos": HeartIcon,
@@ -474,14 +476,21 @@ export function AppFrame({
                 {shellCopy.helpTitle}
                 <ChevronDownIcon size={16} className="shrink-0 text-[#aeb6c7] transition-transform duration-200 group-open/help:rotate-180" aria-hidden />
               </summary>
-              <p className="mt-1 text-xs leading-5 text-[#aeb6c7]">{shellCopy.helpBody}</p>
-              <div className="mt-3 grid gap-2">
+              {/* Alex (S27): no "Llámanos o escríbenos" line; phone and email are the two actions. */}
+              <div className="mt-2 grid gap-2">
                 <a
                   href={shellCopy.helpPhoneHref}
                   className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] px-3 text-sm font-medium text-[#d6dbe6] hover:bg-[#262d40] hover:text-white"
                 >
                   <PhoneIcon size={16} aria-hidden />
                   {shellCopy.helpPhone}
+                </a>
+                <a
+                  href={shellCopy.helpEmailHref}
+                  className="group inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#1a1f2e] px-3 text-sm font-medium text-[#d6dbe6] hover:bg-[#262d40] hover:text-white"
+                >
+                  <MailIcon size={16} aria-hidden />
+                  <span className="min-w-0 truncate">{shellCopy.helpEmail}</span>
                 </a>
               </div>
             </details>

@@ -6,6 +6,7 @@ describe("destinationsForRole", () => {
     expect(destinationsForRole("investor")).toEqual([
       { href: "/inversor", label: "Inicio" },
       { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
+      { href: "/tendencias", label: "Tendencias", section: "Explorar" },
       { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
       { href: "/asesoramiento", label: "Mi asesor", section: "Gestión de procesos" },
     ]);

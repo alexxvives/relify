@@ -7,7 +7,6 @@ export const shellCopy = {
   accountLabel: "Cuenta",
   viewProfile: "Ver perfil",
   helpTitle: "¿Necesitas ayuda?",
-  helpBody: "Llámanos o escríbenos.",
   helpCall: "",
   helpPhone: "+34 689 99 43 85",
   helpPhoneHref: "tel:+34689994385",
@@ -52,6 +51,7 @@ const destinations = {
   investor: [
     { href: "/inversor", label: "Inicio" },
     { href: "/mercado", label: "Empresas en venta", section: "Explorar" },
+    { href: "/tendencias", label: "Tendencias", section: "Explorar" },
     { href: "/procesos", label: "Mis procesos", section: "Gestión de procesos" },
     { href: "/asesoramiento", label: "Mi asesor", section: "Gestión de procesos" },
   ],
