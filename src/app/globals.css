@@ -1882,36 +1882,23 @@ header:has([data-menu-open="true"]) {
   top: clamp(124px, calc(-215px + 50vh), 300px);
 }
 
+/*
+ * S26: one connector per step, drawn from this dot to the next one, so the base and the filled
+ * segments always run through the centre of the dots (flex row on desktop, 4-column grid on mobile).
+ */
 .releva-land-pipe-track {
+  --pipe-dot: 0.85rem;
+  --pipe-gap: 0.25rem;
+  --pipe-line: 2px;
   position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.25rem;
+  gap: var(--pipe-gap);
   margin: 1.75rem 0 0;
   padding: 0.35rem 0 0;
   list-style: none;
   overflow: visible;
-}
-
-.releva-land-pipe-base,
-.releva-land-pipe-fill {
-  position: absolute;
-  top: 0.425rem;
-  left: calc(100% / (var(--pipe-n, 8) * 2));
-  height: 2px;
-  border-radius: 99px;
-  pointer-events: none;
-}
-
-.releva-land-pipe-base {
-  right: calc(100% / (var(--pipe-n, 8) * 2));
-  background: #e6eaf2;
-}
-
-.releva-land-pipe-fill {
-  width: calc(100% * var(--pipe-fill, 0) / var(--pipe-n, 8));
-  background: #178a45;
 }
 
 .releva-land-pipe-step {
@@ -1923,12 +1910,17 @@ header:has([data-menu-open="true"]) {
 .releva-land-pipe-step:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 0.425rem;
-  left: calc(50% + 0.55rem);
-  right: calc(-50% + 0.55rem);
-  height: 2px;
-  background: transparent;
+  top: calc((var(--pipe-dot) - var(--pipe-line)) / 2);
+  left: calc(50% + var(--pipe-dot) / 2);
+  right: calc(-50% - var(--pipe-gap) + var(--pipe-dot) / 2);
+  height: var(--pipe-line);
+  border-radius: 99px;
+  background: #e6eaf2;
   pointer-events: none;
+}
+
+.releva-land-pipe-done:not(:last-child)::after {
+  background: #178a45;
 }
 
 .releva-land-pipe-current:not(:last-child)::after {
@@ -1949,9 +1941,10 @@ header:has([data-menu-open="true"]) {
 
 @media (max-width: 639px) {
   .releva-land-pipe-track {
+    --pipe-gap: 0.2rem;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.15rem 0.2rem;
+    gap: 1.15rem var(--pipe-gap);
   }
 
   .releva-land-pipe-step:nth-child(4n)::after {

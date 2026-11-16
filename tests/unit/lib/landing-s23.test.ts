@@ -83,8 +83,8 @@ describe("Round S23 landing, documents, and INT uploads", () => {
   it("fills completed pipeline segments and pulses the current step like Mis procesos", () => {
     const source = read("src/components/landing/landing-pipeline.tsx");
     const css = read("src/app/globals.css");
-    expect(source).toMatch(/releva-land-pipe-fill/);
-    expect(source).toMatch(/--pipe-fill/);
+    // S26: done segments are per-step connectors (centred on the dots), not one absolute fill bar.
+    expect(css).toMatch(/\.releva-land-pipe-done:not\(:last-child\)::after \{\s*background: #178a45/);
     expect(css).toMatch(/releva-land-pipe-advance/);
     expect(css).toMatch(/\.releva-land-pipe-current \.releva-land-pipe-dot::before/);
     expect(css).toMatch(/animation: deal-pulse/);
