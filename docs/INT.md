@@ -103,3 +103,34 @@ Point a Stripe TEST webhook at that path and paste the signing secret into `INT_
 ## Analytics
 
 Do **not** set `GTM_CONTAINER_ID`, `NEXT_PUBLIC_GTM_CONTAINER_ID`, `GA_MEASUREMENT_ID` or `NEXT_PUBLIC_GA_MEASUREMENT_ID` on `releva-int`. Without a `GTM-…` or `G-…` id, Tag Manager and Analytics 4 do not load. Layout also skips GTM/GA when `INT_ENVIRONMENT=true`. Prod gets `GTM_CONTAINER_ID=GTM-KMZ4Z9PZ` at prod deploy (Consent Mode v2 Advanced: `gtm.js` in `<head>`, cookieless until Aceptar).
+
+## S27 seed: asesores and one process per pipeline step
+
+File: `prisma/int-s27-pipeline-advisors.sql` (also in the round-s27 INT pack). INT Neon only, never the production database. Additive and idempotent (`ON CONFLICT DO NOTHING`), one transaction, no schema migration. Not applied by the agent: Alex applies it.
+
+What it adds:
+
+- Asesores with a full, verified advisor profile (firm, NIF, postal code, sectors, services with price ranges, closed operations): `int-asesor-valoracion@test.local`, `int-asesor-legal@test.local`, `int-asesor-fiscal@test.local`.
+- Seller `int-vendedor-cartera@test.local` with six published synthetic companies (`int-s27-*` slugs, `B900001xx` CIFs, "Ficticia" legal names).
+- `int-comprador@test.local` gets one active process per step on those companies:
+
+| Company | Step shown |
+| --- | --- |
+| Taller Levante | Conexión (waiting for the seller) |
+| Clínica Norte | NDA (seller accepted, NDA to sign) |
+| Distribuidora Ebro | Preguntas (NDA signed, one question) |
+| Obrador Sur | Preguntas with LOI sent, waiting for the seller |
+| Agencia Tajo | Revisión (LOI accepted) |
+| Logística Cantábrico | Contrato (LOI accepted, data room shared) |
+
+"Venta" needs a sale contract PDF in signing and is not seeded.
+
+Passwords: the SQL contains no password. New asesores copy the scrypt hash of `int-asesor@test.local` and the new seller copies `int-vendedor-manual@test.local`, so they use the same test password as those accounts. If a source account is missing, the user row is created without a login. New accounts sign the Acuerdo con Relify on first sign-in.
+
+Apply (from a machine with the INT connection string, never the prod one):
+
+```bash
+psql "$INT_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/int-s27-pipeline-advisors.sql
+```
+
+Undo: `DELETE FROM project WHERE slug LIKE 'int-s27-%'; DELETE FROM "user" WHERE id LIKE 'int-s27-user-%';` (cascades to accesses, messages, grants, profiles and accounts).
