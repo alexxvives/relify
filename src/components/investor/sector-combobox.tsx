@@ -27,6 +27,7 @@ export function SectorCombobox({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [browsed, setBrowsed] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const typed = query.trim();
@@ -63,6 +64,7 @@ export function SectorCombobox({
     onChange(result.next.join(sectorJoiner));
     setQuery("");
     setActive(0);
+    setBrowsed(false);
     setNote(null);
   }
 
@@ -85,27 +87,38 @@ export function SectorCombobox({
           aria-controls={listId}
           aria-activedescendant={showList ? `${listId}-${current}` : undefined}
           autoComplete="off"
+          enterKeyHint="enter"
           onFocus={() => setOpen(true)}
           onMouseDown={() => setOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);
             setActive(0);
+            setBrowsed(false);
             setOpen(true);
             setNote(null);
           }}
           onKeyDown={(event) => {
+            // S26: an IME/dead-key composition (é, ñ on some keyboards) must finish before Enter adds.
+            if (event.nativeEvent.isComposing) {
+              return;
+            }
             if (event.key === "ArrowDown" && list.length > 0) {
               event.preventDefault();
               setOpen(true);
+              setBrowsed(true);
               setActive((current + 1) % list.length);
             } else if (event.key === "ArrowUp" && list.length > 0) {
               event.preventDefault();
+              setBrowsed(true);
               setActive(current <= 0 ? list.length - 1 : current - 1);
             } else if (event.key === "Enter") {
               // Never submit the form from here: Enter always adds (highlighted option or typed text).
               event.preventDefault();
-              const option = showList ? list[current] : undefined;
-              add(option ? option.label : typed);
+              // An empty field adds only an option picked with the arrows, never the first one by accident.
+              const option = showList && (typed.length > 0 || browsed) ? list[current] : undefined;
+              if (option || typed.length > 0) {
+                add(option ? option.label : typed);
+              }
             } else if (event.key === "Escape") {
               setOpen(false);
             } else if (event.key === "Backspace" && query.length === 0 && chips.length > 0) {

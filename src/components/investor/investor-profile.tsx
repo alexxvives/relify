@@ -17,7 +17,7 @@ import { investorCopy, investorTypes } from "@/lib/investor-copy";
 import {
   investorPhotoMaxBytes,
   investorPhotoMaxChars,
-  investorProfileSchema,
+  investorProfileDraftSchema,
   investorStakes,
   investorTicketBands,
 } from "@/lib/investor-profile";
@@ -141,7 +141,7 @@ export function InvestorProfile({
     }
 
     const timer = window.setTimeout(() => {
-      const parsed = investorProfileSchema.safeParse({
+      const parsed = investorProfileDraftSchema.safeParse({
         photo: savedPhoto,
         city,
         province,

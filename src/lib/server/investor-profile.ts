@@ -8,6 +8,7 @@ import { demoInvestorProfile, publicCardFromDraft } from "@/lib/demo-profile";
 import { gazeAvatarUrl, uploadedInvestorPhoto } from "@/lib/gaze-avatar";
 import {
   investorPhotoSchema,
+  type InvestorProfileDraftInput,
   type InvestorProfileInput,
 } from "@/lib/investor-profile";
 import type { CurrentUser } from "@/lib/server/get-current-user";
@@ -167,7 +168,7 @@ export async function saveInvestorPhoto(
 
 export async function saveInvestorProfile(
   user: CurrentUser,
-  input: InvestorProfileInput,
+  input: InvestorProfileInput | InvestorProfileDraftInput,
 ): Promise<{ ok: true } | { ok: false }> {
   if (user.role !== "investor" || !user.onboarded) {
     return { ok: false };
