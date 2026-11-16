@@ -322,3 +322,11 @@ describe("S27 follow-up: blog grid has no lone last card", () => {
     expect(read("src/components/public/blog-card.tsx")).toMatch(/@\[40rem\]:flex-row/);
   });
 });
+
+describe("S27 follow-up: the active seller company is deterministic", () => {
+  it("breaks createdAt ties by id so the Detalles page and its save hit the same company", () => {
+    const source = read("src/lib/server/seller-company.ts");
+    expect(source).not.toMatch(/orderBy: \{ createdAt: "asc" \}/);
+    expect((source.match(/orderBy: \[\{ createdAt: "asc" \}, \{ id: "asc" \}\]/g) ?? []).length).toBeGreaterThanOrEqual(4);
+  });
+});

@@ -38,7 +38,7 @@ export async function listSellerAdvisoryCompanies(
 ): Promise<{ slug: string; codename: string; region: string }[]> {
   return prisma.project.findMany({
     where: { ownerId, NOT: { cif: "" } },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     select: { slug: true, codename: true, region: true },
   });
 }
@@ -127,7 +127,7 @@ export async function listSellerCompanies(
   const [rows, prefill, pendingBy] = await Promise.all([
     prisma.project.findMany({
       where: { ownerId, NOT: { cif: "" } },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       select: { id: true, legalName: true, codename: true, cif: true },
     }),
     prisma.companyRegistryPrefill.findUnique({
@@ -173,7 +173,7 @@ export async function sellerProcessScope(
         ...(projectId ? { NOT: { id: projectId } } : {}),
       },
       select: { codename: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     }),
   ]);
   const names = others.map((row) => row.codename);
@@ -188,6 +188,8 @@ export async function sellerProcessScope(
  * Active company for this request. Memoised per request with React `cache`:
  * the shell, sidebar badges and page all ask for it.
  */
+// S27: companies created in the same instant (seeds) tie on createdAt; ordering by id too keeps the page and the save
+// action on the same company when no cookie is set.
 export const activeSellerProjectId = cache(resolveActiveSellerProjectId);
 
 async function resolveActiveSellerProjectId(
@@ -195,7 +197,7 @@ async function resolveActiveSellerProjectId(
 ): Promise<string | null> {
   const companies = await prisma.project.findMany({
     where: { ownerId },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     select: { id: true, cif: true },
   });
   const jar = await cookies();
