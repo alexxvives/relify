@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { authCopy } from "@/lib/auth-copy";
 import { ArcScope } from "@/components/arc/arc-scope";
@@ -51,19 +51,27 @@ export function PasswordField({
   minLength,
   maxLength,
   placeholder,
+  labelAside,
 }: {
   autoComplete: "current-password" | "new-password";
   minLength?: number;
   maxLength: number;
   placeholder: string;
+  /** Rendered right-aligned on the label row (e.g. the sign-in "¿Olvidaste tu contraseña?" link). */
+  labelAside?: ReactNode;
 }) {
   const [visible, setVisible] = useState(false);
+  const inputId = useId();
 
   return (
-    <label className={authLabelClassName}>
-      {authCopy.passwordLabel}
+    <div className={authLabelClassName}>
+      <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <label htmlFor={inputId}>{authCopy.passwordLabel}</label>
+        {labelAside}
+      </span>
       <span className="relative">
         <input
+          id={inputId}
           name="password"
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
@@ -84,6 +92,6 @@ export function PasswordField({
           {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
         </button>
       </span>
-    </label>
+    </div>
   );
 }

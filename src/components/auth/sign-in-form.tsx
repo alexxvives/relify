@@ -19,10 +19,16 @@ export function SignInForm({ nextPath = null }: { nextPath?: string | null }) {
     <form action={action} className="flex flex-col gap-4 short:gap-3">
       {nextPath ? <input type="hidden" name="siguiente" value={nextPath} /> : null}
       <EmailField />
-      <PasswordField autoComplete="current-password" maxLength={128} placeholder={authCopy.passwordLabel} />
-      <Link href="/olvide-contrasena" className="-mt-2 self-end text-sm font-medium text-[#14998a] hover:text-[#0f8578]">
-        {authCopy.forgotLink}
-      </Link>
+      <PasswordField
+        autoComplete="current-password"
+        maxLength={128}
+        placeholder={authCopy.passwordLabel}
+        labelAside={
+          <Link href="/olvide-contrasena" className="ml-auto text-sm font-medium text-[#14998a] hover:text-[#0f8578]">
+            {authCopy.forgotLink}
+          </Link>
+        }
+      />
       {state?.message ? (
         <p role="alert" className="text-sm text-destructive">
           {state.message}
