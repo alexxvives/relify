@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  BadgeCheck,
   Briefcase,
   Building2,
   Cpu,
@@ -14,13 +13,12 @@ import {
   Palmtree,
   Store,
   Truck,
-  Users,
   UtensilsCrossed,
   Wheat,
   HandCoins,
   type LucideIcon,
 } from "lucide-react";
-import { formatBasisPoints, headcountLabels, isHeadcountRange } from "@/lib/company-profile";
+import { formatBasisPoints } from "@/lib/company-profile";
 import { headlineEbitda, headlineEbitdaMargin } from "@/lib/financial-metrics";
 import {
   formatCardEur,
@@ -213,16 +211,8 @@ export function MarketCard({
   });
   const profitCents = ebitda.primaryCents;
   const years = blocked ? null : recoveryYears(project.askingPriceCents, profitCents);
-  const headcount =
-    project.headcount && isHeadcountRange(project.headcount)
-      ? `${headcountLabels[project.headcount]} trab.`
-      : null;
   const sectorName = project.sectorLabel ? sentence(project.sectorLabel) : null;
   const href = hrefOverride ?? `/proyectos/${project.slug}`;
-  const photoTags = [
-    { key: "region", icon: MapPin, text: project.region },
-    ...(headcount ? [{ key: "headcount", icon: Users, text: headcount }] : []),
-  ];
 
   return (
     <article
@@ -255,50 +245,18 @@ export function MarketCard({
                 <span className="truncate">{project.financingChip}</span>
               </span>
             ) : null}
-            {project.verified ? (
-              <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/95 px-1.5 py-px text-[11px] font-semibold text-[#1b7a45] shadow-sm">
-                <BadgeCheck className="size-3 shrink-0" aria-hidden />
-                <span className="truncate">Verificado</span>
-              </span>
-            ) : null}
           </div>
-          {/* Location, size and age ride on the photo, so the body only carries the deal. */}
-          {/* Two tags at most on one line, right of the sector badge; the rest fold into "+N". S25: on narrow cards
-              (3 per row at ~1024 px) only the region shows, so it is never cut to one letter. */}
-          {hidePhotoTags ? null : (
-            <ul className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex flex-nowrap items-center justify-end gap-1 overflow-hidden">
-              {photoTags.slice(0, 2).map((tag) => (
-                <li
-                  key={tag.key}
-                  className={`items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm ${tag.key === "headcount" ? "hidden shrink-0 @[17rem]/cover:inline-flex" : "inline-flex min-w-0"}`}
-                  title={tag.text}
-                >
-                  <tag.icon
-                    className="size-3 shrink-0 text-[#5c6b78]"
-                    aria-hidden
-                  />
-                  <span className="truncate">{tag.text}</span>
-                </li>
-              ))}
-              {photoTags.length > 2 ? (
-                <li
-                  className="inline-flex shrink-0 items-center rounded-full bg-white/90 px-1.5 py-px text-[11px] font-semibold text-[#1c2740] shadow-sm backdrop-blur-sm"
-                  title={photoTags
-                    .slice(2)
-                    .map((tag) => tag.text)
-                    .join(" · ")}
-                >
-                  +{photoTags.length - 2}
-                  <span className="sr-only">
-                    :{" "}
-                    {photoTags
-                      .slice(2)
-                      .map((tag) => tag.text)
-                      .join(", ")}
-                  </span>
-                </li>
-              ) : null}
-            </ul>
+          {/* S26: the photo carries only the location (no headcount, no Verificado), so it never truncates. */}
+          {hidePhotoTags || !project.region ? null : (
+            <p className="absolute right-2.5 bottom-2.5 left-[7.25rem] flex justify-end overflow-hidden">
+              <span
+                className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/90 px-1.5 py-px text-[11px] font-medium text-[#1c2740] shadow-sm backdrop-blur-sm"
+                title={project.region}
+              >
+                <MapPin className="size-3 shrink-0 text-[#5c6b78]" aria-hidden />
+                <span className="truncate">{project.region}</span>
+              </span>
+            </p>
           )}
         </div>
         {/* Sector badge straddles the photo's bottom edge, bottom-left. */}
