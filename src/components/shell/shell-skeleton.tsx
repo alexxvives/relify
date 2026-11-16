@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { pageTitleClass } from "./page-header";
 
 // Route-level loading states for pages that have no Suspense fallback of their own. Each one
 // prints the page's real h1 (same classes as SignedInPage) and white cards shaped like the
@@ -17,10 +18,10 @@ function Frame({ title, children }: { title?: string; children: ReactNode }) {
     >
       <span className="sr-only">Cargando…</span>
       {title ? (
-        <h1 className="text-3xl tracking-tight text-public-ink">{title}</h1>
+        <h1 className={pageTitleClass}>{title}</h1>
       ) : null}
       <div
-        className={title ? "mt-6 flex flex-col gap-6" : "flex flex-col gap-6"}
+        className={title ? "mt-5 flex flex-col gap-6" : "flex flex-col gap-6"}
       >
         {children}
       </div>

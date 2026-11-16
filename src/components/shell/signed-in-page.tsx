@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/server/get-current-user";
+import { PageHeader, pageHeaderGapClass } from "./page-header";
 
 /**
  * Page heading + body inside the persistent (app) layout. The sidebar frame lives in
@@ -23,8 +24,8 @@ export async function SignedInPage({
 
   return (
     <>
-      {show ? <h1 className="text-2xl tracking-tight text-public-ink sm:text-[1.75rem]">{heading}</h1> : null}
-      <div className={show ? "mt-5" : undefined}>{children}</div>
+      {show ? <PageHeader title={heading} /> : null}
+      <div className={show ? pageHeaderGapClass : undefined}>{children}</div>
     </>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pagination, usePageParam } from "@/components/shell/pagination";
 import { ArrowUpDown, Check, SlidersHorizontal } from "lucide-react";
+import { pageHeaderRowClass, pageTitleClass } from "@/components/shell/page-header";
 import { FavoriteButton } from "@/components/investor/favorite-button";
 import { MarketCard, marketGridClass, marketGridFrameClass } from "@/components/investor/market-card";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -95,9 +96,9 @@ export function MarketBrowser({
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="flex items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-        {heading ? <h1 className="text-2xl lg:text-[1.75rem] tracking-tight text-public-ink lg:justify-self-start">{heading}</h1> : <span />}
+    <div className="flex flex-col gap-5">
+      <div className={`${pageHeaderRowClass} lg:grid lg:grid-cols-[1fr_auto_1fr] lg:grid-rows-[minmax(0,1fr)]`}>
+        {heading ? <h1 className={`${pageTitleClass} lg:justify-self-start`}>{heading}</h1> : <span />}
         <button
           type="button"
           role="switch"

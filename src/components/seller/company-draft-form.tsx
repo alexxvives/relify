@@ -118,6 +118,7 @@ import {
 } from "@/lib/seller-financing";
 import { askingPriceAllowed, priceBasisCents } from "@/lib/seller-draft-guard";
 import { askingPriceSet, completionProgress, sectionComplete, sellerRequiredFields } from "@/lib/seller-completion";
+import { pageHeaderRowClass, pageTitleClass } from "@/components/shell/page-header";
 
 const cnaeOptions = groupedCnaeOptions(cnaeClasses, companyCopy.cnaeEmpty);
 
@@ -2501,13 +2502,11 @@ export function CompanyDraftForm({
         onDismissFailed={() => setLeaveFailedHref(null)}
       />
       <IdentityChangeDialog field={changeField} values={{ legalName, cif: nif }} onClose={() => setChangeField(null)} />
-      {tab === "company" ? <CompactProgressBar done={navProgress.done} total={navProgress.total} /> : null}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="min-w-0 text-2xl tracking-tight text-public-ink sm:text-3xl">
-          {sellerCopy.detailsTitle}
-        </h1>
+      <div className={pageHeaderRowClass}>
+        <h1 className={pageTitleClass}>{sellerCopy.detailsTitle}</h1>
         {tab === "company" ? <DetailSectionNav items={companySections} progress={navProgress} onMissing={goToMissing} /> : null}
       </div>
+      {tab === "company" ? <CompactProgressBar done={navProgress.done} total={navProgress.total} /> : null}
       <FloatingSegmentedTabs
         label={companyCopy.tabsLabel}
         tabs={[
