@@ -157,7 +157,8 @@ describe("S17 buyer ficha and seller surfaces", () => {
 
   it("orders Datos de la ficha without Resultado neto", () => {
     const metrics = draftForm.slice(draftForm.indexOf("function FichaMetrics"), draftForm.indexOf("function SellerFinancingField"));
-    expect(metrics).toMatch(/askingPriceLabel[\s\S]*revenueLabel[\s\S]*ebitdaLabel[\s\S]*adjustedEbitdaLabel[\s\S]*ebitdaMarginLabel[\s\S]*adjustedEbitdaMarginLabel/);
+    // S31: filled by column (Precio/Facturación, EBITDA/Margen, EBITDA ajustado/Margen ajustado).
+    expect(metrics).toMatch(/askingPriceLabel[\s\S]*revenueLabel[\s\S]*ebitdaLabel[\s\S]*ebitdaMarginLabel[\s\S]*adjustedEbitdaLabel[\s\S]*adjustedEbitdaMarginLabel/);
     expect(metrics).not.toMatch(/netResult|Resultado neto/);
   });
 

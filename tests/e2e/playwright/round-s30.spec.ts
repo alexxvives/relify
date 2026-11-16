@@ -49,20 +49,12 @@ test.describe("S30 Detalles de empresa", () => {
     for (const width of [390, 1280, 1600]) {
       const panel = await openDetails(page, width);
       const before = await panel.boundingBox();
-      if (width >= 1536) {
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
-        await page.getByRole("button", { name: "Minimizar tu progreso" }).click();
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
-        expect(await panel.boundingBox(), `minimised at ${width}`).toEqual(before);
-        await page.getByRole("button", { name: "Mostrar tu progreso" }).click();
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
-      } else {
-        // Phones use the slim progress bar as the button; 1024–1535 the round pill. Both open a popover.
-        await page.getByRole("button", { name: /^Mostrar tu progreso/ }).click();
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
-        await page.keyboard.press("Escape");
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
-      }
+      // S31: a popover at every width (the slim bar on phones, the round pill from 1024).
+      await page.getByRole("button", { name: /^Mostrar tu progreso/ }).click();
+      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
+      expect(await panel.boundingBox(), `opened at ${width}`).toEqual(before);
+      await page.getByRole("button", { name: "Minimizar tu progreso" }).click();
+      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
       expect(await panel.boundingBox(), `content moved at ${width}`).toEqual(before);
     }
   });

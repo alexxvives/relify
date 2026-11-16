@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, useAnimationControls } from "motion/react";
 import { Check, Upload as UpIcon } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
@@ -150,7 +150,6 @@ export function UploadDropzone({
   const [gulp, setGulp] = useState(false);
   const [ghost, setGhost] = useState<F | null>(null);
   const zone = useRef<HTMLLabelElement>(null);
-  const now = useRef<HTMLSpanElement>(null);
   const ghostEl = useRef<HTMLDivElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const shake = useAnimationControls();
@@ -323,25 +322,7 @@ export function UploadDropzone({
     take(first, fromDrop, at);
   };
 
-  /* ── the box hugs the upload ─────────────────────────────
-     While a file is in it the box closes in round the upload row
-     — measured, because the row is as wide as its name — and
-     grows a little when the tick arrives; back to idle it opens
-     out to the full drop box again. Width and height, never a
-     scale, so its corner stays the corner. It shrinks inside a
-     slot of fixed size, so nothing below it moves. */
-  useLayoutEffect(() => {
-    const z = zone.current;
-    const n = now.current;
-    if (!z) return;
-    if (phase.kind === "idle" || !n) {
-      z.style.width = "";
-      z.style.height = "";
-      return;
-    }
-    z.style.width = `${n.offsetWidth + 32}px`;
-    z.style.height = `${n.offsetHeight + 28}px`;
-  }, [phase.kind]);
+  // S31 (Alex): the box is a document-sized tile in the grid, so it keeps its size while a file uploads (no hug).
 
   const r = Math.max(0, corner);
   const up = phase.kind !== "idle";
@@ -399,7 +380,7 @@ export function UploadDropzone({
               </span>
             </>
           ) : (
-            <span className="upl-now" key={f.id} ref={now}>
+            <span className="upl-now" key={f.id}>
               <Page f={f} size={36} />
               <span className="upl-text">
                 <span className="upl-name">{f.name}</span>

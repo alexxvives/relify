@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, ArrowRight, ChevronDown, Circle, CircleCheck, Clock, Info, Minimize2, Pencil } from "lucide-react";
 import { useScrollSpy } from "@/components/shell/use-scroll-spy";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
@@ -94,47 +94,15 @@ export function CompletionRing({ done, total, size = 56 }: { done: number; total
   );
 }
 
-const progressTrackerKey = "Relify:progress-tracker:expanded";
-const progressTrackerEvent = "releva:progress-tracker";
-
-function readProgressTrackerPreference(): string | null {
-  return window.localStorage.getItem(progressTrackerKey);
-}
-
-function subscribeProgressTracker(onChange: () => void): () => void {
-  window.addEventListener("storage", onChange);
-  window.addEventListener(progressTrackerEvent, onChange);
-  return () => {
-    window.removeEventListener("storage", onChange);
-    window.removeEventListener(progressTrackerEvent, onChange);
-  };
-}
-
 /**
- * S30 (Alex): the card floats over the page and never reserves space or moves the content. It is pinned open only
- * from 1536 px (2xl), where the Información empresa column has a fixed max width and the card sits in the free right
- * margin. Below that it is a round pill (the slim progress bar on phones) that opens it as a popover.
+ * S31 (Alex): the Información empresa column uses the full page width (like /procesos), so there is no free margin for a
+ * pinned card. Tu progreso is always a popover over the page: the round pill at the top-right from 1024 px, the slim
+ * progress bar on phones. It never reserves a gutter and never moves the content.
  */
-export const progressPinnedFrom = 1536;
-
-/** Static width of the form column from 2xl, so the pinned card never covers it. Independent of the card state. */
-export const detailsColumnClass = "2xl:max-w-[60rem]";
-
 const progressPeekEvent = "releva:progress-peek";
 
-/** `null` = no choice yet (pinned ≥1536; below that the pill opens it on demand). */
-export function useProgressTrackerExpanded() {
-  const preference = useSyncExternalStore(subscribeProgressTracker, readProgressTrackerPreference, () => null);
-  const setExpanded = useCallback((next: boolean) => {
-    window.localStorage.setItem(progressTrackerKey, next ? "1" : "0");
-    window.dispatchEvent(new Event(progressTrackerEvent));
-  }, []);
-  return { preference, setExpanded };
-}
-
 /**
- * Floating progress tracker for Información empresa.
- * User-minimizable card at the viewport top-right; the choice lives in localStorage.
+ * Floating progress tracker for Información empresa: a pill that opens the card as a popover at the viewport top-right.
  */
 function ProgressTrackerOverlay({
   label,
@@ -145,8 +113,7 @@ function ProgressTrackerOverlay({
   trigger: ReactNode;
   children: ReactNode;
 }) {
-  const { preference, setExpanded } = useProgressTrackerExpanded();
-  // Below 1280 px the card is a popover the seller opened; it closes on Minimizar, Escape or a click outside it.
+  // The card is a popover the seller opened; it closes on Minimizar, Escape, a jump or a click outside it.
   const [peek, setPeek] = useState(false);
   useEffect(() => {
     function onPeek(event: Event) {
@@ -160,10 +127,8 @@ function ProgressTrackerOverlay({
       if (node.closest('[data-progress-toggle="peek"]')) {
         setPeek((open) => !open);
       } else if (node.closest('[data-progress-toggle="collapse"]')) {
-        setExpanded(false);
         setPeek(false);
       } else if (node.closest('[data-progress-toggle="expand"]')) {
-        setExpanded(true);
         setPeek(true);
       } else if (!node.closest("[data-section-tracker]")) {
         setPeek(false);
@@ -180,9 +145,9 @@ function ProgressTrackerOverlay({
       document.removeEventListener("keydown", onKey);
       window.removeEventListener(progressPeekEvent, onPeek);
     };
-  }, [setExpanded]);
-  const cardClass = `${peek ? "flex" : "hidden"} ${preference === "0" ? "2xl:hidden" : "2xl:flex"}`;
-  const pillClass = `${peek ? "hidden" : "flex"} ${preference === "0" ? "2xl:flex" : "2xl:hidden"}`;
+  }, []);
+  const cardClass = peek ? "flex" : "hidden";
+  const pillClass = peek ? "hidden" : "flex";
 
   return (
     <ViewportPortal>
@@ -202,7 +167,6 @@ function ProgressTrackerOverlay({
             <button
               type="button"
               data-progress-toggle="collapse"
-              onClick={() => setExpanded(false)}
               aria-expanded="true"
               aria-label="Minimizar tu progreso"
               className="inline-flex size-11 cursor-pointer items-center justify-center rounded-lg text-[#64748b] hover:bg-[#f5f6f8] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
@@ -217,7 +181,6 @@ function ProgressTrackerOverlay({
           data-progress-toggle="expand"
           aria-expanded="false"
           aria-label="Mostrar tu progreso"
-          onClick={() => setExpanded(true)}
           className={`${pillClass} size-11 cursor-pointer items-center justify-center rounded-full border border-[#e6e9f0] bg-white/95 shadow-[0_8px_24px_-12px_rgba(28,39,64,0.4)] backdrop-blur focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none`}
         >
           {trigger}
@@ -231,7 +194,7 @@ function ProgressTrackerOverlay({
 /**
  * Section navigation + progress for /mi-empresa/detalles (Información empresa only).
  * Compact: slim percent bar under the header (CompactProgressBar), which opens the card as a popover.
- * lg–2xl: collapsed pill at top-right (popover); 2xl: card pinned in the right margin. It always floats over the page.
+ * From lg: round pill at the top-right that opens the card as a popover. It always floats over the page.
  */
 export function DetailSectionNav({
   items,
@@ -261,10 +224,8 @@ export function DetailSectionNav({
   }));
 
   function collapseTrackerIfCompact() {
-    // Below the pinned width the card is a popover: close it after a jump so the field it points at is visible.
-    if (window.innerWidth < progressPinnedFrom) {
-      window.dispatchEvent(new CustomEvent(progressPeekEvent, { detail: false }));
-    }
+    // Close the popover after a jump so the field it points at is visible.
+    window.dispatchEvent(new CustomEvent(progressPeekEvent, { detail: false }));
   }
 
   function jump(id: string) {

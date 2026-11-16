@@ -2,7 +2,6 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { companyCopy } from "@/lib/company-copy";
-import { detailsColumnClass, progressPinnedFrom } from "@/components/seller/detail-section-nav";
 
 const read = (file: string) => readFileSync(join(process.cwd(), file), "utf8");
 
@@ -83,12 +82,10 @@ describe("S30: Relify agreement and Detalles de empresa", () => {
     expect(form.match(/className=\{fieldLabelClass\}/g)?.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("Tu progreso floats: no gutter, popover below 1536 px, phone bar opens it", () => {
-    expect(progressPinnedFrom).toBe(1536);
-    expect(detailsColumnClass).toBe("2xl:max-w-[60rem]");
+  it("Tu progreso floats: no gutter, phone bar opens it (S31: a popover at every width)", () => {
     const nav = read("src/components/seller/detail-section-nav.tsx");
     expect(nav).not.toMatch(/pr-\[18rem\]/);
     expect(nav).toMatch(/data-progress-toggle="peek"/);
-    expect(nav).toMatch(/2xl:flex/);
+    expect(nav).toMatch(/const cardClass = peek \? "flex" : "hidden";/);
   });
 });

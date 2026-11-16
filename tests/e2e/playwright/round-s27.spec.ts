@@ -141,39 +141,33 @@ test.describe("S27 Detalles de empresa manual save", () => {
     await expect(again.getByRole("button", { name: "Editar" })).toBeVisible({ timeout: 15_000 });
   });
 
-  test("the Tu progreso card never covers a control at 1024, 1280, 1440, 1536 and 1600", async ({ page }) => {
+  test("the Tu progreso pill never covers a control at 1024, 1280, 1440, 1536 and 1600", async ({ page }) => {
     test.skip(!roleCreds("seller"), "Set E2E_SELLER_EMAIL and E2E_SELLER_PASSWORD");
     expect(await signInAs(page, "seller")).toBe(true);
     for (const width of [1024, 1280, 1440, 1536, 1600]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/mi-empresa/detalles");
+      await page.waitForLoadState("networkidle");
       const panel = page.locator("#panel-basic");
       const cancel = panel.getByRole("button", { name: "Cancelar" });
       if (await cancel.isVisible()) await cancel.click();
       const edit = panel.getByRole("button", { name: "Editar" });
       await expect(edit).toBeVisible();
-      if (width < 1536) {
-        // S30: below 1536 the card is a popover the seller opens; Escape closes it.
-        await page.getByRole("button", { name: "Mostrar tu progreso" }).click();
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
-        await page.keyboard.press("Escape");
-        await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
-        await edit.click();
-        await expect(panel.locator('input[name="foundedYear"]')).toBeVisible();
-        continue;
-      }
-      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
+      // S31: the card is a popover at every width; closed, only the round pill shows and it covers no control.
       const covered = await page.evaluate(() => {
-        const card = [...document.querySelectorAll('[data-section-tracker] [role="navigation"]')].find((node) => node.getBoundingClientRect().width > 0);
-        if (!card) return ["no card"];
-        const box = card.getBoundingClientRect();
+        const pill = [...document.querySelectorAll('[data-progress-toggle="expand"]')].find((node) => node.getBoundingClientRect().width > 0);
+        if (!pill) return ["no pill"];
+        const box = pill.getBoundingClientRect();
         return [...document.querySelectorAll("form button, form a, form input, form textarea, form select")]
-          .filter((node) => !card.contains(node))
           .map((node) => ({ node, rect: node.getBoundingClientRect() }))
           .filter(({ rect }) => rect.width > 0 && rect.left < box.right && rect.right > box.left && rect.top < box.bottom && rect.bottom > box.top)
           .map(({ node }) => (node.getAttribute("aria-label") ?? node.textContent ?? node.tagName).trim());
       });
       expect(covered, `covered at ${width}`).toEqual([]);
+      await page.getByRole("button", { name: "Mostrar tu progreso" }).click();
+      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("navigation", { name: "Tu progreso" })).toBeHidden();
       await edit.click();
       await expect(panel.locator('input[name="foundedYear"]')).toBeVisible();
     }

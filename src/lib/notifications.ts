@@ -11,6 +11,13 @@ export const notificationCopy = {
   markAllRead: "Marcar todos como leídos",
 } as const;
 
+/** S31 (Alex): the first notice of every new account, whatever its role. */
+export const welcomeNotice = {
+  title: "Te damos la bienvenida a Relify",
+  body: "Tu cuenta ya está creada. Aquí te avisaremos de cada novedad: solicitudes, mensajes, documentos y los siguientes pasos.",
+  href: null,
+} as const;
+
 export type NotificationView = {
   id: string;
   title: string;

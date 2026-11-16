@@ -90,7 +90,8 @@ describe("Round S22 landing and product bits", () => {
 
   it("shortens the disabled dropzone line", () => {
     expect(read("src/lib/seller-copy.ts")).toMatch(/documentsUploadDisabled: "Subida desactivada en pruebas"/);
-    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/col-span-2 md:col-span-1/);
+    // S31: the dropzone is a single document-sized tile now (data-upload-tile), not a two-column banner.
+    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/<li data-upload-tile>/);
   });
 
   it("drops the buyer company-tab documentation block and renames Chat", () => {

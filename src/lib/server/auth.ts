@@ -7,6 +7,7 @@ import { emailLink, readServerEnv } from "@/lib/env";
 import { prisma } from "@/lib/db";
 import { passwordResetEmail, verifyEmail } from "@/lib/email/messages";
 import { sendMail } from "@/lib/server/mailer";
+import { recordWelcomeNotice } from "@/lib/server/welcome-notice";
 
 function createAuth() {
   const env = readServerEnv();
@@ -55,6 +56,16 @@ function createAuth() {
       },
     },
     session: authSessionOptions,
+    databaseHooks: {
+      user: {
+        create: {
+          // S31: a welcome notice in Avisos for every new account.
+          after: async (user) => {
+            await recordWelcomeNotice(user.id);
+          },
+        },
+      },
+    },
     user: {
       changeEmail: {
         enabled: true,

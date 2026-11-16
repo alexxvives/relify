@@ -66,7 +66,8 @@ export function SellerOverview({
               </h2>
             </div>
             {financialsPending ? (
-              <div className="relative mt-3 min-h-64">
+              // S31 (Alex): about half the height of the full placeholder; the blurred charts are clipped behind the notice.
+              <div data-financials-pending className="relative mt-3 h-96 overflow-hidden sm:h-[22rem]">
                 <div aria-hidden className="pointer-events-none select-none">
                   <FinanceChartsPlaceholder />
                 </div>
