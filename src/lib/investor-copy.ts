@@ -58,7 +58,7 @@ export const investorCopy = {
   photoHeavy: "Usa una foto de menos de 5 MB.",
   photoFailed: "No se ha podido guardar la foto.",
   locationLabel: "Ubicación",
-  locationPlaceholder: "Ej.: Sabadell, Barcelona",
+  locationPlaceholder: "Ej.: Sabadell, Cataluña, España",
   ticketLabel: "Ticket",
   sectorsLabel: "Sectores",
   searchLabel: "Qué busca",

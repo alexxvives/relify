@@ -20,9 +20,10 @@ const sectors = ["Industria manufacturera", "Comercio", "Hostelería", "Informac
 
 describe("S25 Ubicación (OpenStreetMap)", () => {
   it("formats and parses one location field into city and province", () => {
-    expect(formatLocation("Sabadell", "Barcelona")).toBe("Sabadell, Barcelona");
-    expect(formatLocation("Madrid", "Madrid")).toBe("Madrid");
-    expect(formatLocation("", "Girona")).toBe("Girona");
+    // S26: shown as "Ciudad, Comunidad, España" (a legacy stored province maps to its community).
+    expect(formatLocation("Sabadell", "Barcelona")).toBe("Sabadell, Cataluña, España");
+    expect(formatLocation("Madrid", "Madrid")).toBe("Madrid, Comunidad de Madrid, España");
+    expect(formatLocation("", "Girona")).toBe("Cataluña, España");
     expect(parseLocation("  Sabadell ,  Barcelona ")).toEqual({ city: "Sabadell", province: "Barcelona" });
     expect(parseLocation("Pueblo sin provincia")).toEqual({ city: "Pueblo sin provincia", province: "" });
     expect(parseLocation("Santa Coloma, de Gramenet, Barcelona")).toEqual({ city: "Santa Coloma, de Gramenet", province: "Barcelona" });
@@ -45,13 +46,13 @@ describe("S25 Ubicación (OpenStreetMap)", () => {
         { properties: { name: "Calle Mayor", countrycode: "ES", osm_value: "residential", type: "street" } },
       ],
     };
-    expect(suggestionsFromPhoton(photon)).toEqual([{ city: "Sabadell", province: "Barcelona", label: "Sabadell, Barcelona" }]);
+    expect(suggestionsFromPhoton(photon)).toEqual([{ city: "Sabadell", province: "Cataluña", label: "Sabadell, Cataluña, España" }]);
     expect(suggestionsFromPhoton(null)).toEqual([]);
     const nominatim = [
       { name: "Úbeda", address: { town: "Úbeda", province: "Jaén", state: "Andalucía", country_code: "es" } },
       { name: "Porto", address: { city: "Porto", country_code: "pt" } },
     ];
-    expect(suggestionsFromNominatim(nominatim)).toEqual([{ city: "Úbeda", province: "Jaén", label: "Úbeda, Jaén" }]);
+    expect(suggestionsFromNominatim(nominatim)).toEqual([{ city: "Úbeda", province: "Andalucía", label: "Úbeda, Andalucía, España" }]);
     expect(suggestionsFromNominatim({})).toEqual([]);
   });
 

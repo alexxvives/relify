@@ -1,10 +1,13 @@
 /**
- * S25: "Ciudad, Provincia" for the buyer's Ubicación field. Pure helpers (no fetch) that turn
+ * S25/S26: "Ciudad, Comunidad autónoma, España" for the buyer's Ubicación field (city level only). Pure helpers (no fetch) that turn
  * OpenStreetMap results (Photon, Nominatim) into Spanish city + province, and read/write the
  * single input back into the existing `city` / `province` columns.
  */
 
+/** `province` keeps its column name but, since S26, holds the autonomous community ("Cataluña"). */
 export type PlaceSuggestion = { city: string; province: string; label: string };
+
+export const spainCountryName = "España";
 
 /** The 50 provinces plus Ceuta and Melilla. Aliases cover co-official names OSM uses. */
 const provinces: { name: string; aliases: string[] }[] = [
@@ -62,6 +65,29 @@ const provinces: { name: string; aliases: string[] }[] = [
   { name: "Melilla", aliases: [] },
 ];
 
+/** S26: the 17 autonomous communities plus Ceuta and Melilla, Spanish names first; aliases are OSM's co-official names. */
+const communities: { name: string; aliases: string[]; provinces: string[] }[] = [
+  { name: "Andalucía", aliases: ["andalusia"], provinces: ["Almería", "Cádiz", "Córdoba", "Granada", "Huelva", "Jaén", "Málaga", "Sevilla"] },
+  { name: "Aragón", aliases: ["arago", "aragon"], provinces: ["Huesca", "Teruel", "Zaragoza"] },
+  { name: "Asturias", aliases: ["principado de asturias", "asturies", "principau d'asturies"], provinces: ["Asturias"] },
+  { name: "Islas Baleares", aliases: ["illes balears", "baleares", "balears"], provinces: ["Illes Balears"] },
+  { name: "Canarias", aliases: ["islas canarias"], provinces: ["Las Palmas", "Santa Cruz de Tenerife"] },
+  { name: "Cantabria", aliases: [], provinces: ["Cantabria"] },
+  { name: "Castilla y León", aliases: ["castilla y leon"], provinces: ["Ávila", "Burgos", "León", "Palencia", "Salamanca", "Segovia", "Soria", "Valladolid", "Zamora"] },
+  { name: "Castilla-La Mancha", aliases: ["castilla la mancha"], provinces: ["Albacete", "Ciudad Real", "Cuenca", "Guadalajara", "Toledo"] },
+  { name: "Cataluña", aliases: ["catalunya", "cataluna", "catalonia"], provinces: ["Barcelona", "Girona", "Lleida", "Tarragona"] },
+  { name: "Comunidad Valenciana", aliases: ["comunitat valenciana", "valencian community"], provinces: ["Alicante", "Castellón", "Valencia"] },
+  { name: "Extremadura", aliases: [], provinces: ["Badajoz", "Cáceres"] },
+  { name: "Galicia", aliases: [], provinces: ["A Coruña", "Lugo", "Ourense", "Pontevedra"] },
+  { name: "Comunidad de Madrid", aliases: ["madrid"], provinces: ["Madrid"] },
+  { name: "Región de Murcia", aliases: ["murcia"], provinces: ["Murcia"] },
+  { name: "Navarra", aliases: ["comunidad foral de navarra", "nafarroa", "nafarroako foru komunitatea"], provinces: ["Navarra"] },
+  { name: "País Vasco", aliases: ["euskadi", "pais vasco/euskadi", "euskal herria", "basque country"], provinces: ["Álava", "Bizkaia", "Gipuzkoa"] },
+  { name: "La Rioja", aliases: ["rioja"], provinces: ["La Rioja"] },
+  { name: "Ceuta", aliases: [], provinces: ["Ceuta"] },
+  { name: "Melilla", aliases: [], provinces: ["Melilla"] },
+];
+
 /** Autonomous communities that are a single province: OSM often gives only the community. */
 const singleProvinceCommunities: Record<string, string> = {
   "comunidad de madrid": "Madrid",
@@ -95,6 +121,38 @@ for (const province of provinces) {
   }
 }
 
+const communityIndex = new Map<string, string>();
+const communityByProvince = new Map<string, string>();
+for (const community of communities) {
+  communityIndex.set(foldPlace(community.name), community.name);
+  for (const alias of community.aliases) {
+    communityIndex.set(foldPlace(alias), community.name);
+  }
+  for (const province of community.provinces) {
+    communityByProvince.set(province, community.name);
+  }
+}
+
+/** S26: "Catalunya", "Euskadi", "Comunitat Valenciana", or a province ("Sevilla") → the community's Spanish name, or null. */
+export function matchCommunity(raw: string | null | undefined): string | null {
+  if (!raw) {
+    return null;
+  }
+  for (const part of [raw, ...raw.split("/")]) {
+    const hit = communityIndex.get(foldPlace(part));
+    if (hit) {
+      return hit;
+    }
+  }
+  const province = matchProvince(raw);
+  return province ? (communityByProvince.get(province) ?? null) : null;
+}
+
+/** S26: best community for a place: OSM's state, else the community of its province. */
+export function resolveCommunity(input: { city: string; county?: string | null; state?: string | null }): string {
+  return matchCommunity(input.state) ?? communityByProvince.get(resolveProvince(input)) ?? (input.state?.trim() || "");
+}
+
 /** "Comarca de València", "Asturias / Asturies", "Provincia de Sevilla" → canonical province, or null. */
 export function matchProvince(raw: string | null | undefined): string | null {
   if (!raw) {
@@ -122,23 +180,35 @@ export function resolveProvince(input: { city: string; county?: string | null; s
   );
 }
 
-export function formatLocation(city: string, province: string): string {
+/**
+ * S26: "Barcelona, Cataluña, España". A stored legacy province ("Sabadell" + "Barcelona") is shown with its
+ * community; a value OSM did not recognise is kept as typed.
+ */
+export function formatLocation(city: string, region: string): string {
   const c = city.trim();
-  const p = province.trim();
-  if (c && p && foldPlace(c) !== foldPlace(p)) {
-    return `${c}, ${p}`;
+  const r = region.trim();
+  if (!c && !r) {
+    return "";
   }
-  return c || p;
+  const community = matchCommunity(r) ?? r;
+  const parts = [c, community && foldPlace(community) !== foldPlace(c) ? community : ""].filter((part) => part.length > 0);
+  return [...parts, spainCountryName].join(", ");
 }
 
-/** Free text back into the two stored fields: "Ciudad, Provincia" splits on the last comma. */
+/** Free text back into the two stored fields: "Ciudad, Comunidad[, España]"; the country is dropped, the last part is the region. */
 export function parseLocation(text: string): { city: string; province: string } {
-  const value = text.replace(/\s+/g, " ").trim();
-  const cut = value.lastIndexOf(",");
-  if (cut === -1) {
-    return { city: value, province: "" };
+  const parts = text
+    .replace(/\s+/g, " ")
+    .split(",")
+    .map((part) => part.trim());
+  while (parts.length > 1 && /^(espana|spain)$/.test(foldPlace(parts[parts.length - 1] ?? ""))) {
+    parts.pop();
   }
-  return { city: value.slice(0, cut).trim(), province: value.slice(cut + 1).trim() };
+  const filled = parts.filter((part, index) => part.length > 0 || index < parts.length - 1);
+  if (filled.length <= 1) {
+    return { city: (filled[0] ?? "").trim(), province: "" };
+  }
+  return { city: filled.slice(0, -1).join(", ").trim(), province: (filled[filled.length - 1] ?? "").trim() };
 }
 
 function suggestion(city: string, province: string): PlaceSuggestion {
@@ -173,7 +243,8 @@ type PhotonFeature = {
   };
 };
 
-const placeValues = new Set(["city", "town", "village", "municipality", "hamlet", "suburb", "administrative"]);
+/** S26: city level only (no provinces, communities, hamlets or neighbourhoods). */
+const placeValues = new Set(["city", "town", "village", "municipality", "administrative"]);
 
 /** Photon GeoJSON → Spanish places only. */
 export function suggestionsFromPhoton(body: unknown, limit = 6): PlaceSuggestion[] {
@@ -187,17 +258,10 @@ export function suggestionsFromPhoton(body: unknown, limit = 6): PlaceSuggestion
     if (!p?.name || p.countrycode !== "ES" || (p.osm_value && !placeValues.has(p.osm_value))) {
       continue;
     }
-    if (p.type === "state") {
+    if (p.osm_value === "administrative" && p.type !== "city") {
       continue;
     }
-    if (p.type === "county") {
-      const province = matchProvince(p.name);
-      if (province) {
-        items.push(suggestion(province, province));
-      }
-      continue;
-    }
-    items.push(suggestion(p.name, resolveProvince({ city: p.name, county: p.county, state: p.state })));
+    items.push(suggestion(p.name, resolveCommunity({ city: p.name, county: p.county, state: p.state })));
   }
   return dedupe(items, limit);
 }
@@ -228,8 +292,7 @@ export function suggestionsFromNominatim(body: unknown, limit = 6): PlaceSuggest
       continue;
     }
     const city = a.city ?? a.town ?? a.village ?? a.municipality ?? row.name ?? "";
-    const province = matchProvince(a.province) ?? resolveProvince({ city, county: a.county, state: a.state });
-    items.push(suggestion(city, province));
+    items.push(suggestion(city, matchCommunity(a.state) ?? resolveCommunity({ city, county: a.province ?? a.county, state: a.state })));
   }
   return dedupe(items, limit);
 }

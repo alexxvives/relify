@@ -246,7 +246,7 @@ export function InvestorProfile({
         </div>
         <div className="mt-5 grid min-w-0 items-start gap-6 @[52rem]:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
         <div className="min-w-0">
-        {/* Alex (S25): one Ubicación input, "Ciudad, Provincia", with OpenStreetMap suggestions. */}
+        {/* Alex (S25): one Ubicación input with OpenStreetMap suggestions; S26: "Ciudad, Comunidad, España". */}
         <div id="lugar" className="flex scroll-mt-8 flex-col gap-2 text-sm">
           <label htmlFor="investor-location">{investorCopy.locationLabel}</label>
           <PlaceAutocomplete
