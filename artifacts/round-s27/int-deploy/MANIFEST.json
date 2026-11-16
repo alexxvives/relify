@@ -1,8 +1,8 @@
 {
   "round": "s27",
-  "commit": "e52523ff242846b6ae7665c500fca685f83f6e30",
+  "commit": "fbef129a3b8e0a9287519a090175fe862da1ef9d",
   "tar_gz": "releva-int-deploy.tar.gz",
-  "tar_gz_sha256": "f305430ad0c54db5eb5abc20048aa44604705887811b4726af583df220642f3d",
+  "tar_gz_sha256": "7a2fbbe4fa48ad556a186763cdfcf9030857a588d72718fc3d751fcb2e870dab",
   "migrations": [],
   "sql": [
     "int-consultoria-years.sql",
