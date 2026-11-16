@@ -15,8 +15,8 @@ import { normalizeCif } from "@/lib/spanish-cif";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { fetchApiEmpresas } from "@/lib/server/fetch-api-empresas";
-import { isIntEnvironment } from "@/lib/int-env";
-import { lookupIntRegistry } from "@/lib/int-registry-lookup";
+import { intApiEmpresasKey, isIntEnvironment } from "@/lib/int-env";
+import { intRegistryLookupMode, lookupIntRegistry } from "@/lib/int-registry-lookup";
 
 const searchUrl = "https://openmercantil.es/api/v1/search";
 const companyUrl = "https://openmercantil.es/api/v1/company";
@@ -27,7 +27,22 @@ export async function lookupCompanyRegistry(
   cif: string,
 ): Promise<RegistryLookup> {
   if (isIntEnvironment()) {
-    return lookupIntRegistry(cif);
+    // S26: B12345674 stays the offline mock. Other CIFs use the real API Empresas when INT has its own key;
+    // OpenMercantil stays off in INT, so an API Empresas miss is an honest miss.
+    if (intRegistryLookupMode(cif, intApiEmpresasKey()) === "mock") {
+      return lookupIntRegistry(cif);
+    }
+    return createRegistryLookup({
+      apiKey: intApiEmpresasKey(),
+      now: () => new Date(),
+      readCache,
+      writeCache,
+      fetchApiEmpresas,
+      fetchOpenMercantil: async () => ({ ok: true, record: null }),
+      warn: (message) => {
+        console.warn(`[registry][int] ${message}`);
+      },
+    })(cif);
   }
   return createRegistryLookup({
     apiKey: process.env.APIEMPRESAS_API_KEY ?? null,

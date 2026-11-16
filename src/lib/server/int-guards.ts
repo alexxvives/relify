@@ -3,7 +3,7 @@
  * Fail-closed enforcement for operations disabled in INT.
  */
 
-import { intPaymentsConfigured, isIntEnvironment } from "../int-env";
+import { intApiEmpresasConfigured, intPaymentsConfigured, isIntEnvironment } from "../int-env";
 import { intMailConfigured } from "../int-mail";
 
 /**
@@ -44,10 +44,14 @@ export function assertPaymentsEnabled(): void {
 }
 
 /**
- * Block external billable API calls in INT (fail-closed, no override).
+ * Block external billable API calls in INT (fail-closed). S26: API Empresas is allowed only when
+ * `INT_APIEMPRESAS_API_KEY` is set (Alex authorised the spend for testing the real CIF flow).
  */
 export function shouldBlockExternalApi(apiName: string): boolean {
   if (!isIntEnvironment()) {
+    return false;
+  }
+  if (apiName === "APIEMPRESAS" && intApiEmpresasConfigured()) {
     return false;
   }
   console.log(`[INT] External API blocked: ${apiName}`);

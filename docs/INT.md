@@ -47,14 +47,19 @@ If `INT_MAILEROO_API_KEY` or `INT_EMAIL_CATCHALL` is missing, `sendMail` logs `[
 
 See `src/lib/int-mail.ts` and `src/lib/server/mailer.ts`.
 
-## Company CIF lookup (no billable APIs)
+## Company CIF lookup
 
-INT never calls API Empresas or OpenMercantil (`shouldBlockExternalApi`). `lookupCompanyRegistry` uses `lookupIntRegistry` instead:
+INT never calls OpenMercantil. `lookupCompanyRegistry` in INT works like this:
 
-- CIF **B12345674** returns the INT seed company **Obrador Ficticio Norte S.L.** so verification can be exercised end to end (name confirm, prefill, “hemos rellenado”).
-- Any other valid CIF is an honest miss: the seller can continue and fill Detalles de empresa, or wait for the 24 h review. The UI must not say the ficha was filled.
+- CIF **B12345674** always returns the INT seed company **Obrador Ficticio Norte S.L.** (offline mock), so verification can be exercised end to end (name confirm, prefill, “hemos rellenado”).
+- S26: when the Worker secret **`INT_APIEMPRESAS_API_KEY`** is set on `releva-int`, every other CIF is looked up with the paid **API Empresas** (`https://apiempresas.es/api/v1/companies?cif=…`, header `X-API-KEY`). Results are cached in the INT `company_registry_cache` (30 days found, 2 days not found). Alex authorised the spend for INT testing.
+- Without that secret, any other valid CIF is an honest miss: the seller can continue and fill Detalles de empresa, or wait for the 24 h review. The UI must not say the ficha was filled.
 
-Do not set `APIEMPRESAS_API_KEY` on `releva-int`.
+Never set the production `APIEMPRESAS_API_KEY` name on `releva-int`; INT only reads `INT_APIEMPRESAS_API_KEY`.
+
+```bash
+npx wrangler secret put INT_APIEMPRESAS_API_KEY --name releva-int
+```
 
 ## Data-room uploads (isolated)
 

@@ -362,3 +362,15 @@ export function validateIntEnvironment(): void {
   console.log("[INT] Uploads: BLOCKED (no INT storage)");
   console.log("[INT] External APIs: BLOCKED");
 }
+
+/**
+ * S26: INT may call the paid API Empresas (apiempresas.es) for real CIF verification once Alex sets the
+ * `INT_APIEMPRESAS_API_KEY` Worker secret. Never falls back to the production `APIEMPRESAS_API_KEY`.
+ */
+export function intApiEmpresasKey(): string {
+  return process.env["INT_APIEMPRESAS_API_KEY"]?.trim() ?? "";
+}
+
+export function intApiEmpresasConfigured(): boolean {
+  return isIntEnvironment() && intApiEmpresasKey().length > 0;
+}

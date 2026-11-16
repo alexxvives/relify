@@ -96,6 +96,8 @@ writeFileSync(
         INT_APPROVED_DB_HOST: approvedHost,
       },
       secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],
+      // S26: optional. When set, INT verifies CIFs (other than the B12345674 mock) with the paid API Empresas.
+      secrets_optional: ["INT_APIEMPRESAS_API_KEY"],
       r2_required: [
         {
           binding: "INT_UPLOADS",

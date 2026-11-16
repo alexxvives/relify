@@ -3,9 +3,9 @@ import type { RegistryLookup } from "@/lib/registry-lookup";
 import { normalizeCif } from "@/lib/spanish-cif";
 
 /**
- * INT never calls billable registries (API Empresas / OpenMercantil).
- * A known test CIF returns the seed company so CIF verification can be exercised.
- * Any other valid CIF is an honest miss: the seller can continue and fill the ficha.
+ * INT never calls OpenMercantil, and calls the paid API Empresas only when `INT_APIEMPRESAS_API_KEY` is set (S26).
+ * A known test CIF always returns the seed company so CIF verification can be exercised offline.
+ * Without the key, any other valid CIF is an honest miss: the seller can continue and fill the ficha.
  */
 export const intRegistryTestCif = "B12345674";
 
@@ -35,4 +35,12 @@ export function lookupIntRegistry(rawCif: string): RegistryLookup {
     return { ok: true, record: intRegistryCompany(cif) };
   }
   return { ok: true, record: null };
+}
+
+/** S26: which INT lookup a CIF gets. "mock" for the test CIF or when INT has no API Empresas key. */
+export function intRegistryLookupMode(rawCif: string, intApiKey: string): "mock" | "apiempresas" {
+  if (normalizeCif(rawCif) === intRegistryTestCif || intApiKey.trim().length === 0) {
+    return "mock";
+  }
+  return "apiempresas";
 }
