@@ -148,6 +148,8 @@ export const companyCopy = {
   pendingChip: "Pendiente",
   doneChip: "Completado",
   editPanel: "Editar",
+  sectionNavPrev: "Ver secciones anteriores",
+  sectionNavNext: "Ver más secciones",
   collapsePanel: "Cerrar",
   savePanel: "Guardar",
   cancelPanel: "Cancelar",

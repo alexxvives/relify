@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ComponentType, type Keyb
 import { useScrollSpy } from "@/components/shell/use-scroll-spy";
 import {
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   FileSpreadsheet,
   HandCoins,
@@ -17,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import type { GooeyNavItem } from "@/components/ui/gooey-nav/GooeyNav";
+import { companyCopy } from "@/lib/company-copy";
 
 export type ReportNavItem = { id: string; label: string };
 
@@ -76,6 +79,8 @@ export function ReportNav({
   const activeIndex = Math.max(0, items.findIndex((item) => item.id === active));
 
   const scroller = useRef<HTMLDivElement>(null);
+  // S27: arrows only when the sections overflow; each one is disabled at its edge.
+  const [edges, setEdges] = useState({ overflow: false, left: false, right: false });
 
   // Fade only the edge that still hides items, so a bar that fits shows no fade at all.
   const syncFades = useCallback(() => {
@@ -84,9 +89,23 @@ export function ReportNav({
       return;
     }
     const max = el.scrollWidth - el.clientWidth;
-    el.toggleAttribute("data-fade-left", el.scrollLeft > 2);
-    el.toggleAttribute("data-fade-right", max - el.scrollLeft > 2);
+    const left = el.scrollLeft > 2;
+    const right = max - el.scrollLeft > 2;
+    el.toggleAttribute("data-fade-left", left);
+    el.toggleAttribute("data-fade-right", right);
+    const overflow = max > 2;
+    setEdges((prev) =>
+      prev.overflow === overflow && prev.left === left && prev.right === right ? prev : { overflow, left, right },
+    );
   }, []);
+
+  function nudge(direction: -1 | 1) {
+    const el = scroller.current;
+    if (!el) {
+      return;
+    }
+    el.scrollBy({ left: direction * Math.max(120, el.clientWidth * 0.6), behavior: reducedMotion() ? "auto" : "smooth" });
+  }
 
   useEffect(() => {
     const el = scroller.current;
@@ -197,6 +216,9 @@ export function ReportNav({
     <nav aria-label={label} className={`sticky z-30 mx-auto w-fit max-w-full ${top}`}>
       <div className="flex w-fit max-w-full items-center rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
         {/* Alex (S25): always one line; scrolls sideways when the sections do not fit. */}
+        {edges.overflow ? (
+          <ScrollArrow direction={-1} disabled={!edges.left} onClick={() => nudge(-1)} />
+        ) : null}
         <div ref={scroller} className="releva-scroll-x min-w-0 max-w-full rounded-xl">
           {Gooey ? (
             <Gooey
@@ -238,7 +260,28 @@ export function ReportNav({
             </ul>
           )}
         </div>
+        {edges.overflow ? (
+          <ScrollArrow direction={1} disabled={!edges.right} onClick={() => nudge(1)} />
+        ) : null}
       </div>
     </nav>
+  );
+}
+
+function ScrollArrow({ direction, disabled, onClick }: { direction: -1 | 1; disabled: boolean; onClick: () => void }) {
+  const Icon = direction < 0 ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-label={direction < 0 ? companyCopy.sectionNavPrev : companyCopy.sectionNavNext}
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#465ab4] transition-opacity hover:bg-[#eef2ff] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30 ${
+        direction < 0 ? "mr-0.5" : "ml-0.5"
+      }`}
+    >
+      <Icon className="size-4" aria-hidden />
+    </button>
   );
 }
