@@ -9,6 +9,7 @@ import { setAccountSuspension } from "@/lib/server/set-account-suspension";
 import { setVerified } from "@/lib/server/set-verified";
 import { unpublishProject } from "@/lib/server/unpublish-project";
 import { approveEbitdaAdjustment } from "@/lib/server/approve-ebitda-adjustment";
+import { rejectEbitdaAdjustment } from "@/lib/server/reject-ebitda-adjustment";
 import { rotateAdminTeaserToken } from "@/lib/server/company-pdfs";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
@@ -40,6 +41,18 @@ export async function approveEbitdaAdjustmentAction(formData: FormData): Promise
   const user = await requireRole("admin");
   const slug = readText(formData, "slug");
   await approveEbitdaAdjustment(user, slug, readText(formData, "rowId"));
+  refreshCatalog();
+  if (slug) {
+    revalidatePath(`/admin/empresas/${slug}`);
+    revalidatePath(`/proyectos/${slug}`);
+  }
+}
+
+/** S32: turn a pending adjustment down (optional note for the seller); the seller gets an aviso. */
+export async function rejectEbitdaAdjustmentAction(formData: FormData): Promise<void> {
+  const user = await requireRole("admin");
+  const slug = readText(formData, "slug");
+  await rejectEbitdaAdjustment(user, slug, readText(formData, "rowId"), readText(formData, "note"));
   refreshCatalog();
   if (slug) {
     revalidatePath(`/admin/empresas/${slug}`);

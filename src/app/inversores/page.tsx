@@ -3,8 +3,10 @@ import { RolePage } from "@/components/landing/role-page";
 import { readSiteUrl } from "@/lib/env";
 import { pageSocialMetadata } from "@/lib/seo-head";
 
-const title = "Compradores";
-const description = "Filtra empresas en venta por región, facturación y EBITDA, y pide acceso cuando una encaja.";
+// S32: search-result title and snippet (Google sitelink "Inversores").
+const title = "Comprar una empresa";
+const description =
+  "Encuentra pymes rentables en venta en España. Filtra por región, facturación y EBITDA, guarda las que encajan y pide acceso al detalle.";
 
 export function generateMetadata(): Metadata {
   return {

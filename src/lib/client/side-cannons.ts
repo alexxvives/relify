@@ -15,14 +15,24 @@ export function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
-/** Returns false when skipped (reduced motion, no window). */
-export async function fireSideCannons(): Promise<boolean> {
+/**
+ * Returns the confetti canvas, or null when skipped (reduced motion, no window).
+ * S32: `host` lets the canvas live inside an open modal <dialog> (the top layer would hide a body canvas), so the
+ * confetti fires together with the "Tu cuenta ya está lista" message. Move it to `document.body` before closing.
+ */
+export async function fireSideCannons(host?: Element | null): Promise<HTMLCanvasElement | null> {
   if (typeof window === "undefined" || prefersReducedMotion()) {
-    return false;
+    return null;
   }
   const { default: confettiModule } = await import("canvas-confetti");
-  // No web worker: the CSP has no blob: worker source. The library canvas is full-window and resizes.
-  const confetti = confettiModule.create(undefined, { resize: true, useWorker: false });
+  const canvas = document.createElement("canvas");
+  canvas.setAttribute("aria-hidden", "true");
+  canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:100";
+  (host ?? document.body).appendChild(canvas);
+  // No web worker: the CSP has no blob: worker source. The canvas is full-window and resizes.
+  const confetti = confettiModule.create(canvas, { resize: true, useWorker: false });
+  // Particles settle about 3 s after the last shot; then the canvas goes away.
+  window.setTimeout(() => canvas.remove(), sideCannonDurationMs + 4000);
   const end = Date.now() + sideCannonDurationMs;
   const colors = [...sideCannonColors];
 
@@ -37,5 +47,5 @@ export async function fireSideCannons(): Promise<boolean> {
   };
 
   frame();
-  return true;
+  return canvas;
 }

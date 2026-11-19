@@ -133,7 +133,7 @@ export const landingCopy = {
         title: "Mercado",
         links: [
           { label: "Valora tu empresa", href: "/valorar" },
-          { label: "Diario", href: "/blog" },
+          { label: "Blog", href: "/blog" },
         ],
       },
       {
@@ -149,9 +149,9 @@ export const landingCopy = {
     ],
   },
   home: {
-    title: "El mercado inteligente para comprar y vender empresas rentables",
+    title: "Relify: comprar y vender empresas rentables en España",
     description:
-      "En Relify las fichas se leen por facturación, EBITDA y precio, sin la razón social. Publicas la tuya o pides conexión a las que encajan.",
+      "Compra o vende una pyme rentable con fichas de cifras reales (facturación, EBITDA y precio) y un proceso confidencial: la razón social no se publica.",
     intro:
       "Pasa por los edificios marcados y mira las cifras. Si la tuya encaja en esa fila, se publica con nombre de proyecto.",
     cta: "Prueba gratis",

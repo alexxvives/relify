@@ -4,7 +4,7 @@ import { roleCreds, signInAs } from "./helpers";
 test.describe("S27", () => {
   test("blog index has a featured post and a filterable grid", async ({ page }) => {
     await page.goto("/blog");
-    await expect(page.getByRole("heading", { level: 1, name: "Diario" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Blog" })).toBeVisible();
     await expect(page.getByText("Destacado")).toBeVisible();
     const filter = page.getByRole("group", { name: "Filtrar por tema" });
     await filter.getByRole("button", { name: "Cuentas" }).click();

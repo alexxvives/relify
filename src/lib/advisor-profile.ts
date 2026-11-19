@@ -183,6 +183,26 @@ export function corporateIsComplete(profile: {
   return corporateInputSchema.safeParse(profile).success;
 }
 
+/** S32: field names still missing from Datos corporativos, in form order (they unlock services and documents). */
+export const corporateFieldLabels = {
+  businessName: "nombre de la empresa",
+  nif: "NIF",
+  postalCode: "código postal",
+  description: "descripción (mín. 50 caracteres)",
+  sectors: "sectores",
+} as const;
+
+export function corporateMissing(profile: Parameters<typeof corporateIsComplete>[0]): string[] {
+  const result = corporateInputSchema.safeParse(profile);
+  if (result.success) {
+    return [];
+  }
+  const failed = new Set(result.error.issues.map((issue) => String(issue.path[0])));
+  return (Object.keys(corporateFieldLabels) as (keyof typeof corporateFieldLabels)[])
+    .filter((key) => failed.has(key))
+    .map((key) => corporateFieldLabels[key]);
+}
+
 export function firstIssue(error: z.ZodError): string {
   return error.issues[0]?.message ?? advisorCopy.saveFailed;
 }

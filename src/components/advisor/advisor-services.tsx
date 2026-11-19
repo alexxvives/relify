@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
+import { Check, ChevronDown, CircleCheck, Clock, Lock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
 import { AppToast } from "@/components/shell/app-toast";
@@ -10,6 +10,7 @@ import { toPublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
+  corporateMissing,
   type AdvisorProfileView,
   type AdvisorServiceId,
   type StoredService,
@@ -232,6 +233,11 @@ export function AdvisorServices({
     setEditing(null);
   }
 
+  function openCorporate() {
+    open("corporate");
+    document.getElementById("datos-corporativos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function saveCorporate() {
     setPending(true);
     const result = await saveCorporateAction({
@@ -292,6 +298,7 @@ export function AdvisorServices({
   return (
     <div className="flex flex-col gap-4">
       <AppToast message={savedNote} pulse={savedPulse} />
+      <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
@@ -440,9 +447,10 @@ export function AdvisorServices({
           </div>
         )}
       </Card>
+      </div>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
-      <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
@@ -450,6 +458,8 @@ export function AdvisorServices({
           </div>
           <Chip done={profile.services.length > 0} editing={false} />
         </div>
+        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
+        <div className={profile.corporateComplete ? "" : "opacity-60"}>
         <ul className="mt-2 divide-y divide-[#eef0f3]">
           {advisorServiceIds.map((id) => {
             const checked = selectedServices.includes(id);
@@ -504,6 +514,7 @@ export function AdvisorServices({
             {advisorCopy.save}
           </button>
         </div>
+        </div>
       </section>
       <aside className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
@@ -545,7 +556,7 @@ export function AdvisorServices({
         )}
       </Card>
 
-      <section className={`rounded-2xl border border-[#e7eaee] bg-white p-5 ${profile.corporateComplete ? "" : "opacity-60"}`}>
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <PanelHeading
           title={advisorCopy.documentsTitle}
           body={advisorCopy.documentsBody}
@@ -554,6 +565,7 @@ export function AdvisorServices({
           disabled={!profile.corporateComplete}
           onEdit={() => open("documents")}
         />
+        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
         {editing === "documents" ? (
           <div className="mt-6">
             <p className="rounded-2xl border border-dashed border-[#e7eaee] px-4 py-10 text-center text-sm text-[#64748b]">
@@ -566,10 +578,37 @@ export function AdvisorServices({
             </div>
           </div>
         ) : (
-          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.documentsEmpty}</p>
+          <p className={`mt-4 text-sm text-[#64748b] ${profile.corporateComplete ? "" : "opacity-60"}`}>{advisorCopy.documentsEmpty}</p>
         )}
       </section>
 
+    </div>
+  );
+}
+
+/**
+ * S32: services and documents wait for Datos corporativos (by design: the public listing needs the company first).
+ * Say so, list what is missing and jump to the form, instead of only greying the section out.
+ */
+function CorporateLock({ missing, onComplete }: { missing: string[]; onComplete: () => void }) {
+  return (
+    <div data-corporate-lock className="mt-3 flex flex-col gap-3 rounded-xl border border-[#e3e7ee] bg-[#f7f8fb] p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-2.5">
+        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-[#465ab4] ring-1 ring-[#e3e7ee]">
+          <Lock className="size-3.5" aria-hidden />
+        </span>
+        <div className="min-w-0 text-sm">
+          <p className="font-semibold text-[#2b3b4a]">{advisorCopy.lockedTitle}</p>
+          {missing.length > 0 ? (
+            <p className="mt-0.5 text-[#64748b]">
+              {advisorCopy.lockedMissing} {missing.join(", ")}.
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <Button type="button" onClick={onComplete} tone="outline" size="sm">
+        {advisorCopy.lockedAction}
+      </Button>
     </div>
   );
 }

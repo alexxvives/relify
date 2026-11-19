@@ -94,7 +94,7 @@ function Byline({ post }: { post: BlogPost }) {
 }
 
 export function BlogGrid({
-  title = "Diario",
+  title = "Blog",
   description = "",
   posts = blogPosts,
   categories = blogCategories,

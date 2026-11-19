@@ -76,7 +76,8 @@ describe("S13b scroll lock and seller surfaces", () => {
     const sheet = draftForm.slice(draftForm.indexOf("data-asking-price-sheet"));
     expect(sheet).toMatch(/<PriceBar[\s>]/);
     expect(sheet).toMatch(/data-use-recommended/);
-    expect(sheet).toMatch(/data-asking-includes/);
+    expect(sheet).not.toMatch(/data-asking-includes/);
+    expect(sheet).toMatch(/<PriceRangeSteps[\s>]/);
     expect(draftForm).toMatch(/data-price-standing/);
     expect(draftForm).not.toMatch(/suggestedPrice/);
     expect(draftForm).not.toMatch(/applySuggested[^I]/);
@@ -152,7 +153,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
   it("explains the price range with an info tooltip, not the old sentence", () => {
     expect(draftForm).not.toMatch(/El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado/);
     expect(draftForm).toMatch(/AskingPriceRangeHint/);
-    expect(draftForm).toMatch(/EBITDA ajustado × múltiplo sectorial/);
+    expect(draftForm).toMatch(/EBITDA de referencia × múltiplo sectorial/);
   });
 
   it("orders Datos de la ficha without Resultado neto", () => {

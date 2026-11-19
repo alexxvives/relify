@@ -3,8 +3,10 @@ import { RolePage } from "@/components/landing/role-page";
 import { readSiteUrl } from "@/lib/env";
 import { pageSocialMetadata } from "@/lib/seo-head";
 
-const title = "Asesores";
-const description = "Publica servicios y acompaña encargos sin mostrar la sociedad del cliente en la ficha.";
+// S32: search-result title and snippet.
+const title = "Asesores de compraventa de empresas";
+const description =
+  "Publica tus servicios de M&A en Relify y acompaña a vendedores y compradores de pymes en cada paso, sin mostrar la sociedad del cliente.";
 
 export function generateMetadata(): Metadata {
   return {

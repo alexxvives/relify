@@ -7,16 +7,10 @@ import { Process } from "@/components/landing/process";
 import { PublicSite } from "@/components/landing/public-site";
 import { readSiteUrl } from "@/lib/env";
 import { landingCopy } from "@/lib/landing-copy";
+import { siteJsonLd } from "@/lib/seo-head";
 
 export function landingJsonLd(siteUrl: URL) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Relify",
-    url: new URL("/", siteUrl).href,
-    description: landingCopy.home.description,
-    inLanguage: "es",
-  };
+  return siteJsonLd(siteUrl, landingCopy.home.description);
 }
 
 export async function LandingPage() {

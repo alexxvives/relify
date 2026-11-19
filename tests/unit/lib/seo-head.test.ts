@@ -14,14 +14,17 @@ describe("headContainsIconAndOgImage", () => {
 });
 
 describe("intPrefixedTitle", () => {
-  it("leaves production titles unprefixed", () => {
-    expect(intPrefixedTitle(false, "Detalles de empresa")).toBe("Detalles de empresa");
+  it("leaves production titles unprefixed and adds the Relify brand to child titles", () => {
+    expect(intPrefixedTitle(false, "Detalles de empresa")).toEqual({
+      default: "Detalles de empresa",
+      template: "%s | Relify",
+    });
   });
 
   it("prefixes the default and every child title on INT", () => {
     expect(intPrefixedTitle(true, "Plataforma digital para comprar empresas")).toEqual({
       default: "[INT] Plataforma digital para comprar empresas",
-      template: "[INT] %s",
+      template: "[INT] %s | Relify",
     });
   });
 

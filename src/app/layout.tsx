@@ -37,6 +37,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const viewport: Viewport = {
+  themeColor: "#074750",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -51,6 +52,8 @@ export function generateMetadata(): Metadata {
     title: intPrefixedTitle(isInt, landingCopy.title),
     description: landingCopy.description,
     icons: rootIcons(),
+    manifest: "/manifest.webmanifest",
+    applicationName: "Relify",
     ...(isInt && {
       robots: {
         index: false,
@@ -78,7 +81,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" data-scroll-behavior="smooth" className={`${geistSans.variable} ${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/icon-32.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="192x192" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <meta property="og:image" content={og} />
         <meta property="og:image:width" content="1200" />
