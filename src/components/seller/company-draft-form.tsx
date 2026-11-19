@@ -10,13 +10,15 @@ import { mergeStatementTable } from "@/lib/statement-merge";
 import type { SellerFichaExtras } from "@/lib/server/seller-ficha-extras";
 import { rememberSessionFlag, usePanelOpen } from "@/components/shell/session-flag";
 import { useRouter } from "next/navigation";
-import { Plus, Building2, CalendarDays, ChevronDown, CircleCheck, Clock, Download, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Tags, TrendingDown, Users, X } from "lucide-react";
+import { Plus, Building2, CalendarDays, ChevronDown, CircleAlert, CircleCheck, Clock, Download, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Tags, TrendingDown, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/shell/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
 import { CompanyFichaView, FichaLockedNote } from "@/components/company/company-ficha-view";
 import { FavoriteButton } from "@/components/investor/favorite-button";
+import { PlaceAutocomplete } from "@/components/ui/place-autocomplete";
+import { adjustmentStatusLook } from "@/lib/adjustment-status-look";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { bannerChips } from "@/lib/sector-theme";
 import { CompanyReport } from "@/components/seller/company-report";
@@ -29,7 +31,7 @@ import { IdentityChangeDialog, LockedIdentityInput, type IdentityField } from "@
 import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { cnaeClasses, cnaeTitle } from "@/lib/cnae-2009";
 import { groupedCnaeOptions } from "@/lib/cnae-section";
-import { companyLocationComplete, formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation, titleCasePlace } from "@/lib/company-location";
+import { companyLocationComplete, formatCompanyLocation, parseCompanyLocationField, resolveCompanyLocation } from "@/lib/company-location";
 import { ebitdaTrend, estimatePriceRange, priceBarEnds, priceBarPosition, priceBarZone, priceFromBarPosition, priceStanding, weightedEbitdaCents, type PriceEstimate, type YearAmount } from "@/lib/valuation-multiples";
 import { formatEur, formatWholeEur } from "@/lib/money";
 import { headcountRanges as valuationHeadcounts, type HeadcountRangeId } from "@/lib/company-profile";
@@ -290,7 +292,7 @@ function SavedFacts({
   return (
     <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
       {rows.map((row) => (
-        <Fact key={row.label} icon={row.icon} label={row.label} className={row.className}>
+        <Fact key={row.label} icon={row.icon} label={row.label} className={row.className} align="center">
           <span className="block whitespace-pre-wrap font-semibold">{row.value}</span>
         </Fact>
       ))}
@@ -650,8 +652,8 @@ function AskingPriceField({
   unsetText,
   disabledReason = null,
   estimate = null,
+  ebitdaBasisYears = [],
   askingPriceIncludes,
-  onAskingPriceIncludes,
 }: {
   label: string;
   name: string;
@@ -661,8 +663,10 @@ function AskingPriceField({
   unsetText: string;
   disabledReason?: string | null;
   estimate?: PriceEstimate | null;
+  /** Closed years averaged into the EBITDA basis (newest first); empty when the adjusted EBITDA is used. */
+  ebitdaBasisYears?: number[];
+  /** Kept as a hidden field so a stored choice survives saves; S32 removed the picker from the sheet. */
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
-  onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -763,37 +767,6 @@ function AskingPriceField({
                   <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[#667085]">€</span>
                 </span>
               </label>
-              <div>
-                <p id="asking-price-includes-label" className="text-sm font-medium text-[#2b3b4a]">
-                  {companyCopy.askingPriceIncludesLabel}
-                </p>
-                <div
-                  role="radiogroup"
-                  aria-labelledby="asking-price-includes-label"
-                  data-asking-includes
-                  className="mt-2 grid grid-cols-2 rounded-full bg-[#f2f4f7] p-1"
-                >
-                  {askingPriceIncludesKinds.map((option) => {
-                    const selected = askingPriceIncludes === option;
-                    const title = option === "shares" ? companyCopy.askingPriceIncludesShares : companyCopy.askingPriceIncludesDebtFree;
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        role="radio"
-                        title={option === "shares" ? companyCopy.askingPriceIncludesSharesHelp : companyCopy.askingPriceIncludesDebtFreeHelp}
-                        aria-checked={selected}
-                        onClick={() => onAskingPriceIncludes(option)}
-                        className={`inline-flex min-h-9 items-center justify-center rounded-full px-2 text-center text-[11px] font-semibold leading-tight focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none sm:text-xs ${
-                          selected ? "bg-white text-[#1c2740] shadow-sm" : "text-[#667085] hover:text-[#1c2740]"
-                        }`}
-                      >
-                        {title}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
               {estimate ? (
                 <div>
                   <PriceBar
@@ -822,6 +795,7 @@ function AskingPriceField({
                       {companyCopy.useRecommended}
                     </button>
                   ) : null}
+                  <PriceRangeSteps estimate={estimate} basisYears={ebitdaBasisYears} />
                 </div>
               ) : (
                 <p className="text-sm leading-6 text-[#3d4a63]">
@@ -865,6 +839,72 @@ function MetricTile({
   );
 }
 
+function formatX(value: number): string {
+  return `${value.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}x`;
+}
+
+/**
+ * S32: the asking-price sheet shows, step by step, how `estimatePriceRange` builds the range:
+ * EBITDA de referencia → múltiplo del sector (CNAE) → ajustes → rango (rounded to 1.000 €) and its midpoint.
+ */
+function PriceRangeSteps({ estimate, basisYears }: { estimate: PriceEstimate; basisYears: number[] }) {
+  const basisNote =
+    basisYears.length > 1
+      ? `Media ponderada de ${basisYears.join(", ")} (pesa más el último cierre)`
+      : basisYears.length === 1
+        ? `EBITDA del cierre ${basisYears[0]}`
+        : "Tu EBITDA ajustado";
+  const shifted = estimate.multipleLow !== estimate.sectorLow || estimate.multipleHigh !== estimate.sectorHigh;
+  const steps: { title: string; value: string; note: string }[] = [
+    { title: "EBITDA de referencia", value: wholeEur(estimate.ebitdaCents), note: basisNote },
+    {
+      title: "Múltiplo del sector",
+      value: `${formatX(estimate.sectorLow)} – ${formatX(estimate.sectorHigh)}`,
+      note: `Rango habitual en ${estimate.sectorLabel}, según tu CNAE principal`,
+    },
+    {
+      title: "Ajustes",
+      value: shifted ? `${formatX(estimate.multipleLow)} – ${formatX(estimate.multipleHigh)}` : "Sin cambios",
+      note: estimate.adjustments.length > 0 ? `Por ${estimate.adjustments.join(", ")}` : "Plantilla, ventas y tendencia del EBITDA no mueven el múltiplo",
+    },
+    {
+      title: "Rango orientativo",
+      value: `${wholeEur(estimate.lowCents)} – ${wholeEur(estimate.highCents)}`,
+      note: `EBITDA × múltiplo, redondeado a miles. Recomendado: ${wholeEur(recommendedPriceCents(estimate))}, el punto medio`,
+    },
+  ];
+  return (
+    <section data-price-steps aria-labelledby="price-steps-title" className="mt-5 rounded-xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
+      <h4 id="price-steps-title" className="text-sm font-semibold text-[#1c2740]">
+        Cómo calculamos el rango
+      </h4>
+      <ol className="mt-3 flex flex-col">
+        {steps.map((step, index) => {
+          const last = index === steps.length - 1;
+          return (
+            <li key={step.title} className="relative grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3 pb-4 last:pb-0">
+              {last ? null : <span aria-hidden className="absolute top-7 bottom-0 left-[0.8125rem] w-px bg-[#d0d5dd]" />}
+              <span
+                aria-hidden
+                className={`relative inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold ${last ? "bg-[#0f766e] text-white" : "bg-[#eef2ff] text-[#465ab4]"}`}
+              >
+                {index + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                  <span className="text-sm font-medium text-[#2b3b4a]">{step.title}</span>
+                  <span className={`text-sm font-semibold tabular-nums ${last ? "text-[#0f766e]" : "text-[#1c2740]"}`}>{step.value}</span>
+                </p>
+                <p className="mt-0.5 text-xs leading-5 text-[#667085]">{step.note}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 function AskingPriceRangeHint({ estimate }: { estimate: PriceEstimate }) {
   const minMultiple = estimate.multipleLow.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const maxMultiple = estimate.multipleHigh.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -872,7 +912,7 @@ function AskingPriceRangeHint({ estimate }: { estimate: PriceEstimate }) {
     <InfoHint text={companyCopy.askingPriceHelp} icon="info" width="lg" size="sm" content={
       <div className="flex flex-col gap-2">
         <p className="font-semibold">Cómo se calcula el rango</p>
-        <p className="leading-5">EBITDA ajustado × múltiplo sectorial (mín.–máx.) = rango orientativo</p>
+        <p className="leading-5">EBITDA de referencia × múltiplo sectorial (mín.–máx.) = rango orientativo</p>
         <div className="rounded-lg bg-white/10 px-2.5 py-2 font-medium tabular-nums">
           <p>
             EBITDA aj. × {minMultiple}x = {wholeEur(estimate.lowCents)}
@@ -902,10 +942,11 @@ function FichaMetrics({
   adjustmentCount,
   hasAdjustments = adjustmentCount > 0,
   pendingCount = 0,
+  rejectedCount = 0,
   adjustments,
   recommended = null,
   askingPriceIncludes,
-  onAskingPriceIncludes,
+  ebitdaBasisYears,
   estimate = null,
 }: {
   revenue: string;
@@ -920,11 +961,13 @@ function FichaMetrics({
   /** Approved adjustment rows or a legacy adjusted figure: the same rule the price range uses (priceBasisCents). */
   hasAdjustments?: boolean;
   pendingCount?: number;
+  /** S32: rows Relify turned down; the tile flags them so the seller opens the editor. */
+  rejectedCount?: number;
   adjustments: (close: () => void) => ReactNode;
   /** Midpoint of the orientative range; fills the asking price. Hidden while the company cannot be published. */
   recommended?: { amount: string; low: string; high: string; input: string; onUse: () => void; applied?: boolean } | null;
   askingPriceIncludes: (typeof askingPriceIncludesKinds)[number];
-  onAskingPriceIncludes: (value: (typeof askingPriceIncludesKinds)[number]) => void;
+  ebitdaBasisYears: number[];
   estimate?: PriceEstimate | null;
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -949,13 +992,13 @@ function FichaMetrics({
           disabledReason={priceBlocked ? companyCopy.priceNotPublishable : null}
           estimate={priceBlocked ? null : estimate}
           askingPriceIncludes={askingPriceIncludes}
-          onAskingPriceIncludes={onAskingPriceIncludes}
+          ebitdaBasisYears={ebitdaBasisYears}
         />
       </div>
       <ReadOnlyFigure label={companyCopy.revenueLabel} value={revenue} />
       <ReadOnlyFigure label={companyCopy.ebitdaLabel} value={ebitda} />
       <MetricTile label={companyCopy.ebitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{margin}</span>
+        <MarginValue value={margin} />
       </MetricTile>
       {/* t85: the adjustments editor lives in a modal behind the pencil; the tile shows the result or "Sin ajustes". */}
       <div id="ebitda-ajustado" className="h-full min-w-0 scroll-mt-24">
@@ -973,7 +1016,13 @@ function FichaMetrics({
             </button>
           }
           corner={
-            pendingCount > 0 ? (
+            rejectedCount > 0 ? (
+              <CompactStatus
+                label={`${rejectedCount} ${rejectedCount === 1 ? "rechazado" : "rechazados"}`}
+                className="bg-[#fef3f2] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#b42318] uppercase"
+                icon={<CircleAlert className="size-3" aria-hidden />}
+              />
+            ) : pendingCount > 0 ? (
               <CompactStatus
                 label={`${pendingCount} ${companyCopy.adjustmentPending}`}
                 className="bg-[#fff4e5] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase"
@@ -1000,7 +1049,7 @@ function FichaMetrics({
         </MetricTile>
       </div>
       <MetricTile label={companyCopy.adjustedEbitdaMarginLabel}>
-        <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{shownAdjustedMargin}</span>
+        <MarginValue value={shownAdjustedMargin} />
       </MetricTile>
       </div>
       {adjustOpen ? adjustments(() => setAdjustOpen(false)) : null}
@@ -1348,8 +1397,8 @@ function EbitdaAdjustmentsDialog({
                           <label htmlFor={`${id}-reason`} className={`flex flex-wrap items-center justify-between gap-2 ${adjustmentLabelClass}`}>
                             <span className="inline-flex items-center gap-2">
                               Justificación
-                              <span className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
-                                {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                              <span className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold tracking-wide uppercase ${adjustmentStatusLook[row.status].className}`}>
+                                {adjustmentStatusLook[row.status].label}
                               </span>
                             </span>
                             <span className="font-normal text-[#98a2b3] tabular-nums">
@@ -1407,6 +1456,16 @@ function EbitdaAdjustmentsDialog({
                             <p id={`${id}-reason-error`} className="mt-1 text-xs text-[#b42318]">
                               {rowErrors.reason}
                             </p>
+                          ) : null}
+                          {row.status === "rejected" ? (
+                            <div data-adjustment-rejected role="note" className="mt-2 rounded-lg border border-[#f1c4bf] bg-[#fef3f2] px-3 py-2 text-xs leading-5 text-[#7a271a]">
+                              <p>{companyCopy.adjustmentRejectedNote}</p>
+                              {row.reviewNote ? (
+                                <p className="mt-1 break-words">
+                                  <span className="font-semibold">{companyCopy.adjustmentRejectedReason}</span> {row.reviewNote}
+                                </p>
+                              ) : null}
+                            </div>
                           ) : null}
                         </div>
                       </div>
@@ -1476,6 +1535,16 @@ function EbitdaAdjustmentsDialog({
         </footer>
       </div>
     </div>
+  );
+}
+
+/** S32: an unavailable margin reads like the other missing figures (muted, regular size), not as a black value. */
+function MarginValue({ value }: { value: string }) {
+  if (value === companyCopy.unavailable) {
+    return <span className="text-base font-medium text-[#667085]">{value}</span>;
+  }
+  return (
+    <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{value}</span>
   );
 }
 
@@ -1741,6 +1810,7 @@ function Fact({
   hint,
   required = false,
   className = "",
+  align = "end",
   children,
 }: {
   id?: string;
@@ -1750,10 +1820,12 @@ function Fact({
   hint?: string;
   required?: boolean;
   className?: string;
+  /** S32: read-only facts centre the icon on the text block (a long description no longer drags it down). */
+  align?: "end" | "center";
   children: ReactNode;
 }) {
   return (
-    <div id={id} className={`grid scroll-mt-32 grid-cols-[2.75rem_minmax(0,1fr)] items-end gap-3 lg:scroll-mt-6 ${className}`}>
+    <div id={id} className={`grid scroll-mt-32 grid-cols-[2.75rem_minmax(0,1fr)] ${align === "center" ? "items-center" : "items-end"} gap-3 lg:scroll-mt-6 ${className}`}>
       <span className="inline-flex size-11 items-center justify-center rounded-md bg-[#eef2ff] p-2.5 text-[#465ab4]">
         <Icon className="size-5" aria-hidden />
       </span>
@@ -2193,8 +2265,9 @@ export function CompanyDraftForm({
   const adjustmentBaseCents =
     storedEbitdaCents !== null && (storedEbitdaCents !== 0 || ebitdaCentsFromAccounts === null) ? storedEbitdaCents : ebitdaCentsFromAccounts;
   const approvedSumCents = adjustmentRows.reduce((total, row) => (row.status === "approved" ? total + (formRowAmountCents(row.amount) ?? 0) : total), 0);
-  const pendingAdjustments = adjustmentRows.filter((row) => row.status !== "approved").length;
-  const approvedAdjustmentsCount = adjustmentRows.length - pendingAdjustments;
+  const pendingAdjustments = adjustmentRows.filter((row) => row.status === "pending").length;
+  const rejectedAdjustmentsCount = adjustmentRows.filter((row) => row.status === "rejected").length;
+  const approvedAdjustmentsCount = adjustmentRows.filter((row) => row.status === "approved").length;
   const legacyAdjustedCents = !hadAdjustmentList && signedEuroPattern.test(initial.adjustedEbitda.trim()) ? eurosToCents(initial.adjustedEbitda.trim()) : 0;
   const adjustedEbitda =
     approvedAdjustmentsCount > 0
@@ -2703,33 +2776,39 @@ export function CompanyDraftForm({
             </div>
           )}
           <Fact id="panel-location" icon={MapPin} label={companyCopy.locationLabel} required>
-            <Input
-              id="company-location"
-              name="location"
-              data-flash
-              aria-label={companyCopy.locationLabel}
-              autoComplete="off"
-              readOnly={locationLocked}
-              placeholder={companyCopy.locationPlaceholder}
-              value={locationLocked ? formatCompanyLocation(postalCode, city) : locationDraft}
-              onChange={(event) => {
-                const next = event.target.value;
-                const parsed = parseCompanyLocationField(next);
-                setLocationDraft(next);
-                setPostalCode(parsed.postalCode);
-                setCity(parsed.city);
-              }}
-              onBlur={() => {
-                if (locationLocked) {
-                  return;
-                }
-                const parsed = parseCompanyLocationField(locationDraft);
-                const place = titleCasePlace(parsed.city);
-                setPostalCode(parsed.postalCode);
-                setCity(place);
-                setLocationDraft(formatCompanyLocation(parsed.postalCode, place));
-              }}
-            />
+            {locationLocked ? (
+              <Input
+                id="company-location"
+                name="location"
+                data-flash
+                aria-label={companyCopy.locationLabel}
+                autoComplete="off"
+                readOnly
+                value={formatCompanyLocation(postalCode, city)}
+              />
+            ) : (
+              // S32 (Alex): the same OpenStreetMap suggestions as the investor profile (Photon, Nominatim fallback).
+              <PlaceAutocomplete
+                id="company-location"
+                label={companyCopy.locationLabel}
+                placeholder={companyCopy.locationPlaceholder}
+                icon={false}
+                inputProps={{ name: "location", "data-flash": true }}
+                value={locationDraft}
+                query={parseCompanyLocationField(locationDraft).city}
+                onChange={(next) => {
+                  const parsed = parseCompanyLocationField(next);
+                  setLocationDraft(next);
+                  setPostalCode(parsed.postalCode);
+                  setCity(parsed.city);
+                }}
+                onPick={(place) => {
+                  const picked = place.province && place.province !== place.city ? `${place.city}, ${place.province}` : place.city;
+                  setCity(picked);
+                  setLocationDraft(formatCompanyLocation(postalCode, picked));
+                }}
+              />
+            )}
           </Fact>
           <input type="hidden" name="postalCode" value={postalCode} />
           <input type="hidden" name="city" value={city} />
@@ -3070,6 +3149,7 @@ export function CompanyDraftForm({
               adjustmentCount={approvedAdjustmentsCount}
               hasAdjustments={hasAdjustments}
               pendingCount={pendingAdjustments}
+              rejectedCount={rejectedAdjustmentsCount}
               adjustments={(close) => (
                 <EbitdaAdjustmentsDialog
                   rows={adjustmentRows}
@@ -3109,7 +3189,7 @@ export function CompanyDraftForm({
                   : null
               }
               askingPriceIncludes={askingPriceIncludes}
-              onAskingPriceIncludes={setAskingPriceIncludes}
+              ebitdaBasisYears={weightedEbitda?.years ?? []}
               estimate={priceEstimate}
             />
           </PublicFicha>

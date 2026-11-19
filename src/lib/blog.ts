@@ -1,9 +1,9 @@
 export const blogCopy = {
-  title: "Diario",
+  title: "Blog",
   description:
     "Guías para comprar y vender una pyme en España: qué se ve antes del NDA, cómo leer el EBITDA y cómo avanza la compraventa sin publicar el nombre.",
   all: "Todo",
-  back: "Volver al diario",
+  back: "Volver al blog",
   minutes: "min de lectura",
   latest: "Últimos artículos",
   featured: "Destacado",

@@ -19,6 +19,9 @@ export function PlaceAutocomplete({
   placeholder,
   label,
   id,
+  query = value,
+  icon = true,
+  inputProps = {},
 }: {
   value: string;
   onChange: (text: string) => void;
@@ -26,6 +29,11 @@ export function PlaceAutocomplete({
   placeholder?: string;
   label: string;
   id?: string;
+  /** S32: text to look up when it differs from the field (Tu empresa drops the leading postal code). */
+  query?: string;
+  /** S32: off where the row already shows a location icon. */
+  icon?: boolean;
+  inputProps?: { name?: string; "data-flash"?: boolean };
 }) {
   const listId = useId();
   const [items, setItems] = useState<PlaceSuggestion[]>([]);
@@ -36,7 +44,7 @@ export function PlaceAutocomplete({
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!typed.current || value.trim().length < minPlaceQuery) {
+    if (!typed.current || query.trim().length < minPlaceQuery) {
       setItems([]);
       setLoading(false);
       return;
@@ -44,7 +52,7 @@ export function PlaceAutocomplete({
     const controller = new AbortController();
     setLoading(true);
     const timer = window.setTimeout(() => {
-      searchPlaces(value.trim(), controller.signal)
+      searchPlaces(query.trim(), controller.signal)
         .then((next) => {
           setItems(next);
           setActive(-1);
@@ -58,7 +66,7 @@ export function PlaceAutocomplete({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [value]);
+  }, [query]);
 
   useEffect(() => {
     if (!open) {
@@ -88,8 +96,9 @@ export function PlaceAutocomplete({
   return (
     <div ref={rootRef} className="relative">
       <Input
+        {...inputProps}
         id={id}
-        icon={MapPin}
+        icon={icon ? MapPin : undefined}
         value={value}
         placeholder={placeholder}
         autoComplete="off"

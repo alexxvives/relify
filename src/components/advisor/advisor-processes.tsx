@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdvisorNdaTurn } from "@/components/advisor/advisor-engagement-forms";
 import { DealPipeline, DealWaitingCue } from "@/components/investor/deal-pipeline";
+import { FilterEmptyState, MutedAdvisorBoards } from "@/components/shell/filter-empty-state";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorLaneCue, type AdvisorProjectBoard } from "@/lib/advisor-processes";
 
@@ -25,7 +26,12 @@ function PendingMark({ children }: { children: string }) {
 
 export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }: { boards: AdvisorProjectBoard[]; empty?: string }) {
   if (boards.length === 0) {
-    return <p className="text-sm text-[#64748b]">{empty}</p>;
+    // S32 (Alex): muted board placeholders behind the message, like the marketplace empty state.
+    return (
+      <FilterEmptyState message={empty}>
+        <MutedAdvisorBoards />
+      </FilterEmptyState>
+    );
   }
 
   return (

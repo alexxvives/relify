@@ -66,9 +66,10 @@ import { companyCopy } from "@/lib/company-copy";
 import { ebitdaPublishable } from "@/lib/seller-draft-guard";
 import { ebitdaToCashConversion, headlineEbitda, headlineEbitdaMargin, headlineLeverage, marginExplain, marginShortLabel } from "@/lib/financial-metrics";
 import { sellerOperatingFigures } from "@/lib/seller-key-figures";
-import { ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
+import { adjustmentReviewNoteMax, ebitdaAdjustmentLabels, type EbitdaAdjustment } from "@/lib/ebitda-adjustments";
 import { AdjustmentReview } from "@/components/seller/adjustment-review";
-import { approveEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
+import { approveEbitdaAdjustmentAction, rejectEbitdaAdjustmentAction } from "@/app/(app)/admin/actions";
+import { adjustmentStatusLook } from "@/lib/adjustment-status-look";
 import { saleReasonLabels, saleReasons } from "@/lib/company-draft";
 import { formatBasisPoints, headcountLabels } from "@/lib/company-profile";
 import { compactEur, diligenceChecks, healthSignals, registryForRole, reportFlags, reportHeadline, reportSourceYears, reportSummaryMarked, summarySegments, type ReportRole } from "@/lib/company-report";
@@ -291,11 +292,16 @@ function AdjustmentBridge({
                     <div className="mt-1.5">
                       <p className="flex flex-wrap items-center gap-1.5 text-xs text-[#475467]">
                         <span className="font-medium">Justificación</span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${row.status === "approved" ? "bg-[#e8f6ee] text-[#17663a]" : "bg-[#fff4e5] text-[#7a4700]"}`}>
-                          {row.status === "approved" ? companyCopy.adjustmentApproved : companyCopy.adjustmentPending}
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${adjustmentStatusLook[row.status].className}`}>
+                          {adjustmentStatusLook[row.status].label}
                         </span>
                       </p>
                       {row.reason ? <p className="mt-1 text-sm leading-5 break-words text-[#3d4a63]">{row.reason}</p> : null}
+                      {row.status === "rejected" && row.reviewNote ? (
+                        <p className="mt-1 text-xs leading-5 break-words text-[#b42318]">
+                          {companyCopy.adjustmentRejectedReason} {row.reviewNote}
+                        </p>
+                      ) : null}
                       {href && row.documentName ? (
                         <a href={href} target="_blank" rel="noreferrer" className="mt-1.5 block truncate text-xs font-medium text-[#3d34b8] hover:underline">
                           {row.documentName}
@@ -319,6 +325,22 @@ function AdjustmentBridge({
                   ) : null}
                 </div>
               </div>
+              {role === "admin" && row.status === "pending" ? (
+                <form action={rejectEbitdaAdjustmentAction} data-adjustment-reject className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="rowId" value={row.id} />
+                  <input
+                    name="note"
+                    maxLength={adjustmentReviewNoteMax}
+                    aria-label={companyCopy.adjustmentRejectNoteLabel}
+                    placeholder={companyCopy.adjustmentRejectNoteLabel}
+                    className="relify-field h-9 min-w-0 flex-1 px-3 text-sm"
+                  />
+                  <button type="submit" className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#f1c4bf] bg-white px-3 text-xs font-semibold text-[#b42318] hover:bg-[#fef3f2] focus-visible:ring-2 focus-visible:ring-[#b42318]/40 focus-visible:outline-none">
+                    {companyCopy.adjustmentReject}
+                  </button>
+                </form>
+              ) : null}
             </li>
           );
         })}

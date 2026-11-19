@@ -3,8 +3,10 @@ import { RolePage } from "@/components/landing/role-page";
 import { readSiteUrl } from "@/lib/env";
 import { pageSocialMetadata } from "@/lib/seo-head";
 
-const title = "Empresas";
-const description = "Prepara la ficha, publica con un nombre de proyecto y gestiona el interés sin mostrar la sociedad.";
+// S32: search-result title and snippet (Google sitelink "Empresas").
+const title = "Vender tu empresa";
+const description =
+  "Publica tu pyme con un nombre de proyecto, recibe el interés de compradores y decide con quién hablar. La razón social no aparece en la ficha pública.";
 
 export function generateMetadata(): Metadata {
   return {

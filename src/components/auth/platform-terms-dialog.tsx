@@ -26,6 +26,7 @@ export function PlatformTermsDialog({ required }: { required: boolean }) {
   const [shownAtMount] = useState(required);
   const phase = stored === "sign" && shownAtMount && !required ? "signed" : stored;
   const fired = useRef(false);
+  const confettiCanvas = useRef<Promise<HTMLCanvasElement | null>>(Promise.resolve(null));
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -40,15 +41,21 @@ export function PlatformTermsDialog({ required }: { required: boolean }) {
     if (phase !== "signed") {
       return;
     }
+    // S32 (Alex): the confetti starts with the "Tu cuenta ya está lista" message, inside the open dialog.
+    if (!fired.current) {
+      fired.current = true;
+      confettiCanvas.current = fireSideCannons(dialogRef.current?.open ? dialogRef.current : null);
+    }
     const timer = window.setTimeout(() => {
-      dialogRef.current?.close();
-      setPhase("closed");
-      // Once per signature: the welcome confetti and the shell refresh (which drops this dialog).
-      if (!fired.current) {
-        fired.current = true;
-        void fireSideCannons();
+      // Keep the confetti running after the dialog closes: the canvas moves out of the top layer first.
+      void confettiCanvas.current.then((node) => {
+        if (node && node.parentElement !== document.body) {
+          document.body.appendChild(node);
+        }
+        dialogRef.current?.close();
+        setPhase("closed");
         router.refresh();
-      }
+      });
     }, signedStateMs);
     return () => {
       window.clearTimeout(timer);

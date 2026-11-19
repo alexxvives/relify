@@ -129,6 +129,8 @@ export type PriceEstimateInput = {
 };
 
 export type PriceEstimate = {
+  /** S32: the EBITDA the multiples were applied to (weighted closed years, or the adjusted EBITDA). */
+  ebitdaCents: number;
   lowCents: number;
   highCents: number;
   sector: ValuationSector;
@@ -181,6 +183,7 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
   const multipleHigh = Math.max(multipleLow + 0.5, base.high + shift);
   const roundTo = 1_000_00;
   return {
+    ebitdaCents,
     lowCents: Math.round((ebitdaCents * multipleLow) / roundTo) * roundTo,
     highCents: Math.round((ebitdaCents * multipleHigh) / roundTo) * roundTo,
     sector,

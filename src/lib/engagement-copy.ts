@@ -66,7 +66,7 @@ export const engagementCopy = {
   inboxEmpty: "No hay solicitudes en la bandeja.",
   mineTitle: "Encargos para ti",
   mineIntro: "Son las empresas que te han contratado. El depósito es 50 € más el 0,5 % del precio de venta y se devuelve.",
-  mineEmpty: "Nadie te ha elegido todavía.",
+  mineEmpty: "Todavía no tienes encargos. Cuando una empresa o un comprador te elija en Relify, lo verás aquí.",
   claim: "Coger encargo",
   claiming: "Cogiendo…",
   claimed: "El encargo es tuyo. Ya no está en la bandeja.",

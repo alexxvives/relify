@@ -79,3 +79,27 @@ export function MutedMarketCards({ count = 3 }: { count?: number }) {
     </div>
   );
 }
+
+/** S32: the advisor process board (title, status pill, five-step pipeline) as a muted placeholder. */
+export function MutedAdvisorBoards({ count = 2 }: { count?: number }) {
+  return (
+    <ul className="flex flex-col gap-4">
+      {Array.from({ length: count }, (_, index) => (
+        <li key={index} className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="h-6 w-48 max-w-[60%] rounded-lg bg-[#e9edf2]" />
+            <span className="h-9 w-28 rounded-full bg-[#eef1f5]" />
+          </div>
+          <div className="mt-6 grid grid-cols-5 gap-2">
+            {Array.from({ length: 5 }, (_, step) => (
+              <span key={step} className="flex flex-col items-center gap-2">
+                <span className="size-8 rounded-full bg-[#eef1f5]" />
+                <span className="h-3 w-full max-w-16 rounded bg-[#e9edf2]" />
+              </span>
+            ))}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}

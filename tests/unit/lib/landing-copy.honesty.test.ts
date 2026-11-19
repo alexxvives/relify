@@ -39,7 +39,7 @@ describe("public landing copy", () => {
 
 describe("S17 landing hero and header CTAs", () => {
   it("uses one free-trial CTA and a sign-in ghost", () => {
-    expect(landingCopy.home.title).toBe("El mercado inteligente para comprar y vender empresas rentables");
+    expect(landingCopy.home.title).toBe("Relify: comprar y vender empresas rentables en España");
     expect(landingCopy.home.cta).toBe("Prueba gratis");
     expect(landingCopy.tryFreeCta).toBe("Prueba gratis");
     expect(landingCopy.signInCta).toBe("Iniciar sesión");

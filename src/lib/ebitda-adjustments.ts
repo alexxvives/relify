@@ -70,8 +70,23 @@ export function adjustmentDocumentExtension(fileName: string): string | null {
   const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
   return adjustmentDocumentExtensions.has(extension) ? extension : null;
 }
-export const adjustmentStatuses = ["pending", "approved"] as const;
+/** S32: "rejected" = an admin turned it down; it never counts and buyers never see it. */
+export const adjustmentStatuses = ["pending", "approved", "rejected"] as const;
 export type AdjustmentStatus = (typeof adjustmentStatuses)[number];
+export const adjustmentReviewNoteMax = 280;
+
+/** Stored or posted status text → a known status; anything else (missing on old rows) is approved. */
+export function readAdjustmentStatus(value: unknown): AdjustmentStatus {
+  return value === "pending" || value === "rejected" ? value : "approved";
+}
+
+function readReviewNote(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const note = value.trim().slice(0, adjustmentReviewNoteMax);
+  return note.length > 0 ? note : null;
+}
 
 const adjustmentIdPattern = /^(?:legacy-\d+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const documentIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -84,6 +99,8 @@ export type EbitdaAdjustment = {
   reason: string | null;
   /** Missing on rows saved before review: those stay approved. A new or edited row is pending until an admin accepts it. */
   status: AdjustmentStatus;
+  /** S32: why Relify rejected the row (optional, admin text). Only the seller sees it. */
+  reviewNote?: string | null;
   documentId: string | null;
   documentName: string | null;
 };
@@ -177,6 +194,11 @@ export function approvedAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAd
   return rows.filter((row) => row.status === "approved");
 }
 
+/** S32: rows an admin turned down. They never change the EBITDA; the seller edits or removes them. */
+export function rejectedAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
+  return rows.filter((row) => row.status === "rejected");
+}
+
 /** Rows still waiting for Relify. They never change the published EBITDA. */
 export function pendingAdjustments(rows: readonly EbitdaAdjustment[]): EbitdaAdjustment[] {
   return rows.filter((row) => row.status === "pending");
@@ -201,12 +223,15 @@ export function mergePostedAdjustments(posted: readonly PostedAdjustment[], stor
         : row.id && documentIdPattern.test(row.id)
           ? row.id
           : crypto.randomUUID();
+    const keep = unchanged && previous !== undefined;
     return {
       id,
       type: row.type,
       amountCents: row.amountCents,
       reason: row.reason,
-      status: unchanged && previous ? previous.status : "pending",
+      // An edited rejected row goes back to review; an untouched one stays rejected with its note.
+      status: keep ? previous.status : "pending",
+      ...(keep && previous.reviewNote ? { reviewNote: previous.reviewNote } : {}),
       documentId: row.documentId,
       documentName: row.documentId ? row.documentName : null,
     };
@@ -290,7 +315,8 @@ export function storedEbitdaAdjustments(value: unknown): EbitdaAdjustment[] | nu
         type,
         amountCents: amount,
         reason: typeof row.reason === "string" ? row.reason : null,
-        status: row.status === "pending" ? "pending" : "approved",
+        status: readAdjustmentStatus(row.status),
+        ...(readReviewNote(row.reviewNote) ? { reviewNote: readReviewNote(row.reviewNote) } : {}),
         documentId,
         documentName: documentId && typeof row.documentName === "string" ? cleanDocumentName(row.documentName) : null,
       },
@@ -307,16 +333,18 @@ export function adjustmentsForBuyer(rows: EbitdaAdjustment[] | null, ndaSigned: 
   if (!rows) {
     return rows;
   }
-  const visible = rows.filter((row) => row.status !== "pending");
+  // S32: only approved rows reach a buyer (pending and rejected stay with the seller), and never the review note.
+  const visible = rows.filter((row) => row.status === "approved");
+  const hideNote = visible.some((row) => row.reviewNote != null);
   const hideDocument = visible.some((row) => row.documentId != null || row.documentName != null);
-  if (visible.length === rows.length && !hideDocument && ndaSigned) {
+  if (visible.length === rows.length && !hideDocument && !hideNote && ndaSigned) {
     return rows;
   }
   if (visible.length === 0) {
     // Empty list, not null: pending-only was stripped. Null would fall back to a legacy adjusted column.
     return [];
   }
-  return visible.map((row) => ({
+  return visible.map(({ reviewNote: _note, ...row }) => ({
     ...row,
     reason: ndaSigned ? row.reason : null,
     documentId: null,
@@ -331,6 +359,8 @@ export type EbitdaAdjustmentFormRow = {
   amount: string;
   reason: string;
   status: AdjustmentStatus;
+  /** S32: Relify's note on a rejected row (read-only in the form). */
+  reviewNote?: string;
   documentId: string;
   documentName: string;
 };
@@ -355,6 +385,7 @@ export function adjustmentsToFormJson(rows: EbitdaAdjustment[] | null): string {
       amount: centsToAdjustmentAmount(row.amountCents),
       reason: row.reason ?? "",
       status: row.status,
+      ...(row.reviewNote ? { reviewNote: row.reviewNote } : {}),
       documentId: row.documentId ?? "",
       documentName: row.documentName ?? "",
     })),
@@ -370,6 +401,7 @@ export function formRowsToJson(rows: readonly EbitdaAdjustmentFormRow[]): string
       amount: row.amount.trim().replace(/[.\s]/g, ""),
       reason: row.reason.trim(),
       status: row.status,
+      ...(row.reviewNote ? { reviewNote: row.reviewNote } : {}),
       documentId: row.documentId,
       documentName: row.documentName,
     })),
@@ -399,7 +431,8 @@ export function formRowsFromJson(raw: string): EbitdaAdjustmentFormRow[] {
           type,
           amount: typeof row.amount === "string" ? row.amount : "",
           reason: typeof row.reason === "string" ? row.reason : "",
-          status: row.status === "pending" ? "pending" : "approved",
+          status: readAdjustmentStatus(row.status),
+          ...(readReviewNote(row.reviewNote) ? { reviewNote: readReviewNote(row.reviewNote) ?? "" } : {}),
           documentId,
           documentName: typeof row.documentName === "string" ? row.documentName : "",
         },
