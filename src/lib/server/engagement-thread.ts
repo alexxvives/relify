@@ -404,7 +404,7 @@ async function notifyOther(row: {
       : engagementCopy.threadNoticeClient,
     body: row.codename,
     href: toAdvisor
-      ? `/mandatos/encargos/${row.id}`
+      ? `/mandatos/venta/${row.id}`
       : row.client === "seller"
         ? "/mi-empresa/procesos"
         : "/procesos",

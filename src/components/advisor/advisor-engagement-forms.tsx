@@ -1,13 +1,11 @@
 "use client";
 
+import { SignAgreementDialog } from "@/components/investor/sign-agreement-dialog";
 import { stepCtaClass } from "@/components/investor/step-cta";
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { Check, X } from "lucide-react";
-import { SignaturePad } from "@/components/investor/signature-pad";
 import { useModalScrollLock } from "@/components/investor/file-preview-dialog";
-import { platformTermsCopy } from "@/lib/platform-terms";
 import {
   acceptAdvisorNdaAction,
   closeEngagementAction,
@@ -86,7 +84,6 @@ function AdvisorDepositDialog({
   const rows = [
     { label: engagementCopy.depositRowAmount, value: amountLabel },
     { label: engagementCopy.depositRowFormula, value: engagementCopy.depositFormula.replace("{price}", priceLabel) },
-    { label: engagementCopy.depositRowVat, value: engagementCopy.depositVat },
   ];
 
   return (
@@ -148,14 +145,11 @@ function AdvisorDepositDialog({
           <form action={action}>
             <input type="hidden" name="engagementId" value={engagementId} />
             <Button type="submit" disabled={pending} className="rounded-full text-sm">
-              {pending ? engagementCopy.depositPaying : `${engagementCopy.depositPay} · ${amountLabel}`}
+              {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
             </Button>
           </form>
         </div>
       )}
-      <div className="mt-3">
-        <CheckoutLegalNote />
-      </div>
       {[state, declineState].map((result, index) =>
         result && !result.ok ? (
           <p key={index} role="alert" className="mt-3 text-sm text-red-700">
@@ -200,6 +194,7 @@ export function AdvisorNdaTurn({ engagementId, text }: { engagementId: string; t
   );
 }
 
+/** S37 (Alex): the same signing popup as the buyer's NDA; once signed the advisor lands on Mis procesos. */
 function AdvisorNdaDialog({
   engagementId,
   text,
@@ -209,100 +204,35 @@ function AdvisorNdaDialog({
   text: string;
   onClose: () => void;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [state, action, pending] = useActionState(acceptAdvisorNdaAction, null);
-  const [signature, setSignature] = useState("");
-  const [needsSignature, setNeedsSignature] = useState(false);
-  useModalScrollLock(true);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-
-    if (!dialog || dialog.open) {
-      return;
+    if (state?.ok) {
+      router.push("/mandatos/venta");
     }
-
-    dialog.showModal();
-  }, []);
-
-  useEffect(() => {
-    if (!state?.ok) {
-      return;
-    }
-
-    dialogRef.current?.close();
-    router.refresh();
   }, [router, state]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(44rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-left text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
-      onClose={onClose}
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4">
-        <div className="min-w-0">
-          <h2 className="text-lg font-semibold">Acuerdo de confidencialidad</h2>
-          <p className="mt-1 text-sm leading-6 text-[#5c6b78]">{engagementCopy.ndaIntro}</p>
-        </div>
-        <form method="dialog">
-          <button type="submit" className="text-sm font-medium text-[#5c6b78]">
-            Cerrar
-          </button>
-        </form>
-      </div>
-      <form
-        action={action}
-        className="flex min-h-0 flex-1 flex-col"
-        onSubmit={(event) => {
-          if (signature.length === 0) {
-            event.preventDefault();
-            setNeedsSignature(false);
-            window.requestAnimationFrame(() => {
-              setNeedsSignature(true);
-            });
-          }
-        }}
-      >
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3d4a63]">{text}</pre>
-          <div className="mt-5">
-            <input type="hidden" name="signature" value={signature} />
-            <SignaturePad
-              invalid={needsSignature}
-              collectIdentity
-              onChange={(value) => {
-                setSignature(value);
-                if (value.length > 0) {
-                  setNeedsSignature(false);
-                }
-              }}
-            />
-            {needsSignature ? (
-              <p role="alert" className="mt-2 text-sm text-[#c0362c]">
-                {platformTermsCopy.signRequired}
-              </p>
-            ) : null}
-          </div>
-        </div>
-        <div className="flex justify-end border-t border-[#eef0f3] px-5 py-4">
-          <input type="hidden" name="engagementId" value={engagementId} />
-          <Button
-            type="submit"
-            disabled={pending}
-            className="rounded-full text-sm"
->
-            {pending ? engagementCopy.ndaPending : engagementCopy.ndaSign}
-          </Button>
-        </div>
-        {state && !state.ok ? (
-          <p role="alert" className="px-5 pb-4 text-sm text-red-700">
+    <SignAgreementDialog
+      title="Acuerdo de confidencialidad"
+      intro={engagementCopy.ndaIntro}
+      agreement={text}
+      action={action}
+      pending={pending}
+      done={state?.ok === true}
+      collectIdentity
+      submitLabel={engagementCopy.ndaSign}
+      hidden={<input type="hidden" name="engagementId" value={engagementId} />}
+      error={
+        state && !state.ok ? (
+          <p role="alert" className="px-6 pb-4 text-sm text-red-700">
             {state.message}
           </p>
-        ) : null}
-      </form>
-    </dialog>
+        ) : null
+      }
+      onClose={onClose}
+    />
   );
 }
 

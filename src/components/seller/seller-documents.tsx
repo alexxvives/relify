@@ -874,7 +874,7 @@ function isImageName(name: string) {
   return /\.(png|jpe?g|webp|gif)$/i.test(name);
 }
 
-function DocumentThumb({ src, fileName }: { src: string | null; fileName: string }) {
+export function DocumentThumb({ src, fileName }: { src: string | null; fileName: string }) {
   const image = isImageName(fileName);
   const pdf = fileName.toLowerCase().endsWith(".pdf") || (src?.includes("/pdf/") ?? false);
   const extension = fileName.split(".").pop()?.toUpperCase() ?? "DOC";

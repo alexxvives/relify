@@ -85,10 +85,9 @@ function ProcessConversation({
                 }),
           }}
         />
-        {/* Mis procesos layout rule: one action row, toggles on the left; Cancelar proceso, Ver la ficha and (from Q&A
-            through Contrato) Contacta con un asesor on the right. */}
+        {/* Mis procesos layout rule: one action row, toggles on the left; (from Q&A through Contrato) Contacta con un
+            asesor, then Cancelar proceso and Ver la ficha on the right. */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          {actions}
           {!item.advisorHired && wantsAdvisor(item.steps) ? (
             <Link
               href={`/asesoramiento?empresa=${item.slug}`}
@@ -98,6 +97,7 @@ function ProcessConversation({
               {engagementCopy.contactAdvisor}
             </Link>
           ) : null}
+          {actions}
         </div>
       </div>
       <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">

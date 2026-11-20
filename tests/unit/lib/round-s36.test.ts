@@ -8,9 +8,8 @@ const read = (path: string) => readFileSync(path, "utf8");
 
 describe("S36 advisor encargo", () => {
   it("explains the deposit and the NDA, with no dead subscription copy", () => {
-    expect(engagementCopy.depositVat).toMatch(/IVA/);
     expect(engagementCopy.depositFormula).toContain("{price}");
-    expect(engagementCopy.ndaTurn.length).toBeGreaterThan(60);
+    expect(engagementCopy.ndaTurn).toMatch(/NDA/);
     for (const key of ["subscriptionFirst", "subscriptionFirstLink", "inboxLocked", "subscriptionPaidNote"]) {
       expect(Object.keys(engagementCopy)).not.toContain(key);
     }

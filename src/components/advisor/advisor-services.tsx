@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AdvisorDocuments } from "@/components/advisor/advisor-documents";
 import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
 import { Check, ChevronDown, CircleCheck, Clock, Pencil } from "lucide-react";
 import { saveCorporateAction, saveMarketplaceAction } from "@/app/(app)/mis-servicios/actions";
@@ -17,9 +18,9 @@ import {
 } from "@/lib/advisor-profile";
 import { advisorSectorName, advisorSectorShort, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
+import type { AdvisorDocumentView } from "@/lib/advisor-documents";
 import { Button, Card, Input, Textarea } from "@/components/ui/form";
 
-type PanelId = "corporate" | "services" | "documents";
 
 const fieldClass = "relify-field h-11 w-full px-3 text-sm";
 
@@ -176,12 +177,13 @@ function pricesFrom(services: StoredService[]): Record<AdvisorServiceId, { from:
 export function AdvisorServices({
   initial,
   closes = [],
+  documents = [],
 }: {
   initial: AdvisorProfileView;
   closes?: { id: string; codename: string; closedLabel: string; services: string; clientLabel: string; buyerLabel: string | null }[];
+  documents?: AdvisorDocumentView[];
 }) {
   const [profile, setProfile] = useState(initial);
-  const [editing, setEditing] = useState<PanelId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [messageFrom, setMessageFrom] = useState<"corporate" | "marketplace">("marketplace");
   const [savedNote, setSavedNote] = useState<string | null>(null);
@@ -219,42 +221,40 @@ export function AdvisorServices({
     cases: closes.map((close) => ({ sector: close.clientLabel, closedOn: close.closedLabel, value: close.services })),
   };
 
-  function open(panel: PanelId) {
-    setMessage(null);
-    setEditing(panel);
-  }
+  // Silent autosave once the three fields are valid, 700 ms after the last keystroke; only a failure shows.
+  const corporateKey = `${businessName.trim()}|${nif.trim().toUpperCase()}|${postalCode}`;
+  const savedCorporate = useRef(`${initial.businessName}|${initial.nif}|${initial.postalCode}`);
+  const corporateReady = businessName.trim().length > 0 && isValidSpanishCif(nif) && /^\d{5}$/.test(postalCode);
 
-  function close() {
-    setMessage(null);
-    setEditing(null);
-  }
-
-  async function saveCorporate() {
-    setPending(true);
-    setMessageFrom("corporate");
-    const result = await saveCorporateAction({
-      businessName,
-      nif,
-      postalCode,
-    });
-    setPending(false);
-
-    if (!result.ok) {
-      setMessage(result.message);
+  useEffect(() => {
+    if (!corporateReady || corporateKey === savedCorporate.current) {
       return;
     }
 
-    setProfile((current) => ({
-      ...current,
-      businessName: businessName.trim(),
-      nif: nif.trim().toUpperCase(),
-      postalCode,
-      corporateComplete: true,
-    }));
-    setMessage(null);
-    setSavedNote(advisorCopy.corporateSaved);
-    setSavedPulse((current) => current + 1);
-  }
+    const timer = window.setTimeout(() => {
+      void saveCorporateAction({ businessName, nif, postalCode }).then((result) => {
+        setMessageFrom("corporate");
+        if (!result.ok) {
+          setMessage(result.message);
+          return;
+        }
+
+        savedCorporate.current = corporateKey;
+        setMessage(null);
+        setProfile((current) => ({
+          ...current,
+          businessName: businessName.trim(),
+          nif: nif.trim().toUpperCase(),
+          postalCode,
+          corporateComplete: true,
+        }));
+      });
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [businessName, corporateKey, corporateReady, nif, postalCode]);
 
   async function saveMarketplace() {
     setPending(true);
@@ -295,7 +295,7 @@ export function AdvisorServices({
       <AppToast message={savedNote} pulse={savedPulse} />
       <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
-        {/* S36 (Alex): no Editar; the three fields are always open and save with their own Guardar. */}
+        {/* S37 (Alex): no Editar and no Guardar; the three fields autosave like the investor profile. */}
         <PanelHeading title={advisorCopy.corporateTitle} body={advisorCopy.confidential} done={profile.corporateComplete} editing={false} disabled={false} />
         <div className="mt-6 flex flex-col gap-5">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -322,19 +322,7 @@ export function AdvisorServices({
                 />
               </label>
             </div>
-            {message && messageFrom === "corporate" ? <p className="text-sm text-red-700">{message}</p> : null}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                disabled={pending || nifMessage !== null}
-                onClick={() => {
-                  void saveCorporate();
-                }}
-                className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white disabled:opacity-50"
-              >
-                {advisorCopy.save}
-              </button>
-            </div>
+            {message && messageFrom === "corporate" ? <p role="alert" className="text-sm text-red-700">{message}</p> : null}
         </div>
       </Card>
       </div>
@@ -464,29 +452,16 @@ export function AdvisorServices({
         )}
       </Card>
 
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5" data-advisor-documents>
+        {/* S37 (Alex): no Editar; the same upload box as the seller's Mis documentos, files as same-size previews. */}
         <PanelHeading
           title={advisorCopy.documentsTitle}
           body={`${advisorCopy.documentsBody} ${advisorCopy.documentsInsurance}`}
-          done={false}
-          editing={editing === "documents"}
+          done={documents.length > 0}
+          editing={false}
           disabled={false}
-          onEdit={() => open("documents")}
         />
-        {editing === "documents" ? (
-          <div className="mt-6">
-            <p className="rounded-2xl border border-dashed border-[#e7eaee] px-4 py-10 text-center text-sm text-[#64748b]">
-              {advisorCopy.documentsDrop}
-            </p>
-            <div className="mt-4 flex justify-end">
-              <button type="button" onClick={close} className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white">
-                {advisorCopy.close}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.documentsEmpty}</p>
-        )}
+        <AdvisorDocuments documents={documents} />
       </section>
 
     </div>

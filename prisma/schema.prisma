@@ -156,6 +156,7 @@ model User {
 
   @@unique([email])
   @@map("user")
+  advisorDocuments     AdvisorDocument[]
 }
 
 model Session {
@@ -570,6 +571,19 @@ model CompanyRegistryCache {
 
   @@id([cif, source])
   @@map("company_registry_cache")
+}
+
+/// S37: the advisor's "Documentación adicional" (insurance policy, certificates). Bytes live with the data-room
+/// files (same disk / R2 bucket, keyed by id); only the advisor reads them for now.
+model AdvisorDocument {
+  id        String   @id
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName  String   @map("file_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("advisor_document")
 }
 
 model AdvisorProfile {

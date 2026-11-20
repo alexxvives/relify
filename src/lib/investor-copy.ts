@@ -90,7 +90,7 @@ export const investorCopy = {
   processesEmptyBody: "Cuando conectes con una empresa, el proceso aparecerá aquí.",
   processesCta: "Ver empresas en venta",
   sectorsAdd: "Añadir sector",
-  sectorsPlaceholder: "Escribe un sector y pulsa Enter",
+  sectorsPlaceholder: "Añade los sectores que te interesan",
   sectorsAddCustom: (text: string) => `Añadir “${text}”`,
   sectorsRemove: (text: string) => `Quitar ${text}`,
   sectorsDuplicate: "Ese sector ya está en la lista.",

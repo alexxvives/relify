@@ -38,6 +38,7 @@ function refresh(engagementId: string) {
   revalidatePath("/asesoramiento");
   revalidatePath("/mi-empresa/servicios");
   revalidatePath(`/mandatos/encargos/${engagementId}`);
+  revalidatePath(`/mandatos/venta/${engagementId}`);
 }
 
 export async function deleteClientEngagementAction(

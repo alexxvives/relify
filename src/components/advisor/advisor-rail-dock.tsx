@@ -7,18 +7,22 @@ import { engagementCopy } from "@/lib/engagement-copy";
 
 /**
  * S36 (Alex): the buyer card floats over the encargo and takes no column. From 1024 px it sits at the top-right and
- * folds into a small "Comprador" tab there; on phones it is a bottom sheet above the tab bar, folded by default.
+ * folds into a small "Comprador" tab there; on phones it is a bottom sheet above the tab bar.
+ * S37 (Alex): it starts expanded on entry from 1024 px. Open, it sits below the banner so Tu turno and its button
+ * stay clickable; folded, the tab goes back to the top-right corner. On phones the open sheet would cover the whole
+ * ficha, so there it starts folded (null = auto: open on lg, folded below).
  */
-export function AdvisorBuyerOverlay({ children, folded = false }: { children: ReactNode; folded?: boolean }) {
-  // Folded from the start while the advisor has a pending action, so the card never covers Tu turno.
-  const [open, setOpen] = useState<boolean | null>(folded ? false : null);
+export function AdvisorBuyerOverlay({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState<boolean | null>(null);
 
   return (
     <ViewportPortal>
       <div
-        className="fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-40 flex flex-col-reverse lg:inset-x-auto lg:top-10 lg:right-6 lg:bottom-auto lg:w-[22rem] lg:flex-col lg:items-end"
+        className={`fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-40 flex flex-col-reverse lg:inset-x-auto lg:right-6 lg:bottom-auto lg:w-[22rem] lg:flex-col lg:items-end ${
+          open === false ? "lg:top-10" : "lg:top-[24rem]"
+        }`}
         data-advisor-buyer-overlay
-        data-open={open === null ? "auto" : open ? "true" : "false"}
+        data-open={open === null ? "auto" : String(open)}
       >
         <button
           type="button"
@@ -39,7 +43,7 @@ export function AdvisorBuyerOverlay({ children, folded = false }: { children: Re
           )}
         </button>
         <div
-          className={`mb-2 max-h-[55dvh] lg:mt-2 lg:mb-0 w-full overflow-y-auto rounded-2xl lg:max-h-[calc(100dvh-7rem)] ${
+          className={`mb-2 max-h-[55dvh] lg:mt-2 lg:mb-0 w-full overflow-y-auto rounded-2xl lg:max-h-[calc(100dvh-28rem)] ${
             open === null ? "hidden lg:block" : open ? "block" : "hidden"
           }`}
         >

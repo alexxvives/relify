@@ -105,7 +105,7 @@ export function processMenuTarget(href: string | null): string | null {
     return "/mi-empresa/procesos";
   }
 
-  if (path === "/mandatos/venta") {
+  if (path === "/mandatos/venta" || path.startsWith("/mandatos/venta/")) {
     return "/mandatos/venta";
   }
 
@@ -144,6 +144,10 @@ export function destinationIsCurrent(rawHref: string, rawPathname: string): bool
   }
 
   if (href === "/mandatos/encargos" && pathname.startsWith("/mandatos/encargos/")) {
+    return true;
+  }
+
+  if (href === "/mandatos/venta" && pathname.startsWith("/mandatos/venta/")) {
     return true;
   }
 

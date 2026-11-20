@@ -106,16 +106,15 @@ export function CompanyBanner({
           aria-hidden
         />
       ) : null}
-      {bannerAction || children ? (
-        <div className="relative z-10 mb-5 flex items-start justify-between gap-2 sm:mb-6">
-          <div className="flex min-w-0 max-w-[min(100%-3.5rem,20rem)]" data-banner-action>
-            {bannerAction}
-          </div>
-          {children ? (
-            <div className="flex shrink-0 items-center gap-2" data-banner-favorite>
-              {children}
-            </div>
-          ) : null}
+      {/* S37 (Alex): the favourite is a compact top-right element, so the title block no longer waits a full row below it. */}
+      {children ? (
+        <div className="absolute top-6 right-6 z-20 flex items-center gap-2 sm:top-8 sm:right-8" data-banner-favorite>
+          {children}
+        </div>
+      ) : null}
+      {bannerAction ? (
+        <div className="relative z-10 mb-5 flex min-w-0 max-w-[min(100%-3.5rem,20rem)] sm:mb-6" data-banner-action>
+          {bannerAction}
         </div>
       ) : null}
       <div className="relative z-10 mx-auto max-w-3xl text-center">

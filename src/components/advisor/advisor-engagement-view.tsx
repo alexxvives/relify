@@ -140,7 +140,7 @@ export function AdvisorEngagementView({
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {hasBuyers ? <AdvisorBuyerOverlay folded={action !== null}>{<BuyerCardSlider buyers={engagement.buyers} />}</AdvisorBuyerOverlay> : null}
+        {hasBuyers ? <AdvisorBuyerOverlay>{<BuyerCardSlider buyers={engagement.buyers} />}</AdvisorBuyerOverlay> : null}
       </div>
     </div>
   );

@@ -213,13 +213,15 @@ export function ReportNav({
   });
 
   return (
-    <nav aria-label={label} className={`sticky z-30 mx-auto w-fit max-w-full ${top}`}>
+    <nav aria-label={label} className={`sticky z-40 mx-auto w-fit max-w-full ${top}`}>
       <div className="flex w-fit max-w-full items-center rounded-2xl border border-[#e6e9f0] bg-white/95 p-1.5 shadow-[0_1px_2px_rgba(28,39,64,0.04),0_8px_24px_-12px_rgba(28,39,64,0.28)] backdrop-blur">
         {/* Alex (S25): always one line; scrolls sideways when the sections do not fit. */}
         {edges.overflow ? (
           <ScrollArrow direction={-1} disabled={!edges.left} onClick={() => nudge(-1)} />
         ) : null}
-        <div ref={scroller} className="releva-scroll-x min-w-0 max-w-full rounded-xl">
+        {/* S37 (Alex): the goo spills out of the bar again. The scroll frame (which clips) only applies when the
+            sections do not fit, and then it is padded so only the sides clip. */}
+        <div ref={scroller} className={`min-w-0 max-w-full rounded-xl ${edges.overflow ? "releva-scroll-x -my-3 py-3" : "overflow-visible"}`}>
           {Gooey ? (
             <Gooey
               items={gooeyItems}
