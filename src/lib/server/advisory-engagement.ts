@@ -114,9 +114,11 @@ export type AdvisorEngagementPage = {
     askingPriceCents: number | null;
     ebitdaCents: number | null;
   };
-  investorCard: PublicInvestorCard | null;
-  /** S33: heading of the floating investor card (the hiring buyer, or the seller's buyer once an LOI is accepted). */
-  investorLabel?: string | null;
+  /**
+   * S35 (Alex): buyer cards in the side panel. A buyer's advisor sees only its own client; a seller's advisor, once its
+   * NDA is signed, sees every buyer the seller accepted on that company (anonymous until then, per revealedInvestorName).
+   */
+  buyers: AdvisorBuyerCard[];
   steps: DealStep[];
   contract?: ContractView | null;
   preview: {
@@ -213,7 +215,8 @@ export async function advisorIsPublic(userId: string): Promise<boolean> {
     },
   });
 
-  return profile !== null && advisorIsListed(profile);
+  // S35: an advisor without an active subscription is not public, so it cannot be picked for a quote.
+  return profile !== null && advisorIsListed(profile) && (await inboxPaid(userId));
 }
 
 export async function createEngagement(input: {
@@ -585,6 +588,8 @@ async function bannerStepsFor(row: {
   return board?.lanes[0]?.steps ?? [];
 }
 
+export type AdvisorBuyerCard = { id: string; label: string; card: PublicInvestorCard | null };
+
 export async function getAdvisorEngagement(
   user: CurrentUser,
   id: string,
@@ -651,13 +656,10 @@ export async function getAdvisorEngagement(
       ? ((await revealedInvestorName(row.project.id, row.requesterId)) ??
         engagementCopy.fromInvestor)
       : engagementCopy.fromSeller;
-  const buyer =
-    row.client === "seller" ? await sellerSideBuyer(row.project.id) : null;
-  const investorCard = buyer
-    ? buyer.card
-    : await investorCardFor(row.client, row.requester);
-  const investorLabel =
-    row.client === "investor" ? namedClient : (buyer?.label ?? null);
+  const clientBuyer: AdvisorBuyerCard[] =
+    row.client === "investor"
+      ? [{ id: row.requesterId, label: namedClient, card: await investorCardFor(row.client, row.requester) }]
+      : [];
   const steps = await bannerStepsFor(row);
 
   if (row.depositPaidAt === null) {
@@ -681,8 +683,7 @@ export async function getAdvisorEngagement(
       figuresOpen: false,
       description: row.project.description?.trim() ?? "",
       showcase: showcaseFor(row.project, true, await cardCover(row.project)),
-      investorCard,
-      investorLabel,
+      buyers: clientBuyer,
       steps,
       preview: null,
     };
@@ -710,24 +711,16 @@ export async function getAdvisorEngagement(
     view === "investor"
       ? await investorVisibleFiles(row.requesterId, row.project.id)
       : [];
-  const opened = row.folders.map((folder) => folder.folder);
-  const sharedFiles =
-    view === "seller" ? row.fileShares.map((share) => share.file) : [];
-  const sellerFiles =
-    view === "seller" && opened.length > 0
+  // S35 (Alex): a seller's advisor with a signed NDA reads the whole data room, like the seller.
+  const visibleFiles =
+    view === "seller"
       ? await prisma.dataRoomFile.findMany({
-          where: { projectId: row.project.id, folder: { in: opened } },
+          where: { projectId: row.project.id },
           select: { id: true, folder: true, fileName: true },
           orderBy: { createdAt: "asc" },
         })
       : [];
-  const visibleFiles = [...sellerFiles];
-  for (const file of sharedFiles) {
-    if (!visibleFiles.some((item) => item.id === file.id)) {
-      visibleFiles.push(file);
-    }
-  }
-  const folderNames = [...opened];
+  const folderNames: string[] = [];
   for (const file of visibleFiles) {
     if (!folderNames.includes(file.folder)) {
       folderNames.push(file.folder);
@@ -738,7 +731,8 @@ export async function getAdvisorEngagement(
     files: visibleFiles.filter((file) => file.folder === name),
   }));
 
-  const figuresOpen = view === "investor";
+  // S35 (Alex): figures open at the client's level once the advisor's NDA is signed (and its buyer's, if a buyer hired it).
+  const figuresOpen = view !== "public";
 
   return {
     id: row.id,
@@ -763,7 +757,7 @@ export async function getAdvisorEngagement(
     folders,
     processOpened: view === "seller" && row.processOpened,
     ndaText:
-      row.client === "investor" && row.advisorNdaAcceptedAt === null
+      row.advisorNdaAcceptedAt === null
         ? advisorNdaAgreement({
             advisorName: user.displayName,
             codename: row.project.codename,
@@ -781,8 +775,7 @@ export async function getAdvisorEngagement(
     figuresOpen,
     description: row.project.description?.trim() ?? "",
     showcase: showcaseFor(row.project, !figuresOpen, await cardCover(row.project)),
-    investorCard,
-    investorLabel,
+    buyers: view === "seller" ? await sellerSideBuyers(row.project.id) : clientBuyer,
     steps,
     contract:
       row.client === "seller" ? await advisorContract(row.project.id) : null,
@@ -790,25 +783,22 @@ export async function getAdvisorEngagement(
   };
 }
 
-/**
- * S33 (Alex): a seller's advisor also sees the buyer once the seller accepted its LOI (Contrato, Venta and closed
- * operations), as the same floating investor card. Anonymous ("El comprador") until the seller accepted the buyer.
- */
-async function sellerSideBuyer(
-  projectId: string,
-): Promise<{ label: string; card: PublicInvestorCard | null } | null> {
-  const access = await prisma.projectAccess.findFirst({
-    where: { projectId, cancelledAt: null, loiAcceptedAt: { not: null } },
-    orderBy: [{ loiAcceptedAt: "desc" }],
+/** S35 (Alex): every buyer the seller accepted on this company, newest LOI first, named only once revealed. */
+async function sellerSideBuyers(projectId: string): Promise<AdvisorBuyerCard[]> {
+  const accesses = await prisma.projectAccess.findMany({
+    where: { projectId, cancelledAt: null, sellerAcceptedAt: { not: null } },
+    orderBy: [{ loiAcceptedAt: { sort: "desc", nulls: "last" } }, { requestedAt: "asc" }],
     select: { investorId: true, investor: { select: { id: true, email: true } } },
   });
-  if (!access) return null;
-  const cards = await publicCardsByInvestor([access.investor]);
-  const name = await revealedInvestorName(projectId, access.investorId);
-  return {
-    label: name ?? engagementCopy.depositInvestor,
-    card: cards.get(access.investorId) ?? null,
-  };
+  if (accesses.length === 0) return [];
+  const cards = await publicCardsByInvestor(accesses.map((access) => access.investor));
+  return Promise.all(
+    accesses.map(async (access) => ({
+      id: access.investorId,
+      label: (await revealedInvestorName(projectId, access.investorId)) ?? engagementCopy.depositInvestor,
+      card: cards.get(access.investorId) ?? null,
+    })),
+  );
 }
 
 /** The seller's live process furthest along (LOI accepted), as the hired seller advisor sees its contract. */
@@ -1279,11 +1269,8 @@ export async function advisorMayReadFile(
       continue;
     }
 
-    if (
-      row.client === "seller" &&
-      (row.folders.some((folder) => folder.folder === file.folder) ||
-        row.fileShares.length > 0)
-    ) {
+    // S35: same rule as the page: a seller's advisor reads any file of the company once its NDA is signed.
+    if (row.client === "seller" && row.advisorNdaAcceptedAt !== null) {
       return true;
     }
 
@@ -1317,6 +1304,8 @@ export type AdvisorPlatformClose = {
   closedLabel: string;
   services: string;
   clientLabel: string;
+  /** S35: the buyer's name, only when the advisor may know it (revealed by the seller; NDA signed for a seller's advisor). */
+  buyerLabel: string | null;
 };
 
 export async function listAdvisorPlatformCloses(
@@ -1330,25 +1319,42 @@ export async function listAdvisorPlatformCloses(
       closedAt: true,
       client: true,
       services: true,
-      project: { select: { codename: true } },
+      requesterId: true,
+      advisorNdaAcceptedAt: true,
+      project: { select: { id: true, codename: true } },
     },
   });
 
-  return rows.flatMap((row) => {
-    if (!row.closedAt) {
-      return [];
-    }
+  const closes = await Promise.all(
+    rows.map(async (row) => {
+      if (!row.closedAt) {
+        return null;
+      }
 
-    return [
-      {
+      let buyerId: string | null = null;
+      if (row.client === "investor") {
+        buyerId = row.requesterId;
+      } else if (row.advisorNdaAcceptedAt !== null) {
+        const sold = await prisma.projectAccess.findFirst({
+          where: { projectId: row.project.id, cancelledAt: null, loiAcceptedAt: { not: null } },
+          orderBy: { loiAcceptedAt: "desc" },
+          select: { investorId: true },
+        });
+        buyerId = sold?.investorId ?? null;
+      }
+
+      return {
         id: row.id,
         codename: row.project.codename,
         closedLabel: madridDate(row.closedAt),
         services: serviceLabel(row.services),
         clientLabel: clientLabel(row.client),
-      },
-    ];
-  });
+        buyerLabel: buyerId ? await revealedInvestorName(row.project.id, buyerId) : null,
+      };
+    }),
+  );
+
+  return closes.filter((close) => close !== null);
 }
 
 async function purgeAdvisorEngagementsBeforeQa(

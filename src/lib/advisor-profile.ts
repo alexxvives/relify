@@ -127,6 +127,8 @@ export type AdvisorProfileView = {
   operations: StoredOperation[];
   dealsAnswered: boolean;
   corporateComplete: boolean;
+  /** S35: the advisor subscription (49 €/mes + IVA) is active; without it the profile is never listed. */
+  subscribed: boolean;
 };
 
 const storedServiceSchema = z.object({
@@ -171,6 +173,7 @@ export type AdvisorProfileChecks = {
   description: boolean;
   sectors: boolean;
   services: boolean;
+  subscription: boolean;
 };
 
 export function advisorProfileChecks(profile: {
@@ -180,6 +183,7 @@ export function advisorProfileChecks(profile: {
   description: string;
   sectors: string[];
   services: readonly unknown[];
+  subscribed?: boolean;
 }): AdvisorProfileChecks {
   const parsed = corporateInputSchema.safeParse(profile);
   const failed = new Set(parsed.success ? [] : parsed.error.issues.map((issue) => String(issue.path[0])));
@@ -189,6 +193,7 @@ export function advisorProfileChecks(profile: {
     description: !failed.has("description"),
     sectors: !failed.has("sectors"),
     services: profile.services.length > 0,
+    subscription: profile.subscribed === true,
   };
 }
 
@@ -243,5 +248,6 @@ export function blankAdvisorProfile(): AdvisorProfileView {
     operations: [],
     dealsAnswered: false,
     corporateComplete: false,
+    subscribed: false,
   };
 }

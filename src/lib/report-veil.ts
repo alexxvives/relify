@@ -163,8 +163,10 @@ export function advisorProjectView(
   if (!project) {
     return null;
   }
-  if (!hiredByInvestor) {
-    return project;
+  // S35: nothing beyond the public veil reaches the browser before the advisor's NDA (and its buyer's) is signed.
+  if (!figuresOpen) {
+    return buyerProjectView(project, false);
   }
-  return buyerProjectView(project, figuresOpen);
+  // A seller's advisor sees the company like the seller; a buyer's advisor sees exactly what that buyer sees.
+  return hiredByInvestor ? buyerProjectView(project, true) : project;
 }

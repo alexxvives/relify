@@ -7,10 +7,9 @@ test.describe("S34 asesor profile", () => {
     expect(await signInAs(page, "advisor")).toBe(true);
   });
 
-  test("description and sectors are inline in Tu perfil en el marketplace, with a publish status and a live preview", async ({ page }) => {
+  test("description and sectors are inline in Tu perfil en el marketplace, with a live preview", async ({ page }) => {
     await page.goto("/mis-servicios");
     await expect(page.getByRole("heading", { name: "Tu perfil en el marketplace" })).toBeVisible();
-    await expect(page.locator("[data-advisor-publish]")).toHaveText(/Tu perfil (no )?está publicado/);
     await expect(page.getByRole("button", { name: "Editar descripción y sectores" })).toHaveCount(0);
     await expect(page.getByText("Se activa al completar los Datos corporativos")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Así sales en el marketplace" })).toBeVisible();
@@ -18,14 +17,11 @@ test.describe("S34 asesor profile", () => {
   });
 
   test("an encargo shows the deposit and the buyer together: sidebar on desktop, a bottom dock on mobile", async ({ page }) => {
-    await page.goto("/mandatos/venta");
-    const link = page.locator('a[href^="/mandatos/encargos/"]').first();
-    test.skip((await link.count()) === 0, "No encargos for this advisor");
-    await link.click();
+    // S35: an unpaid encargo of the INT/local fixture (int-s32-eng-1) always has the deposit panel.
+    const response = await page.goto("/mandatos/encargos/int-s32-eng-1");
+    test.skip(!response || response.status() >= 400 || !page.url().includes("int-s32-eng-1"), "Fixture encargo missing");
     await expect(page.getByText("Este encargo ya está cerrado.")).toHaveCount(0);
     const width = page.viewportSize()?.width ?? 1280;
-    if (width < 1280) {
-      await expect(page.locator("[data-advisor-dock]")).toBeVisible();
-    }
+    await expect(page.locator(width < 1280 ? "[data-advisor-dock]" : "[data-advisor-deposit-overlay]")).toBeVisible();
   });
 });

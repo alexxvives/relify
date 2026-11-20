@@ -30,7 +30,7 @@ async function AdvisorEngagementsPageContent({
 
   return (
     <>
-      <AdvisorProcesses boards={boards} empty={engagementCopy.mineEmpty} />
+      <AdvisorProcesses boards={boards} empty={engagementCopy.mineEmpty} showDepositTag={false} />
     </>
   );
 }

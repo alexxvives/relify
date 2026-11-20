@@ -95,7 +95,8 @@ describe("advisorProjectView", () => {
     expect(veiled).not.toContain("33322201");
     expect(veiled).not.toContain("Motivo secreto");
     expect(advisorProjectView(project, true, false)?.revenueCents).toBe(500_000_000);
-    expect(advisorProjectView(project, false, false)).toEqual(project);
+    expect(advisorProjectView(project, false, true)).toEqual(project);
+    expect(advisorProjectView(project, false, false)).toEqual(buyerProjectView(project, false));
     expect(advisorProjectView(null, true, false)).toBeNull();
   });
 });

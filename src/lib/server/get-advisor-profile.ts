@@ -15,12 +15,14 @@ function isSectorId(id: string): id is AdvisorSectorId {
 export async function getAdvisorProfile(
   userId: string,
 ): Promise<AdvisorProfileView> {
-  const row = await prisma.advisorProfile.findUnique({
-    where: { userId },
-  });
+  const [row, billing] = await Promise.all([
+    prisma.advisorProfile.findUnique({ where: { userId } }),
+    prisma.billingCustomer.findUnique({ where: { userId }, select: { advisorInbox: true } }),
+  ]);
+  const subscribed = billing?.advisorInbox === true;
 
   if (!row) {
-    return blankAdvisorProfile();
+    return { ...blankAdvisorProfile(), subscribed };
   }
 
   const sectors = row.sectors.filter(isSectorId);
@@ -34,6 +36,7 @@ export async function getAdvisorProfile(
     operations: readStoredOperations(row.closedOperations),
     dealsAnswered: row.dealsAnswered,
     corporateComplete: false,
+    subscribed,
   };
   profile.corporateComplete = identityIsComplete(profile);
 

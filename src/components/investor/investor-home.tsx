@@ -39,7 +39,7 @@ export function InvestorHome({
   const profileComplete = filled === checklist.length;
 
   return (
-    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_316px]">
+    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
         <BuyerActivitySummary funnel={funnel} processes={processes} />
         <Card>

@@ -174,13 +174,13 @@ export function InvestorProfile({
 
   const professional = publicOnly ? null : (
       <Card>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+        {/* S35 (Alex): status chip at the far right, Editar just left of it. */}
+        <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+          <h2 className="flex min-w-0 flex-1 basis-[12rem] items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
             {investorCopy.professionalTitle}
             <FieldHint text={investorCopy.professionalHint} />
           </h2>
-          <div className="flex items-center gap-2">
-            <Chip done={professionalDone} />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <Button
               type="button"
               onClick={() => {
@@ -191,6 +191,7 @@ export function InvestorProfile({
               <Pencil className="size-3.5" aria-hidden />
               {editingProfessional ? investorCopy.save : investorCopy.edit}
             </Button>
+            <Chip done={professionalDone} />
           </div>
         </div>
         {editingProfessional ? (

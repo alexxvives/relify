@@ -64,9 +64,10 @@ const destinations = {
   ],
   advisor: [
     { href: "/mandatos", label: "Inicio" },
+    // S35 (Alex): Mis servicios sits above the Trabajo group, like Detalles de empresa for the seller.
+    { href: "/mis-servicios", label: "Mis servicios", section: "Perfil" },
     { href: "/mandatos/encargos", label: "Encargos", section: "Trabajo" },
     { href: "/mandatos/venta", label: "Mis procesos", section: "Trabajo" },
-    { href: "/mis-servicios", label: "Mis servicios", section: "Perfil" },
   ],
   admin: [
     { href: "/admin", label: "Inicio" },

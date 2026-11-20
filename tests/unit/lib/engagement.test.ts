@@ -32,12 +32,14 @@ describe("advisorCompanyView", () => {
     expect(advisorCompanyView({ hiredByInvestor: true, advisorSigned: false, investorSigned: true })).toBe("public");
     expect(advisorCompanyView({ hiredByInvestor: true, advisorSigned: true, investorSigned: false })).toBe("public");
     expect(advisorCompanyView({ hiredByInvestor: true, advisorSigned: true, investorSigned: true })).toBe("investor");
-    expect(advisorCompanyView({ hiredByInvestor: false, advisorSigned: false, investorSigned: false })).toBe("seller");
+    // S35: a seller's advisor also signs its own NDA before seeing the company.
+    expect(advisorCompanyView({ hiredByInvestor: false, advisorSigned: false, investorSigned: false })).toBe("public");
+    expect(advisorCompanyView({ hiredByInvestor: false, advisorSigned: true, investorSigned: false })).toBe("seller");
   });
 });
 
 describe("advisorNdaOutcome", () => {
-  it("stamps only the advisor hired by an investor", () => {
+  it("stamps any advisor that owns the engagement after the deposit (S35: seller-hired too)", () => {
     expect(
       advisorNdaOutcome({
         isAdvisor: true,
@@ -55,7 +57,7 @@ describe("advisorNdaOutcome", () => {
         alreadySigned: false,
         depositPaid: true,
       }),
-    ).toEqual({ ok: false, code: "missing" });
+    ).toEqual({ ok: true, stamp: true });
     expect(
       advisorNdaOutcome({
         isAdvisor: true,
@@ -81,7 +83,7 @@ describe("advisorEngagementStep", () => {
     ).toBe("nda");
     expect(
       advisorEngagementStep({ owned: true, closed: false, depositPaid: true, hiredByInvestor: false, ndaSigned: false }),
-    ).toBe("active");
+    ).toBe("nda");
     expect(
       advisorEngagementStep({ owned: true, closed: false, depositPaid: true, hiredByInvestor: true, ndaSigned: true }),
     ).toBe("active");

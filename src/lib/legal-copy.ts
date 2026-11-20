@@ -94,7 +94,7 @@ export const termsCopy = {
     "Condiciones del mercado Relify: roles, fichas, NDA, que Relify no es parte de la compraventa, comisión de éxito, Stripe e IVA, y ley aplicable.",
   kicker: "Legal",
   lead: "Estos términos regulan el uso de Relify. No sustituyen el contrato de compraventa ni la escritura ante notario.",
-  updated: "Última actualización: 11 de noviembre de 2026.",
+  updated: "Última actualización: 20 de noviembre de 2026.",
   sections: [
     {
       title: "Quién presta el servicio",
@@ -108,7 +108,7 @@ export const termsCopy = {
       body: [
         "Comprador: consulta fichas anónimas, pide conexión, firma el NDA si el vendedor acepta y avanza la operación (chat, reuniones, oferta indicativa, carta de intenciones).",
         "Vendedor: publica una ficha de su empresa con nombre de proyecto, cifras y documentos. Decide a qué comprador acepta.",
-        "Asesor: publica mandatos y acompaña encargos de comprador o vendedor. La ficha del directorio es gratuita; aceptar encargos requiere la suscripción de asesor.",
+        "Asesor: publica mandatos y acompaña encargos de comprador o vendedor. Crear la ficha es gratuito; publicarla en el directorio y aceptar encargos requiere la suscripción de asesor.",
       ],
     },
     {

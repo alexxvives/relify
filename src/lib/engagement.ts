@@ -38,7 +38,8 @@ export function advisorNdaOutcome(input: {
     return { ok: false, code: "forbidden" };
   }
 
-  if (!input.hiredByInvestor || !input.ownsEngagement) {
+  // S35 (Alex): every advisor signs its own NDA after the deposit, whoever hired it.
+  if (!input.ownsEngagement) {
     return { ok: false, code: "missing" };
   }
 
@@ -74,12 +75,13 @@ export function advisorCompanyView(input: {
   advisorSigned: boolean;
   investorSigned: boolean;
 }): "public" | "investor" | "seller" {
-  if (!input.hiredByInvestor) {
-    return "seller";
-  }
-
   if (!input.advisorSigned) {
     return "public";
+  }
+
+  // S35 (Alex): a seller's advisor sees the whole company and data room once its NDA is signed.
+  if (!input.hiredByInvestor) {
+    return "seller";
   }
 
   if (!input.investorSigned) {
@@ -131,7 +133,7 @@ export function advisorEngagementStep(input: {
     return "deposit";
   }
 
-  if (input.hiredByInvestor && !input.ndaSigned) {
+  if (!input.ndaSigned) {
     return "nda";
   }
 
