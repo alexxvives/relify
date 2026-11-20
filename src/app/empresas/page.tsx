@@ -18,8 +18,8 @@ export default function EmpresasPage() {
   return (
     <RolePage
       kicker="Empresas"
-      title="Vende tu empresa con la ficha bajo control"
-      lead="Completas el perfil, publicas con un nombre de proyecto y sigues intereses, preguntas y reuniones desde el mismo sitio. La razón social no sale en la ficha."
+      title="Su negocio en buenas manos cuando usted se jubile"
+      lead="Venda su empresa de forma confidencial y elija quién seguirá al frente de su negocio."
       image="/product/empresa.jpg"
       imageAlt="Inicio del vendedor en Relify, con facturación, gasto y el estado de la ficha"
       photo="/roles/empresa.webp"
