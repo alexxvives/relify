@@ -115,6 +115,8 @@ export type AdvisorEngagementPage = {
     ebitdaCents: number | null;
   };
   investorCard: PublicInvestorCard | null;
+  /** S33: heading of the floating investor card (the hiring buyer, or the seller's buyer once an LOI is accepted). */
+  investorLabel?: string | null;
   steps: DealStep[];
   contract?: ContractView | null;
   preview: {
@@ -649,7 +651,13 @@ export async function getAdvisorEngagement(
       ? ((await revealedInvestorName(row.project.id, row.requesterId)) ??
         engagementCopy.fromInvestor)
       : engagementCopy.fromSeller;
-  const investorCard = await investorCardFor(row.client, row.requester);
+  const buyer =
+    row.client === "seller" ? await sellerSideBuyer(row.project.id) : null;
+  const investorCard = buyer
+    ? buyer.card
+    : await investorCardFor(row.client, row.requester);
+  const investorLabel =
+    row.client === "investor" ? namedClient : (buyer?.label ?? null);
   const steps = await bannerStepsFor(row);
 
   if (row.depositPaidAt === null) {
@@ -674,6 +682,7 @@ export async function getAdvisorEngagement(
       description: row.project.description?.trim() ?? "",
       showcase: showcaseFor(row.project, true, await cardCover(row.project)),
       investorCard,
+      investorLabel,
       steps,
       preview: null,
     };
@@ -773,10 +782,32 @@ export async function getAdvisorEngagement(
     description: row.project.description?.trim() ?? "",
     showcase: showcaseFor(row.project, !figuresOpen, await cardCover(row.project)),
     investorCard,
+    investorLabel,
     steps,
     contract:
       row.client === "seller" ? await advisorContract(row.project.id) : null,
     preview: null,
+  };
+}
+
+/**
+ * S33 (Alex): a seller's advisor also sees the buyer once the seller accepted its LOI (Contrato, Venta and closed
+ * operations), as the same floating investor card. Anonymous ("El comprador") until the seller accepted the buyer.
+ */
+async function sellerSideBuyer(
+  projectId: string,
+): Promise<{ label: string; card: PublicInvestorCard | null } | null> {
+  const access = await prisma.projectAccess.findFirst({
+    where: { projectId, cancelledAt: null, loiAcceptedAt: { not: null } },
+    orderBy: [{ loiAcceptedAt: "desc" }],
+    select: { investorId: true, investor: { select: { id: true, email: true } } },
+  });
+  if (!access) return null;
+  const cards = await publicCardsByInvestor([access.investor]);
+  const name = await revealedInvestorName(projectId, access.investorId);
+  return {
+    label: name ?? engagementCopy.depositInvestor,
+    card: cards.get(access.investorId) ?? null,
   };
 }
 

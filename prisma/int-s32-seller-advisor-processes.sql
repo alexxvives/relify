@@ -4,9 +4,7 @@
 -- 1) int-vendedor-manual@test.local gets 7 buyer processes on its published company (Consultoría Servicios),
 --    one per stage: Solicitud, Conexión, NDA, Preguntas, LOI recibida, LOI aceptada, Contrato (data room shared).
 --    The buyers are 7 new synthetic investors int-s32-inversor-1..7@test.local.
--- 2) int-asesor@test.local gets 7 encargos across stages on the S27 companies and Consultoría Servicios:
---    2 waiting for the deposit, 1 waiting for the advisor NDA, 3 in progress and 1 closed.
---    Every encargo sits on a company with a signed buyer NDA, so the "before Q&A" purge keeps it.
+-- 2) The int-asesor@test.local encargos live in int-s33-asesor-distinct-companies.sql since S33.
 --
 -- Passwords: no password is written here. The new investors copy the scrypt hash of int-comprador@test.local,
 -- so they sign in with the same test password. If that account is missing, the user row is created without a login.
@@ -102,33 +100,6 @@ FROM int_s32_seller_project sp
 JOIN "user" u ON u.email = 'int-s32-inversor-7@test.local'
 ON CONFLICT (project_id, investor_id) DO NOTHING;
 
--- ---------------------------------------------------------------- int-asesor: 7 encargos across stages
--- deposit: claimed, deposit not paid. nda: hired by a buyer, deposit paid, advisor NDA not signed yet.
--- active: deposit paid (and NDA signed when a buyer hired). closed: paid and closed.
-INSERT INTO advisory_engagement (id, project_id, requester_id, client, services, advisor_id, claimed_at, deposit_cents,
-  deposit_paid_at, advisor_nda_accepted_at, advisor_nda_text, closed_at, process_opened, created_at)
-SELECT 'int-s32-eng-' || v.n, p.id, r.id, v.client::engagement_client, v.services, a.id,
-  NOW() - make_interval(days => v.age - 1),
-  5000 + ROUND(p.asking_price_cents / 200.0)::int,
-  CASE WHEN v.stage IN ('nda', 'active', 'closed') THEN NOW() - make_interval(days => v.age - 2) END,
-  CASE WHEN v.client = 'investor' AND v.stage IN ('active', 'closed') THEN NOW() - make_interval(days => v.age - 3) END,
-  CASE WHEN v.client = 'investor' AND v.stage IN ('active', 'closed') THEN 'Acuerdo de confidencialidad del asesor de prueba (INT).' END,
-  CASE WHEN v.stage = 'closed' THEN NOW() - make_interval(days => 1) END,
-  v.stage IN ('active', 'closed'),
-  NOW() - make_interval(days => v.age)
-FROM (
-  VALUES
-    (1, 'int-s27-distribuidora-ebro', 'int-vendedor-cartera@test.local', 'seller', ARRAY['valuation']::text[], 'deposit', 3),
-    (2, 'int-s27-obrador-sur', 'int-comprador@test.local', 'investor', ARRAY['due-diligence']::text[], 'deposit', 4),
-    (3, 'int-s27-agencia-tajo', 'int-comprador@test.local', 'investor', ARRAY['legal']::text[], 'nda', 6),
-    (4, 'int-s27-logistica-cantabrico', 'int-vendedor-cartera@test.local', 'seller', ARRAY['valuation', 'tax']::text[], 'active', 9),
-    (5, 'int-s27-distribuidora-ebro', 'int-comprador@test.local', 'investor', ARRAY['due-diligence', 'tax']::text[], 'active', 12),
-    (6, NULL, 'int-vendedor-manual@test.local', 'seller', ARRAY['legal']::text[], 'active', 15),
-    (7, 'int-s27-obrador-sur', 'int-vendedor-cartera@test.local', 'seller', ARRAY['valuation']::text[], 'closed', 30)
-) AS v(n, slug, requester, client, services, stage, age)
-JOIN "user" r ON r.email = v.requester
-JOIN "user" a ON a.email = 'int-asesor@test.local'
-JOIN project p ON (v.slug IS NOT NULL AND p.slug = v.slug) OR (v.slug IS NULL AND p.id = (SELECT id FROM int_s32_seller_project))
-ON CONFLICT (id) DO NOTHING;
+-- int-asesor encargos: moved to int-s33-asesor-distinct-companies.sql (S33), one distinct company per encargo.
 
 COMMIT;

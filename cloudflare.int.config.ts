@@ -27,6 +27,8 @@ export default defineConfig({
     placement: { mode: "smart" },
     env: {
       ASSETS: bindings.assets(),
+      // S33: Workers AI for "Rellenar con tu web" (account binding, no API key).
+      AI: bindings.ai(),
       INT_DATABASE_URL: bindings.secret(),
       INT_BETTER_AUTH_SECRET: bindings.secret(),
       INT_BETTER_AUTH_URL: bindings.secret(),

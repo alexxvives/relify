@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
 import { Check, ChevronDown, CircleCheck, Clock, Lock, MapPin, Pencil, User } from "lucide-react";
 import { saveCorporateAction, saveServicesAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
@@ -426,10 +427,30 @@ export function AdvisorServices({
             </div>
           </dl>
         )}
-        {editing === "corporate" ? null : (
-          <div className="mt-6 border-t border-[#eef0f4] pt-5">
-            <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
-            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingFaceBody}</p>
+      </Card>
+      </div>
+
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
+            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
+          </div>
+          <Chip done={profile.services.length > 0} editing={false} />
+        </div>
+        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
+        {/* S33 (Alex): description, sectors and services live together in Tu perfil en el marketplace. */}
+          <div className="mt-4 rounded-2xl bg-[#f7f8fb] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
+                <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingFaceBody}</p>
+              </div>
+              <button type="button" onClick={openCorporate} className="inline-flex h-11 items-center text-sm font-semibold text-[#465ab4]">
+                {advisorCopy.listingFaceEdit}
+              </button>
+            </div>
             <p className={`mt-3 text-sm leading-6 ${profile.description ? "text-[#2b3b4a]" : "text-[#8b95a7]"}`}>
               {profile.description || "Aún no has escrito la descripción."}
             </p>
@@ -445,22 +466,9 @@ export function AdvisorServices({
               <p className="mt-3 text-sm text-[#8b95a7]">Aún no has elegido sectores.</p>
             )}
           </div>
-        )}
-      </Card>
-      </div>
-
-      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
-      <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
-            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
-          </div>
-          <Chip done={profile.services.length > 0} editing={false} />
-        </div>
-        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
         <div className={profile.corporateComplete ? "" : "opacity-60"}>
-        <ul className="mt-2 divide-y divide-[#eef0f3]">
+        <h3 className="mt-5 text-base font-semibold text-[#2b3b4a]">{advisorCopy.servicesListTitle}</h3>
+        <ul className="mt-1 divide-y divide-[#eef0f3]">
           {advisorServiceIds.map((id) => {
             const checked = selectedServices.includes(id);
             return (
@@ -536,30 +544,14 @@ export function AdvisorServices({
         {closes.length === 0 ? (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.dealsEmpty}</p>
         ) : (
-          <ul className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {closes.map((close) => (
-              <li key={close.id} className="overflow-hidden rounded-3xl border border-[#e7eaee] bg-white">
-                <div className="flex items-start justify-between gap-4 bg-[#1c2740] px-5 pt-5 pb-6">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white/55">Cerrada</p>
-                    <h3 className="mt-2 text-3xl font-semibold tracking-tight text-white">{close.codename}</h3>
-                  </div>
-                  <p className="shrink-0 pt-0.5 text-sm text-white/80">{close.closedLabel}</p>
-                </div>
-                <div className="flex flex-col gap-2 px-5 py-4">
-                  <p className="text-sm font-medium text-[#1c2740]">{close.clientLabel}</p>
-                  {close.services.length > 0 ? <p className="text-sm text-[#3d4a63]">{close.services}</p> : null}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ClosedDealsSlider closes={closes} />
         )}
       </Card>
 
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <PanelHeading
           title={advisorCopy.documentsTitle}
-          body={advisorCopy.documentsBody}
+          body={`${advisorCopy.documentsBody} ${advisorCopy.documentsInsurance}`}
           done={false}
           editing={editing === "documents"}
           disabled={!profile.corporateComplete}

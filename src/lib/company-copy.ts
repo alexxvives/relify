@@ -11,6 +11,13 @@ export const companyCopy = {
   saleReasonRequired: "Elige por qué se vende.",
   saleReasonEmpty: "Elige un motivo",
   descriptionLabel: "Descripción de la empresa",
+  websiteButton: "Rellenar con tu web",
+  websiteLabel: "Web de tu empresa",
+  websiteRun: "Rellenar",
+  websitePending: "Leyendo tu web…",
+  websiteHint: "Leemos tu web pública y proponemos una descripción neutra. No se guarda hasta que pulses Guardar.",
+  websiteReplaceConfirm: "La descripción actual se sustituirá por la propuesta. ¿Continuar?",
+  websiteFailed: "No hemos podido redactar la descripción. Prueba de nuevo o escríbela a mano.",
   descriptionHint:
     "Escríbela para compradores. No incluyas la razón social, el CIF ni la dirección.",
   principalCnaeLabel: "CNAE principal",
