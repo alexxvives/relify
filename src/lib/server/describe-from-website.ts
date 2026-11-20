@@ -11,7 +11,8 @@ import { prisma } from "@/lib/db";
  * (max 3), each hop checked again. 8 s timeout per request and 512 KB cap on the body; HTML or plain text only.
  */
 
-export const describeModel = "@cf/meta/llama-3.1-8b-instruct";
+/** Small instruct models, tried in order (plain `@cf/meta/llama-3.1-8b-instruct` is deprecated on Workers AI). */
+export const describeModels = ["@cf/meta/llama-3.1-8b-instruct-fast", "@cf/zai-org/glm-4.7-flash"] as const;
 const fetchTimeoutMs = 8000;
 const maxBytes = 512 * 1024;
 const maxRedirects = 3;
@@ -161,20 +162,33 @@ export async function describeFromWebsite(userId: string, rawUrl: string): Promi
   const site = await fetchPublicSiteText(rawUrl);
   if (!site.ok) return site;
 
-  try {
-    const output = (await ai.run(describeModel, {
-      messages: [
-        { role: "system", content: describePrompt },
-        { role: "user", content: `Texto de la web:\n"""\n${site.text}\n"""` },
-      ],
-      max_tokens: 420,
-      temperature: 0.3,
-    })) as { response?: unknown };
-    const description = typeof output?.response === "string" ? tidyDescription(output.response) : "";
-    return description.length >= 200 ? { ok: true, description } : { ok: false, message: messages.failed };
-  } catch {
-    return { ok: false, message: messages.failed };
+  for (const model of describeModels) {
+    try {
+      const output = await ai.run(model, {
+        messages: [
+          { role: "system", content: describePrompt },
+          { role: "user", content: `Texto de la web:\n"""\n${site.text}\n"""` },
+        ],
+        max_tokens: 600,
+        temperature: 0.3,
+      });
+      const description = tidyDescription(modelText(output));
+      if (description.length >= 200) return { ok: true, description };
+      console.warn(`[describe-from-website] ${model}: short output (${description.length} chars)`);
+    } catch (error) {
+      console.warn(`[describe-from-website] ${model}: ${error instanceof Error ? error.message.slice(0, 200) : "error"}`);
+    }
   }
+  return { ok: false, message: messages.failed };
+}
+
+/** Workers AI text: `{ response }` (Llama) or OpenAI-style `{ choices: [{ message: { content } }] }`. */
+export function modelText(output: unknown): string {
+  if (!output || typeof output !== "object") return "";
+  const value = output as { response?: unknown; choices?: { message?: { content?: unknown } }[] };
+  if (typeof value.response === "string") return value.response;
+  const content = value.choices?.[0]?.message?.content;
+  return typeof content === "string" ? content : "";
 }
 
 /** Prefill for the website field: the project's website (SABI import) or the one given at onboarding. */

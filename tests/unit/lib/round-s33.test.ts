@@ -124,3 +124,12 @@ describe("S33 copy", () => {
     expect(engagementCopy.figuresSellerShared).not.toMatch(/NDA/);
   });
 });
+
+describe("S33 model output", () => {
+  it("reads Llama and OpenAI-style Workers AI responses", async () => {
+    const { modelText } = await import("@/lib/server/describe-from-website");
+    expect(modelText({ response: "Hola" })).toBe("Hola");
+    expect(modelText({ choices: [{ message: { content: "Adiós" } }] })).toBe("Adiós");
+    expect(modelText(null)).toBe("");
+  });
+});
