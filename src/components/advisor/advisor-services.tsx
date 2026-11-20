@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
-import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
+import { Check, ChevronDown, CircleCheck, Clock, Pencil } from "lucide-react";
 import { saveCorporateAction, saveMarketplaceAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
 import { AppToast } from "@/components/shell/app-toast";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { advisorPriceLabel, toPublicAdvisorCard, type PublicAdvisorCard } from "@/lib/advisor-directory";
+import { advisorPriceLabel, type PublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
@@ -183,6 +183,7 @@ export function AdvisorServices({
   const [profile, setProfile] = useState(initial);
   const [editing, setEditing] = useState<PanelId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageFrom, setMessageFrom] = useState<"corporate" | "marketplace">("marketplace");
   const [savedNote, setSavedNote] = useState<string | null>(null);
   const [savedPulse, setSavedPulse] = useState(0);
   const [pending, setPending] = useState(false);
@@ -202,18 +203,6 @@ export function AdvisorServices({
     priceFromCents: Number(prices[serviceType].from || "0") * 100,
     priceToCents: Number(prices[serviceType].to || "0") * 100,
   }));
-  const savedListing = toPublicAdvisorCard({
-    userId: "preview",
-    businessName: profile.businessName,
-    nif: profile.nif,
-    postalCode: profile.postalCode,
-    description: profile.description,
-    sectors: profile.sectors,
-    services: profile.services,
-    closedOperations: [],
-  });
-  // S35: listed only with the subscription too; the missing list lives on Inicio.
-  const published = savedListing !== null && profile.subscribed;
   const previewListing: PublicAdvisorCard = {
     id: "preview",
     name: businessName.trim() || advisorCopy.previewName,
@@ -242,6 +231,7 @@ export function AdvisorServices({
 
   async function saveCorporate() {
     setPending(true);
+    setMessageFrom("corporate");
     const result = await saveCorporateAction({
       businessName,
       nif,
@@ -261,11 +251,14 @@ export function AdvisorServices({
       postalCode,
       corporateComplete: true,
     }));
-    close();
+    setMessage(null);
+    setSavedNote(advisorCopy.corporateSaved);
+    setSavedPulse((current) => current + 1);
   }
 
   async function saveMarketplace() {
     setPending(true);
+    setMessageFrom("marketplace");
     const result = await saveMarketplaceAction({
       description,
       sectors,
@@ -302,16 +295,9 @@ export function AdvisorServices({
       <AppToast message={savedNote} pulse={savedPulse} />
       <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
-        <PanelHeading
-          title={advisorCopy.corporateTitle}
-          body={advisorCopy.confidential}
-          done={profile.corporateComplete}
-          editing={editing === "corporate"}
-          disabled={false}
-          onEdit={() => open("corporate")}
-        />
-        {editing === "corporate" ? (
-          <div className="mt-6 flex flex-col gap-5">
+        {/* S36 (Alex): no Editar; the three fields are always open and save with their own Guardar. */}
+        <PanelHeading title={advisorCopy.corporateTitle} body={advisorCopy.confidential} done={profile.corporateComplete} editing={false} disabled={false} />
+        <div className="mt-6 flex flex-col gap-5">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.businessName}
@@ -336,11 +322,8 @@ export function AdvisorServices({
                 />
               </label>
             </div>
-            {message && editing === "corporate" ? <p className="text-sm text-red-700">{message}</p> : null}
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={close} className="h-10 rounded-full border border-[#e7eaee] px-4 text-sm">
-                {advisorCopy.cancel}
-              </button>
+            {message && messageFrom === "corporate" ? <p className="text-sm text-red-700">{message}</p> : null}
+            <div className="flex justify-end">
               <button
                 type="button"
                 disabled={pending || nifMessage !== null}
@@ -352,34 +335,7 @@ export function AdvisorServices({
                 {advisorCopy.save}
               </button>
             </div>
-          </div>
-        ) : (
-          <dl className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="flex items-center gap-3">
-              <User className="size-5 text-[#8aa0d8]" aria-hidden />
-              <div>
-                <dt className="text-sm text-[#64748b]">{advisorCopy.businessName}</dt>
-                <dd className="font-semibold">{profile.businessName || "—"}</dd>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-[#8aa0d8]" aria-hidden>
-                #
-              </span>
-              <div>
-                <dt className="text-sm text-[#64748b]">{advisorCopy.nif}</dt>
-                <dd className="font-semibold">{profile.nif || "—"}</dd>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <MapPin className="size-5 text-[#8aa0d8]" aria-hidden />
-              <div>
-                <dt className="text-sm text-[#64748b]">{advisorCopy.postalCode}</dt>
-                <dd className="font-semibold">{profile.postalCode || "—"}</dd>
-              </div>
-            </div>
-          </dl>
-        )}
+        </div>
       </Card>
       </div>
 
@@ -473,7 +429,7 @@ export function AdvisorServices({
             );
           })}
         </ul>
-        {message && editing !== "corporate" ? <p className="mt-3 text-sm text-red-700">{message}</p> : null}
+        {message && messageFrom === "marketplace" ? <p className="mt-3 text-sm text-red-700">{message}</p> : null}
         <div className="mt-4 flex justify-end">
           <button
             type="button"
@@ -495,7 +451,6 @@ export function AdvisorServices({
         <div className="mt-4 w-full max-w-xl">
           <AdvisorListingCard advisor={previewListing} natural />
         </div>
-        {published ? null : <p className="mt-3 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>}
       </aside>
       </div>
 
@@ -551,7 +506,7 @@ function PanelHeading({
   done: boolean;
   editing: boolean;
   disabled: boolean;
-  onEdit: () => void;
+  onEdit?: () => void;
 }) {
   return (
     // S35 (Alex): the status chip always sits at the far top-right; Editar (pencil + word) just left of it.
@@ -559,7 +514,7 @@ function PanelHeading({
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
         <h2 className="min-w-0 flex-1 basis-[12rem] text-2xl font-semibold text-[#2b3b4a]">{title}</h2>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-        {editing ? null : (
+        {editing || !onEdit ? null : (
           <Button
             type="button"
             disabled={disabled}

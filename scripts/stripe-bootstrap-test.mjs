@@ -31,7 +31,7 @@ const CATALOG = [
   },
   {
     lookup_key: "relify_advisor_inbox_monthly",
-    name: "Relify bandeja asesor",
+    name: "Suscripción asesor",
     description: "Suscripción de asesor.",
     unit_amount: 4900,
     recurring: { interval: "month" },

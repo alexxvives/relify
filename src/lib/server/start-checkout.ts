@@ -249,7 +249,7 @@ export async function startAdvisorInboxCheckout(
       unit_amount: ADVISOR_INBOX_NET_CENTS,
       tax_behavior: "exclusive",
       recurring: { interval: "month" },
-      product_data: { name: "Relify bandeja asesor" },
+      product_data: { name: "Suscripción asesor" },
     });
     const session = await createCheckoutSession(stripe, {
       mode: "subscription",

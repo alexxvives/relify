@@ -68,6 +68,7 @@ export function DealPipeline({
   hideAsideCue = false,
   hideQaNote = false,
   hideWaitingCue = false,
+  turn,
 }: {
   steps: DealStep[];
   role: DealViewer;
@@ -77,6 +78,8 @@ export function DealPipeline({
   hideAsideCue?: boolean;
   hideQaNote?: boolean;
   hideWaitingCue?: boolean;
+  /** S36: the viewer's pending action (advisor deposit / NDA) replaces Qué sigue with Tu turno and its own button. */
+  turn?: { action: string; cta: ReactNode };
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const [acceptOpen, setAcceptOpen] = useState(false);
@@ -88,7 +91,8 @@ export function DealPipeline({
       )
     : steps;
   const current = shownSteps.find((step) => step.state === "current");
-  const cue = current ? stepCue(current.id, role, current.pendingLoi === true) : { yours: false, action: "La compraventa está hecha." };
+  const baseCue = current ? stepCue(current.id, role, current.pendingLoi === true) : { yours: false, action: "La compraventa está hecha." };
+  const cue = turn ? { yours: true, action: turn.action } : baseCue;
   const signKindFor = current?.pendingLoi ? null : signTarget(current?.id, cue.yours, role);
   const canSign = Boolean(sign) && signKindFor !== null;
   const canAccept = role === "seller" && current?.pendingLoi === true && acceptLoi !== undefined && acceptLoi.body.length > 0;
@@ -172,6 +176,7 @@ export function DealPipeline({
           canSign={canSign}
           signKind={signKindFor}
           canAccept={canAccept}
+          extra={turn?.cta}
           onSign={() => {
             if (signKindFor) {
               setSignKind(signKindFor);
@@ -214,7 +219,9 @@ function TurnCue({
   canAccept,
   onSign,
   onAccept,
+  extra = null,
 }: {
+  extra?: ReactNode;
   cue: { yours: boolean; action: string };
   onDark: boolean;
   center: boolean;
@@ -240,6 +247,7 @@ function TurnCue({
           <span className="text-sm leading-5 text-white">{cue.action}</span>
           {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
           {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
+          {extra}
         </div>
       );
     }
@@ -260,6 +268,7 @@ function TurnCue({
         </span>
         {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
         {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
+        {extra}
       </div>
     );
   }

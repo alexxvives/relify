@@ -22,6 +22,9 @@ test.describe("S34 asesor profile", () => {
     test.skip(!response || response.status() >= 400 || !page.url().includes("int-s32-eng-1"), "Fixture encargo missing");
     await expect(page.getByText("Este encargo ya está cerrado.")).toHaveCount(0);
     const width = page.viewportSize()?.width ?? 1280;
-    await expect(page.locator(width < 1280 ? "[data-advisor-dock]" : "[data-advisor-deposit-overlay]")).toBeVisible();
+    // S36: no deposit panel; Tu turno and every locked section open the deposit popup.
+    void width;
+    await page.locator("[data-advisor-deposit-button]:visible").first().click();
+    await expect(page.locator("[data-advisor-deposit-dialog]")).toBeVisible();
   });
 });

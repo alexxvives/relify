@@ -1,4 +1,4 @@
-import { AdvisorCloseForm, AdvisorDepositForm, AdvisorNdaForm } from "@/components/advisor/advisor-engagement-forms";
+import { AdvisorCloseForm, AdvisorDepositButton, AdvisorNdaButton } from "@/components/advisor/advisor-engagement-forms";
 import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { AppToast } from "@/components/shell/app-toast";
 import { CompanyBanner } from "@/components/seller/company-banner";
@@ -6,7 +6,7 @@ import { CompanyReport } from "@/components/seller/company-report";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
-import { AdvisorRailDock } from "@/components/advisor/advisor-rail-dock";
+import { AdvisorBuyerOverlay } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
@@ -37,40 +37,48 @@ export function AdvisorEngagementView({
 }) {
   const showDeposit = !engagement.deposit.paid && !engagement.closed;
   const hasBuyers = engagement.buyers.length > 0;
-  const rail = hasBuyers || showDeposit;
+  // S36 (Alex): the pending action is a popup, from Tu turno in the banner and from every locked section.
+  const action = showDeposit ? (
+    <AdvisorDepositButton
+      engagementId={engagement.id}
+      amountLabel={engagement.deposit.amountLabel}
+      priceLabel={engagement.deposit.priceLabel}
+    />
+  ) : engagement.ndaText ? (
+    <AdvisorNdaButton engagementId={engagement.id} text={engagement.ndaText} />
+  ) : null;
+  const turn = action
+    ? { action: showDeposit ? engagementCopy.depositTurn : engagementCopy.ndaTurn, cta: action }
+    : undefined;
 
   return (
-    <div className={`flex flex-col gap-6 ${rail ? "max-xl:pb-24" : ""}`}>
-      <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote || notice === engagementCopy.subscriptionPaidNote ? "ok" : "error"} />
-      <div className={hasBuyers ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
+    <div className={`flex flex-col gap-6 ${hasBuyers ? "max-lg:pb-24" : ""}`}>
+      <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
+      <div>
         <div className="flex min-w-0 flex-col gap-6">
           <CompanyBanner
             title={engagement.codename}
             subtitle={engagement.region}
             progress={
               engagement.steps.length > 0 ? (
-                <DealPipeline steps={engagement.steps} role="advisor" onDark hideWaitingCue />
+                <DealPipeline steps={engagement.steps} role="advisor" onDark hideWaitingCue turn={turn} />
               ) : null
             }
           />
-          {/* S34 (Alex): a closed encargo has no action row; Contrato is the compact pill only while it is open. */}
+          {/* S36 (Alex): no client/services helper line; Contrato stays while the encargo is open. */}
           {engagement.contract && !engagement.closed ? (
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm text-[#64748b]">
-                {engagement.clientLabel}
-                {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
-              </p>
               <ContractStage contract={engagement.contract} />
             </div>
-          ) : (
-            <p className="text-sm text-[#64748b]">
-              {engagement.clientLabel}
-              {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
-            </p>
-          )}
-          {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
+          ) : null}
           {engagement.profile ? (
-            <CompanyReport project={engagement.profile} role="buyer" figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
+            <CompanyReport
+              project={engagement.profile}
+              role="buyer"
+              figuresOpen={engagement.figuresOpen}
+              lockedNote={lockNote(engagement)}
+              lockAction={action}
+            />
           ) : null}
           {engagement.view === "investor" ? (
             <Card>
@@ -132,20 +140,7 @@ export function AdvisorEngagementView({
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {rail ? (
-          <AdvisorRailDock
-            deposit={
-              showDeposit ? (
-                <AdvisorDepositForm
-                  engagementId={engagement.id}
-                  amountLabel={engagement.deposit.amountLabel}
-                  subscriptionActive={engagement.deposit.subscriptionActive}
-                />
-              ) : null
-            }
-            investor={hasBuyers ? <BuyerCardSlider buyers={engagement.buyers} /> : null}
-          />
-        ) : null}
+        {hasBuyers ? <AdvisorBuyerOverlay folded={action !== null}>{<BuyerCardSlider buyers={engagement.buyers} />}</AdvisorBuyerOverlay> : null}
       </div>
     </div>
   );
