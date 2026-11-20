@@ -13,6 +13,7 @@ import { PhoneOtp } from "@/components/auth/phone-otp";
 import { billingCopy } from "@/lib/billing-copy";
 import { authCopy } from "@/lib/auth-copy";
 import { referralSources, splitAccountName, type ReferralSource, type SignupRole } from "@/lib/auth-input";
+import { parsePublicSiteUrl } from "@/lib/site-url";
 import { isValidPhoneNational } from "@/lib/phone-countries";
 import { isValidSpanishPersonId } from "@/lib/spanish-cif";
 
@@ -36,6 +37,9 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
   const [phoneCountry, setPhoneCountry] = useState("ES");
   const [phone, setPhone] = useState("");
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
+  const [website, setWebsite] = useState("");
+  const [websiteInvalid, setWebsiteInvalid] = useState(false);
+  const askWebsite = initialRole === "seller";
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [invalidField, setInvalidField] = useState<IdentityField | null>(null);
   const [referralMissing, setReferralMissing] = useState(false);
@@ -121,6 +125,11 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       action={action}
       className="flex flex-col gap-6"
       onSubmit={(event) => {
+        if (step === lastStep && askWebsite && website.trim() !== "" && !parsePublicSiteUrl(website)) {
+          event.preventDefault();
+          setWebsiteInvalid(true);
+          return;
+        }
         if (step !== lastStep || referralSource === "") {
           event.preventDefault();
           if (step === "referral" && lastStep === "referral") {
@@ -138,6 +147,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
       <input type="hidden" name="phoneCountry" value={phoneCountry} />
       <input type="hidden" name="role" value={initialRole} />
       <input type="hidden" name="referralSource" value={referralSource} />
+      <input type="hidden" name="companyWebsite" value={askWebsite ? website : ""} />
       <input type="hidden" name="plan" value={initialRole === "investor" ? plan : "none"} />
       <ArcScope className="mb-1">
         <Stepper
@@ -272,6 +282,28 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
             <p role="alert" className="text-sm text-[#c0362c]">
               {authCopy.referralRequired}
             </p>
+          ) : null}
+          {askWebsite ? (
+            <label className="mt-2 flex flex-col gap-1.5 text-sm font-medium text-[#1c2740]">
+              {authCopy.websiteLabel}
+              <Input
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                maxLength={300}
+                placeholder={authCopy.websitePlaceholder}
+                value={website}
+                aria-invalid={websiteInvalid}
+                aria-describedby="onboarding-website-hint"
+                onChange={(event) => {
+                  setWebsite(event.target.value);
+                  setWebsiteInvalid(false);
+                }}
+              />
+              <span id="onboarding-website-hint" className={`text-sm font-normal ${websiteInvalid ? "text-[#c0362c]" : "text-[#5c6b78]"}`} role={websiteInvalid ? "alert" : undefined}>
+                {websiteInvalid ? authCopy.websiteInvalid : authCopy.websiteHint}
+              </span>
+            </label>
           ) : null}
         </div>
       ) : null}

@@ -123,6 +123,8 @@ model User {
   updatedAt            DateTime                @updatedAt @map("updated_at")
   role                 UserRole?               @map("role")
   referralSource       String?                 @map("referral_source")
+  /// S33: optional company website from seller onboarding; prefills "Rellenar con tu web".
+  companyWebsite       String?                 @map("company_website")
   onboardedAt          DateTime?               @map("onboarded_at")
   termsAcceptedAt      DateTime?               @map("terms_accepted_at")
   signaturePng         Bytes?                  @map("signature_png")

@@ -110,6 +110,8 @@ export const onboardingSchema = z
     phone: z.string(),
     role: z.enum(signupRoles),
     referralSource: z.enum(referralSources),
+    /** S33: optional, sellers only; stored normalised when it is a public http(s) address. */
+    companyWebsite: z.string().trim().max(300).optional(),
   })
   .superRefine(refinePhone);
 

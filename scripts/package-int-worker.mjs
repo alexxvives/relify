@@ -58,6 +58,10 @@ bucket_name = "releva-int-uploads"
 [[kv_namespaces]]
 binding = "VINEXT_KV_CACHE"
 id = "${intKvCacheId}"
+
+# S33: Workers AI for "Rellenar con tu web" (account binding, no API key).
+[ai]
+binding = "AI"
 `,
 );
 
@@ -79,6 +83,7 @@ writeFileSync(
         { name: "ASSETS", type: "assets", directory: "assets" },
         { name: "INT_UPLOADS", type: "r2_bucket", bucket_name: "releva-int-uploads" },
         { name: "VINEXT_KV_CACHE", type: "kv_namespace", namespace_id: intKvCacheId },
+        { name: "AI", type: "ai" },
       ],
     },
     null,

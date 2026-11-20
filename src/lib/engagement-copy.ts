@@ -88,6 +88,8 @@ export const engagementCopy = {
   declinedBody: "Un asesor ha rechazado el encargo de",
   figuresNeedNda: "Firma tu NDA para ver estas cifras.",
   figuresNeedInvestor: "El comprador todavía no ha firmado el NDA.",
+  figuresSellerShared: "Las cifras completas están en las carpetas que te abre el vendedor.",
+  investorPanel: "Comprador",
   depositPay: "Pagar depósito",
   depositPaying: "Abriendo el pago…",
   depositPaidNote: "Depósito registrado. Ya puedes firmar el NDA.",

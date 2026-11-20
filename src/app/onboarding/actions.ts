@@ -29,6 +29,7 @@ function readOnboardingForm(formData: FormData): OnboardingInput | { message: st
     phone: formData.get("phone"),
     role: formData.get("role"),
     referralSource: formData.get("referralSource"),
+    companyWebsite: typeof formData.get("companyWebsite") === "string" ? formData.get("companyWebsite") : undefined,
   });
 
   if (!parsed.success) {

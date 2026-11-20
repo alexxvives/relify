@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { emailSiteUrl } from "@/lib/env";
 import { welcomeEmail } from "@/lib/email/messages";
 import { sendMail } from "@/lib/server/mailer";
+import { parsePublicSiteUrl } from "@/lib/site-url";
 
 export type CompleteOnboardingResult =
   | { ok: true; role: UserRoleName | null }
@@ -49,6 +50,7 @@ export async function completeOnboarding(
         phone: storedPhone(input.phoneCountry, input.phone),
         role: input.role,
         referralSource: input.referralSource,
+        companyWebsite: input.role === "seller" ? (parsePublicSiteUrl(input.companyWebsite ?? "")?.toString() ?? null) : null,
         onboardedAt: new Date(),
       },
     });
