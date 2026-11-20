@@ -18,17 +18,17 @@ export default function EmpresasPage() {
   return (
     <RolePage
       kicker="Empresas"
-      title="Su negocio en buenas manos cuando usted se jubile"
-      lead="Venda su empresa de forma confidencial y elija quién seguirá al frente de su negocio."
+      title="Tu negocio en buenas manos cuando te jubiles"
+      lead="Vende tu empresa de forma confidencial y elige quién seguirá al frente de tu negocio."
       image="/product/empresa.jpg"
       imageAlt="Inicio del vendedor en Relify, con facturación, gasto y el estado de la ficha"
       photo="/roles/empresa.webp"
       photoAlt="Propietaria de una pyme en su taller"
       cta={{ href: "/registro?rol=empresa", label: "Crear cuenta de empresa" }}
       highlights={[
-        "Publicas con un nombre de proyecto, nunca con la razón social",
-        "Tú decides quién ve las cuentas y el dataroom",
-        "Compradores con plan y perfil completo",
+        "Publicar es gratis y tan solo pagas si vendes",
+        "Anuncias la venta de forma anónima y los compradores solo pueden ver datos generales",
+        "Conoces el perfil de cada comprador antes de aceptarlo",
       ]}
       stat={{ value: "0 €", label: "por publicar tu primera empresa" }}
       publishMorph
