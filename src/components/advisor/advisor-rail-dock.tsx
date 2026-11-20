@@ -14,8 +14,8 @@ function subscribe(onChange: () => void) {
 }
 
 /**
- * S34 (Alex): the buyer card and the deposit keep their pre-S33 look. From 1280 px they sit in the sticky right column
- * as before. Below that they share a sticky bottom area with a segmented control (Depósito / Comprador), so both stay
+ * S34 (Alex): the buyer card and the deposit keep their pre-S33 look. From 1280 px the buyer card sits in the sticky
+ * right column and the deposit floats over the page (S35). Below that they share a sticky bottom area with a segmented control (Depósito / Comprador), so both stay
  * reachable on small screens while the company stays readable. No floating pill.
  */
 export function AdvisorRailDock({ deposit, investor }: { deposit: ReactNode; investor: ReactNode }) {
@@ -28,13 +28,21 @@ export function AdvisorRailDock({ deposit, investor }: { deposit: ReactNode; inv
   const [open, setOpen] = useState(false);
 
   if (wide) {
+    // S35 (Alex): the deposit floats over the page (bottom-right, folds like Tu progreso) and never pushes content aside;
+    // the buyer cards keep the sticky right column.
     return (
-      <aside className="sticky top-6 flex max-h-[calc(100dvh-3rem)] flex-col overflow-y-auto">
-        <div className="flex flex-col gap-4">
-          {investor}
-          {deposit}
-        </div>
-      </aside>
+      <>
+        {investor ? (
+          <aside className="sticky top-6 flex max-h-[calc(100dvh-3rem)] flex-col overflow-y-auto">{investor}</aside>
+        ) : null}
+        {deposit ? (
+          <ViewportPortal>
+            <div className="fixed right-6 bottom-6 z-40 w-[24rem] max-w-[calc(100vw-3rem)]" data-advisor-deposit-overlay>
+              <div className="max-h-[calc(100dvh-3rem)] overflow-y-auto rounded-2xl">{deposit}</div>
+            </div>
+          </ViewportPortal>
+        ) : null}
+      </>
     );
   }
 

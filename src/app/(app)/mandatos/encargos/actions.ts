@@ -59,7 +59,8 @@ export async function startInboxCheckoutAction(
   void state;
   const user = await signedIn();
   const engagementId = readText(formData, "engagementId");
-  const result = await startAdvisorInboxCheckout(user, engagementId ? `/mandatos/encargos/${engagementId}` : "/mandatos/encargos");
+  const back = readText(formData, "returnTo") === "/mandatos" ? "/mandatos" : engagementId ? `/mandatos/encargos/${engagementId}` : "/mandatos/encargos";
+  const result = await startAdvisorInboxCheckout(user, back);
 
   if (!result.ok) {
     return result;

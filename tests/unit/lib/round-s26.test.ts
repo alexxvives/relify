@@ -90,7 +90,7 @@ describe("S26 points 2-3: auth card", () => {
 
 describe("S26 point 6-12 and placeholders", () => {
   it("narrows the Inicio side column", () => {
-    expect(read("src/components/investor/investor-home.tsx")).toMatch(/xl:grid-cols-\[minmax\(0,1fr\)_316px\]/);
+    expect(read("src/components/investor/investor-home.tsx")).toMatch(/xl:grid-cols-\[minmax\(0,1fr\)_340px\]/);
     expect(read("src/components/seller/seller-overview.tsx")).toMatch(/xl:grid-cols-\[minmax\(0,1fr\)_340px\]/);
   });
 

@@ -24,7 +24,16 @@ function PendingMark({ children }: { children: string }) {
   );
 }
 
-export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }: { boards: AdvisorProjectBoard[]; empty?: string }) {
+export function AdvisorProcesses({
+  boards,
+  empty = advisorCopy.processesEmpty,
+  showDepositTag = true,
+}: {
+  boards: AdvisorProjectBoard[];
+  empty?: string;
+  /** S35 (Alex): off on /mandatos/encargos, where a pending deposit is what the page is about. */
+  showDepositTag?: boolean;
+}) {
   if (boards.length === 0) {
     // S32 (Alex): muted board placeholders behind the message, like the marketplace empty state.
     return (
@@ -52,7 +61,7 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
                     {service}
                   </span>
                 ))}
-                {board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
+                {showDepositTag && board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
             </div>

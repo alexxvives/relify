@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { advisorCopy } from "@/lib/advisor-copy";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-type Close = { id: string; codename: string; closedLabel: string; services: string; clientLabel: string };
+type Close = { id: string; codename: string; closedLabel: string; services: string; clientLabel: string; buyerLabel: string | null };
 
 /**
  * S33 (Alex): Operaciones cerradas en Relify. Each card opens its encargo; the row scrolls sideways with arrows once the
@@ -57,18 +58,31 @@ export function ClosedDealsSlider({ closes }: { closes: Close[] }) {
               href={`/mandatos/encargos/${close.id}`}
               className="flex h-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white transition hover:border-[#c9d2f5] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
             >
-              <div className="bg-[#1c2740] px-5 pt-5 pb-6">
-                <div className="flex items-center justify-between gap-3 text-xs">
-                  <p className="font-semibold text-white/55">Cerrada</p>
-                  <p className="text-white/80">{close.closedLabel}</p>
+              {/* S35 (Alex): no Cerrada tag (implicit); the buyer appears when the advisor may know it. */}
+              <div className="bg-[#1c2740] px-5 pt-4 pb-5">
+                <p className="text-xs text-white/70">{close.closedLabel}</p>
+                <h3 className="mt-1 text-xl leading-tight font-semibold tracking-tight break-words text-white">{close.codename}</h3>
+              </div>
+              <dl className="flex flex-1 flex-col gap-3 px-5 py-4 text-sm">
+                <div>
+                  <dt className="text-xs text-[#64748b]">{advisorCopy.closeBuyer}</dt>
+                  <dd className="mt-0.5 font-medium break-words text-[#1c2740]">{close.buyerLabel ?? advisorCopy.closeBuyerHidden}</dd>
                 </div>
-                <h3 className="mt-2 text-2xl leading-tight font-semibold tracking-tight break-words text-white">{close.codename}</h3>
-              </div>
-              <div className="flex flex-col gap-2 px-5 py-4">
-                <p className="text-sm font-medium text-[#1c2740]">{close.clientLabel}</p>
-                {close.services.length > 0 ? <p className="text-sm text-[#3d4a63]">{close.services}</p> : null}
-                <p className="mt-auto pt-1 text-sm font-semibold text-[#465ab4]">Ver operación</p>
-              </div>
+                <div>
+                  <dt className="text-xs text-[#64748b]">{advisorCopy.closeClient}</dt>
+                  <dd className="mt-0.5 font-medium text-[#1c2740]">{close.clientLabel}</dd>
+                </div>
+                {close.services.length > 0 ? (
+                  <div>
+                    <dt className="text-xs text-[#64748b]">{advisorCopy.closeServices}</dt>
+                    <dd className="mt-0.5 text-[#3d4a63]">{close.services}</dd>
+                  </div>
+                ) : null}
+                <dd className="mt-auto inline-flex items-center gap-1 pt-1 font-semibold text-[#465ab4]">
+                  {advisorCopy.closeOpen}
+                  <ArrowRight className="size-4" aria-hidden />
+                </dd>
+              </dl>
             </Link>
           </li>
         ))}

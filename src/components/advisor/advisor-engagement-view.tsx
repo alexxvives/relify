@@ -5,7 +5,7 @@ import { CompanyBanner } from "@/components/seller/company-banner";
 import { CompanyReport } from "@/components/seller/company-report";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
-import { FloatingInvestorCard } from "@/components/investor/floating-investor-card";
+import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
 import { AdvisorRailDock } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
@@ -19,12 +19,6 @@ function lockNote(engagement: AdvisorEngagementPage): string {
 
   if (engagement.ndaText) {
     return engagementCopy.figuresNeedNda;
-  }
-
-  // S33: a seller's advisor never waits on a buyer NDA; the seller shares the figures through the folders.
-  if (!engagement.hiredByInvestor) {
-    // S34: a closed encargo stays readable exactly as it was.
-    return engagementCopy.figuresSellerShared;
   }
 
   return engagementCopy.figuresNeedInvestor;
@@ -42,13 +36,13 @@ export function AdvisorEngagementView({
   notice: string | null;
 }) {
   const showDeposit = !engagement.deposit.paid && !engagement.closed;
-  const investorLabel = engagement.investorLabel ?? (engagement.hiredByInvestor ? engagement.clientLabel : null);
-  const rail = investorLabel !== null || showDeposit;
+  const hasBuyers = engagement.buyers.length > 0;
+  const rail = hasBuyers || showDeposit;
 
   return (
     <div className={`flex flex-col gap-6 ${rail ? "max-xl:pb-24" : ""}`}>
       <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote || notice === engagementCopy.subscriptionPaidNote ? "ok" : "error"} />
-      <div className={rail ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
+      <div className={hasBuyers ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
         <div className="flex min-w-0 flex-col gap-6">
           <CompanyBanner
             title={engagement.codename}
@@ -99,8 +93,7 @@ export function AdvisorEngagementView({
           {engagement.view === "seller" ? (
             <Card>
               <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
-              <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.processNote}</p>
-              {engagement.folders.length === 0 && !engagement.processOpened ? (
+              {engagement.folders.length === 0 ? (
                 <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.sellerWait}</p>
               ) : null}
               <ul className="mt-4 grid gap-3">
@@ -150,7 +143,7 @@ export function AdvisorEngagementView({
                 />
               ) : null
             }
-            investor={investorLabel !== null ? <FloatingInvestorCard name={investorLabel} profile={engagement.investorCard} /> : null}
+            investor={hasBuyers ? <BuyerCardSlider buyers={engagement.buyers} /> : null}
           />
         ) : null}
       </div>

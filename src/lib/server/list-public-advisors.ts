@@ -22,10 +22,19 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
       verifiedAt: true,
     },
   });
+  // S35 (Alex): only advisors with an active subscription are listed (server-side, not just the UI).
+  const subscribed = new Set(
+    (
+      await prisma.billingCustomer.findMany({
+        where: { advisorInbox: true, userId: { in: rows.map((row) => row.userId) } },
+        select: { userId: true },
+      })
+    ).map((row) => row.userId),
+  );
   const cards: PublicAdvisorCard[] = [];
 
   for (const row of rows) {
-    const card = toPublicAdvisorCard(row);
+    const card = subscribed.has(row.userId) ? toPublicAdvisorCard(row) : null;
 
     if (card) {
       cards.push(card);

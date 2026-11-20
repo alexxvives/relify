@@ -216,7 +216,8 @@ export async function startAdvisorInboxCheckout(
   user: CurrentUser,
   returnPath = "/mandatos/encargos",
 ): Promise<CheckoutStart> {
-  const back = /^\/mandatos\/encargos(\/[A-Za-z0-9_-]+)?$/.test(returnPath)
+  // S35: Inicio (/mandatos) starts the subscription too; it is the step that publishes the profile.
+  const back = /^\/mandatos(\/encargos(\/[A-Za-z0-9_-]+)?)?$/.test(returnPath)
     ? returnPath
     : "/mandatos/encargos";
   const stripe = stripeClient();

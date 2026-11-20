@@ -11,7 +11,6 @@ import { advisorPriceLabel, toPublicAdvisorCard, type PublicAdvisorCard } from "
 import {
   advisorServiceIds,
   centsToEuroInput,
-  advisorPublishMissing,
   type AdvisorProfileView,
   type AdvisorServiceId,
   type StoredService,
@@ -179,7 +178,7 @@ export function AdvisorServices({
   closes = [],
 }: {
   initial: AdvisorProfileView;
-  closes?: { id: string; codename: string; closedLabel: string; services: string; clientLabel: string }[];
+  closes?: { id: string; codename: string; closedLabel: string; services: string; clientLabel: string; buyerLabel: string | null }[];
 }) {
   const [profile, setProfile] = useState(initial);
   const [editing, setEditing] = useState<PanelId | null>(null);
@@ -213,8 +212,8 @@ export function AdvisorServices({
     services: profile.services,
     closedOperations: [],
   });
-  const published = savedListing !== null;
-  const publishMissing = advisorPublishMissing(profile);
+  // S35: listed only with the subscription too; the missing list lives on Inicio.
+  const published = savedListing !== null && profile.subscribed;
   const previewListing: PublicAdvisorCard = {
     id: "preview",
     name: businessName.trim() || advisorCopy.previewName,
@@ -303,21 +302,14 @@ export function AdvisorServices({
       <AppToast message={savedNote} pulse={savedPulse} />
       <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.corporateTitle}</h2>
-            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.confidential}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Chip done={profile.corporateComplete} editing={editing === "corporate"} />
-            {editing === "corporate" ? null : (
-              <Button type="button" onClick={() => open("corporate")} tone="outline" size="sm">
-                <Pencil className="size-3.5" aria-hidden />
-                {advisorCopy.edit}
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelHeading
+          title={advisorCopy.corporateTitle}
+          body={advisorCopy.confidential}
+          done={profile.corporateComplete}
+          editing={editing === "corporate"}
+          disabled={false}
+          onEdit={() => open("corporate")}
+        />
         {editing === "corporate" ? (
           <div className="mt-6 flex flex-col gap-5">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -391,14 +383,13 @@ export function AdvisorServices({
       </Card>
       </div>
 
-      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
       <section className="rounded-2xl border border-[#e7eaee] bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
             <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
           </div>
-          <PublishStatus published={published} missing={publishMissing} />
         </div>
         {/* S34 (Alex): description and sectors are edited right here, with the services; one Guardar saves all three. */}
         <div className="mt-5 flex flex-col gap-5">
@@ -497,7 +488,8 @@ export function AdvisorServices({
         </div>
         </div>
       </section>
-      <aside className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
+      {/* S35 (Alex): the preview follows the scroll on desktop; inline on phones. */}
+      <aside className="flex flex-col rounded-2xl border border-[#e7eaee] bg-white p-5 xl:sticky xl:top-6">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
         {/* S34: always the live card, with placeholders while a field is still empty. */}
         <div className="mt-4 w-full max-w-xl">
@@ -546,22 +538,6 @@ export function AdvisorServices({
   );
 }
 
-/** S34 (Alex): the same published / not published line as the seller's Inicio, instead of section locks. */
-function PublishStatus({ published, missing }: { published: boolean; missing: string[] }) {
-  return (
-    <div className="flex flex-col items-start gap-1 sm:items-end">
-      <p className={published ? "text-base font-semibold text-[#17663a]" : "text-base font-semibold text-[#c0362c]"} data-advisor-publish>
-        {published ? advisorCopy.profilePublished : advisorCopy.profileUnpublished}
-      </p>
-      {published || missing.length === 0 ? null : (
-        <p className="text-sm text-[#64748b]">
-          {advisorCopy.lockedMissing} {missing.join(", ")}.
-        </p>
-      )}
-    </div>
-  );
-}
-
 function PanelHeading({
   title,
   body,
@@ -578,13 +554,11 @@ function PanelHeading({
   onEdit: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-2">
-      <div className="min-w-0">
-        <h2 className="text-2xl font-semibold text-[#2b3b4a]">{title}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{body}</p>
-      </div>
-      <div className="flex items-center gap-2">
-        <Chip done={done} editing={editing} />
+    // S35 (Alex): the status chip always sits at the far top-right; Editar (pencil + word) just left of it.
+    <div>
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        <h2 className="min-w-0 flex-1 basis-[12rem] text-2xl font-semibold text-[#2b3b4a]">{title}</h2>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
         {editing ? null : (
           <Button
             type="button"
@@ -596,7 +570,10 @@ function PanelHeading({
             {advisorCopy.edit}
           </Button>
         )}
+          <Chip done={done} editing={editing} />
+        </div>
       </div>
+      <p className="mt-1 text-sm text-[#64748b]">{body}</p>
     </div>
   );
 }

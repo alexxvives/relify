@@ -40,6 +40,7 @@ describe("advisorProfileChecks", () => {
       description: false,
       sectors: false,
       services: false,
+      subscription: false,
     });
 
     expect(
@@ -57,6 +58,7 @@ describe("advisorProfileChecks", () => {
       description: true,
       sectors: true,
       services: true,
+      subscription: false,
     });
   });
 });

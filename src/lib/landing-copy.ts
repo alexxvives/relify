@@ -62,7 +62,7 @@ export const landingCopy = {
       eyebrow: "Asesores",
       heading: "Publica tus mandatos",
       accent: "en Relify",
-      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato. El directorio de asesores es gratuito; para aceptar un encargo activas la suscripción.",
+      body: "Presenta la operación de tus clientes con las mismas reglas de anonimato. Crear tu ficha es gratis; con la suscripción sales en el directorio y aceptas encargos.",
       more: "Más información",
       register: "Regístrate ahora",
     },
@@ -208,8 +208,8 @@ export const landingCopy = {
           id: "asesorar",
           role: "Asesorar",
           line: "Ofrece servicios y acepta encargos",
-          body: "Creas gratis tu ficha de asesor con tus servicios. Vendedores y compradores te piden presupuesto, aceptas el encargo y acompañas la operación desde dentro.",
-          points: ["Ficha de asesor gratuita", "Solicitudes de vendedores y compradores", "Encargo, NDA y seguimiento"],
+          body: "Creas gratis tu ficha de asesor con tus servicios y, con la suscripción, sales en el directorio. Vendedores y compradores te piden presupuesto, aceptas el encargo y acompañas la operación desde dentro.",
+          points: ["Ficha de asesor gratis, publicada con la suscripción", "Solicitudes de vendedores y compradores", "Encargo, NDA y seguimiento"],
           href: "/asesores",
           cta: "Cómo asesorar",
         },
@@ -414,7 +414,7 @@ export const landingCopy = {
             {
               n: "01",
               title: "Crea tu ficha de asesor",
-              body: "Tus servicios, sectores y zona. Crear la ficha y recibir solicitudes es gratis.",
+              body: "Tus servicios, sectores y zona. Crear la ficha es gratis; con la suscripción sale publicada.",
               cardTitle: "Tu ficha",
               chip: "Ficha",
               panel: {
@@ -431,7 +431,7 @@ export const landingCopy = {
             {
               n: "02",
               title: "Recibes solicitudes y aceptas encargos",
-              body: "Vendedores y compradores te piden presupuesto. Para aceptar un encargo y hablar con el cliente activas la suscripción de asesor.",
+              body: "Vendedores y compradores te piden presupuesto. Con la suscripción de asesor aceptas el encargo y hablas con el cliente.",
               cardTitle: "Tu bandeja",
               chip: "Solicitudes",
               panel: {

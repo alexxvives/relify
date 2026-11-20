@@ -2,6 +2,7 @@
 
 import { stepCtaClass } from "@/components/investor/step-cta";
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { SignaturePad } from "@/components/investor/signature-pad";
@@ -13,41 +14,10 @@ import {
   closeEngagementAction,
   declineEngagementAction,
   startAdvisorDepositAction,
-  startInboxCheckoutAction,
 } from "@/app/(app)/mandatos/encargos/actions";
-import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 import { Button, Card, Input } from "@/components/ui/form";
-
-function AdvisorSubscriptionStep({ engagementId, disabled }: { engagementId: string; disabled: boolean }) {
-  const [state, action, pending] = useActionState(startInboxCheckoutAction, null);
-
-  return (
-    <div className="mt-4 rounded-xl border border-[#d9e2f2] bg-[#f5f7ff] p-4">
-      <p className="text-sm font-semibold text-[#1c2740]">{engagementCopy.subscriptionTitle}</p>
-      <p className="mt-1 text-sm leading-6 text-[#475569]">{engagementCopy.subscriptionBody}</p>
-      <form action={action} className="mt-3 flex justify-center">
-        <input type="hidden" name="engagementId" value={engagementId} />
-        <Button
-          type="submit"
-          disabled={pending || disabled}
-          className="rounded-full text-sm"
->
-          {pending ? engagementCopy.subscriptionStarting : engagementCopy.subscriptionStart}
-        </Button>
-      </form>
-      <div className="mt-3">
-        <CheckoutLegalNote />
-      </div>
-      {state && !state.ok ? (
-        <p role="alert" className="mt-2 text-center text-sm text-red-700">
-          {state.message}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 export function AdvisorDepositForm({
   engagementId,
@@ -101,7 +71,15 @@ export function AdvisorDepositForm({
       </div>
       <p className="mt-2 text-sm leading-6 text-[#64748b]">{engagementCopy.depositBody}</p>
       <p className="mt-4 text-center text-3xl font-semibold tracking-tight text-[#1c2740]">{amountLabel}</p>
-      {subscriptionActive ? null : <AdvisorSubscriptionStep engagementId={engagementId} disabled={declining} />}
+      {/* S35 (Alex): the subscription is paid from Inicio (it is what publishes the profile), not from an encargo. */}
+      {subscriptionActive ? null : (
+        <p className="mt-4 rounded-xl bg-[#f5f7ff] px-4 py-3 text-sm leading-6 text-[#475569]">
+          {engagementCopy.subscriptionFirst}{" "}
+          <Link href="/mandatos" className="font-semibold text-[#465ab4]">
+            {engagementCopy.subscriptionFirstLink}
+          </Link>
+        </p>
+      )}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
         <form action={action} className={subscriptionActive ? "" : "hidden"}>
           <input type="hidden" name="engagementId" value={engagementId} />

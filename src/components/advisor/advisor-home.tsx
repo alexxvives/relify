@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase, Check, CircleCheck, FileText, Layers, ShieldCheck, User, UserPlus, Wallet, type LucideIcon } from "lucide-react";
+import { Briefcase, Check, CircleCheck, CreditCard, FileText, Layers, ShieldCheck, User, UserPlus, Wallet, type LucideIcon } from "lucide-react";
 import { ActivityTiles, type ActivityTile } from "@/components/shell/activity-tiles";
 import { CompletionMeter } from "@/components/seller/completion-meter";
 import { SectorTreemap } from "@/components/public/sector-treemap";
@@ -10,6 +10,7 @@ import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
 import type { IndustrySector } from "@/lib/cnae-section";
 import { Card } from "@/components/ui/form";
+import { AdvisorSubscribeButton } from "@/components/advisor/advisor-subscribe-button";
 
 const stepLabel: Record<AdvisorStep, string> = {
   request: advisorCopy.stepRequest,
@@ -32,6 +33,7 @@ const checklist = [
   { key: "description", label: advisorCopy.profileDescription, href: "/mis-servicios", icon: FileText },
   { key: "sectors", label: advisorCopy.profileSectors, href: "/mis-servicios", icon: Layers },
   { key: "services", label: advisorCopy.profileServices, href: "/mis-servicios", icon: Briefcase },
+  { key: "subscription", label: advisorCopy.profileSubscription, href: "/mandatos", icon: CreditCard },
 ] as const;
 
 export function AdvisorHome({
@@ -55,7 +57,7 @@ export function AdvisorHome({
   const totalEngagements = desk.steps.reduce((sum, step) => sum + step.count, 0);
 
   return (
-    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_372px]">
+    <div className="grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex w-full min-w-0 flex-col gap-6 self-start">
         <Card>
           <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.stepsTitle}</h2>
@@ -78,32 +80,38 @@ export function AdvisorHome({
       </div>
       <div className="relative w-full xl:min-h-full">
         <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
-        <Card>
-          <h2 className={profileComplete ? "text-2xl font-semibold text-[#17663a]" : "text-2xl font-semibold text-[#2b3b4a]"}>
-            {advisorCopy.profileTitle}
+        {/* S35 (Alex): same card as the seller's Inicio: published / not published, no subtitle, Obligatorio tags. */}
+        <Card className="p-4">
+          <h2 className={profileComplete ? "text-xl font-semibold text-[#17663a]" : "text-lg font-semibold text-[#c0362c]"} data-advisor-publish>
+            {profileComplete ? advisorCopy.profilePublished : advisorCopy.profileUnpublished}
           </h2>
-          <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.profileBody}</p>
+          {profileChecks.subscription ? null : <AdvisorSubscribeButton />}
           <CompletionMeter filled={filled} total={checklist.length} label={advisorCopy.completedLabel} display="percent" />
-          <ul className="mt-4">
+          <ul className="mt-4 overflow-hidden rounded-xl border border-[#e6eaf5] bg-white">
             {checklist.map((item) => {
               const done = profileChecks[item.key];
+              const row = (
+                <>
+                  <item.icon className={`size-4 shrink-0 ${done ? "text-[#17663a]" : "text-[#64748b]"}`} aria-hidden />
+                  <span className={`min-w-0 flex-1 ${done ? "text-[#667085]" : "font-medium text-[#1c2740]"}`}>{item.label}</span>
+                  {done ? (
+                    <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-[#fdecea] px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#a12f2f]">
+                      {advisorCopy.requiredTag}
+                    </span>
+                  )}
+                </>
+              );
               return (
-                <li key={item.key} className="border-t border-[#eef0f3]">
-                  <Link
-                    href={item.href}
-                    className={
-                      done
-                        ? "flex items-center justify-between gap-3 py-3 text-sm text-[#17663a]"
-                        : "flex items-center justify-between gap-3 py-3 text-sm text-[#2b3b4a]"
-                    }
-                  >
-                    {item.label}
-                    {done ? (
-                      <Check className="size-4 shrink-0 text-[#17663a]" aria-hidden />
-                    ) : (
-                      <item.icon className="size-4 shrink-0 text-[#64748b]" aria-hidden />
-                    )}
-                  </Link>
+                <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
+                  {done ? (
+                    <div className="flex items-center gap-3 px-3 py-2.5 text-sm">{row}</div>
+                  ) : (
+                    <Link href={item.key === "subscription" ? "#suscripcion" : item.href} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-[#f7f8fb]">
+                      {row}
+                    </Link>
+                  )}
                 </li>
               );
             })}
