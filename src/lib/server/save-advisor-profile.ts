@@ -2,7 +2,8 @@ import type { Prisma } from "@/generated/prisma/client";
 import { advisorCopy } from "@/lib/advisor-copy";
 import {
   eurosToCents,
-  type CorporateInput,
+  type IdentityInput,
+  type MarketplaceInput,
   type DealsInput,
   type ServiceOfferInput,
 } from "@/lib/advisor-profile";
@@ -22,7 +23,7 @@ async function advisorCanSave(userId: string): Promise<boolean> {
 
 export async function saveAdvisorCorporate(
   userId: string,
-  input: CorporateInput,
+  input: IdentityInput,
 ): Promise<AdvisorSaveResult> {
   if (!(await advisorCanSave(userId))) {
     return { ok: false, message: advisorCopy.forbidden };
@@ -32,8 +33,31 @@ export async function saveAdvisorCorporate(
     businessName: input.businessName,
     nif: normalizeCif(input.nif),
     postalCode: input.postalCode,
+  };
+
+  await prisma.advisorProfile.upsert({
+    where: { userId },
+    create: { userId, ...data },
+    update: data,
+  });
+
+  return { ok: true };
+}
+
+/** S34: description, sectors and services from Tu perfil en el marketplace, in one save. */
+export async function saveAdvisorMarketplace(userId: string, input: MarketplaceInput): Promise<AdvisorSaveResult> {
+  if (!(await advisorCanSave(userId))) {
+    return { ok: false, message: advisorCopy.forbidden };
+  }
+
+  const data = {
     description: input.description,
     sectors: input.sectors,
+    services: input.services.map((offer) => ({
+      serviceType: offer.serviceType,
+      priceFromCents: eurosToCents(offer.priceFrom),
+      priceToCents: eurosToCents(offer.priceTo),
+    })) as Prisma.InputJsonValue,
   };
 
   await prisma.advisorProfile.upsert({

@@ -32,7 +32,6 @@ import { startListingCheckout } from "@/lib/server/start-checkout";
 import { uniqueCodename } from "@/lib/server/unique-codename";
 import { rotateTeaserToken } from "@/lib/server/company-pdfs";
 import { sellerDraftAutosaveRevalidatePaths } from "@/lib/seller-draft-cache";
-import { describeFromWebsite } from "@/lib/server/describe-from-website";
 
 /**
  * S27: on success `draft` is the company as stored after the save (what a reload would show), so the form's read-only
@@ -467,18 +466,4 @@ export async function regenerateTeaserLinkAction(): Promise<
     revalidatePath("/mi-empresa/documentos");
   }
   return result;
-}
-
-export type DescribeFromWebsiteState = { ok: boolean; message: string; description?: string } | null;
-
-/** S33 (Alex): "Rellenar con tu web". Returns a draft for the Descripción textarea; never saves it. */
-export async function describeFromWebsiteAction(url: string): Promise<DescribeFromWebsiteState> {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "seller") {
-    return { ok: false, message: "Inicia sesión como vendedor para usar esta opción." };
-  }
-  const result = await describeFromWebsite(user.id, typeof url === "string" ? url : "");
-  return result.ok
-    ? { ok: true, message: "Hemos rellenado la descripción con tu web. Revísala y guarda cuando quieras.", description: result.description }
-    : { ok: false, message: result.message };
 }

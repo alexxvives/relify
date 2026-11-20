@@ -14,7 +14,6 @@ export function SellerCompanyPanel({
   initialTab = "company",
   coverSrc = null,
   sabiRegistry = null,
-  websiteHint = "",
   fichaExtras = null,
   uploadsDisabled = false,
 }: {
@@ -27,13 +26,11 @@ export function SellerCompanyPanel({
   /** t76: no longer shown to sellers (raw accounting detail; figures are loaded by us). Kept for callers. */
   sabiDetail?: SabiDetailForm | null;
   sabiRegistry?: SabiRegistry | null;
-  websiteHint?: string;
   fichaExtras?: SellerFichaExtras | null;
 }) {
   return (
     <>
       <CompanyDraftForm
-        websiteHint={websiteHint}
         key={cif || "nueva"}
         draft={draft}
         cif={cif}

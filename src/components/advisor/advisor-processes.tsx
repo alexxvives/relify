@@ -61,6 +61,12 @@ export function AdvisorProcesses({ boards, empty = advisorCopy.processesEmpty }:
             </Link>
           </div>
           {board.note ? <p className="mt-4 text-sm text-[#64748b]">{board.note}</p> : null}
+          {/* S34 (Alex): one encargo per company; each row below is one of that company's buyer processes. */}
+          {board.lanes.length > 1 ? (
+            <p className="mt-4 text-xs font-semibold tracking-wide text-[#64748b] uppercase">
+              {advisorCopy.processesLanes.replace("{n}", String(board.lanes.length))}
+            </p>
+          ) : null}
           <div className="mt-2 flex flex-col gap-2">
             {board.lanes.map((lane) => {
               const cue = advisorLaneCue(lane.steps, lane.signNdaId !== null);
