@@ -2,6 +2,11 @@ import { advisorCopy } from "./advisor-copy";
 import { dealPipeline, processFlags, stepCue, type DealStep, type StepCue } from "./deal-pipeline";
 import { labelAccesses } from "./project-message";
 
+/** S37: paid (or closed) encargos open under Mis procesos, unpaid ones under Encargos. */
+export function advisorEngagementHref(id: string, paid: boolean): string {
+  return paid ? `/mandatos/venta/${id}` : `/mandatos/encargos/${id}`;
+}
+
 export type AdvisorAccessSnapshot = {
   investorId: string;
   requestedAt: Date;
@@ -203,7 +208,7 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
       codename: first.codename,
       region: first.region,
       services,
-      href: `/mandatos/encargos/${focus.id}`,
+      href: advisorEngagementHref(focus.id, focus.depositPaid || focus.closed),
       hiredBySeller: seller !== undefined,
       hiredByInvestor: investorRows.length > 0,
       depositPending,

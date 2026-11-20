@@ -11,7 +11,8 @@ test.describe("S35 asesor", () => {
     await page.goto("/mandatos");
     await expect(page.locator("[data-advisor-publish]")).toHaveText(/Tu perfil (no )?está publicado/);
     await expect(page.getByText("Con la ficha lista sales en el marketplace de asesores.")).toHaveCount(0);
-    await expect(page.getByText(/Suscripción de asesor · 49 €/)).toBeVisible();
+    await expect(page.getByText("Suscripción de asesor", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Sin suscripción activa/)).toHaveCount(0);
   });
 
   test("encargos list has no deposit tag and the encargo has no subscription block", async ({ page }) => {

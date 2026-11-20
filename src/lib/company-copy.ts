@@ -210,7 +210,7 @@ export const companyCopy = {
   sectorsHeading: "Sectores representativos",
   metricsHeading: "Métricas financieras",
   structureHeading: "Cómo es tu negocio",
-  figuresLocked: "Estas cifras se abren cuando la empresa acepta la conexión y firmas el NDA.",
+  figuresLocked: "Estas cifras se abren cuando la empresa acepta tu conexión.",
   figuresLockedNda: "Firma el NDA para ver estas cifras.",
   generalHint: "Provincia, año, plantilla y una descripción. No incluye la razón social ni el CIF.",
   sectorsHint: "El sector principal y los secundarios, por su código CNAE.",

@@ -1,32 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useActionState } from "react";
 import { startInboxCheckoutAction } from "@/app/(app)/mandatos/encargos/actions";
-import { CheckoutLegalNote } from "@/components/auth/checkout-legal-note";
-import { Button } from "@/components/ui/form";
 import { advisorCopy } from "@/lib/advisor-copy";
 
-/** S35 (Alex): the subscription is a mandatory Inicio step; paying it (Stripe Checkout) is what lets the profile go live. */
-export function AdvisorSubscribeButton() {
+/** S37 (Alex): the subscription is just its Inicio checklist row; clicking it opens Stripe Checkout. */
+export function AdvisorSubscribeRow({ children }: { children: ReactNode }) {
   const [state, action, pending] = useActionState(startInboxCheckoutAction, null);
 
   return (
-    <div id="suscripcion" className="mt-3 rounded-xl border border-[#d9e2f2] bg-[#f5f7ff] p-3">
-      <p className="text-sm leading-6 text-[#475569]">{advisorCopy.subscribeNote}</p>
-      <form action={action} className="mt-3">
-        <input type="hidden" name="returnTo" value="/mandatos" />
-        <Button type="submit" disabled={pending} className="w-full rounded-full text-sm">
-          {pending ? advisorCopy.subscribing : advisorCopy.subscribe}
-        </Button>
-      </form>
-      <div className="mt-2">
-        <CheckoutLegalNote />
-      </div>
+    <form action={action}>
+      <input type="hidden" name="returnTo" value="/mandatos" />
+      <button
+        type="submit"
+        disabled={pending}
+        aria-busy={pending}
+        data-advisor-subscribe
+        className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-[#f7f8fb] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none focus-visible:ring-inset disabled:opacity-70"
+      >
+        {children}
+      </button>
+      {pending ? <p className="sr-only" role="status">{advisorCopy.subscribing}</p> : null}
       {state && !state.ok ? (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className="px-3 pb-2.5 text-sm text-red-700">
           {state.message}
         </p>
       ) : null}
-    </div>
+    </form>
   );
 }

@@ -56,7 +56,7 @@ export function ClosedDealsSlider({ closes }: { closes: Close[] }) {
           <li key={close.id} className="w-[min(26rem,85vw)] shrink-0 snap-start">
             {/* S36 (Alex): horizontal card, all of it opens the encargo (no Ver operación link). */}
             <Link
-              href={`/mandatos/encargos/${close.id}`}
+              href={`/mandatos/venta/${close.id}`}
               aria-label={`${close.codename} · ${close.closedLabel}`}
               className="flex h-full overflow-hidden rounded-3xl border border-[#e7eaee] bg-white transition hover:border-[#c9d2f5] hover:shadow-[0_12px_32px_-24px_rgba(28,39,64,0.55)] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
             >

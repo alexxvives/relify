@@ -10,7 +10,7 @@ import type { NotificationView } from "@/lib/notifications";
 import type { AdvisorProfileChecks } from "@/lib/advisor-profile";
 import type { IndustrySector } from "@/lib/cnae-section";
 import { Card } from "@/components/ui/form";
-import { AdvisorSubscribeButton } from "@/components/advisor/advisor-subscribe-button";
+import { AdvisorSubscribeRow } from "@/components/advisor/advisor-subscribe-button";
 
 const stepLabel: Record<AdvisorStep, string> = {
   request: advisorCopy.stepRequest,
@@ -85,7 +85,6 @@ export function AdvisorHome({
           <h2 className={profileComplete ? "text-xl font-semibold text-[#17663a]" : "text-lg font-semibold text-[#c0362c]"} data-advisor-publish>
             {profileComplete ? advisorCopy.profilePublished : advisorCopy.profileUnpublished}
           </h2>
-          {profileChecks.subscription ? null : <AdvisorSubscribeButton />}
           <CompletionMeter filled={filled} total={checklist.length} label={advisorCopy.completedLabel} display="percent" />
           <ul className="mt-4 overflow-hidden rounded-xl border border-[#e6eaf5] bg-white">
             {checklist.map((item) => {
@@ -107,8 +106,10 @@ export function AdvisorHome({
                 <li key={item.key} className="border-t border-[#e6eaf5] first:border-t-0">
                   {done ? (
                     <div className="flex items-center gap-3 px-3 py-2.5 text-sm">{row}</div>
+                  ) : item.key === "subscription" ? (
+                    <AdvisorSubscribeRow>{row}</AdvisorSubscribeRow>
                   ) : (
-                    <Link href={item.key === "subscription" ? "#suscripcion" : item.href} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-[#f7f8fb]">
+                    <Link href={item.href} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-[#f7f8fb]">
                       {row}
                     </Link>
                   )}

@@ -5,14 +5,12 @@ import { PdfPages } from "@/components/seller/pdf-pages";
 
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Check, CircleHelp, ShieldCheck, X } from "lucide-react";
-import { AgreementDocument } from "@/components/investor/agreement-document";
+import { Check, CircleHelp, ShieldCheck } from "lucide-react";
 import { documentDeskClass, documentDeskHeaderClass, FilePreviewDialog, fileHref, useModalScrollLock } from "@/components/investor/file-preview-dialog";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
 import { acceptNdaAction, postInvestorMessageAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
-import { SignaturePad } from "@/components/investor/signature-pad";
-import { platformTermsCopy } from "@/lib/platform-terms";
+import { SignAgreementDialog } from "@/components/investor/sign-agreement-dialog";
 import { acceptSellerLoiAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { attachmentNames } from "@/lib/meeting";
 import { accessCopy } from "@/lib/access-copy";
@@ -445,89 +443,21 @@ function ProcessSignDialog({
   agreement: string;
   onClose: () => void;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  useModalScrollLock(true);
   const action = kind === "nda" ? acceptNdaAction : postInvestorMessageAction;
   const [state, formAction, pending] = useActionState(action, null);
-  const [signature, setSignature] = useState("");
-  const [needsSignature, setNeedsSignature] = useState(false);
-  const fileName = kind === "nda" ? "Acuerdo de confidencialidad" : "Carta de intenciones";
-  const submitLabel = kind === "nda" ? accessCopy.acceptAction : accessCopy.signLoi;
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-
-    if (!dialog || dialog.open) {
-      return;
-    }
-
-    dialog.showModal();
-  }, []);
-
-  useEffect(() => {
-    if (state?.ok) {
-      dialogRef.current?.close();
-    }
-  }, [state]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed top-1/2 left-1/2 z-50 m-0 hidden max-h-[min(48rem,calc(100%-2rem))] w-[min(40rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0 text-[#1c2740] open:flex backdrop:bg-[#1c2740]/40"
-      onClose={onClose}
-    >
-      <div className="flex items-start justify-between gap-3 px-6 pt-6">
-        <div className="min-w-0">
-          <h2 className="text-2xl font-semibold tracking-tight">{fileName}</h2>
-          <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{kind === "nda" ? accessCopy.ndaIntro : accessCopy.loiIntro}</p>
-        </div>
-        <form method="dialog">
-          <button
-            type="submit"
-            aria-label="Cerrar"
-            className="inline-flex size-9 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7] hover:text-[#1c2740]"
-          >
-            <X className="size-4" aria-hidden />
-          </button>
-        </form>
-      </div>
-      <form
-        action={formAction}
-        className="flex min-h-0 flex-1 flex-col"
-        onSubmit={(event) => {
-          if (signature.length === 0) {
-            event.preventDefault();
-            setNeedsSignature(false);
-            window.requestAnimationFrame(() => {
-              setNeedsSignature(true);
-            });
-          }
-        }}
-      >
-        <div className="mx-6 mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#e7eaee] bg-[#fafbfc] px-5 py-5">
-          <AgreementDocument text={agreement} />
-        </div>
-        {(
-          <div className="shrink-0 px-6 pt-4 pb-1">
-            <input type="hidden" name="signature" value={signature} />
-            <SignaturePad
-              invalid={needsSignature}
-              collectIdentity={kind === "nda"}
-              onChange={(value) => {
-                setSignature(value);
-                if (value.length > 0) {
-                  setNeedsSignature(false);
-                }
-              }}
-            />
-            {needsSignature ? (
-              <p role="alert" className="mt-2 text-sm text-[#c0362c]">
-                {platformTermsCopy.signRequired}
-              </p>
-            ) : null}
-          </div>
-        )}
-        <div className="flex items-center justify-end gap-3 px-6 pt-3 pb-6">
+    <SignAgreementDialog
+      title={kind === "nda" ? "Acuerdo de confidencialidad" : "Carta de intenciones"}
+      intro={kind === "nda" ? accessCopy.ndaIntro : accessCopy.loiIntro}
+      agreement={agreement}
+      action={formAction}
+      pending={pending}
+      done={state?.ok === true}
+      collectIdentity={kind === "nda"}
+      submitLabel={kind === "nda" ? accessCopy.acceptAction : accessCopy.signLoi}
+      hidden={
+        <>
           <input type="hidden" name="slug" value={slug} />
           {kind === "loi" ? (
             <>
@@ -535,17 +465,11 @@ function ProcessSignDialog({
               <input type="hidden" name="body" value={agreement} />
             </>
           ) : null}
-          <Button
-            type="submit"
-            disabled={pending}
-            className="h-10 rounded-full text-sm font-semibold"
->
-            {pending ? "Firmando…" : submitLabel}
-          </Button>
-        </div>
-        <SignError state={state} />
-      </form>
-    </dialog>
+        </>
+      }
+      error={<SignError state={state} />}
+      onClose={onClose}
+    />
   );
 }
 

@@ -9,6 +9,7 @@ import {
   firstIssue,
   servicesInputSchema,
 } from "@/lib/advisor-profile";
+import { deleteAdvisorDocument, storeAdvisorDocument } from "@/lib/server/advisor-documents";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   saveAdvisorCorporate,
@@ -112,6 +113,44 @@ export async function saveDealsAction(input: unknown): Promise<AdvisorSaveResult
   const result = await saveAdvisorDeals(userId, parsed.data);
   if (result.ok) {
     refreshAdvisor();
+  }
+
+  return result;
+}
+
+export async function storeAdvisorDocumentAction(formData: FormData): Promise<AdvisorSaveResult> {
+  const userId = await advisorUserId();
+
+  if (typeof userId !== "string") {
+    return userId;
+  }
+
+  const upload = formData.get("file");
+
+  if (!(upload instanceof File)) {
+    return { ok: false, message: advisorCopy.documentInvalid };
+  }
+
+  const result = await storeAdvisorDocument(userId, upload.name, new Uint8Array(await upload.arrayBuffer()));
+
+  if (result.ok) {
+    revalidatePath("/mis-servicios");
+  }
+
+  return result;
+}
+
+export async function deleteAdvisorDocumentAction(id: string): Promise<AdvisorSaveResult> {
+  const userId = await advisorUserId();
+
+  if (typeof userId !== "string") {
+    return userId;
+  }
+
+  const result = await deleteAdvisorDocument(userId, id);
+
+  if (result.ok) {
+    revalidatePath("/mis-servicios");
   }
 
   return result;

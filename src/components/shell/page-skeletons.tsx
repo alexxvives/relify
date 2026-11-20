@@ -681,10 +681,7 @@ export function ProjectSkeleton() {
     <Shell>
       <Bare className="h-4 w-36" />
       <div className="relative flex h-[415px] flex-col overflow-hidden rounded-[1.75rem] bg-[#1c2740] px-6 py-8 sm:h-[438px] sm:px-8 sm:py-10">
-        <div className="relative z-10 mb-5 flex items-start justify-between gap-2 sm:mb-6">
-          <Bare className="h-11 w-24 rounded-full bg-white/20" />
-          <Bare className="size-11 rounded-full bg-white/20" />
-        </div>
+        <Bare className="absolute top-6 right-6 z-20 size-11 rounded-full bg-white/20 sm:top-8 sm:right-8" />
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <Bare className="mx-auto mb-3 size-10 rounded-2xl bg-white/15" />
           <Bare className="mx-auto h-12 w-64 max-w-full bg-white/20 sm:h-14 sm:w-80" />

@@ -189,7 +189,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
     expect(companyReport).toMatch(/report-section-aside[\s\S]*whitespace-nowrap/);
     expect(companyReport).toMatch(/report-section-aside[\s\S]*truncate/);
     expect(companyReport).toMatch(/report-section-title min-w-0 shrink-0/);
-    expect(reportNav).toMatch(/sticky z-30 mx-auto w-fit max-w-full/);
+    expect(reportNav).toMatch(/sticky z-40 mx-auto w-fit max-w-full/);
     expect(reportNav).not.toMatch(/ViewportPortal/);
     expect(companyReport).not.toMatch(/inlineUntilSticky/);
   });

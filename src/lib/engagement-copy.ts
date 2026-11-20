@@ -66,13 +66,10 @@ export const engagementCopy = {
   planRequired: "Necesitas la suscripción de asesor (49 € al mes más IVA) para aceptar encargos.",
   missing: "Ese encargo no está en tu lista.",
   depositTitle: "Depósito para aceptar",
-  depositBody:
-    "Pagarlo acepta la solicitud y te reserva el encargo. Después firmas tu NDA y ves la ficha completa al mismo nivel que tu cliente.",
+  depositBody: "Pagarlo acepta la solicitud y te reserva el encargo.",
   depositRowAmount: "Importe del depósito",
   depositRowFormula: "Cálculo",
   depositFormula: "50 € + 0,5 % de {price}",
-  depositRowVat: "IVA",
-  depositVat: "No lleva IVA: es un depósito, no una factura de servicio",
   depositPoints: [
     "Se cobra una vez por encargo, con tarjeta, en Stripe.",
     "Se devuelve: no es un pago a Relify por el servicio.",
@@ -104,7 +101,7 @@ export const engagementCopy = {
   depositInvestorEmpty: "Todavía no ha publicado ficha.",
   ndaTitle: "Tu acuerdo de confidencialidad",
   ndaSign: "Firmar NDA",
-  ndaTurn: "Tienes que firmar tu NDA. Con él ves las cifras completas, las cuentas y la sala de datos, al mismo nivel que tu cliente.",
+  ndaTurn: "Firma tu NDA para ver las cifras y la sala de datos.",
   ndaIntro:
     "Antes de ver las cifras completas, las cuentas y la sala de datos de este encargo, firma tu acuerdo de confidencialidad. Es tuyo, aparte del de tu cliente, y dura dos años.",
   depositTurn: "Tienes que pagar el depósito para aceptar el encargo.",

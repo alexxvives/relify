@@ -28,7 +28,7 @@ describe("S35 subscription gates the listing", () => {
   it("is a mandatory Inicio step", () => {
     expect(advisorProfileChecks({ ...blankAdvisorProfile(), subscribed: true }).subscription).toBe(true);
     expect(advisorProfileChecks(blankAdvisorProfile()).subscription).toBe(false);
-    expect(advisorCopy.profileSubscription).toMatch(/49 €/);
+    expect(advisorCopy.profileSubscription).toBe("Suscripción de asesor");
   });
 
   it("filters unsubscribed advisors server-side", () => {

@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { formatBasisPoints } from "@/lib/company-profile";
-import { headlineEbitda, headlineEbitdaMargin, marginExplain, marginShortLabel } from "@/lib/financial-metrics";
+import { headlineEbitda, headlineEbitdaMargin, marginExplain } from "@/lib/financial-metrics";
 import { formatCardEur, formatRoiPercent, roiPercent, roiTone } from "@/lib/money";
 import type { PublicProjectCard } from "@/lib/public-project";
 import { companyCopy } from "@/lib/company-copy";
@@ -381,8 +381,8 @@ function ebitdaMarginNote(project: PublicProjectCard, ebitda: ReturnType<typeof 
       className={`text-[11px] font-medium whitespace-nowrap ${marginTone(headline.primaryBp / 100)}`}
       title={[marginExplain(headline.primaryLabel, formatBasisPoints(headline.primaryBp)), ebitdaHint(project, ebitda)].filter(Boolean).join(" ")}
     >
-      {/* S28 (Alex): "margen 12 %" (EBITDA / facturación), not a bare % that reads like growth. */}
-      {marginShortLabel(headline.primaryLabel).toLowerCase()} {formatBasisPoints(headline.primaryBp)}
+      {/* S37 (Alex): just the % next to the EBITDA; the tooltip explains it is the margin. */}
+      {formatBasisPoints(headline.primaryBp)}
     </span>
   );
 }

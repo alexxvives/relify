@@ -119,6 +119,7 @@ export async function acceptAdvisorNdaAction(
 
   if (result.ok) {
     revalidatePath(`/mandatos/encargos/${id}`);
+    revalidatePath(`/mandatos/venta/${id}`);
     revalidatePath("/mandatos/venta");
     revalidatePath("/mandatos");
   }
@@ -142,6 +143,7 @@ export async function closeEngagementAction(
 
   if (result.ok) {
     revalidatePath(`/mandatos/encargos/${id}`);
+    revalidatePath(`/mandatos/venta/${id}`);
   }
 
   return { ok: result.ok, message: result.message ?? engagementCopy.feeStored };
@@ -156,6 +158,7 @@ export async function setAdvisorFolderAction(
   const result = await setAdvisorFolder(user, id, readText(formData, "folder"), readText(formData, "open") === "1");
   revalidatePath("/mi-empresa/documentos");
   revalidatePath(`/mandatos/encargos/${id}`);
+  revalidatePath(`/mandatos/venta/${id}`);
   return { ok: result.ok, message: result.message ?? engagementCopy.openFolder };
 }
 
@@ -168,5 +171,6 @@ export async function setAdvisorProcessAction(
   const result = await setAdvisorProcess(user, id, readText(formData, "open") === "1");
   revalidatePath("/mi-empresa/procesos");
   revalidatePath(`/mandatos/encargos/${id}`);
+  revalidatePath(`/mandatos/venta/${id}`);
   return { ok: result.ok, message: result.message ?? engagementCopy.openProcess };
 }

@@ -102,10 +102,15 @@ describe("S28 9: Contacta con un asesor sits in the bottom-right actions", () =>
     expect(pipeline).not.toMatch(/DiligenceChoice|advisorHref/);
   });
   for (const file of ["src/components/investor/investor-processes.tsx", "src/components/seller/seller-processes.tsx"]) {
-    it(`${file} shows it from Preguntas through Contrato, after the right-hand actions`, () => {
+    it(`${file} shows it from Preguntas through Contrato in the right-hand actions`, () => {
       const source = read(file);
       expect(source).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "loi" \|\| current\?\.id === "documents"/);
-      expect(source).toMatch(/ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,260}?(actions|processActions)\}[\s\S]{0,200}?wantsAdvisor/);
+      // S37 (Alex): on the buyer side it sits left of Cancelar proceso; the seller keeps it after the actions.
+      expect(source).toMatch(
+        file.includes("investor")
+          ? /ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,200}?wantsAdvisor[\s\S]{0,600}?\{actions\}/
+          : /ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,260}?(actions|processActions)\}[\s\S]{0,200}?wantsAdvisor/,
+      );
     });
   }
 });

@@ -220,7 +220,7 @@ describe("advisorProjectBoards", () => {
       }),
     ]);
 
-    expect(board?.href).toBe("/mandatos/encargos/buyer-job");
+    expect(board?.href).toBe("/mandatos/venta/buyer-job");
     expect(board?.services).toEqual(["Consultoría Fiscal", "Due Diligence"]);
   });
 
