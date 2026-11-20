@@ -40,6 +40,14 @@ export const corporateInputSchema = z.object({
 
 export type CorporateInput = z.infer<typeof corporateInputSchema>;
 
+/** S34: Datos corporativos is only the private identity (name, NIF, postal code). */
+export const identityInputSchema = corporateInputSchema.pick({ businessName: true, nif: true, postalCode: true });
+export type IdentityInput = z.infer<typeof identityInputSchema>;
+
+export function identityIsComplete(profile: { businessName: string; nif: string; postalCode: string }): boolean {
+  return identityInputSchema.safeParse(profile).success;
+}
+
 export const serviceOfferSchema = z
   .object({
     serviceType: z.enum(advisorServiceIds),
@@ -52,6 +60,17 @@ export const serviceOfferSchema = z
   });
 
 export const servicesInputSchema = z.array(serviceOfferSchema).min(1, advisorCopy.serviceRequired);
+
+/**
+ * S34: Tu perfil en el marketplace saves description, sectors and services together. Partial saves are fine; the
+ * profile is published once corporateInputSchema passes and there is at least one service.
+ */
+export const marketplaceInputSchema = z.object({
+  description: z.string().trim().max(1000, advisorCopy.descriptionLong),
+  sectors: z.array(sectorIdSchema),
+  services: z.array(serviceOfferSchema),
+});
+export type MarketplaceInput = z.infer<typeof marketplaceInputSchema>;
 
 export type ServiceOfferInput = z.infer<typeof serviceOfferSchema>;
 
@@ -201,6 +220,12 @@ export function corporateMissing(profile: Parameters<typeof corporateIsComplete>
   return (Object.keys(corporateFieldLabels) as (keyof typeof corporateFieldLabels)[])
     .filter((key) => failed.has(key))
     .map((key) => corporateFieldLabels[key]);
+}
+
+/** S34: what still keeps the advisor profile off the marketplace (Datos corporativos, description, sectors, a service). */
+export function advisorPublishMissing(profile: Parameters<typeof corporateIsComplete>[0] & { services: unknown[] }): string[] {
+  const missing = corporateMissing(profile);
+  return profile.services.length > 0 ? missing : [...missing, "al menos un servicio con precio"];
 }
 
 export function firstIssue(error: z.ZodError): string {

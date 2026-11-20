@@ -2,16 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
-import { Check, ChevronDown, CircleCheck, Clock, Lock, MapPin, Pencil, User } from "lucide-react";
-import { saveCorporateAction, saveServicesAction } from "@/app/(app)/mis-servicios/actions";
+import { Check, ChevronDown, CircleCheck, Clock, MapPin, Pencil, User } from "lucide-react";
+import { saveCorporateAction, saveMarketplaceAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
 import { AppToast } from "@/components/shell/app-toast";
 import { advisorCopy } from "@/lib/advisor-copy";
-import { toPublicAdvisorCard } from "@/lib/advisor-directory";
+import { advisorPriceLabel, toPublicAdvisorCard, type PublicAdvisorCard } from "@/lib/advisor-directory";
 import {
   advisorServiceIds,
   centsToEuroInput,
-  corporateMissing,
+  advisorPublishMissing,
   type AdvisorProfileView,
   type AdvisorServiceId,
   type StoredService,
@@ -203,26 +203,33 @@ export function AdvisorServices({
     priceFromCents: Number(prices[serviceType].from || "0") * 100,
     priceToCents: Number(prices[serviceType].to || "0") * 100,
   }));
-  const draftListing = toPublicAdvisorCard({
+  const savedListing = toPublicAdvisorCard({
     userId: "preview",
     businessName: profile.businessName,
     nif: profile.nif,
     postalCode: profile.postalCode,
     description: profile.description,
     sectors: profile.sectors,
-    services: draftServices,
+    services: profile.services,
     closedOperations: [],
   });
-  const publicListing = draftListing
-    ? {
-        ...draftListing,
-        cases: closes.map((close) => ({
-          sector: close.clientLabel,
-          closedOn: close.closedLabel,
-          value: close.services,
-        })),
-      }
-    : null;
+  const published = savedListing !== null;
+  const publishMissing = advisorPublishMissing(profile);
+  const previewListing: PublicAdvisorCard = {
+    id: "preview",
+    name: businessName.trim() || advisorCopy.previewName,
+    verified: false,
+    description: description.trim() || advisorCopy.previewDescription,
+    sectors: sectors.length > 0 ? sectors.map((id) => advisorSectorShort(id)) : [advisorCopy.previewSector],
+    services: draftServices
+      .filter((service) => service.priceToCents > 0)
+      .map((service) => ({
+        title: advisorCopy.serviceTypes[service.serviceType],
+        range: advisorPriceLabel(service.priceFromCents, service.priceToCents),
+        fromCents: service.priceFromCents,
+      })),
+    cases: closes.map((close) => ({ sector: close.clientLabel, closedOn: close.closedLabel, value: close.services })),
+  };
 
   function open(panel: PanelId) {
     setMessage(null);
@@ -234,19 +241,12 @@ export function AdvisorServices({
     setEditing(null);
   }
 
-  function openCorporate() {
-    open("corporate");
-    document.getElementById("datos-corporativos")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   async function saveCorporate() {
     setPending(true);
     const result = await saveCorporateAction({
       businessName,
       nif,
       postalCode,
-      description,
-      sectors,
     });
     setPending(false);
 
@@ -260,22 +260,22 @@ export function AdvisorServices({
       businessName: businessName.trim(),
       nif: nif.trim().toUpperCase(),
       postalCode,
-      description: description.trim(),
-      sectors: sectors.filter((id): id is AdvisorSectorId => advisorSectors.some((sector) => sector.id === id)),
       corporateComplete: true,
     }));
     close();
   }
 
-  async function saveServices() {
+  async function saveMarketplace() {
     setPending(true);
-    const result = await saveServicesAction(
-      selectedServices.map((serviceType) => ({
+    const result = await saveMarketplaceAction({
+      description,
+      sectors,
+      services: selectedServices.map((serviceType) => ({
         serviceType,
         priceFrom: prices[serviceType].from,
         priceTo: prices[serviceType].to,
       })),
-    );
+    });
     setPending(false);
 
     if (!result.ok) {
@@ -285,6 +285,8 @@ export function AdvisorServices({
 
     setProfile((current) => ({
       ...current,
+      description: description.trim(),
+      sectors: sectors.filter((id): id is AdvisorSectorId => advisorSectors.some((sector) => sector.id === id)),
       services: selectedServices.map((serviceType) => ({
         serviceType,
         priceFromCents: Number(prices[serviceType].from) * 100,
@@ -342,47 +344,6 @@ export function AdvisorServices({
                 />
               </label>
             </div>
-            <div className="border-t border-[#eef0f4] pt-5">
-              <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
-              <p className="mt-1 text-sm font-normal text-[#64748b]">{advisorCopy.listingFaceBody}</p>
-            </div>
-            <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
-              {advisorCopy.description}
-              <Textarea
-                value={description}
-                maxLength={1000}
-                placeholder={advisorCopy.descriptionPlaceholder}
-                onChange={(event) => setDescription(event.target.value)}
-                className="min-h-28 pr-16 pb-7 text-sm font-normal"
-              />
-              <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
-                {description.length} / 1000
-              </span>
-            </label>
-            <div className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
-              {advisorCopy.sectors}
-              <SectorMenu
-                selected={sectors}
-                onToggle={(id) => {
-                  setSectors((current) => (current.includes(id) ? current.filter((sector) => sector !== id) : [...current, id]));
-                }}
-              />
-              {sectors.length > 0 ? (
-                <ul className="flex flex-wrap gap-2">
-                  {sectors.map((id) => (
-                    <li key={id}>
-                      <button
-                        type="button"
-                        onClick={() => setSectors((current) => current.filter((sector) => sector !== id))}
-                        className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]"
-                      >
-                        <span title={advisorSectorName(id)}>{advisorSectorShort(id)}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
             {message && editing === "corporate" ? <p className="text-sm text-red-700">{message}</p> : null}
             <div className="flex justify-end gap-2">
               <button type="button" onClick={close} className="h-10 rounded-full border border-[#e7eaee] px-4 text-sm">
@@ -437,36 +398,49 @@ export function AdvisorServices({
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
             <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
           </div>
-          <Chip done={profile.services.length > 0} editing={false} />
+          <PublishStatus published={published} missing={publishMissing} />
         </div>
-        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
-        {/* S33 (Alex): description, sectors and services live together in Tu perfil en el marketplace. */}
-          <div className="mt-4 rounded-2xl bg-[#f7f8fb] p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-[#2b3b4a]">{advisorCopy.listingFaceTitle}</h3>
-                <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.listingFaceBody}</p>
-              </div>
-              <button type="button" onClick={openCorporate} className="inline-flex h-11 items-center text-sm font-semibold text-[#465ab4]">
-                {advisorCopy.listingFaceEdit}
-              </button>
+        {/* S34 (Alex): description and sectors are edited right here, with the services; one Guardar saves all three. */}
+        <div className="mt-5 flex flex-col gap-5">
+            <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
+              {advisorCopy.description}
+              <Textarea
+                value={description}
+                maxLength={1000}
+                placeholder={advisorCopy.descriptionPlaceholder}
+                onChange={(event) => setDescription(event.target.value)}
+                className="min-h-28 pr-16 pb-7 text-sm font-normal"
+              />
+              <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
+                {description.length} / 1000
+              </span>
+            </label>
+            <div className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
+              {advisorCopy.sectors}
+              <SectorMenu
+                selected={sectors}
+                onToggle={(id) => {
+                  setSectors((current) => (current.includes(id) ? current.filter((sector) => sector !== id) : [...current, id]));
+                }}
+              />
+              {sectors.length > 0 ? (
+                <ul className="flex flex-wrap gap-2">
+                  {sectors.map((id) => (
+                    <li key={id}>
+                      <button
+                        type="button"
+                        onClick={() => setSectors((current) => current.filter((sector) => sector !== id))}
+                        className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]"
+                      >
+                        <span title={advisorSectorName(id)}>{advisorSectorShort(id)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-            <p className={`mt-3 text-sm leading-6 ${profile.description ? "text-[#2b3b4a]" : "text-[#8b95a7]"}`}>
-              {profile.description || "Aún no has escrito la descripción."}
-            </p>
-            {profile.sectors.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {profile.sectors.map((id) => (
-                  <li key={id} className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]" title={advisorSectorName(id)}>
-                    {advisorSectorShort(id)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 text-sm text-[#8b95a7]">Aún no has elegido sectores.</p>
-            )}
-          </div>
-        <div className={profile.corporateComplete ? "" : "opacity-60"}>
+        </div>
+        <div>
         <h3 className="mt-5 text-base font-semibold text-[#2b3b4a]">{advisorCopy.servicesListTitle}</h3>
         <ul className="mt-1 divide-y divide-[#eef0f3]">
           {advisorServiceIds.map((id) => {
@@ -477,7 +451,6 @@ export function AdvisorServices({
                   <input
                     type="checkbox"
                     checked={checked}
-                    disabled={!profile.corporateComplete}
                     onChange={() => {
                       setSelectedServices((current) =>
                         checked ? current.filter((service) => service !== id) : [...current, id],
@@ -491,7 +464,7 @@ export function AdvisorServices({
                   <PriceField
                     label={advisorCopy.priceFrom}
                     value={prices[id].from}
-                    disabled={!checked || !profile.corporateComplete}
+                    disabled={!checked}
                     onChange={(from) => {
                       setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
                     }}
@@ -499,7 +472,7 @@ export function AdvisorServices({
                   <PriceField
                     label={advisorCopy.priceTo}
                     value={prices[id].to}
-                    disabled={!checked || !profile.corporateComplete}
+                    disabled={!checked}
                     onChange={(to) => {
                       setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
                     }}
@@ -513,9 +486,9 @@ export function AdvisorServices({
         <div className="mt-4 flex justify-end">
           <button
             type="button"
-            disabled={pending || !profile.corporateComplete}
+            disabled={pending}
             onClick={() => {
-              void saveServices();
+              void saveMarketplace();
             }}
             className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white disabled:opacity-50"
           >
@@ -526,15 +499,11 @@ export function AdvisorServices({
       </section>
       <aside className="flex h-full flex-col rounded-2xl border border-[#e7eaee] bg-white p-5">
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.listingTitle}</h2>
-        {publicListing ? (
-          <div className="mt-4 flex flex-1 items-center justify-center">
-            <div className="w-full max-w-xl">
-              <AdvisorListingCard advisor={publicListing} natural />
-            </div>
-          </div>
-        ) : (
-          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>
-        )}
+        {/* S34: always the live card, with placeholders while a field is still empty. */}
+        <div className="mt-4 w-full max-w-xl">
+          <AdvisorListingCard advisor={previewListing} natural />
+        </div>
+        {published ? null : <p className="mt-3 text-sm text-[#64748b]">{advisorCopy.listingEmpty}</p>}
       </aside>
       </div>
 
@@ -554,10 +523,9 @@ export function AdvisorServices({
           body={`${advisorCopy.documentsBody} ${advisorCopy.documentsInsurance}`}
           done={false}
           editing={editing === "documents"}
-          disabled={!profile.corporateComplete}
+          disabled={false}
           onEdit={() => open("documents")}
         />
-        {profile.corporateComplete ? null : <CorporateLock missing={corporateMissing(profile)} onComplete={openCorporate} />}
         {editing === "documents" ? (
           <div className="mt-6">
             <p className="rounded-2xl border border-dashed border-[#e7eaee] px-4 py-10 text-center text-sm text-[#64748b]">
@@ -570,7 +538,7 @@ export function AdvisorServices({
             </div>
           </div>
         ) : (
-          <p className={`mt-4 text-sm text-[#64748b] ${profile.corporateComplete ? "" : "opacity-60"}`}>{advisorCopy.documentsEmpty}</p>
+          <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.documentsEmpty}</p>
         )}
       </section>
 
@@ -578,29 +546,18 @@ export function AdvisorServices({
   );
 }
 
-/**
- * S32: services and documents wait for Datos corporativos (by design: the public listing needs the company first).
- * Say so, list what is missing and jump to the form, instead of only greying the section out.
- */
-function CorporateLock({ missing, onComplete }: { missing: string[]; onComplete: () => void }) {
+/** S34 (Alex): the same published / not published line as the seller's Inicio, instead of section locks. */
+function PublishStatus({ published, missing }: { published: boolean; missing: string[] }) {
   return (
-    <div data-corporate-lock className="mt-3 flex flex-col gap-3 rounded-xl border border-[#e3e7ee] bg-[#f7f8fb] p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 items-start gap-2.5">
-        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-[#465ab4] ring-1 ring-[#e3e7ee]">
-          <Lock className="size-3.5" aria-hidden />
-        </span>
-        <div className="min-w-0 text-sm">
-          <p className="font-semibold text-[#2b3b4a]">{advisorCopy.lockedTitle}</p>
-          {missing.length > 0 ? (
-            <p className="mt-0.5 text-[#64748b]">
-              {advisorCopy.lockedMissing} {missing.join(", ")}.
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <Button type="button" onClick={onComplete} tone="outline" size="sm">
-        {advisorCopy.lockedAction}
-      </Button>
+    <div className="flex flex-col items-start gap-1 sm:items-end">
+      <p className={published ? "text-base font-semibold text-[#17663a]" : "text-base font-semibold text-[#c0362c]"} data-advisor-publish>
+        {published ? advisorCopy.profilePublished : advisorCopy.profileUnpublished}
+      </p>
+      {published || missing.length === 0 ? null : (
+        <p className="text-sm text-[#64748b]">
+          {advisorCopy.lockedMissing} {missing.join(", ")}.
+        </p>
+      )}
     </div>
   );
 }

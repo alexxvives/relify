@@ -14,7 +14,7 @@ import { cardCover, mergeLegacyCover } from "@/lib/server/project-card-cover";
 import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
 import { getSellerListing } from "@/lib/server/publish-seller-project";
 import { requireRole } from "@/lib/server/require-role";
-import { sellerWebsiteHint } from "@/lib/server/describe-from-website";
+import { ensureAutoDescription } from "@/lib/server/auto-description";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
 import { companyNifIsVerified, getSellerCif } from "@/lib/server/verify-company-nif";
 
@@ -42,6 +42,7 @@ async function CompanyDetailsPageContent({
     redirect("/mi-empresa");
   }
 
+  await ensureAutoDescription(await activeSellerProjectId(user.id));
   const [draft, cif, listing, projectId] = await Promise.all([
     getCompanyDraft(user),
     getSellerCif(user),
@@ -66,7 +67,6 @@ async function CompanyDetailsPageContent({
         sabiDetail={sabiDetail}
         sabiRegistry={sabiRegistry}
         fichaExtras={fichaExtras}
-        websiteHint={await sellerWebsiteHint(user.id, projectId)}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ensureAutoDescription } from "@/lib/server/auto-description";
 import * as z from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { adjustedEbitdaCents, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
@@ -324,6 +325,8 @@ export async function confirmSabiImport(
 
   await onStage?.({ stage: "saving", count: writes.length });
   await prisma.$transaction(writes);
+  // S34: anonymised template description from the imported CNAE, years, size and region (only while it is empty).
+  await ensureAutoDescription(project.id);
 
   return { ok: true, value: { years: mapping.years.map((year) => year.year) } };
 }

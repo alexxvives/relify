@@ -12,7 +12,6 @@ import { rememberSessionFlag, usePanelOpen } from "@/components/shell/session-fl
 import { useRouter } from "next/navigation";
 import { Plus, Building2, CalendarDays, ChevronDown, CircleAlert, CircleCheck, Clock, Download, FileSpreadsheet, Handshake, Heart, Lock, LockOpen, MapPin, Paperclip, Pencil, RefreshCw, Tags, TrendingDown, Users, X } from "lucide-react";
 import { sellerCopy } from "@/lib/seller-copy";
-import { WebsiteDescribeButton } from "@/components/seller/website-describe-button";
 import { generateCodenameAction, saveCompanyDraftAction, saveEbitdaAdjustmentsAction, storeAdjustmentDocumentAction, type CompanyDraftState } from "@/app/(app)/mi-empresa/actions";
 import { FieldHint } from "@/components/shell/field-hint";
 import { InfoHint } from "@/components/ui/info-hint";
@@ -1903,7 +1902,6 @@ export function CompanyDraftForm({
   reportYears = null,
   fichaExtras = null,
   uploadsDisabled = false,
-  websiteHint = "",
 }: {
   draft: CompanyDraftInput | null;
   cif: string;
@@ -1919,8 +1917,6 @@ export function CompanyDraftForm({
   reportYears?: SabiYear[] | null;
   /** t81: Ratios and result/working-capital rows of the stored accounts, for the buyer preview. */
   fichaExtras?: SellerFichaExtras | null;
-  /** S33: project website (SABI) or the one given at onboarding, to prefill "Rellenar con tu web". */
-  websiteHint?: string;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -2854,8 +2850,6 @@ export function CompanyDraftForm({
         </div>
         {/* S30 (Alex): same label style and spacing as Nombre, Ubicación and the other fields. */}
         <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col">
-          {/* S33 (Alex): Rellenar con tu web sits at the top-right of the field and only fills the textarea. */}
-          <div className="flex flex-wrap items-start justify-between gap-2">
           <span className={fieldLabelClass}>
             {companyCopy.descriptionLabel}
             <span className="ml-0.5 text-[#c0362c]" aria-hidden>
@@ -2864,8 +2858,6 @@ export function CompanyDraftForm({
             <span className="sr-only">(obligatorio)</span>
             <FieldHint text={companyCopy.descriptionGuide} />
           </span>
-            <WebsiteDescribeButton initialUrl={websiteHint} hasText={description.trim().length > 0} onFill={setDescription} />
-          </div>
           <Textarea
             name="description"
             data-flash

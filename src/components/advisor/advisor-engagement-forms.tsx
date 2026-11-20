@@ -53,20 +53,17 @@ export function AdvisorDepositForm({
   engagementId,
   amountLabel,
   subscriptionActive,
-  embedded = false,
 }: {
   engagementId: string;
   amountLabel: string;
   subscriptionActive: boolean;
-  /** S33: inside a FloatingPanel, which already folds; no own collapse or card frame. */
-  embedded?: boolean;
 }) {
   const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
   const [declineState, declineAction, declining] = useActionState(declineEngagementAction, null);
   const [open, setOpen] = useState(true);
   const declineDialog = useRef<HTMLDialogElement>(null);
 
-  if (!open && !embedded) {
+  if (!open) {
     return (
       <button
         type="button"
@@ -88,8 +85,8 @@ export function AdvisorDepositForm({
   }
 
   return (
-    <section className={embedded ? "px-1 pb-1" : "rounded-2xl border border-[#e7eaee] bg-white p-5 shadow-[0_18px_40px_-24px_rgba(28,39,64,0.55)]"}>
-      <div className={embedded ? "hidden" : "flex items-start justify-between gap-3"}>
+    <section className="rounded-2xl border border-[#e7eaee] bg-white p-5 shadow-[0_18px_40px_-24px_rgba(28,39,64,0.55)]">
+      <div className="flex items-start justify-between gap-3">
         <h2 className="text-xl font-semibold text-[#2b3b4a]">{engagementCopy.depositTitle}</h2>
         <button
           type="button"

@@ -1,0 +1,31 @@
+import { expect, test } from "@playwright/test";
+import { roleCreds, signInAs } from "./helpers";
+
+test.describe("S34 asesor profile", () => {
+  test.beforeEach(async ({ page }) => {
+    test.skip(!roleCreds("advisor"), "Set E2E_ADVISOR_EMAIL and E2E_ADVISOR_PASSWORD");
+    expect(await signInAs(page, "advisor")).toBe(true);
+  });
+
+  test("description and sectors are inline in Tu perfil en el marketplace, with a publish status and a live preview", async ({ page }) => {
+    await page.goto("/mis-servicios");
+    await expect(page.getByRole("heading", { name: "Tu perfil en el marketplace" })).toBeVisible();
+    await expect(page.locator("[data-advisor-publish]")).toHaveText(/Tu perfil (no )?está publicado/);
+    await expect(page.getByRole("button", { name: "Editar descripción y sectores" })).toHaveCount(0);
+    await expect(page.getByText("Se activa al completar los Datos corporativos")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Así sales en el marketplace" })).toBeVisible();
+    await expect(page.getByText(/seguro de responsabilidad civil/)).toBeVisible();
+  });
+
+  test("an encargo shows the deposit and the buyer together: sidebar on desktop, a bottom dock on mobile", async ({ page }) => {
+    await page.goto("/mandatos/venta");
+    const link = page.locator('a[href^="/mandatos/encargos/"]').first();
+    test.skip((await link.count()) === 0, "No encargos for this advisor");
+    await link.click();
+    await expect(page.getByText("Este encargo ya está cerrado.")).toHaveCount(0);
+    const width = page.viewportSize()?.width ?? 1280;
+    if (width < 1280) {
+      await expect(page.locator("[data-advisor-dock]")).toBeVisible();
+    }
+  });
+});

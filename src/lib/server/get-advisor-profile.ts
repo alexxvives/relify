@@ -1,7 +1,7 @@
 import { advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import {
   blankAdvisorProfile,
-  corporateIsComplete,
+  identityIsComplete,
   readStoredOperations,
   readStoredServices,
   type AdvisorProfileView,
@@ -35,7 +35,7 @@ export async function getAdvisorProfile(
     dealsAnswered: row.dealsAnswered,
     corporateComplete: false,
   };
-  profile.corporateComplete = corporateIsComplete(profile);
+  profile.corporateComplete = identityIsComplete(profile);
 
   return profile;
 }

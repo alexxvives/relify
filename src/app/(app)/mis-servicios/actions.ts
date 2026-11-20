@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { advisorCopy } from "@/lib/advisor-copy";
 import {
-  corporateInputSchema,
+  identityInputSchema,
+  marketplaceInputSchema,
   dealsInputSchema,
   firstIssue,
   servicesInputSchema,
@@ -12,6 +13,7 @@ import { getCurrentUser } from "@/lib/server/get-current-user";
 import {
   saveAdvisorCorporate,
   saveAdvisorDeals,
+  saveAdvisorMarketplace,
   saveAdvisorServices,
   type AdvisorSaveResult,
 } from "@/lib/server/save-advisor-profile";
@@ -38,13 +40,34 @@ export async function saveCorporateAction(input: unknown): Promise<AdvisorSaveRe
     return userId;
   }
 
-  const parsed = corporateInputSchema.safeParse(input);
+  const parsed = identityInputSchema.safeParse(input);
 
   if (!parsed.success) {
     return { ok: false, message: firstIssue(parsed.error) };
   }
 
   const result = await saveAdvisorCorporate(userId, parsed.data);
+  if (result.ok) {
+    refreshAdvisor();
+  }
+
+  return result;
+}
+
+export async function saveMarketplaceAction(input: unknown): Promise<AdvisorSaveResult> {
+  const userId = await advisorUserId();
+
+  if (typeof userId !== "string") {
+    return userId;
+  }
+
+  const parsed = marketplaceInputSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { ok: false, message: firstIssue(parsed.error) };
+  }
+
+  const result = await saveAdvisorMarketplace(userId, parsed.data);
   if (result.ok) {
     refreshAdvisor();
   }

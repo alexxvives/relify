@@ -6,7 +6,7 @@ import { CompanyReport } from "@/components/seller/company-report";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { FloatingInvestorCard } from "@/components/investor/floating-investor-card";
-import { FloatingPanel } from "@/components/shell/floating-panel";
+import { AdvisorRailDock } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
@@ -23,7 +23,8 @@ function lockNote(engagement: AdvisorEngagementPage): string {
 
   // S33: a seller's advisor never waits on a buyer NDA; the seller shares the figures through the folders.
   if (!engagement.hiredByInvestor) {
-    return engagement.closed ? engagementCopy.figuresClosed : engagementCopy.figuresSellerShared;
+    // S34: a closed encargo stays readable exactly as it was.
+    return engagementCopy.figuresSellerShared;
   }
 
   return engagementCopy.figuresNeedInvestor;
@@ -45,9 +46,9 @@ export function AdvisorEngagementView({
   const rail = investorLabel !== null || showDeposit;
 
   return (
-    <div className={`flex flex-col gap-6 ${rail ? "pb-20" : ""}`}>
+    <div className={`flex flex-col gap-6 ${rail ? "max-xl:pb-24" : ""}`}>
       <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote || notice === engagementCopy.subscriptionPaidNote ? "ok" : "error"} />
-      <div>
+      <div className={rail ? "xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}>
         <div className="flex min-w-0 flex-col gap-6">
           <CompanyBanner
             title={engagement.codename}
@@ -58,14 +59,21 @@ export function AdvisorEngagementView({
               ) : null
             }
           />
-          {/* S33: Contrato is the same compact pill as Firmar NDA / LOI, next to the client line, never full width. */}
-          <div className="flex flex-wrap items-center gap-3">
+          {/* S34 (Alex): a closed encargo has no action row; Contrato is the compact pill only while it is open. */}
+          {engagement.contract && !engagement.closed ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-[#64748b]">
+                {engagement.clientLabel}
+                {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
+              </p>
+              <ContractStage contract={engagement.contract} />
+            </div>
+          ) : (
             <p className="text-sm text-[#64748b]">
               {engagement.clientLabel}
               {engagement.services.length > 0 ? ` · ${engagement.services}` : ""}
             </p>
-            {engagement.contract ? <ContractStage contract={engagement.contract} /> : null}
-          </div>
+          )}
           {engagement.ndaText ? <AdvisorNdaForm engagementId={engagement.id} text={engagement.ndaText} /> : null}
           {engagement.profile ? (
             <CompanyReport project={engagement.profile} role="buyer" figuresOpen={engagement.figuresOpen} lockedNote={lockNote(engagement)} />
@@ -132,20 +140,18 @@ export function AdvisorEngagementView({
           ) : null}
         </div>
         {rail ? (
-          <FloatingPanel
-            label={showDeposit ? engagementCopy.depositTitle : engagementCopy.investorPanel}
-            badge={showDeposit ? engagement.deposit.amountLabel : null}
-          >
-            {showDeposit ? (
-              <AdvisorDepositForm
-                engagementId={engagement.id}
-                amountLabel={engagement.deposit.amountLabel}
-                subscriptionActive={engagement.deposit.subscriptionActive}
-                embedded
-              />
-            ) : null}
-            {investorLabel !== null ? <FloatingInvestorCard name={investorLabel} profile={engagement.investorCard} /> : null}
-          </FloatingPanel>
+          <AdvisorRailDock
+            deposit={
+              showDeposit ? (
+                <AdvisorDepositForm
+                  engagementId={engagement.id}
+                  amountLabel={engagement.deposit.amountLabel}
+                  subscriptionActive={engagement.deposit.subscriptionActive}
+                />
+              ) : null
+            }
+            investor={investorLabel !== null ? <FloatingInvestorCard name={investorLabel} profile={engagement.investorCard} /> : null}
+          />
         ) : null}
       </div>
     </div>
