@@ -99,7 +99,7 @@ export type AdvisorEngagementPage = {
   ndaText: string | null;
   closed: boolean;
   feeLabel: string | null;
-  deposit: { paid: boolean; amountLabel: string; subscriptionActive: boolean };
+  deposit: { paid: boolean; amountLabel: string; priceLabel: string; subscriptionActive: boolean };
   hiredByInvestor: boolean;
   figuresOpen: boolean;
   description: string;
@@ -678,7 +678,7 @@ export async function getAdvisorEngagement(
       ndaText: null,
       closed: row.closedAt !== null,
       feeLabel: null,
-      deposit: { paid: false, amountLabel: depositAmount, subscriptionActive },
+      deposit: { paid: false, amountLabel: depositAmount, priceLabel: formatEur(row.project.askingPriceCents), subscriptionActive },
       hiredByInvestor: row.client === "investor",
       figuresOpen: false,
       description: row.project.description?.trim() ?? "",
@@ -770,7 +770,7 @@ export async function getAdvisorEngagement(
       row.platformNetCents !== null && row.platformVatCents !== null
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
-    deposit: { paid: true, amountLabel: depositAmount, subscriptionActive },
+    deposit: { paid: true, amountLabel: depositAmount, priceLabel: formatEur(row.project.askingPriceCents), subscriptionActive },
     hiredByInvestor: row.client === "investor",
     figuresOpen,
     description: row.project.description?.trim() ?? "",

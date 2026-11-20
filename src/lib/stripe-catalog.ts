@@ -39,7 +39,7 @@ export const stripeCatalog = [
   },
   {
     lookupKey: stripeLookupKeys.advisorInboxMonthly,
-    name: "Relify bandeja asesor",
+    name: "Suscripción asesor",
     description: "Suscripción de asesor.",
     unitAmount: ADVISOR_INBOX_NET_CENTS,
     recurring: "month" as const,

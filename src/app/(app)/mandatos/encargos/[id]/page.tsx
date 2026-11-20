@@ -43,7 +43,7 @@ export default async function AdvisorEngagementPage({
   }
 
   const thread = engagement.deposit.paid || engagement.closed ? await getEngagementThread(user, id) : null;
-  const notice = query.suscripcion === "1" ? engagementCopy.subscriptionPaidNote : query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
+  const notice = query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
 
   return (
     <SignedInPage title={engagement.codename} showTitle={false}>

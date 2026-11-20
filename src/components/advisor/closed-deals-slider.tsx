@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { advisorCopy } from "@/lib/advisor-copy";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -53,35 +53,32 @@ export function ClosedDealsSlider({ closes }: { closes: Close[] }) {
       ) : null}
       <ul ref={rail} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none]" data-closed-deals>
         {closes.map((close) => (
-          <li key={close.id} className="w-[min(18rem,80vw)] shrink-0 snap-start">
+          <li key={close.id} className="w-[min(26rem,85vw)] shrink-0 snap-start">
+            {/* S36 (Alex): horizontal card, all of it opens the encargo (no Ver operación link). */}
             <Link
               href={`/mandatos/encargos/${close.id}`}
-              className="flex h-full flex-col overflow-hidden rounded-3xl border border-[#e7eaee] bg-white transition hover:border-[#c9d2f5] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+              aria-label={`${close.codename} · ${close.closedLabel}`}
+              className="flex h-full overflow-hidden rounded-3xl border border-[#e7eaee] bg-white transition hover:border-[#c9d2f5] hover:shadow-[0_12px_32px_-24px_rgba(28,39,64,0.55)] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
             >
-              {/* S35 (Alex): no Cerrada tag (implicit); the buyer appears when the advisor may know it. */}
-              <div className="bg-[#1c2740] px-5 pt-4 pb-5">
+              <div className="flex w-[42%] shrink-0 flex-col justify-between gap-3 bg-[#1c2740] p-4">
+                <h3 className="text-lg leading-tight font-semibold tracking-tight break-words text-white">{close.codename}</h3>
                 <p className="text-xs text-white/70">{close.closedLabel}</p>
-                <h3 className="mt-1 text-xl leading-tight font-semibold tracking-tight break-words text-white">{close.codename}</h3>
               </div>
-              <dl className="flex flex-1 flex-col gap-3 px-5 py-4 text-sm">
-                <div>
+              <dl className="grid min-w-0 flex-1 content-center gap-2 p-4 text-sm">
+                <div className="min-w-0">
                   <dt className="text-xs text-[#64748b]">{advisorCopy.closeBuyer}</dt>
-                  <dd className="mt-0.5 font-medium break-words text-[#1c2740]">{close.buyerLabel ?? advisorCopy.closeBuyerHidden}</dd>
+                  <dd className="truncate font-medium text-[#1c2740]">{close.buyerLabel ?? advisorCopy.closeBuyerHidden}</dd>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <dt className="text-xs text-[#64748b]">{advisorCopy.closeClient}</dt>
-                  <dd className="mt-0.5 font-medium text-[#1c2740]">{close.clientLabel}</dd>
+                  <dd className="truncate font-medium text-[#1c2740]">{close.clientLabel}</dd>
                 </div>
                 {close.services.length > 0 ? (
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-xs text-[#64748b]">{advisorCopy.closeServices}</dt>
-                    <dd className="mt-0.5 text-[#3d4a63]">{close.services}</dd>
+                    <dd className="line-clamp-2 text-[#3d4a63]">{close.services}</dd>
                   </div>
                 ) : null}
-                <dd className="mt-auto inline-flex items-center gap-1 pt-1 font-semibold text-[#465ab4]">
-                  {advisorCopy.closeOpen}
-                  <ArrowRight className="size-4" aria-hidden />
-                </dd>
               </dl>
             </Link>
           </li>
