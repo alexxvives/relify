@@ -86,29 +86,22 @@ function ContactPanels({
   showDocuments,
   bare = false,
   meetings = true,
+  only,
 }: {
   contact: AdvisorContactView;
   today: string;
   showDocuments: boolean;
   bare?: boolean;
   meetings?: boolean;
+  /** S40: the advisor's process tabs show the client chat and the client meetings in separate tabs. */
+  only?: "meetings";
 }) {
   const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
-  const open = meetings ? tab : "chat";
-  // S39 (Alex): the Reuniones quick link (#reuniones) opens this desk on its meetings tab.
-  useEffect(() => {
-    if (!meetings) return;
-    const sync = () => {
-      if (window.location.hash === "#reuniones") setTab("meetings");
-    };
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
-  }, [meetings]);
+  const open = only ?? (meetings ? tab : "chat");
 
   return (
     <div className={bare ? "flex flex-col gap-4 px-5 py-5" : "flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5"}>
-      {meetings ? <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} /> : null}
+      {meetings && !only ? <SellerTabs label={contact.heading} tabs={contactTabs} value={tab} onChange={setTab} /> : null}
       {open === "chat" ? (
         <div className={showDocuments ? "grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid min-w-0"}>
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
@@ -163,6 +156,7 @@ export function AdvisorContactDesk({
   allowRemove = false,
   pinned = false,
   meetings = true,
+  only,
 }: {
   contacts: AdvisorContactView[];
   today: string;
@@ -170,6 +164,7 @@ export function AdvisorContactDesk({
   allowRemove?: boolean;
   pinned?: boolean;
   meetings?: boolean;
+  only?: "meetings";
 }) {
   const [openId, setOpenId] = useSessionString("Relify:advisor-contact-open", contacts[0]?.id ?? "");
 
@@ -191,7 +186,7 @@ export function AdvisorContactDesk({
         if (pinned) {
           return (
             <section key={contact.id} className="rounded-2xl border border-[#e6e9f0] bg-white">
-              <ContactPanels contact={contact} today={today} showDocuments={showDocuments} bare meetings={meetings} />
+              <ContactPanels contact={contact} today={today} showDocuments={showDocuments} bare meetings={meetings} only={only} />
             </section>
           );
         }

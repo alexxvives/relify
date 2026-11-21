@@ -51,7 +51,7 @@ const iconForHref = {
   "/mi-empresa/servicios": MessageCircleMoreIcon,
   "/mi-empresa/venta": TrophyIcon,
   "/favoritos": HeartIcon,
-  "/mandatos": HouseIcon,
+  "/inicio": HouseIcon,
   "/mandatos/encargos": HandshakeIcon,
   "/mandatos/venta": FilesIcon,
   "/admin": LayoutDashboardIcon,

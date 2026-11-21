@@ -49,7 +49,8 @@ describe("S25c placeholders never look like a value already filled in", () => {
     const form = read("src/components/seller/company-draft-form.tsx");
     expect(form).toMatch(/id="company-location"\s+name="location"\s+data-flash/);
     // The deep link is marked done only after it highlights, so a cancelled first effect run still focuses later.
-    expect(form).toMatch(/deepLinkDone\.current = true;\s+highlightTarget\(target, true\);/);
+    expect(form).toMatch(/landOnAnchor\(id, \{[\s\S]*deepLinkDone\.current = true;/);
+    expect(read("src/components/shell/deep-link-marker.ts")).toMatch(/onLand\?\.\(\);\s+highlightTarget\(target, true\);/);
     expect(read("src/lib/publish-checklist.ts")).toMatch(/detailHref\("identity", "panel-location"\)/);
   });
 });

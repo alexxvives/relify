@@ -11,7 +11,7 @@ export function AdvisorSubscribeRow({ children }: { children: ReactNode }) {
 
   return (
     <form action={action}>
-      <input type="hidden" name="returnTo" value="/mandatos" />
+      <input type="hidden" name="returnTo" value="/inicio" />
       <button
         type="submit"
         disabled={pending}

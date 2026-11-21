@@ -29,7 +29,7 @@ export const tabLabelForHref: Record<string, string> = {
   "/inversor": "Inicio",
   "/mercado": "Empresas",
   "/procesos": "Procesos",
-  "/mandatos": "Inicio",
+  "/inicio": "Inicio",
   "/mandatos/encargos": "Encargos",
   "/mandatos/venta": "Procesos",
   "/admin": "Inicio",
@@ -63,7 +63,7 @@ const destinations = {
     { href: "/mi-empresa/servicios", label: "Mi asesor", section: "Gestión de procesos" },
   ],
   advisor: [
-    { href: "/mandatos", label: "Inicio" },
+    { href: "/inicio", label: "Inicio" },
     // S35 (Alex): Mis servicios sits above the Trabajo group, like Detalles de empresa for the seller.
     { href: "/mis-servicios", label: "Mis servicios", section: "Perfil" },
     { href: "/mandatos/encargos", label: "Encargos", section: "Trabajo" },

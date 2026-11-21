@@ -29,11 +29,11 @@ const stepLook: Record<AdvisorStep, { icon: LucideIcon; tone: ActivityTile["tone
 };
 
 const checklist = [
-  { key: "identity", label: advisorCopy.profileIdentity, href: "/mis-servicios", icon: User },
-  { key: "description", label: advisorCopy.profileDescription, href: "/mis-servicios", icon: FileText },
-  { key: "sectors", label: advisorCopy.profileSectors, href: "/mis-servicios", icon: Layers },
-  { key: "services", label: advisorCopy.profileServices, href: "/mis-servicios", icon: Briefcase },
-  { key: "subscription", label: advisorCopy.profileSubscription, href: "/mandatos", icon: CreditCard },
+  { key: "identity", label: advisorCopy.profileIdentity, href: "/mis-servicios?ancla=datos-corporativos", icon: User },
+  { key: "description", label: advisorCopy.profileDescription, href: "/mis-servicios?ancla=advisor-description", icon: FileText },
+  { key: "sectors", label: advisorCopy.profileSectors, href: "/mis-servicios?ancla=advisor-sectors", icon: Layers },
+  { key: "services", label: advisorCopy.profileServices, href: "/mis-servicios?ancla=advisor-services", icon: Briefcase },
+  { key: "subscription", label: advisorCopy.profileSubscription, href: "/inicio", icon: CreditCard },
 ] as const;
 
 export function AdvisorHome({

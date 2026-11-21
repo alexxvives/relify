@@ -10,7 +10,6 @@ import { MeetingDesk } from "@/components/investor/meeting-desk";
 import { ProjectThread } from "@/components/investor/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/investor/favorite-button";
-import { LoiCard } from "@/components/investor/loi-card";
 import { ConnectControl } from "@/components/investor/project-access-panel";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { MarketCard } from "@/components/investor/market-card";
@@ -163,9 +162,7 @@ export function InvestorProject({
                 </ShellStickyCtaBar>
               </>
             ) : null}
-            {access === "accepted" && signedOffer ? (
-              <LoiCard slug={project.slug} agreement={signedOffer.body} signedBody={signedOffer.body} accessId={accessId} />
-            ) : null}
+            {/* S40 (Alex): the signed LOI is no longer a separate block under the banner; it lives in Chat / Documentos. */}
           </>
         }
         initialTab={initialTab}

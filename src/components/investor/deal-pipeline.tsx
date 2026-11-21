@@ -99,7 +99,8 @@ export function DealPipeline({
   const edge = `calc(100% / ${count * 2})`;
   const fillSteps = currentIndex < 0 ? count - 1 : currentIndex;
   const parkCue = hideAsideCue && !cue.yours && !canAccept;
-  const parkYourTurn = hideAsideCue && cue.yours && !canAccept && role === "investor";
+  // S40 (Alex): in the seller's list every stage uses the compact header cue (Tu turno tag, text, action top right).
+  const parkYourTurn = hideAsideCue && cue.yours && ((!canAccept && role === "investor") || role === "seller");
   const hideQa = hideQaNote && current?.id === "qa" && !current.pendingLoi;
 
   return (
@@ -302,6 +303,18 @@ function TurnCue({
   );
 }
 
+/** S40: "Aceptar carta" with its dialog, for the top-right action slot of a seller's process card. */
+export function AcceptLoiButton({ accessId, body }: { accessId: string; body: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <AcceptNow onAccept={() => setOpen(true)} />
+      {open ? <AcceptLoiDialog accessId={accessId} body={body} onClose={() => setOpen(false)} /> : null}
+    </>
+  );
+}
+
 function AcceptNow({ onAccept }: { onAccept: () => void }) {
   return (
     <button
@@ -364,7 +377,7 @@ export function ProcessHeaderCue({
     return <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />;
   }
 
-  if (!cue || (cue.yours && role === "seller")) {
+  if (!cue) {
     return null;
   }
 

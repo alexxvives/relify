@@ -46,7 +46,7 @@ export async function claimEngagementAction(
   const result = await claimEngagement(user, readText(formData, "engagementId"));
 
   if (result.ok) {
-    revalidatePath("/mandatos");
+    revalidatePath("/inicio");
     revalidatePath("/mandatos/encargos");
   }
 
@@ -60,7 +60,7 @@ export async function startInboxCheckoutAction(
   void state;
   const user = await signedIn();
   const engagementId = readText(formData, "engagementId");
-  const back = readText(formData, "returnTo") === "/mandatos" ? "/mandatos" : engagementId ? `/mandatos/encargos/${engagementId}` : "/mandatos/encargos";
+  const back = readText(formData, "returnTo") === "/inicio" ? "/inicio" : engagementId ? `/mandatos/encargos/${engagementId}` : "/mandatos/encargos";
   const result = await startAdvisorInboxCheckout(user, back);
 
   if (!result.ok) {
@@ -97,7 +97,7 @@ export async function declineEngagementAction(
     return result;
   }
 
-  revalidatePath("/mandatos");
+  revalidatePath("/inicio");
   revalidatePath("/mandatos/encargos");
   revalidatePath("/mandatos/venta");
   revalidatePath("/asesoramiento");
@@ -122,7 +122,7 @@ export async function acceptAdvisorNdaAction(
     revalidatePath(`/mandatos/encargos/${id}`);
     revalidatePath(`/mandatos/venta/${id}`);
     revalidatePath("/mandatos/venta");
-    revalidatePath("/mandatos");
+    revalidatePath("/inicio");
   }
 
   return { ok: result.ok, message: result.message ?? engagementCopy.ndaSigned };

@@ -31,6 +31,7 @@ export const sellerCopy = {
   financeCostYear: "Ejercicio",
   questionsPanel: "Chat / Documentos",
   replyPanel: "Chat",
+  processDeskLocked: "El chat, los documentos y las reuniones se abren cuando el comprador firma el NDA.",
   replyField: "Escribe un mensaje",
   chatSend: "Enviar",
   companiesLabel: "Empresas",

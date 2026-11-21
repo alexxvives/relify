@@ -3,17 +3,14 @@
 import Link from "next/link";
 import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
-import { acceptSellerBuyerAction, approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/(app)/mi-empresa/procesos/actions";
-import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
+import { acceptSellerBuyerAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { CancelProcessButton } from "@/components/investor/cancel-process-button";
 import { ContractStage } from "@/components/investor/contract-stage";
-import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/investor/deal-pipeline";
+import { AcceptLoiButton, DealPipeline, ProcessHeaderCue } from "@/components/investor/deal-pipeline";
 import { ProcessFichaLink } from "@/components/investor/process-ficha-link";
 import { LiveRefresh } from "@/components/shell/live-refresh";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
-import { MeetingDesk } from "@/components/investor/meeting-desk";
-import { ProjectThread } from "@/components/investor/project-thread";
 import { DeskToggles } from "@/components/shell/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
@@ -194,24 +191,18 @@ function InvestorProfileDialog({
 }
 
 function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: string; advisors: AdvisorContactView[] }) {
-  const [desk, setDesk] = useState<"chat" | "meetings" | "advisor" | null>(null);
+  // S40 (Alex): Chat / Documentos and Reuniones moved to the process ficha as tabs; only the Asesor desk stays here.
+  const [desk, setDesk] = useState<"advisor" | null>(null);
   const deskId = useId();
   const chat = thread.messages.filter((message) => message.kind === "question");
-  const [readAt, setReadAt] = useState(thread.lastReadAt);
-  const unread = desk === "chat" ? 0 : unreadCount(chat, readAt);
-
-  function changeDesk(next: "chat" | "meetings" | "advisor" | null) {
-    if (next === "chat" || desk === "chat") {
-      setReadAt(new Date().toISOString());
-      void markThreadReadAction(thread.accessId);
-    }
-    setDesk(next);
-  }
+  const unread = unreadCount(chat, thread.lastReadAt ?? null);
+  const offer = thread.messages.find((message) => message.kind === "offer");
+  const loiPending = thread.steps.some((step) => step.state === "current" && step.pendingLoi === true) && offer !== undefined;
   const expandable = thread.stage === "open";
   const processActions = (
     <>
       {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
-      <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}`} />
+      <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}${unread > 0 ? "?pestana=questions" : ""}`} unread={unread} />
     </>
   );
 
@@ -246,8 +237,9 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             contractNext={thread.contract?.next ?? null}
           />
         </div>
-        {(thread.contract && thread.contract.stage !== "signed") || !expandable ? (
+        {(thread.contract && thread.contract.stage !== "signed") || !expandable || loiPending ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {loiPending && offer ? <AcceptLoiButton accessId={thread.accessId} body={offer.body} /> : null}
             {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
             {expandable ? null : processActions}
           </div>
@@ -259,30 +251,20 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
             steps={thread.steps}
             role="seller"
             hideAsideCue
-            acceptLoi={
-              thread.messages.some((message) => message.kind === "offer")
-                ? {
-                    accessId: thread.accessId,
-                    body: thread.messages.find((message) => message.kind === "offer")?.body ?? "",
-                  }
-                : undefined
-            }
           />
         </div>
       {expandable ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-          <DeskToggles
-            label={thread.codename}
-            controls={deskId}
-            tabs={[
-              { id: "chat", label: sellerCopy.questionsPanel, count: unread },
-              { id: "meetings", label: sellerCopy.meetingsHeading },
-              ...(thread.advisorHired ? [{ id: "advisor" as const, label: "Asesor" }] : []),
-            ]}
-            value={desk}
-            onChange={changeDesk}
-          />
+          {thread.advisorHired ? (
+            <DeskToggles
+              label={thread.codename}
+              controls={deskId}
+              tabs={[{ id: "advisor" as const, label: "Asesor" }]}
+              value={desk}
+              onChange={setDesk}
+            />
+          ) : null}
           {/* Alex (t50/S28): "Ver ficha", "Cancelar proceso" and, from Preguntas through Contrato, "Contacta con un asesor" sit at
               the far right of the panel toggles (with the signed-contract record, when there is one). */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -300,40 +282,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           </div>
           </div>
           <div id={deskId} hidden={desk === null}>
-          {desk === "chat" ? (
-            <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-              <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
-                <h3 className="text-sm font-semibold text-[#1c2740]">{sellerCopy.replyPanel}</h3>
-                <div className="mt-4 flex flex-1 flex-col">
-                  <ProjectThread
-                    viewer="seller"
-                    partyName={thread.partyName}
-                    messages={chat}
-                    action={postSellerMessageAction}
-                    hidden={[
-                      { name: "accessId", value: thread.accessId },
-                      { name: "kind", value: "question" },
-                    ]}
-                    placeholder={sellerCopy.replyField}
-                    submitLabel={sellerCopy.chatSend}
-                    pendingLabel={sellerCopy.replying}
-                    savedLabel={sellerCopy.replySaved}
-                    invalidFallback={sellerCopy.replyInvalid}
-                  />
-                </div>
-              </section>
-              <ProcessRoom
-                files={thread.documents}
-                bodies={chat.map((message) => message.body)}
-                nda
-                ndaHref={`/acuerdos/nda/${thread.accessId}`}
-                loiHref={thread.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${thread.accessId}` : null}
-                contractHref={thread.contract?.signedHref ?? thread.contract?.current?.href ?? null}
-                contractSigned={Boolean(thread.contract?.signedHref)}
-                empty={sellerCopy.documentsEmpty}
-              />
-            </div>
-          ) : desk === "advisor" && thread.advisorHired ? (
+          {desk === "advisor" && thread.advisorHired ? (
             advisors.length > 0 ? (
               <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
             ) : (
@@ -341,18 +290,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
                 {engagementCopy.contactAdvisor}
               </Link>
             )
-          ) : desk === "meetings" ? (
-            <MeetingDesk
-              messages={thread.messages}
-              action={postSellerMessageAction}
-              approveAction={approveSellerMeetingAction}
-              rescheduleAction={rescheduleSellerMeetingAction}
-              today={today}
-              hidden={[
-                { name: "accessId", value: thread.accessId },
-                { name: "kind", value: "meeting" },
-              ]}
-            />
           ) : null}
           </div>
         </div>

@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import { useRouter } from "next/navigation";
 import { changePasswordAction, deleteAccountAction, updateAccountAction, type AccountFormState } from "@/app/(app)/cuenta/actions";
 import { AppToast } from "@/components/shell/app-toast";
+import { useSavedToast } from "@/components/shell/use-saved-toast";
 import { PhoneField } from "@/components/auth/phone-field";
 import { UnsavedChangesGuard } from "@/components/shell/unsaved-changes";
 import { authCopy } from "@/lib/auth-copy";
@@ -57,7 +58,8 @@ export function AccountSettings({
   const [idDraft, setIdDraft] = useState("");
   const [idError, setIdError] = useState(false);
   const [nationalId, setNationalId] = useState("");
-  const [idSaved, setIdSaved] = useState(false);
+  const { notifySaved, savedToast } = useSavedToast();
+  const [phoneError, setPhoneError] = useState(false);
   const [baseline, setBaseline] = useState(starting);
   const [seenSave, setSeenSave] = useState<AccountFormState>(null);
   const [profileState, updateProfile, profilePending] = useActionState<AccountFormState, FormData>(updateAccountAction, null);
@@ -78,7 +80,6 @@ export function AccountSettings({
       setEmail(baseline.email);
       setCommittedEmail(baseline.email);
     }
-    if (nationalId !== baseline.nationalId) setIdSaved(true);
     setBaseline({ fullName, email: nextEmail, phone, phoneCountry, nationalId });
   }
 
@@ -106,6 +107,10 @@ export function AccountSettings({
     };
   }, [readyToSave, fullName, committedEmail, phone, phoneCountry, nationalId]);
 
+  useEffect(() => {
+    if (profileState?.saved && !profileState.emailHeld) notifySaved();
+  }, [profileState, notifySaved]);
+
   function commitId() {
     const value = idDraft.trim();
     if (value.length === 0) {
@@ -115,7 +120,6 @@ export function AccountSettings({
     const valid = nationalIdSchema.safeParse(value).success;
     setIdError(!valid);
     if (valid && value !== nationalId) {
-      setIdSaved(false);
       setNationalId(value);
     }
   }
@@ -187,14 +191,6 @@ export function AccountSettings({
             </label>
             <div className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.nationalIdLabel}
-              <span className="flex items-center justify-between gap-2">
-                {authCopy.nationalIdLabel}
-                {idSaved && !profilePending ? (
-                  <span role="status" className="text-xs font-medium text-[#067647]" data-id-saved>
-                    {authCopy.nationalIdSaved}
-                  </span>
-                ) : null}
-              </span>
               {keepStoredId ? <input type="hidden" name="nationalIdKeep" value="1" /> : <input type="hidden" name="nationalId" value={nationalId} />}
               <Input
                 id="account-national-id"
@@ -246,20 +242,43 @@ export function AccountSettings({
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.phoneLabel}
-              <PhoneField
-                country={phoneCountry}
-                national={phone}
-                onCountryChange={setPhoneCountry}
-                onNationalChange={setPhone}
-              />
+              {/* S40 (Alex): checked when the field is left, shown inline in red. */}
+              <div
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setPhoneError(phone.length > 0 && !isValidPhoneNational(phoneCountry, phone));
+                  }
+                }}
+              >
+                <PhoneField
+                  country={phoneCountry}
+                  national={phone}
+                  invalid={phoneError}
+                  onCountryChange={setPhoneCountry}
+                  onNationalChange={(value) => {
+                    setPhone(value);
+                    setPhoneError(false);
+                  }}
+                />
+              </div>
+              {phoneError ? (
+                <span className="text-xs font-normal text-[#b42318]">
+                  {phoneCountry === "ES" ? authCopy.phoneInvalid : authCopy.phoneInvalidInternational}
+                </span>
+              ) : null}
             </label>
           </div>
           </div>
           </div>
           </div>
-          {/* Silent autosave: only the email-change notice and a failed save are shown. */}
+          {/* S40 (Alex): a landed autosave shows one "Guardado" toast; the email-change notice keeps its own; errors stay inline. */}
+          {savedToast}
           <AppToast message={profileState?.saved && profileState.emailHeld ? profileState.message : null} />
-          <AppToast message={profileState && !profileState.saved ? profileState.message : null} tone="error" />
+          {profileState && !profileState.saved ? (
+            <p role="alert" className="mt-3 text-sm text-[#b42318]">
+              {profileState.message}
+            </p>
+          ) : null}
         </form>
       </Card>
       {agreement ? <div className="min-w-0 w-full">{agreement}</div> : null}
