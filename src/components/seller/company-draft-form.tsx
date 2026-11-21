@@ -87,7 +87,7 @@ import {
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, StepNumber } from "@/components/seller/seller-figures-card";
-import { scrollToCenter } from "@/components/shell/use-scroll-spy";
+import { scrollToCenter, stickyHeaderOffset } from "@/components/shell/use-scroll-spy";
 import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/seller/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
@@ -385,12 +385,7 @@ function Panel({
           {children}
           {fixed && !(onSave && dirty) ? null : (
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              {dirty ? (
-                <span role="status" className="inline-flex w-full items-center justify-center gap-1 text-xs text-[#8a5a00] sm:mr-1 sm:w-auto" data-unsaved-hint>
-                  <span className="size-1.5 rounded-full bg-[#d79b2b]" aria-hidden />
-                  {companyCopy.unsavedHint}
-                </span>
-              ) : null}
+              {/* S39 (Alex): no "Cambios sin guardar" text; Guardar / Cancelar say it. */}
               <KitButton type="button" tone="outline" size="sm" onClick={onCancel ?? onCollapse}>
                 {companyCopy.cancelPanel}
               </KitButton>
@@ -828,7 +823,7 @@ function MetricTile({
       {/* S31: the corner (Dentro del rango, De tus cuentas…) wraps under the label on a narrow tile instead of covering the pencil. */}
       <div className="flex min-h-7 min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex min-w-0 items-center gap-1">
-          <span className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
+          <span data-field-title className="text-sm font-semibold whitespace-nowrap text-[#667085]">{label}</span>
           {hint}
           {action}
         </div>
@@ -1043,7 +1038,7 @@ function FichaMetrics({
             </span>
           ) : (
             <button type="button" onClick={() => setAdjustOpen(true)} className="text-left">
-              <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">—</span>
+              <span className={mutedFigureClass}>—</span>
             </button>
           )}
         </MetricTile>
@@ -1079,7 +1074,7 @@ function SellerFinancingField({
       <input type="hidden" name="sellerFinancingPct" value="" />
       <input type="hidden" name="sellerFinancingYears" value="" />
       <p id="seller-financing-label" className="text-sm font-semibold text-[#1c2740]">
-        ¿Aceptarías financiar parte del precio?
+        <span data-field-title>¿Aceptarías financiar parte del precio?</span>
       </p>
       <p id="seller-financing-help" className="mt-1 mb-3 text-xs leading-5 text-[#667085]">
         El comprador te pagaría una parte más adelante, a plazos.
@@ -1105,11 +1100,7 @@ function SellerFinancingField({
           >
             <span className="text-[11px] font-medium sm:text-sm">{sellerFinancingLabels[option]}</span>
             {option === "yes" ? (
-              <span
-                className={`rounded-full px-1.5 py-px text-[10px] font-semibold ${
-                  mode === option ? "bg-white/15 text-white" : "bg-[#fff4d6] text-[#8a6112]"
-                }`}
-              >
+              <span className="rounded-full bg-[#fff4d6] px-1.5 py-px text-[10px] font-semibold text-[#8a6112]">
                 Recomendado
               </span>
             ) : null}
@@ -1125,7 +1116,7 @@ function SellerStayField({ value, onChange }: { value: string; onChange: (value:
   return (
     <div id="panel-seller-stay" className="flex h-full scroll-mt-24 flex-col rounded-2xl border border-[#e7eaee] bg-[#fbfbfc] p-4">
       <p id="seller-stay-label" className="text-sm font-semibold text-[#1c2740]">
-        ¿Te quedarías como asesor tras la venta?
+        <span data-field-title>¿Te quedarías como asesor tras la venta?</span>
       </p>
       <p id="seller-stay-help" className="mt-1 text-xs leading-5 text-[#667085]">
         Ayudar al comprador durante el traspaso da confianza.
@@ -1538,10 +1529,27 @@ function EbitdaAdjustmentsDialog({
   );
 }
 
-/** S32: an unavailable margin reads like the other missing figures (muted, regular size), not as a black value. */
+const mutedFigureClass = "text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#98a2b3]";
+
+/** S39 (Alex): missing figures look like "No publicable": large, grey. Pending ones carry the 24 h clock. */
+function MutedFigure({ text, pending = false }: { text: string; pending?: boolean }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <span className={`${mutedFigureClass} min-w-0`}>{text}</span>
+      {pending ? (
+        <InfoHint text={companyCopy.pendingLoadHint} width="auto" size="sm">
+          <span tabIndex={0} aria-label={companyCopy.pendingLoadHint} className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[#98a2b3]" data-pending-clock>
+            <Clock className="size-4 motion-safe:animate-[spin_6s_linear_infinite]" aria-hidden />
+          </span>
+        </InfoHint>
+      ) : null}
+    </span>
+  );
+}
+
 function MarginValue({ value }: { value: string }) {
-  if (value === companyCopy.unavailable) {
-    return <span className="text-base font-medium text-[#667085]">{value}</span>;
+  if (value === companyCopy.unavailable || value === "—") {
+    return <MutedFigure text={value} />;
   }
   return (
     <span className="whitespace-nowrap text-[clamp(1.5rem,1.2rem+1.6vw,2.125rem)] font-semibold tracking-tight text-[#1c2740] tabular-nums">{value}</span>
@@ -1562,7 +1570,7 @@ function ReadOnlyFigure({ label, value }: { label: string; value: string }) {
             {wholeEur(cents).replace(" €", "\u00a0€")}
           </span>
         ) : (
-          <span className="text-base font-medium text-[#667085]">Pendiente de cargar</span>
+          <MutedFigure text={companyCopy.pendingLoad} pending />
         )}
       </span>
     </MetricTile>
@@ -1671,7 +1679,7 @@ function CustomerChoice({
     <div className="mb-6 flex flex-col items-center gap-3 text-center" role="group" aria-labelledby="customer-base-label">
       <div className="flex items-center justify-center gap-2">
         <p id="customer-base-label" className="text-sm font-medium">
-          {companyCopy.customerPrompt}
+          <span data-field-title>{companyCopy.customerPrompt}</span>
         </p>
         <FieldHint text={note} />
       </div>
@@ -1731,7 +1739,9 @@ function PercentRows({
   return (
     <div role="group" aria-labelledby={legendId} className="min-w-0">
       <div className="mb-3 flex items-center justify-start gap-2">
-        <h3 id={legendId} className="text-base font-semibold text-[#1c2740]">{legend}</h3>
+        <h3 id={legendId} className="text-base font-semibold text-[#1c2740]">
+          <span data-field-title>{legend}</span>
+        </h3>
         {/* t87: "Tu progreso" highlights this plus button (data-flash), not the section title. */}
         <span data-flash className="inline-flex rounded-full">
           <AddIconButton
@@ -1831,7 +1841,7 @@ function Fact({
       </span>
       <span className="min-w-0">
         <span className={fieldLabelClass}>
-          {label}
+          <span data-field-title>{label}</span>
           {required ? (
             <span className="ml-0.5 text-[#c0362c]" aria-hidden>
               *
@@ -2295,11 +2305,6 @@ export function CompanyDraftForm({
     revenueGrowth: salesGrowth(closedYears),
     ebitdaTrend: ebitdaTrend(ebitdaByYear(closedYears)),
   });
-  const dealNote = `${
-    accountYear && salesFromAccounts
-      ? (ebitdaFromAccounts ? companyCopy.dealReflectsBoth : companyCopy.dealReflectsSales).replace("{year}", accountYear.year)
-      : companyCopy.euroHint
-  }`;
   // t76: the buyer-view preview opens on "Tras aceptar el NDA"; the before-NDA view is one click away.
   const [previewOpen, setPreviewOpen] = useState(true);
   const investorPreview = draftInvestorPreview({
@@ -2480,6 +2485,16 @@ export function CompanyDraftForm({
     if (id === "structure") setOpenStructure(false);
     if (id === "income") setOpenIncome(false);
     if (id === "balance") setOpenBalance(false);
+    // S39 (Alex): the panel shrinks to its read view; bring its top back into view instead of leaving the user far below.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const card = document.getElementById(`panel-${id}`);
+        if (card && card.getBoundingClientRect().top < 0) {
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          card.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        }
+      }),
+    );
   }
   useEffect(() => {
     closePanelRef.current = closePanel;
@@ -2577,14 +2592,23 @@ export function CompanyDraftForm({
       for (let node = target.parentElement; node; node = node.parentElement) {
         if (node instanceof HTMLDetailsElement && !node.open) node.open = true;
       }
-      // Two frames so the opened panels have laid out before measuring.
-      window.requestAnimationFrame(() =>
-        window.requestAnimationFrame(() => {
-          if (cancelled) return;
-          deepLinkDone.current = true;
-          highlightTarget(target, true);
-        }),
-      );
+      // S39: wait until the opened panels stop moving (same top for 3 frames, max ~1 s), then scroll once.
+      let last = Number.NaN;
+      let still = 0;
+      const begun = Date.now();
+      const settleThenGo = () => {
+        if (cancelled) return;
+        const top = Math.round(target.getBoundingClientRect().top + window.scrollY);
+        still = top === last ? still + 1 : 0;
+        last = top;
+        if (still < 3 && Date.now() - begun < 1000) {
+          window.requestAnimationFrame(settleThenGo);
+          return;
+        }
+        deepLinkDone.current = true;
+        highlightTarget(target, true);
+      };
+      window.requestAnimationFrame(settleThenGo);
     }
     window.setTimeout(attempt, 50);
     return () => {
@@ -2851,7 +2875,7 @@ export function CompanyDraftForm({
         {/* S30 (Alex): same label style and spacing as Nombre, Ubicación and the other fields. */}
         <div id="panel-description" className="mt-6 flex scroll-mt-6 flex-col">
           <span className={fieldLabelClass}>
-            {companyCopy.descriptionLabel}
+            <span data-field-title>{companyCopy.descriptionLabel}</span>
             <span className="ml-0.5 text-[#c0362c]" aria-hidden>
               *
             </span>
@@ -2906,7 +2930,14 @@ export function CompanyDraftForm({
                 {secondaryCnaes.map((code) => (
                   <li key={code} className="inline-flex max-w-full items-center gap-1 rounded-full bg-[#e4e7ec] py-1 pr-1 pl-2.5 text-xs font-medium text-[#475467]">
                     <input type="hidden" name="secondaryCnae" value={code} />
-                    <span className="truncate">{cnaeTitle(code) ? `${code} — ${cnaeTitle(code)}` : code}</span>
+                    {/* S39 (Alex): from 3 secondary CNAEs only the codes show, side by side; the label is the tooltip. */}
+                    {secondaryCnaes.length >= 3 ? (
+                      <span className="tabular-nums" title={cnaeTitle(code) ? `${code} — ${cnaeTitle(code)}` : code} data-cnae-compact>
+                        {code}
+                      </span>
+                    ) : (
+                      <span className="truncate">{cnaeTitle(code) ? `${code} — ${cnaeTitle(code)}` : code}</span>
+                    )}
                     <button
                       type="button"
                       aria-label={`${companyCopy.removeSecondaryCnae} ${code}`}
@@ -3122,7 +3153,6 @@ export function CompanyDraftForm({
         step={3}
         title={companyCopy.fichaFieldsTitle}
         intro={companyCopy.dealFold}
-        hint={dealNote}
         open
         fixed
         dirty={dealDirty}
@@ -3782,7 +3812,7 @@ function BalanceCell({
  * t85/t87/t88: centre a field and give it the teal highlight Descripción shows via its focus ring (chip groups and plus
  * buttons included). `settle` re-centres once if late content (charts, images) moved it during the smooth scroll.
  */
-function highlightTarget(target: HTMLElement, settle = false) {
+function highlightTarget(target: HTMLElement, instant = false) {
   const flashTarget =
     target.matches("[data-flash]")
       ? target
@@ -3792,24 +3822,20 @@ function highlightTarget(target: HTMLElement, settle = false) {
   const focusTarget = flashTarget.matches("input, textarea, select, button")
     ? flashTarget
     : (flashTarget.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button") ?? flashTarget);
-  scrollToCenter(flashTarget);
-  focusTarget.focus({ preventScroll: true });
-  const flash = [
-    flashTarget.tagName === "INPUT" || flashTarget.tagName === "TEXTAREA" || flashTarget.tagName === "BUTTON" || flashTarget.getAttribute("role") === "radiogroup"
-      ? "rounded-xl"
-      : "rounded-full",
-    "ring-2",
-    "ring-[#2fc4b2]",
-    "ring-offset-4",
-    "ring-offset-white",
-  ];
-  flashTarget.classList.add(...flash);
-  window.setTimeout(() => flashTarget.classList.remove(...flash), 2400);
-  if (settle) {
-    window.setTimeout(() => {
-      const rect = flashTarget.getBoundingClientRect();
-      const drift = Math.abs(rect.top + rect.height / 2 - (window.innerHeight + 80) / 2);
-      if (drift > 120) scrollToCenter(flashTarget);
-    }, 900);
+  // S39 (Alex): land on the field (title included) in one scroll, and mark its title like a highlighter pen.
+  const title = target.querySelector<HTMLElement>("[data-field-title]") ?? (target.matches("[data-field-title]") ? target : null);
+  if (instant) {
+    const rect = target.getBoundingClientRect();
+    const visible = window.innerHeight - stickyHeaderOffset;
+    const top = rect.top + window.scrollY - stickyHeaderOffset - Math.max(16, (visible - rect.height) / 2);
+    window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+  } else {
+    scrollToCenter(target);
   }
+  focusTarget.focus({ preventScroll: true });
+  const marked = title ?? flashTarget;
+  marked.classList.remove("relify-marker");
+  void marked.offsetWidth;
+  marked.classList.add("relify-marker");
+  window.setTimeout(() => marked.classList.remove("relify-marker"), 2800);
 }

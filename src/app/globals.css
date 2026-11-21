@@ -5566,3 +5566,32 @@ html.relify-consent-open body {
     display: none;
   }
 }
+
+/* S39 (Alex): highlighter-pen sweep on a field title (deep links from Inicio): yellow sweeps left to right, then fades. */
+@property --relify-marker {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: rgb(255 222 89 / 0.9);
+}
+.relify-marker {
+  background-image: linear-gradient(var(--relify-marker), var(--relify-marker));
+  background-repeat: no-repeat;
+  background-position: 0 70%;
+  background-size: 0% 70%;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation: relify-marker-sweep 2.8s ease-out forwards;
+}
+@keyframes relify-marker-sweep {
+  0% { background-size: 0% 70%; --relify-marker: rgb(255 222 89 / 0.9); }
+  22% { background-size: 100% 70%; --relify-marker: rgb(255 222 89 / 0.9); }
+  70% { background-size: 100% 70%; --relify-marker: rgb(255 222 89 / 0.9); }
+  100% { background-size: 100% 70%; --relify-marker: rgb(255 222 89 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .relify-marker {
+    animation: none;
+    background-size: 100% 70%;
+  }
+}

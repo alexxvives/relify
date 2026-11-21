@@ -313,13 +313,13 @@ describe("S27 follow-up: Detalles de empresa saves only on Guardar", () => {
     expect(form).toMatch(/onClick=\{onSave \?\? onCollapse\}/);
   });
 
-  it("warns before leaving and before switching tabs, and shows Cambios sin guardar near Guardar", () => {
+  it("warns before leaving and before switching tabs, (S39: no Cambios sin guardar text)", () => {
     expect(form).toMatch(/<UnsavedChangesGuard\s+dirty=\{formDirty \|\| pending\}\s+onSave=\{saveAndLeave\}\s+failedHref/);
     expect(form).not.toMatch(/\bautoSave\n/);
     expect(form).toMatch(/if \(formDirty && id !== tab\) \{\s*setTabAsk\(id\);/);
     expect(form).toMatch(/<UnsavedTabDialog/);
-    expect(form).toMatch(/data-unsaved-hint/);
-    expect(read("src/lib/company-copy.ts")).toMatch(/unsavedHint: "Cambios sin guardar"/);
+    expect(form).not.toMatch(/data-unsaved-hint/);
+    expect(read("src/lib/company-copy.ts")).not.toMatch(/unsavedHint/);
   });
 });
 

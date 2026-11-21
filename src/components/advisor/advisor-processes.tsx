@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdvisorNdaTurn } from "@/components/advisor/advisor-engagement-forms";
+import { AdvisorQuickLinks } from "@/components/advisor/advisor-quick-links";
 import { DealPipeline, DealWaitingCue } from "@/components/investor/deal-pipeline";
 import { FilterEmptyState, MutedAdvisorBoards } from "@/components/shell/filter-empty-state";
 import { advisorCopy } from "@/lib/advisor-copy";
@@ -65,9 +66,19 @@ export function AdvisorProcesses({
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
             </div>
-            <Link href={board.href} className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
-              {advisorCopy.processesOpen}
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              {board.depositPending ? null : (
+                <AdvisorQuickLinks
+                  href={board.href}
+                  chat
+                  documents={board.lanes.every((lane) => lane.signNdaId === null)}
+                  meetings
+                />
+              )}
+              <Link href={board.href} className="inline-flex h-10 items-center rounded-full bg-[#465ab4] px-4 text-sm font-medium text-white">
+                {advisorCopy.processesOpen}
+              </Link>
+            </div>
           </div>
           {board.note ? <p className="mt-4 text-sm text-[#64748b]">{board.note}</p> : null}
           {/* S34 (Alex): one encargo per company; each row below is one of that company's buyer processes. */}

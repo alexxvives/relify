@@ -444,11 +444,11 @@ function FolderCard({
             }}
             className={
               featured
-                ? "flex min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
-                : "flex min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
+                ? "flex min-h-40 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
+                : "flex min-h-40 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
             }
           >
-            <DocumentsFolder label={name} items={papers} accent={featured} onActivate={onOpen} />
+            <DocumentsFolder label={name} items={papers} accent={featured} onActivate={onOpen} size={0.56} />
             <span className="mt-2 block text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 block text-xs text-[#667085]">
               {documentCountLabel(count)}

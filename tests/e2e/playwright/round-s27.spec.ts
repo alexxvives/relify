@@ -59,7 +59,7 @@ test.describe("S27 Detalles de empresa manual save", () => {
     const original = await year.inputValue();
     const changed = original === "1999" ? "1998" : "1999";
     await year.fill(changed);
-    await expect(panel.getByText("Cambios sin guardar")).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Guardar" })).toBeVisible();
     // No background save: leaving still warns after a pause.
     await page.waitForTimeout(1500);
     await page.getByRole("link", { name: /mis documentos/i }).first().click();

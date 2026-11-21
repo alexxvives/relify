@@ -28,7 +28,7 @@ export type BillingEntry = {
   cents: number;
   at: string | null;
   /** S38: deposit rows only. null = not refunded yet. */
-  refund?: { engagementId: string; status: string | null };
+  refund?: { engagementId: string; status: string | null; reviewReady: boolean };
 };
 
 export type BillingBook = {
@@ -128,7 +128,11 @@ export async function getAdminBilling(
           id: true,
           depositPaidAt: true,
           depositCents: true,
-          project: { select: { codename: true } },
+          closedAt: true,
+          client: true,
+          requesterId: true,
+          projectId: true,
+          project: { select: { codename: true, successFee: { select: { id: true } } } },
         },
       }),
       prisma.billingCustomer.findMany({
@@ -152,6 +156,22 @@ export async function getAdminBilling(
     select: { engagementId: true, status: true },
   });
   const refundStatus = new Map(refunds.map((row) => [row.engagementId, row.status]));
+  // S39: admin refunds by hand; flag the deposits whose encargo closed, whose sale was recorded or whose buyer cancelled.
+  const buyerDeposits = deposits.filter((row) => row.client === "investor");
+  const cancelled = buyerDeposits.length
+    ? await prisma.projectAccess.findMany({
+        where: {
+          cancelledAt: { not: null },
+          OR: buyerDeposits.map((row) => ({ projectId: row.projectId, investorId: row.requesterId })),
+        },
+        select: { projectId: true, investorId: true },
+      })
+    : [];
+  const cancelledKey = new Set(cancelled.map((row) => `${row.projectId}:${row.investorId}`));
+  const reviewReady = (row: (typeof deposits)[number]) =>
+    row.closedAt !== null ||
+    row.project.successFee !== null ||
+    (row.client === "investor" && cancelledKey.has(`${row.projectId}:${row.requesterId}`));
   const depositTotal = deposits.reduce((sum, row) => sum + row.depositCents, 0);
   const closeRows = fees.map((fee) => {
     const buyer = fee.buyerNetCents + fee.buyerVatCents;
@@ -250,7 +270,7 @@ export async function getAdminBilling(
         amount: formatEur(row.depositCents),
         cents: row.depositCents,
         at: stamp(row.depositPaidAt),
-        refund: { engagementId: row.id, status: refundStatus.get(row.id) ?? null },
+        refund: { engagementId: row.id, status: refundStatus.get(row.id) ?? null, reviewReady: reviewReady(row) },
       })),
     },
     {

@@ -95,6 +95,16 @@ function ContactPanels({
 }) {
   const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
   const open = meetings ? tab : "chat";
+  // S39 (Alex): the Reuniones quick link (#reuniones) opens this desk on its meetings tab.
+  useEffect(() => {
+    if (!meetings) return;
+    const sync = () => {
+      if (window.location.hash === "#reuniones") setTab("meetings");
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, [meetings]);
 
   return (
     <div className={bare ? "flex flex-col gap-4 px-5 py-5" : "flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5"}>

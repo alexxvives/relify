@@ -94,7 +94,7 @@ export const authCopy = {
   nationalIdPlaceholder: "Ej.: 12345678Z",
   nationalIdRequired: "El DNI o NIE es obligatorio.",
   nationalIdInvalid: "La letra final del DNI o NIE no es correcta. Revísalo.",
-  nationalIdChange: "Cambiar",
+  nationalIdSaved: "Guardado",
   nationalIdKeep: "Firmas con el DNI/NIE de tu cuenta:",
   nationalIdCompleteTitle: "Falta tu DNI/NIE",
   nationalIdCompleteIntro: "Lo necesitamos para firmar el Acuerdo con Relify. Lo guardamos en tu cuenta y no te lo volveremos a pedir.",

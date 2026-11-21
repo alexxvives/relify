@@ -66,6 +66,7 @@ export const adminCopy = {
   billingDepositsTitle: "Depósitos de encargo",
   seeAdjustments: "Ver ajustes",
   refundAction: "Devolver depósito",
+  refundReview: "Listo para revisar devolución",
   refundDone: "Depósito devuelto.",
   refundFailed: "Stripe no ha podido devolverlo. Inténtalo de nuevo.",
   refundUnavailable: "Este depósito no tiene un pago que devolver.",

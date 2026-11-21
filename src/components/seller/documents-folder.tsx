@@ -9,11 +9,13 @@ export function DocumentsFolder({
   items,
   accent = false,
   onActivate,
+  size = 0.62,
 }: {
   label: string;
   items: string[];
   accent?: boolean;
   onActivate?: () => void;
+  size?: number;
 }) {
   const papers = items.length > 0 ? items.slice(0, 3) : [label];
 
@@ -23,7 +25,7 @@ export function DocumentsFolder({
       label={label}
       color={accent ? "#465ab4" : "#9aa3b2"}
       paperColor="#ffffff"
-      size={0.62}
+      size={size}
       theme="light"
       openOn="hover"
       bounce={0.78}

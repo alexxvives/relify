@@ -53,14 +53,17 @@ export function AccountSettings({
   const [committedEmail, setCommittedEmail] = useState(starting.email);
   const [phoneCountry, setPhoneCountry] = useState(starting.phoneCountry);
   const [phone, setPhone] = useState(starting.phone);
+  // S39 (Alex): the DNI/NIE is a plain field (no Cambiar). Typing stays a draft; it commits on blur when valid.
+  const [idDraft, setIdDraft] = useState("");
+  const [idError, setIdError] = useState(false);
   const [nationalId, setNationalId] = useState("");
-  const [editingId, setEditingId] = useState(storedMasked.length === 0);
+  const [idSaved, setIdSaved] = useState(false);
   const [baseline, setBaseline] = useState(starting);
   const [seenSave, setSeenSave] = useState<AccountFormState>(null);
   const [profileState, updateProfile, profilePending] = useActionState<AccountFormState, FormData>(updateAccountAction, null);
   const [passwordState, changePassword, passwordPending] = useActionState<AccountFormState, FormData>(changePasswordAction, null);
   const [deleteState, deleteAccount, deletePending] = useActionState<AccountFormState, FormData>(deleteAccountAction, null);
-  const keepStoredId = storedMasked.length > 0 && !editingId;
+  const keepStoredId = storedMasked.length > 0 && nationalId.length === 0;
   const dirty =
     fullName !== baseline.fullName ||
     committedEmail !== baseline.email ||
@@ -75,6 +78,7 @@ export function AccountSettings({
       setEmail(baseline.email);
       setCommittedEmail(baseline.email);
     }
+    if (nationalId !== baseline.nationalId) setIdSaved(true);
     setBaseline({ fullName, email: nextEmail, phone, phoneCountry, nationalId });
   }
 
@@ -101,6 +105,20 @@ export function AccountSettings({
       window.clearTimeout(timer);
     };
   }, [readyToSave, fullName, committedEmail, phone, phoneCountry, nationalId]);
+
+  function commitId() {
+    const value = idDraft.trim();
+    if (value.length === 0) {
+      setIdError(false);
+      return;
+    }
+    const valid = nationalIdSchema.safeParse(value).success;
+    setIdError(!valid);
+    if (valid && value !== nationalId) {
+      setIdSaved(false);
+      setNationalId(value);
+    }
+  }
 
   function commitEmail() {
     const field = document.getElementById("account-email");
@@ -144,7 +162,8 @@ export function AccountSettings({
 
   return (
     <div className="mx-auto flex w-full max-w-[72rem] flex-col gap-6">
-      <UnsavedChangesGuard dirty={dirty} onSave={saveAndLeave} />
+      {/* S39 (Alex): warn on leave only while a save is waiting, in flight or failed, never for a saved form. */}
+      <UnsavedChangesGuard dirty={readyToSave || profilePending || (profileState !== null && !profileState.saved && dirty)} onSave={saveAndLeave} />
       <div className={agreement ? "grid items-stretch gap-6 lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_16rem] 2xl:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
       <Card>
         <form ref={formRef} action={updateProfile} className="flex flex-col gap-4">
@@ -168,36 +187,42 @@ export function AccountSettings({
             </label>
             <div className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.nationalIdLabel}
-              {keepStoredId ? (
-                <>
-                  <input type="hidden" name="nationalIdKeep" value="1" />
-                  <span className="flex min-h-11 items-center justify-between gap-2 rounded-[var(--field-radius)] border border-[#e1e5eb] bg-[#fbfbfc] px-3 text-sm font-normal tracking-widest text-[#1c2740]">
-                    <span className="tabular-nums">{storedMasked}</span>
-                    <button
-                      type="button"
-                      className="text-xs font-semibold tracking-normal text-[#465ab4] hover:underline"
-                      onClick={() => {
-                        setEditingId(true);
-                        setNationalId("");
-                      }}
-                    >
-                      {authCopy.nationalIdChange}
-                    </button>
+              <span className="flex items-center justify-between gap-2">
+                {authCopy.nationalIdLabel}
+                {idSaved && !profilePending ? (
+                  <span role="status" className="text-xs font-medium text-[#067647]" data-id-saved>
+                    {authCopy.nationalIdSaved}
                   </span>
-                </>
-              ) : (
-                <>
-                  <Input
-                    name="nationalId"
-                    autoComplete="off"
-                    placeholder={authCopy.nationalIdPlaceholder}
-                    required
-                    maxLength={12}
-                    value={nationalId}
-                    onChange={(event) => setNationalId(event.target.value.toUpperCase())}
-                  />
-                </>
-              )}
+                ) : null}
+              </span>
+              {keepStoredId ? <input type="hidden" name="nationalIdKeep" value="1" /> : <input type="hidden" name="nationalId" value={nationalId} />}
+              <Input
+                id="account-national-id"
+                autoComplete="off"
+                aria-label={authCopy.nationalIdLabel}
+                aria-invalid={idError || undefined}
+                aria-describedby={idError ? "account-national-id-error" : undefined}
+                placeholder={storedMasked || authCopy.nationalIdPlaceholder}
+                maxLength={12}
+                value={idDraft}
+                onChange={(event) => {
+                  setIdDraft(event.target.value.toUpperCase());
+                  setIdError(false);
+                }}
+                onBlur={commitId}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    commitId();
+                  }
+                }}
+                className="tracking-widest tabular-nums"
+              />
+              {idError ? (
+                <span id="account-national-id-error" className="text-xs font-normal text-[#b42318]">
+                  {authCopy.nationalIdInvalid}
+                </span>
+              ) : null}
             </div>
             <label className="flex flex-col gap-2 text-sm font-medium">
               {authCopy.emailFieldLabel}

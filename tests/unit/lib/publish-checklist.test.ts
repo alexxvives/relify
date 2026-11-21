@@ -8,7 +8,7 @@ describe("publishChecklist (seller)", () => {
     const list = publishChecklist({ panels: { ...full, income: false, balance: false, cnae: false, structure: false }, saleReason: true, sellerFinancing: true });
     expect(list.items.map((item) => item.key)).toEqual(["saleReason", "description", "price", "sellerFinancing"]);
     expect(list.items.find((item) => item.key === "saleReason")?.href).toBe(
-      "/mi-empresa/detalles?seccion=identity&ancla=panel-sale-reason#panel-sale-reason",
+      "/mi-empresa/detalles?seccion=identity&ancla=panel-sale-reason",
     );
     expect(list.ready).toBe(true);
   });
