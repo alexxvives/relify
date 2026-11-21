@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CircleCheck, Clock, FileSpreadsheet, MapPin, Pencil, Upload, User, X } from "lucide-react";
 import { saveInvestorPhotoAction, saveInvestorProfileLiveAction } from "@/app/(app)/inversor/perfil/actions";
 import { AppToast } from "@/components/shell/app-toast";
+import { useSavedToast } from "@/components/shell/use-saved-toast";
 import { FieldHint } from "@/components/shell/field-hint";
 import { OptionSelect } from "@/components/ui/option-select";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
@@ -99,6 +100,7 @@ export function InvestorProfile({
   const [contribution, setContribution] = useState(draft.contribution);
   const [stake, setStake] = useState(draft.stake);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const { notifySaved, savedToast } = useSavedToast();
   const [previewOpen, setPreviewOpen] = useState(false);
   const professionalDone = tradeName.trim().length > 0 && nif.trim().length > 0 && postal.trim().length > 0;
   const publicDone = city.trim().length > 0 && investorType.length > 0 && thesis.trim().length > 0 && contribution.trim().length > 0 && stake.length > 0;
@@ -160,6 +162,7 @@ export function InvestorProfile({
         if (result?.ok) {
           lastSaved.current = draftKey;
           setSaveError(null);
+          notifySaved();
           return;
         }
 
@@ -170,7 +173,7 @@ export function InvestorProfile({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [city, contribution, draftKey, investorType, province, savedPhoto, sectors, stake, thesis, ticket]);
+  }, [city, contribution, draftKey, investorType, notifySaved, province, savedPhoto, sectors, stake, thesis, ticket]);
 
   const professional = publicOnly ? null : (
       <Card>
@@ -226,7 +229,8 @@ export function InvestorProfile({
 
   return (
     <div className="relative flex flex-col gap-4">
-      {/* Alex (S27): autosave is silent; only a failed save shows (error toast below). */}
+      {/* S40 (Alex): a landed autosave shows one "Guardado" toast; a failed save shows the error toast below. */}
+      {savedToast}
       {professional}
       <AppToast message={saveError} tone="error" />
       <div className="@container rounded-2xl border border-[#e7eaee] bg-white p-5">

@@ -278,6 +278,7 @@ export const companyCopy = {
   savedCompany: "Empresa guardada",
   favoriteFailed: "No se ha podido guardar la empresa.",
   tabsLabel: "Ficha de la empresa",
+  buyerFilterLabel: "Comprador",
   tabs: {
     company: "Información de la empresa",
     transaction: "Información de la transacción",

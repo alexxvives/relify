@@ -60,7 +60,7 @@ const welcomeCopy: Record<
       "Comparte información solo con los compradores que apruebes.",
     ],
     cta: "Ir a Mandatos",
-    path: "/mandatos",
+    path: "/inicio",
   },
 };
 

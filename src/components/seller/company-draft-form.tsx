@@ -87,7 +87,7 @@ import {
 } from "@/lib/company-profile";
 import { Button as KitButton, Card, Input, Textarea } from "@/components/ui/form";
 import { SectionIntro, StepNumber } from "@/components/seller/seller-figures-card";
-import { scrollToCenter, stickyHeaderOffset } from "@/components/shell/use-scroll-spy";
+import { highlightTarget, landOnAnchor } from "@/components/shell/deep-link-marker";
 import { CompactProgressBar, DetailSectionNav, type DetailSectionItem } from "@/components/seller/detail-section-nav";
 import { saveBlockReason } from "@/lib/seller-save";
 import {
@@ -2581,36 +2581,12 @@ export function CompanyDraftForm({
     if (field?.section === "basic") setOpenBasic(true);
     if (field?.section === "structure") setOpenStructure(true);
     let cancelled = false;
-    const started = Date.now();
-    function attempt() {
-      if (cancelled) return;
-      const target = document.getElementById(id);
-      if (!target) {
-        if (Date.now() - started < 4000) window.setTimeout(attempt, 100);
-        return;
-      }
-      for (let node = target.parentElement; node; node = node.parentElement) {
-        if (node instanceof HTMLDetailsElement && !node.open) node.open = true;
-      }
-      // S39: wait until the opened panels stop moving (same top for 3 frames, max ~1 s), then scroll once.
-      let last = Number.NaN;
-      let still = 0;
-      const begun = Date.now();
-      const settleThenGo = () => {
-        if (cancelled) return;
-        const top = Math.round(target.getBoundingClientRect().top + window.scrollY);
-        still = top === last ? still + 1 : 0;
-        last = top;
-        if (still < 3 && Date.now() - begun < 1000) {
-          window.requestAnimationFrame(settleThenGo);
-          return;
-        }
+    landOnAnchor(id, {
+      cancelled: () => cancelled,
+      onLand: () => {
         deepLinkDone.current = true;
-        highlightTarget(target, true);
-      };
-      window.requestAnimationFrame(settleThenGo);
-    }
-    window.setTimeout(attempt, 50);
+      },
+    });
     return () => {
       cancelled = true;
     };
@@ -3812,30 +3788,3 @@ function BalanceCell({
  * t85/t87/t88: centre a field and give it the teal highlight Descripción shows via its focus ring (chip groups and plus
  * buttons included). `settle` re-centres once if late content (charts, images) moved it during the smooth scroll.
  */
-function highlightTarget(target: HTMLElement, instant = false) {
-  const flashTarget =
-    target.matches("[data-flash]")
-      ? target
-      : (target.querySelector<HTMLElement>("[data-flash]") ??
-        target.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button:not([aria-hidden]), [role='radiogroup']") ??
-        target);
-  const focusTarget = flashTarget.matches("input, textarea, select, button")
-    ? flashTarget
-    : (flashTarget.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button") ?? flashTarget);
-  // S39 (Alex): land on the field (title included) in one scroll, and mark its title like a highlighter pen.
-  const title = target.querySelector<HTMLElement>("[data-field-title]") ?? (target.matches("[data-field-title]") ? target : null);
-  if (instant) {
-    const rect = target.getBoundingClientRect();
-    const visible = window.innerHeight - stickyHeaderOffset;
-    const top = rect.top + window.scrollY - stickyHeaderOffset - Math.max(16, (visible - rect.height) / 2);
-    window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
-  } else {
-    scrollToCenter(target);
-  }
-  focusTarget.focus({ preventScroll: true });
-  const marked = title ?? flashTarget;
-  marked.classList.remove("relify-marker");
-  void marked.offsetWidth;
-  marked.classList.add("relify-marker");
-  window.setTimeout(() => marked.classList.remove("relify-marker"), 2800);
-}

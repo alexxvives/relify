@@ -31,7 +31,7 @@ async function advisorUserId(): Promise<string | AdvisorSaveResult> {
 
 function refreshAdvisor() {
   revalidatePath("/mis-servicios");
-  revalidatePath("/mandatos");
+  revalidatePath("/inicio");
 }
 
 export async function saveCorporateAction(input: unknown): Promise<AdvisorSaveResult> {

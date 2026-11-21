@@ -6,7 +6,8 @@ import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
 import { Check, ChevronDown, CircleCheck, Clock } from "lucide-react";
 import { saveCorporateAction, saveMarketplaceAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
-import { AppToast } from "@/components/shell/app-toast";
+import { useSavedToast } from "@/components/shell/use-saved-toast";
+import { useDeepLinkMarker } from "@/components/shell/deep-link-marker";
 import { InfoHint } from "@/components/ui/info-hint";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorPriceLabel, type PublicAdvisorCard } from "@/lib/advisor-directory";
@@ -30,11 +31,13 @@ function PriceField({
   value,
   disabled,
   onChange,
+  onBlur,
 }: {
   label: string;
   value: string;
   disabled: boolean;
   onChange: (value: string) => void;
+  onBlur: () => void;
 }) {
   return (
     <label className={`flex items-center gap-2 text-xs ${disabled ? "text-[#8b95a7]" : "text-[#64748b]"}`}>
@@ -48,6 +51,7 @@ function PriceField({
           onChange={(event) => {
             onChange(event.target.value.replace(/\D/g, ""));
           }}
+          onBlur={onBlur}
           className="relify-field h-10 w-28 pr-7 pl-3 text-sm disabled:bg-[#f7f8fb] disabled:text-[#8b95a7]"
         />
         <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-sm" aria-hidden>
@@ -187,9 +191,9 @@ export function AdvisorServices({
   const [profile, setProfile] = useState(initial);
   const [message, setMessage] = useState<string | null>(null);
   const [messageFrom, setMessageFrom] = useState<"corporate" | "marketplace">("marketplace");
-  const [savedNote, setSavedNote] = useState<string | null>(null);
-  const [savedPulse, setSavedPulse] = useState(0);
-  const [pending, setPending] = useState(false);
+  const { notifySaved, savedToast } = useSavedToast();
+  useDeepLinkMarker();
+  const [nifError, setNifError] = useState(false);
   const [businessName, setBusinessName] = useState(initial.businessName);
   const [nif, setNif] = useState(initial.nif);
   const [postalCode, setPostalCode] = useState(initial.postalCode);
@@ -200,7 +204,8 @@ export function AdvisorServices({
   );
   const [prices, setPrices] = useState(pricesFrom(initial.services));
 
-  const nifMessage = nif.trim().length > 0 && !isValidSpanishCif(nif) ? advisorCopy.nifInvalid : null;
+  // S40 (Alex): a field is checked when the advisor leaves it, never while typing.
+  const nifMessage = nifError ? advisorCopy.nifInvalid : null;
   const draftServices = selectedServices.map((serviceType) => ({
     serviceType,
     priceFromCents: Number(prices[serviceType].from || "0") * 100,
@@ -222,54 +227,62 @@ export function AdvisorServices({
     cases: closes.map((close) => ({ sector: close.clientLabel, closedOn: close.closedLabel, value: close.services })),
   };
 
-  // Silent autosave once the three fields are valid, 700 ms after the last keystroke; only a failure shows.
+  // S40 (Alex): the three fields save when the advisor leaves one of them, once all three are valid; "Guardado" confirms.
   const corporateKey = `${businessName.trim()}|${nif.trim().toUpperCase()}|${postalCode}`;
   const savedCorporate = useRef(`${initial.businessName}|${initial.nif}|${initial.postalCode}`);
   const corporateReady = businessName.trim().length > 0 && isValidSpanishCif(nif) && /^\d{5}$/.test(postalCode);
 
-  useEffect(() => {
+  function saveCorporate() {
     if (!corporateReady || corporateKey === savedCorporate.current) {
       return;
     }
+    const key = corporateKey;
+    void saveCorporateAction({ businessName, nif, postalCode }).then((result) => {
+      setMessageFrom("corporate");
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
 
-    const timer = window.setTimeout(() => {
-      void saveCorporateAction({ businessName, nif, postalCode }).then((result) => {
-        setMessageFrom("corporate");
-        if (!result.ok) {
-          setMessage(result.message);
-          return;
-        }
+      savedCorporate.current = key;
+      setMessage(null);
+      notifySaved();
+      setProfile((current) => ({
+        ...current,
+        businessName: businessName.trim(),
+        nif: nif.trim().toUpperCase(),
+        postalCode,
+        corporateComplete: true,
+      }));
+    });
+  }
 
-        savedCorporate.current = corporateKey;
-        setMessage(null);
-        setProfile((current) => ({
-          ...current,
-          businessName: businessName.trim(),
-          nif: nif.trim().toUpperCase(),
-          postalCode,
-          corporateComplete: true,
-        }));
-      });
-    }, 700);
+  const marketKeyFor = (next: { description: string; sectors: string[]; services: AdvisorServiceId[] }) =>
+    JSON.stringify([next.description.trim(), next.sectors, next.services.map((id) => [id, prices[id].from, prices[id].to])]);
+  const savedMarket = useRef(
+    marketKeyFor({ description: initial.description, sectors: initial.sectors, services: initial.services.map((service) => service.serviceType) }),
+  );
 
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [businessName, corporateKey, corporateReady, nif, postalCode]);
-
-  async function saveMarketplace() {
-    setPending(true);
+  // S40 (Alex): Tu perfil en el marketplace saves itself (no Guardar): on leaving the description or a price, and on
+  // every sector or service toggle. A service still missing a price waits quietly until both are filled.
+  async function saveMarketplace(next: { sectors?: string[]; services?: AdvisorServiceId[] } = {}) {
+    const nextSectors = next.sectors ?? sectors;
+    const nextServices = next.services ?? selectedServices;
+    const key = marketKeyFor({ description, sectors: nextSectors, services: nextServices });
+    const incomplete = nextServices.some((id) => prices[id].from.length === 0 || prices[id].to.length === 0);
+    if (incomplete || key === savedMarket.current) {
+      return;
+    }
     setMessageFrom("marketplace");
     const result = await saveMarketplaceAction({
       description,
-      sectors,
-      services: selectedServices.map((serviceType) => ({
+      sectors: nextSectors,
+      services: nextServices.map((serviceType) => ({
         serviceType,
         priceFrom: prices[serviceType].from,
         priceTo: prices[serviceType].to,
       })),
     });
-    setPending(false);
 
     if (!result.ok) {
       setMessage(result.message);
@@ -279,21 +292,21 @@ export function AdvisorServices({
     setProfile((current) => ({
       ...current,
       description: description.trim(),
-      sectors: sectors.filter((id): id is AdvisorSectorId => advisorSectors.some((sector) => sector.id === id)),
-      services: selectedServices.map((serviceType) => ({
+      sectors: nextSectors.filter((id): id is AdvisorSectorId => advisorSectors.some((sector) => sector.id === id)),
+      services: nextServices.map((serviceType) => ({
         serviceType,
         priceFromCents: Number(prices[serviceType].from) * 100,
         priceToCents: Number(prices[serviceType].to) * 100,
       })),
     }));
+    savedMarket.current = key;
     setMessage(null);
-    setSavedNote(advisorCopy.servicesSaved);
-    setSavedPulse((current) => current + 1);
+    notifySaved();
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <AppToast message={savedNote} pulse={savedPulse} />
+      {savedToast}
       <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
         {/* S37 (Alex): no Editar and no Guardar; the three fields autosave like the investor profile. */}
@@ -302,16 +315,28 @@ export function AdvisorServices({
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.businessName}
-                <Input value={businessName} onChange={(event) => setBusinessName(event.target.value)} />
+                <Input value={businessName} onChange={(event) => setBusinessName(event.target.value)} onBlur={saveCorporate} />
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.nif}
                 <Input
                   value={nif}
-                  onChange={(event) => setNif(event.target.value.toUpperCase())}
-                  aria-invalid={nifMessage !== null}
+                  onChange={(event) => {
+                    setNif(event.target.value.toUpperCase());
+                    setNifError(false);
+                  }}
+                  onBlur={() => {
+                    setNifError(nif.trim().length > 0 && !isValidSpanishCif(nif));
+                    saveCorporate();
+                  }}
+                  invalid={nifMessage !== null}
+                  aria-describedby={nifMessage ? "advisor-nif-error" : undefined}
                 />
-                {nifMessage ? <span className="text-sm font-normal text-red-700">{nifMessage}</span> : null}
+                {nifMessage ? (
+                  <span id="advisor-nif-error" className="text-xs font-normal text-[#b42318]">
+                    {nifMessage}
+                  </span>
+                ) : null}
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
                 {advisorCopy.postalCode}
@@ -320,6 +345,7 @@ export function AdvisorServices({
                   maxLength={5}
                   value={postalCode}
                   onChange={(event) => setPostalCode(event.target.value.replace(/\D/g, "").slice(0, 5))}
+                  onBlur={saveCorporate}
                 />
               </label>
             </div>
@@ -335,27 +361,32 @@ export function AdvisorServices({
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
           </div>
         </div>
-        {/* S34 (Alex): description and sectors are edited right here, with the services; one Guardar saves all three. */}
+        {/* S34/S40 (Alex): description, sectors and services are edited right here and save themselves. */}
         <div className="mt-5 flex flex-col gap-5">
-            <label className="relative flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
-              {advisorCopy.description}
+            <label id="advisor-description" className="relative flex scroll-mt-24 flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
+              <span data-field-title className="w-fit">{advisorCopy.description}</span>
               <Textarea
                 value={description}
                 maxLength={1000}
                 placeholder={advisorCopy.descriptionPlaceholder}
                 onChange={(event) => setDescription(event.target.value)}
+                onBlur={() => {
+                  void saveMarketplace();
+                }}
                 className="min-h-28 pr-16 pb-7 text-sm font-normal"
               />
               <span className="pointer-events-none absolute right-3 bottom-2 text-xs font-normal text-[#64748b]">
                 {description.length} / 1000
               </span>
             </label>
-            <div className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
-              {advisorCopy.sectors}
+            <div id="advisor-sectors" className="flex scroll-mt-24 flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
+              <span data-field-title className="w-fit">{advisorCopy.sectors}</span>
               <SectorMenu
                 selected={sectors}
                 onToggle={(id) => {
-                  setSectors((current) => (current.includes(id) ? current.filter((sector) => sector !== id) : [...current, id]));
+                  const next = sectors.includes(id) ? sectors.filter((sector) => sector !== id) : [...sectors, id];
+                  setSectors(next);
+                  void saveMarketplace({ sectors: next });
                 }}
               />
               {sectors.length > 0 ? (
@@ -364,7 +395,11 @@ export function AdvisorServices({
                     <li key={id}>
                       <button
                         type="button"
-                        onClick={() => setSectors((current) => current.filter((sector) => sector !== id))}
+                        onClick={() => {
+                          const next = sectors.filter((sector) => sector !== id);
+                          setSectors(next);
+                          void saveMarketplace({ sectors: next });
+                        }}
                         className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-medium text-[#3d34b8]"
                       >
                         <span title={advisorSectorName(id)}>{advisorSectorShort(id)}</span>
@@ -375,8 +410,10 @@ export function AdvisorServices({
               ) : null}
             </div>
         </div>
-        <div>
-        <h3 className="mt-5 text-base font-semibold text-[#2b3b4a]">{advisorCopy.servicesListTitle}</h3>
+        <div id="advisor-services" className="scroll-mt-24">
+        <h3 className="mt-5 text-base font-semibold text-[#2b3b4a]">
+          <span data-field-title>{advisorCopy.servicesListTitle}</span>
+        </h3>
         <ul className="mt-1 divide-y divide-[#eef0f3]">
           {advisorServiceIds.map((id) => {
             const checked = selectedServices.includes(id);
@@ -387,9 +424,9 @@ export function AdvisorServices({
                     type="checkbox"
                     checked={checked}
                     onChange={() => {
-                      setSelectedServices((current) =>
-                        checked ? current.filter((service) => service !== id) : [...current, id],
-                      );
+                      const next = checked ? selectedServices.filter((service) => service !== id) : [...selectedServices, id];
+                      setSelectedServices(next);
+                      void saveMarketplace({ services: next });
                     }}
                     className="size-4 accent-[#465ab4]"
                   />
@@ -403,6 +440,9 @@ export function AdvisorServices({
                     onChange={(from) => {
                       setPrices((current) => ({ ...current, [id]: { ...current[id], from } }));
                     }}
+                    onBlur={() => {
+                      void saveMarketplace();
+                    }}
                   />
                   <PriceField
                     label={advisorCopy.priceTo}
@@ -411,6 +451,9 @@ export function AdvisorServices({
                     onChange={(to) => {
                       setPrices((current) => ({ ...current, [id]: { ...current[id], to } }));
                     }}
+                    onBlur={() => {
+                      void saveMarketplace();
+                    }}
                   />
                 </div>
               </li>
@@ -418,18 +461,6 @@ export function AdvisorServices({
           })}
         </ul>
         {message && messageFrom === "marketplace" ? <p className="mt-3 text-sm text-red-700">{message}</p> : null}
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              void saveMarketplace();
-            }}
-            className="h-10 rounded-full bg-[#3d34b8] px-4 text-sm text-white disabled:opacity-50"
-          >
-            {advisorCopy.save}
-          </button>
-        </div>
         </div>
       </section>
       {/* S35 (Alex): the preview follows the scroll on desktop; inline on phones. */}
@@ -482,7 +513,7 @@ function PanelHeading({
     // S35 (Alex): the status chip always sits at the far top-right.
     <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
       <h2 className="flex min-w-0 flex-1 basis-[12rem] items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
-        {title}
+        <span data-field-title>{title}</span>
         <InfoHint text={hint} icon={hintIcon} tone={hintIcon === "warning" ? "warning" : "ink"} />
       </h2>
       <div className="ml-auto flex shrink-0 items-center gap-2">

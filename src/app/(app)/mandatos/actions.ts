@@ -26,7 +26,7 @@ async function advisor() {
   }
 
   if (!user.onboarded || user.role !== "advisor") {
-    redirect("/mandatos");
+    redirect("/inicio");
   }
 
   return user;
@@ -57,7 +57,7 @@ export async function createClientCompanyAction(
   const result = await createClientCompany(user, parsed.data);
 
   if (result.ok) {
-    revalidatePath("/mandatos");
+    revalidatePath("/inicio");
     return { ok: true, message: billingCopy.companySaved };
   }
 
@@ -82,7 +82,7 @@ export async function acceptBuyerAction(
   const result = await acceptBuyer(user, readText(formData, "accessId"));
 
   if (result.ok) {
-    revalidatePath("/mandatos");
+    revalidatePath("/inicio");
     return { ok: true, message: billingCopy.buyerAccepted };
   }
 
@@ -103,7 +103,7 @@ export async function recordAdvisorSaleAction(
   const result = await recordSuccessFee(user, readText(formData, "slug"), eurosToCents(price));
 
   if (result.ok) {
-    revalidatePath("/mandatos");
+    revalidatePath("/inicio");
   }
 
   return result;

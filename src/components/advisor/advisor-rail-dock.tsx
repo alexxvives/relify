@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, UserRound } from "lucide-react";
+import { Minimize2, UserRound } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
@@ -19,11 +19,24 @@ function subscribeWide(onChange: () => void) {
  * "Comprador" tab at the same spot; opening it morphs the tab into the card (instant with reduced motion). It starts
  * open from 1024 px and folded on phones. Used by the advisor's encargo and the admin's connection view.
  */
-export function BuyerCardOverlay({ children, label = engagementCopy.railInvestor }: { children: ReactNode; label?: string }) {
+export function BuyerCardOverlay({
+  children,
+  label = engagementCopy.railInvestor,
+  startFolded = false,
+}: {
+  children: ReactNode;
+  label?: string;
+  /** S40: folded on entry when a buyer filter sits at the tab row's right end, so the open card never covers it. */
+  startFolded?: boolean;
+}) {
   const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => null);
   const [choice, setChoice] = useState<boolean | null>(null);
+  // S40 (Alex): folding plays the opening backwards: the card fades out first, then the panel shrinks back into the tab
+  // (the content used to linger while the panel shrank, then the height snapped).
+  const [folding, setFolding] = useState(false);
   const reduce = useReducedMotion();
-  const open = choice ?? wide ?? false;
+  const open = choice ?? (startFolded ? false : (wide ?? false));
+  const fade = reduce ? { duration: 0 } : { duration: 0.16, ease: "easeOut" as const };
   const transition = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 34 };
 
   return (
@@ -44,8 +57,17 @@ export function BuyerCardOverlay({ children, label = engagementCopy.railInvestor
           <motion.button
             layout="position"
             type="button"
-            onClick={() => setChoice(!open)}
+            onClick={() => {
+              if (!open) {
+                setChoice(true);
+              } else if (reduce) {
+                setChoice(false);
+              } else {
+                setFolding(true);
+              }
+            }}
             aria-expanded={open}
+            title={open ? engagementCopy.railFold : undefined}
             className={
               open
                 ? "flex h-11 w-full items-center justify-between gap-2 px-4 text-sm font-semibold text-[#1c2740] hover:bg-[#f7f8fb]"
@@ -56,15 +78,23 @@ export function BuyerCardOverlay({ children, label = engagementCopy.railInvestor
               <UserRound className="size-4 text-[#465ab4]" aria-hidden />
               <span className={open ? "" : "[writing-mode:vertical-rl] rotate-180"}>{label}</span>
             </span>
-            {open ? <ChevronRight className="size-4" aria-hidden /> : null}
+            {open ? <Minimize2 className="size-4" aria-hidden /> : null}
           </motion.button>
-          <AnimatePresence initial={false}>
-            {open ? (
+          <AnimatePresence
+            initial={false}
+            onExitComplete={() => {
+              if (folding) {
+                setFolding(false);
+                setChoice(false);
+              }
+            }}
+          >
+            {open && !folding ? (
               <motion.div
                 key="card"
                 initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, transition: { duration: 0.12 } }}
+                animate={{ opacity: 1, transition: fade }}
+                exit={{ opacity: 0, transition: fade }}
                 className="max-h-[min(36rem,calc(100dvh-12rem))] overflow-y-auto border-t border-[#eef0f3]"
               >
                 {children}

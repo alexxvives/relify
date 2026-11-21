@@ -18,7 +18,8 @@ test.describe("S38 asesor", () => {
     test.skip((await link.count()) === 0, "No paid encargos for this advisor");
     await link.click();
     await page.waitForURL(/\/mandatos\/venta\//);
-    await expect(page.locator("[data-advisor-process-chats]")).toBeVisible();
+    await page.locator('[role="tab"][aria-controls="panel-questions"]:visible').first().click();
+    await expect(page.locator('[role="tabpanel"]#panel-questions')).toBeVisible();
     const overlay = page.locator("[data-advisor-buyer-overlay]");
     if (await overlay.count()) {
       const box = await overlay.boundingBox();

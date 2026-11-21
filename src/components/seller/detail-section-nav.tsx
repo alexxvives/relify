@@ -108,13 +108,24 @@ function ProgressTrackerOverlay({
   label,
   trigger,
   children,
+  openOnEntry = false,
 }: {
   label: string;
   trigger: ReactNode;
   children: ReactNode;
+  /** S40 (Alex): a deep link (?seccion=… or ?ancla=…) opens the card expanded unless the profile is complete. */
+  openOnEntry?: boolean;
 }) {
   // The card is a popover the seller opened; it closes on Minimizar, Escape, a jump or a click outside it.
   const [peek, setPeek] = useState(false);
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (!openOnEntry || !(query.has("seccion") || query.has("ancla"))) return;
+    const frame = window.requestAnimationFrame(() => setPeek(true));
+    return () => window.cancelAnimationFrame(frame);
+    // Only on entry.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     function onPeek(event: Event) {
       setPeek(event instanceof CustomEvent && event.detail === true);
@@ -329,6 +340,7 @@ export function DetailSectionNav({
         <ProgressTrackerOverlay
           label="Tu progreso"
           trigger={<CompletionRing done={progress.done} total={progress.total} size={36} />}
+          openOnEntry={progress.done < progress.total}
         >
           {renderList()}
         </ProgressTrackerOverlay>

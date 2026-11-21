@@ -158,7 +158,7 @@ export function homeForRole(role: UserRoleName | null): string {
   }
 
   if (role === "advisor") {
-    return "/mandatos";
+    return "/inicio";
   }
 
   if (role === "admin") {

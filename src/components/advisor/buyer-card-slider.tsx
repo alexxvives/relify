@@ -14,31 +14,37 @@ export function BuyerCardSlider({ buyers }: { buyers: AdvisorBuyerCard[] }) {
     return null;
   }
 
+  // S40 (Alex): the arrows sit on the card's sides, vertically centred; the count stays on top.
   const arrow =
-    "inline-flex size-9 items-center justify-center rounded-full bg-white text-[#1c2740] shadow-sm ring-1 ring-[#e7eaee] disabled:opacity-40";
+    "absolute top-1/2 z-10 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#1c2740] shadow-md ring-1 ring-[#e7eaee] disabled:opacity-0";
+  const many = buyers.length > 1;
 
   return (
     <div className="flex flex-col gap-2" data-buyer-slider>
-      {buyers.length > 1 ? (
-        <div className="flex items-center justify-between gap-2">
-          <button type="button" className={arrow} onClick={() => setIndex((value) => value - 1)} disabled={index === 0} aria-label="Comprador anterior">
-            <ChevronLeft className="size-4" aria-hidden />
-          </button>
-          <p className="text-sm font-semibold text-[#1c2740]" aria-live="polite">
-            {index + 1}/{buyers.length}
-          </p>
-          <button
-            type="button"
-            className={arrow}
-            onClick={() => setIndex((value) => value + 1)}
-            disabled={index >= buyers.length - 1}
-            aria-label="Comprador siguiente"
-          >
-            <ChevronRight className="size-4" aria-hidden />
-          </button>
-        </div>
+      {many ? (
+        <p className="pt-2 text-center text-sm font-semibold text-[#1c2740]" aria-live="polite">
+          {index + 1}/{buyers.length}
+        </p>
       ) : null}
-      <FloatingInvestorCard key={current.id} name={current.label} profile={current.card} />
+      <div className="relative">
+        <FloatingInvestorCard key={current.id} name={current.label} profile={current.card} />
+        {many ? (
+          <>
+            <button type="button" className={`${arrow} left-1.5`} onClick={() => setIndex((value) => value - 1)} disabled={index === 0} aria-label="Comprador anterior">
+              <ChevronLeft className="size-4" aria-hidden />
+            </button>
+            <button
+              type="button"
+              className={`${arrow} right-1.5`}
+              onClick={() => setIndex((value) => value + 1)}
+              disabled={index >= buyers.length - 1}
+              aria-label="Comprador siguiente"
+            >
+              <ChevronRight className="size-4" aria-hidden />
+            </button>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

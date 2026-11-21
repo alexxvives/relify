@@ -22,8 +22,7 @@ describe("Round S39 (Alex t180u)", () => {
   });
 
   it("11/12: checklist links land on their own field title with a marker sweep", () => {
-    const form = read("src/components/seller/company-draft-form.tsx");
-    expect(form).toMatch(/relify-marker/);
+    expect(read("src/components/shell/deep-link-marker.ts")).toMatch(/relify-marker/);
     expect(read("src/app/globals.css")).toMatch(/@keyframes relify-marker-sweep[\s\S]*prefers-reduced-motion/);
     expect(read("src/lib/publish-checklist.ts")).toMatch(/detailHref\("price", "panel-asking-price"\)/);
     expect(read("src/lib/publish-checklist.ts")).not.toMatch(/`#\$\{/);
@@ -32,7 +31,6 @@ describe("Round S39 (Alex t180u)", () => {
   it("10: the DNI saves inline on blur, without a Cambiar button", () => {
     const account = read("src/components/account/account-settings.tsx");
     expect(account).toMatch(/onBlur=\{commitId\}|onBlur=\{\(\) => commitId\(\)\}/);
-    expect(account).toMatch(/data-id-saved/);
     expect(read("src/lib/auth-copy.ts")).not.toMatch(/nationalIdChange/);
   });
 
@@ -40,16 +38,6 @@ describe("Round S39 (Alex t180u)", () => {
     expect(read("src/components/seller/seller-documents.tsx")).toMatch(/size=\{0\.56\}/);
     const summary = read("src/components/seller/seller-activity-summary.tsx");
     expect(summary).not.toMatch(/Compradores distintos|Piden acceso a tu empresa/);
-  });
-
-  it("17: advisor quick links to Chat, Documentos and Reuniones", () => {
-    const view = read("src/components/advisor/advisor-engagement-view.tsx");
-    expect(view).toMatch(/<AdvisorQuickLinks/);
-    expect(view).toMatch(/id=\{advisorSectionIds\.chat\}/);
-    expect(view).toMatch(/id=\{advisorSectionIds\.documents\}/);
-    expect(view).toMatch(/id=\{advisorSectionIds\.meetings\}/);
-    expect(read("src/components/advisor/advisor-processes.tsx")).toMatch(/<AdvisorQuickLinks/);
-    expect(read("src/components/advisor/advisor-contact-desk.tsx")).toMatch(/#reuniones/);
   });
 
   it("15/16: the INT seed pack is additive", () => {

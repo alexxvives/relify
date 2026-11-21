@@ -35,7 +35,7 @@ function refreshCatalog(): void {
   revalidatePath("/mercado");
   revalidatePath("/mi-empresa");
   revalidatePath("/mi-empresa/detalles");
-  revalidatePath("/mandatos");
+  revalidatePath("/inicio");
 }
 
 /** S38: manual "Devolver depósito" for edge cases (also retries a failed automatic refund). Idempotent. */

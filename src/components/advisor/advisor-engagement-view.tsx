@@ -1,17 +1,15 @@
 import { AdvisorCloseForm, AdvisorDepositButton, AdvisorNdaButton } from "@/components/advisor/advisor-engagement-forms";
-import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { AppToast } from "@/components/shell/app-toast";
 import { CompanyBanner } from "@/components/seller/company-banner";
 import { CompanyReport } from "@/components/seller/company-report";
-import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
 import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorProcessChats as AdvisorProcessChatsData } from "@/lib/server/advisor-process-chat";
-import { AdvisorProcessChats } from "@/components/advisor/advisor-process-chats";
-import { AdvisorQuickLinks, advisorSectionIds } from "@/components/advisor/advisor-quick-links";
+import { AdvisorProcessDesk } from "@/components/advisor/advisor-process-desk";
+import { FichaLockedNote } from "@/components/company/company-ficha-view";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
 import { Card } from "@/components/ui/form";
 
@@ -70,96 +68,102 @@ export function AdvisorEngagementView({
               ) : null
             }
           />
-          <AdvisorQuickLinks
-            chat={processChats !== null}
-            documents={engagement.view === "investor" || engagement.view === "seller"}
-            meetings={thread !== null}
-          />
-          {/* S36 (Alex): no client/services helper line; Contrato stays while the encargo is open. */}
-          {engagement.contract && !engagement.closed ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <ContractStage contract={engagement.contract} />
-            </div>
-          ) : null}
-          {engagement.profile ? (
-            <CompanyReport
-              project={engagement.profile}
-              role="buyer"
-              figuresOpen={engagement.figuresOpen}
-              lockedNote={lockNote(engagement)}
-              lockAction={action}
-            />
-          ) : null}
-          {engagement.view === "investor" ? (
-            <Card id={advisorSectionIds.documents} className="scroll-mt-24">
-              <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.documentsTitle}</h2>
-              {engagement.documents.length === 0 ? (
-                <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.documentsEmpty}</p>
-              ) : (
-                <ul className="mt-4 grid gap-2">
-                  {engagement.documents.map((file) => (
-                    <li key={file.id}>
-                      <a className="text-sm font-medium text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
-                        {file.folder} · {file.fileName}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
-          ) : null}
-          {engagement.view === "seller" ? (
-            <Card id={advisorSectionIds.documents} className="scroll-mt-24">
-              <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
-              {engagement.folders.length === 0 ? (
-                <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.sellerWait}</p>
+          {/* S40 (Alex): the buyer's process tabs; the Contrato button row is gone (the advisor neither uploads nor signs the
+              contract; the signed contract stays reachable from Documentos once it exists). */}
+          <AdvisorProcessDesk
+            engagementId={engagement.id}
+            thread={thread}
+            processChats={processChats}
+            today={today}
+            locked={<FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} />}
+            company={
+              <>
+              {engagement.profile ? (
+                <CompanyReport
+                  project={engagement.profile}
+                  role="buyer"
+                  figuresOpen={engagement.figuresOpen}
+                  lockedNote={lockNote(engagement)}
+                  lockAction={action}
+                />
               ) : null}
-              <ul className="mt-4 grid gap-3">
-                {engagement.folders.map((folder) => (
-                  <li key={folder.name} className="rounded-2xl bg-[#f7f8fb] p-4">
-                    <h3 className="text-base font-semibold">{folder.name}</h3>
-                    {folder.files.length === 0 ? <p className="mt-2 text-sm text-[#64748b]">Sin archivos</p> : null}
-                    <ul className="mt-2 grid gap-1">
-                      {folder.files.map((file) => (
+              </>
+            }
+            documents={
+              <>
+              {engagement.view === "investor" ? (
+                <Card>
+                  <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.documentsTitle}</h2>
+                  {engagement.documents.length === 0 ? (
+                    <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.documentsEmpty}</p>
+                  ) : (
+                    <ul className="mt-4 grid gap-2">
+                      {engagement.documents.map((file) => (
                         <li key={file.id}>
-                          <a className="text-sm text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
-                            {file.fileName}
+                          <a className="text-sm font-medium text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
+                            {file.folder} · {file.fileName}
                           </a>
                         </li>
                       ))}
                     </ul>
-                  </li>
-                ))}
-              </ul>
-              <h3 className="mt-6 text-lg font-semibold">{engagementCopy.processTitle}</h3>
-              {engagement.processOpened ? (
-                <ol className="mt-3 grid gap-2">
-                  {engagementCopy.steps.map((step) => (
-                    <li key={step} className="rounded-xl bg-[#f7f8fb] px-3 py-2 text-sm">
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.processClosed}</p>
-              )}
-            </Card>
-          ) : null}
-          {thread ? (
-            <div id={advisorSectionIds.meetings} className="scroll-mt-24">
-              <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned />
-            </div>
-          ) : null}
-          {processChats ? (
-            <div id={advisorSectionIds.chat} className="scroll-mt-24">
-              <AdvisorProcessChats engagementId={engagement.id} side={processChats.side} chats={processChats.chats} />
-            </div>
-          ) : null}
+                  )}
+                </Card>
+              ) : null}
+              {engagement.view === "seller" ? (
+                <Card>
+                  <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
+                  {engagement.folders.length === 0 ? (
+                    <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.sellerWait}</p>
+                  ) : null}
+                  <ul className="mt-4 grid gap-3">
+                    {engagement.folders.map((folder) => (
+                      <li key={folder.name} className="rounded-2xl bg-[#f7f8fb] p-4">
+                        <h3 className="text-base font-semibold">{folder.name}</h3>
+                        {folder.files.length === 0 ? <p className="mt-2 text-sm text-[#64748b]">Sin archivos</p> : null}
+                        <ul className="mt-2 grid gap-1">
+                          {folder.files.map((file) => (
+                            <li key={file.id}>
+                              <a className="text-sm text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
+                                {file.fileName}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                  <h3 className="mt-6 text-lg font-semibold">{engagementCopy.processTitle}</h3>
+                  {engagement.processOpened ? (
+                    <ol className="mt-3 grid gap-2">
+                      {engagementCopy.steps.map((step) => (
+                        <li key={step} className="rounded-xl bg-[#f7f8fb] px-3 py-2 text-sm">
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.processClosed}</p>
+                  )}
+                  {engagement.contract?.signedHref ? (
+                    <a className="mt-4 inline-flex text-sm font-medium text-[#465ab4]" href={engagement.contract.signedHref}>
+                      {engagementCopy.signedContract}
+                    </a>
+                  ) : null}
+                </Card>
+              ) : null}
+                {engagement.view === "public" ? <FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} /> : null}
+              </>
+            }
+          />
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {hasBuyers ? <BuyerCardOverlay>{<BuyerCardSlider buyers={engagement.buyers} />}</BuyerCardOverlay> : null}
+        {hasBuyers ? (
+          <BuyerCardOverlay startFolded={processChats?.side === "seller" && processChats.chats.length > 1}>
+            <BuyerCardSlider buyers={engagement.buyers} />
+          </BuyerCardOverlay>
+        ) : null}
       </div>
     </div>
   );

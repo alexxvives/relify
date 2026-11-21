@@ -10,13 +10,15 @@ const tabs = [
   { id: "meetings", label: companyCopy.tabs.meetings, icon: Calendar },
 ] as const;
 
-type TabId = (typeof tabs)[number]["id"];
+export type ProcessTabId = (typeof tabs)[number]["id"];
+type TabId = ProcessTabId;
 
 export function InvestorProjectTabs({
   panels,
   initialTab = "company",
   actions = null,
   notice = null,
+  onTabChange,
 }: {
   panels: Record<TabId, ReactNode>;
   initialTab?: TabId;
@@ -24,8 +26,14 @@ export function InvestorProjectTabs({
   actions?: ReactNode;
   /** t81: full-width block right under the tab row (SABI import progress and preview). */
   notice?: ReactNode;
+  /** S40: the seller marks a chat read when its tab opens. */
+  onTabChange?: (tab: TabId) => void;
 }) {
-  const [tab, setTab] = useState<TabId>(initialTab);
+  const [tab, setTabState] = useState<TabId>(initialTab);
+  const setTab = (next: TabId) => {
+    setTabState(next);
+    onTabChange?.(next);
+  };
 
   return (
     <>

@@ -130,7 +130,7 @@ describe("destinationForUser", () => {
     expect(destinationForUser({ role: null, onboarded: false })).toBe("/onboarding");
     expect(destinationForUser({ role: "investor", onboarded: false })).toBe("/onboarding");
     expect(destinationForUser({ role: "seller", onboarded: true })).toBe("/mi-empresa");
-    expect(destinationForUser({ role: "advisor", onboarded: true })).toBe("/mandatos");
+    expect(destinationForUser({ role: "advisor", onboarded: true })).toBe("/inicio");
   });
 });
 
@@ -183,7 +183,7 @@ describe("homeForRole", () => {
   it("sends each role to its own home", () => {
     expect(homeForRole("investor")).toBe("/inversor");
     expect(homeForRole("seller")).toBe("/mi-empresa");
-    expect(homeForRole("advisor")).toBe("/mandatos");
+    expect(homeForRole("advisor")).toBe("/inicio");
     expect(homeForRole("admin")).toBe("/admin");
     expect(homeForRole(null)).toBe("/cuenta");
   });
