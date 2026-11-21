@@ -9,6 +9,7 @@ const countSize = {
 const countTone = {
   alert: "bg-public-clay text-white",
   brand: "bg-[#465ab4] text-white",
+  danger: "bg-[#d92d20] text-white",
 } as const;
 
 export function CountBadge({

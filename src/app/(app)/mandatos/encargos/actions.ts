@@ -14,6 +14,7 @@ import {
 } from "@/lib/server/advisory-engagement";
 import { ensureNationalId } from "@/lib/server/ensure-national-id";
 import { getCurrentUser } from "@/lib/server/get-current-user";
+import { postAdvisorProcessMessage } from "@/lib/server/advisor-process-chat";
 import { startAdvisorDepositCheckout, startAdvisorInboxCheckout } from "@/lib/server/start-checkout";
 
 export type EngagementActionState = { ok: boolean; message: string } | null;
@@ -173,4 +174,23 @@ export async function setAdvisorProcessAction(
   revalidatePath(`/mandatos/encargos/${id}`);
   revalidatePath(`/mandatos/venta/${id}`);
   return { ok: result.ok, message: result.message ?? engagementCopy.openProcess };
+}
+
+/** S38: the asesor writes in a process chat for the side that hired them (server checks scope). */
+export async function postAdvisorProcessMessageAction(
+  _state: { ok: true } | { ok: false; message: string } | null,
+  formData: FormData,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const user = await signedIn();
+  const id = readText(formData, "engagementId");
+  const result = await postAdvisorProcessMessage(user, id, {
+    accessId: readText(formData, "accessId"),
+    body: readText(formData, "body"),
+  });
+  if (result.ok) {
+    revalidatePath(`/mandatos/venta/${id}`);
+    revalidatePath("/mi-empresa/procesos");
+    revalidatePath("/procesos");
+  }
+  return result;
 }

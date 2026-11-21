@@ -10,6 +10,9 @@ import { companyCopy } from "@/lib/company-copy";
 import { MarketCard, marketGridClass, marketGridFrameClass } from "@/components/investor/market-card";
 import type { AdminCompanyRow } from "@/lib/server/list-admin-companies";
 import { adminNewRing } from "@/components/admin/admin-new";
+import Link from "next/link";
+import { CountBadge } from "@/components/ui/badge";
+import { adjustmentReviewHash } from "@/components/seller/adjustment-review";
 
 type CompanyStatusFilter = "all" | "published" | "pending" | "draft";
 
@@ -57,6 +60,11 @@ export function AdminCompanies({ projects }: { projects: AdminCompanyRow[] }) {
   const sorted = [...visible].sort((left, right) => {
     const a = left[sort.key];
     const b = right[sort.key];
+    // S38 (Alex): companies with adjustments waiting for review always come first.
+    const waiting = Number(right.pendingAdjustments > 0) - Number(left.pendingAdjustments > 0);
+    if (waiting !== 0) {
+      return waiting;
+    }
     const order = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b), "es");
     return order * sort.dir;
   });
@@ -226,9 +234,14 @@ function CompanyCard({ project }: { project: AdminCompanyRow }) {
         <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2" title={since ? `${adminCopy.sabiPendingSince} ${since}` : undefined}>
           <StatusPillToggle label={label} tone={tone} />
           {project.pendingAdjustments > 0 ? (
-            <span className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase">
-              {companyCopy.adjustmentsPendingChip}
-            </span>
+            <Link
+              href={`/admin/empresas/${project.slug}${adjustmentReviewHash}`}
+              data-pending-adjustments={project.pendingAdjustments}
+              className="relative inline-flex h-8 items-center rounded-full bg-white px-3 text-xs font-semibold text-[#0f766e] shadow-sm ring-1 ring-[#d5dbe3] hover:bg-[#e6f4f2] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+            >
+              {adminCopy.seeAdjustments}
+              <CountBadge count={project.pendingAdjustments} tone="danger" ring className="absolute -top-1.5 -right-1.5" label={companyCopy.adjustmentsPendingChip} />
+            </Link>
           ) : null}
         </div>
       </div>

@@ -1,13 +1,28 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useModal } from "@/components/shell/use-modal";
 
 /** Opens the EBITDA adjustment list in a compact dialog so the KPI tile stays the same size. */
-export function AdjustmentReview({ children }: { children: ReactNode }) {
+function subscribeHash(onChange: () => void): () => void {
+  window.addEventListener("hashchange", onChange);
+  return () => window.removeEventListener("hashchange", onChange);
+}
+
+/** Hash that opens the review on arrival (S38: admin "Ver ajustes" from /admin/empresas). */
+export const adjustmentReviewHash = "#ajustes";
+
+export function AdjustmentReview({ children, openOnHash = false }: { children: ReactNode; openOnHash?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const fromHash = useSyncExternalStore(
+    subscribeHash,
+    () => openOnHash && window.location.hash === adjustmentReviewHash,
+    () => false,
+  );
+  const shown = open || (fromHash && !dismissed);
   return (
     <>
       <button
@@ -20,7 +35,7 @@ export function AdjustmentReview({ children }: { children: ReactNode }) {
       >
         Ver ajustes
       </button>
-      {open ? <AdjustmentReviewDialog onClose={() => setOpen(false)}>{children}</AdjustmentReviewDialog> : null}
+      {shown ? <AdjustmentReviewDialog onClose={() => { setOpen(false); setDismissed(true); }}>{children}</AdjustmentReviewDialog> : null}
     </>
   );
 }

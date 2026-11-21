@@ -7,6 +7,7 @@ import { sabiRegistryIsEmpty } from "@/lib/sabi/registry";
 import { sabiDetailDuplicates } from "@/lib/sabi/detail-duplicates";
 import { DealPipeline, DealWaitingCue } from "@/components/investor/deal-pipeline";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
+import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { adminCopy } from "@/lib/admin-copy";
 import { sectorKeyFromCnae } from "@/lib/sector-image";
 import { bannerChips } from "@/lib/sector-theme";
@@ -16,7 +17,6 @@ import { meetingIsPast, readMeeting } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { AdminCompanyMessage, AdminCompanyView, AdminSideAdvisor } from "@/lib/server/get-admin-company";
 import { Card } from "@/components/ui/form";
-import { PublishReadinessChip } from "@/components/admin/admin-publish-checks";
 import { SellerPdfCard } from "@/components/seller/company-pdf-card";
 import type { SellerTeaserDesk } from "@/lib/company-pdf-copy";
 
@@ -26,18 +26,6 @@ function formatDay(iso: string): string {
   const [year, month, day] = iso.split("-");
   const name = months[Number(month) - 1] ?? month;
   return `${Number(day)} ${name} ${year}`;
-}
-
-function statusLabel(status: AdminCompanyView["status"]): string {
-  if (status === "published") {
-    return adminCopy.statusPublished;
-  }
-
-  if (status === "pending") {
-    return adminCopy.statusPending;
-  }
-
-  return adminCopy.statusDraft;
 }
 
 export function AdminCompany({
@@ -69,8 +57,7 @@ export function AdminCompany({
           subtitle: view.profile.region,
           sector: adminSector,
           chips: bannerChips({ sector: adminSector, region: view.profile.region, foundedYear: view.profile.foundedYear }),
-          status: { label: statusLabel(view.status), live: view.status === "published" },
-          statusNote: view.publishChecks ? <PublishReadinessChip checks={view.publishChecks} /> : null,
+          // S38 (Alex): no published/unpublished line in the admin banner.
           cue: selected ? <DealWaitingCue cue={{ action: watchingCue(selected.steps) }} onDark /> : null,
           progress:
             selected && selected.steps.length > 0 ? (
@@ -78,13 +65,6 @@ export function AdminCompany({
             ) : null,
         }}
         listingStatus={view.status}
-        between={
-          selected && !view.investor ? (
-            <p className="text-sm text-[#3d4a63]">
-              {adminCopy.investorParty} · {selected.investorLabel}
-            </p>
-          ) : null
-        }
         panels={{
           company: (
             <div className="flex flex-col gap-4">
@@ -123,19 +103,18 @@ export function AdminCompany({
         <ArrowLeft className="size-4" aria-hidden />
         {backLabel}
       </Link>
+      <div className="flex flex-col gap-6">{company}</div>
+      {/* S38 (Alex): the buyer floats at the centre-right edge, the same overlay the advisor gets on an encargo. */}
       {view.investor ? (
-        <div className="xl:grid xl:items-start xl:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="flex min-w-0 flex-col gap-6">{company}</div>
-          <aside className="mt-6 flex flex-col gap-4 xl:sticky xl:top-6 xl:mt-0 xl:self-start">
+        <BuyerCardOverlay>
+          <div className="flex flex-col gap-4 p-3">
             <InvestorPublicCard label={view.investor.label} profile={view.investor.profile} />
             {view.advisors.map((advisor) => (
               <AdvisorSideCard key={advisor.id} advisor={advisor} />
             ))}
-          </aside>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-6">{company}</div>
-      )}
+          </div>
+        </BuyerCardOverlay>
+      ) : null}
     </div>
   );
 }

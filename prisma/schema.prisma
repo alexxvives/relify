@@ -314,6 +314,7 @@ model Project {
   valuationRequests   ValuationRequest[]
   teaserToken         String?              @unique @map("teaser_token")
   pdfDownloads        PdfDownload[]
+  adjustmentDecisions EbitdaAdjustmentDecision[]
   @@index([ownerId])
   @@map("project")
 }
@@ -692,6 +693,8 @@ model ProjectMessage {
   author     MessageAuthor
   kind       MessageKind
   body       String        @db.Text
+  /// S38: set when the client's asesor wrote it on the client's behalf (author stays the client's side).
+  advisorId  String?       @map("advisor_id")
   createdAt  DateTime      @default(now()) @map("created_at")
 
   @@index([investorId, kind])
@@ -995,6 +998,43 @@ model EmailThrottle {
   windowStart DateTime @default(now()) @map("window_start")
 
   @@map("email_throttle")
+}
+
+/// S38: every admin decision on an EBITDA adjustment row (approve or reject, reversible), oldest first. The row's
+/// current status lives in project.ebitda_adjustments; this table is the audit trail (who, when, why).
+model EbitdaAdjustmentDecision {
+  id         String   @id
+  projectId  String   @map("project_id")
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  rowId      String   @map("row_id")
+  status     String
+  note       String?
+  adminId    String?  @map("admin_id")
+  adminLabel String   @map("admin_label")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([projectId, rowId])
+  @@map("ebitda_adjustment_decision")
+}
+
+/// S38: refund of an advisor deposit (one per encargo). Kept even if the encargo row is deleted, so no foreign key.
+/// status: pending → succeeded | failed (a failed one can be retried from admin).
+model DepositRefund {
+  id             String   @id
+  engagementId   String   @unique @map("engagement_id")
+  advisorId      String?  @map("advisor_id")
+  projectId      String?  @map("project_id")
+  sessionId      String   @map("session_id")
+  amountCents    Int      @map("amount_cents")
+  reason         String
+  status         String
+  stripeRefundId String?  @map("stripe_refund_id")
+  error          String?
+  requestedById  String?  @map("requested_by_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("deposit_refund")
 }
 
 /// Supporting file for one EBITDA adjustment. Bytes live in Neon: Workers have no persistent disk.

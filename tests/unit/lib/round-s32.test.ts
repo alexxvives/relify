@@ -43,7 +43,8 @@ describe("S32 Google result", () => {
 
 import { readFileSync } from "node:fs";
 import { adjustmentsForBuyer, approvedAdjustments, formRowsFromJson, mergePostedAdjustments, storedEbitdaAdjustments } from "@/lib/ebitda-adjustments";
-import { rejectedAdjustmentNotice } from "@/lib/server/reject-ebitda-adjustment";
+import { adjustmentDecisionNotice } from "@/lib/server/decide-ebitda-adjustment";
+const rejectedAdjustmentNotice = (note: string | null) => adjustmentDecisionNotice("rejected", note);
 import { corporateMissing } from "@/lib/advisor-profile";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { estimatePriceRange } from "@/lib/valuation-multiples";

@@ -3,6 +3,7 @@ import { processCancelledNotice } from "@/lib/notifications";
 import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { refundDepositsWhere } from "@/lib/server/deposit-refund";
 import { recordNotification } from "@/lib/server/record-notification";
 
 export type CancelAccessResult = { ok: true } | { ok: false; message: string };
@@ -52,6 +53,11 @@ export async function cancelProjectAccess(
       cancelledBy: seller ? "seller" : "investor",
     },
   });
+  // S38: the buyer's process is over, so the deposit of the asesor that buyer hired goes back.
+  await refundDepositsWhere(
+    { projectId: access.project.id, requesterId: access.investorId, client: "investor" },
+    "cancelled",
+  );
 
   const self = processCancelledNotice(access.project.codename, "self");
   await recordNotification({

@@ -6,9 +6,11 @@ import { CompanyReport } from "@/components/seller/company-report";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
-import { AdvisorBuyerOverlay } from "@/components/advisor/advisor-rail-dock";
+import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
+import type { AdvisorProcessChats as AdvisorProcessChatsData } from "@/lib/server/advisor-process-chat";
+import { AdvisorProcessChats } from "@/components/advisor/advisor-process-chats";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
 import { Card } from "@/components/ui/form";
 
@@ -27,11 +29,13 @@ function lockNote(engagement: AdvisorEngagementPage): string {
 export function AdvisorEngagementView({
   engagement,
   thread,
+  processChats = null,
   today,
   notice,
 }: {
   engagement: AdvisorEngagementPage;
   thread: AdvisorContactView | null;
+  processChats?: AdvisorProcessChatsData | null;
   today: string;
   notice: string | null;
 }) {
@@ -52,7 +56,7 @@ export function AdvisorEngagementView({
     : undefined;
 
   return (
-    <div className={`flex flex-col gap-6 ${hasBuyers ? "max-lg:pb-24" : ""}`}>
+    <div className="flex flex-col gap-6">
       <AppToast message={notice} tone={notice === engagementCopy.depositPaidNote ? "ok" : "error"} />
       <div>
         <div className="flex min-w-0 flex-col gap-6">
@@ -136,11 +140,12 @@ export function AdvisorEngagementView({
             </Card>
           ) : null}
           {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned /> : null}
+          {processChats ? <AdvisorProcessChats engagementId={engagement.id} side={processChats.side} chats={processChats.chats} /> : null}
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {hasBuyers ? <AdvisorBuyerOverlay>{<BuyerCardSlider buyers={engagement.buyers} />}</AdvisorBuyerOverlay> : null}
+        {hasBuyers ? <BuyerCardOverlay>{<BuyerCardSlider buyers={engagement.buyers} />}</BuyerCardOverlay> : null}
       </div>
     </div>
   );

@@ -38,6 +38,6 @@ describe("S37 advisor routes", () => {
   it("shares one signing popup and starts the buyer card open", () => {
     expect(read("src/components/advisor/advisor-engagement-forms.tsx")).toMatch(/SignAgreementDialog/);
     expect(read("src/components/investor/deal-pipeline.tsx")).toMatch(/SignAgreementDialog/);
-    expect(read("src/components/advisor/advisor-rail-dock.tsx")).toMatch(/open === null \? "hidden lg:block"/);
+    expect(read("src/components/advisor/advisor-rail-dock.tsx")).toMatch(/min-width: 1024px/);
   });
 });

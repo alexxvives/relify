@@ -6,6 +6,7 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import { madridToday } from "@/lib/meeting";
 import { getAdvisorEngagement } from "@/lib/server/advisory-engagement";
 import { getEngagementThread } from "@/lib/server/engagement-thread";
+import { listAdvisorProcessChats } from "@/lib/server/advisor-process-chat";
 import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
 import { requireRole } from "@/lib/server/require-role";
 
@@ -53,12 +54,14 @@ export async function AdvisorEngagementPage({
     redirect(`${advisorEngagementHref(id, paid)}${qs ? `?${qs}` : ""}`);
   }
 
-  const thread = paid ? await getEngagementThread(user, id) : null;
+  const [thread, processChats] = paid
+    ? await Promise.all([getEngagementThread(user, id), listAdvisorProcessChats(user, id)])
+    : [null, null];
   const notice = query.deposito === "1" ? engagementCopy.depositPaidNote : query.deposito === "0" ? engagementCopy.depositFailed : null;
 
   return (
     <SignedInPage title={engagement.codename} showTitle={false}>
-      <AdvisorEngagementView engagement={engagement} thread={thread} today={madridToday(new Date())} notice={notice} />
+      <AdvisorEngagementView engagement={engagement} thread={thread} processChats={processChats} today={madridToday(new Date())} notice={notice} />
     </SignedInPage>
   );
 }

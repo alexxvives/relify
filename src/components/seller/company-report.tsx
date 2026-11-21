@@ -314,18 +314,18 @@ function AdjustmentBridge({
                   <p className={`text-sm font-semibold tabular-nums ${row.amountCents < 0 ? "text-[#b42318]" : "text-[#0f766e]"}`}>
                     {signed(row.amountCents)}
                   </p>
-                  {role === "admin" && row.status === "pending" ? (
+                  {role === "admin" && row.status !== "approved" ? (
                     <form action={approveEbitdaAdjustmentAction}>
                       <input type="hidden" name="slug" value={slug} />
                       <input type="hidden" name="rowId" value={row.id} />
                       <button type="submit" className="inline-flex h-9 items-center rounded-full bg-[#1c2740] px-3 text-xs font-semibold text-white hover:bg-[#2a3a5c] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none">
-                        {companyCopy.adjustmentAccept}
+                        {row.status === "pending" ? companyCopy.adjustmentAccept : companyCopy.adjustmentApprove}
                       </button>
                     </form>
                   ) : null}
                 </div>
               </div>
-              {role === "admin" && row.status === "pending" ? (
+              {role === "admin" && row.status !== "rejected" ? (
                 <form action={rejectEbitdaAdjustmentAction} data-adjustment-reject className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input type="hidden" name="slug" value={slug} />
                   <input type="hidden" name="rowId" value={row.id} />
@@ -340,6 +340,22 @@ function AdjustmentBridge({
                     {companyCopy.adjustmentReject}
                   </button>
                 </form>
+              ) : null}
+              {role === "admin" && row.history && row.history.length > 0 ? (
+                <details className="mt-3 text-xs text-[#475467]" data-adjustment-history>
+                  <summary className="cursor-pointer font-medium text-[#465ab4]">{`${companyCopy.adjustmentHistory} · ${row.history.length}`}</summary>
+                  <ol className="mt-2 flex flex-col gap-1.5">
+                    {row.history.map((entry) => (
+                      <li key={entry.id} className="leading-5 break-words">
+                        <span className={entry.status === "approved" ? "font-medium text-[#067647]" : "font-medium text-[#b42318]"}>
+                          {entry.status === "approved" ? companyCopy.adjustmentHistoryApproved : companyCopy.adjustmentHistoryRejected}
+                        </span>
+                        {` · ${entry.by} · ${entry.at}`}
+                        {entry.note ? ` · ${entry.note}` : ""}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               ) : null}
             </li>
           );
@@ -877,7 +893,7 @@ export function CompanyReport({
             }
             action={
               project.ebitdaAdjustments && project.ebitdaAdjustments.length > 0 ? (
-                <AdjustmentReview>
+                <AdjustmentReview openOnHash={role === "admin"}>
                   <AdjustmentBridge
                     ebitdaCents={headline.ebitdaCents}
                     adjustedCents={headline.adjustedEbitdaCents}

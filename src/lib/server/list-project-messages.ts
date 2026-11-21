@@ -113,6 +113,7 @@ export async function listProjectMessages(
             author: true,
             kind: true,
             body: true,
+            advisorId: true,
             createdAt: true,
           },
           orderBy: { createdAt: "asc" },
@@ -215,6 +216,7 @@ export async function listProjectMessages(
             author: message.author,
             viewer: "seller",
             createdAt: message.createdAt,
+            advisorId: message.advisorId,
           }),
         ),
         steps: dealPipeline(
@@ -333,6 +335,7 @@ export async function listProjectMessages(
         author: true,
         kind: true,
         body: true,
+        advisorId: true,
         createdAt: true,
       },
       orderBy: { createdAt: "asc" },
@@ -404,6 +407,7 @@ export async function listProjectMessages(
             author: message.author,
             viewer: "investor",
             createdAt: message.createdAt,
+            advisorId: message.advisorId,
           }),
         ),
         steps: dealPipeline(

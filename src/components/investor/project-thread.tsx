@@ -68,7 +68,7 @@ function splitBody(body: string): { text: string; files: string[] } {
   return { text, files };
 }
 
-type Group = { key: string; mine: boolean; day: string | null; messages: ChatMessage[] };
+type Group = { key: string; mine: boolean; byAdvisor: boolean; day: string | null; messages: ChatMessage[] };
 
 function groupMessages(messages: ChatMessage[]): Group[] {
   const groups: Group[] = [];
@@ -84,12 +84,13 @@ function groupMessages(messages: ChatMessage[]): Group[] {
       last &&
       sameDay &&
       previous.mine === message.mine &&
+      previous.byAdvisor === Boolean(message.byAdvisor) &&
       at.getTime() - new Date(last.createdAt).getTime() < GROUP_GAP_MS &&
       last.kind === message.kind
     ) {
       previous.messages.push(message);
     } else {
-      groups.push({ key: message.id, mine: message.mine, day: sameDay ? null : message.createdAt, messages: [message] });
+      groups.push({ key: message.id, mine: message.mine, byAdvisor: Boolean(message.byAdvisor), day: sameDay ? null : message.createdAt, messages: [message] });
     }
     lastDay = day;
   }
@@ -107,6 +108,7 @@ export function ProjectThread({
   savedLabel,
   invalidFallback,
   partyName,
+  advisorView,
 }: {
   viewer: "seller" | "investor";
   messages: ThreadMessageView[];
@@ -118,6 +120,8 @@ export function ProjectThread({
   savedLabel: string;
   invalidFallback: string;
   partyName?: string;
+  /** S38: the asesor writes for `viewer`'s side; "Tú" is the asesor and the client shows by its own label. */
+  advisorView?: { clientLabel: string };
 }) {
   const named = partyName?.trim() ?? "";
   const party = named.length > 0 ? named : threadPartyLabel(viewer);
@@ -129,6 +133,7 @@ export function ProjectThread({
       kind: "question",
       body,
       mine: true,
+      ...(advisorView ? { byAdvisor: true } : {}),
       createdAt: new Date().toISOString(),
       sending: true,
     },
@@ -206,7 +211,7 @@ export function ProjectThread({
                       <span className="h-px flex-1 bg-[#eceff5]" />
                     </div>
                   ) : null}
-                  <MessageGroup group={group} author={group.mine ? you : party} />
+                  <MessageGroup group={group} author={groupAuthor(group, { you, party, advisorView })} />
                 </li>
               ))}
             </ol>
@@ -237,6 +242,17 @@ export function ProjectThread({
       />
     </div>
   );
+}
+
+/** S38: who wrote a group, including messages the asesor wrote for a side. */
+function groupAuthor(group: Group, labels: { you: string; party: string; advisorView?: { clientLabel: string } }): string {
+  if (labels.advisorView) {
+    return group.mine ? (group.byAdvisor ? labels.you : labels.advisorView.clientLabel) : labels.party;
+  }
+  if (!group.byAdvisor) {
+    return group.mine ? labels.you : labels.party;
+  }
+  return group.mine ? companyCopy.yourAdvisor : `${companyCopy.advisorOf} ${labels.party}`;
 }
 
 function MessageGroup({ group, author }: { group: Group; author: string }) {

@@ -1,5 +1,3 @@
-import type { AdminPublishChecks, PublishChecklist } from "@/lib/publish-checklist";
-import { loadPublishChecks } from "@/lib/server/publish-checks";
 import type { SabiPreviewTarget } from "@/lib/sabi/preview";
 import {
   sabiExtraOf,
@@ -22,6 +20,8 @@ import { personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
 import { publicCardsByInvestor } from "@/lib/server/investor-profile";
+import { adjustmentHistory } from "@/lib/server/decide-ebitda-adjustment";
+import type { AdjustmentDecisionView } from "@/lib/ebitda-adjustments";
 import { readSabiStored } from "@/lib/server/sabi-import";
 import { getSabiDetail, type SabiDetailForm } from "@/lib/server/sabi-detail";
 import { sabiOwnershipSlices } from "@/lib/sabi/insights";
@@ -132,7 +132,6 @@ export type AdminCompanyView = {
   privateFacts: AdminPrivateFact[];
   status: "draft" | "pending" | "published";
   /** t75: what approval needs (seller list + our financial checks). */
-  publishChecks: { seller: PublishChecklist; admin: AdminPublishChecks } | null;
   accesses: AdminCompanyAccess[];
   selectedId: string | null;
   investor: { label: string; profile: PublicInvestorCard | null } | null;
@@ -219,6 +218,7 @@ export async function getAdminCompany(
           id: true,
           investorId: true,
           author: true,
+          advisorId: true,
           kind: true,
           body: true,
           createdAt: true,
@@ -314,10 +314,11 @@ export async function getAdminCompany(
           message.kind === "meeting"
             ? message.body
             : withoutAttachments(message.body),
-        authorLabel:
+        authorLabel: `${
           message.author === "seller"
             ? sellerParty(sellerName)
-            : investorParty(investorName),
+            : investorParty(investorName)
+        }${message.advisorId ? " · asesor" : ""}`,
         createdAt: when.format(message.createdAt),
       })),
     };
@@ -329,13 +330,13 @@ export async function getAdminCompany(
   const chosen = input.accessId
     ? (project.accesses.find((access) => access.id === input.accessId) ?? null)
     : null;
-  const [parties, sabiDetail, sabiRegistry, publishChecks] = await Promise.all([
+  const [parties, sabiDetail, sabiRegistry, history] = await Promise.all([
     chosen
       ? sideParties(project.id, chosen)
       : Promise.resolve({ investor: null, advisors: [] }),
     getSabiDetail(project.id),
     getSabiRegistry(project.id),
-    project.status === "published" ? Promise.resolve(null) : loadPublishChecks(project.id),
+    adjustmentHistory(project.id),
   ]);
 
   const stored = readSabiStored(project.sabiData)?.report ?? null;
@@ -418,10 +419,9 @@ export async function getAdminCompany(
     sabi,
     sabiDetail,
     sabiRegistry,
-    profile: withSabiCapital(toInvestorProject(project), sabiRegistry),
+    profile: withAdjustmentHistory(withSabiCapital(toInvestorProject(project), sabiRegistry), history),
     privateFacts,
     status: project.status,
-    publishChecks,
     accesses,
     selectedId: selected?.id ?? null,
     investor: parties.investor,
@@ -638,4 +638,18 @@ function withSabiCapital(
   }
 
   return { ...profile, capital: sabiOwnershipSlices(registry.shareholdings) };
+}
+
+/** S38: the admin sees who approved or rejected each adjustment row, and why. */
+function withAdjustmentHistory(
+  profile: InvestorProjectProfile,
+  history: Map<string, AdjustmentDecisionView[]>,
+): InvestorProjectProfile {
+  if (!profile.ebitdaAdjustments || history.size === 0) {
+    return profile;
+  }
+  return {
+    ...profile,
+    ebitdaAdjustments: profile.ebitdaAdjustments.map((row) => ({ ...row, history: history.get(row.id) ?? [] })),
+  };
 }
