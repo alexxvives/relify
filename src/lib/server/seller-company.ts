@@ -10,6 +10,7 @@ import { activeSellerChoice, sellerCompanyCookie } from "@/lib/seller-company";
 import { isValidSpanishCif, normalizeCif } from "@/lib/spanish-cif";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 import {
   dealPipeline,
   homePendingActions,
@@ -393,7 +394,8 @@ export async function addSellerCompany(
   const priorCount = await prisma.project.count({
     where: { ownerId: user.id, NOT: { cif: "" } },
   });
-  const needsPayment = priorCount > 0;
+  // S43: no listing payment during the free launch.
+  const needsPayment = priorCount > 0 && !launchFreeMode();
 
   const blank = await prisma.project.findFirst({
     where: { ownerId: user.id, cif: "" },

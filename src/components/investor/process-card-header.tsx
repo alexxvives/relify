@@ -27,16 +27,14 @@ export function ProcessCardHeader({ title, cue, actions }: { title: ReactNode; c
 export function ProcessCardActions({
   cancelAccessId,
   fichaHref,
-  unread = 0,
 }: {
   cancelAccessId: string | null;
   fichaHref: string;
-  unread?: number;
 }) {
   return (
     <>
       {cancelAccessId ? <CancelProcessButton accessId={cancelAccessId} iconOnPhone /> : null}
-      <ProcessFichaLink href={fichaHref} unread={unread} />
+      <ProcessFichaLink href={fichaHref} />
     </>
   );
 }

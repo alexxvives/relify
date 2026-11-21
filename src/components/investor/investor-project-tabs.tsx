@@ -1,57 +1,73 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Building2, Calendar, MessageCircle } from "lucide-react";
+import { BriefcaseBusiness, Building2, Calendar, MessageCircle, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import { companyCopy } from "@/lib/company-copy";
+import { legacyProcessTabs, type ProcessTabId } from "@/lib/process-tabs";
 
-const tabs = [
-  { id: "company", label: companyCopy.tabs.company, icon: Building2 },
-  { id: "questions", label: companyCopy.tabs.questions, icon: MessageCircle },
-  { id: "meetings", label: companyCopy.tabs.meetings, icon: Calendar },
-] as const;
+export type { ProcessTabId } from "@/lib/process-tabs";
 
-export type ProcessTabId = (typeof tabs)[number]["id"];
-type TabId = ProcessTabId;
+const tabIcons: Record<ProcessTabId, LucideIcon> = {
+  company: Building2,
+  questions: MessageCircle,
+  meetings: Calendar,
+  seller: Store,
+  buyers: Users,
+  buyer: UserRound,
+  advisor: BriefcaseBusiness,
+};
 
+/**
+ * The ficha tab row shared by buyer, seller, advisor and admin. S43: the tabs come from `ids` (per counterparty for
+ * the process fichas; admin keeps the original three). `actions` (the buyer filter) sits vertically centred at the
+ * right of the row.
+ */
 export function InvestorProjectTabs({
   panels,
+  ids = legacyProcessTabs,
   initialTab = "company",
   actions = null,
   notice = null,
   onTabChange,
 }: {
-  panels: Record<TabId, ReactNode>;
-  initialTab?: TabId;
-  /** t81: buttons at the right end of the tab row (admin SABI import, notify seller). */
+  panels: Partial<Record<ProcessTabId, ReactNode>>;
+  ids?: readonly ProcessTabId[];
+  initialTab?: ProcessTabId;
+  /** t81: buttons at the right end of the tab row (admin SABI import, notify seller, buyer filter). */
   actions?: ReactNode;
   /** t81: full-width block right under the tab row (SABI import progress and preview). */
   notice?: ReactNode;
   /** S40: the seller marks a chat read when its tab opens. */
-  onTabChange?: (tab: TabId) => void;
+  onTabChange?: (tab: ProcessTabId) => void;
 }) {
-  const [tab, setTabState] = useState<TabId>(initialTab);
-  const setTab = (next: TabId) => {
+  const [tab, setTabState] = useState<ProcessTabId>(ids.includes(initialTab) ? initialTab : "company");
+  const setTab = (next: ProcessTabId) => {
     setTabState(next);
     onTabChange?.(next);
   };
 
   return (
     <>
-      <div className={actions ? "flex flex-col-reverse gap-3 border-b border-[#e6e9f0] sm:flex-row sm:items-end sm:justify-between" : ""}>
+      <div className={actions ? "flex flex-col-reverse gap-3 border-b border-[#e6e9f0] sm:flex-row sm:items-center sm:justify-between" : ""}>
       <div className="min-w-0 overflow-x-auto">
-        <div role="tablist" aria-label={companyCopy.tabsLabel} className="grid grid-cols-3 gap-1 rounded-full bg-[#f4f6fb] p-1 lg:hidden">
-          {tabs.map((item) => {
-            const selected = tab === item.id;
+        <div
+          role="tablist"
+          aria-label={companyCopy.tabsLabel}
+          className="grid gap-1 rounded-full bg-[#f4f6fb] p-1 lg:hidden"
+          style={{ gridTemplateColumns: `repeat(${ids.length}, minmax(0, 1fr))` }}
+        >
+          {ids.map((id) => {
+            const selected = tab === id;
             return (
               <button
-                key={`compact-${item.id}`}
+                key={`compact-${id}`}
                 type="button"
                 role="tab"
-                id={`tab-${item.id}`}
+                id={`tab-${id}`}
                 aria-selected={selected}
-                aria-controls={`panel-${item.id}`}
+                aria-controls={`panel-${id}`}
                 onClick={() => {
-                  setTab(item.id);
+                  setTab(id);
                 }}
                 className={
                   selected
@@ -59,25 +75,25 @@ export function InvestorProjectTabs({
                     : "inline-flex h-11 items-center justify-center rounded-full px-2 text-sm text-[#5c6b78]"
                 }
               >
-                {companyCopy.tabsCompact[item.id]}
+                {companyCopy.tabsCompact[id]}
               </button>
             );
           })}
         </div>
         <div role="tablist" aria-label={companyCopy.tabsLabel} className={actions ? "hidden min-w-max gap-1 lg:flex" : "hidden min-w-max gap-1 border-b border-[#e6e9f0] lg:flex"}>
-          {tabs.map((item) => {
-            const selected = tab === item.id;
-            const Icon = item.icon;
+          {ids.map((id) => {
+            const selected = tab === id;
+            const Icon = tabIcons[id];
             return (
               <button
-                key={item.id}
+                key={id}
                 type="button"
                 role="tab"
-                id={`tab-desktop-${item.id}`}
+                id={`tab-desktop-${id}`}
                 aria-selected={selected}
-                aria-controls={`panel-${item.id}`}
+                aria-controls={`panel-${id}`}
                 onClick={() => {
-                  setTab(item.id);
+                  setTab(id);
                 }}
                 className={
                   selected
@@ -86,13 +102,14 @@ export function InvestorProjectTabs({
                 }
               >
                 <Icon className="size-4" aria-hidden />
-                {item.label}
+                {companyCopy.tabs[id]}
               </button>
             );
           })}
         </div>
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2 pb-2 sm:justify-end">{actions}</div> : null}
+      {/* S43 (Alex): the filter is centred on the tab row, not dropped to its bottom edge. */}
+      {actions ? <div className="flex flex-wrap items-center gap-2 py-1 sm:justify-end" data-tab-actions>{actions}</div> : null}
       </div>
       {notice}
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>

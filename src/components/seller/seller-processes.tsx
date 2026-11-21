@@ -1,28 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { X } from "lucide-react";
-import { useActionState, useEffect, useRef, useState, useId } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { acceptSellerBuyerAction } from "@/app/(app)/mi-empresa/procesos/actions";
-import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { AcceptLoiButton, DealPipeline, ProcessHeaderCue } from "@/components/investor/deal-pipeline";
 import { CancelProcessButton } from "@/components/investor/cancel-process-button";
 import { ProcessCardActions, ProcessCardHeader } from "@/components/investor/process-card-header";
 import { LiveRefresh } from "@/components/shell/live-refresh";
+import { jumpToAnchor } from "@/components/shell/deep-link-marker";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
-import { DeskToggles } from "@/components/shell/desk-toggles";
 import { billingCopy } from "@/lib/billing-copy";
 import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/project-message";
 import { unreadCount } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
-import { engagementCopy } from "@/lib/engagement-copy";
 import { processTurnActions } from "@/lib/deal-pipeline";
-import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy, upcomingMeetingsTitle } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
 
 /** S42 (Alex): connection requests and per-process tasks share one row style in Acciones pendientes. */
+/** S43: the in-page anchor of a process card (Acciones pendientes jumps to it). */
+function processCardId(accessId: string): string {
+  return `proceso-${accessId}`;
+}
+
 const pendingRowClass = "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e6e9f0] bg-white px-3 py-2";
 const pendingButtonClass =
   "inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]";
@@ -81,16 +82,12 @@ function ThreadList({
   threads,
   emptyTitle,
   emptyBody,
-  today,
-  advisors,
   companyName = "",
   elsewhere = null,
 }: {
   threads: SellerThread[];
   emptyTitle: string;
   emptyBody: string;
-  today: string;
-  advisors: AdvisorContactView[];
   companyName?: string;
   elsewhere?: string | null;
 }) {
@@ -110,7 +107,7 @@ function ThreadList({
   }
 
   const card = (thread: SellerThread) => (
-    <ThreadCard thread={thread} today={today} advisors={advisors.filter((advisor) => advisor.slug === thread.slug)} />
+    <ThreadCard thread={thread} />
   );
 
   return (
@@ -194,16 +191,13 @@ function InvestorProfileDialog({
   );
 }
 
-function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: string; advisors: AdvisorContactView[] }) {
-  // S40 (Alex): Chat / Documentos and Reuniones moved to the process ficha as tabs; only the Asesor desk stays here.
-  const [desk, setDesk] = useState<"advisor" | null>(null);
-  const deskId = useId();
+function ThreadCard({ thread }: { thread: SellerThread }) {
+  // S40 (Alex): the conversations live in the process ficha. S43: the Asesor thread too (its own ficha tab).
   const chat = thread.messages.filter((message) => message.kind === "question");
   const unread = unreadCount(chat, thread.lastReadAt ?? null);
   const offer = thread.messages.find((message) => message.kind === "offer");
   const loiPending = thread.steps.some((step) => step.state === "current" && step.pendingLoi === true) && offer !== undefined;
-  const expandable = thread.stage === "open";
-  const fichaHref = `/mi-empresa/procesos/${thread.accessId}${unread > 0 ? "?pestana=questions" : ""}`;
+  const fichaHref = `/mi-empresa/procesos/${thread.accessId}${unread > 0 ? "?pestana=buyers" : ""}`;
   if (thread.stage === "pending") {
     return (
       <InvestorPublicCard
@@ -224,9 +218,13 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
   }
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card id={processCardId(thread.accessId)} className="flex scroll-mt-24 flex-col gap-4">
       <ProcessCardHeader
-        title={<h2 className="text-lg font-semibold text-[#2b3b4a]">{thread.label}</h2>}
+        title={
+          <h2 className="text-lg font-semibold text-[#2b3b4a]">
+            <span data-field-title>{thread.label}</span>
+          </h2>
+        }
         cue={
           <ProcessHeaderCue
             steps={thread.steps}
@@ -244,33 +242,10 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
           <ProcessCardActions
             cancelAccessId={thread.contract?.stage === "signed" ? null : thread.accessId}
             fichaHref={fichaHref}
-            unread={unread}
           />
         }
       />
       <DealPipeline steps={thread.steps} role="seller" hideAsideCue />
-      {expandable && thread.advisorHired ? (
-        <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-          <DeskToggles
-            label={thread.codename}
-            controls={deskId}
-            tabs={[{ id: "advisor" as const, label: "Asesor" }]}
-            value={desk}
-            onChange={setDesk}
-          />
-          <div id={deskId} hidden={desk === null}>
-          {desk === "advisor" && thread.advisorHired ? (
-            advisors.length > 0 ? (
-              <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
-            ) : (
-              <Link href={`/mi-empresa/servicios?empresa=${thread.slug}`} className="text-sm font-medium text-[#465ab4]">
-                {engagementCopy.contactAdvisor}
-              </Link>
-            )
-          ) : null}
-          </div>
-        </div>
-      ) : null}
     </Card>
   );
 }
@@ -278,16 +253,12 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
 export function SellerProcesses({
   threads,
   pendingMatches,
-  today,
-  advisors = [],
   companyName = "",
   elsewhere = null,
 }: {
   threads: SellerThread[];
   counts: MessageCounts;
   pendingMatches: PendingMatch[];
-  today: string;
-  advisors?: AdvisorContactView[];
   companyName?: string;
   elsewhere?: string | null;
 }) {
@@ -314,9 +285,17 @@ export function SellerProcesses({
                         <span className="block text-sm font-medium text-[#1c2740]">{turn.label}</span>
                         <span className="block text-sm text-[#5c6b78]">{turn.action}</span>
                       </span>
-                      <Link href={`/mi-empresa/procesos/${turn.accessId}`} className={pendingButtonClass}>
+                      {/* S43 (Alex): scrolls to that process card here and marks its title (no page change). */}
+                      <a
+                        href={`/mi-empresa/procesos/${turn.accessId}`}
+                        className={pendingButtonClass}
+                        data-jump-process
+                        onClick={(event) => {
+                          if (jumpToAnchor(processCardId(turn.accessId))) event.preventDefault();
+                        }}
+                      >
                         {sellerCopy.openProcess}
-                      </Link>
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -341,8 +320,6 @@ export function SellerProcesses({
           threads={threads}
           emptyTitle={sellerCopy.activeEmpty}
           emptyBody={sellerCopy.activeEmptyBody}
-          today={today}
-          advisors={advisors}
           companyName={companyName}
           elsewhere={elsewhere}
         />

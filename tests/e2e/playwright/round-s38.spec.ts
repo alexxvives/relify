@@ -18,8 +18,9 @@ test.describe("S38 asesor", () => {
     test.skip((await link.count()) === 0, "No paid encargos for this advisor");
     await link.click();
     await page.waitForURL(/\/mandatos\/venta\//);
-    await page.locator('[role="tab"][aria-controls="panel-questions"]:visible').first().click();
-    await expect(page.locator('[role="tabpanel"]#panel-questions')).toBeVisible();
+    // S43: the advisor's counterparty tabs are Comprador and Vendedor.
+    await page.locator('[role="tab"][aria-controls="panel-buyer"]:visible').first().click();
+    await expect(page.locator('[role="tabpanel"]#panel-buyer')).toBeVisible();
     const overlay = page.locator("[data-advisor-buyer-overlay]");
     if (await overlay.count()) {
       const box = await overlay.boundingBox();

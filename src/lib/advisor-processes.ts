@@ -1,3 +1,4 @@
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
 import { advisorCopy } from "./advisor-copy";
 import { dealPipeline, processFlags, stepCue, type DealStep, type StepCue } from "./deal-pipeline";
 import { labelAccesses } from "./project-message";
@@ -181,7 +182,7 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
     } else if (lanes.length === 0 && seller && !seller.processOpened) {
       note = advisorCopy.processesWait;
     } else if (lanes.length === 0 && depositPending) {
-      note = advisorCopy.processesDeposit;
+      note = launchFreeMode() ? launchFreeCopy.depositProgress : advisorCopy.processesDeposit;
     } else if (lanes.length === 0) {
       note = advisorCopy.processesNone;
     }

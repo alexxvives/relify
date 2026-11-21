@@ -15,6 +15,7 @@ import { personName } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 import { dataRoomStoredIds } from "@/lib/server/data-room-disk";
 import { investorVisibleFiles } from "@/lib/server/investor-visible-files";
 import { recordNotification } from "@/lib/server/record-notification";
@@ -395,6 +396,7 @@ async function notifyOther(row: {
   side: Side;
   id: string;
   client: "investor" | "seller";
+  slug: string;
 }): Promise<void> {
   const toAdvisor = row.side === "client";
 
@@ -408,11 +410,16 @@ async function notifyOther(row: {
       ? `/mandatos/venta/${row.id}`
       : row.client === "seller"
         ? "/mi-empresa/procesos"
-        : "/procesos",
+        : // S43: the buyer's advisor thread is the Asesor tab of the company ficha.
+          `/proyectos/${row.slug}?tab=advisor`,
   });
 }
 
 async function advisorSubscribed(userId: string): Promise<boolean> {
+  // S43: the free launch waives the advisor subscription.
+  if (launchFreeMode()) {
+    return true;
+  }
   const row = await prisma.billingCustomer.findUnique({
     where: { userId },
     select: { advisorInbox: true },

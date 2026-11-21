@@ -7,91 +7,92 @@ import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { BuyerFilter } from "@/components/investor/buyer-filter";
 import { InvestorProjectTabs, type ProcessTabId } from "@/components/investor/investor-project-tabs";
 import { MeetingDesk } from "@/components/investor/meeting-desk";
-import { ProcessChatLayout } from "@/components/investor/process-chat-layout";
+import { CounterpartyPanel } from "@/components/investor/process-chat-layout";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
+import { advisorPrivateTab, counterpartyTabIds } from "@/lib/process-tabs";
 import type { AdvisorProcessChats } from "@/lib/server/advisor-process-chat";
 
-const clientValue = "client";
+export type AdvisorDeskLocks = { chat: ReactNode; documents: ReactNode; meetings: ReactNode };
+
+function EmptyCard({ text }: { text: string }) {
+  return <div className="h-full rounded-2xl border border-[#e6e9f0] bg-white p-5 text-sm leading-6 text-[#64748b]">{text}</div>;
+}
 
 /**
- * S40 (Alex): the advisor's encargo uses the buyer's process tabs. Chat / Documentos holds the conversation picked in
- * the filter at the right of the tab row (the client, or each buyer's process chat for a seller-hired advisor) next to
- * the documents; Reuniones holds the meetings with the client. Every panel only receives what the server already
- * allowed for this advisor (paid encargo, signed NDA).
+ * S43 (Alex t184u): the advisor's encargo has Información de la empresa, Comprador and Vendedor. The client's tab
+ * (Comprador when a buyer hired the advisor, Vendedor when the seller did) is the private 1:1 thread with the client;
+ * the other one is the shared process chat (buyer + seller + advisor, marked "Asesor") with the process documents
+ * and its meetings (read-only). A seller's advisor picks the buyer in the filter of the Comprador tab. Every panel
+ * only receives what the server already allowed (own encargo, accepted, NDA for documents); `locks` replaces the
+ * three sections while the encargo is not accepted.
  */
 export function AdvisorProcessDesk({
   engagementId,
+  hiredBy,
   company,
   documents,
-  locked,
+  locks,
   thread,
   processChats,
   today,
   overlay = null,
 }: {
   engagementId: string;
+  hiredBy: "investor" | "seller";
   company: ReactNode;
   documents: ReactNode;
-  locked: ReactNode;
+  locks: AdvisorDeskLocks | null;
   thread: AdvisorContactView | null;
   processChats: AdvisorProcessChats | null;
   today: string;
-  /** S41 (Alex): the buyer card overlay; open on entry, minimised once the advisor moves to Chat or Reuniones. */
+  /** S41 (Alex): the buyer card overlay; open on entry, minimised once the advisor leaves the company tab. */
   overlay?: ReactNode;
 }) {
   const chats = processChats?.chats ?? [];
-  const options = [
-    ...(thread ? [{ value: clientValue, label: engagementCopy.filterClient }] : []),
-    ...chats.map((chat) => ({ value: chat.accessId, label: chat.label })),
-  ];
-  const [selected, setSelected] = useState(chats[0]?.accessId ?? (thread ? clientValue : ""));
+  const [selected, setSelected] = useState(chats[0]?.accessId ?? "");
   const [tab, setTab] = useState<ProcessTabId>("company");
-  const active = chats.find((chat) => chat.accessId === selected) ?? null;
+  const active = chats.find((chat) => chat.accessId === selected) ?? chats[0] ?? null;
+  const privateTab = advisorPrivateTab(hiredBy);
+  const sharedTab = privateTab === "buyer" ? "seller" : "buyer";
+  const options = chats.map((chat) => ({ value: chat.accessId, label: chat.label }));
 
-  const chat =
-    selected === clientValue && thread ? (
-      <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned meetings={false} />
-    ) : active && processChats ? (
-      <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
-        <AdvisorProcessThread engagementId={engagementId} side={processChats.side} chat={active} />
-      </div>
+  const lockedPanel = locks ? <CounterpartyPanel bare chat={locks.chat} documents={locks.documents} meetings={locks.meetings} /> : null;
+  const privatePanel =
+    lockedPanel ??
+    (thread ? (
+      <AdvisorContactDesk contacts={[thread]} today={today} stacked />
     ) : (
-      <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5 text-sm text-[#64748b]">{engagementCopy.processChatsEmpty}</div>
-    );
-
-  // S42 (Alex): Reuniones shows the picked buyer process's meetings (read-only; the server scopes them like the chat)
-  // and, below, the private meetings with the client. "Tu cliente" shows only the latter.
-  const clientMeetings = thread ? (
-    <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned only="meetings" />
-  ) : null;
-  const meetings = (
-    <div className="flex flex-col gap-6">
-      {active ? (
-        <section className="flex flex-col gap-3" data-process-meetings>
-          <h3 className="text-base font-semibold text-[#1c2740]">{engagementCopy.processMeetingsTitle(processChats?.side === "seller" ? active.label : null)}</h3>
-          <MeetingDesk key={active.accessId} messages={active.meetings} hidden={[]} today={today} />
-        </section>
-      ) : null}
-      {clientMeetings ? (
-        <section className="flex flex-col gap-3" data-client-meetings>
-          {active ? <h3 className="text-base font-semibold text-[#1c2740]">{engagementCopy.clientMeetingsTitle}</h3> : null}
-          {clientMeetings}
-        </section>
-      ) : null}
-    </div>
+      <EmptyCard text={engagementCopy.privateChatEmpty} />
+    ));
+  const sharedPanel = lockedPanel ?? (
+    <CounterpartyPanel
+      bare
+      chat={
+        active && processChats ? (
+          <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
+            <AdvisorProcessThread engagementId={engagementId} side={processChats.side} chat={active} />
+          </div>
+        ) : (
+          <EmptyCard text={engagementCopy.sharedChatEmpty} />
+        )
+      }
+      documents={documents}
+      meetings={active ? <MeetingDesk key={active.accessId} messages={active.meetings} hidden={[]} today={today} /> : null}
+    />
   );
 
   return (
     <>
     <InvestorProjectTabs
+      ids={counterpartyTabIds("advisor")}
       onTabChange={setTab}
-      // S42 (Alex): meetings differ per buyer, so the filter drives Reuniones too.
-      actions={tab !== "company" ? <BuyerFilter value={selected} options={options} onChange={setSelected} /> : null}
+      // S43: the buyer filter belongs to the shared Comprador tab of a seller's advisor with several buyers.
+      actions={tab === sharedTab && options.length > 1 ? <BuyerFilter value={active?.accessId ?? ""} options={options} onChange={setSelected} /> : null}
       panels={{
         company,
-        questions: thread || processChats ? <ProcessChatLayout bare chat={chat} documents={documents} /> : locked,
-        meetings: thread || active ? meetings : locked,
+        [privateTab]: privatePanel,
+        [sharedTab]: sharedPanel,
       }}
     />
     {overlay ? <BuyerCardOverlay autoFold={tab !== "company"}>{overlay}</BuyerCardOverlay> : null}

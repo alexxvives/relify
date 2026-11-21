@@ -10,11 +10,14 @@ import type { AdvisorProcessChats as AdvisorProcessChatsData } from "@/lib/serve
 import { AdvisorProcessDesk } from "@/components/advisor/advisor-process-desk";
 import { FichaLockedNote } from "@/components/company/company-ficha-view";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
-import { Card } from "@/components/ui/form";
+import { ProcessRoom } from "@/components/investor/deal-pipeline";
+import type { ProcessFile } from "@/lib/deal-pipeline";
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
+import { sellerCopy } from "@/lib/seller-copy";
 
 function lockNote(engagement: AdvisorEngagementPage): string {
   if (!engagement.deposit.paid) {
-    return engagement.closed ? engagementCopy.figuresClosed : engagementCopy.figuresNeedDeposit;
+    return engagement.closed ? engagementCopy.figuresClosed : launchFreeMode() ? engagementCopy.figuresNeedAccept : engagementCopy.figuresNeedDeposit;
   }
 
   if (engagement.ndaText) {
@@ -49,9 +52,44 @@ export function AdvisorEngagementView({
   ) : engagement.ndaText ? (
     <AdvisorNdaButton engagementId={engagement.id} text={engagement.ndaText} />
   ) : null;
+  const free = launchFreeMode();
   const turn = action
-    ? { action: showDeposit ? engagementCopy.depositTurn : engagementCopy.ndaTurn, cta: action }
+    ? { action: showDeposit ? (free ? launchFreeCopy.depositTurn : engagementCopy.depositTurn) : engagementCopy.ndaTurn, cta: action }
     : undefined;
+  // S43 (Alex): while the encargo is not accepted each section says what the deposit opens (accepting, in the free launch).
+  const lockCopy = free ? engagementCopy.acceptLock : engagementCopy.depositLock;
+  const locks = engagement.deposit.paid
+    ? null
+    : engagement.closed
+      ? {
+          chat: <FichaLockedNote text={engagementCopy.figuresClosed} />,
+          documents: <FichaLockedNote text={engagementCopy.figuresClosed} />,
+          meetings: null,
+        }
+      : {
+          chat: <FichaLockedNote text={lockCopy.chat} action={action ?? undefined} />,
+          documents: <FichaLockedNote text={lockCopy.documents} action={action ?? undefined} />,
+          meetings: <FichaLockedNote text={lockCopy.meetings} action={action ?? undefined} />,
+        };
+  // S43 (Alex): the same "Documentación" card as the seller's ficha: what this advisor may open (NDA-gated by the server).
+  const files: ProcessFile[] =
+    engagement.view === "investor"
+      ? engagement.documents.map((file) => ({ id: file.id, folder: file.folder, fileName: file.fileName, stored: true, visible: true }))
+      : engagement.view === "seller"
+        ? engagement.folders.flatMap((folder) => folder.files.map((file) => ({ id: file.id, folder: folder.name, fileName: file.fileName, stored: true, visible: true })))
+        : [];
+  const documents =
+    engagement.view === "public" ? (
+      <FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} />
+    ) : (
+      <ProcessRoom
+        files={files}
+        bodies={[]}
+        nda={false}
+        contractHref={engagement.contract?.signedHref ?? null}
+        empty={sellerCopy.documentsEmpty}
+      />
+    );
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,7 +113,8 @@ export function AdvisorEngagementView({
             processChats={processChats}
             today={today}
             overlay={hasBuyers ? <BuyerCardSlider buyers={engagement.buyers} /> : null}
-            locked={<FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} />}
+            hiredBy={engagement.hiredByInvestor ? "investor" : "seller"}
+            locks={locks}
             company={
               <>
               {engagement.profile ? (
@@ -89,74 +128,10 @@ export function AdvisorEngagementView({
               ) : null}
               </>
             }
-            documents={
-              <>
-              {engagement.view === "investor" ? (
-                <Card>
-                  <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.documentsTitle}</h2>
-                  {engagement.documents.length === 0 ? (
-                    <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.documentsEmpty}</p>
-                  ) : (
-                    <ul className="mt-4 grid gap-2">
-                      {engagement.documents.map((file) => (
-                        <li key={file.id}>
-                          <a className="text-sm font-medium text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
-                            {file.folder} · {file.fileName}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-              ) : null}
-              {engagement.view === "seller" ? (
-                <Card>
-                  <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
-                  {engagement.folders.length === 0 ? (
-                    <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.sellerWait}</p>
-                  ) : null}
-                  <ul className="mt-4 grid gap-3">
-                    {engagement.folders.map((folder) => (
-                      <li key={folder.name} className="rounded-2xl bg-[#f7f8fb] p-4">
-                        <h3 className="text-base font-semibold">{folder.name}</h3>
-                        {folder.files.length === 0 ? <p className="mt-2 text-sm text-[#64748b]">Sin archivos</p> : null}
-                        <ul className="mt-2 grid gap-1">
-                          {folder.files.map((file) => (
-                            <li key={file.id}>
-                              <a className="text-sm text-[#465ab4]" href={`/mi-empresa/documentos/archivo/${file.id}`}>
-                                {file.fileName}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                  <h3 className="mt-6 text-lg font-semibold">{engagementCopy.processTitle}</h3>
-                  {engagement.processOpened ? (
-                    <ol className="mt-3 grid gap-2">
-                      {engagementCopy.steps.map((step) => (
-                        <li key={step} className="rounded-xl bg-[#f7f8fb] px-3 py-2 text-sm">
-                          {step}
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className="mt-2 text-sm text-[#64748b]">{engagementCopy.processClosed}</p>
-                  )}
-                  {engagement.contract?.signedHref ? (
-                    <a className="mt-4 inline-flex text-sm font-medium text-[#465ab4]" href={engagement.contract.signedHref}>
-                      {engagementCopy.signedContract}
-                    </a>
-                  ) : null}
-                </Card>
-              ) : null}
-                {engagement.view === "public" ? <FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} /> : null}
-              </>
-            }
+            documents={documents}
           />
           {engagement.deposit.paid ? (
-            <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
+            <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} agreedFee={engagement.agreedFee} />
           ) : null}
         </div>
       </div>

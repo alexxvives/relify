@@ -85,6 +85,21 @@ export const engagementCopy = {
     "La comisión de Relify (15 % de tus honorarios) se calcula aparte al cerrar el encargo.",
   ],
   figuresNeedDeposit: "Paga el depósito para ver estas cifras.",
+  /** S43 (Alex): each locked section says what the deposit opens. */
+  depositLock: {
+    chat: "Paga el depósito para acceder al chat.",
+    documents: "Paga el depósito para acceder a los documentos.",
+    meetings: "Paga el depósito para acceder a las reuniones.",
+  },
+  /** S43: the same locks during the free launch, where accepting the encargo is free. */
+  acceptLock: {
+    chat: "Acepta el encargo para acceder al chat.",
+    documents: "Acepta el encargo para acceder a los documentos.",
+    meetings: "Acepta el encargo para acceder a las reuniones.",
+  },
+  figuresNeedAccept: "Acepta el encargo para ver estas cifras.",
+  sharedChatEmpty: "Aún no hay conversación abierta. Aparece cuando el vendedor acepta al comprador y se firma el NDA.",
+  privateChatEmpty: "La conversación con tu cliente se abre al aceptar el encargo.",
   figuresClosed: "Este encargo ya está cerrado.",
   depositDecline: "Rechazar solicitud",
   depositDeclineAsk: "¿Estás seguro?",
@@ -132,9 +147,13 @@ export const engagementCopy = {
   accessTitle: "Acceso del asesor",
   noAdvisorYet: "Cuando un asesor coja el encargo podrás abrirle carpetas y el proceso.",
   closeJob: "Cerrar encargo",
-  closeJobHint:
-    "Escribe lo que cobras por este trabajo. Relify guarda el 15 % de esa cifra, más el 21 % de IVA sobre ese 15 %. No se cobra en este paso y no es un porcentaje del precio de la empresa.",
+  /** S43 (Alex): the fee comes from the advisor's published prices; one short note. */
+  closeJobHint: "Relify cobra el 15 % + IVA de esa cifra.",
   chargedLabel: "Honorarios del encargo (€)",
+  agreedFeeLabel: "Honorarios del encargo",
+  agreedFeeSource: "Según tus precios publicados para los servicios contratados.",
+  agreedFeeRange: "Tus precios publicados para estos servicios son un rango: es el importe mínimo.",
+  feeVariable: "Hay una parte variable o de éxito (el importe final es otro)",
   feeStored: "Encargo cerrado. La comisión queda registrada y no se ha cobrado.",
   feeInvalid: "Escribe los honorarios en euros.",
   feeLabel: "Comisión del encargo registrada",

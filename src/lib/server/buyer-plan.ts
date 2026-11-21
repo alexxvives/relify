@@ -5,6 +5,7 @@ import {
   type BuyerPlanName,
 } from "@/lib/billing";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 
 export type BuyerPlanState = {
   plan: BuyerPlanName;
@@ -12,7 +13,17 @@ export type BuyerPlanState = {
   periodEnd: Date | null;
 };
 
+/** The central buyer entitlement. S43: during the free launch every buyer has the unlimited plan (no Stripe, no row). */
 export async function loadBuyerPlan(userId: string): Promise<BuyerPlanState> {
+  if (launchFreeMode()) {
+    return { plan: "unlimited", periodStart: null, periodEnd: null };
+  }
+
+  return loadStoredBuyerPlan(userId);
+}
+
+/** The plan actually paid in Stripe (billing row), whatever the launch flag says. S43: a real subscriber can still manage it. */
+export async function loadStoredBuyerPlan(userId: string): Promise<BuyerPlanState> {
   const row = await prisma.billingCustomer.findUnique({
     where: { userId },
     select: { plan: true, periodStart: true, periodEnd: true },

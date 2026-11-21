@@ -134,13 +134,15 @@ export async function closeEngagementAction(
 ): Promise<EngagementActionState> {
   const user = await signedIn();
   const price = readText(formData, "price");
+  // S43: the published price is read on the server; a typed amount only counts with a variable / success part.
+  const custom = formData.get("custom") === "1";
 
-  if (!/^\d+(,\d{1,2})?$/.test(price)) {
+  if (price !== "" && !/^\d+(,\d{1,2})?$/.test(price)) {
     return { ok: false, message: engagementCopy.feeInvalid };
   }
 
   const id = readText(formData, "engagementId");
-  const result = await closeEngagement(user, id, eurosToCents(price));
+  const result = await closeEngagement(user, id, price === "" ? null : eurosToCents(price), custom);
 
   if (result.ok) {
     revalidatePath(`/mandatos/encargos/${id}`);

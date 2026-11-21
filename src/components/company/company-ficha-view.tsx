@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { CompanyBanner } from "@/components/seller/company-banner";
 import { InvestorProjectTabs } from "@/components/investor/investor-project-tabs";
 import type { SectorImageKey } from "@/lib/sector-image";
+import type { ProcessTabId } from "@/lib/process-tabs";
 
 export function CompanyFichaView({
   title,
@@ -14,6 +15,7 @@ export function CompanyFichaView({
   bannerExtra = null,
   afterBanner = null,
   tabs,
+  tabIds,
   initialTab = "company",
 }: {
   title: string;
@@ -25,12 +27,10 @@ export function CompanyFichaView({
   favorite: ReactNode;
   bannerExtra?: ReactNode;
   afterBanner?: ReactNode;
-  tabs: {
-    company: ReactNode;
-    questions: ReactNode;
-    meetings: ReactNode;
-  };
-  initialTab?: "company" | "questions" | "meetings";
+  tabs: Partial<Record<ProcessTabId, ReactNode>>;
+  /** S43: the counterparty tabs; defaults to the original company / chat / meetings row. */
+  tabIds?: readonly ProcessTabId[];
+  initialTab?: ProcessTabId;
 }) {
   return (
     <div data-company-ficha-view className="flex w-full min-w-0 flex-col gap-6">
@@ -39,7 +39,7 @@ export function CompanyFichaView({
         {bannerExtra}
       </CompanyBanner>
       {afterBanner}
-      <InvestorProjectTabs initialTab={initialTab} panels={tabs} />
+      <InvestorProjectTabs ids={tabIds} initialTab={initialTab} panels={tabs} />
     </div>
   );
 }

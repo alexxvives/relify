@@ -13,6 +13,8 @@ import {
   startAdvisorDepositAction,
 } from "@/app/(app)/mandatos/encargos/actions";
 import { engagementCopy } from "@/lib/engagement-copy";
+import { launchFreeCopy } from "@/lib/launch-mode";
+import { LaunchFreeBadge, useLaunchFree } from "@/components/shell/launch-free";
 import { keepUnsignedEuro } from "@/lib/numeric-input";
 import { Button, Card, Input } from "@/components/ui/form";
 
@@ -30,6 +32,7 @@ export function AdvisorDepositButton({
   priceLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const free = useLaunchFree();
 
   return (
     <>
@@ -41,7 +44,7 @@ export function AdvisorDepositButton({
         className={stepCtaClass}
         data-advisor-deposit-button
       >
-        {engagementCopy.depositPay}
+        {free ? launchFreeCopy.depositAccept : engagementCopy.depositPay}
       </button>
       {open ? (
         <AdvisorDepositDialog
@@ -72,6 +75,8 @@ function AdvisorDepositDialog({
   const [state, action, pending] = useActionState(startAdvisorDepositAction, null);
   const [declineState, declineAction, declining] = useActionState(declineEngagementAction, null);
   const [confirmDecline, setConfirmDecline] = useState(false);
+  // S43: in the free launch the same popup accepts the encargo without the deposit (the server waives it, no Stripe).
+  const free = useLaunchFree();
   useModalScrollLock(true);
 
   useEffect(() => {
@@ -94,14 +99,17 @@ function AdvisorDepositDialog({
       data-advisor-deposit-dialog
     >
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-2xl font-semibold tracking-tight">{engagementCopy.depositTitle}</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">{free ? launchFreeCopy.depositTitle : engagementCopy.depositTitle}</h2>
         <form method="dialog">
           <button type="submit" aria-label="Cerrar" className="inline-flex size-9 items-center justify-center rounded-lg text-[#5c6b78] hover:bg-[#f2f4f7]">
             <X className="size-4" aria-hidden />
           </button>
         </form>
       </div>
-      <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{engagementCopy.depositBody}</p>
+      <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{free ? launchFreeCopy.depositBody : engagementCopy.depositBody}</p>
+      {free ? <LaunchFreeBadge className="mt-4" /> : null}
+      {free ? null : (
+      <>
       <dl className="mt-4 overflow-hidden rounded-xl border border-[#e6eaf5]">
         {rows.map((row) => (
           <div key={row.label} className="flex items-start justify-between gap-4 border-t border-[#e6eaf5] px-4 py-3 text-sm first:border-t-0">
@@ -118,6 +126,8 @@ function AdvisorDepositDialog({
           </li>
         ))}
       </ul>
+      </>
+      )}
       {confirmDecline ? (
         <div className="mt-5 rounded-xl bg-[#fff5f5] p-4">
           <p className="text-sm font-semibold">{engagementCopy.depositDeclineAsk}</p>
@@ -146,7 +156,7 @@ function AdvisorDepositDialog({
           <form action={action}>
             <input type="hidden" name="engagementId" value={engagementId} />
             <Button type="submit" disabled={pending} className="rounded-full text-sm">
-              {pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
+              {free ? (pending ? launchFreeCopy.depositAccepting : launchFreeCopy.depositAccept) : pending ? engagementCopy.depositPaying : engagementCopy.depositPay}
             </Button>
           </form>
         </div>
@@ -270,33 +280,57 @@ export function AdvisorCloseForm({
   engagementId,
   closed,
   feeLabel,
+  agreedFee = null,
 }: {
   engagementId: string;
   closed: boolean;
   feeLabel: string | null;
+  /** S43 (Alex): the fee from the advisor's published prices; read-only unless a variable / success part changes it. */
+  agreedFee?: { cents: number; label: string; fixed: boolean } | null;
 }) {
   const [state, action, pending] = useActionState(closeEngagementAction, null);
+  const [custom, setCustom] = useState(agreedFee === null);
+  const typed = agreedFee ? String(agreedFee.cents / 100).replace(".", ",") : "";
 
   return (
     <Card>
       <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.closeJob}</h2>
-      <p className="mt-1 text-sm text-[#64748b]">{engagementCopy.closeJobHint}</p>
       {closed ? (
         <p className="mt-3 text-sm text-[#17663a]">
           {engagementCopy.feeStored}
           {feeLabel ? ` ${feeLabel}.` : ""}
         </p>
       ) : (
-        <form action={action} className="mt-4 flex flex-col items-start gap-2">
-          <label className="text-sm">
-            {engagementCopy.chargedLabel}
-            <Input
-              name="price"
-              required
-              inputMode="decimal"
-              onChange={keepEuro}
-            />
-          </label>
+        <form action={action} className="mt-4 flex flex-col items-start gap-3" data-close-form>
+          {agreedFee ? (
+            <div className="flex flex-col gap-1" data-agreed-fee>
+              <span className="text-sm text-[#5c6b78]">{engagementCopy.agreedFeeLabel}</span>
+              <span className="text-2xl font-semibold text-[#1c2740] tabular-nums">{agreedFee.label}</span>
+              <span className="text-xs text-[#667085]">{agreedFee.fixed ? engagementCopy.agreedFeeSource : engagementCopy.agreedFeeRange}</span>
+            </div>
+          ) : null}
+          {agreedFee ? (
+            <label className="flex items-center gap-2 text-sm text-[#3d4a63]">
+              <input
+                type="checkbox"
+                name="custom"
+                value="1"
+                checked={custom}
+                onChange={(event) => {
+                  setCustom(event.currentTarget.checked);
+                }}
+                className="size-4 accent-[#465ab4]"
+              />
+              {engagementCopy.feeVariable}
+            </label>
+          ) : null}
+          {custom ? (
+            <label className="text-sm">
+              {engagementCopy.chargedLabel}
+              <Input name="price" required inputMode="decimal" defaultValue={typed} onChange={keepEuro} />
+            </label>
+          ) : null}
+          <p className="text-sm text-[#64748b]">{engagementCopy.closeJobHint}</p>
           <input type="hidden" name="engagementId" value={engagementId} />
           <button type="submit" disabled={pending} className="inline-flex h-11 items-center rounded-full border border-[#d0d5dd] px-4 text-sm">
             {pending ? "Guardando…" : engagementCopy.closeJob}

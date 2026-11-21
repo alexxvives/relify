@@ -24,11 +24,12 @@ import { getBuyerRegistry } from "@/lib/server/sabi-registry";
 import { getProjectAccess } from "@/lib/server/get-project-access";
 import { listFavoriteSlugs } from "@/lib/server/toggle-project-favorite";
 import { listProjectMessages } from "@/lib/server/list-project-messages";
+import { listClientContacts } from "@/lib/server/engagement-thread";
+import { counterpartyTabIds, readProcessTab } from "@/lib/process-tabs";
 import { getPublicProject } from "@/lib/server/get-public-project";
 import { listPublicProjects } from "@/lib/server/list-public-projects";
 import { recordProjectView } from "@/lib/server/project-views";
 
-type ProjectTab = "company" | "questions" | "meetings";
 
 function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
   if (steps.length > 0) {
@@ -51,16 +52,6 @@ function bannerSteps(access: ProjectAccessView, steps: DealStep[]): DealStep[] {
       closed: false,
     }),
   );
-}
-
-function readTab(value: string | string[] | undefined): ProjectTab {
-  const tab = Array.isArray(value) ? value[0] : value;
-
-  if (tab === "company" || tab === "questions" || tab === "meetings") {
-    return tab;
-  }
-
-  return "company";
 }
 
 export async function generateMetadata({
@@ -95,7 +86,7 @@ async function InvestorProjectContent({
   if (!profile) {
     notFound();
   }
-  const [published, access, favorites, messages, billing, profileComplete] = await Promise.all([
+  const [published, access, favorites, messages, billing, profileComplete, contacts] = await Promise.all([
     // Recorded alongside the reads so the Worker doesn't drop the write after responding.
     recordProjectView(user.id, slug).then(() => listPublicProjects()),
     getProjectAccess(user, slug),
@@ -103,7 +94,10 @@ async function InvestorProjectContent({
     listProjectMessages(user, slug),
     buyerMatchBudget(user.id),
     buyerProfileComplete(user.id, user.email),
+    listClientContacts(user),
   ]);
+  // S43: the buyer's own advisor thread for this company (listClientContacts only returns the buyer's encargos).
+  const advisors = contacts.filter((row) => row.slug === profile.slug);
   if (sold && access === "none") {
     return <SoldNotice codename={profile.codename} />;
   }
@@ -125,7 +119,8 @@ async function InvestorProjectContent({
       dateLabel={spanishDate(new Date())}
       matchesLeft={billing.remaining}
       profileComplete={profileComplete}
-      initialTab={readTab(tab)}
+      initialTab={readProcessTab(tab, counterpartyTabIds("investor", { advisor: advisors.length > 0 }))}
+      advisors={advisors}
       accessId={messages.threads[0]?.accessId ?? ""}
     />
   );

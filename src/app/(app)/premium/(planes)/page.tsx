@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { PremiumPlans } from "@/components/investor/premium-plans";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { billingCopy } from "@/lib/billing-copy";
-import { loadBuyerPlan } from "@/lib/server/buyer-plan";
+import { loadBuyerPlan, loadStoredBuyerPlan } from "@/lib/server/buyer-plan";
+import { launchFreeMode } from "@/lib/launch-mode";
 import { fulfillCheckout } from "@/lib/server/fulfill-checkout";
 import { isIntEnvironment } from "@/lib/int-env";
 import { requireRole } from "@/lib/server/require-role";
@@ -28,11 +29,11 @@ export default async function PremiumPage({
     notice = billingCopy.planChanged;
   }
 
-  const billing = await loadBuyerPlan(user.id);
+  const [billing, stored] = await Promise.all([loadBuyerPlan(user.id), loadStoredBuyerPlan(user.id)]);
 
   return (
     <SignedInPage title={billingCopy.title}>
-      <PremiumPlans plan={billing.plan} notice={notice} testMode={isIntEnvironment()} />
+      <PremiumPlans plan={billing.plan} notice={notice} testMode={isIntEnvironment()} launchFree={launchFreeMode()} manageable={stored.plan !== "none"} />
     </SignedInPage>
   );
 }

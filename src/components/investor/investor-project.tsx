@@ -7,6 +7,10 @@ import { CompanyReport } from "@/components/seller/company-report";
 import { DealPipeline, ProcessRoom } from "@/components/investor/deal-pipeline";
 import { LiveRefresh } from "@/components/shell/live-refresh";
 import { MeetingDesk } from "@/components/investor/meeting-desk";
+import { CounterpartyPanel } from "@/components/investor/process-chat-layout";
+import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
+import { counterpartyTabIds, type ProcessTabId } from "@/lib/process-tabs";
 import { ProjectThread } from "@/components/investor/project-thread";
 import { approveInvestorMeetingAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { FavoriteButton } from "@/components/investor/favorite-button";
@@ -44,6 +48,7 @@ export function InvestorProject({
   profileComplete = true,
   initialTab = "company",
   accessId,
+  advisors = [],
 }: {
   project: InvestorProjectProfile;
   registry?: BuyerRegistry | null;
@@ -60,8 +65,10 @@ export function InvestorProject({
   dateLabel: string;
   matchesLeft: number | null;
   profileComplete?: boolean;
-  initialTab?: "company" | "questions" | "meetings";
+  initialTab?: ProcessTabId;
   accessId: string;
+  /** S43: the buyer's own advisors on this company (private thread), shown in the Asesor tab. */
+  advisors?: AdvisorContactView[];
 }) {
   const locked = access !== "accepted";
   const chat = messages.filter((message) => message.kind === "question");
@@ -166,6 +173,7 @@ export function InvestorProject({
           </>
         }
         initialTab={initialTab}
+        tabIds={counterpartyTabIds("investor", { advisor: advisors.length > 0 })}
         tabs={{
           company: (
             <div className="grid min-w-0 gap-6">
@@ -182,15 +190,16 @@ export function InvestorProject({
               </div>
             </div>
           ),
-          questions: access === "awaiting-seller" ? (
+          // S43 (Alex): one Vendedor tab with the chat, the documents and, below, the meetings with the seller.
+          seller: access === "awaiting-seller" ? (
             <FichaLockedNote text={companyCopy.threadWaiting} />
           ) : access === "requested" ? (
             <FichaLockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
           ) : locked ? (
             <FichaLockedNote text={companyCopy.threadLocked} action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />} />
           ) : (
-            <section className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-              <div className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-white p-5">
+            <CounterpartyPanel
+              chat={
                 <ProjectThread
                   viewer="investor"
                   partyName={partyName}
@@ -206,40 +215,33 @@ export function InvestorProject({
                   savedLabel={companyCopy.messageSent}
                   invalidFallback={companyCopy.messageInvalid}
                 />
-              </div>
-              <ProcessRoom
-                files={documents}
-                bodies={chat.map((message) => message.body)}
-                nda
-                ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
-                loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
-                empty={sellerCopy.documentsEmpty}
-              />
-            </section>
-          ),
-          meetings: access === "awaiting-seller" ? (
-            <FichaLockedNote text={companyCopy.threadWaiting} />
-          ) : access === "requested" ? (
-            <FichaLockedNote text={companyCopy.threadSignNda} action={<ProcessLink />} />
-          ) : locked ? (
-            <FichaLockedNote
-              text={companyCopy.threadLocked}
-              action={<LockedWriteAction slug={project.slug} access={access} plan={plan} matchesLeft={matchesLeft} profileComplete={profileComplete} title={project.codename} />}
-            />
-          ) : (
-            <MeetingDesk
-              messages={messages}
-              action={postInvestorMessageAction}
-              approveAction={approveInvestorMeetingAction}
-              rescheduleAction={rescheduleInvestorMeetingAction}
-              today={today}
-              columns
-              hidden={[
-                { name: "slug", value: project.slug },
-                { name: "kind", value: "meeting" },
-              ]}
+              }
+              documents={
+                <ProcessRoom
+                  files={documents}
+                  bodies={chat.map((message) => message.body)}
+                  nda
+                  ndaHref={accessId.length > 0 ? `/acuerdos/nda/${accessId}` : null}
+                  loiHref={accessId.length > 0 && signedOffer ? `/acuerdos/loi/${accessId}` : null}
+                  empty={sellerCopy.documentsEmpty}
+                />
+              }
+              meetings={
+                <MeetingDesk
+                  messages={messages}
+                  action={postInvestorMessageAction}
+                  approveAction={approveInvestorMeetingAction}
+                  rescheduleAction={rescheduleInvestorMeetingAction}
+                  today={today}
+                  hidden={[
+                    { name: "slug", value: project.slug },
+                    { name: "kind", value: "meeting" },
+                  ]}
+                />
+              }
             />
           ),
+          advisor: advisors.length > 0 ? <AdvisorContactDesk contacts={advisors} today={today} stacked /> : null,
         }}
       />
     </div>

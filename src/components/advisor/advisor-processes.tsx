@@ -3,6 +3,7 @@ import { AdvisorNdaTurn } from "@/components/advisor/advisor-engagement-forms";
 import { DealPipeline, DealWaitingCue } from "@/components/investor/deal-pipeline";
 import { FilterEmptyState, MutedAdvisorBoards } from "@/components/shell/filter-empty-state";
 import { advisorCopy } from "@/lib/advisor-copy";
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
 import { advisorLaneCue, type AdvisorProjectBoard } from "@/lib/advisor-processes";
 
 function hireTags(board: AdvisorProjectBoard): string[] {
@@ -61,7 +62,7 @@ export function AdvisorProcesses({
                     {service}
                   </span>
                 ))}
-                {showDepositTag && board.depositPending ? <PendingMark>{advisorCopy.depositPendingChip}</PendingMark> : null}
+                {showDepositTag && board.depositPending ? <PendingMark>{launchFreeMode() ? launchFreeCopy.depositPendingChip : advisorCopy.depositPendingChip}</PendingMark> : null}
               </div>
               <p className="mt-1 text-sm text-[#64748b]">{board.region}</p>
             </div>
@@ -70,12 +71,7 @@ export function AdvisorProcesses({
               </Link>
           </div>
           {board.note ? <p className="mt-4 text-sm text-[#64748b]">{board.note}</p> : null}
-          {/* S34 (Alex): one encargo per company; each row below is one of that company's buyer processes. */}
-          {board.lanes.length > 1 ? (
-            <p className="mt-4 text-xs font-semibold tracking-wide text-[#64748b] uppercase">
-              {advisorCopy.processesLanes.replace("{n}", String(board.lanes.length))}
-            </p>
-          ) : null}
+          {/* S34 (Alex): one encargo per company; each row below is one of that company's buyer processes. S43: no "Un encargo · N compradores" line. */}
           <div className="mt-2 flex flex-col gap-2">
             {board.lanes.map((lane) => {
               const cue = advisorLaneCue(lane.steps, lane.signNdaId !== null);

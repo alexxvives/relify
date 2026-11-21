@@ -50,6 +50,6 @@ describe("S34 advisor profile split", () => {
     expect(advisorCopy.profileUnpublished).toBe("Tu perfil no está publicado");
     expect(engagementCopy.railDeposit).toBe("Depósito");
     expect(engagementCopy.railInvestor).toBe("Comprador");
-    expect(advisorCopy.processesLanes).toContain("{n}");
+    expect("processesLanes" in advisorCopy).toBe(false);
   });
 });

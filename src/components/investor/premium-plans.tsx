@@ -11,6 +11,8 @@ import { AppToast } from "@/components/shell/app-toast";
 import { changeBuyerPlanAction, startBuyerPlanAction, type PlanActionState } from "@/app/(app)/premium/actions";
 import { ShellStickyCtaBar } from "@/components/ui/sticky-cta";
 import { billingCopy } from "@/lib/billing-copy";
+import { launchFreeCopy } from "@/lib/launch-mode";
+import { LaunchFreeBadge } from "@/components/shell/launch-free";
 import type { BuyerPlanName } from "@/lib/billing";
 
 function Note({ state }: { state: PlanActionState }) {
@@ -80,10 +82,25 @@ const plans = [
   },
 ];
 
-export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPlanName; notice: string | null; testMode?: boolean }) {
+export function PremiumPlans({
+  plan,
+  notice,
+  testMode = false,
+  launchFree = false,
+  manageable = plan !== "none",
+}: {
+  plan: BuyerPlanName;
+  notice: string | null;
+  testMode?: boolean;
+  /** S43: free launch. The plan buttons give way to "Gratis durante el lanzamiento"; no checkout starts. */
+  launchFree?: boolean;
+  /** A real (paid) Stripe subscription exists, so Gestionar stays reachable. */
+  manageable?: boolean;
+}) {
   const [yearly, setYearly] = useState(false);
-  const current =
-    plan === "limited" ? billingCopy.currentLimited : plan === "unlimited" ? billingCopy.currentUnlimited : billingCopy.currentFree;
+  const current = launchFree
+    ? launchFreeCopy.planNote
+    : plan === "limited" ? billingCopy.currentLimited : plan === "unlimited" ? billingCopy.currentUnlimited : billingCopy.currentFree;
 
   return (
     <div className="flex flex-col gap-8">
@@ -170,6 +187,16 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                   </li>
                 ))}
               </ul>
+              {launchFree ? (
+              <div className="mt-auto flex flex-col items-center gap-3 pt-8">
+                {item.id === "unlimited" ? <LaunchFreeBadge /> : null}
+                {item.id === "unlimited" && manageable ? (
+                  <Link href="/premium/suscripcion" className="flex h-11 w-full items-center justify-center rounded-full border border-[#d0d5dd] px-4 text-sm font-medium">
+                    {billingCopy.manage}
+                  </Link>
+                ) : null}
+              </div>
+              ) : (
               <div className="mt-auto">
                 {item.id === "limited" && plan === "none" ? <PlanButton plan="limited" label={billingCopy.chooseLimited} /> : null}
                 {item.id === "unlimited" && plan === "none" ? <PlanButton plan="unlimited" label={billingCopy.chooseUnlimited} /> : null}
@@ -185,11 +212,12 @@ export function PremiumPlans({ plan, notice, testMode = false }: { plan: BuyerPl
                   </Link>
                 ) : null}
               </div>
+              )}
             </section>
           );
         })}
       </div>
-      {plan === "none" ? (
+      {plan === "none" && !launchFree ? (
         <>
           <ShellStickyCtaBar>
             <PlanButton plan="limited" label={billingCopy.chooseLimited} />

@@ -14,6 +14,7 @@ import { ProcessRoom } from "@/components/investor/deal-pipeline";
 import { LiveRefresh } from "@/components/shell/live-refresh";
 import { MeetingDesk } from "@/components/investor/meeting-desk";
 import { ProjectThread } from "@/components/investor/project-thread";
+import { CounterpartyPanel } from "@/components/investor/process-chat-layout";
 import { SellerTabs } from "@/components/seller/seller-tabs";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { engagementCopy } from "@/lib/engagement-copy";
@@ -87,6 +88,7 @@ function ContactPanels({
   bare = false,
   meetings = true,
   only,
+  stacked = false,
 }: {
   contact: AdvisorContactView;
   today: string;
@@ -95,9 +97,53 @@ function ContactPanels({
   meetings?: boolean;
   /** S40: the advisor's process tabs show the client chat and the client meetings in separate tabs. */
   only?: "meetings";
+  /** S43: the Asesor / private client tab: chat and documents, the meetings right below (no inner tabs). */
+  stacked?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof contactTabs)[number]["id"]>("chat");
   const open = only ?? (meetings ? tab : "chat");
+  const thread = (
+    <ProjectThread
+      viewer={contact.viewer}
+      partyName={contact.partyName}
+      messages={contact.messages.filter((message) => message.kind === "question")}
+      action={postEngagementMessageAction}
+      hidden={[
+        { name: "engagementId", value: contact.id },
+        { name: "kind", value: "question" },
+      ]}
+      placeholder={contact.placeholder}
+      submitLabel={sellerCopy.chatSend}
+      pendingLabel={sellerCopy.replying}
+      savedLabel={sellerCopy.replySaved}
+      invalidFallback={sellerCopy.replyInvalid}
+    />
+  );
+  const room = (
+    <ProcessRoom
+      files={contact.documents}
+      bodies={contact.messages.map((message) => message.body)}
+      nda={false}
+      empty={engagementCopy.contactDocumentsEmpty}
+    />
+  );
+  const desk = (
+    <MeetingDesk
+      messages={contact.messages}
+      action={postEngagementMessageAction}
+      approveAction={approveEngagementMeetingAction}
+      rescheduleAction={rescheduleEngagementMeetingAction}
+      today={today}
+      hidden={[
+        { name: "engagementId", value: contact.id },
+        { name: "kind", value: "meeting" },
+      ]}
+    />
+  );
+
+  if (stacked) {
+    return <CounterpartyPanel chat={thread} documents={room} meetings={desk} />;
+  }
 
   return (
     <div className={bare ? "flex flex-col gap-4 px-5 py-5" : "flex flex-col gap-4 border-t border-[#eef0f3] px-5 py-5"}>
@@ -106,44 +152,13 @@ function ContactPanels({
         <div className={showDocuments ? "grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "grid min-w-0"}>
           <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
             <div className="flex flex-1 flex-col">
-              <ProjectThread
-                viewer={contact.viewer}
-                partyName={contact.partyName}
-                messages={contact.messages.filter((message) => message.kind === "question")}
-                action={postEngagementMessageAction}
-                hidden={[
-                  { name: "engagementId", value: contact.id },
-                  { name: "kind", value: "question" },
-                ]}
-                placeholder={contact.placeholder}
-                submitLabel={sellerCopy.chatSend}
-                pendingLabel={sellerCopy.replying}
-                savedLabel={sellerCopy.replySaved}
-                invalidFallback={sellerCopy.replyInvalid}
-              />
+              {thread}
             </div>
           </section>
-          {showDocuments ? (
-            <ProcessRoom
-              files={contact.documents}
-              bodies={contact.messages.map((message) => message.body)}
-              nda={false}
-              empty={engagementCopy.contactDocumentsEmpty}
-            />
-          ) : null}
+          {showDocuments ? room : null}
         </div>
       ) : (
-        <MeetingDesk
-          messages={contact.messages}
-          action={postEngagementMessageAction}
-          approveAction={approveEngagementMeetingAction}
-          rescheduleAction={rescheduleEngagementMeetingAction}
-          today={today}
-          hidden={[
-            { name: "engagementId", value: contact.id },
-            { name: "kind", value: "meeting" },
-          ]}
-        />
+        desk
       )}
     </div>
   );
@@ -157,6 +172,7 @@ export function AdvisorContactDesk({
   pinned = false,
   meetings = true,
   only,
+  stacked = false,
 }: {
   contacts: AdvisorContactView[];
   today: string;
@@ -165,8 +181,24 @@ export function AdvisorContactDesk({
   pinned?: boolean;
   meetings?: boolean;
   only?: "meetings";
+  /** S43: the counterparty-tab layout (chat and documents, meetings below), one block per advisor. */
+  stacked?: boolean;
 }) {
   const [openId, setOpenId] = useSessionString("Relify:advisor-contact-open", contacts[0]?.id ?? "");
+
+  if (stacked && contacts.length > 0) {
+    return (
+      <div className="flex flex-col gap-8" data-advisor-contact-stacked>
+        <LiveRefresh />
+        {contacts.map((contact) => (
+          <section key={contact.id} className="flex min-w-0 flex-col gap-3" aria-label={contact.heading}>
+            {contacts.length > 1 ? <h3 className="text-base font-semibold text-[#1c2740]">{contact.heading}</h3> : null}
+            <ContactPanels contact={contact} today={today} showDocuments stacked />
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   if (contacts.length === 0) {
     return (

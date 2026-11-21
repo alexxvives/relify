@@ -4,6 +4,7 @@ import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { adminChecksMessage, missingHint } from "@/lib/publish-checklist";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 import { loadPublishChecks } from "@/lib/server/publish-checks";
 import { reconcileListingPayment } from "@/lib/server/fulfill-checkout";
 import { activeSellerProjectId } from "@/lib/server/seller-company";
@@ -43,7 +44,9 @@ export async function getSellerListing(userId: string): Promise<{
   const liveCompanyCount = await prisma.project.count({
     where: { ownerId: userId, status: { in: ["published", "pending"] } },
   });
+  // S43: the free launch never asks for the listing payment (and never asks Stripe to reconcile one).
   const paid =
+    launchFreeMode() ||
     project.listingPayment !== null ||
     (project.status === "draft" &&
       liveCompanyCount > 0 &&
@@ -81,8 +84,10 @@ export async function publishSellerProject(
     alreadyPublished:
       project?.status === "published" || project?.status === "pending",
     liveCompanyCount,
+    // S43: the free launch publishes extra companies without the listing payment.
     paid:
-      project?.listingPayment !== null && project?.listingPayment !== undefined,
+      launchFreeMode() ||
+      (project?.listingPayment !== null && project?.listingPayment !== undefined),
   });
 
   // t75: the seller checklist and the admin checks (financials loaded, EBITDA > 0) gate every
@@ -119,7 +124,7 @@ export async function publishSellerProject(
       data: { status: "pending" },
     });
     if (moved.count > 0) {
-      await notifyPublishRequest(project.id, outcome.mode === "paid");
+      await notifyPublishRequest(project.id, outcome.mode === "paid" && !launchFreeMode());
     }
   }
 

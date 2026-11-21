@@ -127,7 +127,8 @@ test.describe("visitor landing and public forms", () => {
     const register = page.getByRole("link", { name: /prueba gratis|crear cuenta|registro|publicar/i }).first();
     await expect(register).toBeVisible();
     await register.click();
-    await expect(page).toHaveURL(/\/registro/);
+    // S42: "Prueba gratis" goes to the lista de espera.
+    await expect(page).toHaveURL(/\/registro|\/lista-de-espera/);
     await page.goto("/");
     await banner.getByRole("link", { name: /política de cookies/i }).click();
     await expect(page).toHaveURL(/\/cookies/);

@@ -43,6 +43,9 @@ import { personName } from "@/lib/project-message";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
+import { agreedAdvisorFee } from "@/lib/advisor-fee";
+import { readStoredServices } from "@/lib/advisor-profile";
 import {
   advisorPublicName,
   revealedInvestorName,
@@ -99,6 +102,8 @@ export type AdvisorEngagementPage = {
   ndaText: string | null;
   closed: boolean;
   feeLabel: string | null;
+  /** S43 (Alex): the fee from the advisor's published prices for the hired services (null: none published). */
+  agreedFee: { cents: number; label: string; fixed: boolean } | null;
   deposit: { paid: boolean; amountLabel: string; priceLabel: string; subscriptionActive: boolean };
   hiredByInvestor: boolean;
   figuresOpen: boolean;
@@ -194,6 +199,11 @@ export async function advisorSubscriptionActive(
 }
 
 async function inboxPaid(userId: string): Promise<boolean> {
+  // S43: the free launch waives the advisor subscription (listing, encargos, writing to clients).
+  if (launchFreeMode()) {
+    return true;
+  }
+
   const row = await prisma.billingCustomer.findUnique({
     where: { userId },
     select: { advisorInbox: true },
@@ -683,6 +693,7 @@ export async function getAdvisorEngagement(
       ndaText: null,
       closed: row.closedAt !== null,
       feeLabel: null,
+      agreedFee: null,
       deposit: { paid: false, amountLabel: depositAmount, priceLabel: formatEur(row.project.askingPriceCents), subscriptionActive },
       hiredByInvestor: row.client === "investor",
       figuresOpen: false,
@@ -775,6 +786,7 @@ export async function getAdvisorEngagement(
       row.platformNetCents !== null && row.platformVatCents !== null
         ? `${formatEur(row.platformNetCents)} + ${formatEur(row.platformVatCents)} IVA`
         : null,
+    agreedFee: await agreedFeeFor(user.id, row.services),
     deposit: { paid: true, amountLabel: depositAmount, priceLabel: formatEur(row.project.askingPriceCents), subscriptionActive },
     hiredByInvestor: row.client === "investor",
     figuresOpen,
@@ -942,33 +954,46 @@ export async function acceptAdvisorNda(
   return { ok: true, message: engagementCopy.ndaSigned };
 }
 
+async function agreedFeeFor(advisorId: string, services: string[]): Promise<{ cents: number; label: string; fixed: boolean } | null> {
+  const profile = await prisma.advisorProfile.findUnique({ where: { userId: advisorId }, select: { services: true } });
+  const fee = agreedAdvisorFee(services, readStoredServices(profile?.services));
+  return fee ? { ...fee, label: formatEur(fee.cents) } : null;
+}
+
+/**
+ * S43 (Alex): closing uses the advisor's published price for the hired services, read here on the server; the typed
+ * amount only counts when the advisor marks a variable / success part (`custom`) or has no published price.
+ */
 export async function closeEngagement(
   user: CurrentUser,
   id: string,
-  chargedCents: number,
+  typedCents: number | null,
+  custom = false,
 ): Promise<EngagementResult> {
   if (!user.onboarded || user.role !== "advisor") {
     return { ok: false, message: engagementCopy.missing };
   }
 
-  const fee = advisorPlatformFee(chargedCents);
-
-  if (!fee) {
-    return { ok: false, message: engagementCopy.feeInvalid };
-  }
-
-  const row = await prisma.advisoryEngagement.findFirst({
+  const owned = await prisma.advisoryEngagement.findFirst({
     where: { id, advisorId: user.id, declinedAt: null },
-    select: { id: true, closedAt: true },
+    select: { id: true, closedAt: true, services: true },
   });
 
-  if (!row) {
+  if (!owned) {
     return { ok: false, message: engagementCopy.missing };
   }
 
-  if (row.closedAt === null) {
+  const agreed = await agreedFeeFor(user.id, owned.services);
+  const chargedCents = agreed && !custom ? agreed.cents : typedCents;
+  const fee = chargedCents === null ? null : advisorPlatformFee(chargedCents);
+
+  if (!fee || chargedCents === null) {
+    return { ok: false, message: engagementCopy.feeInvalid };
+  }
+
+  if (owned.closedAt === null) {
     await prisma.advisoryEngagement.update({
-      where: { id: row.id },
+      where: { id: owned.id },
       data: {
         closedAt: new Date(),
         chargedCents,

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { billingCopy } from "@/lib/billing-copy";
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import { startBuyerCheckout } from "@/lib/server/start-checkout";
 import {
@@ -54,6 +55,11 @@ export async function changeBuyerPlanAction(_state: PlanActionState, formData: F
 
   if (plan !== "limited" && plan !== "unlimited") {
     return { ok: false, message: billingCopy.stripeFailed };
+  }
+
+  // S43: no plan changes (Stripe) during the free launch; everyone already has the unlimited plan.
+  if (launchFreeMode()) {
+    return { ok: false, message: launchFreeCopy.checkoutOff };
   }
 
   const result = await changeSubscriptionPlan(user, plan);

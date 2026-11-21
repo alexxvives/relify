@@ -421,14 +421,15 @@ export function ProcessHeaderCue({
  */
 function CueLine({ yours, text, action }: { yours: boolean; text: string; action?: ReactNode }) {
   return (
-    <span className="flex min-w-0 items-start gap-3">
+    // S43 (Alex): tag, text and step button centred on one line (the text wraps on phones, so the tag stays on top there).
+    <span className="flex min-w-0 items-start gap-3 sm:items-center" data-cue-line>
       <span
         className={`shrink-0 rounded-full px-2.5 py-1 text-xs leading-5 font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#e8f6ee] text-[#17663a]"}`}
       >
         {yours ? "Tu turno" : "Qué sigue"}
       </span>
       {/* A div, not a p: step buttons carry their own dialogs. */}
-      <div className={`min-w-0 pt-1 text-sm leading-5 ${yours ? "text-[#1c2740]" : "text-[#3d4a63]"}`}>
+      <div className={`min-w-0 text-sm leading-5 max-sm:pt-1 ${yours ? "text-[#1c2740]" : "text-[#3d4a63]"}`}>
         {text}
         {action ? <span className="ml-3 inline-flex flex-wrap items-center gap-2 align-middle empty:hidden">{action}</span> : null}
       </div>

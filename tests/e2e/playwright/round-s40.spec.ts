@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { roleCreds, signInAs } from "./helpers";
 
-const questionsTab = '[role="tab"][aria-controls="panel-questions"]:visible';
+// S43: per-counterparty tabs (Compradores for the seller, Comprador / Vendedor for the advisor).
+const buyersTab = '[role="tab"][aria-controls="panel-buyers"]:visible';
 
 test.describe("S40 asesor", () => {
   test.beforeEach(async ({ page }) => {
@@ -21,8 +22,8 @@ test.describe("S40 asesor", () => {
     test.skip((await link.count()) === 0, "No paid encargos for this advisor");
     await link.click();
     await page.waitForURL(/\/mandatos\/venta\/.+/);
-    await expect(page.locator(questionsTab).first()).toBeVisible();
-    await expect(page.locator('[role="tab"][aria-controls="panel-meetings"]:visible').first()).toBeVisible();
+    await expect(page.locator('[role="tab"][aria-controls="panel-buyer"]:visible').first()).toBeVisible();
+    await expect(page.locator('[role="tab"][aria-controls="panel-seller"]:visible').first()).toBeVisible();
   });
 });
 
@@ -39,7 +40,7 @@ test.describe("S40 vendedor", () => {
     test.skip((await ficha.count()) === 0, "No open processes for this seller");
     await ficha.click();
     await page.waitForURL(/\/mi-empresa\/procesos\/.+/);
-    await expect(page.locator(questionsTab).first()).toBeVisible();
+    await expect(page.locator(buyersTab).first()).toBeVisible();
     await expect(page.locator("[data-advisor-buyer-overlay]")).toHaveCount(1);
   });
 });

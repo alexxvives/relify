@@ -14,7 +14,6 @@ export const advisorCopy = {
   processesClosed: "El encargo del vendedor ya está cerrado. No lista al resto de compradores hasta que el vendedor abra el proceso.",
   processesFinished: "Este encargo ya está cerrado.",
   processesOpen: "Abrir encargo",
-  processesLanes: "Un encargo · {n} compradores en proceso",
   depositPaidChip: "Depósito pagado",
   depositPendingChip: "Depósito pendiente",
   ndaSignedChip: "NDA firmado",

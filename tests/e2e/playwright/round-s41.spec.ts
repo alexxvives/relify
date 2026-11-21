@@ -22,7 +22,7 @@ test.describe("S41 vendedor", () => {
     if (info.project.name.startsWith("desktop")) {
       await expect(page.locator("[data-advisor-buyer-overlay]")).toHaveAttribute("data-open", "true");
     }
-    await page.locator(tab("questions")).first().click();
+    await page.locator(tab("buyers")).first().click();
     await expect(page.locator("[data-advisor-buyer-overlay]")).toHaveAttribute("data-open", "false");
     const filter = page.locator("[data-buyer-filter]");
     if ((await filter.count()) > 0) {
