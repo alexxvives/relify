@@ -19,14 +19,23 @@ function subscribeWide(onChange: () => void) {
  * "Comprador" tab at the same spot; opening it morphs the tab into the card (instant with reduced motion). It starts
  * open from 1024 px and folded on phones. Used by the advisor's encargo and the admin's connection view.
  */
-export function BuyerCardOverlay({ children, label = engagementCopy.railInvestor }: { children: ReactNode; label?: string }) {
+export function BuyerCardOverlay({
+  children,
+  label = engagementCopy.railInvestor,
+  startFolded = false,
+}: {
+  children: ReactNode;
+  label?: string;
+  /** S40: folded on entry when a buyer filter sits at the tab row's right end, so the open card never covers it. */
+  startFolded?: boolean;
+}) {
   const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => null);
   const [choice, setChoice] = useState<boolean | null>(null);
   // S40 (Alex): folding plays the opening backwards: the card fades out first, then the panel shrinks back into the tab
   // (the content used to linger while the panel shrank, then the height snapped).
   const [folding, setFolding] = useState(false);
   const reduce = useReducedMotion();
-  const open = choice ?? wide ?? false;
+  const open = choice ?? (startFolded ? false : (wide ?? false));
   const fade = reduce ? { duration: 0 } : { duration: 0.16, ease: "easeOut" as const };
   const transition = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 34 };
 

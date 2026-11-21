@@ -60,7 +60,7 @@ export default async function SellerProcessFichaPage({
           initialTab={initialTab}
         />
       </div>
-      <BuyerCardOverlay>
+      <BuyerCardOverlay startFolded={open.length > 1}>
         <BuyerCardSlider buyers={[{ id: accessId, label: ficha.buyerLabel, card: ficha.buyerCard }]} />
       </BuyerCardOverlay>
     </SignedInPage>
