@@ -12,6 +12,8 @@ import { addSellerCompanyAction, deleteSellerCompanyAction, selectSellerCompanyA
 import { noticesForCompany, type NotificationView } from "@/lib/notifications";
 import { sellerCompanyLabel } from "@/lib/seller-company";
 import { sellerCopy } from "@/lib/seller-copy";
+import { launchFreeCopy } from "@/lib/launch-mode";
+import { useLaunchFree } from "@/components/shell/launch-free";
 import { Button, Input } from "@/components/ui/form";
 
 const dialogClass =
@@ -74,6 +76,7 @@ export function ListAnotherCompany() {
 
 function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | null> }) {
   const [state, action, pending] = useActionState(addSellerCompanyAction, null);
+  const free = useLaunchFree();
 
   return (
     <dialog ref={dialogRef} className={dialogClass}>
@@ -82,7 +85,7 @@ function AddCompanyDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElemen
         <div role="note" className="mt-4 flex gap-3 rounded-xl border border-[#c9d3f3] bg-[#f4f7ff] p-4">
           <Info className="mt-0.5 size-5 shrink-0 text-[#465ab4]" aria-hidden />
           <div className="text-[15px] leading-6 text-[#1c2740]">
-            <p className="text-[#3d4a63]">{sellerCopy.addCompanyBody}</p>
+            <p className="text-[#3d4a63]">{free ? launchFreeCopy.addCompanyBody : sellerCopy.addCompanyBody}</p>
           </div>
         </div>
         <label className="mt-4 block text-sm font-medium text-[#1c2740]" htmlFor="nueva-empresa-cif">

@@ -96,7 +96,7 @@ describe("Round S22 landing and product bits", () => {
 
   it("drops the buyer company-tab documentation block and renames Chat", () => {
     const buyer = read("src/components/investor/investor-project.tsx");
-    const companyTab = buyer.slice(buyer.indexOf("company:"), buyer.indexOf("questions:"));
+    const companyTab = buyer.slice(buyer.indexOf("company:"), buyer.indexOf("seller:"));
     expect(companyTab).not.toMatch(/ProcessRoom/);
     expect(buyer).toMatch(/ProcessRoom/);
     expect(read("src/lib/company-copy.ts")).toMatch(/questions: "Chat \/ Documentos"/);

@@ -7,6 +7,7 @@ import {
   type AdvisorProfileView,
 } from "@/lib/advisor-profile";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 
 function isSectorId(id: string): id is AdvisorSectorId {
   return advisorSectors.some((sector) => sector.id === id);
@@ -19,7 +20,8 @@ export async function getAdvisorProfile(
     prisma.advisorProfile.findUnique({ where: { userId } }),
     prisma.billingCustomer.findUnique({ where: { userId }, select: { advisorInbox: true } }),
   ]);
-  const subscribed = billing?.advisorInbox === true;
+  // S43: the free launch counts as subscribed (no Stripe, no billing row).
+  const subscribed = launchFreeMode() || billing?.advisorInbox === true;
 
   if (!row) {
     return { ...blankAdvisorProfile(), subscribed };

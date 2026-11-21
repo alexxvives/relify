@@ -9,7 +9,7 @@ import { scrollToCenter, stickyHeaderOffset } from "@/components/shell/use-scrol
  * by `.relify-marker` in globals.css, static under reduced motion). Shared by the seller's Detalles de empresa and the
  * advisor's Mis servicios.
  */
-export function highlightTarget(target: HTMLElement, instant = false) {
+export function highlightTarget(target: HTMLElement, instant = false, { focus = true }: { focus?: boolean } = {}) {
   const flashTarget =
     target.matches("[data-flash]")
       ? target
@@ -28,7 +28,7 @@ export function highlightTarget(target: HTMLElement, instant = false) {
   } else {
     scrollToCenter(target);
   }
-  focusTarget.focus({ preventScroll: true });
+  if (focus) focusTarget.focus({ preventScroll: true });
   const marked = title ?? flashTarget;
   marked.classList.remove("relify-marker");
   void marked.offsetWidth;
@@ -80,4 +80,16 @@ export function useDeepLinkMarker() {
       cancelled = true;
     };
   }, []);
+}
+
+/**
+ * S43 (Alex): an in-page jump (Acciones pendientes → Ir al proceso): smooth-scroll to the element with that id and
+ * sweep the marker over its `[data-field-title]`, without navigating or moving the keyboard focus. Returns false when
+ * the element is not on the page, so the caller can fall back to a link.
+ */
+export function jumpToAnchor(id: string): boolean {
+  const target = document.getElementById(id);
+  if (!target) return false;
+  highlightTarget(target, false, { focus: false });
+  return true;
 }

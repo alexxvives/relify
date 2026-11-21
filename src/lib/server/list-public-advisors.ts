@@ -7,6 +7,7 @@ import {
 } from "@/lib/advisor-directory";
 import { verifiedCloseCounts } from "@/lib/server/advisory-engagement";
 import { prisma } from "@/lib/db";
+import { launchFreeMode } from "@/lib/launch-mode";
 
 export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
   const rows = await prisma.advisorProfile.findMany({
@@ -23,8 +24,12 @@ export async function listPublicAdvisors(): Promise<PublicAdvisorCard[]> {
     },
   });
   // S35 (Alex): only advisors with an active subscription are listed (server-side, not just the UI).
+  // S43: during the free launch the subscription is not required to appear.
+  const free = launchFreeMode();
   const subscribed = new Set(
-    (
+    free
+      ? rows.map((row) => row.userId)
+      : (
       await prisma.billingCustomer.findMany({
         where: { advisorInbox: true, userId: { in: rows.map((row) => row.userId) } },
         select: { userId: true },

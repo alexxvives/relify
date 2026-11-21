@@ -1,61 +1,30 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { ClosedProcessRow, closedProcessRowClass } from "@/components/seller/sale-completed";
 import { ProcessCardActions, ProcessCardHeader } from "@/components/investor/process-card-header";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { DealPipeline, ProcessHeaderCue } from "@/components/investor/deal-pipeline";
 import { LiveRefresh } from "@/components/shell/live-refresh";
-import { DeskToggles } from "@/components/shell/desk-toggles";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
-import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/lib/server/investor-desk";
 import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/lib/server/investor-desk";
 import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/form";
 
-/** S41 (Alex): Chat / Documentos and Reuniones live in the ficha tabs; the card keeps only the Asesor desk. */
-function AdvisorDesk({ item, today, advisors }: { item: InvestorProcessCard; today: string; advisors: AdvisorContactView[] }) {
-  const [tab, setTab] = useState<"advisor" | null>(null);
-  const deskId = useId();
-
-  return (
-    <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-      <DeskToggles label={item.codename} controls={deskId} tabs={[{ id: "advisor" as const, label: "Asesor" }]} value={tab} onChange={setTab} />
-      <div id={deskId} hidden={tab === null}>
-        {tab === "advisor" ? (
-          advisors.length > 0 ? (
-            <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
-          ) : (
-            <Link href={`/asesoramiento?empresa=${item.slug}`} className="text-sm font-medium text-[#465ab4]">
-              {engagementCopy.contactAdvisor}
-            </Link>
-          )
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export function InvestorProcesses({
   items,
   buyerName,
   dateLabel,
-  today,
-  advisors = [],
   cancelled = [],
 }: {
   cancelled?: CancelledProcess[];
   items: InvestorProcessCard[];
   buyerName: string;
   dateLabel: string;
-  today: string;
-  advisors?: AdvisorContactView[];
 }) {
   const closed = items.filter((item) => item.closed !== null);
   items = items.filter((item) => item.closed === null);
@@ -100,8 +69,7 @@ export function InvestorProcesses({
                 return (
                   <ProcessCardActions
                     cancelAccessId={item.contract?.stage === "signed" ? null : item.accessId}
-                    fichaHref={`/proyectos/${item.slug}${unread > 0 ? "?tab=questions" : ""}`}
-                    unread={unread}
+                    fichaHref={`/proyectos/${item.slug}${unread > 0 ? "?tab=seller" : ""}`}
                   />
                 );
               })()}
@@ -127,9 +95,6 @@ export function InvestorProcesses({
                 }),
               }}
             />
-            {item.advisorHired ? (
-              <AdvisorDesk item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
-            ) : null}
           </Card>
         </li>
       ))}

@@ -5,6 +5,8 @@ import { SignedInPage } from "@/components/shell/signed-in-page";
 import { billingCopy } from "@/lib/billing-copy";
 import { requireRole } from "@/lib/server/require-role";
 import { applyCardSetup, loadSubscriptionDesk } from "@/lib/server/subscription-desk";
+import { loadStoredBuyerPlan } from "@/lib/server/buyer-plan";
+import { launchFreeMode } from "@/lib/launch-mode";
 
 export const metadata: Metadata = {
   title: billingCopy.manageTitle,
@@ -18,6 +20,12 @@ export default async function SubscriptionPage({
 }) {
   const user = await requireRole("investor");
   const query = await searchParams;
+
+  // S43: during the free launch only a buyer with a real (already paid) subscription manages it here; everyone else
+  // has nothing to manage, and the page would otherwise ask Stripe.
+  if (launchFreeMode() && (await loadStoredBuyerPlan(user.id)).plan === "none") {
+    redirect("/premium");
+  }
 
   if (typeof query.setup_session === "string" && query.setup_session !== "") {
     const applied = await applyCardSetup(user.id, query.setup_session);

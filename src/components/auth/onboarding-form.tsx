@@ -28,7 +28,8 @@ const stepLabel: Record<OnboardingStep, string> = {
 };
 
 
-export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole | "" }) {
+/** S43: `launchFree` drops the Plan step (buyers and advisors pay nothing during the free launch). */
+export function OnboardingForm({ initialRole = "", launchFree = false }: { initialRole?: SignupRole | ""; launchFree?: boolean }) {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(onboardingAction, null);
   const [step, setStep] = useState<OnboardingStep>("identity");
   const [fullName, setFullName] = useState("");
@@ -41,7 +42,7 @@ export function OnboardingForm({ initialRole = "" }: { initialRole?: SignupRole 
   const [referralMissing, setReferralMissing] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [plan, setPlan] = useState<OnboardingPlanChoice>("none");
-  const withPlan = initialRole === "investor" || initialRole === "advisor";
+  const withPlan = !launchFree && (initialRole === "investor" || initialRole === "advisor");
   const stepOrder: OnboardingStep[] = withPlan ? ["identity", "phone", "referral", "plan"] : ["identity", "phone", "referral"];
   const lastStep = stepOrder[stepOrder.length - 1];
   const stepIndex = stepOrder.indexOf(step);

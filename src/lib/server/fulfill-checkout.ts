@@ -3,7 +3,7 @@ import { advisorDepositCents } from "@/lib/billing";
 import { billingCopy } from "@/lib/billing-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { prisma } from "@/lib/db";
-import { recordNotification } from "@/lib/server/record-notification";
+import { notifyDepositAccepted } from "@/lib/server/record-notification";
 import { stripeClient } from "@/lib/server/stripe";
 import type Stripe from "stripe";
 import { assertPaymentsEnabled } from "@/lib/server/int-guards";
@@ -239,7 +239,7 @@ async function applyAdvisorDeposit(
       declinedAt: true,
       requesterId: true,
       client: true,
-      project: { select: { codename: true, askingPriceCents: true } },
+      project: { select: { codename: true, askingPriceCents: true, slug: true } },
     },
   });
 
@@ -263,13 +263,7 @@ async function applyAdvisorDeposit(
       depositSessionId: session.id,
     },
   });
-  await recordNotification({
-    userId: row.requesterId,
-    title: "Solicitud aceptada",
-    body: `Un asesor ha aceptado tu solicitud para ${row.project.codename}.`,
-    // S28: the asesor chat opens as the "Asesor" tab of the process card, so the notice lands there.
-    href: row.client === "seller" ? "/mi-empresa/procesos" : "/procesos",
-  });
+  await notifyDepositAccepted({ requesterId: row.requesterId, client: row.client, codename: row.project.codename, slug: row.project.slug });
 
   return true;
 }

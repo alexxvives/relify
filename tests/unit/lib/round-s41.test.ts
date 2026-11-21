@@ -26,7 +26,7 @@ describe("Round S41 (Alex t182u)", () => {
     const desk = read("src/components/seller/seller-process-desk.tsx");
     expect(desk).not.toMatch(/router\.push/);
     expect(desk).toMatch(/history\.replaceState/);
-    expect(desk).toMatch(/tab !== "company" && options\.length > 1/);
+    expect(desk).toMatch(/tab === "buyers" && options\.length > 1/);
     expect(desk).toMatch(/<BuyerCardOverlay autoFold=\{tab !== "company"\}>/);
     expect(read("src/components/advisor/advisor-process-desk.tsx")).toMatch(/<BuyerCardOverlay autoFold=\{tab !== "company"\}>/);
     expect(read("src/components/advisor/advisor-rail-dock.tsx")).not.toMatch(/startFolded/);

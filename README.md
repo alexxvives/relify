@@ -59,3 +59,17 @@ Then it runs, in order:
 Do not run `npx vinext-cloudflare deploy` or `wrangler deploy` against Worker `releva` to skip the guard. INT uses `scripts/deploy-int.sh`.
 
 `DATABASE_URL` has to point at the production database in the shell that runs the deploy. The Worker reads `DATABASE_URL`, `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` as secrets. For `npm run dev:vinext`, put them in `.dev.vars` (gitignored).
+
+## Free launch mode (`LAUNCH_FREE_MODE`)
+
+Server-only flag, off by default. With `LAUNCH_FREE_MODE=true` on the Worker:
+
+- every buyer gets the unlimited plan through the central entitlement (`loadBuyerPlan`); no Stripe subscription or billing row is created;
+- advisors appear in the directory and accept encargos without the advisor subscription;
+- the advisor deposit is waived: "Aceptar encargo" stamps the encargo as accepted with 0 € and no Checkout session, so no refund applies (such encargos stay accepted if the flag is later turned off);
+- sellers publish additional companies without the listing payment;
+- every checkout and upgrade CTA shows "Gratis durante el lanzamiento", and the checkout starters refuse to call Stripe.
+
+Buyers who already pay a real subscription can still manage or cancel it at `/premium/suscripcion`. Success fees at closing and the advisor's 15 % platform fee are not affected. The buyer plan stored at match time stays the real one.
+
+INT sets it as a plain var in `scripts/package-int-worker.mjs`. For production, Alex adds the plain var `LAUNCH_FREE_MODE = "true"` to Worker `releva` (Cloudflare dashboard, Settings, Variables, or the `[vars]` of the prod config) and redeploys. To end the launch, remove the var or set it to anything else.

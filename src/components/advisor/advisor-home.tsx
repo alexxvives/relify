@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
 import { Briefcase, Check, CircleCheck, CreditCard, FileText, Layers, ShieldCheck, User, UserPlus, Wallet, type LucideIcon } from "lucide-react";
 import { ActivityTiles, type ActivityTile } from "@/components/shell/activity-tiles";
 import { CompletionMeter } from "@/components/seller/completion-meter";
@@ -46,9 +47,10 @@ export function AdvisorHome({
   profileChecks: AdvisorProfileChecks;
   sectors: IndustrySector[];
 }) {
+  const free = launchFreeMode();
   const pending = desk.pending.map((item) => ({
     id: item.id,
-    title: item.kind === "deposit" ? advisorCopy.payDeposit : advisorCopy.signNda,
+    title: item.kind === "deposit" ? (free ? launchFreeCopy.depositAccept : advisorCopy.payDeposit) : advisorCopy.signNda,
     detail: item.codename,
     href: item.href,
   }));
@@ -92,7 +94,9 @@ export function AdvisorHome({
               const row = (
                 <>
                   <item.icon className={`size-4 shrink-0 ${done ? "text-[#17663a]" : "text-[#64748b]"}`} aria-hidden />
-                  <span className={`min-w-0 flex-1 ${done ? "text-[#667085]" : "font-medium text-[#1c2740]"}`}>{item.label}</span>
+                  <span className={`min-w-0 flex-1 ${done ? "text-[#667085]" : "font-medium text-[#1c2740]"}`}>
+                    {item.key === "subscription" && free ? `${item.label} · ${launchFreeCopy.badge}` : item.label}
+                  </span>
                   {done ? (
                     <Check className="size-4 shrink-0 text-[#17663a]" aria-label="Hecho" />
                   ) : (

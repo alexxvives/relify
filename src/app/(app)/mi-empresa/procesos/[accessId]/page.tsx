@@ -9,6 +9,8 @@ import { LiveRefresh } from "@/components/shell/live-refresh";
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { madridToday } from "@/lib/meeting";
 import { listProjectMessages } from "@/lib/server/list-project-messages";
+import { listClientContacts } from "@/lib/server/engagement-thread";
+import { counterpartyTabIds, readProcessTab } from "@/lib/process-tabs";
 import { requireRole } from "@/lib/server/require-role";
 import { getSellerBuyerFicha } from "@/lib/server/seller-buyer-ficha";
 
@@ -17,11 +19,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const tabIds = ["company", "questions", "meetings"] as const;
-
 /**
- * S40 (Alex): the seller's process ficha matches the buyer's: tabs for the company, Chat / Documentos and Reuniones,
- * a buyer filter when several buyers are in process (S41: swapped in place), and the buyer card as the advisor's overlay.
+ * S40 (Alex): the seller's process ficha matches the buyer's. S43: tabs Información de la empresa, Compradores (buyer
+ * filter, swapped in place) and Asesor when the seller hired one for this company.
  */
 export default async function SellerProcessFichaPage({
   params,
@@ -32,7 +32,11 @@ export default async function SellerProcessFichaPage({
 }) {
   const user = await requireRole("seller");
   const [{ accessId }, query] = await Promise.all([params, searchParams]);
-  const [ficha, messages] = await Promise.all([getSellerBuyerFicha(user, accessId), listProjectMessages(user, null)]);
+  const [ficha, messages, contacts] = await Promise.all([
+    getSellerBuyerFicha(user, accessId),
+    listProjectMessages(user, null),
+    listClientContacts(user),
+  ]);
 
   if (!ficha) {
     redirect("/mi-empresa/procesos");
@@ -41,7 +45,9 @@ export default async function SellerProcessFichaPage({
   const slug = messages.threads.find((row) => row.accessId === accessId)?.slug ?? null;
   const threads = messages.threads.filter((row) => row.slug === slug);
   const openIds = new Set(threads.filter((row) => row.stage === "open").map((row) => row.accessId));
-  const initialTab = tabIds.find((id) => id === query.pestana) ?? "company";
+  // S43: the seller's own advisor thread for this company (server-scoped: listClientContacts only returns the seller's encargos).
+  const advisors = contacts.filter((row) => row.slug === slug);
+  const initialTab = readProcessTab(query.pestana, counterpartyTabIds("seller", { advisor: advisors.length > 0 }));
 
   return (
     <SignedInPage title={ficha.company.codename} showTitle={false}>
@@ -58,6 +64,7 @@ export default async function SellerProcessFichaPage({
           buyers={ficha.buyers.map((row) => ({ ...row, open: openIds.has(row.accessId) }))}
           today={madridToday(new Date())}
           initialTab={initialTab}
+          advisors={advisors}
         />
       </div>
     </SignedInPage>

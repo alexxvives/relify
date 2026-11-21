@@ -9,7 +9,10 @@ import { BuyerFilter } from "@/components/investor/buyer-filter";
 import { ProcessRoom } from "@/components/investor/deal-pipeline";
 import { InvestorProjectTabs, type ProcessTabId } from "@/components/investor/investor-project-tabs";
 import { MeetingDesk } from "@/components/investor/meeting-desk";
-import { ProcessChatLayout } from "@/components/investor/process-chat-layout";
+import { CounterpartyPanel } from "@/components/investor/process-chat-layout";
+import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
+import type { AdvisorContactView } from "@/lib/engagement-thread";
+import { counterpartyTabIds } from "@/lib/process-tabs";
 import { ProjectThread } from "@/components/investor/project-thread";
 import { FichaLockedNote } from "@/components/company/company-ficha-view";
 import type { PublicInvestorCard } from "@/lib/demo-profile";
@@ -17,9 +20,10 @@ import type { SellerThread } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 
 /**
- * S40 (Alex): the seller's process ficha uses the buyer's tabs (Información de la empresa / Chat / Documentos /
- * Reuniones). With several buyers in process, the filter at the right of the Chat / Reuniones tab row swaps the buyer
- * in place (S41: no page load) and the buyer card overlay follows it.
+ * S40 (Alex): the seller's process ficha uses the buyer's tab row. S43: Información de la empresa, Compradores (chat,
+ * documents and meetings with the buyer picked in the filter, swapped in place with no page load) and Asesor (the
+ * private thread with the seller's advisor on this company) when one is hired. The buyer card overlay follows the
+ * filter.
  */
 export function SellerProcessDesk({
   company,
@@ -28,6 +32,7 @@ export function SellerProcessDesk({
   buyers,
   today,
   initialTab,
+  advisors = [],
 }: {
   company: ReactNode;
   /** S41: every process thread of this company, so the buyer filter swaps without a page load. */
@@ -37,7 +42,10 @@ export function SellerProcessDesk({
   buyers: { accessId: string; label: string; card: PublicInvestorCard | null; open: boolean }[];
   today: string;
   initialTab: ProcessTabId;
+  /** S43: the seller's advisors on this company (private thread), shown in the Asesor tab. */
+  advisors?: AdvisorContactView[];
 }) {
+  const ids = counterpartyTabIds("seller", { advisor: advisors.length > 0 });
   const [tab, setTab] = useState<ProcessTabId>(initialTab);
   const [selected, setSelected] = useState(initialAccessId);
   const thread = threads.find((row) => row.accessId === selected) ?? null;
@@ -45,7 +53,7 @@ export function SellerProcessDesk({
   const options = buyers.filter((row) => row.open || row.accessId === selected).map((row) => ({ value: row.accessId, label: row.label }));
 
   useEffect(() => {
-    if (initialTab === "questions") void markThreadReadAction(initialAccessId);
+    if (initialTab === "buyers") void markThreadReadAction(initialAccessId);
   }, [initialTab, initialAccessId]);
   const chat = thread?.messages.filter((message) => message.kind === "question") ?? [];
   const locked = <FichaLockedNote text={sellerCopy.processDeskLocked} />;
@@ -54,27 +62,28 @@ export function SellerProcessDesk({
     setSelected(next);
     // S41 (Alex): no page load; the address follows so a refresh or a shared link lands on the same buyer.
     window.history.replaceState(null, "", `/mi-empresa/procesos/${next}?pestana=${tab}`);
-    if (tab === "questions") void markThreadReadAction(next);
+    if (tab === "buyers") void markThreadReadAction(next);
   }
 
   return (
     <>
     <InvestorProjectTabs
+      ids={ids}
       initialTab={initialTab}
       onTabChange={(next) => {
         setTab(next);
         window.history.replaceState(null, "", `/mi-empresa/procesos/${selected}?pestana=${next}`);
-        if (next === "questions" && thread) void markThreadReadAction(thread.accessId);
+        if (next === "buyers" && thread) void markThreadReadAction(thread.accessId);
       }}
       actions={
-        // S41 (Alex): the buyer filter only on Chat / Documentos and Reuniones.
-        tab !== "company" && options.length > 1 ? <BuyerFilter value={selected} options={options} onChange={pickBuyer} /> : null
+        // S43 (Alex): the buyer filter only on Compradores.
+        tab === "buyers" && options.length > 1 ? <BuyerFilter value={selected} options={options} onChange={pickBuyer} /> : null
       }
       panels={{
         company,
-        questions:
+        buyers:
           thread && thread.stage === "open" ? (
-            <ProcessChatLayout
+            <CounterpartyPanel
               chat={
                 <ProjectThread
                   key={thread.accessId}
@@ -105,28 +114,25 @@ export function SellerProcessDesk({
                   empty={sellerCopy.documentsEmpty}
                 />
               }
+              meetings={
+                <MeetingDesk
+                  key={thread.accessId}
+                  messages={thread.messages}
+                  action={postSellerMessageAction}
+                  approveAction={approveSellerMeetingAction}
+                  rescheduleAction={rescheduleSellerMeetingAction}
+                  today={today}
+                  hidden={[
+                    { name: "accessId", value: thread.accessId },
+                    { name: "kind", value: "meeting" },
+                  ]}
+                />
+              }
             />
           ) : (
             locked
           ),
-        meetings:
-          thread && thread.stage === "open" ? (
-            <MeetingDesk
-              key={thread.accessId}
-              messages={thread.messages}
-              action={postSellerMessageAction}
-              approveAction={approveSellerMeetingAction}
-              rescheduleAction={rescheduleSellerMeetingAction}
-              today={today}
-              columns
-              hidden={[
-                { name: "accessId", value: thread.accessId },
-                { name: "kind", value: "meeting" },
-              ]}
-            />
-          ) : (
-            locked
-          ),
+        advisor: advisors.length > 0 ? <AdvisorContactDesk contacts={advisors} today={today} stacked /> : null,
       }}
     />
     {buyer ? (

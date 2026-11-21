@@ -38,3 +38,22 @@ export async function recordNotification(input: {
     },
   });
 }
+
+/**
+ * The client's notice once an advisor accepts the encargo (deposit paid, or S43 waived in the free launch).
+ * S43: the private advisor chat is the "Asesor" tab of the ficha, so a buyer lands there; a seller's ficha is per
+ * buyer process, so the seller lands on Mis procesos.
+ */
+export async function notifyDepositAccepted(input: {
+  requesterId: string;
+  client: "investor" | "seller";
+  codename: string;
+  slug?: string;
+}): Promise<void> {
+  await recordNotification({
+    userId: input.requesterId,
+    title: "Solicitud aceptada",
+    body: `Un asesor ha aceptado tu solicitud para ${input.codename}.`,
+    href: input.client === "seller" || !input.slug ? (input.client === "seller" ? "/mi-empresa/procesos" : "/procesos") : `/proyectos/${input.slug}?tab=advisor`,
+  });
+}

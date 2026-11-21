@@ -319,7 +319,7 @@ export function processTurnActions<
     label: string;
     stage: string;
     steps: DealStep[];
-    contract?: { next: { who: "you" | "other" | "none"; text: string } } | null;
+    contract?: { next: { who: "you" | "other" | "none"; text: string; short?: string } } | null;
   },
 >(threads: readonly T[], role: "investor" | "seller"): { accessId: string; label: string; action: string }[] {
   return threads.flatMap((thread) => {
@@ -327,7 +327,8 @@ export function processTurnActions<
     const current = thread.steps.find((step) => step.state === "current");
     if (!current) return [];
     if (thread.contract && (current.id === "documents" || current.id === "close")) {
-      return thread.contract.next.who === "you" ? [{ accessId: thread.accessId, label: thread.label, action: thread.contract.next.text }] : [];
+      // S43 (Alex): the short wording in Acciones pendientes.
+      return thread.contract.next.who === "you" ? [{ accessId: thread.accessId, label: thread.label, action: thread.contract.next.short ?? thread.contract.next.text }] : [];
     }
     const cue = stepCue(current.id, role, current.pendingLoi === true);
     return cue.yours ? [{ accessId: thread.accessId, label: thread.label, action: cue.action }] : [];

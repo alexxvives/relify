@@ -121,7 +121,8 @@ describe("S28 10-11: asesoramiento nudges and accurate copy", () => {
   it("does not promise a chat before the asesor accepts", () => {
     expect(engagementCopy.advisorRequested).toMatch(/Si el asesor la acepta/);
     expect(advisoryCopy.saved).not.toMatch(/Deal Managers/);
-    expect(read("src/lib/server/fulfill-checkout.ts")).toMatch(/"\/mi-empresa\/procesos" : "\/procesos"/);
+    // S43: the notice moved to notifyDepositAccepted (buyer lands on the ficha Asesor tab).
+    expect(read("src/lib/server/record-notification.ts")).toMatch(/"\/mi-empresa\/procesos" : "\/procesos"/);
   });
 });
 

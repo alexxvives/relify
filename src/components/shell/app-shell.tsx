@@ -4,6 +4,8 @@ import { AppFrame } from "@/components/shell/app-frame";
 import { PlatformTermsDialog } from "@/components/auth/platform-terms-dialog";
 import { SignerProvider } from "@/components/investor/signer-context";
 import { isIntEnvironment } from "@/lib/int-env";
+import { launchFreeMode } from "@/lib/launch-mode";
+import { LaunchFreeProvider } from "@/components/shell/launch-free";
 import { destinationsForRole, purchaseDoneDestination, saleClosedDestination } from "@/lib/shell";
 import { hasCompletedPurchase, projectSold } from "@/lib/server/sale-outcome";
 import { getCurrentUser } from "@/lib/server/get-current-user";
@@ -67,6 +69,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <SignerProvider nationalIdMissing={user.nationalIdMissing} nationalIdMasked={user.nationalIdMasked}>
+    <LaunchFreeProvider value={launchFreeMode()}>
     <AppFrame
       name={user.displayName}
       destinations={destinations}
@@ -85,6 +88,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       {children}
       <PlatformTermsDialog required={!user.termsAccepted && user.role !== "admin"} />
     </AppFrame>
+    </LaunchFreeProvider>
     </SignerProvider>
   );
 }

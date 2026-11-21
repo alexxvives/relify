@@ -60,12 +60,7 @@ export function ContractStage({ contract }: { contract: ContractView }) {
             {signed ? "Firmado" : `v${current.version}`}
           </span>
         ) : null}
-        {yours ? (
-          <span className="absolute -top-0.5 -right-0.5 flex size-3" aria-hidden>
-            <span className="deal-pulse absolute inset-0 rounded-full bg-[#d92d20]" />
-            <span className="relative size-3 rounded-full border-2 border-white bg-[#d92d20]" />
-          </span>
-        ) : null}
+        {/* S43 (Alex): no red dot on the button; the "Tu turno" tag beside it already says it. */}
         {yours ? <span className="sr-only">Tienes una acción pendiente</span> : null}
       </button>
       {open ? <ContractPane contract={contract} onClose={() => setOpen(false)} /> : null}

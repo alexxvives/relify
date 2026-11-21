@@ -4,9 +4,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SellerProcesses } from "@/components/seller/seller-processes";
 import { SignedInPage } from "@/components/shell/signed-in-page";
-import { madridToday } from "@/lib/meeting";
 import { sellerCopy } from "@/lib/seller-copy";
-import { listClientContacts } from "@/lib/server/engagement-thread";
 import { listPendingMatches } from "@/lib/server/list-pending-matches";
 import { listProjectMessages } from "@/lib/server/list-project-messages";
 import { requireRole } from "@/lib/server/require-role";
@@ -27,10 +25,9 @@ async function ProcessesPageContent() {
     redirect("/mi-empresa");
   }
 
-  const [messages, pendingMatches, advisors, scope] = await Promise.all([
+  const [messages, pendingMatches, scope] = await Promise.all([
     listProjectMessages(user, null),
     listPendingMatches(user.id, projectId),
-    listClientContacts(user),
     sellerProcessScope(user.id),
   ]);
 
@@ -40,8 +37,6 @@ async function ProcessesPageContent() {
         threads={messages.threads}
         counts={messages.counts}
         pendingMatches={pendingMatches}
-        today={madridToday(new Date())}
-        advisors={advisors}
         companyName={scope.codename}
         elsewhere={scope.elsewhere}
       />

@@ -52,7 +52,7 @@ describe("Round S42 (Alex t183u)", () => {
     expect(server).toMatch(/kind: \{ in: \["question", "meeting"\] \}/);
     expect(server).toMatch(/meetings: messages/);
     const desk = read("src/components/advisor/advisor-process-desk.tsx");
-    expect(desk).toMatch(/tab !== "company" \? <BuyerFilter/);
+    expect(desk).toMatch(/tab === sharedTab && options\.length > 1 \? <BuyerFilter/);
     expect(desk).toMatch(/<MeetingDesk key=\{active\.accessId\} messages=\{active\.meetings\}/);
   });
 

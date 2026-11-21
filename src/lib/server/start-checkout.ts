@@ -10,6 +10,8 @@ import { billingCopy } from "@/lib/billing-copy";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
 import { isIntEnvironment } from "@/lib/int-env";
+import { launchFreeCopy, launchFreeMode } from "@/lib/launch-mode";
+import { notifyDepositAccepted } from "@/lib/server/record-notification";
 import { integrationLabel, stripeClient } from "@/lib/server/stripe";
 import {
   catalogLineItem,
@@ -21,6 +23,11 @@ import type Stripe from "stripe";
 
 export type CheckoutStart =
   { ok: true; url: string } | { ok: false; message: string };
+
+/** S43: during the free launch no checkout starts and Stripe is never called. */
+function launchFreeRefusal(): CheckoutStart | null {
+  return launchFreeMode() ? { ok: false, message: launchFreeCopy.checkoutOff } : null;
+}
 
 function intCheckoutCustomText(): Pick<Stripe.Checkout.SessionCreateParams, "custom_text"> {
   if (!isIntEnvironment()) {
@@ -98,6 +105,12 @@ export async function startBuyerCheckout(
   plan: "limited" | "unlimited",
   options: { cancelPath?: string } = {},
 ): Promise<CheckoutStart> {
+  const refused = launchFreeRefusal();
+
+  if (refused) {
+    return refused;
+  }
+
   const current = await prisma.billingCustomer.findUnique({
     where: { userId: user.id },
     select: { plan: true },
@@ -165,6 +178,12 @@ export async function startListingCheckout(
   projectId: string,
   intent: "add" | "publish" = "publish",
 ): Promise<CheckoutStart> {
+  const refused = launchFreeRefusal();
+
+  if (refused) {
+    return refused;
+  }
+
   const stripe = stripeClient();
 
   if (stripe === null || user.role !== "seller") {
@@ -216,6 +235,12 @@ export async function startAdvisorInboxCheckout(
   user: CurrentUser,
   returnPath = "/mandatos/encargos",
 ): Promise<CheckoutStart> {
+  const refused = launchFreeRefusal();
+
+  if (refused) {
+    return refused;
+  }
+
   // S35/S40: Inicio (/inicio, formerly /mandatos) starts the subscription too; it is the step that publishes the profile.
   const back = /^\/(inicio|mandatos(\/encargos(\/[A-Za-z0-9_-]+)?)?)$/.test(returnPath)
     ? returnPath
@@ -282,9 +307,7 @@ export async function startAdvisorDepositCheckout(
   user: CurrentUser,
   engagementId: string,
 ): Promise<CheckoutStart> {
-  const stripe = stripeClient();
-
-  if (stripe === null || user.role !== "advisor") {
+  if (user.role !== "advisor") {
     return { ok: false, message: billingCopy.stripeMissing };
   }
 
@@ -294,12 +317,25 @@ export async function startAdvisorDepositCheckout(
       id: true,
       depositPaidAt: true,
       declinedAt: true,
-      project: { select: { codename: true, askingPriceCents: true } },
+      closedAt: true,
+      requesterId: true,
+      client: true,
+      project: { select: { codename: true, askingPriceCents: true, slug: true } },
     },
   });
 
   if (!row || row.declinedAt) {
     return { ok: false, message: engagementCopy.missing };
+  }
+
+  if (launchFreeMode()) {
+    return waiveAdvisorDeposit(row);
+  }
+
+  const stripe = stripeClient();
+
+  if (stripe === null) {
+    return { ok: false, message: billingCopy.stripeMissing };
   }
 
   const subscription = await prisma.billingCustomer.findUnique({
@@ -359,4 +395,35 @@ export async function startAdvisorDepositCheckout(
   } catch {
     return { ok: false, message: billingCopy.stripeFailed };
   }
+}
+
+/**
+ * S43: during the free launch the advisor accepts the encargo without the deposit. The encargo is stamped as accepted
+ * (deposit_paid_at) with 0 cents and no Checkout session, so every existing gate (NDA, chats, documents) opens as if
+ * it were paid, nothing is charged, and the refund flow (it needs a session and an amount) never applies.
+ */
+async function waiveAdvisorDeposit(row: {
+  id: string;
+  depositPaidAt: Date | null;
+  closedAt: Date | null;
+  requesterId: string;
+  client: "investor" | "seller";
+  project: { codename: string; slug: string };
+}): Promise<CheckoutStart> {
+  const back = `${await requestOrigin()}/mandatos/venta/${row.id}`;
+
+  if (row.depositPaidAt || row.closedAt) {
+    return { ok: true, url: back };
+  }
+
+  const stamped = await prisma.advisoryEngagement.updateMany({
+    where: { id: row.id, depositPaidAt: null, declinedAt: null, closedAt: null },
+    data: { depositPaidAt: new Date(), depositCents: 0, depositSessionId: null },
+  });
+
+  if (stamped.count > 0) {
+    await notifyDepositAccepted({ requesterId: row.requesterId, client: row.client, codename: row.project.codename, slug: row.project.slug });
+  }
+
+  return { ok: true, url: back };
 }

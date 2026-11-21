@@ -32,7 +32,8 @@ export type ContractView = {
   current: (ContractVersionView & { price: string; buyerSignedAt: string | null; sellerSignedAt: string | null }) | null;
   versions: ContractVersionView[];
   signedHref: string | null;
-  next: { who: "you" | "other" | "none"; text: string };
+  /** `short`: the Acciones pendientes wording when the card cue is longer (S43). */
+  next: { who: "you" | "other" | "none"; text: string; short?: string };
   can: { upload: boolean; review: boolean; sign: boolean };
 };
 
@@ -72,7 +73,7 @@ export function contractNext(input: {
 
   if (stage === "upload") {
     return sellerSide
-      ? { who: "you", text: "Sube el contrato de compraventa en PDF para que el comprador lo revise." }
+      ? { who: "you", text: "Sube el contrato de compraventa en PDF para que el comprador lo revise.", short: "Sube el contrato de compraventa." }
       : { who: "other", text: "El vendedor está preparando el contrato de compraventa. Te avisaremos cuando lo suba." };
   }
 

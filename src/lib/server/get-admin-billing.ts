@@ -122,7 +122,8 @@ export async function getAdminBilling(
         },
       }),
       prisma.advisoryEngagement.findMany({
-        where: { depositPaidAt: { not: null } },
+        // S43: launch-waived acceptances (0 cents, no Checkout session) are not deposits and have nothing to refund.
+        where: { depositPaidAt: { not: null }, depositCents: { gt: 0 } },
         orderBy: { depositPaidAt: "desc" },
         select: {
           id: true,

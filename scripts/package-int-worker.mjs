@@ -41,6 +41,8 @@ head_sampling_rate = 1
 
 [vars]
 INT_ENVIRONMENT = "true"
+# S43: free launch on INT so Alex can test it (prod stays off until Alex decides).
+LAUNCH_FREE_MODE = "true"
 INT_APPROVED_DB_HOST = "${approvedHost}"
 
 [assets]
@@ -72,6 +74,7 @@ writeFileSync(
       compatibility_flags: ["nodejs_compat"],
       vars: {
         INT_ENVIRONMENT: "true",
+        LAUNCH_FREE_MODE: "true",
         INT_APPROVED_DB_HOST: approvedHost,
       },
       secrets: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],
@@ -101,6 +104,7 @@ writeFileSync(
       },
       vars: {
         INT_ENVIRONMENT: "true",
+        LAUNCH_FREE_MODE: "true",
         INT_APPROVED_DB_HOST: approvedHost,
       },
       secrets_required: ["INT_DATABASE_URL", "INT_BETTER_AUTH_SECRET", "INT_BETTER_AUTH_URL", "INT_MAILEROO_API_KEY", "INT_EMAIL_CATCHALL"],

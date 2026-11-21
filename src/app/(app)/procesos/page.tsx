@@ -5,9 +5,7 @@ import { CancelledList, InvestorProcesses } from "@/components/investor/investor
 import { SignedInPage } from "@/components/shell/signed-in-page";
 import { ProcessesPlaceholder } from "@/components/shell/processes-placeholder";
 import { spanishDate } from "@/lib/deal-documents";
-import { madridToday } from "@/lib/meeting";
 import { investorCopy } from "@/lib/investor-copy";
-import { listClientContacts } from "@/lib/server/engagement-thread";
 import { listCancelledProcesses, loadInvestorDesk } from "@/lib/server/investor-desk";
 import { getCurrentUser } from "@/lib/server/get-current-user";
 import { requireRole } from "@/lib/server/require-role";
@@ -24,11 +22,7 @@ async function InvestorProcessesPageContent() {
     redirect("/mi-empresa/procesos");
   }
   const user = await requireRole("investor");
-  const [desk, advisors, cancelled] = await Promise.all([
-    loadInvestorDesk(user.id, user.email),
-    listClientContacts(user),
-    listCancelledProcesses(user.id),
-  ]);
+  const [desk, cancelled] = await Promise.all([loadInvestorDesk(user.id, user.email), listCancelledProcesses(user.id)]);
 
   return (
     <>
@@ -41,7 +35,7 @@ async function InvestorProcessesPageContent() {
         </div>
       ) : null}
       {desk.processes.length > 0 ? (
-        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} today={madridToday(new Date())} advisors={advisors} cancelled={cancelled} />
+        <InvestorProcesses items={desk.processes} buyerName={user.displayName} dateLabel={spanishDate(new Date())} cancelled={cancelled} />
       ) : null}
     </>
   );

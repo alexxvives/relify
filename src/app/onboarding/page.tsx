@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { signOutAction } from "@/app/(app)/cuenta/actions";
 import { OnboardingForm } from "@/components/auth/onboarding-form";
+import { launchFreeMode } from "@/lib/launch-mode";
 import { OnboardingPlanResume } from "@/components/auth/onboarding-plan-resume";
 import { OnboardingNationalIdForm } from "@/components/auth/onboarding-national-id-form";
 import { loadBuyerPlan } from "@/lib/server/buyer-plan";
@@ -86,7 +87,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           ) : completeNationalId ? (
             <OnboardingNationalIdForm />
           ) : (
-            <OnboardingForm initialRole={initialRole} />
+            <OnboardingForm initialRole={initialRole} launchFree={launchFreeMode()} />
           )}
         </div>
       </section>
