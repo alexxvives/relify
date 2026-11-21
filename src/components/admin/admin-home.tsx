@@ -3,7 +3,6 @@ import { ChevronRight, Heart, MessageSquare, ShieldCheck, Unlock, Wallet } from 
 import { CountBars, type DonutPalette } from "@/components/admin/admin-charts";
 import { ActivityTiles, share } from "@/components/shell/activity-tiles";
 import { SectorTreemap } from "@/components/public/sector-treemap";
-import { CountBadge } from "@/components/ui/badge";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminDashboard } from "@/lib/server/get-admin-dashboard";
 import { Card } from "@/components/ui/form";
@@ -51,12 +50,12 @@ export function AdminHome({ overview }: { overview: AdminDashboard }) {
         />
       </section>
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} fresh={overview.fresh.accounts} total={userAccounts} palette="blue" rows={roles} />
+        <ChartLink href="/admin/cuentas" title={adminCopy.rolesTitle} total={userAccounts} palette="blue" rows={roles} />
         <ChartLink href="/admin/cuentas" title={adminCopy.unfinishedTitle} total={accounts} palette="green" rows={onboarding} />
         <ChartLink
           href="/admin/empresas"
           title={adminCopy.listingsTitle}
-          fresh={overview.fresh.companies}
+         
           total={overview.published + overview.drafts + overview.pending}
           palette="orange"
           rows={listings}
@@ -87,11 +86,9 @@ function ChartLink({
   palette,
   rows,
   aside,
-  fresh = 0,
 }: {
   href: string;
   title: string;
-  fresh?: number;
   total: number;
   palette: DonutPalette;
   rows: { label: string; value: number }[];
@@ -104,7 +101,6 @@ function ChartLink({
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#1c2740]">
             {title}
-            {fresh > 0 ? <CountBadge count={fresh} label={`${fresh} nuevos`} /> : null}
           </h2>
           <SectionLink href={href} title={title} />
         </div>

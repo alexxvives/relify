@@ -1,59 +1,78 @@
 "use client";
 
-import { ChevronDown, ChevronUp, UserRound } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { ChevronRight, UserRound } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
 import { engagementCopy } from "@/lib/engagement-copy";
 
+const wideQuery = "(min-width: 1024px)";
+
+function subscribeWide(onChange: () => void) {
+  const media = window.matchMedia(wideQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
 /**
- * S36 (Alex): the buyer card floats over the encargo and takes no column. From 1024 px it sits at the top-right and
- * folds into a small "Comprador" tab there; on phones it is a bottom sheet above the tab bar.
- * S37 (Alex): it starts expanded on entry from 1024 px. Open, it sits below the banner so Tu turno and its button
- * stay clickable; folded, the tab goes back to the top-right corner. On phones the open sheet would cover the whole
- * ficha, so there it starts folded (null = auto: open on lg, folded below).
+ * S38 (Alex): the buyer card floats vertically centred on the right edge and may cover the page. Folded, it is a
+ * "Comprador" tab at the same spot; opening it morphs the tab into the card (instant with reduced motion). It starts
+ * open from 1024 px and folded on phones. Used by the advisor's encargo and the admin's connection view.
  */
-export function AdvisorBuyerOverlay({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState<boolean | null>(null);
+export function BuyerCardOverlay({ children, label = engagementCopy.railInvestor }: { children: ReactNode; label?: string }) {
+  const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => null);
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const reduce = useReducedMotion();
+  const open = choice ?? wide ?? false;
+  const transition = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 34 };
 
   return (
     <ViewportPortal>
       <div
-        className={`fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-40 flex flex-col-reverse lg:inset-x-auto lg:right-6 lg:bottom-auto lg:w-[22rem] lg:flex-col lg:items-end ${
-          open === false ? "lg:top-10" : "lg:top-[24rem]"
-        }`}
+        className="pointer-events-none fixed top-1/2 right-0 z-40 flex -translate-y-1/2 justify-end pr-2 sm:pr-4"
         data-advisor-buyer-overlay
-        data-open={open === null ? "auto" : String(open)}
+        data-open={String(open)}
       >
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !(value ?? isWide()))}
-          aria-expanded={open ?? undefined}
-          className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-2xl border border-[#e7eaee] bg-white px-4 text-sm font-semibold text-[#1c2740] shadow-[0_18px_40px_-24px_rgba(28,39,64,0.55)] lg:w-auto"
-        >
-          <span className="inline-flex items-center gap-2">
-            <UserRound className="size-4 text-[#465ab4]" aria-hidden />
-            {engagementCopy.railInvestor}
-          </span>
-          {open === true ? (
-            <ChevronDown className="size-4 lg:rotate-180" aria-hidden />
-          ) : open === false ? (
-            <ChevronUp className="size-4 lg:rotate-180" aria-hidden />
-          ) : (
-            <ChevronUp className="size-4" aria-hidden />
-          )}
-        </button>
-        <div
-          className={`mb-2 max-h-[55dvh] lg:mt-2 lg:mb-0 w-full overflow-y-auto rounded-2xl lg:max-h-[calc(100dvh-28rem)] ${
-            open === null ? "hidden lg:block" : open ? "block" : "hidden"
+        <motion.div
+          layout
+          transition={transition}
+          style={{ borderRadius: open ? 18 : 14 }}
+          className={`pointer-events-auto overflow-hidden border border-[#e7eaee] bg-white shadow-[0_24px_60px_-24px_rgba(28,39,64,0.55)] ${
+            open ? "w-[min(22rem,calc(100vw-1.5rem))]" : "w-11"
           }`}
         >
-          {children}
-        </div>
+          <motion.button
+            layout="position"
+            type="button"
+            onClick={() => setChoice(!open)}
+            aria-expanded={open}
+            className={
+              open
+                ? "flex h-11 w-full items-center justify-between gap-2 px-4 text-sm font-semibold text-[#1c2740] hover:bg-[#f7f8fb]"
+                : "flex w-11 flex-col items-center gap-2 py-3 text-sm font-semibold text-[#1c2740] hover:bg-[#f7f8fb]"
+            }
+          >
+            <span className={open ? "inline-flex items-center gap-2" : "inline-flex flex-col items-center gap-2"}>
+              <UserRound className="size-4 text-[#465ab4]" aria-hidden />
+              <span className={open ? "" : "[writing-mode:vertical-rl] rotate-180"}>{label}</span>
+            </span>
+            {open ? <ChevronRight className="size-4" aria-hidden /> : null}
+          </motion.button>
+          <AnimatePresence initial={false}>
+            {open ? (
+              <motion.div
+                key="card"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, transition: { duration: 0.12 } }}
+                className="max-h-[min(36rem,calc(100dvh-12rem))] overflow-y-auto border-t border-[#eef0f3]"
+              >
+                {children}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </ViewportPortal>
   );
-}
-
-function isWide(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
 }

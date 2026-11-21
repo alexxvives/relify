@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { refundDepositAction } from "@/app/(app)/admin/actions";
 import { donutPalettes, type DonutPalette } from "@/components/admin/admin-charts";
 import { adminCopy } from "@/lib/admin-copy";
 import type { AdminBilling, BillingBook, BillingEntry } from "@/lib/server/get-admin-billing";
@@ -57,6 +58,7 @@ function BillingSource({ book }: { book: BillingBook }) {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-[#1c2740]">{entry.title}</p>
                     <p className="mt-0.5 text-xs text-[#667085]">{entry.detail}</p>
+                    {entry.refund ? <DepositRefundControl {...entry.refund} /> : null}
                   </div>
                   <p className="shrink-0 text-sm font-semibold text-[#1c2740] tabular-nums">{entry.amount}</p>
                 </li>
@@ -279,4 +281,25 @@ function countTicks(max: number): number[] {
   }
 
   return ticks;
+}
+
+/** S38: state of the deposit refund plus the manual "Devolver depósito" (hidden once refunded or in flight). */
+function DepositRefundControl({ engagementId, status }: { engagementId: string; status: string | null }) {
+  const [state, action, pending] = useActionState(refundDepositAction, null);
+  const tone = status === "succeeded" ? "text-[#067647]" : status === "failed" ? "text-[#b42318]" : "text-[#667085]";
+
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-2" data-deposit-refund={status ?? "none"}>
+      {status ? <span className={`text-xs font-medium ${tone}`}>{adminCopy.refundStatus[status] ?? status}</span> : null}
+      {status === null || status === "failed" ? (
+        <form action={action}>
+          <input type="hidden" name="engagementId" value={engagementId} />
+          <button type="submit" disabled={pending} className="text-xs font-medium text-[#465ab4] underline-offset-2 hover:underline disabled:opacity-60">
+            {adminCopy.refundAction}
+          </button>
+        </form>
+      ) : null}
+      {state ? <span role="status" className={`text-xs ${state.ok ? "text-[#067647]" : "text-[#b42318]"}`}>{state.message}</span> : null}
+    </div>
+  );
 }

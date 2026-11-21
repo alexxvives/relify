@@ -105,6 +105,8 @@ export type ThreadMessageView = {
   kind: MessageKindName;
   body: string;
   mine: boolean;
+  /** S38: written by the asesor of this side (author stays the side). */
+  byAdvisor?: boolean;
   createdAt: string;
 };
 
@@ -153,6 +155,7 @@ export function toThreadMessage(input: {
   author: "seller" | "investor";
   viewer: "seller" | "investor";
   createdAt: Date;
+  advisorId?: string | null;
 }): ThreadMessageView {
   const mine =
     (input.viewer === "seller" && input.author === "seller") ||
@@ -163,6 +166,7 @@ export function toThreadMessage(input: {
     kind: input.kind,
     body: input.body,
     mine,
+    ...(input.advisorId ? { byAdvisor: true } : {}),
     createdAt: input.createdAt.toISOString(),
   };
 }

@@ -13,7 +13,8 @@ test.describe("S34 asesor profile", () => {
     await expect(page.getByRole("button", { name: "Editar descripción y sectores" })).toHaveCount(0);
     await expect(page.getByText("Se activa al completar los Datos corporativos")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Así sales en el marketplace" })).toBeVisible();
-    await expect(page.getByText(/seguro de responsabilidad civil/)).toBeVisible();
+    // S38: the RC policy advice moved into the warning hint of Documentación adicional.
+    await expect(page.locator('[aria-label*="responsabilidad civil profesional"]').first()).toBeVisible();
   });
 
   test("an encargo shows the deposit and the buyer together: sidebar on desktop, a bottom dock on mobile", async ({ page }) => {

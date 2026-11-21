@@ -27,6 +27,8 @@ export type BillingEntry = {
   amount: string;
   cents: number;
   at: string | null;
+  /** S38: deposit rows only. null = not refunded yet. */
+  refund?: { engagementId: string; status: string | null };
 };
 
 export type BillingBook = {
@@ -145,6 +147,11 @@ export async function getAdminBilling(
     ]);
   const listingGross = grossCents(SELLER_LISTING_NET_CENTS);
   const listingTotal = listings.length * listingGross;
+  const refunds = await prisma.depositRefund.findMany({
+    where: { engagementId: { in: deposits.map((row) => row.id) } },
+    select: { engagementId: true, status: true },
+  });
+  const refundStatus = new Map(refunds.map((row) => [row.engagementId, row.status]));
   const depositTotal = deposits.reduce((sum, row) => sum + row.depositCents, 0);
   const closeRows = fees.map((fee) => {
     const buyer = fee.buyerNetCents + fee.buyerVatCents;
@@ -243,6 +250,7 @@ export async function getAdminBilling(
         amount: formatEur(row.depositCents),
         cents: row.depositCents,
         at: stamp(row.depositPaidAt),
+        refund: { engagementId: row.id, status: refundStatus.get(row.id) ?? null },
       })),
     },
     {

@@ -8,9 +8,10 @@ import { requireRole } from "@/lib/server/require-role";
 import { setAccountSuspension } from "@/lib/server/set-account-suspension";
 import { setVerified } from "@/lib/server/set-verified";
 import { unpublishProject } from "@/lib/server/unpublish-project";
-import { approveEbitdaAdjustment } from "@/lib/server/approve-ebitda-adjustment";
-import { rejectEbitdaAdjustment } from "@/lib/server/reject-ebitda-adjustment";
+import { decideEbitdaAdjustment } from "@/lib/server/decide-ebitda-adjustment";
 import { rotateAdminTeaserToken } from "@/lib/server/company-pdfs";
+import { refundAdvisorDeposit } from "@/lib/server/deposit-refund";
+import { adminCopy } from "@/lib/admin-copy";
 
 export type AdminActionState = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -37,10 +38,23 @@ function refreshCatalog(): void {
   revalidatePath("/mandatos");
 }
 
+/** S38: manual "Devolver depósito" for edge cases (also retries a failed automatic refund). Idempotent. */
+export async function refundDepositAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  const user = await requireRole("admin");
+  const result = await refundAdvisorDeposit(readText(formData, "engagementId"), "admin", user.id);
+  revalidatePath("/admin/facturacion");
+  if (!result.ok) {
+    return { ok: false, message: adminCopy.refundUnavailable };
+  }
+  return result.status === "failed"
+    ? { ok: false, message: adminCopy.refundFailed }
+    : { ok: true, message: adminCopy.refundDone };
+}
+
 export async function approveEbitdaAdjustmentAction(formData: FormData): Promise<void> {
   const user = await requireRole("admin");
   const slug = readText(formData, "slug");
-  await approveEbitdaAdjustment(user, slug, readText(formData, "rowId"));
+  await decideEbitdaAdjustment(user, slug, readText(formData, "rowId"), "approved");
   refreshCatalog();
   if (slug) {
     revalidatePath(`/admin/empresas/${slug}`);
@@ -48,11 +62,11 @@ export async function approveEbitdaAdjustmentAction(formData: FormData): Promise
   }
 }
 
-/** S32: turn a pending adjustment down (optional note for the seller); the seller gets an aviso. */
+/** S32 + S38: turn an adjustment down (pending or already approved) (optional note for the seller); the seller gets an aviso. */
 export async function rejectEbitdaAdjustmentAction(formData: FormData): Promise<void> {
   const user = await requireRole("admin");
   const slug = readText(formData, "slug");
-  await rejectEbitdaAdjustment(user, slug, readText(formData, "rowId"), readText(formData, "note"));
+  await decideEbitdaAdjustment(user, slug, readText(formData, "rowId"), "rejected", readText(formData, "note"));
   refreshCatalog();
   if (slug) {
     revalidatePath(`/admin/empresas/${slug}`);

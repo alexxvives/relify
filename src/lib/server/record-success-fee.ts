@@ -4,6 +4,7 @@ import { billingCopy } from "@/lib/billing-copy";
 import { formatEur } from "@/lib/money";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { refundDepositsWhere } from "@/lib/server/deposit-refund";
 
 export type RecordSaleResult =
   { ok: true; message: string } | { ok: false; message: string };
@@ -66,6 +67,8 @@ export async function recordSuccessFee(
         sellerVatCents: outcome.fee.sellerVatCents,
       },
     });
+    // S38: the sale closed, so every asesor deposit on this company goes back.
+    await refundDepositsWhere({ projectId: project.id }, "closed");
   }
 
   const buyer = outcome.fee.buyerNetCents + outcome.fee.buyerVatCents;

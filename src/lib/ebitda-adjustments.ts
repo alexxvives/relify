@@ -103,6 +103,17 @@ export type EbitdaAdjustment = {
   reviewNote?: string | null;
   documentId: string | null;
   documentName: string | null;
+  /** S38: admin view only, attached server-side from ebitda_adjustment_decision; never stored in the JSON. */
+  history?: AdjustmentDecisionView[];
+};
+
+/** S38: one admin decision on an adjustment row, as the admin view shows it. */
+export type AdjustmentDecisionView = {
+  id: string;
+  status: "approved" | "rejected";
+  note: string | null;
+  by: string;
+  at: string;
 };
 
 /** What the form posts per row. Status is not read: the server decides pending or approved. */

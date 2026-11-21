@@ -43,6 +43,7 @@ import { personName } from "@/lib/project-message";
 import { publicProjectSelect } from "@/lib/public-project";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
+import { refundAdvisorDeposit } from "@/lib/server/deposit-refund";
 import {
   advisorPublicName,
   revealedInvestorName,
@@ -282,6 +283,8 @@ export async function deleteClientEngagement(
     return { ok: false, message: engagementCopy.missing };
   }
 
+  // S38: cancelling a paid encargo returns the asesor's deposit first (the refund row outlives the encargo).
+  await refundAdvisorDeposit(row.id, "cancelled").catch(() => undefined);
   await prisma.advisoryEngagement.delete({ where: { id: row.id } });
   return { ok: true };
 }
@@ -971,6 +974,7 @@ export async function closeEngagement(
         platformVatCents: fee.vatCents,
       },
     });
+    await refundAdvisorDeposit(row.id, "closed").catch(() => undefined);
   }
 
   return { ok: true, message: engagementCopy.feeStored };

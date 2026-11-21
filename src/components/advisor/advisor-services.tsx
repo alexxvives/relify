@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { AdvisorDocuments } from "@/components/advisor/advisor-documents";
 import { ClosedDealsSlider } from "@/components/advisor/closed-deals-slider";
-import { Check, ChevronDown, CircleCheck, Clock, Pencil } from "lucide-react";
+import { Check, ChevronDown, CircleCheck, Clock } from "lucide-react";
 import { saveCorporateAction, saveMarketplaceAction } from "@/app/(app)/mis-servicios/actions";
 import { AdvisorListingCard } from "@/components/advisor/advisor-listing-card";
 import { AppToast } from "@/components/shell/app-toast";
+import { InfoHint } from "@/components/ui/info-hint";
 import { advisorCopy } from "@/lib/advisor-copy";
 import { advisorPriceLabel, type PublicAdvisorCard } from "@/lib/advisor-directory";
 import {
@@ -19,7 +20,7 @@ import {
 import { advisorSectorName, advisorSectorShort, advisorSectors, type AdvisorSectorId } from "@/lib/advisor-sectors";
 import { isValidSpanishCif } from "@/lib/spanish-cif";
 import type { AdvisorDocumentView } from "@/lib/advisor-documents";
-import { Button, Card, Input, Textarea } from "@/components/ui/form";
+import { Card, Input, Textarea } from "@/components/ui/form";
 
 
 const fieldClass = "relify-field h-11 w-full px-3 text-sm";
@@ -296,7 +297,7 @@ export function AdvisorServices({
       <div id="datos-corporativos" className="scroll-mt-24">
       <Card>
         {/* S37 (Alex): no Editar and no Guardar; the three fields autosave like the investor profile. */}
-        <PanelHeading title={advisorCopy.corporateTitle} body={advisorCopy.confidential} done={profile.corporateComplete} editing={false} disabled={false} />
+        <PanelHeading title={advisorCopy.corporateTitle} hint={advisorCopy.confidential} done={profile.corporateComplete} />
         <div className="mt-6 flex flex-col gap-5">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-[#2b3b4a]">
@@ -332,7 +333,6 @@ export function AdvisorServices({
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.servicesPanelTitle}</h2>
-            <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.servicesPanelBody}</p>
           </div>
         </div>
         {/* S34 (Alex): description and sectors are edited right here, with the services; one Guardar saves all three. */}
@@ -444,7 +444,6 @@ export function AdvisorServices({
 
       <Card>
         <h2 className="text-2xl font-semibold text-[#2b3b4a]">{advisorCopy.dealsTitle}</h2>
-        <p className="mt-1 text-sm text-[#64748b]">{advisorCopy.dealsBody}</p>
         {closes.length === 0 ? (
           <p className="mt-4 text-sm text-[#64748b]">{advisorCopy.dealsEmpty}</p>
         ) : (
@@ -456,10 +455,9 @@ export function AdvisorServices({
         {/* S37 (Alex): no Editar; the same upload box as the seller's Mis documentos, files as same-size previews. */}
         <PanelHeading
           title={advisorCopy.documentsTitle}
-          body={`${advisorCopy.documentsBody} ${advisorCopy.documentsInsurance}`}
+          hint={advisorCopy.documentsInsurance}
+          hintIcon="warning"
           done={documents.length > 0}
-          editing={false}
-          disabled={false}
         />
         <AdvisorDocuments documents={documents} />
       </section>
@@ -468,42 +466,28 @@ export function AdvisorServices({
   );
 }
 
+/** S38 (Alex): no subtitles on Mis servicios; anything worth saying sits in the title's info bubble. */
 function PanelHeading({
   title,
-  body,
+  hint,
+  hintIcon = "info",
   done,
-  editing,
-  disabled,
-  onEdit,
 }: {
   title: string;
-  body: string;
+  hint: string;
+  hintIcon?: "info" | "warning";
   done: boolean;
-  editing: boolean;
-  disabled: boolean;
-  onEdit?: () => void;
 }) {
   return (
-    // S35 (Alex): the status chip always sits at the far top-right; Editar (pencil + word) just left of it.
-    <div>
-      <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-        <h2 className="min-w-0 flex-1 basis-[12rem] text-2xl font-semibold text-[#2b3b4a]">{title}</h2>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-        {editing || !onEdit ? null : (
-          <Button
-            type="button"
-            disabled={disabled}
-            onClick={onEdit}
-            tone="outline" size="sm"
->
-            <Pencil className="size-3.5" aria-hidden />
-            {advisorCopy.edit}
-          </Button>
-        )}
-          <Chip done={done} editing={editing} />
-        </div>
+    // S35 (Alex): the status chip always sits at the far top-right.
+    <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+      <h2 className="flex min-w-0 flex-1 basis-[12rem] items-center gap-2 text-2xl font-semibold text-[#2b3b4a]">
+        {title}
+        <InfoHint text={hint} icon={hintIcon} tone={hintIcon === "warning" ? "warning" : "ink"} />
+      </h2>
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <Chip done={done} editing={false} />
       </div>
-      <p className="mt-1 text-sm text-[#64748b]">{body}</p>
     </div>
   );
 }

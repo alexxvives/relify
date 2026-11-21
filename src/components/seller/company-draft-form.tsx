@@ -3680,7 +3680,8 @@ function MarketPreview({
         {companyCopy.marketPreviewTitle}
         <FieldHint text={companyCopy.cardPreviewBody} />
       </span>
-      <div className="rounded-2xl border border-[#e7eaee] bg-[#f7f8fb] p-4">
+      {/* S38 (Alex): an example only, so nothing in it reacts: no clicks, links, hovers or focus. */}
+      <div inert className="pointer-events-none rounded-2xl border border-[#e7eaee] bg-[#f7f8fb] p-4 select-none" data-teaser-preview>
         <div className="grid gap-2.5 sm:gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {filters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
@@ -3695,7 +3696,6 @@ function MarketPreview({
         <div className="mt-4 grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
           <SampleListing side="left" />
           <div className="relative h-full rounded-2xl shadow-[0_18px_40px_-24px_rgba(28,39,64,0.45)]">
-            <div inert className="h-full">
             <MarketCard
               priceUnset={companyCopy.priceUnset}
               project={card}
@@ -3704,16 +3704,6 @@ function MarketPreview({
                   <Heart className="size-4" aria-hidden />
                 </span>
               }
-            />
-            </div>
-            {/* The whole card, photo included, opens the details preview below, as it would for an investor. */}
-            <button
-              type="button"
-              aria-label={companyCopy.openFichaTitle}
-              onClick={() => {
-                document.getElementById("ficha-detalles")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              className="absolute inset-0 z-30 cursor-pointer rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-[#5c4de0]/35"
             />
           </div>
           <SampleListing side="right" />

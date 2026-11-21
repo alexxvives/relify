@@ -30,9 +30,10 @@ describe("S30: vinext KV cache binding", () => {
 });
 
 describe("S30: Prisma baseline", () => {
-  it("adds the catch-up migration last, so migrations replay to the current schema", () => {
+  it("keeps the catch-up migration before later rounds, so migrations replay to the current schema", () => {
     const names = readdirSync(join(process.cwd(), "prisma/migrations")).filter((name) => /^\d{14}_/.test(name)).sort();
-    expect(names.at(-1)).toBe("20261116220000_schema_catch_up");
+    expect(names.filter((name) => name > "20261116220000_schema_catch_up").every((name) => name >= "20261121000000")).toBe(true);
+    expect(names).toContain("20261116220000_schema_catch_up");
     const sql = read("prisma/migrations/20261116220000_schema_catch_up/migration.sql");
     expect(sql).toMatch(/CREATE TABLE "signed_document"/);
     expect(sql).toMatch(/mark this migration as applied/);
