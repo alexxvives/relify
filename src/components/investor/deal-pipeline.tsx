@@ -430,7 +430,7 @@ function CueLine({ yours, text, action }: { yours: boolean; text: string; action
       {/* A div, not a p: step buttons carry their own dialogs. */}
       <div className={`min-w-0 pt-1 text-sm leading-5 ${yours ? "text-[#1c2740]" : "text-[#3d4a63]"}`}>
         {text}
-        {action ? <span className="-my-2 ml-3 inline-flex flex-wrap items-center gap-2 align-middle empty:hidden">{action}</span> : null}
+        {action ? <span className="ml-3 inline-flex flex-wrap items-center gap-2 align-middle empty:hidden">{action}</span> : null}
       </div>
     </span>
   );
