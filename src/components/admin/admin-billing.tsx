@@ -284,13 +284,18 @@ function countTicks(max: number): number[] {
 }
 
 /** S38: state of the deposit refund plus the manual "Devolver depósito" (hidden once refunded or in flight). */
-function DepositRefundControl({ engagementId, status }: { engagementId: string; status: string | null }) {
+function DepositRefundControl({ engagementId, status, reviewReady }: { engagementId: string; status: string | null; reviewReady: boolean }) {
   const [state, action, pending] = useActionState(refundDepositAction, null);
   const tone = status === "succeeded" ? "text-[#067647]" : status === "failed" ? "text-[#b42318]" : "text-[#667085]";
 
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-2" data-deposit-refund={status ?? "none"}>
       {status ? <span className={`text-xs font-medium ${tone}`}>{adminCopy.refundStatus[status] ?? status}</span> : null}
+      {status !== "succeeded" && reviewReady ? (
+        <span data-refund-review className="rounded-full bg-[#fff4e5] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#7a4700] uppercase">
+          {adminCopy.refundReview}
+        </span>
+      ) : null}
       {status === null || status === "failed" ? (
         <form action={action}>
           <input type="hidden" name="engagementId" value={engagementId} />

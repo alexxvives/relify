@@ -11,6 +11,7 @@ import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorProcessChats as AdvisorProcessChatsData } from "@/lib/server/advisor-process-chat";
 import { AdvisorProcessChats } from "@/components/advisor/advisor-process-chats";
+import { AdvisorQuickLinks, advisorSectionIds } from "@/components/advisor/advisor-quick-links";
 import type { AdvisorEngagementPage } from "@/lib/server/advisory-engagement";
 import { Card } from "@/components/ui/form";
 
@@ -69,6 +70,11 @@ export function AdvisorEngagementView({
               ) : null
             }
           />
+          <AdvisorQuickLinks
+            chat={processChats !== null}
+            documents={engagement.view === "investor" || engagement.view === "seller"}
+            meetings={thread !== null}
+          />
           {/* S36 (Alex): no client/services helper line; Contrato stays while the encargo is open. */}
           {engagement.contract && !engagement.closed ? (
             <div className="flex flex-wrap items-center gap-3">
@@ -85,7 +91,7 @@ export function AdvisorEngagementView({
             />
           ) : null}
           {engagement.view === "investor" ? (
-            <Card>
+            <Card id={advisorSectionIds.documents} className="scroll-mt-24">
               <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.documentsTitle}</h2>
               {engagement.documents.length === 0 ? (
                 <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.documentsEmpty}</p>
@@ -103,7 +109,7 @@ export function AdvisorEngagementView({
             </Card>
           ) : null}
           {engagement.view === "seller" ? (
-            <Card>
+            <Card id={advisorSectionIds.documents} className="scroll-mt-24">
               <h2 className="text-2xl font-semibold text-[#2b3b4a]">{engagementCopy.foldersTitle}</h2>
               {engagement.folders.length === 0 ? (
                 <p className="mt-3 text-sm text-[#64748b]">{engagementCopy.sellerWait}</p>
@@ -139,8 +145,16 @@ export function AdvisorEngagementView({
               )}
             </Card>
           ) : null}
-          {thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned /> : null}
-          {processChats ? <AdvisorProcessChats engagementId={engagement.id} side={processChats.side} chats={processChats.chats} /> : null}
+          {thread ? (
+            <div id={advisorSectionIds.meetings} className="scroll-mt-24">
+              <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned />
+            </div>
+          ) : null}
+          {processChats ? (
+            <div id={advisorSectionIds.chat} className="scroll-mt-24">
+              <AdvisorProcessChats engagementId={engagement.id} side={processChats.side} chats={processChats.chats} />
+            </div>
+          ) : null}
           {engagement.deposit.paid ? (
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}

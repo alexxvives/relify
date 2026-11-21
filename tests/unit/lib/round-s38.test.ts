@@ -30,7 +30,7 @@ describe("S38 copy", () => {
     expect(advisorCopy.confidential).toMatch(/NIF y el código postal no se publican/);
     expect(engagementCopy.directoryIntro).toMatch(/correo y los documentos no salen/);
     expect(advisorCopy.documentsInsurance).toMatch(/responsabilidad civil profesional/);
-    expect(engagementCopy.depositPoints.join(" ")).toMatch(/operación se cierra o el proceso se cancela/);
+    expect(engagementCopy.depositPoints.join(" ")).toMatch(/tras verificar el cierre o la cancelación/);
   });
 });
 
@@ -84,11 +84,10 @@ describe("S38 deposit refund", () => {
     await expect(refundAdvisorDeposit("eng-1", "closed")).resolves.toEqual({ ok: false, code: "unpaid" });
   });
 
-  it("wires the refund to close, sale, cancel and delete, plus the admin action", () => {
-    expect(read("src/lib/server/advisory-engagement.ts")).toMatch(/refundAdvisorDeposit\(row\.id, "closed"\)/);
-    expect(read("src/lib/server/advisory-engagement.ts")).toMatch(/refundAdvisorDeposit\(row\.id, "cancelled"\)/);
-    expect(read("src/lib/server/record-success-fee.ts")).toMatch(/refundDepositsWhere\(\{ projectId: project\.id \}, "closed"\)/);
-    expect(read("src/lib/server/cancel-project-access.ts")).toMatch(/refundDepositsWhere/);
+  it("S39: only admin refunds; no automatic trigger", () => {
+    for (const file of ["src/lib/server/advisory-engagement.ts", "src/lib/server/record-success-fee.ts", "src/lib/server/cancel-project-access.ts"]) {
+      expect(read(file)).not.toMatch(/deposit-refund/);
+    }
     expect(read("src/app/(app)/admin/actions.ts")).toMatch(/refundAdvisorDeposit\(readText\(formData, "engagementId"\), "admin", user\.id\)/);
     expect(adminCopy.refundAction).toBe("Devolver depósito");
   });

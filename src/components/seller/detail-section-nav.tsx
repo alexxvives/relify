@@ -421,8 +421,7 @@ export function UnsavedBar({
             <p className="flex min-w-0 items-center gap-2">
               <span className="size-2 shrink-0 rounded-full bg-[#e0a526]" aria-hidden />
               <span className="min-w-0 truncate">
-                <span className="font-medium text-[#1c2740]">Cambios sin guardar</span>
-                <span className="hidden text-[#64748b] sm:inline"> · {sections.join(", ")}</span>
+                <span className="hidden text-[#64748b] sm:inline">{sections.join(", ")}</span>
               </span>
             </p>
           )}

@@ -2,9 +2,10 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { stripeClient } from "@/lib/server/stripe";
 
-// S38: the advisor's deposit goes back when the operation closes or the
-// encargo is cancelled. One deposit_refund row per encargo (unique), the Stripe
-// call carries an idempotency key, so retries and double triggers never refund twice.
+// S38/S39: the advisor's deposit goes back once Relify has verified that the
+// operation closed or the encargo was cancelled. Admin-only ("Devolver depósito"
+// in /admin/facturacion): nothing refunds automatically. One deposit_refund row per
+// encargo (unique) plus a Stripe idempotency key, so a retry never refunds twice.
 
 export type DepositRefundReason = "closed" | "cancelled" | "admin";
 export type DepositRefundStatus = "pending" | "succeeded" | "failed";
@@ -153,19 +154,4 @@ async function failRefund(refundId: string, error: string): Promise<"failed"> {
     data: { status: "failed", error },
   });
   return "failed";
-}
-
-/** Refunds every paid deposit matching the filter; never throws (the caller's action already happened). */
-export async function refundDepositsWhere(
-  where: { projectId: string; requesterId?: string; client?: "seller" | "investor" },
-  reason: DepositRefundReason,
-): Promise<void> {
-  const rows = await prisma.advisoryEngagement.findMany({
-    where: { ...where, depositPaidAt: { not: null } },
-    select: { id: true },
-  });
-
-  for (const row of rows) {
-    await refundAdvisorDeposit(row.id, reason).catch(() => undefined);
-  }
 }

@@ -137,7 +137,7 @@ describe("S26 point 6-12 and placeholders", () => {
     const account = read("src/components/account/account-settings.tsx");
     expect(account).toMatch(/flex-\[1_1_20rem\]/);
     expect(account).toMatch(/ml-auto shrink-0/);
-    expect(account).toMatch(/placeholder=\{authCopy\.nationalIdPlaceholder\}/);
+    expect(account).toMatch(/placeholder=\{storedMasked \|\| authCopy\.nationalIdPlaceholder\}/);
   });
 
   it("drops headcount and Verificado from marketplace cards", () => {

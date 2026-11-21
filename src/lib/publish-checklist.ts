@@ -27,8 +27,9 @@ export type CheckList<K extends string> = {
 export type PublishChecklist = CheckList<SellerCheckKey>;
 export type AdminPublishChecks = CheckList<AdminCheckKey>;
 
+// S39: no #hash, so the browser never jumps before hydration (it landed low, then scrolled up); the page scrolls once.
 const detailHref = (panel: SellerFocusPanel, anchor: string = `panel-${panel}`) =>
-  `/mi-empresa/detalles?seccion=${panel}&ancla=${encodeURIComponent(anchor)}#${anchor}`;
+  `/mi-empresa/detalles?seccion=${panel}&ancla=${encodeURIComponent(anchor)}`;
 
 export const publishCheckLabels: Record<SellerCheckKey | AdminCheckKey, string> = {
   identity: "Nombre y NIF",
@@ -71,7 +72,7 @@ export function publishChecklist(input: {
   items.push(
     { key: "saleReason", done: input.saleReason, href: detailHref("identity", "panel-sale-reason") },
     { key: "description", done: input.panels.description, href: detailHref("description") },
-    { key: "price", done: input.panels.price, href: detailHref("price") },
+    { key: "price", done: input.panels.price, href: detailHref("price", "panel-asking-price") },
     // t92: required; Sí or No completes it. Leftover Negociable is stored as Sí.
     { key: "sellerFinancing", done: input.sellerFinancing, href: detailHref("cnae", "panel-seller-financing") },
   );
