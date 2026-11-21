@@ -153,7 +153,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
   it("explains the price range with an info tooltip, not the old sentence", () => {
     expect(draftForm).not.toMatch(/El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado/);
     expect(draftForm).toMatch(/AskingPriceRangeHint/);
-    expect(draftForm).toMatch(/EBITDA de referencia × múltiplo sectorial/);
+    expect(draftForm).toMatch(/EBITDA de referencia × múltiplo ajustado/);
   });
 
   it("orders Datos de la ficha without Resultado neto", () => {

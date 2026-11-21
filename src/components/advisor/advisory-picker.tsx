@@ -153,7 +153,7 @@ function AdvisorMarket({
                 value={company}
                 options={[
                   ...(companies.length === 1 ? [] : [{ value: "", label: engagementCopy.companyRequired }]),
-                  ...companies.map((item) => ({ value: item.slug, label: `${item.codename} · ${item.region}` })),
+                  ...companies.map((item) => ({ value: item.slug, label: item.codename })),
                 ]}
                 onValueChange={onCompany}
               />

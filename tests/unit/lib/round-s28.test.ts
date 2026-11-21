@@ -105,12 +105,8 @@ describe("S28 9: Contacta con un asesor sits in the bottom-right actions", () =>
     it(`${file} shows it from Preguntas through Contrato in the right-hand actions`, () => {
       const source = read(file);
       expect(source).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "loi" \|\| current\?\.id === "documents"/);
-      // S37 (Alex): on the buyer side it sits left of Cancelar proceso; the seller keeps it after the actions.
-      expect(source).toMatch(
-        file.includes("investor")
-          ? /ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,200}?wantsAdvisor[\s\S]{0,600}?\{actions\}/
-          : /ml-auto flex flex-wrap items-center justify-end gap-2">[\s\S]{0,260}?(actions|processActions)\}[\s\S]{0,200}?wantsAdvisor/,
-      );
+      // S41 (Alex): both cards share ProcessCardActions at the top right (Contacta con un asesor · Cancelar · Ver la ficha).
+      expect(source).toMatch(/ProcessCardActions[\s\S]{0,200}?advisorHref=\{[^}]*wantsAdvisor/);
     });
   }
 });

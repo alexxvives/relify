@@ -99,9 +99,8 @@ export async function listDataRoom(
     const investors = labelAccesses(
       accesses.map((access) => ({
         ...access,
-        connectedName: access.sellerAcceptedAt
-          ? personName(access.investor.name, access.investor.lastName)
-          : null,
+        // S41 (Alex): the buyer's real name everywhere.
+        connectedName: personName(access.investor.name, access.investor.lastName),
       })),
     ).map((access) => ({
       investorId: access.investorId,

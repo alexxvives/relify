@@ -83,7 +83,7 @@ export const companyCopy = {
   priceBlockedHint: "Con un EBITDA negativo no se puede publicar la empresa en Relify.",
   recommendedPrice: "Precio recomendado",
   recommendedChip: "Recomendado {amount}",
-  useRecommended: "Usar precio recomendado",
+  useRecommended: "Precio recomendado",
   suggestedPrice: "Sugerido",
   applySuggested: "Aplicar",
   applySuggestedAria: "Aplicar el precio sugerido {amount} al precio de venta",

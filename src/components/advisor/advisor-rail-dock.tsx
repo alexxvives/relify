@@ -2,7 +2,7 @@
 
 import { Minimize2, UserRound } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ViewportPortal } from "@/components/shell/viewport-portal";
 import { engagementCopy } from "@/lib/engagement-copy";
 
@@ -14,6 +14,9 @@ function subscribeWide(onChange: () => void) {
   return () => media.removeEventListener("change", onChange);
 }
 
+/** S41 (Alex): where the card's "1/2" counter goes, in the header row next to the "Comprador" title. */
+export const BuyerOverlayHeaderSlot = createContext<HTMLElement | null>(null);
+
 /**
  * S38 (Alex): the buyer card floats vertically centred on the right edge and may cover the page. Folded, it is a
  * "Comprador" tab at the same spot; opening it morphs the tab into the card (instant with reduced motion). It starts
@@ -22,20 +25,32 @@ function subscribeWide(onChange: () => void) {
 export function BuyerCardOverlay({
   children,
   label = engagementCopy.railInvestor,
-  startFolded = false,
+  autoFold = false,
 }: {
   children: ReactNode;
   label?: string;
-  /** S40: folded on entry when a buyer filter sits at the tab row's right end, so the open card never covers it. */
-  startFolded?: boolean;
+  /**
+   * S41 (Alex): the card starts open on entry and minimises itself when this turns true (the user moved to Chat /
+   * Documentos or Reuniones, where the buyer filter sits). Going back does not reopen it.
+   */
+  autoFold?: boolean;
 }) {
   const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => null);
-  const [choice, setChoice] = useState<boolean | null>(null);
+  const [choice, setChoice] = useState<boolean | null>(autoFold ? false : null);
+  const [lastAutoFold, setLastAutoFold] = useState(autoFold);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+
+  if (autoFold !== lastAutoFold) {
+    setLastAutoFold(autoFold);
+    if (autoFold) {
+      setChoice(false);
+    }
+  }
   // S40 (Alex): folding plays the opening backwards: the card fades out first, then the panel shrinks back into the tab
   // (the content used to linger while the panel shrank, then the height snapped).
   const [folding, setFolding] = useState(false);
   const reduce = useReducedMotion();
-  const open = choice ?? (startFolded ? false : (wide ?? false));
+  const open = choice ?? wide ?? false;
   const fade = reduce ? { duration: 0 } : { duration: 0.16, ease: "easeOut" as const };
   const transition = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 34 };
 
@@ -77,6 +92,7 @@ export function BuyerCardOverlay({
             <span className={open ? "inline-flex items-center gap-2" : "inline-flex flex-col items-center gap-2"}>
               <UserRound className="size-4 text-[#465ab4]" aria-hidden />
               <span className={open ? "" : "[writing-mode:vertical-rl] rotate-180"}>{label}</span>
+              {open ? <span ref={setSlot} className="contents" /> : null}
             </span>
             {open ? <Minimize2 className="size-4" aria-hidden /> : null}
           </motion.button>
@@ -97,7 +113,7 @@ export function BuyerCardOverlay({
                 exit={{ opacity: 0, transition: fade }}
                 className="max-h-[min(36rem,calc(100dvh-12rem))] overflow-y-auto border-t border-[#eef0f3]"
               >
-                {children}
+                <BuyerOverlayHeaderSlot.Provider value={slot}>{children}</BuyerOverlayHeaderSlot.Provider>
               </motion.div>
             ) : null}
           </AnimatePresence>

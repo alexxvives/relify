@@ -1478,9 +1478,8 @@ export async function listAdvisorProjectBoards(
         meeting: thread.some((message) => message.kind === "meeting"),
         offer: thread.some((message) => message.kind === "offer"),
         loiAccepted: access.loiAcceptedAt !== null,
-        connectedName: access.sellerAcceptedAt
-          ? personName(access.investor.name, access.investor.lastName)
-          : null,
+        // S41 (Alex): the buyer's real name everywhere.
+        connectedName: personName(access.investor.name, access.investor.lastName),
       };
     }),
   }));

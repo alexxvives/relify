@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
 import { acceptSellerBuyerAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
-import { CancelProcessButton } from "@/components/investor/cancel-process-button";
 import { ContractStage } from "@/components/investor/contract-stage";
 import { AcceptLoiButton, DealPipeline, ProcessHeaderCue } from "@/components/investor/deal-pipeline";
-import { ProcessFichaLink } from "@/components/investor/process-ficha-link";
+import { CancelProcessButton } from "@/components/investor/cancel-process-button";
+import { ProcessCardActions, ProcessCardHeader } from "@/components/investor/process-card-header";
 import { LiveRefresh } from "@/components/shell/live-refresh";
 import { InvestorPublicCard } from "@/components/investor/investor-public-card";
 import { DeskToggles } from "@/components/shell/desk-toggles";
@@ -17,7 +17,7 @@ import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/p
 import { unreadCount } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
-import type { DealStep } from "@/lib/deal-pipeline";
+import { processTurnActions, type DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy, upcomingMeetingsTitle } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
@@ -199,13 +199,7 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
   const offer = thread.messages.find((message) => message.kind === "offer");
   const loiPending = thread.steps.some((step) => step.state === "current" && step.pendingLoi === true) && offer !== undefined;
   const expandable = thread.stage === "open";
-  const processActions = (
-    <>
-      {thread.contract?.stage === "signed" ? null : <CancelProcessButton accessId={thread.accessId} />}
-      <ProcessFichaLink href={`/mi-empresa/procesos/${thread.accessId}${unread > 0 ? "?pestana=questions" : ""}`} unread={unread} />
-    </>
-  );
-
+  const fichaHref = `/mi-empresa/procesos/${thread.accessId}${unread > 0 ? "?pestana=questions" : ""}`;
   if (thread.stage === "pending") {
     return (
       <InvestorPublicCard
@@ -227,60 +221,40 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
 
   return (
     <Card className="flex flex-col gap-4">
-      <div>
-        <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:gap-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-          <h2 className="text-lg font-semibold text-[#2b3b4a]">{thread.label}</h2>
+      <ProcessCardHeader
+        title={<h2 className="text-lg font-semibold text-[#2b3b4a]">{thread.label}</h2>}
+        cue={
           <ProcessHeaderCue
             steps={thread.steps}
             role="seller"
             contractNext={thread.contract?.next ?? null}
+            action={
+              <>
+                {loiPending && offer ? <AcceptLoiButton accessId={thread.accessId} body={offer.body} /> : null}
+                {thread.contract ? <ContractStage contract={thread.contract} /> : null}
+              </>
+            }
           />
-        </div>
-        {(thread.contract && thread.contract.stage !== "signed") || !expandable || loiPending ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            {loiPending && offer ? <AcceptLoiButton accessId={thread.accessId} body={offer.body} /> : null}
-            {thread.contract && (thread.contract.stage !== "signed" || !expandable) ? <ContractStage contract={thread.contract} /> : null}
-            {expandable ? null : processActions}
-          </div>
-        ) : null}
-        </div>
-      </div>
-      <div>
-          <DealPipeline
-            steps={thread.steps}
-            role="seller"
-            hideAsideCue
+        }
+        actions={
+          <ProcessCardActions
+            advisorHref={expandable && !thread.advisorHired && wantsAdvisor(thread.steps) ? `/mi-empresa/servicios?empresa=${thread.slug}` : null}
+            cancelAccessId={thread.contract?.stage === "signed" ? null : thread.accessId}
+            fichaHref={fichaHref}
+            unread={unread}
           />
-        </div>
-      {expandable ? (
+        }
+      />
+      <DealPipeline steps={thread.steps} role="seller" hideAsideCue />
+      {expandable && thread.advisorHired ? (
         <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-          {thread.advisorHired ? (
-            <DeskToggles
-              label={thread.codename}
-              controls={deskId}
-              tabs={[{ id: "advisor" as const, label: "Asesor" }]}
-              value={desk}
-              onChange={setDesk}
-            />
-          ) : null}
-          {/* Alex (t50/S28): "Ver ficha", "Cancelar proceso" and, from Preguntas through Contrato, "Contacta con un asesor" sit at
-              the far right of the panel toggles (with the signed-contract record, when there is one). */}
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            {thread.contract?.stage === "signed" ? <ContractStage contract={thread.contract} /> : null}
-            {processActions}
-            {!thread.advisorHired && wantsAdvisor(thread.steps) ? (
-              <Link
-                href={`/mi-empresa/servicios?empresa=${thread.slug}`}
-                data-advisor-link
-                className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-              >
-                {engagementCopy.contactAdvisor}
-              </Link>
-            ) : null}
-          </div>
-          </div>
+          <DeskToggles
+            label={thread.codename}
+            controls={deskId}
+            tabs={[{ id: "advisor" as const, label: "Asesor" }]}
+            value={desk}
+            onChange={setDesk}
+          />
           <div id={deskId} hidden={desk === null}>
           {desk === "advisor" && thread.advisorHired ? (
             advisors.length > 0 ? (
@@ -314,18 +288,36 @@ export function SellerProcesses({
   companyName?: string;
   elsewhere?: string | null;
 }) {
+  const turns = processTurnActions(threads, "seller");
+
   return (
     <div>
       <LiveRefresh />
       <div className="flex flex-col gap-4">
           <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-2">
             <Card>
-              <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length)}</h2>
-              {pendingMatches.length > 0 ? (
+              <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length + turns.length)}</h2>
+              {pendingMatches.length + turns.length > 0 ? (
                 <ul className="mt-4 flex flex-col gap-2">
                   {pendingMatches.map((item) => (
                     <li key={item.accessId}>
                       <SellerPending item={item} profile={threads.find((thread) => thread.accessId === item.accessId)?.profile ?? null} />
+                    </li>
+                  ))}
+                  {/* S41 (Alex): each process's "Tu turno" action, linking to its ficha. */}
+                  {turns.map((turn) => (
+                    <li key={`turn-${turn.accessId}`}>
+                      <Link
+                        href={`/mi-empresa/procesos/${turn.accessId}`}
+                        data-turn-action
+                        className="flex items-center justify-between gap-3 rounded-xl border border-[#f3c4c4] bg-[#fff5f5] px-3 py-2 hover:bg-[#ffecec] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-[#1c2740]">{turn.label}</span>
+                          <span className="block text-sm text-[#b42318]">{turn.action}</span>
+                        </span>
+                        <ChevronRight className="size-4 shrink-0 text-[#b42318]" aria-hidden />
+                      </Link>
                     </li>
                   ))}
                 </ul>

@@ -53,7 +53,7 @@ export function CancelProcessButton({ accessId, label = accessCopy.cancelProcess
       >
         <h2 className="text-lg font-semibold">{accessCopy.cancelTitle}</h2>
         <p className="mt-2 text-sm leading-6 text-[#5c6b78]">{accessCopy.cancelBody}</p>
-        <form action={action} className="mt-5 flex flex-wrap items-center gap-2">
+        <form action={action} className="mt-5 flex flex-wrap items-center justify-center gap-2">
           <input type="hidden" name="accessId" value={accessId} />
           <button
             type="submit"

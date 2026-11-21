@@ -6,7 +6,7 @@ import {
   toInvestorProject,
   type InvestorProjectProfile,
 } from "@/lib/investor-project";
-import { labelAccesses } from "@/lib/project-message";
+import { labelAccesses, personName } from "@/lib/project-message";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { prisma } from "@/lib/db";
 import { publicCardsByInvestor } from "@/lib/server/investor-profile";
@@ -15,6 +15,8 @@ export type SellerBuyerFicha = {
   company: InvestorProjectProfile;
   buyerLabel: string;
   buyerCard: PublicInvestorCard | null;
+  /** S41: every buyer in this company's processes, so the ficha's buyer filter swaps cards without a page load. */
+  buyers: { accessId: string; label: string; card: PublicInvestorCard | null }[];
 };
 
 const accessIdSchema = z
@@ -43,7 +45,7 @@ export async function getSellerBuyerFicha(
     },
     select: {
       projectId: true,
-      investor: { select: { id: true, email: true } },
+      investor: { select: { id: true, email: true, name: true, lastName: true } },
     },
   });
 
@@ -51,29 +53,40 @@ export async function getSellerBuyerFicha(
     return null;
   }
 
-  const [companyRow, siblings, cards] = await Promise.all([
+  const [companyRow, siblings] = await Promise.all([
     prisma.project.findUnique({
       where: { id: access.projectId },
       select: investorProjectSelect,
     }),
     prisma.projectAccess.findMany({
       where: { projectId: access.projectId, cancelledAt: null },
-      select: { id: true, projectId: true, requestedAt: true },
+      select: {
+        id: true,
+        projectId: true,
+        requestedAt: true,
+        investor: { select: { id: true, email: true, name: true, lastName: true } },
+      },
     }),
-    publicCardsByInvestor([access.investor]),
   ]);
 
   if (!companyRow) {
     return null;
   }
 
-  const label =
-    labelAccesses(siblings).find((row) => row.id === parsed.data)?.label ??
-    "Comprador";
+  // S41 (Alex): the buyer's real name everywhere; the numbered label only when the account has no name.
+  const cards = await publicCardsByInvestor(siblings.map((row) => row.investor));
+  const numbered = labelAccesses(siblings);
+  const buyers = siblings.map((row) => ({
+    accessId: row.id,
+    label: personName(row.investor.name, row.investor.lastName).trim() || numbered.find((entry) => entry.id === row.id)?.label || "Comprador",
+    card: cards.get(row.investor.id) ?? null,
+  }));
+  const current = buyers.find((row) => row.accessId === parsed.data);
 
   return {
     company: toInvestorProject(companyRow),
-    buyerLabel: label,
-    buyerCard: cards.get(access.investor.id) ?? null,
+    buyerLabel: current?.label ?? "Comprador",
+    buyerCard: current?.card ?? null,
+    buyers,
   };
 }

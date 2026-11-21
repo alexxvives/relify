@@ -2,19 +2,14 @@
 
 import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { approveInvestorMeetingAction, markThreadReadAction, postInvestorMessageAction, rescheduleInvestorMeetingAction } from "@/app/proyectos/[slug]/actions";
 import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
 import { ClosedProcessRow, closedProcessRowClass } from "@/components/seller/sale-completed";
-import { CancelProcessButton } from "@/components/investor/cancel-process-button";
-import { ProcessFichaLink } from "@/components/investor/process-ficha-link";
+import { ProcessCardActions, ProcessCardHeader } from "@/components/investor/process-card-header";
 import { ContractStage } from "@/components/investor/contract-stage";
-import { DealPipeline, ProcessHeaderCue, ProcessRoom } from "@/components/investor/deal-pipeline";
+import { DealPipeline, ProcessHeaderCue } from "@/components/investor/deal-pipeline";
 import { LiveRefresh } from "@/components/shell/live-refresh";
-import { MeetingDesk } from "@/components/investor/meeting-desk";
-import { ProjectThread } from "@/components/investor/project-thread";
 import { DeskToggles } from "@/components/shell/desk-toggles";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
-import { companyCopy } from "@/lib/company-copy";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
 import type { DealStep } from "@/lib/deal-pipeline";
@@ -25,136 +20,30 @@ import type { CancelledProcess } from "@/lib/server/investor-desk";
 import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/form";
 
-const processTabs = [
-  { id: "chat", label: sellerCopy.questionsPanel },
-  { id: "meetings", label: sellerCopy.meetingsHeading },
-  { id: "advisor", label: "Asesor" },
-] as const;
-
-
 function wantsAdvisor(steps: readonly DealStep[]): boolean {
   const current = steps.find((step) => step.state === "current");
-  // S28/S29b (Alex): from Preguntas through Contrato the asesor link lives in the bottom-right action row.
+  // S28/S29b (Alex): from Preguntas through Contrato the card offers "Contacta con un asesor".
   return current?.id === "qa" || current?.id === "loi" || current?.id === "documents";
 }
 
-function ProcessConversation({
-  item,
-  today,
-  advisors,
-  actions = null,
-}: {
-  item: InvestorProcessCard;
-  today: string;
-  advisors: AdvisorContactView[];
-  /** Alex (S25): "Cancelar proceso" and "Ver la ficha" at the far right of the toggles row. */
-  actions?: ReactNode;
-}) {
-  const [tab, setTab] = useState<(typeof processTabs)[number]["id"] | null>(null);
-  const chat = item.messages.filter((message) => message.kind === "question");
+/** S41 (Alex): Chat / Documentos and Reuniones live in the ficha tabs; the card keeps only the Asesor desk. */
+function AdvisorDesk({ item, today, advisors }: { item: InvestorProcessCard; today: string; advisors: AdvisorContactView[] }) {
+  const [tab, setTab] = useState<"advisor" | null>(null);
   const deskId = useId();
-  const [readAt, setReadAt] = useState(item.lastReadAt);
-  const unread = tab === "chat" ? 0 : unreadCount(chat, readAt);
-
-  function changeTab(next: (typeof processTabs)[number]["id"] | null) {
-    if (next === "chat" || tab === "chat") {
-      setReadAt(new Date().toISOString());
-      void markThreadReadAction(item.accessId);
-    }
-    setTab(next);
-  }
 
   return (
     <div className="flex flex-col gap-4 border-t border-[#eef0f3] pt-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <DeskToggles
-          label={item.codename}
-          controls={deskId}
-          tabs={processTabs
-            .filter((entry) => entry.id !== "advisor" || item.advisorHired)
-            .map((entry) => (entry.id === "chat" ? { ...entry, count: unread } : entry))}
-          value={tab}
-          onChange={changeTab}
-          disabled={item.nda ? [] : (["chat", "meetings"] as const)}
-          hints={{
-            ...(item.nda
-              ? {}
-              : {
-                  chat: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
-                  meetings: item.sellerAccepted ? companyCopy.threadSignNda : companyCopy.threadWaiting,
-                }),
-          }}
-        />
-        {/* Mis procesos layout rule: one action row, toggles on the left; (from Q&A through Contrato) Contacta con un
-            asesor, then Cancelar proceso and Ver la ficha on the right. */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          {!item.advisorHired && wantsAdvisor(item.steps) ? (
-            <Link
-              href={`/asesoramiento?empresa=${item.slug}`}
-              data-advisor-link
-              className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-            >
+      <DeskToggles label={item.codename} controls={deskId} tabs={[{ id: "advisor" as const, label: "Asesor" }]} value={tab} onChange={setTab} />
+      <div id={deskId} hidden={tab === null}>
+        {tab === "advisor" ? (
+          advisors.length > 0 ? (
+            <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
+          ) : (
+            <Link href={`/asesoramiento?empresa=${item.slug}`} className="text-sm font-medium text-[#465ab4]">
               {engagementCopy.contactAdvisor}
             </Link>
-          ) : null}
-          {actions}
-        </div>
-      </div>
-      <div id={deskId} hidden={tab === null} className="flex flex-col gap-4">
-      {tab === "chat" && item.nda ? (
-        <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <section className="flex h-full flex-col rounded-2xl border border-[#e6e9f0] bg-[#fbfbfc] p-5">
-            <ProjectThread
-              viewer="investor"
-              partyName={item.partyName}
-              messages={chat}
-              action={postInvestorMessageAction}
-              hidden={[
-                { name: "slug", value: item.slug },
-                { name: "kind", value: "question" },
-              ]}
-              placeholder={companyCopy.questionPrompt}
-              submitLabel={companyCopy.sendMessage}
-              pendingLabel={companyCopy.sending}
-              savedLabel={companyCopy.messageSent}
-              invalidFallback={companyCopy.messageInvalid}
-            />
-          </section>
-          <ProcessRoom
-            files={item.documents}
-            bodies={chat.map((message) => message.body)}
-            nda
-            ndaHref={item.nda ? `/acuerdos/nda/${item.accessId}` : null}
-            loiHref={item.messages.some((message) => message.kind === "offer") ? `/acuerdos/loi/${item.accessId}` : null}
-            contractHref={item.contract?.signedHref ?? item.contract?.current?.href ?? null}
-            contractSigned={Boolean(item.contract?.signedHref)}
-            empty={sellerCopy.documentsEmpty}
-          />
-        </div>
-      ) : null}
-      {tab === "advisor" && item.advisorHired ? (
-        advisors.length > 0 ? (
-          <AdvisorContactDesk contacts={advisors} today={today} pinned meetings={false} />
-        ) : (
-          <Link href={`/asesoramiento?empresa=${item.slug}`} className="text-sm font-medium text-[#465ab4]">
-            {engagementCopy.contactAdvisor}
-          </Link>
-        )
-      ) : null}
-      {tab === "meetings" && item.nda ? (
-        <MeetingDesk
-          messages={item.messages}
-          action={postInvestorMessageAction}
-          approveAction={approveInvestorMeetingAction}
-          rescheduleAction={rescheduleInvestorMeetingAction}
-          today={today}
-          columns
-          hidden={[
-            { name: "slug", value: item.slug },
-            { name: "kind", value: "meeting" },
-          ]}
-        />
-      ) : null}
+          )
+        ) : null}
       </div>
     </div>
   );
@@ -186,13 +75,14 @@ export function InvestorProcesses({
       {items.map((item) => (
         <li key={item.slug}>
           <Card className="flex flex-col gap-4">
-            <div className="flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:gap-4">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-                <h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>
+            <ProcessCardHeader
+              title={<h2 className="text-lg font-semibold text-[#2b3b4a]">{item.codename}</h2>}
+              cue={
                 <ProcessHeaderCue
                   steps={item.steps}
                   role="investor"
                   contractNext={item.contract?.next ?? null}
+                  action={item.contract ? <ContractStage contract={item.contract} /> : null}
                   sign={{
                     slug: item.slug,
                     nda: ndaAgreement({
@@ -210,13 +100,20 @@ export function InvestorProcesses({
                     }),
                   }}
                 />
-              </div>
-              {item.contract ? (
-                <div className="flex shrink-0 items-center gap-2">
-                  <ContractStage contract={item.contract} />
-                </div>
-              ) : null}
-            </div>
+              }
+              actions={(() => {
+                const unread = unreadCount(item.messages.filter((message) => message.kind === "question"), item.lastReadAt);
+
+                return (
+                  <ProcessCardActions
+                    advisorHref={!item.advisorHired && wantsAdvisor(item.steps) ? `/asesoramiento?empresa=${item.slug}` : null}
+                    cancelAccessId={item.contract?.stage === "signed" ? null : item.accessId}
+                    fichaHref={`/proyectos/${item.slug}${unread > 0 ? "?tab=questions" : ""}`}
+                    unread={unread}
+                  />
+                );
+              })()}
+            />
             <DealPipeline
               steps={item.steps}
               role="investor"
@@ -238,17 +135,9 @@ export function InvestorProcesses({
                 }),
               }}
             />
-            <ProcessConversation
-              item={item}
-              today={today}
-              advisors={advisors.filter((advisor) => advisor.slug === item.slug)}
-              actions={
-                <>
-                  {item.contract?.stage === "signed" ? null : <CancelProcessButton accessId={item.accessId} />}
-                  <ProcessFichaLink href={`/proyectos/${item.slug}`} />
-                </>
-              }
-            />
+            {item.advisorHired ? (
+              <AdvisorDesk item={item} today={today} advisors={advisors.filter((advisor) => advisor.slug === item.slug)} />
+            ) : null}
           </Card>
         </li>
       ))}

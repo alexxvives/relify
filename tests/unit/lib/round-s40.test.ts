@@ -57,8 +57,8 @@ describe("Round S40 (Alex t181u)", () => {
     expect(list).toMatch(/AcceptLoiButton/);
     expect(list).not.toMatch(/id: "chat"|id: "meetings"/);
     const page = read("src/app/(app)/mi-empresa/procesos/[accessId]/page.tsx");
-    expect(page).toMatch(/BuyerCardOverlay/);
     expect(page).toMatch(/SellerProcessDesk/);
-    expect(read("src/components/seller/seller-process-desk.tsx")).toMatch(/BuyerFilter/);
+    // S41: the desk renders the overlay so it can fold it when the tab changes.
+    expect(read("src/components/seller/seller-process-desk.tsx")).toMatch(/BuyerFilter[\s\S]*BuyerCardOverlay/);
   });
 });

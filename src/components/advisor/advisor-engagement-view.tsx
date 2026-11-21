@@ -4,7 +4,6 @@ import { CompanyBanner } from "@/components/seller/company-banner";
 import { CompanyReport } from "@/components/seller/company-report";
 import { DealPipeline } from "@/components/investor/deal-pipeline";
 import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
-import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { AdvisorProcessChats as AdvisorProcessChatsData } from "@/lib/server/advisor-process-chat";
@@ -75,6 +74,7 @@ export function AdvisorEngagementView({
             thread={thread}
             processChats={processChats}
             today={today}
+            overlay={hasBuyers ? <BuyerCardSlider buyers={engagement.buyers} /> : null}
             locked={<FichaLockedNote text={lockNote(engagement)} action={action ?? undefined} />}
             company={
               <>
@@ -159,11 +159,6 @@ export function AdvisorEngagementView({
             <AdvisorCloseForm engagementId={engagement.id} closed={engagement.closed} feeLabel={engagement.feeLabel} />
           ) : null}
         </div>
-        {hasBuyers ? (
-          <BuyerCardOverlay startFolded={processChats?.side === "seller" && processChats.chats.length > 1}>
-            <BuyerCardSlider buyers={engagement.buyers} />
-          </BuyerCardOverlay>
-        ) : null}
       </div>
     </div>
   );

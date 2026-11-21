@@ -204,7 +204,7 @@ export async function advisorPublicName(advisorId: string): Promise<string> {
   return business || person || engagementCopy.advisorFallback;
 }
 
-/** Investor's real name for the advisor, only after the seller accepted that investor on the project; null keeps them anonymous. */
+/** Investor's real name for the advisor (S41: always, unless the process was cancelled). */
 export async function revealedInvestorName(
   projectId: string,
   investorId: string,
@@ -217,7 +217,8 @@ export async function revealedInvestorName(
       investor: { select: { name: true, lastName: true } },
     },
   });
-  if (!access?.sellerAcceptedAt || access.cancelledAt) {
+  // S41 (Alex): the buyer's real name everywhere, not "Comprador N" until a step.
+  if (!access || access.cancelledAt) {
     return null;
   }
   const name = personName(
