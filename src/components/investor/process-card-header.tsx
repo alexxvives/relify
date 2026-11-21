@@ -1,8 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { CancelProcessButton } from "@/components/investor/cancel-process-button";
 import { ProcessFichaLink } from "@/components/investor/process-ficha-link";
-import { engagementCopy } from "@/lib/engagement-copy";
 
 /**
  * S41 (Alex): one header for buyer, seller and admin process cards. The title with its "Tu turno" / "Qué sigue" cue
@@ -22,30 +20,22 @@ export function ProcessCardHeader({ title, cue, actions }: { title: ReactNode; c
   );
 }
 
-/** S41 (Alex): Mis procesos button order, the same for buyer and seller: Contacta con un asesor · Cancelar proceso · Ver la ficha. */
+/**
+ * Mis procesos card actions for buyer and seller: Cancelar proceso · Ver la ficha. S42 (Alex): no "Contacta con un
+ * asesor" here (Mi asesor covers it); under 640 px Cancelar proceso is an icon button.
+ */
 export function ProcessCardActions({
-  advisorHref,
   cancelAccessId,
   fichaHref,
   unread = 0,
 }: {
-  advisorHref: string | null;
   cancelAccessId: string | null;
   fichaHref: string;
   unread?: number;
 }) {
   return (
     <>
-      {advisorHref ? (
-        <Link
-          href={advisorHref}
-          data-advisor-link
-          className="inline-flex h-9 w-fit items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
-        >
-          {engagementCopy.contactAdvisor}
-        </Link>
-      ) : null}
-      {cancelAccessId ? <CancelProcessButton accessId={cancelAccessId} /> : null}
+      {cancelAccessId ? <CancelProcessButton accessId={cancelAccessId} iconOnPhone /> : null}
       <ProcessFichaLink href={fichaHref} unread={unread} />
     </>
   );

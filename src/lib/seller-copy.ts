@@ -113,6 +113,8 @@ export const sellerCopy = {
   addAccess: "Añadir acceso",
   summary: "Resumen",
   active: "Procesos activos",
+  pendingRequestNote: "Quiere conectar con tu empresa",
+  openProcess: "Ir al proceso",
   inactive: "Procesos inactivos",
   pendingBody: "Recibirás una notificación en cuanto un comprador envíe una solicitud, realice preguntas o solicite una reunión.",
   shareInvestors: "Compradores",

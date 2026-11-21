@@ -1339,9 +1339,11 @@
 
 .releva-menu {
   overflow: visible;
-  border: 1px solid rgb(255 255 255 / 0.55);
-  background: rgb(255 255 255 / 0.22);
-  box-shadow: 0 10px 40px rgb(18 52 58 / 0.08);
+  /* S42 (Alex): a frosted pill opaque enough that the ink logo and links read on every landing section, light or dark
+     (muted text stays ≥ 4.5:1 even over the darkest teal band). */
+  border: 1px solid rgb(255 255 255 / 0.7);
+  background: rgb(255 255 255 / 0.86);
+  box-shadow: 0 10px 40px rgb(18 52 58 / 0.12);
   backdrop-filter: blur(22px) saturate(1.7);
 }
 

@@ -92,7 +92,7 @@ describe("Round S23 landing, documents, and INT uploads", () => {
   it("pins Prueba gratis to the bottom of the hero overlay", () => {
     const css = read("src/app/globals.css");
     expect(css).toMatch(/\.releva-hero-actions \{[\s\S]*margin-top: auto/);
-    expect(read("src/components/landing/hero.tsx")).toMatch(/href="\/registro"/);
+    expect(read("src/components/landing/try-free-button.tsx")).toMatch(/href = landingCopy\.waitlistNav\.href/);
   });
 
   it("opens a documents folder on click and peeks papers on hover", () => {

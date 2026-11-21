@@ -43,21 +43,11 @@ test.describe("S28", () => {
     }
   });
 
-  test("Contacta con un asesor sits on the right-hand action row", async ({ page }) => {
+  test("S42: Mis procesos cards no longer carry Contacta con un asesor", async ({ page }) => {
     test.skip(!roleCreds("investor"), "Set E2E_INVESTOR_EMAIL and E2E_INVESTOR_PASSWORD");
     expect(await signInAs(page, "investor")).toBe(true);
     await page.goto("/procesos");
-    const link = page.locator("[data-advisor-link]").first();
-    test.skip(!(await link.count()), "no process from Preguntas through Contrato for this account");
-    const cancel = page.getByRole("button", { name: "Cancelar proceso" }).first();
-    await expect(link).toBeVisible();
-    await expect(cancel).toBeVisible();
-    const [a, b] = await Promise.all([link.boundingBox(), cancel.boundingBox()]);
-    expect(a && b).toBeTruthy();
-    if (page.viewportSize()!.width >= 1024) {
-      expect(Math.abs(a!.y - b!.y), "same line as Cancelar proceso").toBeLessThan(4);
-      // S41 (Alex): Contacta con un asesor now sits left of Cancelar proceso.
-      expect(a!.x).toBeLessThan(b!.x);
-    }
+    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("[data-advisor-link]")).toHaveCount(0);
   });
 });

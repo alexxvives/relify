@@ -16,6 +16,8 @@ export type AdvisorProcessChat = {
   accessId: string;
   label: string;
   messages: ThreadMessageView[];
+  /** S42 (Alex): that process's meetings (read-only for the asesor), same scope as the chat. */
+  meetings: ThreadMessageView[];
 };
 
 type EngagementGate = {
@@ -74,7 +76,7 @@ export async function listAdvisorProcessChats(user: CurrentUser, engagementId: s
     return { side: scope.side, chats: [] };
   }
   const messages = await prisma.projectMessage.findMany({
-    where: { projectId: scope.projectId, kind: "question", investorId: { in: accesses.map((row) => row.investorId) } },
+    where: { projectId: scope.projectId, kind: { in: ["question", "meeting"] }, investorId: { in: accesses.map((row) => row.investorId) } },
     orderBy: { createdAt: "asc" },
     select: { id: true, investorId: true, kind: true, body: true, author: true, advisorId: true, createdAt: true },
   });
@@ -83,10 +85,13 @@ export async function listAdvisorProcessChats(user: CurrentUser, engagementId: s
     // S41 (Alex): the buyer's real name everywhere (filters, cards), for the advisor and the seller alike.
     label: scope.side === "seller" ? personName(access.investor.name, access.investor.lastName).trim() || anonymousInvestorLabel(index + 1) : "Vendedor",
     messages: messages
-      .filter((message) => message.investorId === access.investorId)
+      .filter((message) => message.investorId === access.investorId && message.kind === "question")
       .map((message) =>
         toThreadMessage({ ...message, viewer: scope.side, advisorId: message.advisorId }),
       ),
+    meetings: messages
+      .filter((message) => message.investorId === access.investorId && message.kind === "meeting")
+      .map((message) => toThreadMessage({ ...message, viewer: scope.side, advisorId: message.advisorId })),
   }));
   return { side: scope.side, chats };
 }

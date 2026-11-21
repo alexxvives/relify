@@ -153,7 +153,7 @@ describe("S17 buyer ficha and seller surfaces", () => {
   it("explains the price range with an info tooltip, not the old sentence", () => {
     expect(draftForm).not.toMatch(/El rango orientativo usa el múltiplo sectorial sobre el EBITDA ajustado/);
     expect(draftForm).toMatch(/AskingPriceRangeHint/);
-    expect(draftForm).toMatch(/EBITDA de referencia × múltiplo ajustado/);
+    expect(draftForm).toMatch(/EBITDA de referencia × múltiplo \+ ajustes/);
   });
 
   it("orders Datos de la ficha without Resultado neto", () => {
@@ -203,7 +203,7 @@ describe("S17 landing hero title and header", () => {
     expect(heroSource).toMatch(/El mercado inteligente para/);
     expect(heroSource).toMatch(/<SwapVerb \/> empresas/);
     expect(heroSource).toMatch(/releva-gold-shine">rentables/);
-    expect(heroSource).toMatch(/href="\/registro"/);
+    expect(heroSource).toMatch(/<TryFreeButton/);
     expect(heroSource).not.toMatch(/Comprar una empresa/);
     expect(heroSource).not.toMatch(/Vender tu empresa/);
     expect(heroSource).not.toMatch(/registro\?rol=/);
@@ -213,7 +213,7 @@ describe("S17 landing hero title and header", () => {
     expect(landingNav).toMatch(/landingCopy\.signInCta/);
     expect(landingNav).toMatch(/TryFreeButton/);
     expect(landingNav).toMatch(/href="\/entrar"/);
-    expect(landingNav).toMatch(/href="\/registro"/);
+    expect(landingNav).toMatch(/<TryFreeButton/);
     expect(landingNav).toMatch(/ghostLink/);
   });
 

@@ -3,9 +3,19 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cancelProjectAccessAction, type ProjectAccessActionState } from "@/app/proyectos/[slug]/actions";
+import { XCircle } from "lucide-react";
 import { accessCopy } from "@/lib/access-copy";
 
-export function CancelProcessButton({ accessId, label = accessCopy.cancelProcess }: { accessId: string; label?: string }) {
+export function CancelProcessButton({
+  accessId,
+  label = accessCopy.cancelProcess,
+  iconOnPhone = false,
+}: {
+  accessId: string;
+  label?: string;
+  /** S42 (Alex): under 640 px the card shows an XCircle icon button (label kept for screen readers and the tooltip). */
+  iconOnPhone?: boolean;
+}) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
@@ -38,9 +48,18 @@ export function CancelProcessButton({ accessId, label = accessCopy.cancelProcess
         onClick={() => {
           setOpen(true);
         }}
-        className="inline-flex h-9 items-center rounded-full border border-[#f3c7c4] bg-white px-3 text-sm font-medium text-[#c0362c]"
+        title={iconOnPhone ? label : undefined}
+        aria-label={iconOnPhone ? label : undefined}
+        className={`inline-flex h-9 items-center justify-center rounded-full border border-[#f3c7c4] bg-white text-sm font-medium text-[#c0362c] ${iconOnPhone ? "w-9 sm:w-auto sm:px-3" : "px-3"}`}
       >
-        {label}
+        {iconOnPhone ? (
+          <>
+            <XCircle className="size-4 sm:hidden" aria-hidden />
+            <span className="max-sm:hidden">{label}</span>
+          </>
+        ) : (
+          label
+        )}
       </button>
       <dialog
         ref={dialogRef}

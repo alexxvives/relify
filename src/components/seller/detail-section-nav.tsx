@@ -113,14 +113,13 @@ function ProgressTrackerOverlay({
   label: string;
   trigger: ReactNode;
   children: ReactNode;
-  /** S40 (Alex): a deep link (?seccion=… or ?ancla=…) opens the card expanded unless the profile is complete. */
+  /** S42 (Alex): every entry opens the card expanded while the profile is incomplete (no remembered state). */
   openOnEntry?: boolean;
 }) {
-  // The card is a popover the seller opened; it closes on Minimizar, Escape, a jump or a click outside it.
+  // The card is a popover; it closes on Minimizar, Escape, a jump or a click outside it.
   const [peek, setPeek] = useState(false);
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    if (!openOnEntry || !(query.has("seccion") || query.has("ancla"))) return;
+    if (!openOnEntry) return;
     const frame = window.requestAnimationFrame(() => setPeek(true));
     return () => window.cancelAnimationFrame(frame);
     // Only on entry.

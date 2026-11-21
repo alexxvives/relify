@@ -84,7 +84,7 @@ export function LandingNav({
           <Link href="/entrar" className={ghostLink}>
             {landingCopy.signInCta}
           </Link>
-          <TryFreeButton href="/registro" />
+          <TryFreeButton />
         </div>
       )}
       <button
@@ -119,7 +119,7 @@ export function LandingNav({
               >
                 {landingCopy.signInCta}
               </Link>
-              <TryFreeButton href="/registro" className="w-full" onClick={() => onMenuOpenChange(false)} />
+              <TryFreeButton className="w-full" onClick={() => onMenuOpenChange(false)} />
             </div>
           )
         }

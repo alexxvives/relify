@@ -219,9 +219,13 @@ export function ReportNav({
         {edges.overflow ? (
           <ScrollArrow direction={-1} disabled={!edges.left} onClick={() => nudge(-1)} />
         ) : null}
-        {/* S37 (Alex): the goo spills out of the bar again. The scroll frame (which clips) only applies when the
-            sections do not fit, and then it is padded so only the sides clip. */}
-        <div ref={scroller} className={`min-w-0 max-w-full rounded-xl ${edges.overflow ? "releva-scroll-x -my-3 py-3" : "overflow-visible"}`}>
+        {/* S37/S42 (Alex): the goo spills out of the bar like the Información empresa / Ficha pública toggle. When the
+            sections do not fit, the scroll frame (which has to clip) reaches 2.5rem above and below the bar so the goo
+            still escapes vertically; that padding ignores the pointer, so the page under it stays clickable. */}
+        <div
+          ref={scroller}
+          className={`min-w-0 max-w-full rounded-xl ${edges.overflow ? "releva-scroll-x pointer-events-none -my-10 py-10 [&>*]:pointer-events-auto" : "overflow-visible"}`}
+        >
           {Gooey ? (
             <Gooey
               items={gooeyItems}

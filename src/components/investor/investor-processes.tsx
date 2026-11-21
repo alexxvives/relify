@@ -12,19 +12,12 @@ import { DeskToggles } from "@/components/shell/desk-toggles";
 import { loiAgreement, ndaAgreement } from "@/lib/deal-documents";
 import { engagementCopy } from "@/lib/engagement-copy";
 import { sellerCopy } from "@/lib/seller-copy";
-import type { DealStep } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import type { InvestorProcessCard } from "@/lib/server/investor-desk";
 import { unreadCount } from "@/lib/project-message";
 import type { CancelledProcess } from "@/lib/server/investor-desk";
 import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/form";
-
-function wantsAdvisor(steps: readonly DealStep[]): boolean {
-  const current = steps.find((step) => step.state === "current");
-  // S28/S29b (Alex): from Preguntas through Contrato the card offers "Contacta con un asesor".
-  return current?.id === "qa" || current?.id === "loi" || current?.id === "documents";
-}
 
 /** S41 (Alex): Chat / Documentos and Reuniones live in the ficha tabs; the card keeps only the Asesor desk. */
 function AdvisorDesk({ item, today, advisors }: { item: InvestorProcessCard; today: string; advisors: AdvisorContactView[] }) {
@@ -106,7 +99,6 @@ export function InvestorProcesses({
 
                 return (
                   <ProcessCardActions
-                    advisorHref={!item.advisorHired && wantsAdvisor(item.steps) ? `/asesoramiento?empresa=${item.slug}` : null}
                     cancelAccessId={item.contract?.stage === "signed" ? null : item.accessId}
                     fichaHref={`/proyectos/${item.slug}${unread > 0 ? "?tab=questions" : ""}`}
                     unread={unread}

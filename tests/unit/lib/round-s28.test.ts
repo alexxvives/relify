@@ -102,11 +102,10 @@ describe("S28 9: Contacta con un asesor sits in the bottom-right actions", () =>
     expect(pipeline).not.toMatch(/DiligenceChoice|advisorHref/);
   });
   for (const file of ["src/components/investor/investor-processes.tsx", "src/components/seller/seller-processes.tsx"]) {
-    it(`${file} shows it from Preguntas through Contrato in the right-hand actions`, () => {
+    it(`${file} no longer offers it on the card (S42: Mi asesor covers it)`, () => {
       const source = read(file);
-      expect(source).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "loi" \|\| current\?\.id === "documents"/);
-      // S41 (Alex): both cards share ProcessCardActions at the top right (Contacta con un asesor · Cancelar · Ver la ficha).
-      expect(source).toMatch(/ProcessCardActions[\s\S]{0,200}?advisorHref=\{[^}]*wantsAdvisor/);
+      expect(source).toMatch(/<ProcessCardActions/);
+      expect(source).not.toMatch(/wantsAdvisor|advisorHref/);
     });
   }
 });

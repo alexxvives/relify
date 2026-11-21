@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useId } from "react";
 import { acceptSellerBuyerAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { AdvisorContactDesk } from "@/components/advisor/advisor-contact-desk";
@@ -17,10 +17,15 @@ import type { InvestorPublicProfile, MessageCounts, SellerThread } from "@/lib/p
 import { unreadCount } from "@/lib/project-message";
 import type { PendingMatch } from "@/lib/billing";
 import { engagementCopy } from "@/lib/engagement-copy";
-import { processTurnActions, type DealStep } from "@/lib/deal-pipeline";
+import { processTurnActions } from "@/lib/deal-pipeline";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
 import { pendingActionsTitle, sellerCopy, upcomingMeetingsTitle } from "@/lib/seller-copy";
 import { Card } from "@/components/ui/form";
+
+/** S42 (Alex): connection requests and per-process tasks share one row style in Acciones pendientes. */
+const pendingRowClass = "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e6e9f0] bg-white px-3 py-2";
+const pendingButtonClass =
+  "inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]";
 
 function SellerPending({
   item,
@@ -39,15 +44,20 @@ function SellerPending({
       onClick={() => {
         setProfileOpen(true);
       }}
-      className="inline-flex h-9 items-center rounded-full border border-[#c9d2f5] bg-white px-3 text-sm font-medium whitespace-nowrap text-[#465ab4]"
+      className={pendingButtonClass}
     >
       {sellerCopy.viewInvestor}
     </button>
   );
 
   return (
-    <div className={named ? "flex flex-wrap items-center justify-between gap-3" : "flex flex-col items-stretch gap-2"}>
-      {named ? <p className="text-sm font-medium text-[#1c2740]">{item.label}</p> : null}
+    <div className={named ? pendingRowClass : "flex flex-col items-stretch gap-2"}>
+      {named ? (
+        <span className="min-w-0">
+          <span className="block text-sm font-medium text-[#1c2740]">{item.label}</span>
+          <span className="block text-sm text-[#5c6b78]">{sellerCopy.pendingRequestNote}</span>
+        </span>
+      ) : null}
       {buttons}
       {state && !state.ok ? <p className="w-full text-sm text-red-700">{state.message}</p> : null}
       {pending ? <p className="w-full text-sm text-[#465ab4]" role="status">{billingCopy.acceptingBuyer}</p> : null}
@@ -112,12 +122,6 @@ function ThreadList({
       </ul>
     </div>
   );
-}
-
-function wantsAdvisor(steps: readonly DealStep[]): boolean {
-  const current = steps.find((step) => step.state === "current");
-  // S28/S29b (Alex): from Preguntas through Contrato the asesor link lives in the bottom-right action row.
-  return current?.id === "qa" || current?.id === "loi" || current?.id === "documents";
 }
 
 function InvestorProfileDialog({
@@ -238,7 +242,6 @@ function ThreadCard({ thread, today, advisors }: { thread: SellerThread; today: 
         }
         actions={
           <ProcessCardActions
-            advisorHref={expandable && !thread.advisorHired && wantsAdvisor(thread.steps) ? `/mi-empresa/servicios?empresa=${thread.slug}` : null}
             cancelAccessId={thread.contract?.stage === "signed" ? null : thread.accessId}
             fichaHref={fichaHref}
             unread={unread}
@@ -298,25 +301,21 @@ export function SellerProcesses({
             <Card>
               <h2 className="text-lg font-semibold">{pendingActionsTitle(pendingMatches.length + turns.length)}</h2>
               {pendingMatches.length + turns.length > 0 ? (
-                <ul className="mt-4 flex flex-col gap-2">
+                <ul className="mt-4 flex max-h-80 flex-col gap-2 overflow-y-auto pr-1" data-pending-list>
                   {pendingMatches.map((item) => (
                     <li key={item.accessId}>
                       <SellerPending item={item} profile={threads.find((thread) => thread.accessId === item.accessId)?.profile ?? null} />
                     </li>
                   ))}
-                  {/* S41 (Alex): each process's "Tu turno" action, linking to its ficha. */}
+                  {/* S41 (Alex): each process's "Tu turno" action, linking to its ficha (S42: same row style). */}
                   {turns.map((turn) => (
-                    <li key={`turn-${turn.accessId}`}>
-                      <Link
-                        href={`/mi-empresa/procesos/${turn.accessId}`}
-                        data-turn-action
-                        className="flex items-center justify-between gap-3 rounded-xl border border-[#f3c4c4] bg-[#fff5f5] px-3 py-2 hover:bg-[#ffecec] focus-visible:ring-2 focus-visible:ring-[#2fc4b2] focus-visible:outline-none"
-                      >
-                        <span className="min-w-0">
-                          <span className="block text-sm font-medium text-[#1c2740]">{turn.label}</span>
-                          <span className="block text-sm text-[#b42318]">{turn.action}</span>
-                        </span>
-                        <ChevronRight className="size-4 shrink-0 text-[#b42318]" aria-hidden />
+                    <li key={`turn-${turn.accessId}`} className={pendingRowClass} data-turn-action>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-[#1c2740]">{turn.label}</span>
+                        <span className="block text-sm text-[#5c6b78]">{turn.action}</span>
+                      </span>
+                      <Link href={`/mi-empresa/procesos/${turn.accessId}`} className={pendingButtonClass}>
+                        {sellerCopy.openProcess}
                       </Link>
                     </li>
                   ))}

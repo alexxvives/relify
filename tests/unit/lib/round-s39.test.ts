@@ -35,7 +35,7 @@ describe("Round S39 (Alex t180u)", () => {
   });
 
   it("13/14: smaller folders and one-line stat captions", () => {
-    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/size=\{0\.56\}/);
+    expect(read("src/components/seller/seller-documents.tsx")).toMatch(/size=\{0\.48\}/);
     const summary = read("src/components/seller/seller-activity-summary.tsx");
     expect(summary).not.toMatch(/Compradores distintos|Piden acceso a tu empresa/);
   });

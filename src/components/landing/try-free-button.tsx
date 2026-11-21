@@ -11,7 +11,8 @@ const navy = "#1c2740";
 type StarBorderComponent = typeof StarBorder;
 
 export function TryFreeButton({
-  href = "/registro",
+  // S42 (Alex): for now "Prueba gratis" takes visitors to the landing's lista de espera.
+  href = landingCopy.waitlistNav.href,
   className = "",
   label = landingCopy.tryFreeCta,
   onClick,
