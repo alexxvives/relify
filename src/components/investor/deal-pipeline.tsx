@@ -261,7 +261,7 @@ function TurnCue({
           <span className="deal-pulse absolute inset-0 rounded-full bg-[#d92d20]" />
           <span className="relative size-3 rounded-full bg-[#d92d20]" />
         </span>
-        <span className={center ? "min-w-0" : "min-w-0 flex-1"}>
+        <span className="min-w-0">
           <span className="block text-xs font-semibold text-[#b42318]">Tu turno</span>
           <span className="mt-0.5 block text-sm text-[#1c2740]">{cue.action}</span>
         </span>
@@ -286,7 +286,7 @@ function TurnCue({
   }
 
   return (
-    <div className="mt-4 flex items-start justify-between gap-3">
+    <div className="mt-4 flex flex-wrap items-center gap-3">
       {onDark ? (
         <div className="flex min-w-0 items-start gap-3">
           <span className="shrink-0 rounded-full bg-[#e8f6ee] px-2.5 py-1 text-xs leading-5 font-semibold text-[#17663a]">
@@ -295,7 +295,7 @@ function TurnCue({
           <p className="pt-1 text-sm leading-5 text-white">{cue.action}</p>
         </div>
       ) : (
-        <DealWaitingCue cue={cue} className="min-w-0 flex-1" />
+        <DealWaitingCue cue={cue} className="min-w-0" />
       )}
       {canAccept ? <AcceptNow onAccept={onAccept} /> : null}
       {canSign ? <SignNow onSign={onSign} kind={signKind} /> : null}
@@ -303,7 +303,7 @@ function TurnCue({
   );
 }
 
-/** S40: "Aceptar carta" with its dialog, for the top-right action slot of a seller's process card. */
+/** "Aceptar carta" with its dialog; S41: green and right after the "Tu turno" text of a seller's process card. */
 export function AcceptLoiButton({ accessId, body }: { accessId: string; body: string }) {
   const [open, setOpen] = useState(false);
 
@@ -320,7 +320,7 @@ function AcceptNow({ onAccept }: { onAccept: () => void }) {
     <button
       type="button"
       onClick={onAccept}
-      className="inline-flex h-9 shrink-0 items-center rounded-full bg-[#465ab4] px-3 text-sm font-semibold text-white"
+      className={stepCtaClass}
     >
       Aceptar carta
     </button>
@@ -345,11 +345,14 @@ export function ProcessHeaderCue({
   role,
   sign,
   contractNext,
+  action = null,
 }: {
   steps: DealStep[];
   role: "investor" | "seller";
   sign?: { slug: string; nda: string; loi: string };
   contractNext?: { who: "you" | "other" | "none"; text: string } | null;
+  /** S41 (Alex): the card's step action (Aceptar carta, Contrato) sits right after the cue text, like Firmar NDA. */
+  action?: ReactNode;
 }) {
   const [signKind, setSignKind] = useState<"nda" | "loi" | null>(null);
   const loiReady = useLoiReady(sign?.slug);
@@ -363,22 +366,32 @@ export function ProcessHeaderCue({
   const canSign = Boolean(sign) && signKindFor !== null;
 
   if (contractNext && (current?.id === "documents" || current?.id === "close")) {
-    return contractNext.who === "you" ? (
-      <span className="flex min-w-0 items-start gap-3">
-        <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">Tu turno</span>
-        <p className="pt-1 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
-      </span>
-    ) : (
-      <DealWaitingCue cue={{ action: contractNext.text }} />
+    return (
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
+        {contractNext.who === "you" ? (
+          <span className="flex min-w-0 items-start gap-3">
+            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">Tu turno</span>
+            <p className="pt-1 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
+          </span>
+        ) : (
+          <DealWaitingCue cue={{ action: contractNext.text }} />
+        )}
+        {action}
+      </div>
     );
   }
 
   if (!current) {
-    return <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />;
+    return (
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
+        <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />
+        {action}
+      </div>
+    );
   }
 
   if (!cue) {
-    return null;
+    return action;
   }
 
   return (
@@ -411,6 +424,7 @@ export function ProcessHeaderCue({
             }}
           />
         ) : null}
+        {action}
       </div>
       {sign && signKind ? (
         <ProcessSignDialog

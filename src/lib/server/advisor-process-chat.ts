@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { anonymousInvestorLabel, messageTab, sellerMessageSchema, toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
+import { anonymousInvestorLabel, messageTab, personName, sellerMessageSchema, toThreadMessage, type ThreadMessageView } from "@/lib/project-message";
 import { incomingQuestionNotice, sellerReplyNotice } from "@/lib/notifications";
 import type { CurrentUser } from "@/lib/server/get-current-user";
 import { recordNotification } from "@/lib/server/record-notification";
@@ -68,7 +68,7 @@ export async function listAdvisorProcessChats(user: CurrentUser, engagementId: s
   const accesses = await prisma.projectAccess.findMany({
     where: openAccessWhere(scope),
     orderBy: { requestedAt: "asc" },
-    select: { id: true, investorId: true },
+    select: { id: true, investorId: true, investor: { select: { name: true, lastName: true } } },
   });
   if (accesses.length === 0) {
     return { side: scope.side, chats: [] };
@@ -80,7 +80,8 @@ export async function listAdvisorProcessChats(user: CurrentUser, engagementId: s
   });
   const chats = accesses.map((access, index) => ({
     accessId: access.id,
-    label: scope.side === "seller" ? anonymousInvestorLabel(index + 1) : "Vendedor",
+    // S41 (Alex): the buyer's real name everywhere (filters, cards), for the advisor and the seller alike.
+    label: scope.side === "seller" ? personName(access.investor.name, access.investor.lastName).trim() || anonymousInvestorLabel(index + 1) : "Vendedor",
     messages: messages
       .filter((message) => message.investorId === access.investorId)
       .map((message) =>

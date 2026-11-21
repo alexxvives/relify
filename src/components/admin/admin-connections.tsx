@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DealPipeline, DealWaitingCue } from "@/components/investor/deal-pipeline";
+import { ProcessCardHeader } from "@/components/investor/process-card-header";
 import { ProcessFichaLink } from "@/components/investor/process-ficha-link";
 import { AdminPageHeader } from "@/components/admin/admin-toolbar";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -70,23 +71,23 @@ export function AdminConnections({ connections }: { connections: AdminConnection
         <ul className="flex flex-col gap-4">
           {visible.map((connection) => (
             <li key={connection.id} className={`rounded-2xl border p-5 ${connection.isNew ? adminNewRing : "border-[#e7eaee] bg-white"}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-                <div className="min-w-0">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-[#1c2740]">
-                    {connection.codename}
-                    {connection.isNew ? <NewPill /> : null}
-                  </h2>
-                  {connection.soldPriceCents !== null ? (
-                    <p className="mt-1 text-sm font-semibold text-[#0d5c38]">
-                      {adminCopy.soldPrice}: {formatEur(connection.soldPriceCents)}
-                    </p>
-                  ) : null}
-                </div>
-                <DealWaitingCue cue={{ action: watchingCue(connection.steps) }} />
-                </div>
-                <ProcessFichaLink href={`/admin/conexiones/${connection.id}`} />
-              </div>
+              <ProcessCardHeader
+                title={
+                  <div className="min-w-0">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold text-[#1c2740]">
+                      {connection.codename}
+                      {connection.isNew ? <NewPill /> : null}
+                    </h2>
+                    {connection.soldPriceCents !== null ? (
+                      <p className="mt-1 text-sm font-semibold text-[#0d5c38]">
+                        {adminCopy.soldPrice}: {formatEur(connection.soldPriceCents)}
+                      </p>
+                    ) : null}
+                  </div>
+                }
+                cue={<DealWaitingCue cue={{ action: watchingCue(connection.steps) }} />}
+                actions={<ProcessFichaLink href={`/admin/conexiones/${connection.id}`} />}
+              />
               {connection.steps.length > 0 ? (
                 <div className="mt-2">
                   <DealPipeline steps={connection.steps} role="advisor" hideAsideCue />

@@ -50,11 +50,14 @@ test.describe("S28", () => {
     const link = page.locator("[data-advisor-link]").first();
     test.skip(!(await link.count()), "no process from Preguntas through Contrato for this account");
     const cancel = page.getByRole("button", { name: "Cancelar proceso" }).first();
+    await expect(link).toBeVisible();
+    await expect(cancel).toBeVisible();
     const [a, b] = await Promise.all([link.boundingBox(), cancel.boundingBox()]);
     expect(a && b).toBeTruthy();
     if (page.viewportSize()!.width >= 1024) {
       expect(Math.abs(a!.y - b!.y), "same line as Cancelar proceso").toBeLessThan(4);
-      expect(a!.x).toBeGreaterThan(b!.x);
+      // S41 (Alex): Contacta con un asesor now sits left of Cancelar proceso.
+      expect(a!.x).toBeLessThan(b!.x);
     }
   });
 });

@@ -88,8 +88,9 @@ export async function acceptLoi(
     });
     await recordNotification({
       userId: access.investorId,
-      title: "Carta aceptada",
-      body: `La empresa ha aceptado la carta de intenciones de ${access.project.codename}.`,
+      // S41 (Alex): "X está en Contrato" with a one-line body; the next step is already on the card.
+      title: `${access.project.codename} está en Contrato`,
+      body: "El vendedor aceptó tu carta de intenciones.",
       href: `/proyectos/${access.project.slug}`,
     });
   }

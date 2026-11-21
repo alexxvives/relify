@@ -122,7 +122,7 @@ function AdvisorDepositDialog({
         <div className="mt-5 rounded-xl bg-[#fff5f5] p-4">
           <p className="text-sm font-semibold">{engagementCopy.depositDeclineAsk}</p>
           <p className="mt-1 text-sm text-[#5c6b78]">{engagementCopy.depositDeclineAskBody}</p>
-          <form action={declineAction} className="mt-3 flex justify-end gap-2">
+          <form action={declineAction} className="mt-3 flex flex-wrap justify-center gap-2">
             <input type="hidden" name="engagementId" value={engagementId} />
             <button type="button" onClick={() => setConfirmDecline(false)} className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#5c6b78]">
               {engagementCopy.depositDeclineCancel}
@@ -133,12 +133,13 @@ function AdvisorDepositDialog({
           </form>
         </div>
       ) : (
-        <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          {/* S41 (Alex): centred buttons; "Rechazar solicitud" gets a red outline. */}
           <button
             type="button"
             disabled={pending}
             onClick={() => setConfirmDecline(true)}
-            className="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium text-[#b42318] disabled:opacity-60"
+            className="inline-flex h-11 items-center rounded-full border border-[#f3c7c4] bg-white px-4 text-sm font-medium text-[#b42318] hover:bg-[#fff5f5] disabled:opacity-60"
           >
             {engagementCopy.depositDecline}
           </button>

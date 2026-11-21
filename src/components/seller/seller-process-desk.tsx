@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
+import { BuyerCardSlider } from "@/components/advisor/buyer-card-slider";
 import { approveSellerMeetingAction, postSellerMessageAction, rescheduleSellerMeetingAction } from "@/app/(app)/mi-empresa/procesos/actions";
 import { markThreadReadAction } from "@/app/proyectos/[slug]/actions";
 import { BuyerFilter } from "@/components/investor/buyer-filter";
@@ -11,54 +12,63 @@ import { MeetingDesk } from "@/components/investor/meeting-desk";
 import { ProcessChatLayout } from "@/components/investor/process-chat-layout";
 import { ProjectThread } from "@/components/investor/project-thread";
 import { FichaLockedNote } from "@/components/company/company-ficha-view";
+import type { PublicInvestorCard } from "@/lib/demo-profile";
 import type { SellerThread } from "@/lib/project-message";
 import { sellerCopy } from "@/lib/seller-copy";
 
 /**
  * S40 (Alex): the seller's process ficha uses the buyer's tabs (Información de la empresa / Chat / Documentos /
- * Reuniones). With several buyers in process, the filter at the right of the tab row switches to another buyer's ficha.
+ * Reuniones). With several buyers in process, the filter at the right of the Chat / Reuniones tab row swaps the buyer
+ * in place (S41: no page load) and the buyer card overlay follows it.
  */
 export function SellerProcessDesk({
   company,
-  thread,
+  threads,
+  initialAccessId,
   buyers,
   today,
   initialTab,
 }: {
   company: ReactNode;
-  thread: SellerThread | null;
-  buyers: { value: string; label: string }[];
+  /** S41: every process thread of this company, so the buyer filter swaps without a page load. */
+  threads: SellerThread[];
+  initialAccessId: string;
+  /** Filter options and buyer cards (real names). The filter lists only buyers whose process is open. */
+  buyers: { accessId: string; label: string; card: PublicInvestorCard | null; open: boolean }[];
   today: string;
   initialTab: ProcessTabId;
 }) {
-  const router = useRouter();
   const [tab, setTab] = useState<ProcessTabId>(initialTab);
-  const accessId = thread?.accessId ?? null;
+  const [selected, setSelected] = useState(initialAccessId);
+  const thread = threads.find((row) => row.accessId === selected) ?? null;
+  const buyer = buyers.find((row) => row.accessId === selected) ?? null;
+  const options = buyers.filter((row) => row.open || row.accessId === selected).map((row) => ({ value: row.accessId, label: row.label }));
 
   useEffect(() => {
-    if (initialTab === "questions" && accessId) void markThreadReadAction(accessId);
-  }, [initialTab, accessId]);
+    if (initialTab === "questions") void markThreadReadAction(initialAccessId);
+  }, [initialTab, initialAccessId]);
   const chat = thread?.messages.filter((message) => message.kind === "question") ?? [];
   const locked = <FichaLockedNote text={sellerCopy.processDeskLocked} />;
 
+  function pickBuyer(next: string) {
+    setSelected(next);
+    // S41 (Alex): no page load; the address follows so a refresh or a shared link lands on the same buyer.
+    window.history.replaceState(null, "", `/mi-empresa/procesos/${next}?pestana=${tab}`);
+    if (tab === "questions") void markThreadReadAction(next);
+  }
+
   return (
+    <>
     <InvestorProjectTabs
-      key={thread?.accessId ?? "none"}
       initialTab={initialTab}
       onTabChange={(next) => {
         setTab(next);
+        window.history.replaceState(null, "", `/mi-empresa/procesos/${selected}?pestana=${next}`);
         if (next === "questions" && thread) void markThreadReadAction(thread.accessId);
       }}
       actions={
-        thread && buyers.length > 1 ? (
-          <BuyerFilter
-            value={thread.accessId}
-            options={buyers}
-            onChange={(next) => {
-              router.push(`/mi-empresa/procesos/${next}?pestana=${tab}`);
-            }}
-          />
-        ) : null
+        // S41 (Alex): the buyer filter only on Chat / Documentos and Reuniones.
+        tab !== "company" && options.length > 1 ? <BuyerFilter value={selected} options={options} onChange={pickBuyer} /> : null
       }
       panels={{
         company,
@@ -67,6 +77,7 @@ export function SellerProcessDesk({
             <ProcessChatLayout
               chat={
                 <ProjectThread
+                  key={thread.accessId}
                   viewer="seller"
                   partyName={thread.partyName}
                   messages={chat}
@@ -101,6 +112,7 @@ export function SellerProcessDesk({
         meetings:
           thread && thread.stage === "open" ? (
             <MeetingDesk
+              key={thread.accessId}
               messages={thread.messages}
               action={postSellerMessageAction}
               approveAction={approveSellerMeetingAction}
@@ -117,5 +129,11 @@ export function SellerProcessDesk({
           ),
       }}
     />
+    {buyer ? (
+      <BuyerCardOverlay autoFold={tab !== "company"}>
+        <BuyerCardSlider key={buyer.accessId} buyers={[{ id: buyer.accessId, label: buyer.label, card: buyer.card }]} />
+      </BuyerCardOverlay>
+    ) : null}
+    </>
   );
 }

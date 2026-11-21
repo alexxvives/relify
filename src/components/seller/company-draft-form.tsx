@@ -777,6 +777,7 @@ function AskingPriceField({
                       onChange(next);
                     }}
                   />
+                  {/* S41 (Alex): a small "Precio recomendado" button centred under the bar (the range midpoint). */}
                   {recommended ? (
                     <button
                       type="button"
@@ -785,7 +786,7 @@ function AskingPriceField({
                         recommended.onUse();
                         setDraft(recommended.input);
                       }}
-                      className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-[#c5ccd8] bg-white text-sm font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                      className="mx-auto mt-2 flex h-8 w-fit items-center justify-center rounded-full border border-[#c5ccd8] bg-white px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
                     >
                       {companyCopy.useRecommended}
                     </button>
@@ -865,7 +866,8 @@ function PriceRangeSteps({ estimate, basisYears }: { estimate: PriceEstimate; ba
     {
       title: "Rango orientativo",
       value: `${wholeEur(estimate.lowCents)} – ${wholeEur(estimate.highCents)}`,
-      note: `EBITDA × múltiplo, redondeado a miles. Recomendado: ${wholeEur(recommendedPriceCents(estimate))}, el punto medio`,
+      // S41 (Alex): short and accurate; the recommended price is the button under the bar.
+      note: "EBITDA de referencia × múltiplo ajustado",
     },
   ];
   return (
@@ -907,13 +909,13 @@ function AskingPriceRangeHint({ estimate }: { estimate: PriceEstimate }) {
     <InfoHint text={companyCopy.askingPriceHelp} icon="info" width="lg" size="sm" content={
       <div className="flex flex-col gap-2">
         <p className="font-semibold">Cómo se calcula el rango</p>
-        <p className="leading-5">EBITDA de referencia × múltiplo sectorial (mín.–máx.) = rango orientativo</p>
+        <p className="leading-5">EBITDA de referencia × múltiplo ajustado (mín.–máx.) = rango orientativo</p>
         <div className="rounded-lg bg-white/10 px-2.5 py-2 font-medium tabular-nums">
           <p>
-            EBITDA aj. × {minMultiple}x = {wholeEur(estimate.lowCents)}
+            EBITDA ref. × {minMultiple}x = {wholeEur(estimate.lowCents)}
           </p>
           <p className="mt-1">
-            EBITDA aj. × {maxMultiple}x = {wholeEur(estimate.highCents)}
+            EBITDA ref. × {maxMultiple}x = {wholeEur(estimate.highCents)}
           </p>
         </div>
       </div>

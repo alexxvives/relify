@@ -308,3 +308,28 @@ export function investorProcessFiles(input: {
     return view;
   });
 }
+
+/**
+ * S41 (Alex): the per-process "Tu turno" actions (accept the LOI, upload or sign the contract…) that Acciones pendientes
+ * lists next to new requests. Mirrors ProcessHeaderCue: at Contrato / Venta the contract's own next step wins.
+ */
+export function processTurnActions<
+  T extends {
+    accessId: string;
+    label: string;
+    stage: string;
+    steps: DealStep[];
+    contract?: { next: { who: "you" | "other" | "none"; text: string } } | null;
+  },
+>(threads: readonly T[], role: "investor" | "seller"): { accessId: string; label: string; action: string }[] {
+  return threads.flatMap((thread) => {
+    if (thread.stage === "pending") return [];
+    const current = thread.steps.find((step) => step.state === "current");
+    if (!current) return [];
+    if (thread.contract && (current.id === "documents" || current.id === "close")) {
+      return thread.contract.next.who === "you" ? [{ accessId: thread.accessId, label: thread.label, action: thread.contract.next.text }] : [];
+    }
+    const cue = stepCue(current.id, role, current.pendingLoi === true);
+    return cue.yours ? [{ accessId: thread.accessId, label: thread.label, action: cue.action }] : [];
+  });
+}
