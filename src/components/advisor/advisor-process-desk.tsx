@@ -6,6 +6,7 @@ import { AdvisorProcessThread } from "@/components/advisor/advisor-process-chats
 import { BuyerCardOverlay } from "@/components/advisor/advisor-rail-dock";
 import { BuyerFilter } from "@/components/investor/buyer-filter";
 import { InvestorProjectTabs, type ProcessTabId } from "@/components/investor/investor-project-tabs";
+import { MeetingDesk } from "@/components/investor/meeting-desk";
 import { ProcessChatLayout } from "@/components/investor/process-chat-layout";
 import { engagementCopy } from "@/lib/engagement-copy";
 import type { AdvisorContactView } from "@/lib/engagement-thread";
@@ -59,15 +60,38 @@ export function AdvisorProcessDesk({
       <div className="rounded-2xl border border-[#e6e9f0] bg-white p-5 text-sm text-[#64748b]">{engagementCopy.processChatsEmpty}</div>
     );
 
+  // S42 (Alex): Reuniones shows the picked buyer process's meetings (read-only; the server scopes them like the chat)
+  // and, below, the private meetings with the client. "Tu cliente" shows only the latter.
+  const clientMeetings = thread ? (
+    <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned only="meetings" />
+  ) : null;
+  const meetings = (
+    <div className="flex flex-col gap-6">
+      {active ? (
+        <section className="flex flex-col gap-3" data-process-meetings>
+          <h3 className="text-base font-semibold text-[#1c2740]">{engagementCopy.processMeetingsTitle(processChats?.side === "seller" ? active.label : null)}</h3>
+          <MeetingDesk key={active.accessId} messages={active.meetings} hidden={[]} today={today} />
+        </section>
+      ) : null}
+      {clientMeetings ? (
+        <section className="flex flex-col gap-3" data-client-meetings>
+          {active ? <h3 className="text-base font-semibold text-[#1c2740]">{engagementCopy.clientMeetingsTitle}</h3> : null}
+          {clientMeetings}
+        </section>
+      ) : null}
+    </div>
+  );
+
   return (
     <>
     <InvestorProjectTabs
       onTabChange={setTab}
-      actions={tab === "questions" ? <BuyerFilter value={selected} options={options} onChange={setSelected} /> : null}
+      // S42 (Alex): meetings differ per buyer, so the filter drives Reuniones too.
+      actions={tab !== "company" ? <BuyerFilter value={selected} options={options} onChange={setSelected} /> : null}
       panels={{
         company,
         questions: thread || processChats ? <ProcessChatLayout bare chat={chat} documents={documents} /> : locked,
-        meetings: thread ? <AdvisorContactDesk contacts={[thread]} today={today} showDocuments={false} pinned only="meetings" /> : locked,
+        meetings: thread || active ? meetings : locked,
       }}
     />
     {overlay ? <BuyerCardOverlay autoFold={tab !== "company"}>{overlay}</BuyerCardOverlay> : null}

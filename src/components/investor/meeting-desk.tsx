@@ -1,5 +1,6 @@
 "use client";
 
+import { processPanelGridClass } from "@/components/investor/process-chat-layout";
 import { useActionState, useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SquarePenIcon } from "@/components/ui/square-pen";
@@ -481,7 +482,8 @@ export function MeetingDesk({
   today,
 }: {
   messages: ThreadMessageView[];
-  action: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
+  /** Proposes a meeting; S42: omitted for a read-only desk (an advisor looking at a buyer process's meetings). */
+  action?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   approveAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   rescheduleAction?: (state: MessageActionState, formData: FormData) => Promise<MessageActionState>;
   hidden: { name: string; value: string }[];
@@ -515,10 +517,11 @@ export function MeetingDesk({
   }
 
   return (
-    <section className="grid min-w-0 items-stretch gap-4 xl:grid-cols-2">
+    <section className={processPanelGridClass}>
       <div className="h-full rounded-2xl border border-[#e6e9f0] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-semibold text-[#1c2740]">{sellerCopy.meetingsCalendar}</h3>
+          {action ? (
           <button
             type="button"
             onClick={() => {
@@ -528,6 +531,7 @@ export function MeetingDesk({
           >
             {sellerCopy.meetingsPropose}
           </button>
+          ) : null}
         </div>
         <div className="mt-4">
           <MonthGrid
@@ -564,15 +568,17 @@ export function MeetingDesk({
           ))}
         </ul>
       </div>
-      <MeetingDialog
-        dialogRef={proposeRef}
-        title={sellerCopy.meetingsPropose}
-        formKey={proposeKey}
-        action={action}
-        hidden={hidden}
-        submitLabel={sellerCopy.meetingsPropose}
-        today={today}
-      />
+      {action ? (
+        <MeetingDialog
+          dialogRef={proposeRef}
+          title={sellerCopy.meetingsPropose}
+          formKey={proposeKey}
+          action={action}
+          hidden={hidden}
+          submitLabel={sellerCopy.meetingsPropose}
+          today={today}
+        />
+      ) : null}
       {rescheduleAction && editing && editingSlot ? (
         <MeetingDialog
           dialogRef={editRef}

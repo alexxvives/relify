@@ -507,12 +507,15 @@ function PriceBar({
   recommendedCents = null,
   onChange,
   onCommit,
+  center = null,
 }: {
   estimate: PriceEstimate;
   askingCents: number | null;
   recommendedCents?: number | null;
   onChange?: (cents: number) => void;
   onCommit?: (cents: number) => void;
+  /** S42 (Alex): the "Precio recomendado" button, right under the bar between the Mín. and Máx. labels. */
+  center?: ReactNode;
 }) {
   const { minCents, maxCents } = priceBarEnds(estimate);
   const marked = askingCents !== null && askingCents > 0 ? askingCents : null;
@@ -622,13 +625,16 @@ function PriceBar({
           />
         ) : null}
       </div>
-      <div className="mt-1.5 flex items-start justify-between gap-2 text-[11px] leading-4 text-[#667085] tabular-nums">
+      <div
+        className={`mt-1.5 items-start gap-2 text-[11px] leading-4 text-[#667085] tabular-nums ${center ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
+      >
         <span>
           Mín.
           <br />
           {wholeEur(minCents)}
         </span>
-        <span className="text-right">
+        {center}
+        <span className="justify-self-end text-right">
           Máx.
           <br />
           {wholeEur(maxCents)}
@@ -776,21 +782,22 @@ function AskingPriceField({
                       setDraft(next);
                       onChange(next);
                     }}
+                    center={
+                      recommended ? (
+                        <button
+                          type="button"
+                          data-use-recommended
+                          onClick={() => {
+                            recommended.onUse();
+                            setDraft(recommended.input);
+                          }}
+                          className="flex h-8 w-fit shrink-0 items-center justify-center rounded-full border border-[#c5ccd8] bg-white px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
+                        >
+                          {companyCopy.useRecommended}
+                        </button>
+                      ) : null
+                    }
                   />
-                  {/* S41 (Alex): a small "Precio recomendado" button centred under the bar (the range midpoint). */}
-                  {recommended ? (
-                    <button
-                      type="button"
-                      data-use-recommended
-                      onClick={() => {
-                        recommended.onUse();
-                        setDraft(recommended.input);
-                      }}
-                      className="mx-auto mt-2 flex h-8 w-fit items-center justify-center rounded-full border border-[#c5ccd8] bg-white px-3 text-xs font-semibold text-[#465ab4] hover:bg-[#eef1fb] focus-visible:ring-2 focus-visible:ring-[#465ab4]/40 focus-visible:outline-none"
-                    >
-                      {companyCopy.useRecommended}
-                    </button>
-                  ) : null}
                   <PriceRangeSteps estimate={estimate} basisYears={ebitdaBasisYears} />
                 </div>
               ) : (
@@ -843,6 +850,19 @@ function formatX(value: number): string {
  * S32: the asking-price sheet shows, step by step, how `estimatePriceRange` builds the range:
  * EBITDA de referencia → múltiplo del sector (CNAE) → ajustes → rango (rounded to 1.000 €) and its midpoint.
  */
+const rangeNote = "EBITDA de referencia × múltiplo + ajustes";
+
+function signedX(value: number): string {
+  if (value === 0) return "sin cambio";
+  return `${value > 0 ? "+" : "−"}${formatX(Math.abs(value))}`;
+}
+
+/** S42: "Plantilla +0,25x · Ventas sin cambio · Tendencia del EBITDA +0,5x" (sales and trend capped together at ±0,75x). */
+function factorNote(estimate: PriceEstimate): string {
+  const { headcount, sales, ebitdaTrend, trendCapped } = estimate.factors;
+  return `Plantilla ${signedX(headcount)} · Crecimiento de ventas ${signedX(sales)} · Tendencia del EBITDA ${signedX(ebitdaTrend)}${trendCapped ? " (ventas y tendencia suman como máximo ±0,75x)" : ""}`;
+}
+
 function PriceRangeSteps({ estimate, basisYears }: { estimate: PriceEstimate; basisYears: number[] }) {
   const basisNote =
     basisYears.length > 1
@@ -861,13 +881,14 @@ function PriceRangeSteps({ estimate, basisYears }: { estimate: PriceEstimate; ba
     {
       title: "Ajustes",
       value: shifted ? `${formatX(estimate.multipleLow)} – ${formatX(estimate.multipleHigh)}` : "Sin cambios",
-      note: estimate.adjustments.length > 0 ? `Por ${estimate.adjustments.join(", ")}` : "Plantilla, ventas y tendencia del EBITDA no mueven el múltiplo",
+      // S42 (Alex): every factor in sight, with what it did to the multiple.
+      note: factorNote(estimate),
     },
     {
       title: "Rango orientativo",
       value: `${wholeEur(estimate.lowCents)} – ${wholeEur(estimate.highCents)}`,
-      // S41 (Alex): short and accurate; the recommended price is the button under the bar.
-      note: "EBITDA de referencia × múltiplo ajustado",
+      // S42 (Alex): the multiple is the sector's plus the adjustments above.
+      note: rangeNote,
     },
   ];
   return (
@@ -909,7 +930,8 @@ function AskingPriceRangeHint({ estimate }: { estimate: PriceEstimate }) {
     <InfoHint text={companyCopy.askingPriceHelp} icon="info" width="lg" size="sm" content={
       <div className="flex flex-col gap-2">
         <p className="font-semibold">Cómo se calcula el rango</p>
-        <p className="leading-5">EBITDA de referencia × múltiplo ajustado (mín.–máx.) = rango orientativo</p>
+        <p className="leading-5">{rangeNote} (mín.–máx.) = rango orientativo</p>
+        <p className="leading-5">Ajustes: {factorNote(estimate)}</p>
         <div className="rounded-lg bg-white/10 px-2.5 py-2 font-medium tabular-nums">
           <p>
             EBITDA ref. × {minMultiple}x = {wholeEur(estimate.lowCents)}

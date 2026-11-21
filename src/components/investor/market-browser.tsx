@@ -63,13 +63,14 @@ export function MarketBrowser({
   }
 
   const regionOptions = useMemo(
-    () => [...new Set(projects.map((project) => project.region))].sort((left, right) => left.localeCompare(right, "es")),
+    // S42 (Alex): a company with no region left a blank option under "Todas"; only real regions are offered.
+    () => [...new Set(projects.map((project) => project.region.trim()).filter((region) => region.length > 0))].sort((left, right) => left.localeCompare(right, "es")),
     [projects],
   );
 
   const source = onlyFavorites ? projects.filter((project) => savedSlugs.includes(project.slug)) : projects;
   const matched = filterMarketProjects(source, { query, sort, revenueBand, regions, sector });
-  const sectorOptions = [...new Map(projects.flatMap((project) => (project.sector && project.sectorLabel ? [[project.sector, project.sectorLabel] as const] : []))).entries()].sort(
+  const sectorOptions = [...new Map(projects.flatMap((project) => (project.sector?.trim() && project.sectorLabel?.trim() ? [[project.sector, project.sectorLabel] as const] : []))).entries()].sort(
     (left, right) => left[1].localeCompare(right[1], "es"),
   );
   const shown = favoritesOnly ? matched.filter((project) => savedSlugs.includes(project.slug)) : matched;

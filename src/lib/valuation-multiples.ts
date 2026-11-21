@@ -141,6 +141,8 @@ export type PriceEstimate = {
   multipleLow: number;
   multipleHigh: number;
   adjustments: string[];
+  /** S42: how each factor moved the multiple (veces EBITDA); sales + EBITDA trend are capped together at ±0.75. */
+  factors: { headcount: number; sales: number; ebitdaTrend: number; trendCapped: boolean };
 };
 
 export type PriceEstimator = (input: PriceEstimateInput) => PriceEstimate | null;
@@ -151,9 +153,11 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
   const base = sectorMultiples[sector];
   let shift = 0;
   const adjustments: string[] = [];
+  const factors = { headcount: 0, sales: 0, ebitdaTrend: 0, trendCapped: false };
 
   if (headcount) {
     const size = headcountAdjustment[headcount];
+    factors.headcount = size;
     if (size !== 0) {
       shift += size;
       adjustments.push(size > 0 ? "tamaño de la plantilla (+)" : "tamaño reducido (−)");
@@ -162,9 +166,11 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
   let trendShift = 0;
   if (typeof revenueGrowth === "number" && Number.isFinite(revenueGrowth)) {
     if (revenueGrowth >= growthAdjustment.strongGrowth) {
+      factors.sales = growthAdjustment.up;
       trendShift += growthAdjustment.up;
       adjustments.push("ventas en crecimiento (+)");
     } else if (revenueGrowth <= growthAdjustment.decline) {
+      factors.sales = growthAdjustment.down;
       trendShift += growthAdjustment.down;
       adjustments.push("ventas en descenso (−)");
     }
@@ -172,11 +178,13 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
 
   if (typeof trend === "number" && Number.isFinite(trend)) {
     const ebitdaShift = ebitdaTrendShift(trend);
+    factors.ebitdaTrend = ebitdaShift;
     if (ebitdaShift !== 0) {
       trendShift += ebitdaShift;
       adjustments.push(ebitdaShift > 0 ? "tendencia del EBITDA al alza (+)" : "tendencia del EBITDA a la baja (−)");
     }
   }
+  factors.trendCapped = Math.abs(trendShift) > trendShiftCap;
   shift += Math.max(-trendShiftCap, Math.min(trendShiftCap, trendShift));
 
   const multipleLow = Math.max(minimumMultiple, base.low + shift);
@@ -193,6 +201,7 @@ export const estimatePriceRange: PriceEstimator = ({ cnae, ebitdaCents, headcoun
     multipleLow,
     multipleHigh,
     adjustments,
+    factors,
   };
 };
 

@@ -73,6 +73,8 @@ export const engagementCopy = {
   clientBuyer: "Comprador (tu cliente)",
   deletePaid: "Este encargo ya tiene el depósito pagado. Escríbenos para cancelarlo y Relify revisará la devolución.",
   depositTitle: "Depósito para aceptar",
+  processMeetingsTitle: (label: string | null) => (label ? `Reuniones del proceso · ${label}` : "Reuniones del proceso"),
+  clientMeetingsTitle: "Reuniones con tu cliente",
   depositBody: "Pagarlo acepta la solicitud y te reserva el encargo.",
   depositRowAmount: "Importe del depósito",
   depositRowFormula: "Cálculo",

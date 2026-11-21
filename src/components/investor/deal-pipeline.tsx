@@ -366,28 +366,11 @@ export function ProcessHeaderCue({
   const canSign = Boolean(sign) && signKindFor !== null;
 
   if (contractNext && (current?.id === "documents" || current?.id === "close")) {
-    return (
-      <div className="flex min-w-0 flex-wrap items-center gap-3">
-        {contractNext.who === "you" ? (
-          <span className="flex min-w-0 items-start gap-3">
-            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">Tu turno</span>
-            <p className="pt-1 text-sm leading-5 text-[#1c2740]">{contractNext.text}</p>
-          </span>
-        ) : (
-          <DealWaitingCue cue={{ action: contractNext.text }} />
-        )}
-        {action}
-      </div>
-    );
+    return <CueLine yours={contractNext.who === "you"} text={contractNext.text} action={action} />;
   }
 
   if (!current) {
-    return (
-      <div className="flex min-w-0 flex-wrap items-center gap-3">
-        <DealWaitingCue cue={{ action: "La compraventa está hecha." }} />
-        {action}
-      </div>
-    );
+    return <CueLine yours={false} text="La compraventa está hecha." action={action} />;
   }
 
   if (!cue) {
@@ -396,36 +379,28 @@ export function ProcessHeaderCue({
 
   return (
     <>
-      <div className="flex min-w-0 flex-wrap items-center gap-3">
-        {cue.yours ? (
-          <span className="flex min-w-0 items-start gap-3">
-            <span className="shrink-0 rounded-full bg-[#fde8e8] px-2.5 py-1 text-xs leading-5 font-semibold text-[#b42318]">
-              Tu turno
-            </span>
-            <p className="pt-1 text-sm leading-5 text-[#1c2740]">{cue.action}</p>
-          </span>
-        ) : (
-          <DealWaitingCue cue={cue} />
-        )}
-        {canProceed && sign ? (
-          <button
-            type="button"
-            onClick={() => proceedToLoi(sign.slug)}
-            className={stepCtaClass}
-          >
-            Proceder al LOI
-          </button>
-        ) : null}
-        {canSign && signKindFor ? (
-          <SignNow
-            kind={signKindFor}
-            onSign={() => {
-              setSignKind(signKindFor);
-            }}
-          />
-        ) : null}
-        {action}
-      </div>
+      <CueLine
+        yours={cue.yours}
+        text={cue.action}
+        action={
+          <>
+            {canProceed && sign ? (
+              <button type="button" onClick={() => proceedToLoi(sign.slug)} className={stepCtaClass}>
+                Proceder al LOI
+              </button>
+            ) : null}
+            {canSign && signKindFor ? (
+              <SignNow
+                kind={signKindFor}
+                onSign={() => {
+                  setSignKind(signKindFor);
+                }}
+              />
+            ) : null}
+            {action}
+          </>
+        }
+      />
       {sign && signKind ? (
         <ProcessSignDialog
           kind={signKind}
@@ -437,6 +412,27 @@ export function ProcessHeaderCue({
         />
       ) : null}
     </>
+  );
+}
+
+/**
+ * S42 (Alex): a card's cue ("Tu turno" or "Qué sigue") with its step buttons flowing right after the end of the text,
+ * on the same line, wrapping only when the line is truly full.
+ */
+function CueLine({ yours, text, action }: { yours: boolean; text: string; action?: ReactNode }) {
+  return (
+    <span className="flex min-w-0 items-start gap-3">
+      <span
+        className={`shrink-0 rounded-full px-2.5 py-1 text-xs leading-5 font-semibold ${yours ? "bg-[#fde8e8] text-[#b42318]" : "bg-[#e8f6ee] text-[#17663a]"}`}
+      >
+        {yours ? "Tu turno" : "Qué sigue"}
+      </span>
+      {/* A div, not a p: step buttons carry their own dialogs. */}
+      <div className={`min-w-0 pt-1 text-sm leading-5 ${yours ? "text-[#1c2740]" : "text-[#3d4a63]"}`}>
+        {text}
+        {action ? <span className="ml-3 inline-flex flex-wrap items-center gap-2 align-middle empty:hidden">{action}</span> : null}
+      </div>
+    </span>
   );
 }
 

@@ -391,9 +391,9 @@ function FolderCard({
   }
 
   return (
-    <li className="group/folder relative">
+    <li className="group/folder relative h-full">
       {editing ? (
-        <form action={action} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-4">
+        <form action={action} className="flex h-full min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-[#e1e6ee] bg-[#fbfbfc] px-4">
           <input type="hidden" name="from" value={name} />
           <FolderOpenIcon size={40} className="text-[#d5dbe3]" aria-hidden />
           <Input
@@ -444,11 +444,12 @@ function FolderCard({
             }}
             className={
               featured
-                ? "flex min-h-40 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
-                : "flex min-h-40 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
+                ? "flex h-full min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border-2 border-[#465ab4] bg-[#eef2ff] px-3 py-4 text-center shadow-[0_10px_24px_-18px_rgba(70,90,180,0.9)]"
+                : "flex h-full min-h-44 w-full cursor-pointer flex-col items-center justify-center overflow-visible rounded-2xl border border-[#eef0f3] bg-[#fbfbfc] px-3 py-4 text-center"
             }
           >
-            <DocumentsFolder label={name} items={papers} accent={featured} onActivate={onOpen} size={0.56} />
+            {/* S42 (Alex): 15 % smaller (0.56 → 0.48) so the folder no longer covers the tile buttons. */}
+            <DocumentsFolder label={name} items={papers} accent={featured} onActivate={onOpen} size={0.48} />
             <span className="mt-2 block text-sm font-semibold text-[#1c2740]">{name}</span>
             <span className="mt-1 block text-xs text-[#667085]">
               {documentCountLabel(count)}
@@ -707,10 +708,11 @@ export function SellerDocuments({
           </div>
           <ShareMenu scope={{ kind: "room" }} investors={shares} advisors={advisors} files={listed} folders={folders} label={sellerCopy.shareAll} />
         </div>
+        {/* S42 (Alex): every tile, Crear carpeta included, takes the row's height (min 11rem). */}
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <li>
+          <li className="h-full">
             {namingFolder ? (
-              <form action={createAction} className="flex h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
+              <form action={createAction} className="flex h-full min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] px-4">
                 <Input
                   name="name"
                   required
@@ -746,7 +748,7 @@ export function SellerDocuments({
                 onClick={() => {
                   setNamingFolder(true);
                 }}
-                className="flex h-44 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] text-[#465ab4] hover:bg-[#f4f7ff]"
+                className="flex h-full min-h-44 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#c5cdd8] bg-[#fbfbfc] text-[#465ab4] hover:bg-[#f4f7ff]"
               >
                 <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#eef2ff]">
                   <PlusIcon size={22} aria-hidden />

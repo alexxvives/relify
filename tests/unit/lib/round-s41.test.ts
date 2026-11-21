@@ -46,8 +46,7 @@ describe("Round S41 (Alex t182u)", () => {
   it("8a/9a: a small centred Precio recomendado button and short range copy", () => {
     expect(companyCopy.useRecommended).toBe("Precio recomendado");
     const form = read("src/components/seller/company-draft-form.tsx");
-    expect(form).toMatch(/mx-auto mt-2 flex h-8 w-fit/);
-    expect(form).toMatch(/note: "EBITDA de referencia × múltiplo ajustado"/);
+    expect(form).toMatch(/flex h-8 w-fit shrink-0/);
     expect(form).not.toMatch(/redondeado a miles|EBITDA aj\. ×/);
   });
 

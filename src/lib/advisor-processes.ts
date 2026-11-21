@@ -162,7 +162,8 @@ export function advisorProjectBoards(rows: readonly AdvisorEngagementSnapshot[])
 
       lanes.push({
         key: `comprador-${lanes.length}`,
-        label: advisorCopy.buyerLane,
+        // S42 (Alex): the client's real name, "Comprador" only when the account has none.
+        label: ("connectedName" in access ? access.connectedName?.trim() : "") || advisorCopy.buyerLane,
         steps: laneSteps(access, first.saleClosed),
         signNdaId: row.depositPaid && !row.advisorNda && !row.closed ? row.id : null,
         ndaText: null,

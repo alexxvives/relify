@@ -74,9 +74,9 @@ describe("S29b 1: Revisión merged into LOI", () => {
     expect(read("src/components/landing/landing-pipeline.tsx")).not.toMatch(/diligence/);
   });
 
-  it("keeps the asesor link in the bottom-right row from Preguntas through Contrato", () => {
+  it("S42: the asesor link left the Mis procesos cards (Mi asesor covers it)", () => {
     for (const file of ["src/components/investor/investor-processes.tsx", "src/components/seller/seller-processes.tsx"]) {
-      expect(read(file), file).toMatch(/current\?\.id === "qa" \|\| current\?\.id === "loi" \|\| current\?\.id === "documents"/);
+      expect(read(file), file).not.toMatch(/wantsAdvisor/);
     }
   });
 
